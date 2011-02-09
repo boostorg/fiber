@@ -1,6 +1,5 @@
 bin.v2/**/*
 dist/**/*
-**/*/doc/**/*
 doc/**/*
 html/**/*
 stage/**/*
