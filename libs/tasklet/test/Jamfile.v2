@@ -1,0 +1,44 @@
+# Boost.tasklet Library Tests Jamfile
+
+#          Copyright Oliver Kowalke 2009.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+import testing ;
+
+project boost/tasklet/test
+    : requirements
+        <library>../../test/build//boost_unit_test_framework
+        <library>/boost/fiber//boost_fiber
+        <library>/boost/tasklet//boost_tasklet
+        <library>/boost/thread//boost_thread
+        <link>static
+        <threading>multi
+    ;
+
+rule tasklet-test ( source )
+{
+    return
+        [ run $(source).cpp ]
+    ;
+}
+
+test-suite tasklet :
+   [ tasklet-test test_spin_mutex ]
+   [ tasklet-test test_spin_condition ]
+   [ tasklet-test test_tasklet ]
+   [ tasklet-test test_scheduler ]
+   [ tasklet-test test_utility ]
+   [ tasklet-test test_cancel ]
+   [ tasklet-test test_priority ]
+   [ tasklet-test test_join ]
+   [ tasklet-test test_interrupt ]
+   [ tasklet-test test_mutex ]
+   [ tasklet-test test_lock ]
+   [ tasklet-test test_condition ]
+   [ tasklet-test test_barrier ]
+   [ tasklet-test test_auto_reset_event ]
+   [ tasklet-test test_manual_reset_event ]
+   [ tasklet-test test_count_down_event ]
+    ;

@@ -1,0 +1,86 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:new_thread Execute in Separat Thread]
+
+[heading Synopsis]
+
+__new_thread__ creates a new thread and executes the task in this thread (asynchronous). The created thread gets
+joined by handle.
+The returned __handle__ joins the thread in its destructor (if the last reference gets out of scope).
+
+	long fibonacci( long n)
+	{
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		return k1;
+	}
+
+	void main()
+	{
+		boost::task::task< long > t( fibonacci, 10);
+
+		boost::task::handle< long > h(
+			boost::task::async(
+				boost::move( t),
+				boost::task::new_thread() ) );
+
+		std::cout << "fibonacci(10) == " << h.get() << std::endl;
+	}
+
+
+[caution Always store the returned __act__ in a variable because __handle__ joins the thread in its destructor (if the last
+reference gets out of scope). ]
+
+
+In the example below both `a_function()` and `another_function()` are executed synchron because the returned __handle__ is not stored in
+a variable. Thatswhy the __worker_thread__ is joined after return from __fn_async__!
+
+	boost::task::task< void > t1( a_function);
+	boost::task::task< void > t2( another_function);
+
+	// handles are not retrieved
+	// both task executed in sequence
+	boost::task::async(
+		boost::move( t1),
+		boost::task::new_thread() ) );
+	boost::task::async(
+		boost::move( t2),
+		boost::task::new_thread() ) );
+
+
+[section:new_thread Class `new_thread`]
+
+	#include <boost/task/async.hpp>
+
+	struct new_thread
+	{
+		template< typename R >
+		handle< R > operator()( task< R >);
+	};
+
+
+[section `template< typename R > handle< R > operator()( task< R > t)`]
+[variablelist
+[[Effects:] [moves task in a new thread an returns an handle associated with the task]]
+[[Throws:] [`boost::thread_resource_error`]]
+]
+[endsect]
+
+[endsect]
+
+[endsect] 
+ 
+ 

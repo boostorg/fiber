@@ -1,0 +1,22 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:todo Todo]
+
+* optimize memory ordering in atomic ops.
+
+* replace thread_specific_ptr by an specialiced implementation for `boost::tasks::detail::worker`
+
+* __dynamic_pool__ adds or removes __worker_threads__ from the __thread_pool__
+  depending on the work-load (undersubscription/oversubscription).
+
+* task group defines a graph of interdependent tasks that can mostly be run in
+  parallel. The tasks in the group have dependencies or communicate with each
+  other.
+
+[endsect]

@@ -1,0 +1,118 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:queue Global Queue]
+
+A __queue__ synchronizes the access between application threads and __worker_threads__ and implements policies for limitating the amount of queued tasks and how those tasks are scheduled ( first-in-first-out, priority ordering etc.)
+
+
+[heading Bounded Queues]
+
+__bounded_queue__ limits the number of queued (pending) tasks in order to prevent resource exhaustion.
+For this purpose a high- and low-watermark has to be passed at construction.
+__hwm__ sets the maximum of pending tasks. If this limited is reached all threads which submit a task will be set to sleep (blocked). If it is equal to __lwm__ everytime a 
+sleeping producer thread will be woken up and puts its task if one worker thread has taken a task from the queue.
+__lwm__ sets the threshold when blocked threads get woken up. If it is less than __hwm__ all sleeping producer threads will be woken up if
+the amount of pending tasks reaches __lwm__.
+
+
+[heading Unbounded Queues]
+
+__unbounded_queue__  allows ann unlimited number of tasks to be queued.
+The insertion of an __task__ will never block. If the queue becomes empty __worker_threads__ will be set to sleep until new tasks are enqueued.
+
+
+[heading Task Scheduling]
+
+For scheduling of tasks inside the queue following strategies are available:
+
+* fifo: first enqueued task is dequeued first
+
+* priority: the next item dequeued from the queue depends on its associated priority attribute and sorting criterion applied to the queue (template arguments)
+
+	// thread-pool with priority scheduling
+	// tasks with higher priority are
+	// scheduled first
+	boost::task::static_pool< boost::task::unbounded_priority_queue< int > > pool( boost::task::poolsize( 5) );
+
+	boost::task::task< void > t1( some_fn);
+	boost::task::task< void > t2( another_fn);
+
+	// move task t1 with priority 5 to thread-pool
+	boost::task::async(
+		boost::move( t1),
+		5,
+		pool);
+
+	// move task t2 with priority 3 to thread-pool
+	boost::task::async(
+		boost::move( t2),
+		3,
+		pool);
+
+
+* smart: enqueue- and dequeue-operations are determined by the template arguments und the task-attribute. The library provides an default let only one kind of task stored inside the queue (gets replaced by new one)
+
+	long fibonacci_fn( long n)
+	{
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		return k1;
+	}
+
+	typedef boost::task::static_pool< boost::task::unbounded_smart_queue< int > > pool_type;
+
+	void main()
+	{
+		pool_type pool( boost::task::poolsize( 1) );
+
+		...
+
+		boost::task::task< long > t1(
+			boost::bind( fibonacci_fn, 10) );
+		boost::task::task< long > t2(
+			boost::bind( fibonacci_fn, 5) );
+
+		// replaced by later task with same attribute == 2
+		// if still pending in pool
+		boost::task::async(
+			boost::move( t1),
+			2,
+			pool);
+
+		// will replace previous pending task with attribute == 2
+		boost::task::async(
+			boost::move( t2),
+			2,
+			pool);
+	}
+
+
+__boost_task__ provides following queues:
+
+* bounded_fifo
+
+* bounded_priority_queue< Attr, Comp = std::less< Attr > >
+
+* bounded_smart_queue< Attr, Comp, Enq = detail::replace_oldest, Deq = detail::take_oldest >
+
+
+* unbounded_fifo
+
+* unbounded_priority_queue< Attr, Comp = std::less< Attr > >
+
+* unbounded_smart_queue< Attr, Comp, Enq = detail::replace_oldest, Deq = detail::take_oldest >
+
+[endsect]

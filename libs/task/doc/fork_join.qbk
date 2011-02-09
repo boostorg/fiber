@@ -1,0 +1,78 @@
+/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:forkjoin Fork/Join]
+
+Fork/Join algorithms are recursive divide-and-conquer algorithms which repeatedly splitt into sub-tasks until they become small
+enough to solve using simple, short sequential methods, so that they run in parallel on multiple cores.
+
+The fork operation creates new __sub_tasks__ which can run in parallel. The current __task__ is not proceeded in the join operation
+until the forked __sub_tasks__ have completed. In the meantime the __worker_thread__ executes other tasks from its local __worker_queue__.
+
+``
+	long serial_fib( long n)
+	{
+		if( n < 2) return n;
+		else return serial_fib( n - 1) + serial_fib( n - 2);
+	}
+
+	long parallel_fib( long n, long cutof)
+	{
+		if ( n < cutof) return serial_fib( n);
+		else
+		{
+			// fork sub-task by moving the task
+			// ownership to the thread-pool
+			// sub-task computes fibonacci(n-1)
+			h1 = boost::task::async(
+				boost::task::make_task(
+					parallel_fib,
+					n - 1,
+					cutof) );
+
+			// fork sub-task by moving the task
+			// ownership to the thread-pool
+			// sub-task computes fibonacci(n-2)
+			h2 = boost::task::async(
+				boost::task::make_task(
+					parallel_fib,
+					n - 2,
+					cutof) );
+
+			// join the results of both sub-tasks
+			// if one of the both sub-tasks is not ready
+			// the worker-thread does not block, it executes other
+			// task from its local-queue
+			return h1.get() + h2.get();
+		}
+	}
+
+	void main()
+	{
+		boost::task::static_pool< boost::task::unbounded_fifo > pool( boost::task::poolsize( 5) );
+
+		// compute fibonacci-number 10
+		// for numbers < 5 do inline calculation
+		boost::task::task< long > t(
+			parallel_fib,
+			10,
+			5);
+
+		// move task ownership to thread-pool
+		boost::task::handle< long > h(
+			boost::task::async(
+				boost::move( t),
+				pool) );
+
+		// access result
+		std::cout << "fibonacci(10) == " << h.get() << std::endl;
+	}
+``
+
+
+[endsect]

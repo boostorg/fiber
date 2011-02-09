@@ -1,0 +1,67 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:overview Overview]
+
+__boost_fiber__ provides an framework utilizing lightweight threads of execution
+- also known as user-space threads, microthreads or fibers.  The API contains
+classes and functions to manage fibers.
+
+A fiber is able to store the current execution state, including all registers
+and CPU flags, the instruction pointer, and the stack pointer and later restore
+this state (on behalf of __boost_context__). The idea is to have multiple
+execution paths running on a single thread using a sort of cooperative
+scheduling (threads are preemptively scheduled) - the running fiber decides
+explicitly when its yields to allow another fiber to run (fiber switching).
+Fibers are less expensive than threads because the kernel doesn't know anything
+about fibers - no kernel transitions are required for scheduling (done in the
+user-space).
+A context switch between threads costs usally thousends of CPU cycles on x86
+compared to a fiber switch with few hundreds of cycles.
+A fiber can only run on a single thread at any point in time but may be migrated
+between threads. Because a thread can run many different fibers during its life
+cycle the name ['fiber] was choosen.
+
+Beside fibers a conceptualy equivalent constructs are coroutines. A coroutine
+can be seen as a language-level construct while a fiber is a system-level
+construct.
+
+It is characteristic for a fiber that local data of a fiber persist between
+successive calls of the (symmetric or asymetric) control transfer operations.  
+The __boost_fiber__ framework provides stackfull fiber implementations allowing
+to suspend and resume the execution from within nested functions.
+
+[caution The documentation from __boost_context__ is relevant too.]
+
+In order to use the classes and functions described here, you can either include
+the specific headers specified by the descriptions of each class or function, or
+include the master library header:
+
+    #include <boost/fiber/all.hpp>
+
+which includes all the other headers in turn.
+
+Used namespaces is:
+
+    namespace boost::fibers
+
+
+[warning This library is ['not] an official Boost library]
+
+__boost_fiber__ depends uppon __boost_context__ and
+__boost_move__.
+
+
+[heading How to build and install]
+
+* download the sources from
+[@http://www.boost-consulting.com/vault/index.php?directory=Concurrent%20Programming Boost Vault]
+* extract the archive into the boost-source directory
+* call ['bjam] (take the different build options of __boost_context__ into acount)
+
+
+[endsect]

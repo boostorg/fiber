@@ -1,0 +1,36 @@
+[/ Boost.Extension - windows export and import decs ]
+[/ Copyright 2008 Jeremy Pack ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[section:appendix_a Appendix A - Windows Export and Import Declarations]
+On the Windows platform, special export declarations are required to make
+functions or classes in a .dll file accessible to the outside world. For
+normal usage of Boost.Extension, the only place this is required is in the
+one function that is exported from each .dll. The Hello World sample program
+illustrates how this is done using `BOOST_EXTENSION_EXPORT`.
+
+For implementation inheritance across shared libraries, such as that in the 
+Multiple Inheritance sample, each class that is not header-only that needs to be
+exported must have these declarations included. To make it more difficult,
+they must be different depending on whether the class is being imported into or
+exported from the current module. The Multiple Inheritance sample shows how this
+is done.
+
+[h3 Warning]
+Now for a word of warning that many of you will ignore: In the great majority
+of cases, even if non-header-only implementation inheritance across shared 
+libraries seems like a good idea, there is probably a better solution. Although
+it certainly has its uses, it can cause problems like the following:
+
+
+* Version problems - if the original implementation changes at all, every
+dependent shared library must be recompiled with the new implementation.
+* Tight coupling between shared libraries. One of the primary reasons for using
+shared libraries is to decrease coupling, and promote reuse.
+* It can lead to overly complicated, over-designed class hierarchies. 
+
+
+[endsect]

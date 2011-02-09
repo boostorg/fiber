@@ -1,0 +1,18 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:spin_synchronization Synchronization]
+
+Synch. objects using spin-wait ops. reside in namespace `boost::tasks::spin`.
+
+[include spin_mutexes.qbk]
+[include spin_condition_variables.qbk]
+[include spin_barrier.qbk]
+[include spin_event_variables.qbk]
+[include spin_fifos.qbk]
+[include spin_futures.qbk]
+[endsect]

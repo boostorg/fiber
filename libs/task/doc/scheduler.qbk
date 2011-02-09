@@ -1,0 +1,125 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:scheduling Scheduling]
+
+The scheduling policy determines how tasks are scheduled inside the __queue__.
+
+
+[heading fifo]
+
+First inserted pending __task__ gets taken first.
+
+
+[heading priority]
+
+Each __task__ is submitted to the pool with a priority attribute. The type and ordering of the priority is user-defined.
+
+``
+	// thread-pool with priority scheduling
+	// tasks with higher priority are
+	// scheduled first
+	boost::task::static_pool<
+		boost::task::unbounded_queue<
+			boost::task::priority< int > >
+	> pool( boost::task::poolsize( 5) );
+
+	boost::task::task< void > t1( some_fn);
+	boost::task::task< void > t2( another_fn);
+
+	// move task t1 with priority 5 to thread-pool
+	boost::task::async(
+		boost::move( t1),
+		5,
+		pool);
+
+	// move task t2 with priority 3 to thread-pool
+	boost::task::async(
+		boost::move( t2),
+		3,
+		pool);
+``
+
+In this example the tasks get scheduled by the assigned integer (third argument of __fn_async__). The __task__ with the
+lowest priority gets scheduled first (taken by a __worker_thread__). The ordering can be changed by the second argument
+of __priority__ (the default is `std::greater< Attr >`).
+
+``
+	// thread-pool with priority scheduling
+	// tasks with lower priority are
+	// scheduled first
+	boost::task::static_pool<
+		boost::task::unbounded_queue<
+			boost::task::priority< int, std::less< int > >
+		>
+	> pool( boost::task::poolsize( 5) );
+``
+
+
+[heading smart]
+
+Each inserted __task__ is associated with an attribute. The scheduler gets an put- and take-policy as template arguments.
+The corresponding policy gets applied for each insertion and removal.
+
+__boost_task__ provides __replace_oldest__ as put- policy and __take_oldest__ as take-policy. Both policies allow the
+replacement of older (pending) tasks in the scheduler by new ones.
+
+``
+	long fibonacci_fn( long n)
+	{
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		return k1;
+	}
+
+	typedef boost::task::static_pool<
+		boost::task::unbounded_queue<
+			boost::task::smart<
+				int,
+				std::less< int >,
+				boost::task::replace_oldest,
+				boost::task::take_oldest
+			>
+		>
+	> pool_type;
+
+	void main()
+	{
+		pool_type pool( boost::task::poolsize( 1) );
+
+		...
+
+		boost::task::task< long > t1(
+			boost::bind( fibonacci_fn, 10) );
+		boost::task::task< long > t2(
+			boost::bind( fibonacci_fn, 5) );
+
+		// replaced by later task with same attribute == 2
+		// if still pending in pool
+		boost::task::async(
+			boost::move( t1),
+			2,
+			pool);
+
+		// will replace previous pending task with attribute == 2
+		boost::task::async(
+			boost::move( t2),
+			2,
+			pool);
+	}
+``
+
+
+[endsect]

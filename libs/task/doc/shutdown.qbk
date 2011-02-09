@@ -1,0 +1,106 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:pool_shutdown Shutdown]
+
+__boost_task__ allows to shutdown a __thread_pool__ explicitly via functions __fn_shutdown__ and __fn_shutdown_now__. The
+destructor of the pool calls __fn_shutdown__ if not already done so that all __worker_threads__ are joined.
+
+If __fn_shutdown__ is called - the the pool is set the closed state and all __worker_threads__ are joined until all pending tasks are processed.
+No futher tasks can be submitted.
+
+	long fibonacci_fn( long n)
+	{
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		return k1;
+	}
+
+	typedef boost::task::static_pool< boost::task::unbounded_fifo > pool_type;
+
+	void main()
+	{
+		pool_type pool( boost::task::poolsize( 1) );
+
+		...
+
+		boost::task::task< long > t1( fibonacci_fn, 10);
+		boost::task::task< long > t2( fibonacci_fn, 5);
+
+		boost::task::handle< long > h1(
+			boost::task::async(
+				boost::move( t1),
+				pool) );
+		boost::task::handle< long > h2(
+			boost::task::async(
+				boost::move( t2),
+				pool) );
+
+		// waits until all pending tasks are finished
+		pool.shutdown();
+
+		std::cout << "fibonacci(10) == " << h1.get() << "\n";
+		std::cout << "fibonacci(5) == " << h2.get() << std::endl;
+	}
+
+[note The deconstructor calls __fn_shutdown__ if the pool was not shutdown yet.]
+
+
+The function __fn_shutdown_now__ closes the pool, interrupts and then joins all __worker_threads__. Pending tasks are unprocessed.
+
+	long fibonacci_fn( long n)
+	{
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		return k1;
+	}
+
+	typedef boost::task::static_pool< boost::task::unbounded_fifo > pool_type;
+
+	void main()
+	{
+		pool_type pool( boost::task::poolsize( 1) );
+
+		...
+
+		boost::task::task< long > t1( fibonacci_fn, 10);
+		boost::task::task< long > t2( fibonacci_fn, 5);
+
+		boost::task::handle< long > h1(
+			boost::task::async(
+				boost::move( t1),
+				pool) );
+		boost::task::handle< long > h2(
+			boost::task::async(
+				boost::move( t2),
+				pool) );
+
+		// requests task interruption and
+		// joins all worker-threads
+		pool.shutdown_now();
+
+		// accessing the result may throw task_interrupted
+		std::cout << "fibonacci(10) == " << h1.get() << "\n";
+		std::cout << "fibonacci(5) == " << h2.get() << std::endl;
+	}
+
+[endsect]

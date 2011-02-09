@@ -1,0 +1,42 @@
+[/ Boost.Extension - Original Motivation ]
+[/ Copyright 2008 Jeremy Pack]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[section:motivation Motivation]
+
+The original motivation for Boost.Extension was a moving-object-tracking application.
+This application was to be used for both real-time and post-processing analysis
+of a series of images. The types of cameras used for tracking were anything from
+low-speed, low-resolution IR cameras, to medium-speed color camcorders to high-speed,
+multi-spectral IR cameras.
+
+Each client or potential client of the application had different input types, and
+different types of data they needed at the end. There were, in general, the following
+major problems:
+
+* Some clients had proprietary image formats that needed to be input, or proprietary
+algorithms they wished to use for the data. We could not give these algorithms to
+other clients.
+* Clients wanted to be able to adapt the software to work with new requirements,
+such as a new camera type, in the future. To do this, one client in particular
+wanted full ownership of the source code.
+* Our code had become very entangled, and our application had become a mess of
+menus covering the various bits of functionality.
+
+Initially, we just delivered different builds to each customer. This was tedious,
+and only solved the first problem.
+
+For this reason, work was begun on using shared libraries which would each contain
+a related set of modules. Each customer would be given two sets of files:
+
+* Shared libraries for their specific data types, UI needs, algorithms, etc.
+* An SDK to develop plugins in the future to handle any new requirements for
+the software.
+
+Boost.Extension is designed to make this type of solution simple, portable,
+and easily extensible.
+
+[endsect]

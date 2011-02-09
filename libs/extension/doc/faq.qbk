@@ -1,0 +1,124 @@
+[/ Boost.Extension - faq ]
+[/ Copyright 2008 Jeremy Pack ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[section:faq FAQ]
+[section Factories]
+[section What if I have multiple versions of the same interface (I've added new
+member functions as they've become necessary), and I want to keep track of which
+version is implemented by different plugins?]
+  
+Answer: The simplest way is to change the name of your interface (or the 
+namespace it is in) each time its contents change. This is actually what I would
+recommend. However, it is also possible to include such information as part 
+of the _factory_. A _factory_ can contain arbitrary information about the plugin
+that it loads through the Info type. In the `hello_world` sample, the `Info` 
+type is an `int`, and the `hello` class has a number (it could be a version) of
+1, and the `world` class has a version of 2. In the multiple_inheritance sample,
+this type is a string. This will be detailed in greater detail in this 
+documentation.
+
+[endsect]
+[section Do my factory classes need to be based on classes with only
+pure virtual functions?]
+No. The classes work just as well if they contain data or functions that
+aren't pure virtual. Using virtual destructors in base classes is highly
+recommended though.
+
+It is actually possible to define the implementation of a base class's
+functions in a .cpp file. Check out [link boost_extension.tutorials.tutorial03
+Tutorial 3].
+
+In general it can often be a good idea to use pure virtual methods,
+just for simplicity, but it is not a requirement.
+[endsect]
+[endsect]
+[section Shared Libraries]
+[section How can I have shared libraries automatically close when the
+_shared_library_ instance is destroyed?]
+The paramter `auto_close` in the _shared_library_ constructor is set to false
+by default. Set it to true.
+
+Note, however, that this is usually unnecessary, and can complicate your code.
+
+For instance, many types of objects, (std::map and std::set, for instance), can
+refer to code inside a shared library if they are modified by code in that shared
+library. If the program keeps using those objects after the shared library is
+closed, the program may crash.
+[endsect]
+[section Is _shared_library_ type-safe?]
+See [link boost_extension.type_safety Type Safety].
+[endsect]
+[section Is there a portable way to support loading libraries from a memory buffer
+instead of from the file system?]
+Short answer: No, it can't be done easily.
+
+When a shared library is loaded, the executable code in memory is shared by
+all processes that have loaded the shared library. It is also unloaded in
+the way memory can be handled by a garbage collecter - some time after all
+references to it have been removed.
+
+As such, the first process to load it is, in effect, buffering it into memory,
+and other processes can then load it very cheaply.
+
+As far as loading it directly from a memory buffer, that would require copying
+a number of routines from the platform-specific functions that fix pointer
+references, function references, type information etc. within a shared library
+when it is loaded (see
+[link boost_extension.shared_libraries.shared_library_inefficiencies
+Shared Library Inefficiences]).
+
+If you're sending shared libraries over a network connection between computers,
+loading the shared library from a buffer might possibly be more optimal. But if
+you're shooting to make your program that heavily optimized, I'd recommend
+assembly language.
+
+So, yes, it is possible. No, I don't think it is worth attempting.
+[endsect]
+[section Do I need to use a separate _type_map_ for each shared library?]
+If you close any shared libraries after you are done using them, they need
+to have used their own _type_map_. This is because they may have caused allocations
+to be done into the type_map with data referring to functions in the shared library.
+If the shared library is closed, those functions will be inaccessible, and could
+cause the program to crash.
+
+If you do not close any shared libraries, then you can share a single instance
+of _type_map_.
+[endsect]
+[section What if I want to have a library close automatically when I've
+destroyed all of the plugins in it?]
+
+I have not yet found a general enough way to do this that doesn't introduce too
+many constraints for programmers. I recommend developing a specific solution for your
+use case for now if you really need this.
+
+[endsect]
+[section Does this library address the problems associated with calling conventions
+when using different compilers?  Can I compile an application with one
+compiler and allow users to provide plugins compiled with another?]
+
+No, not really. And it's much worse than just the difference between
+calling conventions.
+
+The issue is that C++ classes (and other things...) can be of different
+formats when compiled by different compilers, or even different compiler
+settings. For this reason, if you want to develop plugins that can be
+compiled by different compilers safely, you should probably stick to
+functions that pass around simple types (int, float, const char* etc.).
+
+Since one can't pass around classes safely, this means no reflection,
+no factories, no shared objects etc. Since these are what Extension is
+designed for, I'd recommend another solution. Though you can use the
+shared_library class in Boost.Extension for this, you really won't get
+the library's full benefit.
+
+What you could do is run the plugin in a separate process, and use
+inter-process communication, and serialize data between them. Then
+calling conventions wouldn't matter. It would certainly be a lot
+more complicated though.
+[endsect]
+[endsect]
+[endsect]

@@ -1,0 +1,40 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:as_sub_task Execute as Sub-Task]
+
+__as_sub_task__ is a convenient way to execute a __sub_task__. If the parent task is executed inside a __thread_pool__ the __sub_task__ is put into the local-queue of the
+__worker_thread__ in the other case the __sub_task__ will be executed in a new thread. __as_sub_task__ is used as default __ep__ for __fn_async__,
+
+	boost::task::handle< long > h(
+		boost::task::async(
+			boost::task::make_task( fibonacci, 10),
+			boost::task::as_sub_task() ) );
+
+
+[section:as_sub_task Class `as_sub_task`]
+
+	#include <boost/task/as_sub_task.hpp>
+
+	struct as_sub_task
+	{
+		template< typename R >
+		handle< R > operator()( task< R >);
+	};
+
+
+[section `template< typename R > handle< R > operator()( task< R > t)`]
+[variablelist
+[[Effects:] [moves task in a new thread or thread-pool and returns an handle associated with the task]]
+[[Throws:] [`boost::thread_resource_error`]]
+]
+[endsect]
+
+[endsect]
+
+[endsect] 

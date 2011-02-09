@@ -1,0 +1,207 @@
+[/ Boost.Extension - first tutorial ]
+[/ Copyright 2008 Jeremy Pack ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+
+[section:tutorial01 Tutorial 1 - Using the `shared_library` class]
+
+The _shared_library_ class facilitates loading shared libraries
+and calling functions from them.
+
+This tutorial will describe building a shared library with
+a single exported function, and then creating an executable
+that loads the shared library and calls the function.
+
+For purposes of this tutorial, Boost.Build will be used
+as the build system.
+
+The options put into this build file are boilerplate that will
+be reused for the other examples in this documentation.
+
+Shared libraries on different platforms can have different
+prefixes and/or extensions, for example:
+
+
+* .dll (Windows)
+* .so (Unix/Linux)
+* .dylib or .bundle (OS X)
+
+
+In order to simplify loading of these libraries, it is common
+to use a custom naming scheme. For these examples, all shared
+libraries are prefixed with "lib" and end with ".extension",
+but it is fine to use a different naming scheme.
+
+To achieve this in Boost.Build, add the following lines at the
+top of the Jamfile:
+
+
+``
+import type : change-generated-target-suffix ;
+import type : change-generated-target-prefix ;
+type.change-generated-target-suffix SHARED_LIB : : extension ;
+type.change-generated-target-prefix SHARED_LIB : : lib ;
+``
+
+This example uses code from both the main Boost tree, and from
+the Extension headers - which are currently located in the sandbox.
+Make sure that BOOST_ROOT and BOOST_SANDBOX_ROOT are set to the locations
+of these two trees - or use the related options for your compiler or IDE.
+
+Here, both of those directories are added as include paths.
+
+``
+import os ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+local BOOST_SANDBOX_ROOT = [ os.environ BOOST_SANDBOX_ROOT ] ;
+project 
+    : requirements
+      <include>$(BOOST_SANDBOX_ROOT)
+      <include>$(BOOST_ROOT)
+    :
+    ;
+``
+
+This final section of the Jamfile compiles both the shared library
+and main executable, and installs them into the binaries/ subdirectory.
+
+It is usually simplest to place all shared libraries used by an application
+in a common directory.
+
+
+``
+lib tutorial_1 : tutorial_1/hello_world.cpp : <link>shared ;
+exe tutorial_1_bin : tutorial_1/main.cpp ;
+
+install binaries : 
+  tutorial_1 tutorial_1_bin
+  ;
+``
+
+
+The hello_world.cpp file is the source of the shared library. It consists
+of a single exported function which prints out a message a number of times,
+according to the `repetitions` parameter to the function.
+
+The <iostream> header is included for `std::cout`.
+The <boost/extension/extension.hpp> header is used for the
+`BOOST_EXTENSION_EXPORT_DECL` macro.
+
+``
+#include <iostream>
+#include <boost/extension/extension.hpp>
+``
+
+In C, each function name in a compilation unit is unique. In C++, however,
+function overloading is permitted - as are various types of templated functions,
+namespaces etc. Because of this, C++ function names are mangled for linking. In
+order to find a function in a shared library, its name must be known. This leaves
+two options:
+
+
+* Determine the mangled name.
+* Declare that the function has C linkage, using the `extern "C"` declaration.
+
+
+Extension uses the second approach. Though this eases portability, it also poses
+a risk to type safety. A simple, cross-platform solution to this problem would
+probably require direction from the C++ Standards Committee. Until that time,
+the [link boost_extension.type_safety Type Safety] section has advice on avoding type safety issues
+when using the _shared_library_ class.
+
+``
+// Any exported function or variable must be declared
+// extern "C" to avoid C++ name mangling.
+extern "C"
+
+``
+
+Compilers have a number of options for exporting functions, variables
+and type information when a shared library is loaded. For some compilers, or
+with certain compiler settings, functions are not exported by default. Using
+the `BOOST_EXTENSION_EXPORT_DECL macro, declared in extension.hpp, puts any
+necessary export declarations in the function definition.
+
+``
+// Depending on the compiler and settings,
+// it may be necessary to add a specific export
+// declaration. The BOOST_EXTENSION_EXPORT_DECL
+// adds this if necessary.
+void BOOST_EXTENSION_EXPORT_DECL
+boost_extension_hello_world(int repetitions) {
+  for (int i = 0; i < repetitions; ++i) {
+    std::cout << "Hello World" << std::endl;
+  }
+}
+``
+
+Now that the shared library contents are set, the main executable needs
+to be written to load it, and find the boost_extension_hello_world function.
+
+* The `<iostream>` header is included for error output.
+* The `<boost/extension/shared_library.hpp>` header is included for the
+_shared_library_ class.
+* The `<boost/function.hpp>` header is included for boost::function. Though
+ordinary function pointers can be used with the _shared_library_ class, Boost.Function
+provides a more straightforward interface.
+
+``
+#include <iostream>
+#include <boost/extension/shared_library.hpp>
+#include <boost/function.hpp>
+``
+
+Create a _shared_library_ object, and open it.
+
+``
+int main() {
+  using namespace boost::extensions;
+
+  // In the Jamfile, shared libraries are set to have the same
+  // prefix and extension, even on different operating systems.
+  // This is for convenience in writing cross-platform code, but
+  // is not required. All shared libraries are set to start with
+  // "lib" and end with "extension".
+  std::string library_path = "libtutorial_1.extension";
+
+  // Create shared_library object with the relative or absolute
+  // path to the shared library.
+  shared_library lib(library_path);
+
+  // Attempt to open the shared library.
+  if (!lib.open()) {
+    std::cerr << "Library failed to open: " << library_path << std::endl;
+    return 1;
+  }
+``
+
+If it opened successfully, find a call the `boost_extension_hello_world` function.
+
+``
+  // Retrieve a function from the library, and store it in a Boost.Function
+  // object. It is also possible to use function pointers, but the syntax
+  // for Boost.Function is easier to understand. This retrieves a function
+  // called "boost_extension_hello_world" with a void return type and a single
+  // parameter of type int.
+  boost::function<void (int)>
+    f(lib.get<void, int>("boost_extension_hello_world"));
+
+  // Check that the function was found.
+  if (!f) {
+    std::cerr << "Function not found!" << std::endl;
+    return 1;
+  }
+
+  // Call the function from the shared library with
+  // an integer parameter.
+  f(4);
+}
+``
+
+This will print out "Hello World" four times.
+
+[endsect]

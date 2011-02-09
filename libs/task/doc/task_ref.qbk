@@ -1,0 +1,407 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:task_management Task Management]
+
+[heading Synopsis]
+
+A task is a chunk of code that can be executed independently and parallel.
+
+__task__ represents a __callable__ (provides __fn_operator__) object containing
+the unit of code to be execute by a __ep__. Function __fn_async__ accepts a
+__task__ and an __ep__ and returns a __act__ allowing to wait for the completion
+of the computation of the task, for getting the result of a computation or for
+transfering exceptions.
+Objects of type __task__ are moveable.
+
+	boost::task< int > t1( parallel_fib, 10);
+	boost::task< int > t2; // not-a-task
+	t2 = boost::move( t1);
+
+
+[heading Launching]
+
+A new task is launched by passing an object of a callable type that can be invoked with no parameters to the
+constructor and passing the task to function __fn_async__. The object is then copied into internal storage
+of the __ep__, and invoked on the newly created task.
+
+	struct callable
+	{ void operator()(); };
+
+	boost::task copies_are_safe()
+	{
+		callable x;
+		return boost::task( x);
+	} // x is destroyed, but the newly-created task has a copy, so this is OK
+
+	boost::task oops()
+	{
+		callable x;
+		return boost::task( boost::ref( x) );
+	} // x is destroyed, but the newly-created task still has a reference
+	  // this leads to undefined behaviour
+
+If you wish to construct an instance of __task__ with a function or callable object that requires arguments to be
+supplied, this can be done by passing additional arguments to the __task__ constructor:
+
+	void find_the_question( int the_answer);
+
+	boost::task deep_thought_2( find_the_question, 42);
+
+	// asynchr. execution
+	boost::tasks::async( boost::move( depp_thought_2) );
+
+The arguments are ['copied] into the internal task structure: if a reference is required, use `boost::ref`, just as
+for references to callable functions.
+
+For convinience `boost::tasks::make_task()` is provided:
+
+	// asynchr. execution 
+	boost::tasks::async(
+		boost::move( boost::tasks::make_task( find_the_question, 42) ),
+		boost::tasks::new_thread() );
+
+
+[heading Completion]
+
+In order to wait for the completion `boost::tasks::handle< R >::wait()` as to be called
+on the __handle__ associated with the task. The fucntion returns if the task has completed.
+The result of the task can be accessed via `boost::tasks::handle< R >::get()`.
+
+
+[heading Interruption]
+
+Sometimes it is desired to stop a running task if it is no longer needed. In this case the thread is not killed - it
+stops only at well-defined points (__interruption_points__) its execution.
+A task can be ['interrupted] by invoking the __fn_interrupt__ member function from __act__ . When the interrupted
+task next executes one of the specified __interruption_points__ (or if it is currently __blocked__ whilst executing
+one) with interruption enabled, then a __task_interrupted__ exception will be thrown in the interrupted task.
+In the context of ['task-interruption] a task is known as cooperative if it checks for an interruption request between
+two __interruption_points__ via __fn_interruption_requested__ [footnote see [@http://www.ddj.com/architect/207100682
+'Interrupt Politely'], Herb Sutter].
+
+
+[heading Predefined Interruption Points]
+
+The following functions are ['interruption points], which will throw __task_interrupted__ if interruption is
+enabled for the current tasklet, and interruption is requested for the current tasklet:
+
+* `boost::thread::join()`
+* `boost::thread::timed_join()`
+* `boost::condition_variable::wait()`
+* `boost::condition_variable::timed_wait()`
+* `boost::condition_variable_any::wait()`
+* `boost::condition_variable_any::timed_wait()`
+* `boost::tasks::spin::condition::wait()`
+* `boost::tasks::spin::condition::timed_wait()`
+* `boost::tasks::spin::auto_reset_event::wait()`
+* `boost::tasks::spin::auto_reset_event::timed_wait()`
+* `boost::tasks::spin::manual_reset_event::wait()`
+* `boost::tasks::spin::manual_reset_event::timed_wait()`
+* `boost::tasks::spin::count_down_event::wait()`
+* `boost::tasks::spin::count_down_event::timed_wait()`
+* `boost::thread::sleep()`
+* `boost::this_thread::sleep()`
+* `boost::this_thread::interruption_point()`
+
+A __interruption_point__ throws __task_interrupted__ if an interruption was requested.
+
+	long cooperative( long n)
+	{
+		// interruption point
+		boost::this_thread::interruption_point();
+		
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			// check if interruption was requested
+			if ( boost::this_thread::interruption_requested() )
+				return;
+				
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		
+		// interruption point
+		boost::this_thread::interruption_point();
+		
+		return k1;
+	}
+
+	void main()
+	{
+		// task for computing fibonacci-number
+		boost::task< long > t( cooperative, 10) );
+
+		// execute task in new thread
+		// move task ownership to executor
+		boost::tasks::handle< long > h(
+			boost::tasks::async(
+				boost::move( t),
+				boost::tasks::new_thread() ) );
+
+		// interrupt task an wait until
+		// the task is removed by the worker-thread
+		h.interrupt_and_wait();
+
+		// access the result
+		// throws boost::task_interrupted
+		std::cout << "fibonacci(10) == " << h.get() << std::endl;
+	}
+
+If a task wishes to avoid being interrupted, it can create an instance of `boost::disable_interruption`.
+The effects of an instance of `boost::disable_interruption` can be temporarily reversed by constructing an instance of
+`boost::restore_interruption`, passing in the `boost::disable_interruption` object in question. This will restore the
+interruption state to what it was when the `boost::disable_interruption` object was constructed, and then disable
+interruption again when the `boost::restore_interruption` object is destroyed.
+
+
+[heading Exceptions]
+
+Exceptions thrown by the function or callable object passed to the __task__ constructor are consumed by the thes
+associated __act__. The exception will be re-thrown by the associated __handle__.
+
+	void throwing()
+	{
+		...
+		throw std::domain_error("domain error");
+		...
+	}
+
+	void main()
+	{
+		// create task throwing std::domain_error
+		boost::task void > t( throwing);
+
+		// execute task asynchron
+		// move task ownership to executor
+		boost::tasks::handle< void > h(
+			boost::tasks::async(
+				boost::move( t),
+				boost::tasks::new_thread() ) );
+
+		// wait for task completion
+		// throws std::domain_error
+		std::cout << h.wait() << std::endl;
+	}
+
+Exceptions rethrown by type are:
+
+*  `std::bad_alloc`
+*  `std::bad_cast`
+*  `std::bad_exception`
+*  `std::bad_typeid`
+*  `std::domain_error`
+*  `std::invalid_argument`
+*  `std::ios_base::failure`
+*  `std::length_error`
+*  `std::logic_error`
+*  `std::out_of_range`
+*  `std::overflow_error`
+*  `std::range_error`
+*  `std::runtime_error`
+*  `std::underflow_error`
+*  `boost::exception`
+*  `boost::future_already_set`
+*  `boost::future_cancel`
+*  `boost::invalid_thread_argument`
+*  `boost::lock_error`
+*  `boost::broken_task`
+*  `boost::pool_moved`
+*  `boost::task_already_executed`
+*  `boost::task_interrupted`
+*  `boost::task_moved`
+*  `boost::task_interrupted`
+*  `boost::task_task_rejected`
+*  `boost::task_unitialized`
+
+[warning Don't use the sjlj exception model.]
+
+
+[heading Parent Task]
+
+Top-level tasks have no parent. A parent task can create child tasks when it creates another task by using
+__as_sub_task__ as __ep__.  These children are implicitly treated as __sub_tasks__ of the parent task. It is
+assumed that that __sub_tasks__ can be executed in any order because only overall operation speed matters
+(enabling strategies for fast execution of unordered __work_items__ as [link_work_stealing __work_stealing__]).
+
+	long serial_fib( long n)
+	{
+		if( n < 2) return n;
+		else return serial_fib( n - 1) + serial_fib( n - 2);
+	}
+
+	long parallel_fib( long n, long cutof)
+	{
+		if ( n < cutof) return serial_fib( n);
+		else
+		{
+			// sub-task for computing fibonacci(n-1)
+			boost::task< long > t1(
+				parallel_fib,
+				n - 1,
+				cutof);
+			// sub-task for computing fibonacci(n-2)
+			boost::task< long > t2(
+				parallel_fib,
+				n - 2,
+				cutof);
+
+			// submit a sub-tasks to thread-pool
+			// move task ownership to executor
+			boost::tasks::handle< long > h1(
+				boost::tasks::async(
+					boost::move( t1) );
+			boost::tasks::handle< long > h2(
+				boost::tasks::async(
+					boost::move( t2) );
+
+			// computing fibonacci(n) by
+			// joining results of both sub-tasks
+			return h1.get() + h2.get();
+		}
+	}
+
+	void main()
+	{
+		// create thread-pool with five worker-threads
+		boost::tasks::static_pool< boost::tasks::unbounded_fifo > pool( boost::tasks::poolsize( 5) );
+
+		// create task computing fibonacci-number for 10
+		boost::task< long > t(
+			parallel_fib,
+			10,
+			5);
+
+		// execute task asynchron in thread-pool
+		// move task ownership to executor
+		boost::tasks::handle< long > h(
+			boost::tasks::async(
+				boost::move( t),
+				pool) );
+
+		// access result
+		std::cout << "fibonacci(10) == " << h.get() << std::endl;
+	}
+
+
+[section:task Class template `task`]
+
+	#include <boost/task/task.hpp>
+
+	template< typename R >
+	class task : private noncopyable
+	{
+	public:
+		task();
+
+		task( R( * fn)());
+
+		template< typename Fn >
+		task( Fn fn);
+
+		template< typename Fn, typename A0, ... >
+		task( Fn fn, A0 a0, ...);
+
+		task( task && x);
+		task & operator=( task && x);
+
+		void operator()();
+
+		void swap( task< R > & other);
+
+		operator unspecified_bool_type() const;
+		bool operator!() const;
+	};
+
+	template< typename Fn >
+	task< R > make_task( Fn fn);
+	template< typename Fn, typename A0, ... >
+	task< R > make_task( Fn fn, A0 a0, ...);
+
+
+[section:default_constructor `task()`]
+[variablelist
+[[Effects:] [constructs a __task__ instance that refers to __not_a_task__.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:constructor `task( R( * fn)())`]
+[variablelist
+[[Effects:] [constructs a __task__ from a function pointer]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:constructor_2 `template< typename Fn > task( Fn const& fn)`]
+[variablelist
+[[Effects:] [constructs a __task__ from a function object]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:multi_argument_constructor `template< typename Fn, typename A0, ... > task( Fn fn, A0 a0, ...)`]
+[variablelist
+[[Effects:] [constructs a `boost::task::task< R >` from a function object and its arguments]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:operator `operator()()`]
+[variablelist
+[[Effects:] [executes task's internal function object]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:swap `swap( task< R > & other)`]
+[variablelist
+[[Effects:] [Exchanges the tasks associated with `*this` and `other`, so `*this` is associated with the task 
+associated with `other` prior to the call, and vice-versa.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:unspec_operator `operator unspecified_bool_type() const`]
+[variablelist
+[[Returns:] [If `*this` refers to a task, the function returns true. Otherwise false.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:not_operator `operator!()`]
+[variablelist
+[[Returns:] [If `*this` refers not to a task, the function returns true. Otherwise false.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:non_member_make_task Non-member template function `make_task()`]
+
+    #include <boost/task/task.hpp>
+    
+    template< typename Fn >
+    tasklet make_task( Fn fn);
+    
+    template< typename Fn, typename A0, ... >
+    tasklet make_task( Fn fn, A0 a0, ..., std::size_t stack_size);
+
+[variablelist
+[[Effects:] [Creates a task.]]
+]
+[endsect]
+
+[endsect]
+
+[include this_task.qbk]
+
+[endsect]

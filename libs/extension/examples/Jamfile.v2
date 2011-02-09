@@ -1,0 +1,76 @@
+# Boost.Extension - examples Jamfile
+#
+# Copyright 2007 Jeremy Pack
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+#
+# See http://www.boost.org/ for latest version.
+#
+
+import type : change-generated-target-suffix ;
+import type : change-generated-target-prefix ;
+type.change-generated-target-suffix SHARED_LIB : : extension ;
+type.change-generated-target-prefix SHARED_LIB : : lib ;
+import os ;
+
+project 
+    : requirements
+      <include>../../../
+      <include>$(BOOST_ROOT)
+      <toolset>gcc:<find-shared-library>dl
+      <toolset>gcc:<linkflags>"-Wl,-rpath,'$ORIGIN'"
+      <toolset>darwin:<define>DYLD_LIBRARY_PATH=./
+    :
+    ;
+
+exe HelloWorldVersions : versioning/main_versions.cpp ;
+lib HelloWorldLibv2 : versioning/hello_world_versions.cpp : <link>shared ;
+lib SaluteLib : versioning/salute.cpp : <link>shared ;
+
+exe Parameters : parameters/main_lp.cpp ;
+lib ParametersLib : parameters/lots_of_parameters.cpp : <link>shared ;
+
+exe MultilanguageWord : info/multilanguage_main.cpp ;
+lib MultilanguageHelloWorld : info/multilanguage_hello_world.cpp : <link>shared ;
+
+exe IM : info/im/im_main.cpp ;
+lib IMPlugins : info/im/plugins.cpp : <link>shared ;
+
+lib Vehicle : multiple_inheritance/vehicle.cpp : <link>shared ;
+lib Car : multiple_inheritance/car.cpp Vehicle : <link>shared ;
+lib Plane : multiple_inheritance/plane.cpp Vehicle : <link>shared ;
+lib Boat : multiple_inheritance/boat.cpp Vehicle : <link>shared ;
+lib Computer : multiple_inheritance/computer.cpp : <link>shared ;
+lib FlyingCar : multiple_inheritance/flying_car.cpp Plane Car Vehicle : <link>shared ;
+lib CarOfTheFuture : 
+  multiple_inheritance/car_of_the_future.cpp 
+  Plane Car Vehicle 
+  FlyingCar Computer Boat 
+  : 
+  <link>shared 
+;
+exe MultipleInheritance : multiple_inheritance/main_mi.cpp Computer Vehicle ;
+
+lib tutorial_1 : tutorial_1/hello_world.cpp : <link>shared ;
+exe tutorial_1_bin : tutorial_1/main.cpp ;
+
+lib tutorial_2 : tutorial_2/factories_lib.cpp : <link>shared ;
+exe tutorial_2_bin : tutorial_2/factories_main.cpp ;
+exe tutorial_5_bin : tutorial_5/adaptable.cpp ;
+
+install ../test/ : 
+  tutorial_1 tutorial_1_bin
+  tutorial_2 tutorial_2_bin
+  Parameters ParametersLib
+  MultilanguageWord MultilanguageHelloWorld
+  IM IMPlugins
+  Vehicle Boat FlyingCar Car Plane
+  CarOfTheFuture MultipleInheritance 
+  Computer
+  :
+  <install-dependencies>on 
+  <install-type>EXE 
+  <install-type>SHARED_LIB
+  <install-type>LIB
+  ;

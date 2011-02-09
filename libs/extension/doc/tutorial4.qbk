@@ -1,0 +1,95 @@
+[/ Boost.Extension - fourth tutorial ]
+[/ Copyright 2008 Mariano G. Consoni ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[section:tutorial04 Tutorial 4 - Multi-type Containers]
+There are two types of containers in the library that can hold objects
+of heterogeneous types. The _type_map_ is designed for use with
+_shared_library_ so that a standard function signature, taking a
+_type_map_, can be provided by each shared library, helping to avoid
+type safety problems.
+
+The second type, _parameter_map_, is designed for use with reflections
+or factories where the type of the function is not known at compile time.
+A _parameter_map_ can be passed into such a factory or reflection, and
+then searched for needed parameters, and return a list of missing parameters
+if necessary.
+
+The _type_map_ is the simplest of the two, as it can hold exactly one
+element of each type. It can hold multiple objects, but they will each
+be of a different type.
+
+Here's an example showing a _type_map_ holding an `int` and a
+`std::map<std::string, std::string>`.
+
+``
+using namespace boost::extensions;
+
+// A type_map can hold one of each type, constructed
+// as needed.
+type_map types;
+int& first_int(types.get());
+first_int = 100;
+
+// This actually points to the same int as first_int.
+int& second_int(types.get());
+
+second_int = 500;
+
+// This will print out 500.
+std::cout << "first_int: " << first_int << std::endl;
+
+// Arbitrary default-constructible types can be held in a type_map.
+std::map<std::string, std::string>& string_pairs(types.get());
+``
+
+Note that pulling an integer out of it twice results in two references
+to the same integer. The same occurs with any type placed into the _type_map_.
+
+A _parameter_map_ on the other hand, can hold any number of elements of any
+type, and can automatically convert objects to compatible types.
+
+The basic type stored in a _parameter_map_ is a _parameter_. It is possible
+to declare a _parameter_ as being convertible to other types.
+
+By default, a `static_cast` is used to convert the types, but any conversion
+function can be provided.
+``
+parameter<int>* p = new parameter<int>(5);
+p->converts_to<float>();
+p->converts_to<double>();
+``
+
+To have a float change to its ceiling when converted to
+an integer, one could write:
+
+``
+void FloatCeilingToInt(float* f, int* i) {
+  *i = static_cast<int>(std::ceil(*f));
+}
+``
+``
+parameter<float>* p = new parameter<float>(4.9f);
+p->converts_to_with_func(&FloatCeilingToInt);
+p->cast<int>(); // returns 5
+``
+
+Once created, a _parameter_ can be placed into a _parameter_map_,
+along with some sort of name. This name can be of arbitrary type:
+_parameter_map_ is a specialized _basic_parameter_map_ with the
+std::string type as the name, but other types are also possible.
+
+A _parameter_map_ works much like a `std::multi_map` - since it is built
+on one. It has a few specialty methods though. It is possible, for instance,
+to retrieve all values that match a certain type and name, or the first
+value that matches.
+``
+parameter_map map;
+std::vector<generic_parameter<int>*> int_vector(map.get("some_int_name"));
+generic_parameter<int>* first_int(map.get_first("some_int_name"));
+``
+
+[endsect]

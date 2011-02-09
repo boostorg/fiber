@@ -1,0 +1,46 @@
+# Boost.Task Library Tests Jamfile
+
+#          Copyright Oliver Kowalke 2009.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+import testing ;
+
+project boost/task/test
+    : requirements
+        <library>../../test/build//boost_unit_test_framework
+        <library>../../tasklet/build//boost_tasklet
+        <library>../../thread/build//boost_thread
+        <library>../../system/build//boost_system
+        <library>../build//boost_task
+        <link>static
+        <threading>multi
+    ;
+
+rule task-test ( source )
+{
+    return
+        [ run $(source).cpp ]
+    ;
+}
+
+test-suite task :
+    [ task-test test_task ]
+    [ task-test test_own_thread ]
+    [ task-test test_tasklet ]
+    [ task-test test_new_thread ]
+    [ task-test test_unbounded_pool ]
+    [ task-test test_bounded_pool ]
+    [ task-test test_as_sub_task ]
+    [ task-test test_spin_mutex ]
+    [ task-test test_spin_condition ]
+    [ task-test test_spin_condition_notify_all ]
+    [ task-test test_spin_condition_notify_one ]
+    [ task-test test_spin_condition_timed_wait_times_out ]
+    [ task-test test_spin_count_down_event ]
+    [ task-test test_spin_auto_reset_event ]
+    [ task-test test_spin_manual_reset_event ]
+    [ task-test test_spin_unbounded_channel ]
+    [ task-test test_spin_bounded_channel ]
+    ;

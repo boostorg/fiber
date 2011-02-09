@@ -1,0 +1,43 @@
+[/
+  (C) Copyright 2007-8 Anthony Williams.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:mutex_types Mutex Types]
+
+[section:mutex Class `mutex`]
+
+    #include <boost/tasks/spin/mutex.hpp>
+
+    class mutex : private boost::noncopyable
+    {
+    public:
+        mutex();
+        ~mutex();
+
+        void lock();
+
+		bool timed_lock( system_time const& abs_time);
+
+		template< typename TimeDuration >
+		bool timed_lock( TimeDuration const& rel_time);
+
+        bool try_lock();
+
+        void unlock();
+
+        typedef unique_lock< mutex > scoped_lock;
+    };
+
+__spin_mutex__ implements the __lockable_concept__ to provide an exclusive-ownership mutex. At most one task can own the
+lock on a given instance of __spin_mutex__ at any time. Multiple concurrent calls to __lock__, __try_lock__ and
+__unlock__ shall be permitted.
+
+[note __spin_mutex__ is ['not] bound to a __scheduler__ and can only be used by tasks
+managed by different schedulers or code not running in a task.]
+
+[endsect]
+
+[endsect]

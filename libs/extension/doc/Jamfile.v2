@@ -1,0 +1,58 @@
+# Boost.Extension - documentation Jamfile
+#
+# Copyright 2008 Jeremy Pack
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+#
+# See http://www.boost.org/ for latest version.
+#
+
+import doxygen ;
+import quickbook ;
+
+import os ;
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+
+doxygen autodoc_extension
+    :
+        [ glob ../../../boost/reflection/*.hpp ]
+        [ glob ../../../boost/extension/*.hpp ]
+    :
+        <doxygen:param>EXTRACT_ALL=NO
+        <doxygen:param>"PREDEFINED=\"BOOST_EXTENSION_DOXYGEN_INVOKED\" \\
+                                   \"BOOST_REFLECTION_DOXYGEN_INVOKED\" \\
+                                   \"U_EXPORT2=\""
+        <doxygen:param>HIDE_UNDOC_MEMBERS=NO
+        <doxygen:param>EXTRACT_PRIVATE=NO
+        <doxygen:param>ENABLE_PREPROCESSING=YES
+        <doxygen:param>MACRO_EXPANSION=YES
+        <doxygen:param>EXPAND_ONLY_PREDEF=YES
+        <doxygen:param>SEARCH_INCLUDES=YES
+        <doxygen:param>INCLUDE_PATH=$(BOOST_ROOT)
+        <doxygen:param>INLINE_SOURCES=YES
+        <doxygen:param>SOURCE_BROWSER=YES
+        <doxygen:param>VERBATIM_HEADERS=YES
+        <doxygen:param>REFERENCES_RELATION=YES
+        <doxygen:param>REFERENCES_LINK_SOURCE=YES
+    ;
+
+xml extension : extension.qbk ;
+
+boostbook standalone
+    :
+        extension
+    :
+        <xsl:param>toc.max.depth=2
+        <xsl:param>toc.section.depth=2
+        <xsl:param>chunk.section.depth=2
+        <dependency>autodoc_extension
+    ;
+
+install css : [ glob $(BOOST_ROOT)/doc/src/*.css ]
+    : <location>html ;
+install images : [ glob $(BOOST_ROOT)/doc/src/images/*.png ]
+    : <location>html/images ;
+
+install main_image : [ glob $(BOOST_ROOT)/boost.png ]
+    : <location>../ ;

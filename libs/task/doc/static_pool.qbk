@@ -1,0 +1,301 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:static_pool Thread-Pool with fixed ]
+
+__boost_task__ provides __static_pool__ - which contains an fixed set of pre-forked __worker_threads__ (the size of the pool doesn't change during its lifetime).
+__static_pool__ supports move semantics.
+
+        boost::task::_static_pool<					 // pool type
+                boost::task::unbounded_fifo  // queue where application threads enqueue tasks
+        > pool(
+                boost::task::poolsize( 6),                         // pool with 6 pre-forked worker-threads
+                boost::posix_time::posix_time::milliseconds( 50),  // time to sleep if no work-item available
+                boost::task::scanns( 10) );                        // iterations over local-queues before sleep
+
+
+The first argument of the constructor specifies how many __worker_threads__ the pool will contain. The second
+and third argument are used by the [link_work_stealing __work_stealing__] algorithm.
+
+[note If __bounded_queue__ is used as queuing policy the constructor has two additional arguments . ]
+
+__static_pool__ provides functionality to check the status of the pool - __fn_closed__ returns true when the pool was
+shutdown and __fn_size__returns the number of __worker_threads__.
+
+[section:static_pool Class template `static_pool`]
+
+	#include <boost/task/static_pool.hpp>
+
+	template< typename Channel >
+	class static_pool : private noncopyable
+	{
+	public:
+		static_pool();
+
+		explicit static_pool(
+			poolsize const& psize,
+			posix_time::time_duration const& asleep = posix_time::microseconds( 10),
+			scanns const& scns = scanns( 20) );
+
+		explicit static_pool(
+			poolsize const& psize,
+			high_watermark const& hwm,
+			low_watermark const& lwm,
+			posix_time::time_duration const& asleep = posix_time::milliseconds( 100),
+			scanns const& scns = scanns( 20) );
+
+		static_pool( static_pool &&);
+
+		static_pool & operator=( static_pool &&);
+
+		# if defined(BOOST_HAS_PROCESSOR_BINDINGS)
+		explicit static_pool(
+			<<unspec-type>>,
+			posix_time::time_duration const& asleep = posix_time::microseconds( 10),
+			scanns const& scns = scanns( 20) );
+
+		explicit static_pool(
+			<<unspec-type>>,
+			high_watermark const& hwm,
+			low_watermark const& lwm,
+			posix_time::time_duration const& asleep = posix_time::milliseconds( 100),
+			scanns const& scns = scanns( 20) );
+			
+		static <<unspec-type>> bind_to_processors();
+		# endif
+
+		~static_pool();
+
+		std::size_t size();
+
+		void shutdown();
+		void shutdown_now();
+
+		bool closed();
+
+		void interrupt_all_worker();
+
+		const std::size_t upper_bound();
+		void upper_bound( high_watermark const& hwm);
+		const std::size_t lower_bound();
+		void lower_bound( low_watermark const& lwm);
+
+		template< typename R >
+		handle< R > submit( task< R > && t);
+
+		template< typename R, typename Attr >
+		handle< R > submit( task< R > && t, Attr const& attr);
+
+		void swap( static_pool & other);
+
+		operator unspecified_bool_type() const;
+		bool operator!() const;
+	};
+
+
+[section `static_pool()`]
+[variablelist
+[[Effects:] [constructs an unitialized pool]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `explicit static_pool(
+		<<unspec-type>>,
+		posix_time::time_duration const& asleep = posix_time::microseconds( 10),
+		scanns const& scns = scanns( 20) )`]
+[variablelist
+[[Preconditions:] [operating system provides functionality for processor binding]]
+[[Effects:] [constructs a pool - for each processor a worker-thread is created and bound to one processor - global-queue can queue an unlimited number of tasks]]
+[[Throws:] [`boost::thread_resource_error`, `boost::task::invalid_scanns`, `boost::task::invalid_timeduration`]]
+[[Notes:] [constructor has to be called if a unbounded-queue is used and `bind_to_processors()` must be set as first argument]]
+]
+[endsect]
+
+[section `explicit static_pool(
+		poolsize const& psize,
+		posix_time::time_duration const& asleep = posix_time::microseconds( 10),
+		scanns const& scns = scanns( 20) )`]
+[variablelist
+[[Effects:] [constructs a pool containing psize worker-threads - global-queue can queue an unlimited number of tasks]]
+[[Throws:] [`boost::thread_resource_error`, `boost::task::invalid_scanns`, `boost::task::invalid_timeduration`]]
+[[Notes:] [constructor has to be called if a unbounded-queue is used]]
+]
+[endsect]
+
+[section `explicit static_pool(
+		<<unspec-type>>,
+		high_watermark const& hwm,
+		low_watermark const& lwm,
+		posix_time::time_duration const& asleep = posix_time::milliseconds( 100),
+		scanns const& scns = scanns( 20) )`]
+[variablelist
+[[Preconditions:] [operating system provides functionality for processor binding]]
+[[Effects:] [constructs a pool - for each processor a worker-thread is created and bound to one processor - global-queue can only queue a limited number of tasks]]
+[[Throws:] [`boost::thread_resource_error`, `boost::task::invalid_scanns`, `boost::task::invalid_timeduration`, `boost::task::invalid_watermark`]]
+[[Notes:] [constructor has to be called if a bounded-queue is used and `bind_to_processors()` must be set as first argument]]
+]
+[endsect]
+
+[section `explicit static_pool(
+		poolsize const& psize,
+		high_watermark const& hwm,
+		low_watermark const& lwm,
+		posix_time::time_duration const& asleep = posix_time::milliseconds( 100),
+		scanns const& scns = scanns( 20) )`]
+[variablelist
+[[Effects:] [constructs a pool containing psize worker-threads - global-queue can only queue a limited number of tasks]]
+[[Throws:] [`boost::thread_resource_error`, `boost::task::invalid_scanns`, `boost::task::invalid_timeduration`, `boost::task::invalid_watermark`]]
+[[Notes:] [constructor has to be called if a bounded-queue is used]]
+]
+[endsect]
+
+[section `static_pool( static_pool &&)`]
+[variablelist
+[[Effects:] [creates an pool out of another one which gets zeroed out]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `static_pool & operator=( static_pool &&)`]
+[variablelist
+[[Effects:] [creates an pool out of another one which gets zeroed out]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `~static_pool()`]
+[variablelist
+[[Effects:] [calls `shutdown()` if not already called]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `<<unspec-type>> bind_to_processors()`]
+[variablelist
+[[Effects:] [used in order to let the pool create worker-threads as cores are available and bound the threads to the cores]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `std::size_t size()`]
+[variablelist
+[[Effects:] [returns how many worker-threads are running in the pool]]
+[[Throws:] [`boost::task::pool_moved`]]
+]
+[endsect]
+
+[section `void shutdown()`]
+[variablelist
+[[Effects:] [deactivates the queue and joins all worker-threads - the pool is closed]]
+[[Throws:] [`boost::thread_interrupted`, `boost::system::system_error`, `boost::task::pool_moved`]]
+[[Notes:] [all pending tasks are processed]]
+]
+[endsect]
+
+[section `void shutdown_now()`]
+[variablelist
+[[Effects:] [deactivates the queue, send interruption request to all worker-threads and joins them - the pool is closed]]
+[[Throws:] [`boost::thread_interrupted`, `boost::system::system_error`, `boost::task::pool_moved`]]
+[[Notes:] [pending tasks are not processed but returned]]
+]
+[endsect]
+
+[section `void interrupt_all_worker()`]
+[variablelist
+[[Effects:] [interrupts all worker-threads without invalidating the pool]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `bool closed()`]
+[variablelist
+[[Effects:] [queries if the pool is closed (pool is shutdown)]]
+[[Throws:] [`boost::task::pool_moved`]]
+]
+[endsect]
+
+[section `std::size_t upper_bound()`]
+[variablelist
+[[Preconditions:] [queue is of type bounded-queue]]
+[[Effects:] [returns the upper bound of the bounded-queue]]
+[[Throws:] [`boost::task::pool_moved`]]
+[[Notes:] [can only be used if a bounded-queue is used]]
+]
+[endsect]
+
+[section `void upper_bound( high_watermark const& hwm)`]
+[variablelist
+[[Preconditions:] [queue is of type bounded-queue]]
+[[Effects:] [sets the upper bound of the bounded-queue]]
+[[Postconditions:] [`this->upper_bound() == hwm`]]
+[[Throws:] [`boost::task::invalid_watermark`, `boost::task::pool_moved`]]
+[[Notes:] [can only be used if a bounded-queue is used]]
+]
+[endsect]
+
+[section `std::size_t lower_bound()`]
+[variablelist
+[[Preconditions:] [queue is of type bounded-queue]]
+[[Effects:] [returns the lower bound of the bounded-queue]]
+[[Throws:] [`boost::task::pool_moved`]]
+[[Notes:] [can only be used if a bounded-queue is used]]
+]
+[endsect]
+
+[section `void lower_bound( low_watermark const& lwm)`]
+[variablelist
+[[Preconditions:] [queue is of type bounded-queue]]
+[[Effects:] [sets the lower bound of the bounded-queue]]
+[[Postconditions:] [`this->lower_bound() == lwm`]]
+[[Throws:] [`boost::task::invalid_watermark`, `boost::task::pool_moved`]]
+[[Notes:] [can only be used if a bounded-queue is used]]
+]
+[endsect]
+
+[section `template< typename R > handle< R > submit( task< R > t)`]
+[variablelist
+[[Preconditions:] [has_attribute< pool >::value == false && ! closed()]]
+[[Effects:] [moves an task to the pool and returns an associated handle]]
+[[Throws:] [`boost::task::task_rejected`, `boost::task::pool_moved`]]
+]
+[endsect]
+
+[section `template< typename R, typename Attr > handle< R > submit( task< R > t, Attr const& attr)`]
+[variablelist
+[[Preconditions:] [has_attribute< pool >::value == true && ! closed()]]
+[[Effects:] [moves an task to the pool and returns an associated handle - task is scheduled by the attribute]]
+[[Throws:] [`boost::task::task_rejected`, `boost::task::pool_moved`]]
+]
+[endsect]
+
+[section `void swap( static_pool & other)`]
+[variablelist
+[[Effects:] [swaps pool]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section `operator unspecified_bool_type() const`]
+[variablelist
+[[Effects:] [is static_pool valid == does static_pool own ownership]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `bool operator!() const`]
+[variablelist
+[[Effects:] [is static_pool invalid == static_pool does not have ownership]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]
+

@@ -1,0 +1,289 @@
+[/
+  (C) Copyright 2009 Oliver Kowalke
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:eventvar_ref Event Variables]
+
+[heading Synopsis]
+
+__boost_task__ provides event variables to facilitate coordination between tasks.
+A event-variable has two states `set` (`signaled`) or `reset` (`nonsignaled`).
+
+    boost::tasks::spin::auto_reset_event ev;
+
+    void process_data();
+
+    void wait_for_data_to_process()
+    {
+        ev.wait();
+        process_data();
+    }
+
+`wait` will atomically add the task to the set of tasks waiting on the event
+variable. When the task is woken, the event variable will be reset again.
+
+In the mean time, another task signals the event variable by calling
+`set` on the event variable to wake one waiting task.
+
+    void retrieve_data();
+    void prepare_data();
+
+    void prepare_data_for_processing()
+    {
+        retrieve_data();
+        prepare_data();
+        ev.set();
+    }
+
+
+[section:auto_reset_event Class `auto_reset_event`]
+
+[heading Synopsis]
+
+When the ['auto_reset_event] gets signaled, any one task will see this particular signal. When a task observes
+the signal by waiting on the event, it is automatically transitioned back to non-signaled state. Any tasks can
+subsequently set the event.
+
+    #include <boost/task/spin/auto_reset_event.hpp>
+
+    class auto_reset_event : private boost::noncopyable
+    {
+    public:
+        explicit auto_reset_event( bool isset = false);
+
+        ~auto_reset_event();
+
+        void set();
+
+        void wait();
+
+        bool try_wait();
+
+		bool timed_wait( system_time const& abs_time);
+
+		templatey typename TimeDuration >
+		bool timed_wait( TimeDuration const& rel_time);
+    };
+
+[section:constructor `explicit auto_reset_event( bool isset = false)`]
+[variablelist
+[[Effects:] [Constructs an object of class `auto_reset_event`. If isset is `true`
+the variable is set.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~auto_reset_event()`]
+[variablelist
+[[Precondition:] [All tasks waiting on `*this` have been notified by a call to
+`set` (though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:set `void set()`]
+[variablelist
+[[Effects:] [If any tasks are currently __blocked__ waiting on `*this` in a call
+to `wait`, unblocks one of those tasks.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait()`]
+[variablelist
+[[Effects:] [Blocks the current task. The task will unblock when notified by a call
+to `this->set()`. When the task is unblocked, the variable is reset before `wait`
+returns.]]
+[[Throws:] [__task_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __task__ object associated with the current task of execution.]]
+]
+[endsect]
+
+[section:try_wait `bool try_wait()`]
+[variablelist
+[[Effects:] [Returns `true` if the event variable is set otherwise `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+
+[section:manual_reset_event Class `manual_reset_event`]
+
+[heading Synopsis]
+
+The ['manual_reset_event] remains signaled until it is manually reset. Multiple tasks
+wait on the same event and observe the same signal.
+
+    #include <boost/task/spin/manual_reset_event.hpp>
+
+    class manual_reset_event : private boost::noncopyable
+    {
+    public:
+        explicit manual_reset_event( bool isset = false);
+
+        ~manual_reset_event();
+
+        void set();
+
+        void reset();
+
+        void wait();
+
+        bool try_wait();
+
+		bool timed_wait( system_time const& abs_time);
+
+		templatey typename TimeDuration >
+		bool timed_wait( TimeDuration const& rel_time);
+    };
+
+[section:constructor `explicit manual_reset_event( bool isset = false)`]
+[variablelist
+[[Effects:] [Constructs an object of class `manual_reset_event`. If isset is `true`
+the variable is set.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~manual_reset_event()`]
+[variablelist
+[[Precondition:] [All tasks waiting on `*this` have been notified by a call to
+`set` (though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:set `void set()`]
+[variablelist
+[[Effects:] [If any tasks are currently __blocked__ waiting on `*this` in a call
+to `wait`, unblocks those tasks. The variable remains signaled until `this->reset()`
+gets called.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:reset `void reset()`]
+[variablelist
+[[Effects:] [The event variable gets nonsignaled and tasks calling `this->wait()`
+will block.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait()`]
+[variablelist
+[[Effects:] [Blocks the current task. The task will unblock when notified by a call
+to `this->set()`. When the task is unblocked, the variable remains set.]]
+[[Throws:] [__task_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __task__ object associated with the current task of execution.]]
+]
+[endsect]
+
+[section:trywait `boo try_wait()`]
+[variablelist
+[[Effects:] [Returns `true` if the event variable is set otherwise `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+
+[section:count_down_event Class `count_down_event`]
+
+[heading Synopsis]
+
+The ['count_down_event] decrements an internal counter (set in the constructor) and all
+waiting tasks are blocked until the count reaches zero.
+
+    #include <boost/task/spin/count_down_event.hpp>
+
+    class count_down_event : private boost::noncopyable
+    {
+    public:
+        explicit count_down_event( unsigned int initial);
+
+        ~count_down_event();
+
+        unsigned int initial() const;
+
+        unsigned int current() const;
+
+        bool is_set() const;
+
+        void set();
+
+        void wait();
+
+        bool timed_wait( system_time const& abs_time);
+
+		template< typename TimeDuration >
+        bool timed_wait( TimeDuration const& rel_time);
+    };
+
+[section:constructor `explicit count_down_event( unsigned int initial)`]
+[variablelist
+[[Effects:] [Constructs an object of class `count_down_event` with initial value.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~count_down_event()`]
+[variablelist
+[[Precondition:] [All tasks waiting on `*this` have been notified by a call to
+`set` (though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:initial `unsigned int initial()`]
+[variablelist
+[[Effects:] [Returns the initial value the event variable was initialized with.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:current `unsigned int current()`]
+[variablelist
+[[Effects:] [Returns the value the variable currently holds.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:is_set `bool is_set()`]
+[variablelist
+[[Effects:] [Returns `true` if the varaible has reached zero.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:set `void set()`]
+[variablelist
+[[Effects:] [Decrements the current count. If the count reaches zero and any tasks are
+currently __blocked__ waiting on `*this` in a call to `wait`, unblocks those tasks.
+The variable remains signaled.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait()`]
+[variablelist
+[[Effects:] [Blocks the current task. The task will unblock when notified by a call
+to `this->set()` and the count of the event variable reaches zero. When the task is
+unblocked, the variable remains set.]]
+[[Throws:] [__task_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __task__ object associated with the current task of execution.]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]

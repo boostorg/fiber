@@ -1,0 +1,315 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:async_completion_token Asynchronous Completion Token]
+
+[heading Synopsis]
+
+The __act__ dispatches processing tasks in response to the completion of asynchronous operations. __act__ uniquely identifies
+the task and state necessary to process the result of the operation [footnote see [@http://www.cs.wustl.edu/~schmidt/PDF/ACT.pdf 'Asynchronous Completion Token'], Douglas Schmidt]. 
+
+__handle__ represents an __act__. It will be returned by __async__ and is associated with the submitted __task__.
+
+	long fibonacci( long n)
+	{
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+		return k1;
+	}
+
+	void main()
+	{
+		// create task
+		boost::tasks::task< long > t( fibonacci, 10);
+
+		// move task ownership to executor
+		boost::tasks::handle< long > h(
+			boost::tasks::async(
+				boost::move( t),
+				boost::tasks::new_thread() ) );
+
+		std::cout << "is ready == " << std::boolalpha << h.is_ready() << "\n";
+
+		// wait for task completion
+		h.wait();
+
+		std::cout << "has value == " << std::boolalpha << h.has_value() << "\n";
+		std::cout << "has exception == " << std::boolalpha << h.has_exception() << "\n";
+
+		// return result
+		std::cout << "fibonacci(10) == " << h.get() << std::endl;
+	}
+
+[heading Interruption]
+
+Each invokation of __fn_async__ returns an __handle__ which allows to control the associated __task__ (passed to __fn_async__). This includes
+the ability to interrupt an __task__ if it is cooperative. Cooperative means that the __task__ contains __interruption_points__ or checks for
+interruption requests [footnote see [@http://www.ddj.com/architect/207100682 'Interrupt Politely'], Herb Sutter].
+
+* __fn_interrupt__: interrupt __task__ and return immediately
+
+* __fn_interrupt_and_wait__: interrupt and wait until __task__ was removed from __worker_thread__
+
+* __fn_interrupt_and_wait_for__: interrupt and wait until __task__ was removed from __worker_thread__ or time duration has elapsed
+
+* __fn_interrupt_and_wait_until__: interrupt and wait until __task__ was removed from __worker_thread__ or time point has reached
+
+* __fn_interruption_requested__: return bool if interruption was requested
+
+	long cooperative( long n)
+	{
+		boost::this_thread::interruption_point(); // interruption point
+
+		if ( n == 0) return 0;
+		if ( n == 1) return 1;
+		long k1( 1), k2( 0);
+		for ( int i( 2); i <= n; ++i)
+		{
+			if ( boost::this_thread::interruption_requested() )	// check if interruption was requested
+				return;
+
+			long tmp( k1);
+			k1 = k1 + k2;
+			k2 = tmp;
+		}
+
+		boost::this_thread::interruption_point();  // interruption point
+
+		return k1;
+	}
+
+	void main()
+	{
+		// task, to be executed asynchronously
+		boost::tasks::task< long > t( cooperative, 10);
+
+		// move task to async. executor
+		boost::tasks::handle< long > h(
+			boost::tasks::async(
+				boost::move( t),
+				boost::tasks::new_thread() ) );
+
+		// interrupt task and wait until task is removed by worker-thread
+		h.interrupt_and_wait();
+
+		std::cout << "is ready == " << std::boolalpha << h.is_ready() << "\n";
+		std::cout << "has value == " << std::boolalpha << h.has_value() << "\n";
+		std::cout << "has exception == " << std::boolalpha << h.has_exception() << "\n";
+
+		// access result
+		// throws boost::tasks::task_interrupted
+		std::cout << h.get() << std::endl;
+	}
+
+[note If the task is still pending (not executed yet) when an interruption is requested - the task is not removed from the queue, it is marked to be interrupted instead.]
+
+
+[heading Completion]
+
+__boost_task__ provides function __waitfor_all__ waits for all handles passed to this function to become ready
+
+	void main()
+	{
+		std::vector handles< boost::tasks::handle< long > > results;
+		results.reserve( 10);
+
+		for ( int i = 0; i < 10; ++i)
+		{
+			boost::tasks::task< long > t( fibonacci, i);
+
+			results.push_back(
+				boost::tasks::async(
+					boost::move( t) ) );
+		}
+
+		// wait until all tasks are ready
+		boost::tasks::waitfor_all( results.begin(), results.end() );
+
+		int k = 0;
+		std::vector< boost::tasks::handle< long > >::iterator e( results.end() );
+		for (
+			std::vector< boost::tasks::handle< long > >::iterator i( results.begin() );
+			i != e;
+			++i)
+			std::cout << "fibonacci(" << k++ << ") == " << i->get() << std::endl;
+	}
+
+[section:handle Class template `handle`]
+
+	#include <boost/task/handle.hpp>
+
+	template< typename R >
+	class handle
+	{
+		handle();
+
+		template< typename F >
+		handle( F const&, context const&);
+
+		void interrupt();
+		void interrupt_and_wait();
+		void interrupt_and_wait_until( system_time const& abs_time);
+		template< typename TimeDuration >
+		void interrupt_and_wait_for( Duration const& rel_time);
+		bool interruption_requested();
+
+		R get();
+		bool is_ready() const;
+		bool has_value() const;
+		bool has_exception() const;
+		void wait() const;
+		bool wait_until( system_time const& abs_time);
+		template< typename TimeDuration >
+		bool wait_for( TimeDuration const& rel_time);
+
+		void swap( handle< R > & other);
+	};
+
+	template< typename Iterator >
+	friend void waitfor_all( Iterator begin, Iterator end);
+
+	template< typename T1, typename T2 >
+	friend void waitfor_all( T1 & t1, T2 & t2);
+	...
+	template< typename T1, typename T2, typename T3, typename T4, typename T5 >
+	friend void waitfor_all( handle< T1 > & t1, handle< T2 > & t2, handle< T3 > & t3, handle< T4 > & t4, handle< T5 > & t5);
+
+[section `handle()`]
+[variablelist
+[[Effects:] [constructs an empty (invalid) handle]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `template< typename F > handle( F const&, context const&)`]
+[variablelist
+[[Effects:] [constructs an handle associated with an future and an context]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `bool interruption_requested()`]
+[variablelist
+[[Effects:] [checks if interruption is already requested]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `void interrupt()`]
+[variablelist
+[[Effects:] [requests task interruption; doesn not block (immediatly returns)]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `void interrupt_and_wait()`]
+[variablelist
+[[Effects:] [requests task interruption and blocks until worker-thread stops task]]
+[[Throws:] [`boost::thread_resource_error`]]
+]
+[endsect]
+
+[section `bool interrupt_and_wait_until( system_time const&)`]
+[variablelist
+[[Effects:] [requests task interruption and blocks until worker-thread stops task or time-point elapsed]]
+[[Returns:] [false if the the time specified by abs_time was reached, true otherwise]]
+[[Throws:] [`boost::thread_resource_error`]]
+]
+[endsect]
+
+[section `template< typename TimeDuration > interrupt_and_wait_for( TimeDuration const&)`]
+[variablelist
+[[Effects:] [requests task interruption and blocks until worker-thread stops task or time-duration elapsed]]
+[[Returns:] [false if the the time specified by rel_time was reached, true otherwise]]
+[[Throws:] [`boost::thread_resource_error`]]
+]
+[endsect]
+
+[section `R get()`]
+[variablelist
+[[Effects:] [requests the result]]
+[[Throws:] [`boost::task::task_interrupted`, `boost::task::task_uninialized`, `boost::task::task_rejected`, `boost::task::broken_task`]]
+]
+[endsect]
+
+[section `void wait()`]
+[variablelist
+[[Effects:] [blocks caller until task is done]]
+[[Throws:] [`boost::task::task_interrupted`, `boost::task::task_uninialized`, `boost::task::task_rejected`, `boost::task::broken_task`]]
+]
+[endsect]
+
+[section `template< typename TimeDuration > wait_for( TimeDuration const&)`]
+[variablelist
+[[Effects:] [blocks caller until task is done]]
+[[Throws:] [`boost::task::task_interrupted`, `boost::task::task_uninialized`, `boost::task::task_rejected`, `boost::task::broken_task`]]
+]
+[endsect]
+
+[section `bool wait_until( system_time const& abs_time) const`]
+[variablelist
+[[Effects:] [blocks caller until task is done]]
+[[Throws:] [`boost::task::task_interrupted`, `boost::task::task_uninialized`, `boost::task::task_rejected`, `boost::task::broken_task`]]
+]
+[endsect]
+
+[section `bool is_ready()`]
+[variablelist
+[[Effects:] [checks if task is done]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `bool has_value()`]
+[variablelist
+[[Effects:] [checks if task is done and a result value is set]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `bool has_exception()`]
+[variablelist
+[[Effects:] [checks if task is done and an exception is set]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section `void swap( handle< R > & other)`]
+[variablelist
+[[Effects:] [swapps handle]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section Non-member function `wait_for_all()`]
+
+	template< typename Iterator >
+	void waitfor_all( Iterator begin, Iterator end);
+
+	template< typename T1, typename T2 >
+	void waitfor_all( T1 & t1, T2 & t2);
+	...
+	template< typename T1, typename T2, typename T3, typename T4, typename T5 >
+	void waitfor_all( handle< T1 > & t1, handle< T2 > & t2, handle< T3 > & t3, handle< T4 > & t4, handle< T5 > & t5);
+
+[variablelist
+[[Effects:] [waits for all handles to become ready]]
+[[Throws:] [`boost::task::task_interrupted`, `boost::task::task_rejected`]]
+]
+[endsect]
+
+[endsect]
+
+[endsect] 

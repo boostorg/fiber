@@ -1,0 +1,24 @@
+[/ Boost.Extension - main doc ]
+[/ Copyright 2008-2008 Jeremy Pack and Mariano Consoni ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[library Boost.Extension
+    [quickbook 1.4]
+    [copyright 2008 Jeremy Pack]
+    [authors [Pack, Jeremy]]
+    [purpose
+        Factory management and facilities for using shared libraries]
+    [license
+        Distributed under the Boost Software License, Version 1.0.
+        (See accompanying file LICENSE_1_0.txt or copy at
+        [@http://www.boost.org/LICENSE_1_0.txt http://www.boost.org/LICENSE_1_0.txt])
+    ]
+    [category Programming Interfaces]
+    [last-revision $Date: 2008/2/12 19:25:00 $]
+]
+
+
+[include appendices.qbk]

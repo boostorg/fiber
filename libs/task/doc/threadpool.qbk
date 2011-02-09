@@ -1,0 +1,63 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:threadpool Execute in Thread-Pool]
+
+[heading Synopsis]
+
+Instead of creating a new thread and quickly throwing it away after the task is done, the overhead related to thread
+creation and destruction can be avoided by running the __work_items__ on a __thread_pool__ (reusing an existing
+__worker_thread__ instead).
+
+A __thread_pool__ maintains a global queue of __work_items__ to be processed, and a pool of __worker_threads__ which execute __work_items__ from the global queue.
+
+__boost_task__ provides __fn_async__ with support of executing an __task__ in __thread_pool__:
+
+
+	std::string echo( std::string const& msg)
+	{ return msg; }
+
+	void main()
+	{
+		// create a thread-pool with
+		// five worker-threads
+		// FIFO schduling of queued tasks
+		// and unlimited size of internal queue
+		boost::tasks::static_pool< boost::tasks::unbounded_fifo > pool( boost::tasks::poolsize( 5) );
+
+		// create task
+		boost::tasks::task< std::string > t( echo, "Hello World!");
+
+		// move task to executor
+		// let the task be executed by the thread-pool
+		boost::tasks::handle< std::string > h(
+			boost::tasks::async(
+				boost::move( t),
+				pool) );
+
+		// access the result
+		std::cout << h.get() << std::endl;
+	}
+
+
+[important Tasks should not be too small (performance overhead dominates) and avoid blocking 
+tasks[footnote see [@http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=216500409 
+'Use Thread Pools Correctly'], Herb Sutter].]
+
+
+[include static_pool.qbk]
+[include meta_functions.qbk]
+[include queue.qbk]
+[include shutdown.qbk]
+[include processor_binding.qbk]
+[include work_stealing.qbk]
+[include fork_join.qbk]
+
+
+[endsect]
+

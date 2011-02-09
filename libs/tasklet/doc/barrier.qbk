@@ -1,0 +1,52 @@
+[/
+  (C) Copyright 2007-8 Anthony Williams.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:barriers Barriers]
+
+A barrier is a concept also known as a __rendezvous__, it is a synchronization
+point between multiple contexts of execution (thread or tasklet). The barrier is
+configured for a particular number of tasklets (`n`), and as tasklets reach the
+barrier they must wait until all `n` tasklets have arrived. Once the `n`-th
+tasklet has reached the barrier, all the waiting tasklets can proceed, and the
+barrier is reset.
+
+[section:barrier Class `barrier`]
+
+    #include <boost/tasklet/barrier.hpp>
+
+    class barrier
+    {
+    public:
+        barrier( unsigned int initial);
+
+        bool wait();
+    };
+
+
+Instances of __barrier__ are not copyable or movable.
+
+[section:constructor `barrier( unsigned int initial)`]
+[variablelist
+[[Effects:] [Construct a barrier for `initial` tasklets.]]
+[[Throws:] [__invalid_argument__]]
+]
+[endsect]
+
+[section:wait `bool wait()`]
+[variablelist
+[[Effects:] [Block until `initial` tasklets have called `wait` on `*this`. When
+the `initial`-th tasklet calls `wait`, all waiting tasklets are unblocked, and
+the barrier is reset. ]]
+[[Returns:] [`true` for exactly one tasklet from each batch of waiting tasklets,
+`false` otherwise.]]
+[[Throws:] [__tasklet_error__]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]

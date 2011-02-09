@@ -1,0 +1,31 @@
+# Boost.fiber Library Tests Jamfile
+
+#          Copyright Oliver Kowalke 2009.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+import testing ;
+
+project boost/fiber/test
+    : requirements
+      <dependency>../../context/build//context.hpp
+      <library>../../test/build//boost_unit_test_framework
+      <library>/boost/context//boost_context
+      <library>/boost/fiber//boost_fiber
+      <library>/boost/thread//boost_thread
+      <link>static
+      <threading>multi
+    ;
+
+rule test ( source )
+{
+    return
+        [ run $(source).cpp ]
+    ;
+}
+
+test-suite fiber :
+    [ test test_asym_fiber ]
+    [ test test_sym_fiber ]
+    ;

@@ -1,0 +1,130 @@
+[/ Boost.Extension - first tutorial ]
+[/ Copyright 2008 Jeremy Pack ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+
+[section:tutorial01 Tutorial 1]
+
+Create a class that we will later subclass and put it into a header file called 
+word.hpp.
+``
+class word
+{
+public:
+  virtual ~word(){}
+  virtual const char * get_val(){return "";}
+};
+``
+This file will be included by both the shared library in which classes implement
+this interface, and in the executable that will load these implementations. The 
+destructor ought to be virtual, just to ensure proper deletion. We create one 
+virtual function. We could actually add data to this class as well.
+
+Now create a file called hello_world.cpp. This will be compiled into a shared 
+library:
+
+``
+#include "word.hpp" 
+#include <boost/extension/factory_map.hpp>
+
+class world : public word
+{
+public:
+  virtual const char * get_val(){return "world!";}
+};
+class hello : public word
+{
+public:
+  virtual const char * get_val(){return "hello";}
+};
+``
+Now we have two classes that are derived from word, and that both implement the 
+virtual function get_val. All that's left is to declare them for exporting. 
+Normally, we just put one function in the entire shared library that exports 
+all exportable classes in the library.
+``
+extern "C" void BOOST_EXTENSION_EXPORT_DECL 
+extension_export_word(boost::extensions::factory_map & fm)
+{
+  fm.get<word, int>()[1].set<hello>();
+  fm.get<word, int>()[2].set<world>();
+}
+``
+`extern "C"` is required to keep the function name from being mangled. 
+`BOOST_EXTENSION_EXPORT_DECL` is only necessary on Windows - on other platforms 
+it does nothing. On Windows, it declares that the function should be exported. 
+This is the default in shared libraries on other platforms.
+
+The `factory_map::get` function takes two template arguments: the type of 
+factory to get (the interface returned by it), and what type of info is used 
+to identify it (which can be an arbitrary type).
+
+This returns a `std::map`, in this case, `std::map<int, factory<word> >`. 
+We then index the map to find (and perhaps create) the appropriate factory,
+and set the type of class it instantiates to the template argument of the
+`set` function. The argument is the value for that identification info.
+
+Now we can write the executable.
+
+``
+#include <boost/extension/factory_map.hpp>
+#include <boost/extension/shared_library.hpp>
+#include <iostream>
+#include <boost/extension/convenience.hpp>
+#include "word.hpp"
+int main()
+{
+  using namespace boost::extensions;
+  //  Create the factory_map object - it will hold all of the available
+  //  constructors. Multiple factory_maps can be constructed.
+  factory_map fm;
+  // load the shared library with 
+  load_single_library(fm, "libHelloWorldLib.extension", 
+                          "extension_export_word");
+  //  Get a reference to the list of constructors for words.
+  std::list<factory<word, int> > & factory_list = fm.get<word, int>();  
+  if (factory_list.size() < 2)
+    std::cout << "Error - the classes were not found.";
+  for (std::list<factory<word, int> >::iterator current_word =
+       factory_list.begin(); current_word != factory_list.end();
+       ++current_word) {
+    //  Using auto_ptr to avoid needing delete. Using smart_ptrs is recommended.
+    //  Note that this has a zero argument constructor - currently constructors
+    //  with up to six arguments can be used.
+    std::auto_ptr<word> word_ptr(current_word->create());
+    std::cout << word_ptr->get_val() << " ";
+  }
+  std::cout << "\n";
+  return 0;
+}
+``
+Now we just need to write the build file. You may have noticed above that the 
+name of the library is assumed to be libHelloWorld.extension - we'll need to 
+rename whatever shared library is compiled to that. Boost.Build can do this 
+automatically.
+
+``
+import type : change-generated-target-suffix ;
+import type : change-generated-target-prefix ;
+type.change-generated-target-suffix SHARED_LIB : : extension ;
+type.change-generated-target-prefix SHARED_LIB : : lib ;
+import os ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+project 
+    : requirements
+      <include>../../../
+      <include>$(BOOST_ROOT)
+    :
+    ;
+
+exe HelloWorld : main.cpp ;
+lib HelloWorldLib : hello_world.cpp : <link>shared ;
+install ../bin : HelloWorld HelloWorldLib ;
+``
+If you use another build system, you'll need to make sure that the output 
+shared library (dll, so, dylib etc.) is renamed correctly.
+[endsect]

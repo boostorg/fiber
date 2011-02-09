@@ -1,0 +1,22 @@
+[/ Boost.Extension - fifth tutorial ]
+[/ Copyright 2008 Mariano G. Consoni ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[section:tutorial05 Tutorial 5 - Adaptable Factories]
+
+In some cases, it may be desirable to construct an object that depends on
+other objects having been created, but their existence is not known at
+compile time.
+
+In other cases, it may be desirable to allow a constructor to pick and
+choose its parameters from a set of parameters.
+
+This is, in some ways, a simple sort of reflection (See _reflection_ and
+_simple_reflection_ for actual reflection) for the parameters of constructors.
+
+The _adaptable_factory_ class provides this functionality.
+
+[endsect]

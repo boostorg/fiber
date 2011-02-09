@@ -1,0 +1,60 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+
+[section:meta_functions Meta functions]
+
+If the __thread_pool__ supports attributes (like priorities) __has_attribute__ evaluates to `true` at compile-time (derived from
+boost::mpl::bool_). The type of the attribute is determined by __attribute_type__.
+
+	// thread-pool with priority scheduling
+	// type of priority is int
+	typdef boost::task::static_pool< boost::task::unbounded_priority< int > > pool_type;
+
+	// test if thread-pool supports priorities at compile time
+	std::cout << std::boolalpha << boost::task::has_attribute< pool_type >::value << "\n";
+
+	// access the type used for priority
+	std::cout << typeid( boost::task::attribute_type< pool_type >::type).name() << std::endl;
+
+[section:has_attribute Meta function `has_attribute`]
+
+	#include <boost/task/meta.hpp>
+
+	template< typename Pool >
+	struct has_attribute : public mpl::bool_<
+		is_same<
+			detail::has_priority,
+			typename Pool::scheduler_type::priority_tag_type
+		>::value
+	>
+	{};
+
+[variablelist
+[[Effects:] [returns true if Pool supports attributes (priority-scheduling)]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+
+[section:attribute_type Meta function `attribute_type`]
+
+	#include <boost/task/meta.hpp>
+
+	template< typename Pool >
+	struct attribute_type
+	{
+		typedef typename Pool::scheduler_type::attribute_type   type;
+	};
+
+[variablelist
+[[Effects:] [returns type of attribute]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[endsect]

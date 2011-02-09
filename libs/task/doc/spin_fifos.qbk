@@ -1,0 +1,206 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:fifos (Un)Bounded fifos]
+
+__boost_task__ provides a bounded and a unbounded fifo suitable to synchonize tasks via message passing.
+
+    typedef boost::tasks::spin::unbounded_channel< int > fifo_t;
+
+    void send( fifo_t fifo)
+    {
+        for ( int i = 0; i < 5; ++i)
+            fifo.put( i);
+        fifo.deactivate();
+    }
+
+    void recv( fifo_t fifo)
+    {
+        boost::optional< int > value;
+        while ( fifo.take( value) )
+        { std::cout << "received " << * value << std::endl; }
+    }
+
+    boost::tasks::scheduler<> sched;
+    fifo_t fifo;
+    sched.make_task( send, fifo);
+    sched.make_task( recv, fifo);
+
+    for (;;)
+    {
+        while ( sched.run() );
+        if ( sched.empty() ) break;
+    }
+
+
+[section:unbounded_channel Class template `unbounded_channel`]
+
+    #include <boost/task/spin/unbounded_channel.hpp>
+
+    template< typename T >
+    class unbounded_channel : private noncopyable
+    {
+    public:
+        unbounded_channel();
+
+        void deactivate();
+
+        bool empty();
+
+        void put( T const& t);
+
+        bool take( boost::optional< T > & va);
+
+        bool take( boost::optional< T > & va, system_time const& abs_time);
+
+		template< typename TimeDuration >
+        bool take( boost::optional< T > & va, TimeDuration const& rel_time);
+
+        bool try_take( boost::optional< T > & va);
+    };
+
+[section:constructor `unbounded_channel()`]
+[variablelist
+[[Effects:] [Constructs an object of class `unbounded_channel`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:deactivate `void deactivate()`]
+[variablelist
+[[Effects:] [Deactivates the fifo. No values can be put after calling `this->deactivate`. tasks blocked in
+`this->take()` will be return.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:empty `bool empty()`]
+[variablelist
+[[Effects:] [Returns `true` if the fifo currently contains no data.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:put `void put( T const& t)`]
+[variablelist
+[[Effects:] [Enqueues the value in the fifo and wakes up a task waiting for new data available from the
+fifo.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:take `bool take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the fifo. If no data is available from the fifo the task gets suspended until
+new data are enqueued (return value `true` and va contains dequeued value) or the fifo gets deactiveted and
+the function returns `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:try_take `bool try_take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the fifo. If no data is available from the fifo the function returns `false`.
+Otherwise it returns `true` and `va` contains the dequed value.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+
+[section:bounded_channel Class template `bounded_channel`]
+
+    #include <boost/task/spin/bounded_channel.hpp>
+
+    template< typename T >
+    class bounded_channel : private noncopyable
+    {
+    public:
+        bounded_channel( std::size_t wm);
+
+        bounded_channel( std::size_t hwm, std::size_t lwm);
+
+        void deactivate();
+
+        bool empty();
+
+        void put( T const& t);
+
+        void put( T const& t, system_time const& abs_time);
+
+		template< typename TimeDuration >
+        void put( T const& t, TimeDuration const& rel_time);
+
+        bool take( boost::optional< T > & va);
+
+        bool take( boost::optional< T > & va, system_time const& abs_time);
+
+		template< typename TimeDuration >
+        bool take( boost::optional< T > & va, TimeDuration const& rel_time);
+
+        bool try_take( boost::optional< T > & va);
+    };
+
+[section:constructor `bounded_channel( std::size_t wm)`]
+[variablelist
+[[Effects:] [Constructs an object of class `bounded_channel` which will contain a maximum of `wm` items.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:constructor2 `bounded_channel( std::size_t hwm, std::size_t lwm)`]
+[variablelist
+[[Effects:] [Constructs an object of class `bounded_channel` which will contain a maximum of `hwm` items.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:deactivate `void deactivate()`]
+[variablelist
+[[Effects:] [Deactivates the fifo. No values can be put after calling `this->deactivate`. tasks blocked in
+`this->take()` will be return.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:empty `bool empty()`]
+[variablelist
+[[Effects:] [Returns `true` if the fifo currently contains no data.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:put `void put( T const& t)`]
+[variablelist
+[[Effects:] [Enqueues the value in the fifo and wakes up a task waiting for new data available from the
+fifo. If the watermark has reached the task putting the value will be supended until at least one item
+was dequeued.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:take `bool take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the fifo. If no data is available from the fifo the task gets suspended until
+new data are enqueued (return value `true` and va contains dequeued value) or the fifo gets deactiveted and
+the function returns `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:try_take `bool try_take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the fifo. If no data is available from the fifo the function returns `false`.
+Otherwise it returns `true` and `va` contains the dequed value.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]

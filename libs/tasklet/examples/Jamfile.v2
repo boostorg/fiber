@@ -1,0 +1,27 @@
+# Boost.Tasklet Library Examples Jamfile
+
+#          Copyright Oliver Kowalke 2009.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+# For more information, see http://www.boost.org/
+
+project boost/tasklet/example
+    : requirements
+        <library>../build//boost_tasklet
+        <library>/boost/fiber//boost_fiber
+        <library>/boost/thread//boost_thread
+		<hardcode-dll-paths>true
+    ;
+
+exe barrier_mt : barrier_mt.cpp ;
+exe cancel : cancel.cpp ;
+exe future : future.cpp ;
+exe interrupt : interrupt.cpp ;
+exe join : join.cpp ;
+exe future_mt : future_mt.cpp ;
+exe migrate_mt : migrate_mt.cpp ;
+exe ping_pong_mt : ping_pong_mt.cpp ;
+exe ping_pong : ping_pong.cpp ;
+exe simple : simple.cpp ;

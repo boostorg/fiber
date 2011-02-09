@@ -1,0 +1,75 @@
+[/ Boost.Reflection - Interpreter prototype ]
+[/ Copyright 2007 Mariano G. Consoni ]
+[/ Distributed under the Boost Software License, Version 1.0. (See]
+[/ accompanying file LICENSE_1_0.txt or copy at ]
+[/ http://www.boost.org/LICENSE_1_0.txt) ]
+[/ See http://www.boost.org/ for latest version. ]
+
+[section:interpreter Interpreter prototype]
+
+In this section we will describe one of the examples. This example is special
+because it is one of the reasons that motivated the development of the 
+library.
+
+The example is a prototype of a C++ interpreter. Its main goal is to allow
+the user to create instances of the reflected interfaces and then 
+call its methods via the reflection too.
+
+Nowadays the interpreter is just work-in-progress of a prototype. So you should
+understand its uncompleteness, but now it has the following features:
+
+# Instance creation with parameters.
+
+# Method call with parameters.
+
+Anyway this features are limited to one interface (car interface) and also
+constrained by the number of parameters (mostly because of pattern matching
+issues).
+
+To show the current syntax we think that the best is to show an example 
+session.
+
+In this session we create some instances and call the car::start method. Also
+we show what happens when we predicated over unknown instances.
+
+Let's see the session:
+
+[table 
+^Boost.Reflection example - Prototype C++ interpreter.\n
+\n
+> beetle=Compact(VWBeetle)\n
+Instance [beetle] created.\n
+> beetle.start()\n
+VWBeetle started.\n
+ --> 1\n
+> betle.start()\n
+Instance betle not found.\n
+> test\n
+The command "test" is invalid.\n
+> Cherokee=SUV(GrandCherokee)\n
+Instance [Cherokee] created.\n
+> Cherokee.start()\n
+GrandCherokee started.\n
+ --> 1\n
+> Ch.start()\n
+Instance Ch not found.\n]
+
+In this session you could see:
+
+# we create a new Compact car instance. Its name is VWBeetle and we store it
+in a instance variable called beetle. 
+
+# we call start in the newly created instance. It yields true.
+
+# we try to call an unknown instance.
+
+# we type a wrong command.
+
+# then we create another instance and we start it.
+
+
+Of course this interpreter is very limited, but it shows the potential of
+Boost.Reflection to develop software that use the meta-information of its 
+structure.
+
+[endsect]

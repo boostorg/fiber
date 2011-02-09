@@ -1,0 +1,63 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:this_task Namespace `this_task`]
+
+[heading Synopsis]
+
+The non-member function in namespace `this_task` provide functionality to ['yield] the current task or
+test if the task is executed inside a __thread_pool__.
+
+[section:block Non-member function `yield()`]
+
+	#include <boost/task/utility.hpp>
+
+	namespace this_task
+	{
+		void yield()
+	}
+
+[variablelist
+[[Effects:] [Blocks the current task and lets the worker-thread of the pool process another task.
+The blocked task will be scheduled and return from this method.]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[section:runs_in_pool Non-member function `runs_in_pool()`]
+
+	#include <boost/task/utility.hpp>
+
+	namespace this_task
+	{
+		bool runs_in_pool()
+	}
+
+[variablelist
+[[Effects:] [Returns true if the current task is executed in a thread-pool.]]
+[[Throws:] [nothing]]
+[[Note:] [this function resides in namespace `boost::this_task`]]
+]
+[endsect]
+
+
+[section:worker_id Non-member function `worker_id()`]
+
+	#include <boost/task/utility.hpp>
+
+	namespace this_task
+	{
+		id worker_id()
+	}
+
+[variablelist
+[[Effects:] [Returns returns the thread-id of the worker-thread form the thread-pool.]]
+[[Throws:] [nothing]]
+]
+[endsect]
+
+[endsect]

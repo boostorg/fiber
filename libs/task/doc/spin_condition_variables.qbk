@@ -1,0 +1,199 @@
+[/
+  (C) Copyright 2007-8 Anthony Williams.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:conditions Condition Variables]
+
+[heading Synopsis]
+
+The class `condition` provides a mechanism for one task to wait for notification `condition`. When the task is
+woken from the wait, then it checks to see if the appropriate condition is now true, and continues if so. If the
+condition is not true, then the task then calls `wait` again to resume waiting. In the simplest case, this
+condition is just a boolean variable:
+
+    boost::tasks::spin::condition cond;
+    boost::tasks::spin::mutex mtx;
+    bool data_ready;
+
+    void process_data();
+
+    void wait_for_data_to_process()
+    {
+        boost::unique_lock< boost::tasks::spin::mutex > lk( mtx);
+        while ( ! data_ready)
+        {
+            cond.wait( lk);
+        }
+        process_data();
+    }
+
+Notice that the `lk` is passed to `wait`: `wait` will atomically add the task to the set of tasks waiting on the
+condition variable, and unlock the mutex. When the task is woken, the mutex will be locked again before the call
+to `wait` returns. This allows other tasks to acquire the mutex in order to update the shared data, and ensures
+that the data associated with the condition is correctly synchronized.
+
+In the mean time, another task sets the condition to `true`, and then calls either `notify_one` or `notify_all` on
+the condition variable to wake one waiting task or all the waiting tasks respectively.
+
+    void retrieve_data();
+    void prepare_data();
+
+    void prepare_data_for_processing()
+    {
+        retrieve_data();
+        prepare_data();
+        {
+            boost::lock_guard< boost::tasks::spin::mutex > lk( mtx);
+            data_ready = true;
+        }
+        cond.notify_one();
+    }
+
+Note that the same mutex is locked before the shared data is updated, but that the mutex does not have to be locked
+across the call to `notify_one`.
+
+[section:condition Class `condition`]
+
+    #include <boost/task/spin/condition.hpp>
+
+    class condition
+    {
+    public:
+        condition();
+        ~condition();
+
+        void notify_one();
+        void notify_all();
+
+        void wait( boost::unique_lock< boost::tasks::spin::mutex > & lk);
+
+        template< typename Pred >
+        void wait( boost::unique_lock< boost::tasks::spin::mutex > & lk, Pred pred);
+
+        template< typename LockType >
+        void wait( LockType & lk);
+
+        template< typename LockType, typename Pred >
+        void wait( LockType & lk, Pred predicate);
+
+        void timed_wait( boost::unique_lock< boost::tasks::spin::mutex > & lk, system_time const& abs_time);
+
+		template< typename TimeDuration >
+        void timed_wait( boost::unique_lock< boost::tasks::spin::mutex > & lk, TimeDuration const& rel_time);
+
+        template< typename Pred >
+        void timed_wait( boost::unique_lock< boost::tasks::spin::mutex > & lk, system_time const& abs_time, Pred pred);
+
+        template< typename TimeDuration, typename Pred >
+        void timed_wait( boost::unique_lock< boost::tasks::spin::mutex > & lk, TimeDuration const& rel_time, Pred pred);
+
+        template< typename LockType >
+        void timed_wait( LockType & lk, system_time const& abs_time);
+
+        template< typename TimeDuration, typename LockType >
+        void timed_wait( LockType & lk, TimeDuration const& rel_time);
+
+        template< typename LockType, typename Pred >
+        void timed_wait( LockType & lk, system_time const& abs_time, Pred predicate);
+
+        template< typename LockType, typename TimeDuration, typename Pred >
+        void timed_wait( LockType & lk, TimeDuration const& rel_time, Pred predicate);
+    };
+
+[section:constructor `condition()`]
+[variablelist
+[[Effects:] [Constructs an object of class `condition`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~condition()`]
+[variablelist
+[[Precondition:] [All tasks waiting on `*this` have been notified by a call to `notify_one` or `notify_all`
+(though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:notify_one `void notify_one()`]
+[variablelist
+[[Effects:] [If any tasks are currently __blocked__ waiting on `*this` in a call to `wait`, unblocks one of
+those tasks.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:notify_all `void notify_all()`]
+[variablelist
+[[Effects:] [If any tasks are currently __blocked__ waiting on `*this` in a call to `wait`, unblocks all of
+those tasks.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait( boost::unique_lock< boost::tasks::spin::mutex > & lk)`]
+[variablelist
+[[Precondition:] [`lk` is locked by the current task, and either no other
+task is currently waiting on `*this`, or the execution of the `mutex()` member
+function on the `lk` objects supplied in the calls to `wait` in all the tasks
+currently waiting on `*this` would return the same value as `lk->mutex()` for
+this call to `wait`.]]
+[[Effects:] [Atomically call `lk.unlock()` and blocks the current task. The
+task will unblock when notified by a call to `this->notify_one()` or
+`this->notify_all()`, or spuriously. When the task is unblocked (for whatever
+reason), the lock is reacquired by invoking `lk.lock()` before the call to
+`wait` returns. The lock is also reacquired by invoking `lk.lock()` if the
+function exits with an exception.]]
+[[Postcondition:] [`lk` is locked by the current task.]]
+[[Throws:] [__task_error__ if an error
+occurs. __task_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __task__ object associated with the current task of execution.]]
+]
+[endsect]
+
+[section:wait_predicate `template< typename Pred > void wait( boost::unique_lock< boost::tasks::spin::mutex > & lk, Pred pred)`]
+[variablelist
+[[Effects:] [As-if ``
+while ( ! pred())
+{
+    wait( lk);
+}
+``]]
+
+]
+[endsect]
+
+[section:wait_t `template< typename LockType > void wait( LockType & lk)`]
+[variablelist
+[[Effects:] [Atomically call `lk.unlock()` and blocks the current task. The
+task will unblock when notified by a call to `this->notify_one()` or
+`this->notify_all()`, or spuriously. When the task is unblocked (for whatever
+reason), the lock is reacquired by invoking `lk.lock()` before the call to
+`wait` returns. The lock is also reacquired by invoking `lk.lock()` if the
+function exits with an exception.]]
+[[Postcondition:] [`lk` is locked by the current task.]]
+[[Throws:] [__task_error__ if an error
+occurs. __task_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __task__ object associated with the current task of execution.]]
+]
+[endsect]
+
+[section:wait_predicate_t `template< typename LockType, typename Pred > void wait( LockType & lk, Pred pred)`]
+[variablelist
+[[Effects:] [As-if ``
+while ( ! pred())
+{
+    wait( lock);
+}
+``]]
+
+]
+[endsect]
+
+[endsect]
+
+[endsect]

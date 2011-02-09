@@ -1,0 +1,421 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:asym_fiber_management Asymmetric Fiber]
+
+[heading Synopsis]
+
+Each __asym_fiber__ class represents a user-space context of execution. Objects of
+type __asym_fiber__ are characterized by providing three basic operations: __create__
+(constructor), __resume__ (__fiber_run__) and __suspend__ (__fiber_yield__).
+   
+The constructor of __asym_fiber__ accepts a function which acts as the main body
+of the fiber. Creating a fiber doesn't start its execution. The fiber begins
+in suspended state with its __continuation_point__ set to the first instruction in
+its main body.
+Invoking __fiber_run__ starts the execution at its saved __continuation_point__
+(activate the fiber) and runs until the fiber gets suspended or returns from fibers
+main function. In both cases the control is transfered back to the invoker.
+When a fiber returns from its main function the fiber is said to be finished and can
+not be futher resumed.
+If a fiber gets suspended its __continuation_point__ is saved so that the next time
+the fiber is resumed, its execution will continue at the exact point where it was
+suspended.
+
+__asym_fiber__ supports copy- and move-semantics.
+
+	boost::asym_fiber f1; // not-a-fiber
+
+	void fn()
+	{
+		boost::asym_fiber f2( some_fn, boost::asym_fiber::default_stacksize);
+		std::cout << f2.get_id() << std::endl;
+		f2.run();
+	}
+
+
+[note If fibers are migrated between threads the code called by a fiber must not
+use thread-local-storage.]
+
+
+[heading Creating]
+
+A new fiber is launched by passing an object of a callable type that can be
+invoked with no parameters to the constructor. The object is then copied into
+internal storage, and invoked on the newly-created fiber. If the object must
+not (or cannot) be copied, then `boost::ref` can be used to pass in a reference
+to the function object. In this case, the user of __boost_fiber__ must ensure
+that the referred-to object outlives the newly-created fiber.
+
+	struct callable
+	{ void operator()(); };
+
+	boost::asym_fiber copies_are_safe()
+	{
+		callable x;
+		return boost::asym_fiber( x);
+	} // x is destroyed, but the newly-created fiber has a copy, so this is OK
+
+	boost::asym_fiber oops()
+	{
+		callable x;
+		return boost::asym_fiber( boost::ref( x), boost::asym_fiber::default_stacksize);
+	} // x is destroyed, but the newly-created fiber still has a reference
+	  // this leads to undefined behaviour
+
+If you wish to construct an instance of __asym_fiber__ with a function or callable
+object that requires arguments to be supplied, this can be done by passing
+additional arguments to the __asym_fiber__ constructor:
+
+	void find_the_question( int the_answer);
+
+	boost::asym_fiber deep_thought_2(
+		find_the_question, 42, boost::asym_fiber::default_stacksize);
+
+The arguments are ['copied] into the internal fiber structure: if a reference
+is required, use `boost::ref`, just as for references to callable functions.
+
+[caution Functions passed to the __asym_fiber__ must not throw exceptions.]
+
+If the main function of __asym_fiber__ returns the fiber returns to the
+__continuation_point__ which has invoked the fiber. If desired the application
+will terminate if the last constructor argument is set to `false` and fibers
+main function returns.
+
+
+[heading Control Transfer]
+
+__asym_fiber__ has two operations to transfer the execution between different
+fibers. The __continuation_point__ of the fiber ist started/resumed if 
+__fiber_run__ is invoked.
+If the fiber decides to give the execution control back to its caller
+__fiber_yield__ must be called.
+
+	// create `my_fiber` which will execute `my_function()`
+	boost::asym_fiber my_fiber( my_function, boost::asym_fiber:default_stacksize);
+
+	// jump to execution context of `my_fiber`
+	// run `my_function`
+	my_fiber.run();
+
+	// this section will be entered if `my_function()` calls
+	// `my_fiber.yield()`
+
+
+[heading Fiber IDs]
+
+Objects of class __asym_fiber_id__ can be used to identify fibers. Each running fiber
+has a unique ID obtainable from the corresponding __asym_fiber__ by calling 
+__asym_get_id__ member function. Objects of class __asym_fiber_id__ can be copied, and
+used as keys in associative containers: the full range of comparison operators
+is provided. Fiber IDs can also be written to an output stream using the stream
+insertion operator, though the output format is unspecified.
+
+Each instance of __asym_fiber_id__ either refers to some fiber, or __not_a_fiber__.
+Instances that refer to __not_a_fiber__ compare equal to each other, but not
+equal to any instances that refer to an actual fiber.
+The comparison operators on __asym_fiber_id__ yield a total order for every non-equal
+fiber ID.
+
+
+[heading Example]
+
+The example below demonstrates that the function `fn` is executed in the context
+of the fiber `f` and the local state of `fn` is preserved (value of `i` in the
+for loop).
+
+	boost::asym_fiber f;
+
+	void fn( int n)
+	{
+		for ( int i = 0; i < n; ++i)
+		{
+			std::cout << i << " iteration" << std::endl;
+			// jump back to main
+			// value of i will be preserved
+			f.yield();
+			// if we return from f.yield()
+			// f.run() was called again
+		}
+	}
+
+	int main()
+	{
+		f = boost::asym_fiber( fn, 5);
+
+		std::cout << "start" << std::endl;
+		while ( ! f.finished() )
+			f.run(); // jump to context of fn()
+		std::cout << "finish" << std::endl;
+
+		return EXIT_SUCCESS;
+	}
+
+
+[section:asym_fiber Class `asym_fiber`]
+
+	#include <boost/fiber/asym_fiber.hpp>
+
+	class asym_fiber
+	{
+	public:
+		asym_fiber();
+
+		template< typename Fn >
+		explicit asym_fiber( Fn fn, std::size_t stacksize, bool do_return = true);
+
+		template< typename Fn, typename A1, typename A2,... >
+		asym_fiber( Fn fn, A1 a1, A2 a2,..., std::size_t stacksize, bool do_return = true);
+
+		asym_fiber( asym_fiber const& other);
+		asym_fiber & operator=( asym_fiber const& other);
+
+		// move support
+		template< typename Fn >
+		explicit asym_fiber( Fn && fn, std::size_t stacksize, bool do_return = true);
+
+		asym_fiber( asym_fiber && other);
+
+		asym_fiber & operator=( asym_fiber && other);
+
+		operator unspecified-bool-type() const;
+		
+		bool operator!() const;
+		
+		void swap( asym_fiber & other);
+		
+		id get_id() const;
+		
+		bool operator==( asym_fiber const&) const;
+		bool operator!=( asym_fiber const&) const;
+		
+		void run();
+		
+		void yield();
+
+		bool finished() const;
+	};
+
+	void swap( asym_fiber & lhs, asym_fiber & rhs);
+
+
+[section:default_constructor `asym_fiber()`]
+[variablelist
+[[Effects:] [Constructs a __asym_fiber__ instance that refers to __not_a_fiber__.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:callable_constructor_stack `template< typename Fn > asym_fiber( Fn fn, std::size_t stacksize, bool do_return)`]
+[variablelist
+[[Effects:] [`fn` is copied into storage managed internally by the fiber, that
+copy is invoked on a newly-created fiber. If last argument is
+`true` the execution context returns to caller after `fn` finished.]]
+[[Postconditions:] [`*this` refers to the newly created fiber.]]
+[[Throws:] [__bad_alloc__.]]
+]
+[endsect]
+
+[section:multiple_argument_constructor `template< typename Fn, typename A1, typename A2,... > fiber( Fn fn, A1 a1, A2 a2,..., std::size_t stacksize, bool do_return)`]
+[variablelist
+[[Preconditions:] [`Fn` and each `A`n must by copyable or movable.]]
+[[Effects:] [As if `asym_fiber( boost::bind( fn, a1, a2,...) )`. Consequently,
+`fn` and each `a`n are copied into internal storage for access by the new fiber.
+If last argument is `true` the execution context returns to caller after `fn`
+finished.]]
+[[Postconditions:] [`*this` refers to the newly created fiber.]]
+[[Throws:] [__bad_alloc__]]
+[[Note:] [Currently up to nine additional arguments `a1` to `a9` can be
+specified in addition to the function `fn`.]]
+]
+[endsect]
+
+[section:get_id `asym_fiber::id get_id() const`]
+[variablelist
+[[Returns:] [If `*this` refers to a fiber, an instance of __asym_fiber_id__ that
+represents that fiber. Otherwise returns a default-constructed __asym_fiber_id__.]]
+[[Throws:] [Nothing.]]
+]
+
+[endsect]
+
+[section:run `void run()`]
+[variablelist
+[[Effects:] [Save current execution context (caller) and jump to execution
+context of `*this`.]]
+[[Throws:] [__fiber_moved__ if `*this` is __not_a_fiber__.]]
+]
+[endsect]
+
+[section:yield `void yield()`]
+[variablelist
+[[Effects:] [Save execution context of `*this` and jump back to callers
+execution context.]]
+[[Throws:] [__fiber_moved__ if `*this` is __not_a_fiber__.]]
+]
+[endsect]
+
+[section:finished `bool finished() const`]
+[variablelist
+[[Effects:] [Returns `true` if fiber has finished.]]
+[[Throws:] [__fiber_moved__ if `*this` is __not_a_fiber__.]]
+]
+[endsect]
+
+[section:unspec_operator `operator unspecified-bool-type() const`]
+[variablelist
+[[Returns:] [If `*this` refers to a fiber, the function returns true. Otherwise
+false.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:not_operator `bool operator!() const`]
+[variablelist
+[[Returns:] [If `*this` refers not to a fiber, the function returns true.
+Otherwise false.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:equals `bool operator==( asym_fiber const& other) const`]
+[variablelist
+[[Returns:] [`get_id()==other.get_id()`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:not_equals `bool operator!=( asym_fiber const& other) const`]
+[variablelist
+[[Returns:] [`get_id()!=other.get_id()`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:swap `void swap( asym_fiber & other)`]
+[variablelist
+[[Effects:] [Exchanges the fibers associated with `*this` and `other`, so
+`*this` is associated with the fiber associated with `other` prior to the call,
+and vice-versa.]]
+[[Postconditions:] [`this->get_id()` returns the same value as `other.get_id()`
+prior to the call. `other.get_id()` returns the same value as `this->get_id()`
+prior to the call.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:non_member_swap Non-member function `swap()`]
+
+	#include <boost/fiber/asym_fiber.hpp>
+
+	void swap( asym_fiber & lhs, asym_fiber & rhs);
+
+[variablelist
+[[Effects:] [[link fiber.asym_fiber_management.asym_fiber.swap
+`lhs.swap( rhs)`].]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+
+[section:id Class `boost::asym_fiber::id`]
+
+    #include <boost/fiber/fiber.hpp>
+
+    class asym_fiber::id
+    {
+    public:
+        id();
+
+        bool operator==( id const& y) const;
+        bool operator!=( id const& y) const;
+        bool operator<( id const& y) const;
+        bool operator>( id const& y) const;
+        bool operator<=( id const& y) const;
+        bool operator>=( id const& y) const;
+
+        template< typename charT, typename traitsT >
+        friend std::basic_ostream< charT, traitsT > & 
+        operator<<( std::basic_ostream<charT, traitsT > & os, id const& x);
+    };
+
+[section:constructor `id()`]
+[variablelist
+[[Effects:] [Constructs a __asym_fiber_id__ instance that represents
+__not_a_fiber__.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:is_equal `bool operator==( id const& y) const`]
+[variablelist
+[[Returns:] [`true` if `*this` and `y` both represent the same fiber of
+execution, or both represent __not_a_fiber__, `false` otherwise.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:not_equal `bool operator!=( id const& y) const`]
+[variablelist
+[[Returns:] [`true` if `*this` and `y` represent different fibers of execution,
+or one represents a fiber of execution, and the other represent __not_a_fiber__,
+`false` otherwise.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:less_than `bool operator<( id const& y) const`]
+[variablelist
+[[Returns:] [`true` if `*this!=y` is `true` and the implementation-defined total
+order of __asym_fiber_id__ values places `*this` before `y`, `false` otherwise.]]
+[[Throws:] [Nothing]]
+[[Note:] [A __asym_fiber_id__ instance representing __not_a_fiber__ will always
+compare less than an instance representing a fiber of
+execution.]]
+]
+[endsect]
+
+[section:greater_than `bool operator>( id const& y) const`]
+[variablelist
+[[Returns:] [`y<*this`]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:less_than_or_equal `bool operator<=( id const& y) const`]
+[variablelist
+[[Returns:] [`!(y<*this)`]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:greater_than_or_equal `bool operator>=( id const& y) const`]
+[variablelist
+[[Returns:] [`!(*this<y)`]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:stream_out Non-member template function `operator<<`]
+
+        template< typename charT, typename traitsT >
+        friend std::basic_ostream< charT, traitsT > & 
+        operator<<( std::basic_ostream<charT, traitsT > & os, id const& x);
+
+[variablelist
+[[Effects:] [Writes a representation of the __asym_fiber_id__ instance `x` to
+the stream `os`, such that the representation of two instances of
+__asym_fiber_id__ `a` and `b` is the same if `a==b`, and different if `a!=b`.]]
+[[Returns:] [`os`]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]
+
+[endsect]
