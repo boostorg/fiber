@@ -20,13 +20,6 @@
 # pragma warning(disable:4355)
 # endif
 
-namespace {
-
-boost::protected_stack create_stack( std::size_t stacksize)
-{ return boost::protected_stack( stacksize); }
-
-}
-
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -52,14 +45,14 @@ asym_fiber_base::asym_fiber_base( std::size_t stacksize, do_not_return_t) :
 	use_count_( 0),
 	finished_( false),
 	caller_(),
-	callee_( trampoline_asym, this, create_stack( stacksize) )
+	callee_( trampoline_asym, this, protected_stack( stacksize) )
 {}
 
 asym_fiber_base::asym_fiber_base( std::size_t stacksize, do_return_t) :
 	use_count_( 0),
 	finished_( false),
 	caller_(),
-	callee_( trampoline_asym, caller_, this, create_stack( stacksize) )
+	callee_( trampoline_asym, caller_, this, protected_stack( stacksize) )
 {}
 
 void
