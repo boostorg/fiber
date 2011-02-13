@@ -9,3 +9,4 @@ docbook*
 *.html
 *.sw*
 *.xml
+boost/context/context.hpp
