@@ -302,6 +302,7 @@ represents that fiber. Otherwise returns a default-constructed __sym_fiber_id__.
 
 [section:switch_to `void switch_to( sym_fiber& other)`]
 [variablelist
+[[Preconditions:] [`other` and `*this` are not a __not_a_fiber__.]]
 [[Effects:] [Save current execution context and transfer execution control to
 `other`.]]
 [[Throws:] [__fiber_moved__ if `*this` or `other` are __not_a_fiber__.]]
