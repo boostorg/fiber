@@ -6,6 +6,10 @@
 
 #define BOOST_FIBER_SOURCE
 
+#include <boost/fiber/sym_fiber.hpp>
+
+#include <boost/config.hpp>
+
 extern "C" {
 #if defined(BOOST_WINDOWS)
 #include <windows.h>
@@ -16,10 +20,6 @@ extern "C" {
 }
 
 #include <csignal>
-
-#include <boost/fiber/sym_fiber.hpp>
-
-#include <boost/config.hpp>
 
 #include <boost/fiber/exceptions.hpp>
 
