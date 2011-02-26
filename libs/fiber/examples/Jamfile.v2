@@ -21,3 +21,4 @@ exe asym_fiber : asym_fiber.cpp ;
 exe asym_fiber_mt : asym_fiber_mt.cpp ;
 exe sym_fiber : sym_fiber.cpp ;
 exe sym_fiber_mt : sym_fiber_mt.cpp ;
+exe stack : stack.cpp ;

@@ -183,6 +183,10 @@ for loop).
     class sym_fiber
     {
     public:
+        static std::size_t max_stacksize;
+        static std::size_t min_stacksize;
+        static std::size_t default_stacksize; // 256 kB
+
         static sym_fiber from_current_cotnext();
 
         sym_fiber();

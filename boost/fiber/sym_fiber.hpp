@@ -112,6 +112,8 @@ private:
 	}
 
 public:
+	static std::size_t max_stacksize;
+	static std::size_t min_stacksize;
 	static std::size_t default_stacksize;
 
     static sym_fiber from_current_context();
