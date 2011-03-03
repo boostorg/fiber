@@ -3,7 +3,6 @@ dist/**/*
 doc/**/*
 html/**/*
 stage/**/*
-tools/**/*
 docbook*
 *~
 *.html
