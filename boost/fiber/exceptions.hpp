@@ -29,14 +29,6 @@ public:
 	{}
 };
 
-class jumpable_moved : public std::logic_error
-{
-public:
-    jumpable_moved() :
-		std::logic_error("jumpable moved")
-	{}
-};
-
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS
