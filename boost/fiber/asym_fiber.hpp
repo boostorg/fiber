@@ -207,13 +207,13 @@ public:
 	}
 };
 
-}
-
-using fibers::asym_fiber;
-
 inline
 void swap( asym_fiber & l, asym_fiber & r)
 { return l.swap( r); }
+
+}
+
+using fibers::asym_fiber;
 
 }
 

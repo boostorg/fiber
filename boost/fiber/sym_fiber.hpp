@@ -255,13 +255,13 @@ public:
 	}
 };
 
-}
-
-using fibers::sym_fiber;
-
 inline
 void swap( sym_fiber & l, sym_fiber & r)
 { return l.swap( r); }
+
+}
+
+using fibers::sym_fiber;
 
 }
 
