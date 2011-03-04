@@ -8,18 +8,10 @@
 
 #include <boost/fiber/sym_fiber.hpp>
 
-#include <boost/config.hpp>
-
-extern "C" {
-#if defined(BOOST_WINDOWS)
-#include <windows.h>
-#else
-#include <sys/resource.h>
-#include <sys/time.h>
-#endif
-}
-
 #include <csignal>
+
+#include <boost/config.hpp>
+#include <boost/context/detail/stack_helper.hpp>
 
 #include <boost/fiber/exceptions.hpp>
 
@@ -27,55 +19,11 @@ extern "C" {
 #  include BOOST_ABI_PREFIX
 #endif
 
-namespace {
-
-#if defined(BOOST_WINDOWS)
-
-struct stack_helper
-{
-    static std::size_t max_size()
-    { return 8 * 1024 * 1024; }
-
-    static std::size_t min_size()
-    { 
-        SYSTEM_INFO si;
-        ::GetSystemInfo( & si);
-        return si.dwAllocationGranularity;
-    }
-};
-
-#else
-
-struct stack_helper
-{
-    static std::size_t max_size()
-    {
-        rlimit limit;
-        if ( 0 > ::getrlimit( RLIMIT_STACK, & limit) )
-            return 8 * 1024 * 1024;
-        return RLIM_INFINITY != limit.rlim_max
-            ? limit.rlim_max
-            : 8 * 1024 * 1024;
-    }
-
-    static std::size_t min_size()
-    { return SIGSTKSZ; }
-};
-
-#endif
-
-}
-
 namespace boost {
 namespace fibers {
 
-#if defined(BOOST_WINDOWS)
-std::size_t sym_fiber::max_stacksize = stack_helper::max_size();
-std::size_t sym_fiber::min_stacksize = stack_helper::min_size();
-#else
-std::size_t sym_fiber::max_stacksize = stack_helper::max_size();
-std::size_t sym_fiber::min_stacksize = stack_helper::min_size();
-#endif
+std::size_t sym_fiber::max_stacksize = boost::contexts::detail::stack_helper::maximal_stacksize();
+std::size_t sym_fiber::min_stacksize = boost::contexts::detail::stack_helper::minimal_stacksize();
 std::size_t sym_fiber::default_stacksize = 256 * 1024;
 
 sym_fiber
