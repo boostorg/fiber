@@ -13,46 +13,46 @@ boost::asym_fiber gf;
 
 void increment_value_fn()
 {
-	while ( true)
-	{
+    while ( true)
+    {
         std::stringstream ss;
         ss << boost::this_thread::get_id();
-		std::cout << "thread " << ss.str() << ": increment value from " << value << " to ";
+        std::cout << "thread " << ss.str() << ": increment value from " << value << " to ";
         ++value;
         std::cout << value << std::endl;
-		gf.yield();
-	}
+        gf.yield();
+    }
 }
 
 void increment( int k, int n)
 {
-	for ( int i = k; i < n; ++i)
-		gf.run();
+    for ( int i = k; i < n; ++i)
+        gf.run();
 }
 
 void fn_first( int k, int n, boost::barrier & b)
 {
     std::stringstream ss;
     ss << boost::this_thread::get_id();
-	std::cout << "thread " << ss.str() << " executes fiber " << gf.get_id() << std::endl;
-	increment( k, n);
-	b.wait();
+    std::cout << "thread " << ss.str() << " executes fiber " << gf.get_id() << std::endl;
+    increment( k, n);
+    b.wait();
 }
 
 void fn_last( int k, int n, boost::barrier & b)
 {
-	b.wait();
+    b.wait();
     std::stringstream ss;
     ss << boost::this_thread::get_id();
-	std::cout << "thread " << ss.str() << " executes fiber " << gf.get_id() << std::endl;
-	increment( k, n);
+    std::cout << "thread " << ss.str() << " executes fiber " << gf.get_id() << std::endl;
+    increment( k, n);
 }
 
 int main()
 {
-	try
-	{
-		std::cout << "start" << std::endl;
+    try
+    {
+        std::cout << "start" << std::endl;
 
         value = 0;
 
@@ -64,13 +64,13 @@ int main()
         t1.join();
         t2.join();
 
-		std::cout << "finish" << std::endl;
+        std::cout << "finish" << std::endl;
 
-		return EXIT_SUCCESS;
-	}
-	catch ( std::exception const& e)
-	{ std::cerr << "exception: " << e.what() << std::endl; }
-	catch (...)
-	{ std::cerr << "unhandled exception" << std::endl; }
-	return EXIT_FAILURE;
+        return EXIT_SUCCESS;
+    }
+    catch ( std::exception const& e)
+    { std::cerr << "exception: " << e.what() << std::endl; }
+    catch (...)
+    { std::cerr << "unhandled exception" << std::endl; }
+    return EXIT_FAILURE;
 }

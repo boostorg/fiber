@@ -27,31 +27,31 @@ std::size_t asym_fiber::min_stacksize = boost::contexts::detail::stack_helper::m
 std::size_t asym_fiber::default_stacksize = 256 * 1024;
 
 asym_fiber::asym_fiber() :
-	impl_()
+    impl_()
 {}
 
 asym_fiber::asym_fiber( asym_fiber const& other) :
-	impl_( other.impl_)
+    impl_( other.impl_)
 {}
 
 asym_fiber &
 asym_fiber::operator=( BOOST_COPY_ASSIGN_REF( asym_fiber) other)
 {
-	asym_fiber tmp( other);
-	swap( tmp);
-	return * this;
+    asym_fiber tmp( other);
+    swap( tmp);
+    return * this;
 }
 
 asym_fiber::asym_fiber( BOOST_RV_REF( asym_fiber) other) :
-	impl_()
+    impl_()
 { swap( other); }
 
 asym_fiber &
 asym_fiber::operator=( BOOST_RV_REF( asym_fiber) other)
 {
-	asym_fiber tmp( boost::move( other) );
-	swap( tmp);
-	return * this;
+    asym_fiber tmp( boost::move( other) );
+    swap( tmp);
+    return * this;
 }
 
 asym_fiber::operator unspecified_bool_type() const
@@ -80,24 +80,24 @@ asym_fiber::get_id() const
 void
 asym_fiber::run()
 {
-	if ( ! impl_) throw fiber_moved();
-	BOOST_ASSERT( ! impl_->get_finished() && "fiber already finished");
-	impl_->run();
+    if ( ! impl_) throw fiber_moved();
+    BOOST_ASSERT( ! impl_->get_finished() && "fiber already finished");
+    impl_->run();
 }
 
 void
 asym_fiber::yield()
 {
-	if ( ! impl_) throw fiber_moved();
-	BOOST_ASSERT( ! impl_->get_finished() && "fiber already finished");
-	impl_->yield();
+    if ( ! impl_) throw fiber_moved();
+    BOOST_ASSERT( ! impl_->get_finished() && "fiber already finished");
+    impl_->yield();
 }
 
 bool
 asym_fiber::finished() const
 {
-	if ( ! impl_) throw fiber_moved();
-	return impl_->get_finished();
+    if ( ! impl_) throw fiber_moved();
+    return impl_->get_finished();
 }
 
 }}

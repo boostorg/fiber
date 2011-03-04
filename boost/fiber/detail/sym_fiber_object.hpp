@@ -28,112 +28,112 @@ namespace detail {
 class sym_fiber_dummy : public sym_fiber_base
 {
 private:
-	sym_fiber_dummy( sym_fiber_dummy &);
-	sym_fiber_dummy & operator=( sym_fiber_dummy const&);
+    sym_fiber_dummy( sym_fiber_dummy &);
+    sym_fiber_dummy & operator=( sym_fiber_dummy const&);
 
 public:
-	sym_fiber_dummy() :
-		sym_fiber_base()
-	{}
+    sym_fiber_dummy() :
+        sym_fiber_base()
+    {}
 
-	void exec()
-	{ BOOST_ASSERT( false && "should not be invoked"); }
+    void exec()
+    { BOOST_ASSERT( false && "should not be invoked"); }
 };
 
 template< typename Fn >
 class sym_fiber_object : public sym_fiber_base
 {
 private:
-	Fn	fn_;
+    Fn  fn_;
 
-	sym_fiber_object( sym_fiber_object &);
-	sym_fiber_object & operator=( sym_fiber_object const&);
+    sym_fiber_object( sym_fiber_object &);
+    sym_fiber_object & operator=( sym_fiber_object const&);
 
 public:
-	sym_fiber_object( Fn fn, std::size_t stacksize) :
-		sym_fiber_base( stacksize),
-		fn_( fn)
-	{}
+    sym_fiber_object( Fn fn, std::size_t stacksize) :
+        sym_fiber_base( stacksize),
+        fn_( fn)
+    {}
 
-	sym_fiber_object( Fn fn, std::size_t stacksize, sym_fiber_base & nxt) :
-		sym_fiber_base( stacksize, nxt),
-		fn_( fn)
-	{}
+    sym_fiber_object( Fn fn, std::size_t stacksize, sym_fiber_base & nxt) :
+        sym_fiber_base( stacksize, nxt),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 template< typename Fn >
 class sym_fiber_object< BOOST_RV_REF( Fn) > : public sym_fiber_base
 {
 private:
-	Fn	fn_;
+    Fn  fn_;
 
-	sym_fiber_object( sym_fiber_object &);
-	sym_fiber_object & operator=( sym_fiber_object const&);
+    sym_fiber_object( sym_fiber_object &);
+    sym_fiber_object & operator=( sym_fiber_object const&);
 
 public:
-	sym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize) :
-		sym_fiber_base( stacksize),
-		fn_( fn)
-	{}
+    sym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize) :
+        sym_fiber_base( stacksize),
+        fn_( fn)
+    {}
 
-	sym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize, sym_fiber_base & nxt) :
-		sym_fiber_base( stacksize, nxt),
-		fn_( fn)
-	{}
+    sym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize, sym_fiber_base & nxt) :
+        sym_fiber_base( stacksize, nxt),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 template< typename Fn >
 class sym_fiber_object< reference_wrapper< Fn > > : public sym_fiber_base
 {
 private:
-	Fn	&	fn_;
+    Fn  &   fn_;
 
-	sym_fiber_object( sym_fiber_object &);
-	sym_fiber_object & operator=( sym_fiber_object const&);
+    sym_fiber_object( sym_fiber_object &);
+    sym_fiber_object & operator=( sym_fiber_object const&);
 
 public:
-	sym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize) :
-		sym_fiber_base( stacksize),
-		fn_( fn)
-	{}
+    sym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize) :
+        sym_fiber_base( stacksize),
+        fn_( fn)
+    {}
 
-	sym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize, sym_fiber_base & nxt) :
-		sym_fiber_base( stacksize, nxt),
-		fn_( fn)
-	{}
+    sym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize, sym_fiber_base & nxt) :
+        sym_fiber_base( stacksize, nxt),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 template< typename Fn >
 class sym_fiber_object< const reference_wrapper< Fn > > : public sym_fiber_base
 {
 private:
-	Fn	&	fn_;
+    Fn  &   fn_;
 
-	sym_fiber_object( sym_fiber_object &);
-	sym_fiber_object & operator=( sym_fiber_object const&);
+    sym_fiber_object( sym_fiber_object &);
+    sym_fiber_object & operator=( sym_fiber_object const&);
 
 public:
-	sym_fiber_object( const reference_wrapper< Fn > fn, std::size_t stacksize) :
-		sym_fiber_base( stacksize),
-		fn_( fn)
-	{}
+    sym_fiber_object( const reference_wrapper< Fn > fn, std::size_t stacksize) :
+        sym_fiber_base( stacksize),
+        fn_( fn)
+    {}
 
-	sym_fiber_object( const reference_wrapper< Fn > fn, std::size_t stacksize, sym_fiber_base & nxt) :
-		sym_fiber_base( stacksize, nxt),
-		fn_( fn)
-	{}
+    sym_fiber_object( const reference_wrapper< Fn > fn, std::size_t stacksize, sym_fiber_base & nxt) :
+        sym_fiber_base( stacksize, nxt),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 }}}

@@ -39,141 +39,141 @@ namespace fibers {
 class BOOST_FIBER_DECL sym_fiber
 {
 private:
-	struct dummy {};
+    struct dummy {};
 
-	BOOST_COPYABLE_AND_MOVABLE( sym_fiber);
+    BOOST_COPYABLE_AND_MOVABLE( sym_fiber);
 
-	detail::sym_fiber_base::ptr		impl_;
+    detail::sym_fiber_base::ptr     impl_;
 
     sym_fiber( detail::sym_fiber_base::ptr const& impl);
 
-	static detail::sym_fiber_base::ptr make_fiber_(
-		void( * fn)(), std::size_t stacksize)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< void(*)() >( fn, stacksize) );
-	}
+    static detail::sym_fiber_base::ptr make_fiber_(
+        void( * fn)(), std::size_t stacksize)
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< void(*)() >( fn, stacksize) );
+    }
 
-	static detail::sym_fiber_base::ptr make_fiber_( void( * fn)(),
+    static detail::sym_fiber_base::ptr make_fiber_( void( * fn)(),
             std::size_t stacksize, detail::sym_fiber_base::ptr & nxt)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< void(*)() >( fn, stacksize, * nxt) );
-	}
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< void(*)() >( fn, stacksize, * nxt) );
+    }
 
 #ifdef BOOST_MSVC
-	template< typename Fn >
-	static detail::sym_fiber_base::ptr make_fiber_(
-		Fn & fn, std::size_t stacksize)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< Fn >( fn, stacksize) );
-	}
+    template< typename Fn >
+    static detail::sym_fiber_base::ptr make_fiber_(
+        Fn & fn, std::size_t stacksize)
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< Fn >( fn, stacksize) );
+    }
 
-	template< typename Fn >
-	static detail::sym_fiber_base::ptr make_fiber_(
-		Fn & fn, std::size_t stacksize, detail::sym_fiber_base::ptr & nxt)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< Fn >( fn, stacksize, * nxt) );
-	}
+    template< typename Fn >
+    static detail::sym_fiber_base::ptr make_fiber_(
+        Fn & fn, std::size_t stacksize, detail::sym_fiber_base::ptr & nxt)
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< Fn >( fn, stacksize, * nxt) );
+    }
 #else
-	template< typename Fn >
-	static detail::sym_fiber_base::ptr make_fiber_(
-		Fn fn, std::size_t stacksize)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< Fn >( fn, stacksize) );
-	}
+    template< typename Fn >
+    static detail::sym_fiber_base::ptr make_fiber_(
+        Fn fn, std::size_t stacksize)
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< Fn >( fn, stacksize) );
+    }
 
-	template< typename Fn >
-	static detail::sym_fiber_base::ptr make_fiber_(
-		Fn fn, std::size_t stacksize, detail::sym_fiber_base::ptr & nxt)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< Fn >( fn, stacksize, * nxt) );
-	}
+    template< typename Fn >
+    static detail::sym_fiber_base::ptr make_fiber_(
+        Fn fn, std::size_t stacksize, detail::sym_fiber_base::ptr & nxt)
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< Fn >( fn, stacksize, * nxt) );
+    }
 #endif
 
-	template< typename Fn >
-	static detail::sym_fiber_base::ptr make_fiber__(
-		BOOST_RV_REF( Fn) fn, std::size_t stacksize)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< Fn >( fn, stacksize) );
-	}
+    template< typename Fn >
+    static detail::sym_fiber_base::ptr make_fiber__(
+        BOOST_RV_REF( Fn) fn, std::size_t stacksize)
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< Fn >( fn, stacksize) );
+    }
 
-	template< typename Fn >
-	static detail::sym_fiber_base::ptr make_fiber__( BOOST_RV_REF( Fn) fn,
+    template< typename Fn >
+    static detail::sym_fiber_base::ptr make_fiber__( BOOST_RV_REF( Fn) fn,
             std::size_t stacksize, detail::sym_fiber_base::ptr & nxt)
-	{
-		return detail::sym_fiber_base::ptr(
-			new detail::sym_fiber_object< Fn >( fn, stacksize, * nxt) );
-	}
+    {
+        return detail::sym_fiber_base::ptr(
+            new detail::sym_fiber_object< Fn >( fn, stacksize, * nxt) );
+    }
 
 public:
-	static std::size_t max_stacksize;
-	static std::size_t min_stacksize;
-	static std::size_t default_stacksize;
+    static std::size_t max_stacksize;
+    static std::size_t min_stacksize;
+    static std::size_t default_stacksize;
 
     static sym_fiber from_current_context();
 
-	class id;
+    class id;
 
-	sym_fiber();
+    sym_fiber();
 
 #ifdef BOOST_MSVC
-	template< typename Fn >
-	sym_fiber( Fn & fn, std::size_t stacksize) :
-		impl_( make_fiber_( fn, stacksize) )
-	{}
+    template< typename Fn >
+    sym_fiber( Fn & fn, std::size_t stacksize) :
+        impl_( make_fiber_( fn, stacksize) )
+    {}
 
-	template< typename Fn >
-	sym_fiber( Fn & fn, std::size_t stacksize, sym_fiber & nxt) :
-		impl_( make_fiber_( fn, stacksize, nxt.impl_) )
-	{}
+    template< typename Fn >
+    sym_fiber( Fn & fn, std::size_t stacksize, sym_fiber & nxt) :
+        impl_( make_fiber_( fn, stacksize, nxt.impl_) )
+    {}
 #else
-	template< typename Fn >
-	sym_fiber( Fn fn, std::size_t stacksize) :
-		impl_( make_fiber_( fn, stacksize) )
-	{}
+    template< typename Fn >
+    sym_fiber( Fn fn, std::size_t stacksize) :
+        impl_( make_fiber_( fn, stacksize) )
+    {}
 
-	template< typename Fn >
-	sym_fiber( Fn fn, std::size_t stacksize, sym_fiber & nxt) :
-		impl_( make_fiber_( fn, stacksize, nxt.impl_) )
-	{}
+    template< typename Fn >
+    sym_fiber( Fn fn, std::size_t stacksize, sym_fiber & nxt) :
+        impl_( make_fiber_( fn, stacksize, nxt.impl_) )
+    {}
 #endif
 
-	template< typename Fn >
-	sym_fiber( BOOST_RV_REF( Fn) fn, std::size_t stacksize) :
-		impl_( make_fiber__( fn, stacksize) )
-	{}
+    template< typename Fn >
+    sym_fiber( BOOST_RV_REF( Fn) fn, std::size_t stacksize) :
+        impl_( make_fiber__( fn, stacksize) )
+    {}
 
-	template< typename Fn >
-	sym_fiber( BOOST_RV_REF( Fn) fn, std::size_t stacksize, sym_fiber & nxt) :
-		impl_( make_fiber__( fn, stacksize, nxt.impl_) )
-	{}
+    template< typename Fn >
+    sym_fiber( BOOST_RV_REF( Fn) fn, std::size_t stacksize, sym_fiber & nxt) :
+        impl_( make_fiber__( fn, stacksize, nxt.impl_) )
+    {}
 
 #define BOOST_FIBERS_SYM_FIBER_ARG(z, n, unused) \
    BOOST_PP_CAT(A, n) BOOST_PP_CAT(a, n)
 #define BOOST_ENUM_FIBERS_SYM_FIBER_ARGS(n) BOOST_PP_ENUM(n, BOOST_FIBERS_SYM_FIBER_ARG, ~)
 
 #define BOOST_FIBERS_SYM_FIBER_CTOR(z, n, unused) \
-	template< typename Fn, BOOST_PP_ENUM_PARAMS(n, typename A) > \
-	sym_fiber( Fn fn, BOOST_ENUM_FIBERS_SYM_FIBER_ARGS(n), std::size_t stacksize) : \
-		impl_( \
-			make_fiber_( \
-				boost::bind( boost::type< void >(), fn, BOOST_PP_ENUM_PARAMS(n, a) ), \
-			   	stacksize) ) \
-	{} \
+    template< typename Fn, BOOST_PP_ENUM_PARAMS(n, typename A) > \
+    sym_fiber( Fn fn, BOOST_ENUM_FIBERS_SYM_FIBER_ARGS(n), std::size_t stacksize) : \
+        impl_( \
+            make_fiber_( \
+                boost::bind( boost::type< void >(), fn, BOOST_PP_ENUM_PARAMS(n, a) ), \
+                stacksize) ) \
+    {} \
 \
-	template< typename Fn, BOOST_PP_ENUM_PARAMS(n, typename A) > \
-	sym_fiber( Fn fn, BOOST_ENUM_FIBERS_SYM_FIBER_ARGS(n), std::size_t stacksize, sym_fiber & nxt) : \
-		impl_( \
-			make_fiber_( \
-				boost::bind( boost::type< void >(), fn, BOOST_PP_ENUM_PARAMS(n, a) ), \
-			   	stacksize, nxt.impl_) ) \
-	{} \
+    template< typename Fn, BOOST_PP_ENUM_PARAMS(n, typename A) > \
+    sym_fiber( Fn fn, BOOST_ENUM_FIBERS_SYM_FIBER_ARGS(n), std::size_t stacksize, sym_fiber & nxt) : \
+        impl_( \
+            make_fiber_( \
+                boost::bind( boost::type< void >(), fn, BOOST_PP_ENUM_PARAMS(n, a) ), \
+                stacksize, nxt.impl_) ) \
+    {} \
 
 #ifndef BOOST_FIBERS_SYM_MAX_ARITY
 #define BOOST_FIBERS_SYM_MAX_ARITY 10
@@ -186,73 +186,73 @@ BOOST_PP_REPEAT_FROM_TO( 1, BOOST_FIBERS_SYM_MAX_ARITY, BOOST_FIBERS_SYM_FIBER_C
 #undef BOOST_FIBERS_SYM_FIBER_ARGS
 #undef BOOST_FIBERS_SYM_FIBER_CTOR
 
-	sym_fiber( sym_fiber const& other);
+    sym_fiber( sym_fiber const& other);
 
-	sym_fiber & operator=( BOOST_COPY_ASSIGN_REF( sym_fiber) other);
+    sym_fiber & operator=( BOOST_COPY_ASSIGN_REF( sym_fiber) other);
 
-	sym_fiber( BOOST_RV_REF( sym_fiber) other);
+    sym_fiber( BOOST_RV_REF( sym_fiber) other);
 
-	sym_fiber & operator=( BOOST_RV_REF( sym_fiber) other);
+    sym_fiber & operator=( BOOST_RV_REF( sym_fiber) other);
 
-	typedef detail::sym_fiber_base::ptr::unspecified_bool_type	unspecified_bool_type;
+    typedef detail::sym_fiber_base::ptr::unspecified_bool_type  unspecified_bool_type;
 
-	operator unspecified_bool_type() const;
+    operator unspecified_bool_type() const;
 
-	bool operator!() const;
+    bool operator!() const;
 
-	void swap( sym_fiber & other);
+    void swap( sym_fiber & other);
 
-	id get_id() const;
+    id get_id() const;
 
-	bool operator==( sym_fiber const& other) const;
-	bool operator!=( sym_fiber const& other) const;
+    bool operator==( sym_fiber const& other) const;
+    bool operator!=( sym_fiber const& other) const;
 
-	void switch_to( sym_fiber & other);
+    void switch_to( sym_fiber & other);
 
-	bool finished() const;
+    bool finished() const;
 };
 
 class BOOST_FIBER_DECL sym_fiber::id
 {
 private:
-	friend class sym_fiber;
+    friend class sym_fiber;
 
-	boost::uint64_t		id_;
+    boost::uint64_t     id_;
 
-	explicit id( detail::sym_fiber_base::ptr const& info) :
-		id_( reinterpret_cast< boost::uint64_t >( info.get() ) )
-	{}
+    explicit id( detail::sym_fiber_base::ptr const& info) :
+        id_( reinterpret_cast< boost::uint64_t >( info.get() ) )
+    {}
 
 public:
-	id() :
-		id_( 0)
-	{}
+    id() :
+        id_( 0)
+    {}
 
-	bool operator==( id const& other) const
-	{ return id_ == other.id_; }
+    bool operator==( id const& other) const
+    { return id_ == other.id_; }
 
-	bool operator!=( id const& other) const
-	{ return id_ != other.id_; }
-	
-	bool operator<( id const& other) const
-	{ return id_ < other.id_; }
-	
-	bool operator>( id const& other) const
-	{ return other.id_ < id_; }
-	
-	bool operator<=( id const& other) const
-	{ return !( other.id_ < id_); }
-	
-	bool operator>=( id const& other) const
-	{ return ! ( id_ < other.id_); }
+    bool operator!=( id const& other) const
+    { return id_ != other.id_; }
 
-	template< typename charT, class traitsT >
-	friend std::basic_ostream< charT, traitsT > &
-	operator<<( std::basic_ostream< charT, traitsT > & os, id const& other)
-	{
-		if ( 0 != other.id_) return os << other.id_;
-		else return os << "{not-a-fiber}";
-	}
+    bool operator<( id const& other) const
+    { return id_ < other.id_; }
+
+    bool operator>( id const& other) const
+    { return other.id_ < id_; }
+
+    bool operator<=( id const& other) const
+    { return !( other.id_ < id_); }
+
+    bool operator>=( id const& other) const
+    { return ! ( id_ < other.id_); }
+
+    template< typename charT, class traitsT >
+    friend std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, id const& other)
+    {
+        if ( 0 != other.id_) return os << other.id_;
+        else return os << "{not-a-fiber}";
+    }
 };
 
 inline

@@ -26,34 +26,34 @@ namespace detail {
 
 BOOST_FIBER_DECL void trampoline_sym( void * vp)
 {
-	BOOST_ASSERT( vp);
-	detail::sym_fiber_base * self(
-		static_cast< detail::sym_fiber_base * >( vp) );
-	try
-	{
-		self->exec();
-		self->set_finished();
-	}
-	catch (...)
-	{ BOOST_ASSERT( false && "exeception from fiber-function"); }
+    BOOST_ASSERT( vp);
+    detail::sym_fiber_base * self(
+        static_cast< detail::sym_fiber_base * >( vp) );
+    try
+    {
+        self->exec();
+        self->set_finished();
+    }
+    catch (...)
+    { BOOST_ASSERT( false && "exeception from fiber-function"); }
 }
 
 sym_fiber_base::sym_fiber_base() :
-	use_count_( 0),
-	finished_( false),
-	ctx_()
+    use_count_( 0),
+    finished_( false),
+    ctx_()
 {}
 
 sym_fiber_base::sym_fiber_base( std::size_t stacksize) :
-	use_count_( 0),
-	finished_( false),
-	ctx_( trampoline_sym, this, protected_stack( stacksize) )
+    use_count_( 0),
+    finished_( false),
+    ctx_( trampoline_sym, this, protected_stack( stacksize) )
 {}
 
 sym_fiber_base::sym_fiber_base( std::size_t stacksize, sym_fiber_base & nxt) :
-	use_count_( 0),
-	finished_( false),
-	ctx_( trampoline_sym, nxt.ctx_, this, protected_stack( stacksize) )
+    use_count_( 0),
+    finished_( false),
+    ctx_( trampoline_sym, nxt.ctx_, this, protected_stack( stacksize) )
 {}
 
 void

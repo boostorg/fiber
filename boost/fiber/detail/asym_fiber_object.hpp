@@ -29,91 +29,91 @@ template< typename Fn >
 class asym_fiber_object : public asym_fiber_base
 {
 private:
-	Fn	fn_;
+    Fn  fn_;
 
-	asym_fiber_object( asym_fiber_object &);
-	asym_fiber_object & operator=( asym_fiber_object const&);
+    asym_fiber_object( asym_fiber_object &);
+    asym_fiber_object & operator=( asym_fiber_object const&);
 
 public:
-	asym_fiber_object( Fn fn, std::size_t stacksize, do_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( Fn fn, std::size_t stacksize, do_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	asym_fiber_object( Fn fn, std::size_t stacksize, do_not_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( Fn fn, std::size_t stacksize, do_not_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 template< typename Fn >
 class asym_fiber_object< BOOST_RV_REF( Fn) > : public asym_fiber_base
 {
 private:
-	Fn	fn_;
+    Fn  fn_;
 
-	asym_fiber_object( asym_fiber_object &);
-	asym_fiber_object & operator=( asym_fiber_object const&);
+    asym_fiber_object( asym_fiber_object &);
+    asym_fiber_object & operator=( asym_fiber_object const&);
 
 public:
-	asym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize, do_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize, do_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	asym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize, do_not_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( BOOST_RV_REF( Fn) fn, std::size_t stacksize, do_not_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 template< typename Fn >
 class asym_fiber_object< reference_wrapper< Fn > > : public asym_fiber_base
 {
 private:
-	Fn	&	fn_;
+    Fn  &   fn_;
 
-	asym_fiber_object( asym_fiber_object &);
-	asym_fiber_object & operator=( asym_fiber_object const&);
+    asym_fiber_object( asym_fiber_object &);
+    asym_fiber_object & operator=( asym_fiber_object const&);
 
 public:
-	asym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize, do_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize, do_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	asym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize, do_not_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( reference_wrapper< Fn > fn, std::size_t stacksize, do_not_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 template< typename Fn >
 class asym_fiber_object< const reference_wrapper< Fn > > : public asym_fiber_base
 {
 private:
-	Fn	&	fn_;
+    Fn  &   fn_;
 
-	asym_fiber_object( asym_fiber_object &);
-	asym_fiber_object & operator=( asym_fiber_object const&);
+    asym_fiber_object( asym_fiber_object &);
+    asym_fiber_object & operator=( asym_fiber_object const&);
 
 public:
-	asym_fiber_object( const reference_wrapper< Fn > fn, std::size_t stacksize, do_return_t v) :
-		asym_fiber_base( stacksize, v),
-		fn_( fn)
-	{}
+    asym_fiber_object( const reference_wrapper< Fn > fn, std::size_t stacksize, do_return_t v) :
+        asym_fiber_base( stacksize, v),
+        fn_( fn)
+    {}
 
-	void exec()
-	{ fn_(); }
+    void exec()
+    { fn_(); }
 };
 
 }}}

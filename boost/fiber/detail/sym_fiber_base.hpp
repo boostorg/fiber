@@ -38,37 +38,37 @@ BOOST_FIBER_DECL void trampoline_sym( void *);
 class BOOST_FIBER_DECL sym_fiber_base : private noncopyable
 {
 public:
-	typedef intrusive_ptr< sym_fiber_base >		ptr;
+    typedef intrusive_ptr< sym_fiber_base >     ptr;
 
-	friend BOOST_FIBER_DECL void trampoline_sym( void * vp);
+    friend BOOST_FIBER_DECL void trampoline_sym( void * vp);
 
-	friend inline void intrusive_ptr_add_ref( sym_fiber_base * p)
-	{ ++p->use_count_; }
+    friend inline void intrusive_ptr_add_ref( sym_fiber_base * p)
+    { ++p->use_count_; }
 
-	friend inline void intrusive_ptr_release( sym_fiber_base * p)
-	{ if ( --p->use_count_ == 0) delete p; }
+    friend inline void intrusive_ptr_release( sym_fiber_base * p)
+    { if ( --p->use_count_ == 0) delete p; }
 
-	sym_fiber_base();
+    sym_fiber_base();
 
-	sym_fiber_base( std::size_t stacksize);
+    sym_fiber_base( std::size_t stacksize);
 
-	sym_fiber_base( std::size_t stacksize, sym_fiber_base & nxt);
+    sym_fiber_base( std::size_t stacksize, sym_fiber_base & nxt);
 
-	virtual ~sym_fiber_base() {}
+    virtual ~sym_fiber_base() {}
 
-	void switch_to( sym_fiber_base & other);
+    void switch_to( sym_fiber_base & other);
 
-	void set_finished();
+    void set_finished();
 
-	bool get_finished() const;
+    bool get_finished() const;
 
 protected:
-	virtual void exec() = 0;
+    virtual void exec() = 0;
 
 private:
-	unsigned int		use_count_;
-	bool				finished_;
-	context<>			ctx_;
+    unsigned int        use_count_;
+    bool                finished_;
+    context<>           ctx_;
 };
 
 }}}

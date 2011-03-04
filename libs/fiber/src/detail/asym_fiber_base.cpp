@@ -26,33 +26,33 @@ namespace detail {
 
 BOOST_FIBER_DECL void trampoline_asym( void * vp)
 {
-	BOOST_ASSERT( vp);
-	detail::asym_fiber_base * self(
-		static_cast< detail::asym_fiber_base * >( vp) );
-	try
-	{
-		self->exec();
-		self->set_finished();
-	}
-	catch (...)
-	{ BOOST_ASSERT( false && "exeception from fiber-function"); }
+    BOOST_ASSERT( vp);
+    detail::asym_fiber_base * self(
+        static_cast< detail::asym_fiber_base * >( vp) );
+    try
+    {
+        self->exec();
+        self->set_finished();
+    }
+    catch (...)
+    { BOOST_ASSERT( false && "exeception from fiber-function"); }
 }
 
 asym_fiber_base::do_not_return_t asym_fiber_base::do_not_return;
 asym_fiber_base::do_return_t asym_fiber_base::do_return;
 
 asym_fiber_base::asym_fiber_base( std::size_t stacksize, do_not_return_t) :
-	use_count_( 0),
-	finished_( false),
-	caller_(),
-	callee_( trampoline_asym, this, protected_stack( stacksize) )
+    use_count_( 0),
+    finished_( false),
+    caller_(),
+    callee_( trampoline_asym, this, protected_stack( stacksize) )
 {}
 
 asym_fiber_base::asym_fiber_base( std::size_t stacksize, do_return_t) :
-	use_count_( 0),
-	finished_( false),
-	caller_(),
-	callee_( trampoline_asym, caller_, this, protected_stack( stacksize) )
+    use_count_( 0),
+    finished_( false),
+    caller_(),
+    callee_( trampoline_asym, caller_, this, protected_stack( stacksize) )
 {}
 
 void
