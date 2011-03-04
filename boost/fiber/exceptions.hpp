@@ -21,7 +21,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_moved : public std::logic_error
+class BOOST_FIBER_DECL fiber_moved : public std::logic_error
 {
 public:
     fiber_moved() :
