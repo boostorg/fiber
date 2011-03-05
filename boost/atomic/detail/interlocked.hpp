@@ -23,7 +23,7 @@ static inline void full_fence(void)
 }
 
 template<>
-static inline void platform_atomic_thread_fence(memory_order order)
+inline void platform_atomic_thread_fence(memory_order order)
 {
 	switch(order) {
 		case memory_order_seq_cst:

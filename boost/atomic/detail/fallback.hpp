@@ -25,7 +25,7 @@ public:
 		detail::spinlock_pool<0>::scoped_lock guard(const_cast<T*>(&i));
 		memcpy((void*)&i, &t, sizeof(T));
 	}
-	T load(memory_order order=memory_order_seq_cst) volatile const
+	T load(memory_order /*order*/=memory_order_seq_cst) volatile const
 	{
 		detail::spinlock_pool<0>::scoped_lock guard(const_cast<T*>(&i));
 		T tmp;
@@ -35,8 +35,8 @@ public:
 	bool compare_exchange_strong(
 		T &expected,
 		T desired,
-		memory_order success_order,
-		memory_order failure_order) volatile
+		memory_order /*success_order*/,
+		memory_order /*failure_order*/) volatile
 	{
 		detail::spinlock_pool<0>::scoped_lock guard(const_cast<T*>(&i));
 		if (memcmp((void*)&i, &expected, sizeof(T))==0) {
@@ -55,7 +55,7 @@ public:
 	{
 		return compare_exchange_strong(expected, desired, success_order, failure_order);
 	}
-	T exchange(T replacement, memory_order order=memory_order_seq_cst) volatile
+	T exchange(T replacement, memory_order /*order*/=memory_order_seq_cst) volatile
 	{
 		detail::spinlock_pool<0>::scoped_lock guard(const_cast<T*>(&i));
 		T tmp;

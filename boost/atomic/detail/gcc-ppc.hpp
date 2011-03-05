@@ -73,7 +73,7 @@ static inline void fence_after(memory_order order)
 }
 
 template<>
-static inline void platform_atomic_thread_fence(memory_order order)
+inline void platform_atomic_thread_fence(memory_order order)
 {
 	switch(order) {
 		case memory_order_acquire:

@@ -45,7 +45,7 @@ soon as the reference counter reaches zero.
 
 Increasing the reference counter can always be done with
 [^memory_order_relaxed]: New references to an object can only
-be formed from an existing reference, an passing an existing
+be formed from an existing reference, and passing an existing
 reference from one thread to another must already provide any
 required synchronization.
 
@@ -75,7 +75,7 @@ soon as the reference counter reaches zero. There may be
 the object from being freed. "True" references may be formed from
 "weak" references unless the object has been deleted already.
 
-FIXME: The point to make here is that for upgrading "weak" to "full"
+FIXME: The point to make here is that upgrading "weak" to "full"
 references requires memory_order_acquire.
 
 [endsect]
@@ -159,7 +159,7 @@ and degrade the performance of other system components.
 
 [section:singleton Double-checked singleton pattern]
 
-The purpose of the ['double-cheked singleton pattern] is to ensure
+The purpose of the ['double-checked singleton pattern] is to ensure
 that at most one instance of a particular object is created.
 If one instance has been created already, access to the existing
 object should be as light-weight as possible.
@@ -227,7 +227,7 @@ the pointer need to be ordered.
 A ['wait-free ring buffer] provides a mechanism for relaying objects
 from one single "producer" thread to one single "consumer" thread without
 any locks. The operations on this data structure are "wait-free" which
-means that each operation finites within a constant number of steps.
+means that each operation finishes within a constant number of steps.
 This makes this data structure suitable for use in hard real-time systems
 or for communication with interrupt/signal handlers.
 
@@ -292,7 +292,7 @@ are either lost or read twice.
 
 Furthermore it must guarantee that read-access to a
 particular object in [^pop] "happens after" it has been
-written in [^push]. This is achieved by writing [^head_]
+written in [^push]. This is achieved by writing [^head_ ]
 with "release" and reading it with "acquire". Conversely
 the implementation also ensures that read access to
 a particular ring element "happens before" before
@@ -313,7 +313,6 @@ retrieved and processed in FIFO order by a single consumer.
 
 [c++]
 
-  // assume that every "T" object has a pointer "T * T::next"
   template<typename T>
   class waitfree_queue {
   public:
