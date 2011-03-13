@@ -17,12 +17,10 @@ moveable.
 
 	void f()
 	{
-		boost::tasklet f1( boost::tasklets::make_tasklet( some_fn, boost::tasklet::default_stacksize) );
-		boost::tasklet f2( boost::tasklets::make_tasklet( another_fn, boost::tasklet::default_stacksize) );
+		boost::tasklet f1( some_fn, boost::tasklet::default_stacksize);
 
-		boost::tasklets::scheduler<> s;
-		s.submit( f1); // f1 gets copied
-		s.submit( boost::move( f2) ); // f2 gets moved
+		boost::scheduler::schedule( f1); // f1 gets copied
+		boost::scheduler::schedule( boost::move( f2) ); // f2 gets moved
 
 		std::cout << f1.get_id() << std::endl;
 		std::cout << f2.get_id() << std::endl;
@@ -37,7 +35,7 @@ not use thread-local-storage.]
 
 A new tasklet is launched by passing an object of a callable type that can be
 invoked with no parameters to the constructor and submiting the tasklet (copy-
-or move-op.) to an instance of __scheduler__. The object is then copied into
+or move-op.) to __scheduler__. The object is then copied into
 internal storage, and invoked on the newly-created tasklet. If the object must
 not (or cannot) be copied, then `boost::ref` can be used to pass in a reference
 to the function object. In this case, the user of __boost_tasklet__ must ensure
@@ -1249,13 +1247,6 @@ waiting).]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
-
-[endsect]
-
-[section:round_robin Class `round_robin`]
-
-The class `round_robin` derives from __strategy__ and implements a simple
-round-robin scheduling-algorithm. It does not make use of tasklet-priorities.
 
 [endsect]
 

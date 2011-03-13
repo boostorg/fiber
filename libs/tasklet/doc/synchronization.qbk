@@ -6,7 +6,8 @@
 ]
 
 [section:synchronization Synchronization]
-[include mutexes.qbk]
+
+include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
 [include event_variables.qbk]

@@ -7,9 +7,7 @@
 
 [section:todo Todo]
 
-* optimization of code:
-	* memory ordering in atomic operations
-	* implementation of round-robin scheduler
-* provide an scheduler which deals with priorities
+* optimizate memory ordering in atomic operations
+* enhance the scheduler to reflect priorities
 
 [endsect]
