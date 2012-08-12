@@ -1,0 +1,21 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:future Future]
+
+__boost_fiber__ has adapted the future implementation of __boost_thread__.
+
+        boost::fibers::packaged_task< std::string > pt( helloworld_fn);
+        boost::fibers::unique_future< std::string > fu = pt.get_future();
+        boost::fibers::spawn( boost::move( pt) );
+
+        std::cout << fu.get() << std::endl;
+
+[note __future__ can only be used inside the thread where the associated fiber
+is running.]
+
+[endsect]

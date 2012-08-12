@@ -1,0 +1,471 @@
+[/
+  (C) Copyright 2009 Oliver Kowalke.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:fiber Stratum]
+
+[heading Synopsis]
+
+Each __fiber__ represents a micro-thread which will be launched and
+managed cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
+
+    boost::fibers::fiber s1; // not-a-fiber
+
+    void f()
+    {
+        boost::fibers::fiber s2(
+            boost::fibers::spawn( some_fn) );
+
+        s1 boost::move( s2); // s2 gets moved
+
+        std::cout << s1.get_id() << std::endl;
+    }
+
+
+[heading Launching]
+
+A new fiber is launched by passing an object of a callable type that can be
+invoked with no parameters to __spawn__.
+If the object must not (or cannot) be copied, then `boost::ref` can be used to
+pass in a reference to the function object. In this case, the user must ensure
+that the referred-to object outlives the newly-created fiber.
+
+    struct callable
+    { void operator()(); };
+
+    boost::fibers::fiber copies_are_safe()
+    {
+        callable x;
+        return boost::fibers::fiber( boost::fibers::spawn( x) );
+    } // x is destroyed, but the newly-created fiber has a copy, so this is OK
+
+    boost::fibers::fiber oops()
+    {
+        callable x;
+        return boost::fibers::fiber(
+            boost::fibers::spawn( boost::ref( x) ) );
+    } // x is destroyed, but the newly-created fiber still has a reference
+      // this leads to undefined behaviour
+
+The execution control is immediately transfered to the spawned __fiber__.
+If __spawn_ returns the __fiber__ might be complete or the fiber is waiting/
+sleeping.
+
+
+[heading Exceptions]
+
+Exceptions thrown by the function or callable object passed to the __fiber__
+constructor are consumed by the framework (if it required to know which
+exceptions was thrown use __future__ and __packaged_task__).
+
+
+[heading Joining]
+
+In order to wait for a fiber to finish, the __join__ member functions of the
+__fiber__ object can be used. __join__ will block until the __fiber__ object
+has completed.
+If the __fiber__ has already completed, or the __fiber__ object represents
+__not_a_fiber__, then __join__ returns immediately.
+
+    void some_fn()
+    { ... }
+
+    boost::fibers::fiber s(
+        boost::fibers::spawn( some_fn) );
+    s.join();
+
+Another possiblity to wait for multiple __strata__ offer __wf_all__, __wf_any__
+and __wf_any_c__.
+
+    
+    boost::fibers::fiber s1(
+        boost::fibers::spawn( some_fn) );
+    boost::fibers::fiber s2(
+        boost::fibers::spawn( another_fn) );
+
+    boost::fibers::waitfor_all( s1, s2);
+
+
+[heading Stratum IDs]
+
+Objects of class __id__ can be used to identify fibers. Each running
+__fiber__ has a unique __id__ obtainable from the corresponding __fiber__
+by calling the __get_id__ member function.
+Objects of class __id__ can be copied, and used as keys in associative
+containers: the full range of comparison operators is provided.
+They can also be written to an output stream using the stream insertion
+operator, though the output format is unspecified.
+
+Each instance of __id__ either refers to some fiber, or __not_a_fiber__.
+Instances that refer to __not_a_fiber__ compare equal to each other, but
+not equal to any instances that refer to an actual fiber. The comparison
+operators on __id__ yield a total order for every non-equal __id__.
+
+
+[section:class Class `fiber`]
+
+    #include <boost/fiber/fiber.hpp>
+
+    class fiber
+    {
+    public:
+        class id;
+
+        fiber();
+
+        // move support
+        fiber( fiber && other);
+        fiber & operator=( fiber && other);
+
+        operator unspecified-bool-type() const;
+        
+        bool operator!() const;
+        
+        void swap( fiber & other);
+        
+        bool operator==( fiber const&) const;
+        bool operator!=( fiber const&) const;
+        
+        id get_id() const;
+        
+        bool is_joinable() const;
+        bool is_complete() const;
+        
+        void cancel();
+        void join();
+    };
+
+    void swap( fiber & lhs, fiber & rhs);
+
+
+[section:default_constructor `fiber()`]
+[variablelist
+[[Effects:] [Constructs a fiber instance that refers to
+__not_a_fiber__.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:unspec_operator `operator unspecified-bool-type() const`]
+[variablelist
+[[Returns:] [If `*this` refers to a fiber, the function returns true.
+Otherwise false.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:not_operator `bool operator!() const`]
+[variablelist
+[[Returns:] [If `*this` refers not to a fiber, the function returns true.
+Otherwise false.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:swap `void swap( fiber & other)`]
+[variablelist
+[[Effects:] [Exchanges the fibers associated with `*this` and `other`, so
+`*this` is associated with the fiber associated with `other` prior to the
+call, and vice-versa.]]
+[[Postconditions:] [`this->get_id()` returns the same value as `other.get_id()`
+prior to the call. `other.get_id()` returns the same value as `this->get_id()`
+prior to the call.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:equals `bool operator==( fiber const& other) const`]
+[variablelist
+[[Returns:] [`get_id()==other.get_id()`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:not_equals `bool operator!=( fiber const& other) const`]
+[variablelist
+[[Returns:] [`get_id()!=other.get_id()`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:get_id `fiber::id get_id() const`]
+[variablelist
+[[Returns:] [If `*this` refers to a fiber, an instance of __fiber_id__ that
+represents that fiber. Otherwise returns a default-constructed __fiber_id__.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:is_alive `bool is_joinable()`]
+[variablelist
+[[Effects:] [Returns `true` if `*this` is not a __not_a_fiber__ and
+fiber is not complete, otherwise `false`.
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:cancel `void cancel()`]
+[variablelist
+[[Effects:] [Terminated `*this`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:join `void join()`]
+[variablelist
+[[Effects:] [Waits for `*this` to complete.]]
+[[Throws:] [__fiber_interrupted__ if the current fiber was canceled.]]
+]
+[endsect]
+
+[section:non_member_swap Non-member function `swap()`]
+
+    #include <boost/fiber/fiber.hpp>
+
+    void swap( fiber & lhs, fiber & rhs);
+
+[variablelist
+[[Effects:] [[link fibers.fiber.class.swap `lhs.swap( rhs)`].]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:run Non-member function `run`]
+
+        bool run();
+
+[variablelist
+[[Effects:] [Dequeue and execute one __fiber__ from schedulers ready-list and
+return `true`. Otherwise return `false` if ready-list is empty.]]
+[[Returns:] [`true` if a __fiber__ could be dequeued from ready-list, otherwise
+return `false`.]]
+]
+[endsect]
+
+[section:spawn Non-member template function `spawn`]
+
+        template< typename Fn >
+        fiber spawn( Fn fn, std::size_t stack_size, bool preserve_fpu);
+
+        template< typename Fn >
+        fiber spawn( Fn && fn, std::size_t stack_size, bool preserve_fpu);
+
+[variablelist
+[[Effects:] [Create a __fiber__ associated with Fn. The fiber gets executed.]] 
+[[Returns:] [Returns a __fiber__ which might be complete or waiting/sleeping.]]
+]
+[endsect]
+
+[section:wf_all Non-member function `waitfor_all`]
+
+        void waitfor_all( fiber & s0, ..., fiber & s9)
+
+[variablelist
+[[Effects:] [Waitfor until all strata are finished.]]
+]
+[endsect]
+
+[section:wf_any Non-member function `waitfor_any`]
+
+        unsigned int waitfor_any( fiber & s0, ..., fiber & s9)
+
+[variablelist
+[[Effects:] [Waitfor until at least one fiber is finished.]]
+[[Returns:] [Position of fiber which is complete.]]
+]
+[endsect]
+
+[section:wf_any_cancel Non-member function `waitfor_any_and_cancel`]
+
+        unsigned int waitfor_any_and_cancel( fiber & s0, ..., fiber & s9)
+
+[variablelist
+[[Effects:] [Waitfor until at least one fiber is finished and cancel all
+other starata (stack gets unwound).]]
+[[Returns:] [Position of fiber which is complete.]]
+]
+[endsect]
+
+[section:id Class __id__]
+
+    #include <boost/fiber/fiber.hpp>
+
+    class fiber::id
+    {
+    public:
+        id();
+
+        bool operator==( id const& y) const;
+        bool operator!=( id const& y) const;
+        bool operator<( id const& y) const;
+        bool operator>( id const& y) const;
+        bool operator<=( id const& y) const;
+        bool operator>=( id const& y) const;
+
+        template< typename charT, typename traitsT >
+        friend std::basic_ostream< charT, traitsT > & 
+        operator<<( std::basic_ostream<charT, traitsT > & os, id const& x);
+    };
+
+[section:constructor `id()`]
+[variablelist
+[[Effects:] [Constructs a __fiber_id__ instance that represents
+__not_a_fiber__.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:is_equal `bool operator==( id const& y) const`]
+[variablelist
+[[Returns:] [`true` if `*this` and `y` both represent the same fiber of
+execution, or both represent __not_a_fiber__, `false` otherwise.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:not_equal `bool operator!=( id const& y) const`]
+[variablelist
+[[Returns:] [Returns `true` if `*this` and `y` represent different fibers of
+execution, or one represents a fiber of execution, and the other represent
+__not_a_fiber__, `false` otherwise.]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:less_than `bool operator<( id const& y) const`]
+[variablelist
+[[Returns:] [`true` if `*this!=y` is `true` and the implementation-defined total
+order of __fiber_id__ values places `*this` before `y`, `false` otherwise.]]
+[[Throws:] [Nothing]]
+[[Note:] [A __fiber_id__ instance representing __not_a_fiber__ will always
+compare less than an instance representing a fiber of execution.]]
+]
+[endsect]
+
+[section:greater_than `bool operator>( id const& y) const`]
+[variablelist
+[[Returns:] [`y<*this`]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:less_than_or_equal `bool operator<=( id const& y) const`]
+[variablelist
+[[Returns:] [`!(y<*this)`]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:greater_than_or_equal `bool operator>=( id const& y) const`]
+[variablelist
+[[Returns:] [`!(*this<y)`]]
+[[Throws:] [Nothing]]
+]
+[endsect]
+
+[section:stream_out Non-member template function `operator<<`]
+
+        template< typename charT, typename traitsT >
+        friend std::basic_ostream< charT, traitsT > & 
+        operator<<( std::basic_ostream<charT, traitsT > & os, id const& x);
+
+[variablelist
+[[Effects:] [Writes a representation of the __fiber_id__ instance `x` to the
+stream `os`, such that the representation of two instances of __fiber_id__ `a`
+and `b` is the same if `a==b`, and different if `a!=b`.]]
+[[Returns:] [`os`]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]
+
+[section:this_fiber Namespace `this_fiber`]
+
+[section:is_fiberized Non-member function `is_fiberized()`]
+
+    #include <boost/fiber/opertions.hpp>
+
+    namespace this_fiber
+{
+        bool is_fiberized();
+   }
+
+[variablelist
+[[Returns:] [Returns `true` if current code is executed as a fiber.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:get_id Non-member function `get_id()`]
+
+    #include <boost/fiber/opertions.hpp>
+
+    namespace this_fiber
+    {
+        fiber::id get_id();
+    }
+
+[variablelist
+[[Returns:] [An instance of __id__ that represents that currently
+executing fiber.]]
+[[Precondition:] [`is_fiberized()` returns `true`.]]
+]
+[endsect]
+
+[section:yield Non-member function `yield()`]
+
+    #include <boost/fiber/opertions.hpp>
+
+    namespace this_fiber
+    {
+        void yield();
+    }
+
+[variablelist
+[[Effects:] [Cooperatifly gives up the remainder of the current fiber's
+time slice, to allow other fibers to run.]]
+[[Precondition:] [`is_fiberized()` returns `true`.]]
+]
+[endsect]
+
+[section:yield_break Non-member function `yield_break()`]
+
+    #include <boost/fiber/opertions.hpp>
+
+    namespace this_fiber
+    {
+        void yield_break();
+    }
+
+[variablelist
+[[Effects:] [Cancels the active __fiber__.  Stack of __straum__ gets
+unwound.]]
+[[Precondition:] [`is_fiberized()` returns `true`.]]
+]
+[endsect]
+
+[endsect]
+
+[section:sleep Non-member function `sleep()`]
+
+    #include <boost/fiber/opertions.hpp>
+
+    namespace this_fiber
+    {
+        template< typename TimeDuration >
+        void sleep( TimeDuration const& dt);
+        void sleep( boost::system_time const& abs_time);
+    }
+
+[variablelist
+[[Effects:] [Active fiber gets suspended until time duration or absolute 
+time has reached.]]
+[[Precondition:] [`is_fiberized()` returns `true`.]]]
+[endsect]
+
+[endsect]

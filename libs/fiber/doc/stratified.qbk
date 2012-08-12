@@ -1,0 +1,89 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[article Stratified
+    [quickbook 1.4]
+    [authors [Kowalke, Oliver]]
+    [copyright 2009 Oliver Kowalke]
+    [purpose C++ Library for cooperativly schedule and synchronize micro-threads]
+    [category text]
+    [license
+        Distributed under the Boost Software License, Version 1.0.
+        (See accompanying file LICENSE_1_0.txt or copy at
+        [@http://www.boost.org/LICENSE_1_0.txt])
+    ]
+]
+
+
+[def __boost_context__ [*Boost.Context]]
+[def __boost_move__ [*Boost.Move]]
+[def __boost_fiber__ [*Boost.Stratified]]
+[def __boost_thread__ [*Boost.Thread]]
+
+[template auto_reset_link[link_text] [link fibers.synchronization.event_types.auto_reset_event [link_text]]]
+[template barrier_link[link_text] [link fibers.synchronization.barriers [link_text]]]
+[template condition_link[link_text] [link fibers.synchronization.conditions.condition [link_text]]]
+[template count_down_link[link_text] [link fibers.synchronization.event_types.count_down_event [link_text]]]
+[template manual_reset_link[link_text] [link fibers.synchronization.event_types.manual_reset_event [link_text]]]
+[template mutex_link[link_text] [link fibers.synchronization.mutex_types.mutex [link_text]]]
+[template future_link[link_text] [link fibers.synchronization.future [link_text]]]
+[template fiber_link[link_text] [link fibers.fiber [link_text]]]
+
+[template auto_reset_wait_link[link_text] [link fibers.synchronization.eventvar_ref.auto_reset_event.wait [link_text]]]
+[template manual_reset_wait_link[link_text] [link fibers.synchronization.eventvar_ref.manual_reset_event.wait [link_text]]]
+[template count_down_wait_link[link_text] [link fibers.synchronization.eventvar_ref.count_down_event.wait [link_text]]]
+[template cond_wait_link[link_text] [link fibers.synchronization.conditions.condition.wait [link_text]]]
+[template join_link[link_text] [link fibers.fiber.class.join [link_text]]]
+[template cancel_link[link_text] [link fibers.fiber.class.cancel [link_text]]]
+
+[template wf_all_link[link_text] [link fibers.fiber.class.wf_all [link_text]]]
+
+[template sleep_link[link_text] [link fibers.fiber.this_fiber.sleep [link_text]]]
+[template yield_link[link_text] [link fibers.fiber.this_fiber.yield [link_text]]]
+
+[def __blocked__ ['blocked]]
+[def __not_a_fiber__ ['not-a-fiber]]
+[def __lockable_concept__ ['lockable concept]]
+[def __rendezvous__ ['rendezvous]]
+
+[def __auto_reset_event__ [auto_reset_link ['auto-reset event]]]
+[def __barrier__ [barrier_link ['barrier]]]
+[def __condition__ [condition_link ['condition]]]
+[def __count_down_event__ [count_down_link ['count-down event]]]
+[def __packaged_task__ [future_link ['packaged-task]]]
+[def __future__ [future_link ['future]]]
+[def __manual_reset_event__ [manual_reset_link ['manual-reset event]]]
+[def __mutex__ [mutex_link ['mutex]]]
+[def __fiber__ [fiber_link ['fiber]]]
+[def __strata__ [fiber_link ['strata]]]
+[def __id__ `fiber::id`]
+
+[def __cond_wait__ [cond_wait_link `condition::wait()`]]
+[def __join__ [join_link `fiber::join()`]]
+[def __get_id__ [fiber_link `fiber::get_id()`]]
+[def __sleep__ [sleep_link `sleep()`]]
+[def __lock__ `lock()`]
+[def __try_lock__ `try_lock()`]
+[def __unlock__ `unlock()`]
+
+[def __yield__ [yield_link `yield()`]]
+[def __yield_break__ [yield_link `yield_break()`]]
+[def __run__ `run()`]
+[def __spawn__ `spawn()`]
+[def __wf_all__ [wf_all_link `waitfor_all()`]
+[def __wf_any__ `waitfor_any()`]
+[def __wf_any_c__ `waitfor_any_and_cancel()`]
+
+[def __invalid_argument__ `std::invalid_argument`]
+[def __lock_error__ `boost::fibers::lock_error`]
+
+
+[include overview.qbk]
+[include fiber.qbk]
+[include synchronization.qbk]
+[include todo.qbk]
+[include acknowledgements.qbk]

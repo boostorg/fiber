@@ -1,0 +1,207 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:channels (Un)Bounded channels]
+
+__boost_fiber__ provides a bounded and a unbounded channel suitable to
+synchonize fibers via message passing.
+
+    typedef boost::fibers::unbounded_channel< int > channel_t;
+
+    void send( channel_t & channel)
+    {
+        for ( int i = 0; i < 5; ++i)
+            channel.put( i);
+        channel.deactivate();
+    }
+
+    void recv( channel_t & channel)
+    {
+        boost::optional< int > value;
+        while ( channel.take( value) )
+        { std::cout << "received " << * value << std::endl; }
+    }
+
+    channel_t channel;
+    boost::fibers::fiber s1(
+        boost::fibers::spawn(
+            boost::bind( send, ref( channel) ) ) );
+    boost::fibers::fiber s2(
+        boost::fibers::spawn(
+            boost::bind( recv, ref( channel) ) ) );
+
+    boost::fibers::waitfor_all( s1, s2);
+
+[section:unbounded_channel Template `template< typename T > unbounded_channel`]
+
+    #include <boost/fiber/unbounded_channel.hpp>
+
+    template< typename T >
+    class unbounded_channel : private noncopyable
+    {
+    public:
+        bool active() const;
+
+        void deactivate();
+
+        bool empty();
+
+        void put( T const& t);
+
+        bool take( boost::optional< T > & va);
+
+        bool try_take( boost::optional< T > & va);
+    };
+
+[section:active `bool active() const`]
+[variablelist
+[[Effects:] [Return `true` if channel is still usable.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:deactivate `void deactivate()`]
+[variablelist
+[[Effects:] [Deactivates the channel. No values can be put after calling
+`this->deactivate`. Strata blocked in `this->take()` will return.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:empty `bool empty()`]
+[variablelist
+[[Effects:] [Returns `true` if the channel currently contains no data.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:put `void put( T const& t)`]
+[variablelist
+[[Effects:] [Enqueues the value in the channel and wakes up a fiber waiting
+for new data available from the channel.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:take `bool take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the channel. If no data is available from the
+channel the fiber gets suspended until new data are enqueued (return value
+`true` and va contains dequeued value) or the channel gets deactiveted and the
+function returns `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:try_take `bool try_take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the channel. If no data is available from the
+channel the function returns `false`. Otherwise it returns `true` and `va`
+contains the dequed value.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+
+[section:bounded_channel Template `template< typename T > bounded_channel`]
+
+    #include <boost/fiber/bounded_channel.hpp>
+
+    template< typename T >
+    class bounded_channel : private noncopyable
+    {
+    public:
+        bounded_channel( std::size_t wm);
+
+        bounded_channel( std::size_t hwm, std::size_t lwm);
+
+        bool active() const;
+
+        void deactivate();
+
+        bool empty();
+
+        void put( T const& t);
+
+        bool take( boost::optional< T > & va);
+
+        bool try_take( boost::optional< T > & va);
+    };
+
+[section:constructor `bounded_channel( std::size_t wm)`]
+[variablelist
+[[Effects:] [Constructs an object of class `bounded_channel` which will contain
+a maximum of `wm` items.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:constructor2 `bounded_channel( std::size_t hwm, std::size_t lwm)`]
+[variablelist
+[[Effects:] [Constructs an object of class `bounded_channel` which will contain
+a high-watermark of `hwm`
+and a low-watermark of `lwm` items.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:active `bool active() const`]
+[variablelist
+[[Effects:] [Return `true` if channel is still usable.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:deactivate `void deactivate()`]
+[variablelist
+[[Effects:] [Deactivates the channel. No values can be put after calling
+`this->deactivate`. Strata blocked in `this->take()` will return.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:empty `bool empty()`]
+[variablelist
+[[Effects:] [Returns `true` if the channel currently contains no data.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:put `void put( T const& t)`]
+[variablelist
+[[Effects:] [Enqueues the value in the channel and wakes up a fiber waiting
+for new data available from the channel. If the watermark has reached the
+fiber putting the value will be supended until at least one item was
+dequeued.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:take `bool take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the channel. If no data is available from the
+channel the fiber gets suspended until new data are enqueued (return value
+`true` and va contains dequeued value) or the channel gets deactiveted and the
+function returns `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:try_take `bool try_take( boost::optional< T > & va)`]
+[variablelist
+[[Effects:] [Dequeues a value from the channel. If no data is available from the
+channel the function returns `false`. Otherwise it returns `true` and `va`
+contains the dequed value.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]

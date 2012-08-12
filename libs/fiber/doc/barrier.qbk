@@ -1,0 +1,52 @@
+[/
+  (C) Copyright 2007-8 Anthony Williams.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:barriers Barriers]
+
+A barrier is a concept also known as a __rendezvous__, it is a synchronization
+point between multiple contexts of execution (fibers). The barrier is
+configured for a particular number of fibers (`n`), and as fibers reach the
+barrier they must wait until all `n` fibers have arrived. Once the `n`-th
+fiber has reached the barrier, all the waiting fibers can proceed, and the
+barrier is reset.
+
+[section:barrier Class `barrier`]
+
+    #include <boost/fiber/barrier.hpp>
+
+    class barrier
+    {
+    public:
+        barrier( unsigned int initial);
+
+        bool wait();
+    };
+
+
+Instances of __barrier__ are not copyable or movable.
+
+[section:constructor `barrier( unsigned int initial)`]
+[variablelist
+[[Effects:] [Construct a barrier for `initial` fibers.]]
+[[Throws:] [__invalid_argument__]]
+]
+[endsect]
+
+[section:wait `bool wait()`]
+[variablelist
+[[Effects:] [Block until `initial` fibers have called `wait` on `*this`. When
+the `initial`-th fiber calls `wait`, all waiting fibers are unblocked, and
+the barrier is reset. ]]
+[[Returns:] [`true` for exactly one fiber from each batch of waiting fibers,
+`false` otherwise.]]
+[[Throws:] [__fiber_error__]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]

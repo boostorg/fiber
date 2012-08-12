@@ -1,0 +1,283 @@
+[/
+  (C) Copyright 2007-8 Anthony Williams.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
+]
+
+[section:event_types Event Variables]
+
+[heading Synopsis]
+
+__boost_fiber__ provides event variables to facilitate coordination between
+fibers. A event-variable has two states `set` (`signaled`) or `reset`
+(`nonsignaled`).
+
+    boost::fibers::auto_reset_event ev;
+
+    void process_data();
+
+    void wait_for_data_to_process()
+    {
+        ev.wait();
+        process_data();
+    }
+
+`wait` will atomically add the fiber to the set of fibers waiting on the
+event variable. When the fiber is woken, the event variable will be reset
+again.
+
+In the mean time, another fiber signals the event variable by calling `set`
+on the event variable to wake one waiting fiber.
+
+    void retrieve_data();
+    void prepare_data();
+
+    void prepare_data_for_processing()
+    {
+        retrieve_data();
+        prepare_data();
+        ev.set();
+    }
+
+
+[section:auto_reset_event Class `auto_reset_event`]
+
+[heading Synopsis]
+
+When the ['auto_reset_event] gets signaled, any one fiber will see this
+particular signal. When a fiber observes the signal by waiting on the event,
+it is automatically transitioned back to non-signaled state. Any fibers can
+subsequently set the event.
+
+    #include <boost/fiber/auto_reset_event.hpp>
+
+    class auto_reset_event : private boost::noncopyable
+    {
+    public:
+        auto_reset_event( bool isset = false);
+
+        ~auto_reset_event();
+
+        void set();
+
+        void wait();
+
+        bool try_wait();
+    };
+
+[section:constructor `auto_reset_event( bool isset = false)`]
+[variablelist
+[[Effects:] [Constructs an object of class `auto_reset_event`. If isset is
+`true` the variable is set.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~auto_reset_event()`]
+[variablelist
+[[Precondition:] [All fibers waiting on `*this` have been notified by a call
+to `set` (though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:set `void set()`]
+[variablelist
+[[Effects:] [If any fibers are currently __blocked__ waiting on `*this` in a
+call to `wait`, unblocks one of those fibers.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait()`]
+[variablelist
+[[Effects:] [Blocks the current fiber. The fiber will unblock when notified
+by a call to `this->set()`. When the fiber is unblocked, the variable is reset
+before `wait` returns.]]
+[[Throws:] [__fiber_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __fiber__ object associated with the current fiber of
+execution.]]
+]
+[endsect]
+
+[section:try_wait `bool try_wait()`]
+[variablelist
+[[Effects:] [Returns `true` if the event variable is set otherwise `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+
+[section:manual_reset_event Class `manual_reset_event`]
+
+[heading Synopsis]
+
+The ['manual_reset_event] remains signaled until it is manually reset. Multiple
+fibers wait on the same event and observe the same signal.
+
+    #include <boost/fiber/manual_reset_event.hpp>
+
+    class manual_reset_event : private boost::noncopyable
+    {
+    public:
+        manual_reset_event( bool isset = false);
+
+        ~manual_reset_event();
+
+        void set();
+
+        void reset();
+
+        void wait();
+
+        bool try_wait();
+    };
+
+[section:constructor `manual_reset_event( bool isset = false)`]
+[variablelist
+[[Effects:] [Constructs an object of class `manual_reset_event`. If isset is
+`true` the variable is set.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~manual_reset_event()`]
+[variablelist
+[[Precondition:] [All fibers waiting on `*this` have been notified by a call
+to `set` (though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:set `void set()`]
+[variablelist
+[[Effects:] [If any fibers are currently __blocked__ waiting on `*this` in a
+call to `wait`, unblocks those fibers. The variable remains signaled until
+`this->reset()` gets called.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:reset `void reset()`]
+[variablelist
+[[Effects:] [The event variable gets nonsignaled and fibers calling
+`this->wait()` will block.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait()`]
+[variablelist
+[[Effects:] [Blocks the current fiber. The fiber will unblock when notified
+by a call to `this->set()`. When the fiber is unblocked, the variable remains
+set.]]
+[[Throws:] [__fiber_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __fiber__ object associated with the current fiber of
+execution.]]
+]
+[endsect]
+
+[section:trywait `boo try_wait()`]
+[variablelist
+[[Effects:] [Returns `true` if the event variable is set otherwise `false`.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect]
+
+
+[section:count_down_event Class `count_down_event`]
+
+[heading Synopsis]
+
+The ['count_down_event] decrements an internal counter (set in the constructor)
+and all waiting fibers are blocked until the count reaches zero.
+
+    #include <boost/fiber/count_down_event.hpp>
+
+    class count_down_event : private boost::noncopyable
+    {
+    public:
+        count_down_event( unsigned int initial);
+
+        ~count_down_event();
+
+        unsigned int initial() const;
+
+        unsigned int current() const;
+
+        bool is_set() const;
+
+        void set();
+
+        void wait();
+    };
+
+[section:constructor `count_down_event( unsigned int initial)`]
+[variablelist
+[[Effects:] [Constructs an object of class `count_down_event` with initial
+value.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor `~count_down_event()`]
+[variablelist
+[[Precondition:] [All fibers waiting on `*this` have been notified by a call
+to `set` (though the respective calls to `wait` need not have returned).]]
+[[Effects:] [Destroys the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:initial `unsigned int initial()`]
+[variablelist
+[[Effects:] [Returns the initial value the event variable was initialized
+with.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:current `unsigned int current()`]
+[variablelist
+[[Effects:] [Returns the value the variable currently holds.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:is_set `bool is_set()`]
+[variablelist
+[[Effects:] [Returns `true` if the varaible has reached zero.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:set `void set()`]
+[variablelist
+[[Effects:] [Decrements the current count. If the count reaches zero and any
+fibers are currently __blocked__ waiting on `*this` in a call to `wait`,
+unblocks those fibers. The variable remains signaled.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:wait `void wait()`]
+[variablelist
+[[Effects:] [Blocks the current fiber. The fiber will unblock when notified
+by a call to `this->set()` and the count of the event variable reaches zero.
+When the fiber is unblocked, the variable remains set.]]
+[[Throws:] [__fiber_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __fiber__ object associated with the current fiber of
+execution.]]
+]
+[endsect]
+
+[endsect]
+
+[endsect]
