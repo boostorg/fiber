@@ -46,7 +46,7 @@ private:
     friend class detail::scheduler;
 
     typedef detail::fiber_base    base_t;
-    typedef base_t::ptr_t           ptr_t;
+    typedef base_t::ptr_t         ptr_t;
 
     ptr_t       impl_;
 
