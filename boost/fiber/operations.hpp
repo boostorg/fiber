@@ -6,10 +6,11 @@
 #ifndef BOOST_THIS_STRATUM_OPERATIONS_H
 #define BOOST_THIS_STRATUM_OPERATIONS_H
 
+#include <memory>
+
 #include <boost/assert.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
-#include <boost/context/stack_utils.hpp>
 #include <boost/move/move.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
@@ -66,15 +67,70 @@ void yield_break()
 
 namespace fibers {
 
+#ifndef BOOST_NO_RVALUE_REFERENCES
+#ifdef BOOST_MSVC
+#endif
+#else
 template< typename Fn >
-fiber spawn( Fn fn, std::size_t size = ctx::default_stacksize(),
-               bool preserve_fpu = true)
-{ return detail::scheduler::instance().spawn( fn, size, preserve_fpu); }
+fiber spawn( Fn fn, attributes const& attr = attributes(),
+             stack_allocator const& stack_alloc = stack_allocator(),
+             std::allocator< fiber > const& alloc = std::allocator< fiber >() )
+{
+    fiber f( fn, attr, stack_alloc, alloc);
+    detail::scheduler::instance().spawn( f.impl_);
+    return f;
+}
+
+template< typename Fn, typename StackAllocator >
+fiber spawn( Fn fn, attributes const& attr,
+             StackAllocator const& stack_alloc,
+             std::allocator< fiber > const& alloc = std::allocator< fiber >() )
+{
+    fiber f( fn, attr, stack_alloc, alloc);
+    detail::scheduler::instance().spawn( f.impl_);
+    return f;
+}
+
+template< typename Fn, typename StackAllocator, typename Allocator >
+fiber spawn( Fn fn, attributes const& attr,
+             StackAllocator const& stack_alloc,
+             Allocator const& alloc)
+{
+    fiber f( fn, attr, stack_alloc, alloc);
+    detail::scheduler::instance().spawn( f.impl_);
+    return f;
+}
 
 template< typename Fn >
-fiber spawn( BOOST_RV_REF( Fn) fn, std::size_t size = ctx::default_stacksize(),
-               bool preserve_fpu = true) 
-{ return detail::scheduler::instance().spawn( boost::move( fn), size, preserve_fpu); }
+fiber spawn( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
+             stack_allocator const& stack_alloc = stack_allocator(),
+             std::allocator< fiber > const& alloc = std::allocator< fiber >() )
+{
+    fiber f( fn, attr, stack_alloc, alloc);
+    detail::scheduler::instance().spawn( f.impl_);
+    return f;
+}
+
+template< typename Fn, typename StackAllocator >
+fiber spawn( BOOST_RV_REF( Fn) fn, attributes const& attr,
+             StackAllocator const& stack_alloc,
+             std::allocator< fiber > const& alloc = std::allocator< fiber >() )
+{
+    fiber f( fn, attr, stack_alloc, alloc);
+    detail::scheduler::instance().spawn( f.impl_);
+    return f;
+}
+
+template< typename Fn, typename StackAllocator, typename Allocator >
+fiber spawn( BOOST_RV_REF( Fn) fn, attributes const& attr,
+             StackAllocator const& stack_alloc,
+             Allocator const& alloc)
+{
+    fiber f( fn, attr, stack_alloc, alloc);
+    detail::scheduler::instance().spawn( f.impl_);
+    return f;
+}
+#endif
 
 inline
 bool run()
@@ -87,17 +143,17 @@ bool run()
 	BOOST_PP_ENUM(n,BOOST_FIBERS_WAITFOR_STRATUM_FN_ARG,~)
 
 #define BOOST_FIBERS_WAITFOR_STRATUM_AND(z,n,t) \
-	BOOST_PP_EXPR_IF(n,&&) BOOST_PP_CAT(s,n).is_complete()
+	BOOST_PP_EXPR_IF(n,&&) BOOST_PP_CAT(s,n)
 
 #define BOOST_FIBERS_WAITFOR_STRATUM_OR(z,n,t) \
-	BOOST_PP_EXPR_IF(n,||) BOOST_PP_CAT(s,n).is_complete()
+	BOOST_PP_EXPR_IF(n,||) BOOST_PP_CAT(s,n)
 
 #define BOOST_FIBERS_WAITFOR_STRATUM_CANCEL(z,n,t) \
-	if ( ! BOOST_PP_CAT(s,n).is_complete() ) \
+	if ( ! BOOST_PP_CAT(s,n) ) \
         BOOST_PP_CAT(s,n).cancel();
 
 #define BOOST_FIBERS_WAITFOR_STRATUM_READY(z,n,t) \
-	if ( BOOST_PP_CAT(s,n).is_complete() ) return n;
+	if ( BOOST_PP_CAT(s,n) ) return n;
 
 #define BOOST_FIBERS_WAITFOR_STRATUM_ALL(z,n,unused) \
 inline \

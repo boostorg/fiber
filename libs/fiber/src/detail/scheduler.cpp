@@ -59,6 +59,19 @@ scheduler::instance()
 }
 
 void
+scheduler::spawn( fiber_base::ptr_t const& f)
+{
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( ! f->is_complete() );
+    BOOST_ASSERT( f != active_fiber_);
+
+    fiber_base::ptr_t tmp = active_fiber_;
+    active_fiber_ = f;
+    resume_();
+    active_fiber_ = tmp;
+}
+
+void
 scheduler::join( fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
@@ -98,7 +111,7 @@ scheduler::cancel( fiber_base::ptr_t const& f)
     // terminate fiber means unwinding its stack
     // so it becomes complete and joining strati
     // will be notified
-    active_fiber_->terminate_();
+    active_fiber_->terminate();
     active_fiber_ = tmp;
     // erase completed fiber from waiting-queue
     f_idx_.erase( f);

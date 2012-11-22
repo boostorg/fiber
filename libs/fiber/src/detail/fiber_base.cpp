@@ -21,37 +21,6 @@ namespace fibers {
 namespace detail {
 
 void
-fiber_base::unwind_stack_()
-{
-    BOOST_ASSERT( ! is_complete() );
-    BOOST_ASSERT( ! is_resumed() );
-
-    flags_ |= flag_resumed;
-    flags_ |= flag_unwind_stack;
-    ctx::jump_fcontext( & caller_, & callee_, 0, preserve_fpu_);
-    BOOST_ASSERT( is_complete() );
-    BOOST_ASSERT( ! is_resumed() );
-}
-
-void
-fiber_base::terminate_()
-{
-    BOOST_ASSERT( ! is_resumed() );
-
-    if ( ! is_complete() )
-    {
-        flags_ |= flag_canceled;
-        unwind_stack_();
-    }
-
-    notify_();
-
-    BOOST_ASSERT( is_complete() );
-    BOOST_ASSERT( ! is_resumed() );
-    BOOST_ASSERT( joining_.empty() );
-}
-
-void
 fiber_base::notify_()
 {
     BOOST_ASSERT( is_complete() );
@@ -62,42 +31,17 @@ fiber_base::notify_()
     joining_.clear();
 }
 
-fiber_base::fiber_base( std::size_t size, bool preserve_fpu) :
+fiber_base::fiber_base( context::fcontext_t * callee, bool unwind, bool preserve_fpu) :
     use_count_( 0),
-    alloc_(),
     caller_(),
-    callee_(),
+    callee_( callee),
     flags_( 0),
-    preserve_fpu_( preserve_fpu),
+    except_(),
     joining_()
 {
-    callee_.fc_stack.base = alloc_.allocate( size);
-    callee_.fc_stack.size = size;
-
-    ctx::make_fcontext( & callee_, trampoline< fiber_base >);
+    if ( unwind) flags_ |= flag_forced_unwind;
+    if ( preserve_fpu) flags_ |= flag_preserve_fpu;
 }
-
-fiber_base::~fiber_base()
-{
-    terminate_();
-    alloc_.deallocate( callee_.fc_stack.base, callee_.fc_stack.size);
-}
-
-fiber_base::id
-fiber_base::get_id() const
-{ return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
-
-bool
-fiber_base::is_canceled() const
-{ return 0 != ( flags_ & flag_canceled); }
-
-bool
-fiber_base::is_complete() const
-{ return 0 != ( flags_ & flag_complete); }
-
-bool
-fiber_base::is_resumed() const
-{ return 0 != ( flags_ & flag_resumed); }
 
 void
 fiber_base::join( ptr_t const& p)
@@ -116,7 +60,7 @@ fiber_base::resume()
     BOOST_ASSERT( ! is_resumed() );
 
     flags_ |= flag_resumed;
-    ctx::jump_fcontext( & caller_, & callee_, ( intptr_t) this, preserve_fpu_);
+    context::jump_fcontext( & caller_, callee_, ( intptr_t) this, preserve_fpu() );
 
     if ( is_complete() ) notify_();
 
@@ -130,7 +74,7 @@ fiber_base::suspend()
     BOOST_ASSERT( is_resumed() );
 
     flags_ &= ~flag_resumed;
-    ctx::jump_fcontext( & callee_, & caller_, 0, preserve_fpu_);
+    context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
     BOOST_ASSERT( is_resumed() );
 

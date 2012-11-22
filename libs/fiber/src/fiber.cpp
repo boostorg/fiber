@@ -20,40 +20,6 @@
 namespace boost {
 namespace fibers {
 
-fiber::operator unspecified_bool_type() const
-{ return impl_ ? unspecified_bool : 0; }
-
-bool
-fiber::operator!() const
-{ return ! impl_; }
-
-bool
-fiber::operator==( fiber const& other) const
-{ return get_id() == other.get_id(); }
-
-bool
-fiber::operator!=( fiber const& other) const
-{ return ! ( get_id() == other.get_id() ); }
-
-void
-fiber::swap( fiber & other)
-{ impl_.swap( other.impl_); }
-
-fiber::id
-fiber::get_id() const
-{ return impl_ ? impl_->get_id() : id(); }
-
-bool
-fiber::is_joinable() const
-{ return impl_ && ! impl_->is_complete(); }
-
-bool
-fiber::is_complete() const
-{
-    BOOST_ASSERT( impl_);
-	return impl_->is_complete();
-}
-
 void
 fiber::cancel()
 {

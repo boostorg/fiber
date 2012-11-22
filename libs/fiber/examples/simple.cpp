@@ -26,7 +26,7 @@ int main()
         stm::fiber s1( stm::spawn( boost::bind( fn, "abc", 5) ) );
         stm::fiber s2( stm::spawn( boost::bind( fn, "xyz", 7) ) );
 
-		while ( ! s1.is_complete() || ! s2.is_complete() )
+		while ( s1 || s2 )
 			stm::run();
 
 		std::cout << "done." << std::endl;

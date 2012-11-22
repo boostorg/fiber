@@ -92,25 +92,7 @@ private:
 public:
     static scheduler & instance();
 
-    template< typename Fn >
-    fiber spawn( Fn fn, std::size_t size, bool preserve_fpu)
-    {
-        fiber f( fn, size, preserve_fpu);
-        active_fiber_.swap( f.impl_);
-        resume_();
-        active_fiber_.swap( f.impl_);
-        return f;
-    }
-
-    template< typename Fn >
-    fiber spawn( BOOST_RV_REF( Fn) fn, std::size_t size, bool preserve_fpu)
-    {
-        fiber f( boost::move( fn), size, preserve_fpu);
-        active_fiber_.swap( f.impl_);
-        resume_();
-        active_fiber_.swap( f.impl_);
-        return f;
-    }
+    void spawn( fiber_base::ptr_t const&);
 
     void join( fiber_base::ptr_t const&);
 

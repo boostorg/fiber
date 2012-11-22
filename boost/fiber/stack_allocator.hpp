@@ -16,7 +16,7 @@
 #endif
 
 namespace boost {
-namespace coroutines {
+namespace fibers {
 using detail::stack_allocator;
 }}
 
