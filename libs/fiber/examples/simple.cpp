@@ -23,11 +23,10 @@ int main()
 {
 	try
 	{
-        stm::fiber s1( stm::spawn( boost::bind( fn, "abc", 5) ) );
-        stm::fiber s2( stm::spawn( boost::bind( fn, "xyz", 7) ) );
+        stm::fiber s1( boost::bind( fn, "abc", 5) );
+        stm::fiber s2( boost::bind( fn, "xyz", 7) );
 
-		while ( s1 || s2 )
-			stm::run();
+		while ( s1 || s2 ) stm::run();
 
 		std::cout << "done." << std::endl;
 

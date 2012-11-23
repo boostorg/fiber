@@ -74,8 +74,7 @@ void future_wait()
     stm::packaged_task<int> pt(boost::bind( echo, 42));
     stm::unique_future<int> f(pt.get_future());
     
-    stm::fiber s(
-        stm::spawn( boost::move(pt)) );
+    stm::fiber s( boost::move(pt) );
     
     f.wait();
     int i = f.get();
@@ -137,7 +136,7 @@ void store_value_from_thread()
     stm::promise<int> pi2;
     stm::unique_future<int> fi2(pi2.get_future());
     stm::fiber s(
-        stm::spawn( boost::bind( set_promise_thread,&pi2) ) );
+        boost::bind( set_promise_thread,&pi2) );
     int j=fi2.get();
     BOOST_CHECK(j==42);
     BOOST_CHECK(fi2.is_ready());
@@ -152,7 +151,7 @@ void store_exception()
     stm::promise<int> pi3;
     stm::unique_future<int> fi3=pi3.get_future();
     stm::fiber s(
-        stm::spawn( boost::bind( set_promise_exception_thread,&pi3) ) );
+        boost::bind( set_promise_exception_thread,&pi3) );
     try
     {
         fi3.get();
@@ -702,8 +701,7 @@ void wait_for_either_of_two_futures_1()
     stm::packaged_task<int> pt2(make_int_slowly);
     stm::unique_future<int> f2(pt2.get_future());
     
-    stm::fiber s(
-        stm::spawn( boost::move(pt)) );
+    stm::fiber s( boost::move(pt) );
     
     unsigned const future=stm::waitfor_any(f1,f2);
     
@@ -720,8 +718,7 @@ void wait_for_either_of_two_futures_2()
     stm::packaged_task<int> pt2(make_int_slowly);
     stm::unique_future<int> f2(pt2.get_future());
     
-    stm::fiber s(
-        stm::spawn( boost::move(pt2)) );
+    stm::fiber s( boost::move(pt2) );
     
     unsigned const future=stm::waitfor_any(f1,f2);
     
@@ -740,8 +737,7 @@ void wait_for_either_of_three_futures_1()
     stm::packaged_task<int> pt3(make_int_slowly);
     stm::unique_future<int> f3(pt3.get_future());
     
-    stm::fiber s(
-        stm::spawn( boost::move(pt)) );
+    stm::fiber s( boost::move(pt) );
     
     unsigned const future=stm::waitfor_any(f1,f2,f3);
     
@@ -761,8 +757,7 @@ void wait_for_either_of_three_futures_2()
     stm::packaged_task<int> pt3(make_int_slowly);
     stm::unique_future<int> f3(pt3.get_future());
     
-    stm::fiber s(
-        stm::spawn( boost::move(pt2)) );
+    stm::fiber s( boost::move(pt2) );
     
     unsigned const future=stm::waitfor_any(f1,f2,f3);
     
@@ -782,8 +777,7 @@ void wait_for_either_of_three_futures_3()
     stm::packaged_task<int> pt3(make_int_slowly);
     stm::unique_future<int> f3(pt3.get_future());
     
-    stm::fiber s(
-        stm::spawn(boost::move(pt3)));
+    stm::fiber s( boost::move(pt3) );
     
     unsigned const future=stm::waitfor_any(f1,f2,f3);
     
@@ -805,7 +799,7 @@ void wait_for_either_of_four_futures_1()
     stm::packaged_task<int> pt4(make_int_slowly);
     stm::unique_future<int> f4(pt4.get_future());
     
-    stm::spawn(boost::move(pt));
+    stm::fiber(boost::move(pt));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4);
     
@@ -828,7 +822,7 @@ void wait_for_either_of_four_futures_2()
     stm::packaged_task<int> pt4(make_int_slowly);
     stm::unique_future<int> f4(pt4.get_future());
     
-    stm::spawn(boost::move(pt2));
+    stm::fiber(boost::move(pt2));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4);
     
@@ -851,7 +845,7 @@ void wait_for_either_of_four_futures_3()
     stm::packaged_task<int> pt4(make_int_slowly);
     stm::unique_future<int> f4(pt4.get_future());
     
-    stm::spawn(boost::move(pt3));
+    stm::fiber(boost::move(pt3));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4);
     
@@ -874,7 +868,7 @@ void wait_for_either_of_four_futures_4()
     stm::packaged_task<int> pt4(make_int_slowly);
     stm::unique_future<int> f4(pt4.get_future());
     
-    stm::spawn(boost::move(pt4));
+    stm::fiber(boost::move(pt4));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4);
     
@@ -899,7 +893,7 @@ void wait_for_either_of_five_futures_1()
     stm::packaged_task<int> pt5(make_int_slowly);
     stm::unique_future<int> f5(pt5.get_future());
     
-    stm::spawn(boost::move(pt));
+    stm::fiber(boost::move(pt));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -925,7 +919,7 @@ void wait_for_either_of_five_futures_2()
     stm::packaged_task<int> pt5(make_int_slowly);
     stm::unique_future<int> f5(pt5.get_future());
     
-    stm::spawn(boost::move(pt2));
+    stm::fiber(boost::move(pt2));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -950,7 +944,7 @@ void wait_for_either_of_five_futures_3()
     stm::packaged_task<int> pt5(make_int_slowly);
     stm::unique_future<int> f5(pt5.get_future());
     
-    stm::spawn(boost::move(pt3));
+    stm::fiber(boost::move(pt3));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -975,7 +969,7 @@ void wait_for_either_of_five_futures_4()
     stm::packaged_task<int> pt5(make_int_slowly);
     stm::unique_future<int> f5(pt5.get_future());
     
-    stm::spawn(boost::move(pt4));
+    stm::fiber(boost::move(pt4));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -1000,7 +994,7 @@ void wait_for_either_of_five_futures_5()
     stm::packaged_task<int> pt5(make_int_slowly);
     stm::unique_future<int> f5(pt5.get_future());
     
-    stm::spawn(boost::move(pt5));
+    stm::fiber(boost::move(pt5));
     
     unsigned const future=stm::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -1022,7 +1016,7 @@ void wait_for_either_invokes_callbacks()
     stm::unique_future<int> fi2=pt2.get_future();
     pt.set_wait_callback(wait_callback_for_task);
 
-    stm::spawn(boost::move(pt));
+    stm::fiber(boost::move(pt));
     stm::waitfor_any(fi,fi2);
     
     BOOST_CHECK(fi.get()==42);
@@ -1041,7 +1035,7 @@ void wait_for_any_from_range()
             tasks[j]=stm::packaged_task<int>(make_int_slowly);
             futures[j]=tasks[j].get_future();
         }
-        stm::spawn(boost::move(tasks[i]));
+        stm::fiber(boost::move(tasks[i]));
     
         BOOST_CHECK(stm::waitfor_any(futures,futures)==futures);
         
@@ -1071,7 +1065,7 @@ void wait_for_all_from_range()
     {
         stm::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        stm::spawn(boost::move(task));
+        stm::fiber(boost::move(task));
     }
     
     stm::waitfor_all(futures,futures+count);
@@ -1091,7 +1085,7 @@ void wait_for_all_two_futures()
     {
         stm::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        stm::spawn(boost::move(task));
+        stm::fiber(boost::move(task));
     }
     
     stm::waitfor_all(futures[0],futures[1]);
@@ -1110,7 +1104,7 @@ void wait_for_all_three_futures()
     {
         stm::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        stm::spawn(boost::move(task));
+        stm::fiber(boost::move(task));
     }
     
     stm::waitfor_all(futures[0],futures[1],futures[2]);
@@ -1129,7 +1123,7 @@ void wait_for_all_four_futures()
     {
         stm::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        stm::spawn(boost::move(task));
+        stm::fiber(boost::move(task));
     }
     
     stm::waitfor_all(futures[0],futures[1],futures[2],futures[3]);
@@ -1148,7 +1142,7 @@ void wait_for_all_five_futures()
     {
         stm::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        stm::spawn(boost::move(task));
+        stm::fiber(boost::move(task));
     }
     
     stm::waitfor_all(futures[0],futures[1],futures[2],futures[3],futures[4]);
@@ -1162,43 +1156,43 @@ void wait_for_all_five_futures()
 
 void test_store_value_from_thread()
 {
-    stm::spawn( store_value_from_thread).join();
+    stm::fiber( store_value_from_thread).join();
     store_value_from_thread();
 }
 
 void test_store_exception()
 {
-    stm::spawn( store_exception).join();
+    stm::fiber( store_exception).join();
     store_exception();
 }
 
 void test_initial_state()
 {
-    stm::spawn( initial_state).join();
+    stm::fiber( initial_state).join();
     initial_state();
 }
 
 void test_waiting_future()
 {
-    stm::spawn( waiting_future).join();
+    stm::fiber( waiting_future).join();
     waiting_future();
 }
 
 void test_cannot_get_future_twice()
 {
-    stm::spawn( cannot_get_future_twice).join();
+    stm::fiber( cannot_get_future_twice).join();
     cannot_get_future_twice();
 }
 
 void test_set_value_updates_future_state()
 {
-    stm::spawn( set_value_updates_future_state).join();
+    stm::fiber( set_value_updates_future_state).join();
     set_value_updates_future_state();
 }
 
 void test_set_value_can_be_retrieved()
 {
-    stm::spawn( set_value_can_be_retrieved).join();
+    stm::fiber( set_value_can_be_retrieved).join();
     set_value_can_be_retrieved();
 }
 
@@ -1208,277 +1202,277 @@ void test_set_value_can_be_moved()
 
 void test_future_from_packaged_task_is_waiting()
 {
-    stm::spawn( future_from_packaged_task_is_waiting).join();
+    stm::fiber( future_from_packaged_task_is_waiting).join();
     future_from_packaged_task_is_waiting();
 }
 
 void test_invoking_a_packaged_task_populates_future()
 {
-    stm::spawn( invoking_a_packaged_task_populates_future).join();
+    stm::fiber( invoking_a_packaged_task_populates_future).join();
     invoking_a_packaged_task_populates_future();
 }
 
 void test_invoking_a_packaged_task_twice_throws()
 {
-    stm::spawn( invoking_a_packaged_task_twice_throws).join();
+    stm::fiber( invoking_a_packaged_task_twice_throws).join();
     invoking_a_packaged_task_twice_throws();
 }
 
 void test_cannot_get_future_twice_from_task()
 {
-    stm::spawn( cannot_get_future_twice_from_task).join();
+    stm::fiber( cannot_get_future_twice_from_task).join();
     cannot_get_future_twice_from_task();
 }
 
 void test_task_stores_exception_if_function_throws()
 {
-    stm::spawn( task_stores_exception_if_function_throws).join();
+    stm::fiber( task_stores_exception_if_function_throws).join();
     task_stores_exception_if_function_throws();
 }
 
 void test_void_promise()
 {
-    stm::spawn( void_promise).join();
+    stm::fiber( void_promise).join();
     void_promise();
 }
 
 void test_reference_promise()
 {
-    stm::spawn( reference_promise).join();
+    stm::fiber( reference_promise).join();
     reference_promise();
 }
 
 void test_task_returning_void()
 {
-    stm::spawn( task_returning_void).join();
+    stm::fiber( task_returning_void).join();
     task_returning_void();
 }
 
 void test_task_returning_reference()
 {
-    stm::spawn( task_returning_reference).join();
+    stm::fiber( task_returning_reference).join();
     task_returning_reference();
 }
 
 void test_shared_future()
 {
-    stm::spawn( shared_future).join();
+    stm::fiber( shared_future).join();
     shared_future();
 }
 
 void test_copies_of_shared_future_become_ready_together()
 {
-    stm::spawn( copies_of_shared_future_become_ready_together).join();
+    stm::fiber( copies_of_shared_future_become_ready_together).join();
     copies_of_shared_future_become_ready_together();
 }
 
 void test_shared_future_can_be_move_assigned_from_unique_future()
 {
-    stm::spawn( shared_future_can_be_move_assigned_from_unique_future).join();
+    stm::fiber( shared_future_can_be_move_assigned_from_unique_future).join();
     shared_future_can_be_move_assigned_from_unique_future();
 }
 
 void test_shared_future_void()
 {
-    stm::spawn( shared_future_void).join();
+    stm::fiber( shared_future_void).join();
     shared_future_void();
 }
 
 void test_shared_future_ref()
 {
-    stm::spawn( shared_future_ref).join();
+    stm::fiber( shared_future_ref).join();
     shared_future_ref();
 }
 
 void test_can_get_a_second_future_from_a_moved_promise()
 {
-    stm::spawn( can_get_a_second_future_from_a_moved_promise).join();
+    stm::fiber( can_get_a_second_future_from_a_moved_promise).join();
     can_get_a_second_future_from_a_moved_promise();
 }
 
 void test_can_get_a_second_future_from_a_moved_void_promise()
 {
-    stm::spawn( can_get_a_second_future_from_a_moved_void_promise).join();
+    stm::fiber( can_get_a_second_future_from_a_moved_void_promise).join();
     can_get_a_second_future_from_a_moved_void_promise();
 }
 #if 0
 void test_unique_future_for_move_only_udt()
 {
-    stm::spawn( unique_future_for_move_only_udt).join();
+    stm::fiber( unique_future_for_move_only_udt).join();
     unique_future_for_move_only_udt();
 }
 #endif
 void test_unique_future_for_string()
 {
-    stm::spawn( unique_future_for_string).join();
+    stm::fiber( unique_future_for_string).join();
     unique_future_for_string();
 }
 
 void test_wait_callback()
 {
-    stm::spawn( wait_callback).join();
+    stm::fiber( wait_callback).join();
     wait_callback();
 }
 
 void test_wait_callback_with_timed_wait()
 {
-    stm::spawn( wait_callback_with_timed_wait).join();
+    stm::fiber( wait_callback_with_timed_wait).join();
     wait_callback_with_timed_wait();
 }
 
 void test_wait_callback_for_packaged_task()
 {
-    stm::spawn( wait_callback_for_packaged_task).join();
+    stm::fiber( wait_callback_for_packaged_task).join();
     wait_callback_for_packaged_task();
 }
 
 void test_packaged_task_can_be_moved()
 {
-    stm::spawn( packaged_task_can_be_moved).join();
+    stm::fiber( packaged_task_can_be_moved).join();
     packaged_task_can_be_moved();
 }
 
 void test_destroying_a_promise_stores_broken_promise()
 {
-    stm::spawn( destroying_a_promise_stores_broken_promise).join();
+    stm::fiber( destroying_a_promise_stores_broken_promise).join();
     destroying_a_promise_stores_broken_promise();
 }
 
 void test_destroying_a_packaged_task_stores_broken_promise()
 {
-    stm::spawn( destroying_a_packaged_task_stores_broken_promise).join();
+    stm::fiber( destroying_a_packaged_task_stores_broken_promise).join();
     destroying_a_packaged_task_stores_broken_promise();
 }
 
 void test_wait_for_either_of_two_futures_1()
 {
-    stm::spawn( wait_for_either_of_two_futures_1).join();
+    stm::fiber( wait_for_either_of_two_futures_1).join();
     wait_for_either_of_two_futures_1();
 }
 
 void test_wait_for_either_of_two_futures_2()
 {
-    stm::spawn( wait_for_either_of_two_futures_2).join();
+    stm::fiber( wait_for_either_of_two_futures_2).join();
     wait_for_either_of_two_futures_2();
 }
 
 void test_wait_for_either_of_three_futures_1()
 {
-    stm::spawn( wait_for_either_of_three_futures_1).join();
+    stm::fiber( wait_for_either_of_three_futures_1).join();
     wait_for_either_of_three_futures_1();
 }
 
 void test_wait_for_either_of_three_futures_2()
 {
-    stm::spawn( wait_for_either_of_three_futures_2).join();
+    stm::fiber( wait_for_either_of_three_futures_2).join();
     wait_for_either_of_three_futures_2();
 }
 
 void test_wait_for_either_of_three_futures_3()
 {
-    stm::spawn( wait_for_either_of_three_futures_3).join();
+    stm::fiber( wait_for_either_of_three_futures_3).join();
     wait_for_either_of_three_futures_3();
 }
 
 void test_wait_for_either_of_four_futures_1()
 {
-    stm::spawn( wait_for_either_of_four_futures_1).join();
+    stm::fiber( wait_for_either_of_four_futures_1).join();
     wait_for_either_of_four_futures_1();
 }
 
 void test_wait_for_either_of_four_futures_2()
 {
-    stm::spawn( wait_for_either_of_four_futures_2).join();
+    stm::fiber( wait_for_either_of_four_futures_2).join();
     wait_for_either_of_four_futures_2();
 }
 
 void test_wait_for_either_of_four_futures_3()
 {
-    stm::spawn( wait_for_either_of_four_futures_3).join();
+    stm::fiber( wait_for_either_of_four_futures_3).join();
     wait_for_either_of_four_futures_3();
 }
 
 void test_wait_for_either_of_four_futures_4()
 {
-    stm::spawn( wait_for_either_of_four_futures_4).join();
+    stm::fiber( wait_for_either_of_four_futures_4).join();
     wait_for_either_of_four_futures_4();
 }
 
 void test_wait_for_either_of_five_futures_1()
 {
-    stm::spawn( wait_for_either_of_five_futures_1).join();
+    stm::fiber( wait_for_either_of_five_futures_1).join();
     wait_for_either_of_five_futures_1();
 }
 
 void test_wait_for_either_of_five_futures_2()
 {
-    stm::spawn( wait_for_either_of_five_futures_2).join();
+    stm::fiber( wait_for_either_of_five_futures_2).join();
     wait_for_either_of_five_futures_2();
 }
 
 void test_wait_for_either_of_five_futures_3()
 {
-    stm::spawn( wait_for_either_of_five_futures_3).join();
+    stm::fiber( wait_for_either_of_five_futures_3).join();
     wait_for_either_of_five_futures_3();
 }
 
 void test_wait_for_either_of_five_futures_4()
 {
-    stm::spawn( wait_for_either_of_five_futures_4).join();
+    stm::fiber( wait_for_either_of_five_futures_4).join();
     wait_for_either_of_five_futures_4();
 }
 
 void test_wait_for_either_of_five_futures_5()
 {
-    stm::spawn( wait_for_either_of_five_futures_5).join();
+    stm::fiber( wait_for_either_of_five_futures_5).join();
     wait_for_either_of_five_futures_5();
 }
 
 void test_wait_for_either_invokes_callbacks()
 {
-    stm::spawn( wait_for_either_invokes_callbacks).join();
+    stm::fiber( wait_for_either_invokes_callbacks).join();
     wait_for_either_invokes_callbacks();
 }
 #if 0
 void test_wait_for_any_from_range()
 {
-    stm::spawn( wait_for_any_from_range).join();
+    stm::fiber( wait_for_any_from_range).join();
     wait_for_any_from_range();
 }
 
 void test_wait_for_all_from_range()
 {
-    stm::spawn( wait_for_all_from_range).join();
+    stm::fiber( wait_for_all_from_range).join();
     wait_for_all_from_range();
 }
 #endif
 void test_wait_for_all_two_futures()
 {
-    stm::spawn( wait_for_all_two_futures).join();
+    stm::fiber( wait_for_all_two_futures).join();
     wait_for_all_two_futures();
 }
 
 void test_wait_for_all_three_futures()
 {
-    stm::spawn( wait_for_all_three_futures).join();
+    stm::fiber( wait_for_all_three_futures).join();
     wait_for_all_three_futures();
 }
 
 void test_wait_for_all_four_futures()
 {
-    stm::spawn( wait_for_all_four_futures).join();
+    stm::fiber( wait_for_all_four_futures).join();
     wait_for_all_four_futures();
 }
 
 void test_wait_for_all_five_futures()
 {
-    stm::spawn( wait_for_all_five_futures).join();
+    stm::fiber( wait_for_all_five_futures).join();
     wait_for_all_five_futures();
 }
 
 void test_future_wait()
 {
-    stm::spawn( future_wait).join();
+    stm::fiber( future_wait).join();
     future_wait();
 }
 

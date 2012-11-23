@@ -74,8 +74,8 @@ void fn2( stm::mutex & mtx)
 
 void test_locking()
 {
-    stm::fiber s( stm::spawn( & do_test_mutex) );
-    BOOST_ASSERT( s.is_complete() );
+    stm::fiber s( & do_test_mutex);
+    BOOST_ASSERT( ! s);
 	BOOST_ASSERT( ! stm::run() );
 }
 
@@ -87,30 +87,30 @@ void test_exclusive()
 	BOOST_CHECK_EQUAL( 0, value2);
 
 	stm::mutex mtx;
-    stm::fiber s1( stm::spawn(
-		boost::bind( & fn1, boost::ref( mtx) ) ) );
-    stm::fiber s2( stm::spawn(
-		boost::bind( & fn2, boost::ref( mtx) ) ) );
-    BOOST_ASSERT( ! s1.is_complete() );
-    BOOST_ASSERT( ! s2.is_complete() );
+    stm::fiber s1(
+		boost::bind( & fn1, boost::ref( mtx) ) );
+    stm::fiber s2(
+		boost::bind( & fn2, boost::ref( mtx) ) );
+    BOOST_ASSERT( s1);
+    BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
 	BOOST_CHECK( stm::run() );
-    BOOST_ASSERT( ! s1.is_complete() );
-    BOOST_ASSERT( ! s2.is_complete() );
+    BOOST_ASSERT( s1);
+    BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
 	BOOST_CHECK( stm::run() );
-    BOOST_ASSERT( ! s1.is_complete() );
-    BOOST_ASSERT( ! s2.is_complete() );
+    BOOST_ASSERT( s1);
+    BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
 	BOOST_CHECK( stm::run() );
-    BOOST_ASSERT( s1.is_complete() );
-    BOOST_ASSERT( ! s2.is_complete() );
+    BOOST_ASSERT( ! s1);
+    BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 

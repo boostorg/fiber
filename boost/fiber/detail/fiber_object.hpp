@@ -67,16 +67,27 @@ private:
 
     void enter_()
     {
+        flags_ |= flag_resumed;
         context::jump_fcontext(
-            & this->caller_, this->callee_,
+            & caller_, callee_,
             reinterpret_cast< intptr_t >( this),
-            this->preserve_fpu() );
-        if ( this->except_) rethrow_exception( this->except_);
+            preserve_fpu() );
+        if ( except_) rethrow_exception( except_);
     }
 
-    void unwind_stack_()
+protected:
+    void unwind_stack() BOOST_NOEXCEPT
     {
-    
+        BOOST_ASSERT( ! is_complete() );
+
+        flags_ |= flag_unwind_stack;
+        flags_ |= flag_resumed;
+        context::jump_fcontext(
+            & caller_, callee_,
+            0, preserve_fpu() );
+        flags_ &= ~flag_unwind_stack;
+
+        BOOST_ASSERT( is_complete() );
     }
 
 public:
@@ -127,6 +138,9 @@ public:
     { enter_(); }
 #endif
 
+    ~fiber_object()
+    { terminate(); }
+
     void exec()
     {
         BOOST_ASSERT( ! is_complete() );
@@ -149,23 +163,6 @@ public:
 
     void deallocate_object()
     { destroy_( alloc_, this); }
-
-    void terminate()
-    {
-        BOOST_ASSERT( ! is_resumed() );
-
-        if ( ! is_complete() )
-        {
-            flags_ |= flag_canceled;
-            unwind_stack_();
-        }
-
-        notify_();
-
-        BOOST_ASSERT( is_complete() );
-        BOOST_ASSERT( ! is_resumed() );
-        BOOST_ASSERT( joining_.empty() );
-    }
 };
 
 template< typename Fn, typename StackAllocator, typename Allocator >
@@ -195,11 +192,27 @@ private:
 
     void enter_()
     {
+        flags_ |= flag_resumed;
         context::jump_fcontext(
-            & this->caller_, this->callee_,
+            & caller_, callee_,
             reinterpret_cast< intptr_t >( this),
-            this->preserve_fpu() );
-        if ( this->except_) rethrow_exception( this->except_);
+            preserve_fpu() );
+        if ( except_) rethrow_exception( except_);
+    }
+
+protected:
+    void unwind_stack() BOOST_NOEXCEPT
+    {
+        BOOST_ASSERT( ! is_complete() );
+
+        flags_ |= flag_unwind_stack;
+        flags_ |= flag_resumed;
+        context::jump_fcontext(
+            & caller_, callee_,
+            0, preserve_fpu() );
+        flags_ &= ~flag_unwind_stack;
+
+        BOOST_ASSERT( is_complete() );
     }
 
 public:
@@ -217,6 +230,9 @@ public:
         stack_alloc_( stack_alloc),
         alloc_( alloc)
     { enter_(); }
+
+    ~fiber_object()
+    { terminate(); }
 
     void exec()
     {
@@ -269,11 +285,27 @@ private:
 
     void enter_()
     {
+        flags_ |= flag_resumed;
         context::jump_fcontext(
-            & this->caller_, this->callee_,
+            & caller_, callee_,
             reinterpret_cast< intptr_t >( this),
-            this->preserve_fpu() );
-        if ( this->except_) rethrow_exception( this->except_);
+            preserve_fpu() );
+        if ( except_) rethrow_exception( except_);
+    }
+
+protected:
+    void unwind_stack() BOOST_NOEXCEPT
+    {
+        BOOST_ASSERT( ! is_complete() );
+
+        flags_ |= flag_unwind_stack;
+        flags_ |= flag_resumed;
+        context::jump_fcontext(
+            & caller_, callee_,
+            0, preserve_fpu() );
+        flags_ &= ~flag_unwind_stack;
+
+        BOOST_ASSERT( is_complete() );
     }
 
 public:
@@ -291,6 +323,9 @@ public:
         stack_alloc_( stack_alloc),
         alloc_( alloc)
     { enter_(); }
+
+    ~fiber_object()
+    { terminate(); }
 
     void exec()
     {

@@ -25,110 +25,110 @@ namespace this_stm = boost::this_fiber;
 
 struct dummy_mutex
 {
-	bool is_locked;
-	
-	dummy_mutex() :
-	    is_locked( false)
-	{}
-	
-	void lock()
-	{ is_locked = true; }
-	
-	bool try_lock()
-	{
-	    if ( is_locked)
-	        return false;
-	    is_locked = true;
-	    return true;
-	}
-	
-	void unlock()
-	{ is_locked = false; }
+    bool is_locked;
+
+    dummy_mutex() :
+        is_locked( false)
+    {}
+
+    void lock()
+    { is_locked = true; }
+
+    bool try_lock()
+    {
+        if ( is_locked)
+            return false;
+        is_locked = true;
+        return true;
+    }
+
+    void unlock()
+    { is_locked = false; }
 };
 
 void lock()
 {
-	stm::mutex mtx;
-	boost::unique_lock< stm::mutex > lk( mtx);
+    stm::mutex mtx;
+    boost::unique_lock< stm::mutex > lk( mtx);
 
-	BOOST_CHECK( lk);
-	BOOST_CHECK( lk.owns_lock() );
+    BOOST_CHECK( lk);
+    BOOST_CHECK( lk.owns_lock() );
 
-	lk.unlock();
+    lk.unlock();
 
-	BOOST_CHECK( ! lk);
-	BOOST_CHECK( ! lk.owns_lock() );
+    BOOST_CHECK( ! lk);
+    BOOST_CHECK( ! lk.owns_lock() );
 }
 
 void defer_lock()
 {
-	stm::mutex mtx;
-	boost::unique_lock< stm::mutex > lk( mtx, boost::defer_lock);
+    stm::mutex mtx;
+    boost::unique_lock< stm::mutex > lk( mtx, boost::defer_lock);
 
-	BOOST_CHECK( ! lk);
-	BOOST_CHECK( ! lk.owns_lock() );
+    BOOST_CHECK( ! lk);
+    BOOST_CHECK( ! lk.owns_lock() );
 
-	lk.lock();
+    lk.lock();
 
-	BOOST_CHECK( lk);
-	BOOST_CHECK( lk.owns_lock() );
+    BOOST_CHECK( lk);
+    BOOST_CHECK( lk.owns_lock() );
 }
 
 void adopt_lock()
 {
-	stm::mutex mtx;
-	mtx.lock();
-	boost::unique_lock< stm::mutex > lk( mtx, boost::adopt_lock);
+    stm::mutex mtx;
+    mtx.lock();
+    boost::unique_lock< stm::mutex > lk( mtx, boost::adopt_lock);
 
-	BOOST_CHECK( lk);
-	BOOST_CHECK( lk.owns_lock() );
+    BOOST_CHECK( lk);
+    BOOST_CHECK( lk.owns_lock() );
 }
 
 void try_lock()
 {
-	stm::mutex mtx;
-	boost::unique_lock< stm::mutex > lk( mtx, boost::defer_lock);
+    stm::mutex mtx;
+    boost::unique_lock< stm::mutex > lk( mtx, boost::defer_lock);
 
-	BOOST_CHECK( ! lk);
-	BOOST_CHECK( ! lk.owns_lock() );
+    BOOST_CHECK( ! lk);
+    BOOST_CHECK( ! lk.owns_lock() );
 
-	lk.try_lock();
+    lk.try_lock();
 
-	BOOST_CHECK( lk);
-	BOOST_CHECK( lk.owns_lock() );
+    BOOST_CHECK( lk);
+    BOOST_CHECK( lk.owns_lock() );
 }
 
 void lock_twice()
 {
-	stm::mutex mtx;
-	boost::unique_lock< stm::mutex > lk( mtx);
+    stm::mutex mtx;
+    boost::unique_lock< stm::mutex > lk( mtx);
 
-	BOOST_CHECK_THROW( lk.lock(), boost::lock_error);
+    BOOST_CHECK_THROW( lk.lock(), boost::lock_error);
 }
 
 void try_lock_twice()
 {
-	stm::mutex mtx;
-	boost::unique_lock< stm::mutex > lk( mtx);
+    stm::mutex mtx;
+    boost::unique_lock< stm::mutex > lk( mtx);
 
-	BOOST_CHECK_THROW( lk.try_lock(), boost::lock_error);
+    BOOST_CHECK_THROW( lk.try_lock(), boost::lock_error);
 }
 
 void unlock_twice()
 {
-	stm::mutex mtx;
-	boost::unique_lock< stm::mutex > lk( mtx);
-	lk.unlock();
+    stm::mutex mtx;
+    boost::unique_lock< stm::mutex > lk( mtx);
+    lk.unlock();
 
-	BOOST_CHECK_THROW( lk.unlock(), boost::lock_error);
+    BOOST_CHECK_THROW( lk.unlock(), boost::lock_error);
 }
 
 void default_ctor()
 {
-	boost::unique_lock< stm::mutex > lk;
+    boost::unique_lock< stm::mutex > lk;
 
-	BOOST_CHECK( ! lk);
-	BOOST_CHECK( ! lk.owns_lock() );
+    BOOST_CHECK( ! lk);
+    BOOST_CHECK( ! lk.owns_lock() );
 }
 
 void lock_concept()
@@ -169,82 +169,82 @@ void try_lock_concept()
 
 void swap()
 {
-	stm::mutex mtx1, mtx2;
-	
-	boost::unique_lock< stm::mutex > lk1( mtx1), lk2( mtx2);
-	
-	BOOST_CHECK_EQUAL( lk1.mutex(), & mtx1);
-	BOOST_CHECK_EQUAL( lk2.mutex(), & mtx2);
-	
-	lk1.swap( lk2);
-	
-	BOOST_CHECK_EQUAL( lk1.mutex(), & mtx2);
-	BOOST_CHECK_EQUAL( lk2.mutex(), & mtx1);
+    stm::mutex mtx1, mtx2;
+
+    boost::unique_lock< stm::mutex > lk1( mtx1), lk2( mtx2);
+
+    BOOST_CHECK_EQUAL( lk1.mutex(), & mtx1);
+    BOOST_CHECK_EQUAL( lk2.mutex(), & mtx2);
+
+    lk1.swap( lk2);
+
+    BOOST_CHECK_EQUAL( lk1.mutex(), & mtx2);
+    BOOST_CHECK_EQUAL( lk2.mutex(), & mtx1);
 }
 
 void test_lock()
 {
-    stm::spawn( lock).join();
+    stm::fiber( lock).join();
     lock();
 }
 
 void test_defer_lock()
 {
-    stm::spawn( defer_lock).join();
+    stm::fiber( defer_lock).join();
     defer_lock();
 }
 
 void test_adopt_lock()
 {
-    stm::spawn( adopt_lock).join();
+    stm::fiber( adopt_lock).join();
     adopt_lock();
 }
 
 void test_try_lock()
 {
-    stm::spawn( try_lock).join();
+    stm::fiber( try_lock).join();
     try_lock();
 }
 
 void test_lock_twice()
 {
-    stm::spawn( lock_twice).join();
+    stm::fiber( lock_twice).join();
     lock_twice();
 }
 
 void test_try_lock_twice()
 {
-    stm::spawn( try_lock_twice).join();
+    stm::fiber( try_lock_twice).join();
     try_lock_twice();
 }
 
 void test_unlock_twice()
 {
-    stm::spawn( unlock_twice).join();
+    stm::fiber( unlock_twice).join();
     unlock_twice();
 }
 
 void test_default_ctor()
 {
-    stm::spawn( default_ctor).join();
+    stm::fiber( default_ctor).join();
     default_ctor();
 }
 
 void test_lock_concept()
 {
-    stm::spawn( lock_concept).join();
+    stm::fiber( lock_concept).join();
     lock_concept();
 }
 
 void test_try_lock_concept()
 {
-    stm::spawn( try_lock_concept).join();
+    stm::fiber( try_lock_concept).join();
     try_lock_concept();
 }
 
 void test_swap()
 {
-    stm::spawn( swap).join();
+    stm::fiber( swap).join();
     swap();
 }
 
@@ -265,5 +265,5 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_try_lock_concept) );
     test->add( BOOST_TEST_CASE( & test_swap) );
 
-	return test;
+    return test;
 }

@@ -77,10 +77,10 @@ int main()
 	{
 		stm::barrier fb( 2);
 
-		stm::fiber s1( stm::spawn( boost::bind( & fn1, boost::ref( fb) ) ) );
-		stm::fiber s2( stm::spawn( boost::bind( & fn2, boost::ref( fb) ) ) );
+		stm::fiber s1( boost::bind( & fn1, boost::ref( fb) ) );
+		stm::fiber s2( boost::bind( & fn2, boost::ref( fb) ) );
 
-		while ( ! s1.is_complete() || ! s2.is_complete() )
+		while ( s1 || s2)
 			stm::run();
 
 		std::cout << "done." << std::endl;

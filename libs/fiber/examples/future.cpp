@@ -26,7 +26,7 @@ void start()
     stm::packaged_task<int> pt(
         boost::bind( fn, "abc", 5) );
     stm::unique_future<int> fi=pt.get_future();
-    stm::spawn( boost::move( pt) );
+    stm::fiber( boost::move( pt) );
     fi.wait();
     std::cout << "fn() returned " << fi.get() << std::endl;
 }
@@ -35,8 +35,7 @@ int main()
 {
 	try
 	{
-        stm::spawn( start).join();
-//        start();
+        stm::fiber( start).join();
 		std::cout << "done." << std::endl;
 
 		return EXIT_SUCCESS;

@@ -76,20 +76,20 @@ void f2()
 
 void f3()
 {
-    stm::fiber s( stm::spawn( f2) );
-    BOOST_CHECK( ! s.is_complete() );
+    stm::fiber s( f2);
+    BOOST_CHECK( s);
     s.cancel();
-    BOOST_CHECK( s.is_complete() );
+    BOOST_CHECK( ! s);
 }
 
 void f4()
 {
-    stm::fiber s( stm::spawn( f2) );
-    BOOST_CHECK( ! s.is_complete() );
-    BOOST_CHECK( s.is_joinable() );
+    stm::fiber s( f2);
+    BOOST_CHECK( s);
+    //BOOST_CHECK( s.is_joinable() );
     BOOST_CHECK( s.join() );
-    BOOST_CHECK( s.is_complete() );
-    BOOST_CHECK( ! s.is_joinable() );
+    BOOST_CHECK( ! s);
+    //BOOST_CHECK( ! s.is_joinable() );
 }
 
 void f5()
@@ -127,41 +127,41 @@ void test_move()
 {
     {
         stm::fiber s1;
-        BOOST_CHECK( ! s1);
-        stm::fiber s2( stm::spawn( f1) );
-        BOOST_CHECK( s2);
+        BOOST_CHECK( s1.empty() );
+        stm::fiber s2( f1);
+        BOOST_CHECK( ! s2.empty() );
         s1 = boost::move( s2);
-        BOOST_CHECK( s1);
-        BOOST_CHECK( ! s2);
+        BOOST_CHECK( ! s1.empty() );
+        BOOST_CHECK( s2.empty() );
     }
 
     {
         copyable cp( 3);
-        stm::fiber s( stm::spawn( cp) );
+        stm::fiber s( cp);
     }
 
     {
         moveable mv( 7);
-        stm::fiber s( stm::spawn( boost::move( mv) ) );
+        stm::fiber s( boost::move( mv) );
     }
 }
 
 void test_id()
 {
     stm::fiber s1;
-    stm::fiber s2( stm::spawn( f1) );
-    BOOST_CHECK( ! s1);
-    BOOST_CHECK( s2);
+    stm::fiber s2( f1);
+    BOOST_CHECK( s1.empty() );
+    BOOST_CHECK( ! s2.empty() );
 
     BOOST_CHECK_EQUAL( stm::fiber::id(), s1.get_id() );
     BOOST_CHECK( stm::fiber::id() != s2.get_id() );
 
-    stm::fiber s3( stm::spawn( f1) );
+    stm::fiber s3( f1);
     BOOST_CHECK( s2.get_id() != s3.get_id() );
 
     s1 = boost::move( s2);
-    BOOST_CHECK( s1);
-    BOOST_CHECK( ! s2);
+    BOOST_CHECK( ! s1.empty() );
+    BOOST_CHECK( s2.empty() );
 
     BOOST_CHECK( stm::fiber::id() != s1.get_id() );
     BOOST_CHECK_EQUAL( stm::fiber::id(), s2.get_id() );
@@ -169,19 +169,19 @@ void test_id()
 
 void test_complete()
 {
-    stm::fiber s1( stm::spawn( f1) );
-    BOOST_CHECK( s1.is_complete() );
-    stm::fiber s2( stm::spawn( f2) );
-    BOOST_CHECK( ! s2.is_complete() );
+    stm::fiber s1( f1);
+    BOOST_CHECK( ! s1);
+    stm::fiber s2( f2);
+    BOOST_CHECK( s2);
 }
 
 void test_cancel()
 {
     {
-        stm::fiber s( stm::spawn( f2) );
-        BOOST_CHECK( ! s.is_complete() );
+        stm::fiber s( f2);
+        BOOST_CHECK( s);
         s.cancel();
-        BOOST_CHECK( s.is_complete() );
+        BOOST_CHECK( ! s);
     }
 
     {
@@ -189,9 +189,9 @@ void test_cancel()
         // s spawns an new fiber s' in its fiber-fn
         // s' yields in its fiber-fn
         // s cancels s' and completes
-        stm::fiber s( stm::spawn( f3) );
+        stm::fiber s( f3);
         BOOST_CHECK( stm::run() );
-        BOOST_CHECK( s.is_complete() );
+        BOOST_CHECK( ! s);
         BOOST_CHECK( ! stm::run() );
     }
 }
@@ -199,22 +199,22 @@ void test_cancel()
 void test_join()
 {
     {
-        stm::fiber s( stm::spawn( f2) );
-        BOOST_CHECK( ! s.is_complete() );
-        BOOST_CHECK( s.is_joinable() );
+        stm::fiber s( f2);
+        BOOST_CHECK( s);
+        //BOOST_CHECK( s.is_joinable() );
         s.join();
-        BOOST_CHECK( s.is_complete() );
-        BOOST_CHECK( ! s.is_joinable() );
+        BOOST_CHECK( ! s);
+        //BOOST_CHECK( ! s.is_joinable() );
     }
 
     {
-        stm::fiber s( stm::spawn( f2) );
-        BOOST_CHECK( ! s.is_complete() );
-        BOOST_CHECK( s.is_joinable() );
+        stm::fiber s( f2);
+        BOOST_CHECK( s);
+        //BOOST_CHECK( s.is_joinable() );
         BOOST_CHECK( stm::run() );
         BOOST_CHECK( ! stm::run() );
-        BOOST_CHECK( s.is_complete() );
-        BOOST_CHECK( ! s.is_joinable() );
+        BOOST_CHECK( ! s);
+        //BOOST_CHECK( ! s.is_joinable() );
     }
 
     {
@@ -222,20 +222,20 @@ void test_join()
         // s spawns an new fiber s' in its fiber-fn
         // s' yields in its fiber-fn
         // s joins s' and gets suspended (waiting on s') 
-        stm::fiber s( stm::spawn( f4) );
+        stm::fiber s( f4);
         // run() resumes s' which completes
         BOOST_CHECK( stm::run() );
         // run() resumes s which completes
         BOOST_CHECK( stm::run() );
-        BOOST_CHECK( s.is_complete() );
+        BOOST_CHECK( ! s);
         BOOST_CHECK( ! stm::run() );
     }
 }
 
 void test_yield_break()
 {
-    stm::fiber s( stm::spawn( f5) );
-    BOOST_CHECK( s.is_complete() );
+    stm::fiber s( f5);
+    BOOST_CHECK( ! s);
     BOOST_CHECK( ! stm::run() );
 }
 
@@ -244,11 +244,11 @@ void test_yield()
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( stm::spawn( boost::bind( f6, boost::ref( v1) ) ) );
-    stm::fiber s2( stm::spawn( boost::bind( f6, boost::ref( v2) ) ) );
+    stm::fiber s1( boost::bind( f6, boost::ref( v1) ) );
+    stm::fiber s2( boost::bind( f6, boost::ref( v2) ) );
     while ( stm::run() );
-    BOOST_CHECK( s1.is_complete() );
-    BOOST_CHECK( s2.is_complete() );
+    BOOST_CHECK( ! s1);
+    BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 8, v1);
     BOOST_CHECK_EQUAL( 8, v2);
 }
@@ -258,14 +258,14 @@ void test_sleep()
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( stm::spawn( boost::bind( f6, boost::ref( v1) ) ) );
+    stm::fiber s1( boost::bind( f6, boost::ref( v1) ) );
     stm::run();
-    BOOST_CHECK( ! s1.is_complete() );
-    stm::fiber s2( stm::spawn( boost::bind( f7, 5, boost::ref( v2) ) ) );
-    BOOST_CHECK( ! s2.is_complete() );
-    while ( ! s1.is_complete() )
+    BOOST_CHECK( s1);
+    stm::fiber s2( boost::bind( f7, 5, boost::ref( v2) ) );
+    BOOST_CHECK( s2);
+    while ( s1)
         stm::run();
-    while ( ! s2.is_complete() )
+    while ( s2)
         stm::run();
     BOOST_CHECK_EQUAL( 8, v1);
     BOOST_CHECK_EQUAL( 7, v2);
@@ -277,17 +277,17 @@ void test_sleep_and_cancel()
         int v1 = 0, v2 = 0;
         BOOST_CHECK_EQUAL( 0, v1);
         BOOST_CHECK_EQUAL( 0, v2);
-        stm::fiber s1( stm::spawn( boost::bind( f7, 3, boost::ref( v1) ) ) );
-        stm::fiber s2( stm::spawn( boost::bind( f8, 5, boost::ref( s1), boost::ref( v2) ) ) );
-        BOOST_CHECK( ! s1.is_complete() );
-        BOOST_CHECK( ! s2.is_complete() );
-        while ( ! s1.is_complete() )
+        stm::fiber s1( boost::bind( f7, 3, boost::ref( v1) ) );
+        stm::fiber s2( boost::bind( f8, 5, boost::ref( s1), boost::ref( v2) ) );
+        BOOST_CHECK( s1);
+        BOOST_CHECK( s2);
+        while ( s1)
             stm::run();
         BOOST_CHECK_EQUAL( 7, v1);
         BOOST_CHECK_EQUAL( 0, v2);
-        BOOST_CHECK( ! s2.is_complete() );
+        BOOST_CHECK( s2);
         s2.cancel();
-        BOOST_CHECK( s2.is_complete() );
+        BOOST_CHECK( ! s2);
         BOOST_CHECK_EQUAL( 7, v1);
         BOOST_CHECK_EQUAL( 0, v2);
     }
@@ -295,14 +295,14 @@ void test_sleep_and_cancel()
         int v1 = 0, v2 = 0;
         BOOST_CHECK_EQUAL( 0, v1);
         BOOST_CHECK_EQUAL( 0, v2);
-        stm::fiber s1( stm::spawn( boost::bind( f7, 5, boost::ref( v1) ) ) );
-        stm::fiber s2( stm::spawn( boost::bind( f8, 3, boost::ref( s1), boost::ref( v2) ) ) );
-        BOOST_CHECK( ! s1.is_complete() );
-        BOOST_CHECK( ! s2.is_complete() );
-        while ( ! s2.is_complete() )
+        stm::fiber s1( boost::bind( f7, 5, boost::ref( v1) ) );
+        stm::fiber s2( boost::bind( f8, 3, boost::ref( s1), boost::ref( v2) ) );
+        BOOST_CHECK( s1);
+        BOOST_CHECK( s2);
+        while ( s2)
             stm::run();
-        BOOST_CHECK( s1.is_complete() );
-        BOOST_CHECK( s2.is_complete() );
+        BOOST_CHECK( ! s1);
+        BOOST_CHECK( ! s2);
         BOOST_CHECK_EQUAL( 0, v1);
         BOOST_CHECK_EQUAL( 3, v2);
     }

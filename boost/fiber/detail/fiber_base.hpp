@@ -37,7 +37,6 @@ public:
     typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
-    friend class scheduler;
     template< typename X, typename Y, typename Z >
     friend class fiber_object;
 
@@ -52,6 +51,7 @@ private:
 
 protected:
     virtual void deallocate_object() = 0;
+    virtual void unwind_stack() = 0;
 
 public:
     class id
@@ -109,8 +109,6 @@ public:
 
     virtual ~fiber_base() {}
 
-    virtual void terminate() = 0;
-
     id get_id() const BOOST_NOEXCEPT
     { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
 
@@ -128,8 +126,10 @@ public:
 
     void sleep( chrono::system_clock::time_point const& abs_time);
 
+    void terminate();
+
     bool force_unwind() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_forced_unwind); }
+    { return 0 != ( flags_ & flag_force_unwind); }
 
     bool unwind_requested() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_unwind_stack); }

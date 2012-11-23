@@ -69,13 +69,11 @@ void f()
 	fifo_t buf1, buf2;
 	
 	stm::fiber s1(
-        stm::spawn(
             boost::bind(
-                & ping, boost::ref( buf1), boost::ref( buf2) ) ) );
+                & ping, boost::ref( buf1), boost::ref( buf2) ) );
 	stm::fiber s2(
-        stm::spawn(
             boost::bind(
-                & pong, boost::ref( buf2), boost::ref( buf1) ) ) );
+                & pong, boost::ref( buf2), boost::ref( buf1) ) );
 
     stm::waitfor_all( s1, s2);
 
@@ -86,10 +84,9 @@ int main()
 {
 	try
 	{
-		stm::fiber s( stm::spawn( f) );
+		stm::fiber s( f);
 
-        while ( ! s.is_complete() )
-            stm::run();
+        while ( s) stm::run();
 
 		std::cout << "done." << std::endl;
 

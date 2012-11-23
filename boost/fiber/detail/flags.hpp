@@ -21,7 +21,7 @@ namespace detail {
 
 enum flag_t
 {
-    flag_forced_unwind  = 1 << 1,
+    flag_force_unwind  = 1 << 1,
     flag_unwind_stack   = 1 << 2,
     flag_preserve_fpu   = 1 << 3,
     flag_complete       = 1 << 4,

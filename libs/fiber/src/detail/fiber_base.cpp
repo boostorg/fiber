@@ -39,8 +39,27 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool unwind, bool preserve
     except_(),
     joining_()
 {
-    if ( unwind) flags_ |= flag_forced_unwind;
+    if ( unwind) flags_ |= flag_force_unwind;
     if ( preserve_fpu) flags_ |= flag_preserve_fpu;
+}
+
+void
+fiber_base::terminate()
+{
+    BOOST_ASSERT( ! is_resumed() );
+
+    if ( ! is_complete() )
+    {
+        flags_ |= flag_canceled;
+        if ( ! is_complete() && force_unwind() )
+            unwind_stack();
+    }
+
+    notify_();
+
+    BOOST_ASSERT( is_complete() );
+    BOOST_ASSERT( ! is_resumed() );
+    BOOST_ASSERT( joining_.empty() );
 }
 
 void
@@ -60,7 +79,7 @@ fiber_base::resume()
     BOOST_ASSERT( ! is_resumed() );
 
     flags_ |= flag_resumed;
-    context::jump_fcontext( & caller_, callee_, ( intptr_t) this, preserve_fpu() );
+    context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
 
     if ( is_complete() ) notify_();
 

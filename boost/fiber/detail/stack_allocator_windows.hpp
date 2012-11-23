@@ -53,6 +53,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+inline
 SYSTEM_INFO system_info_()
 {
     SYSTEM_INFO si;
@@ -60,15 +61,18 @@ SYSTEM_INFO system_info_()
     return si;
 }
 
+inline
 SYSTEM_INFO system_info()
 {
     static SYSTEM_INFO si = system_info_();
     return si;
 }
 
+inline
 std::size_t pagesize()
 { return static_cast< std::size_t >( system_info().dwPageSize); }
 
+inline
 std::size_t page_count( std::size_t stacksize)
 {
     return static_cast< std::size_t >(

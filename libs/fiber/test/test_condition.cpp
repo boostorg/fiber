@@ -142,8 +142,7 @@ void do_test_condition_waits()
     condition_test_data data;
 
     stm::fiber s(
-        stm::spawn(
-            boost::bind( & condition_test_waits, & data) ) );
+            boost::bind( & condition_test_waits, & data) );
 
     {
         stm::mutex::scoped_lock lock( data.mutex);
@@ -204,11 +203,10 @@ void test_one_waiter_notify_one()
 	stm::condition cond;
 
     stm::fiber s1(
-        stm::spawn(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( ! stm::run() );
@@ -218,10 +216,9 @@ void test_one_waiter_notify_one()
 	BOOST_CHECK_EQUAL( 0, value);
 
 	stm::fiber s2(
-        stm::spawn(
             boost::bind(
                 notify_one_fn,
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( stm::run() );
@@ -238,19 +235,17 @@ void test_two_waiter_notify_one()
 	stm::condition cond;
 
     stm::fiber s1(
-        stm::spawn(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     stm::fiber s2(
-        stm::spawn(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( ! stm::run() );
@@ -263,10 +258,9 @@ void test_two_waiter_notify_one()
 	BOOST_CHECK_EQUAL( 0, value);
 
     stm::fiber s3(
-        stm::spawn(
             boost::bind(
                 notify_one_fn,
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( stm::run() );
@@ -276,10 +270,9 @@ void test_two_waiter_notify_one()
 	BOOST_CHECK_EQUAL( 1, value);
 
     stm::fiber s4(
-        stm::spawn(
             boost::bind(
                 notify_one_fn,
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 1, value);
 
 	BOOST_CHECK( stm::run() );
@@ -296,19 +289,17 @@ void test_two_waiter_notify_all()
 	stm::condition cond;
 
     stm::fiber s1(
-        stm::spawn(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     stm::fiber s2(
-        stm::spawn(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( ! stm::run() );
@@ -321,10 +312,9 @@ void test_two_waiter_notify_all()
 	BOOST_CHECK_EQUAL( 0, value);
 
     stm::fiber s3(
-        stm::spawn(
             boost::bind(
                 notify_all_fn,
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( stm::run() );
@@ -337,11 +327,10 @@ void test_two_waiter_notify_all()
 	BOOST_CHECK_EQUAL( 2, value);
 
     stm::fiber s4(
-        stm::spawn(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 2, value);
 
 	BOOST_CHECK( ! stm::run() );
@@ -351,10 +340,9 @@ void test_two_waiter_notify_all()
 	BOOST_CHECK_EQUAL( 2, value);
 
     stm::fiber s5(
-        stm::spawn(
             boost::bind(
                 notify_all_fn,
-                boost::ref( cond) ) ) );
+                boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 2, value);
 
 	BOOST_CHECK( stm::run() );

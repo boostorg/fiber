@@ -46,6 +46,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+inline
 std::size_t pagesize()
 {
     // conform to POSIX.1-2001
@@ -53,6 +54,7 @@ std::size_t pagesize()
     return size;
 }
 
+inline
 rlimit stacksize_limit_()
 {
     rlimit limit;
@@ -62,12 +64,14 @@ rlimit stacksize_limit_()
     return limit;
 }
 
+inline
 rlimit stacksize_limit()
 {
     static rlimit limit = stacksize_limit_();
     return limit;
 }
 
+inline
 std::size_t page_count( std::size_t stacksize)
 {
     return static_cast< std::size_t >( 

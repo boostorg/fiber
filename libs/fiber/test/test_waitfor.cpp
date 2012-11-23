@@ -61,13 +61,13 @@ void test_waitfor_all()
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( stm::spawn( boost::bind( f1, boost::ref( v1) ) ) );
-    stm::fiber s2( stm::spawn( boost::bind( f3, 5, boost::ref( v2) ) ) );
-    BOOST_CHECK( ! s1.is_complete() );
-    BOOST_CHECK( ! s2.is_complete() );
+    stm::fiber s1( boost::bind( f1, boost::ref( v1) ) );
+    stm::fiber s2( boost::bind( f3, 5, boost::ref( v2) ) );
+    BOOST_CHECK( s1);
+    BOOST_CHECK( s2);
     stm::waitfor_all( s1, s2);
-    BOOST_CHECK( s1.is_complete() );
-    BOOST_CHECK( s2.is_complete() );
+    BOOST_CHECK( ! s1);
+    BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 8, v1);
     BOOST_CHECK_EQUAL( 7, v2);
 }
@@ -77,13 +77,13 @@ void test_waitfor_any()
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( stm::spawn( boost::bind( f2, 2, boost::ref( v1) ) ) );
-    stm::fiber s2( stm::spawn( boost::bind( f2, 5, boost::ref( v2) ) ) );
-    BOOST_CHECK( ! s1.is_complete() );
-    BOOST_CHECK( ! s2.is_complete() );
+    stm::fiber s1( boost::bind( f2, 2, boost::ref( v1) ) );
+    stm::fiber s2( boost::bind( f2, 5, boost::ref( v2) ) );
+    BOOST_CHECK( s1);
+    BOOST_CHECK( s2);
     stm::waitfor_any( s1, s2);
-    BOOST_CHECK( s1.is_complete() );
-    BOOST_CHECK( ! s2.is_complete() );
+    BOOST_CHECK( ! s1);
+    BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 7, v1);
     BOOST_CHECK_EQUAL( 0, v2);
 }
@@ -93,13 +93,13 @@ void test_waitfor_any_and_cancel()
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( stm::spawn( boost::bind( f3, 2, boost::ref( v1) ) ) );
-    stm::fiber s2( stm::spawn( boost::bind( f3, 5, boost::ref( v2) ) ) );
-    BOOST_CHECK( ! s1.is_complete() );
-    BOOST_CHECK( ! s2.is_complete() );
+    stm::fiber s1( boost::bind( f3, 2, boost::ref( v1) ) );
+    stm::fiber s2( boost::bind( f3, 5, boost::ref( v2) ) );
+    BOOST_CHECK( s1);
+    BOOST_CHECK( s2);
     stm::waitfor_any_and_cancel( s1, s2);
-    BOOST_CHECK( s1.is_complete() );
-    BOOST_CHECK( s2.is_complete() );
+    BOOST_CHECK( ! s1);
+    BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 7, v1);
     BOOST_CHECK_EQUAL( 0, v2);
 }

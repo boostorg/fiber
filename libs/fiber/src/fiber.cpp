@@ -21,6 +21,10 @@ namespace boost {
 namespace fibers {
 
 void
+fiber::spawn_( ptr_t & f)
+{ detail::scheduler::instance().spawn( f); }
+
+void
 fiber::cancel()
 {
     BOOST_ASSERT( impl_);

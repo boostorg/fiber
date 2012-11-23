@@ -21,6 +21,13 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#define RESUME_FIBER( f_) \
+    BOOST_ASSERT( f_); \
+    BOOST_ASSERT( ! f_->is_complete() ); \
+    BOOST_ASSERT( ! f_->is_resumed() ); \
+    f_->resume(); \
+    BOOST_ASSERT( ! f_->is_resumed() );
+
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -32,20 +39,6 @@ scheduler::scheduler() :
     f_idx_( wqueue_.get< f_tag_t >() ),
     tp_idx_( wqueue_.get< tp_tag_t >() )
 {}
-
-void
-scheduler::resume_()
-{
-    BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( ! active_fiber_->is_complete() );
-    BOOST_ASSERT( ! active_fiber_->is_resumed() );
-
-    // enter fiber
-    active_fiber_->resume();
-    // fiber was suspended
-
-    BOOST_ASSERT( ! active_fiber_->is_resumed() );
-}
 
 scheduler::~scheduler()
 {}
@@ -65,9 +58,11 @@ scheduler::spawn( fiber_base::ptr_t const& f)
     BOOST_ASSERT( ! f->is_complete() );
     BOOST_ASSERT( f != active_fiber_);
 
+    // TODO: strong exception-safety must be guarantied
+    // use a guard for active_fiber_
     fiber_base::ptr_t tmp = active_fiber_;
     active_fiber_ = f;
-    resume_();
+    RESUME_FIBER( active_fiber_);
     active_fiber_ = tmp;
 }
 
@@ -109,7 +104,7 @@ scheduler::cancel( fiber_base::ptr_t const& f)
     fiber_base::ptr_t tmp = active_fiber_;
     active_fiber_ = f;
     // terminate fiber means unwinding its stack
-    // so it becomes complete and joining strati
+    // so it becomes complete and joining fibers
     // will be notified
     active_fiber_->terminate();
     active_fiber_ = tmp;
@@ -159,14 +154,14 @@ scheduler::notify( fiber_base::ptr_t const& f)
 bool
 scheduler::run()
 {
-    // get all strati with reached dead-line and push them
+    // get all fibers with reached dead-line and push them
     // at the front of runnable-queue
     tp_idx_t::iterator e( tp_idx_.upper_bound( chrono::system_clock::now() ) );
     for (
             tp_idx_t::iterator i( tp_idx_.begin() );
             i != e; ++i)
     { rqueue_.push_front( i->f); }
-    // remove all strati with reached dead-line
+    // remove all fibers with reached dead-line
     tp_idx_.erase( tp_idx_.begin(), e);
 
     // pop new fiber from runnable-queue which is not complete
@@ -183,7 +178,7 @@ scheduler::run()
     // store previous active fiber
     f.swap( active_fiber_);
     // resume new active fiber
-    resume_();
+    RESUME_FIBER( active_fiber_);
     // restore previous active fiber
     f.swap( active_fiber_);
 	return true;
@@ -226,6 +221,8 @@ scheduler::sleep( chrono::system_clock::time_point const& abs_time)
 }
 
 }}}
+
+#undef RESUME_FIBER
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

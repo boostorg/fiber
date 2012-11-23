@@ -87,8 +87,6 @@ private:
 
     scheduler();
 
-    void resume_();
-
 public:
     static scheduler & instance();
 

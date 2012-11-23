@@ -36,40 +36,38 @@ void fn1()
 	stm::auto_reset_event ev;
 
 	stm::fiber s1(
-        stm::spawn(
             boost::bind(
                 wait_fn,
-                boost::ref( ev) ) ) );
-	BOOST_CHECK( ! s1.is_complete() );
+                boost::ref( ev) ) );
+	BOOST_CHECK( s1);
 	BOOST_CHECK_EQUAL( 0, value);
 
 	stm::fiber s2(
-        stm::spawn(
             boost::bind(
                 wait_fn,
-                boost::ref( ev) ) ) );
-	BOOST_CHECK( ! s2.is_complete() );
+                boost::ref( ev) ) );
+	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( ! stm::run() );
-	BOOST_CHECK( ! s1.is_complete() );
-	BOOST_CHECK( ! s2.is_complete() );
+	BOOST_CHECK( s1);
+	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 0, value);
 
 	ev.set();
 
 	BOOST_CHECK( stm::run() );
-	BOOST_CHECK( s1.is_complete() );
+	BOOST_CHECK( ! s1);
 	BOOST_CHECK_EQUAL( 1, value);
 
 	BOOST_CHECK( ! stm::run() );
-	BOOST_CHECK( ! s2.is_complete() );
+	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 1, value);
 
 	ev.set();
 
 	BOOST_CHECK( stm::run() );
-	BOOST_CHECK( s2.is_complete() );
+	BOOST_CHECK( ! s2);
 	BOOST_CHECK_EQUAL( 2, value);
 }
 
@@ -79,30 +77,28 @@ void fn2()
 	stm::auto_reset_event ev( true);
 
 	stm::fiber s1(
-        stm::spawn(
             boost::bind(
                 wait_fn,
-                boost::ref( ev) ) ) );
-	BOOST_CHECK( s1.is_complete() );
+                boost::ref( ev) ) );
+	BOOST_CHECK( ! s1);
 	BOOST_CHECK_EQUAL( 1, value);
 
 	stm::fiber s2(
-        stm::spawn(
             boost::bind(
                 wait_fn,
-                boost::ref( ev) ) ) );
-	BOOST_CHECK( ! s2.is_complete() );
+                boost::ref( ev) ) );
+	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 1, value);
 
 	BOOST_CHECK( ! stm::run() );
 	BOOST_CHECK_EQUAL( 1, value);
-	BOOST_CHECK( ! s2.is_complete() );
+	BOOST_CHECK( s2);
 
     ev.set();
 
 	BOOST_CHECK( stm::run() );
 	BOOST_CHECK_EQUAL( 2, value);
-	BOOST_CHECK( s2.is_complete() );
+	BOOST_CHECK( ! s2);
 }
 
 void fn3()
@@ -119,19 +115,19 @@ void fn3()
 
 void test_wait_set()
 {
-    stm::spawn( fn1).join();
+    stm::fiber( fn1).join();
     fn1();
 }
 
 void test_wait_reset()
 {
-    stm::spawn( fn2).join();
+    stm::fiber( fn2).join();
     fn2();
 }
 
 void test_try_wait()
 {
-    stm::spawn( fn3).join();
+    stm::fiber( fn3).join();
     fn3();
 }
 

@@ -63,10 +63,9 @@ void fn2()
 	BOOST_CHECK_EQUAL( ev.current(), ( std::size_t)3);
 
 	stm::fiber s(
-        stm::spawn(
             boost::bind(
                 wait_fn,
-                boost::ref( ev) ) ) );
+                boost::ref( ev) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( ! stm::run() );
@@ -89,13 +88,13 @@ void fn2()
 
 void test_count_down()
 {
-    stm::spawn( fn1).join();
+    stm::fiber( fn1).join();
     fn1();
 }
 
 void test_wait()
 {
-    stm::spawn( fn2).join();
+    stm::fiber( fn2).join();
     fn2();
 }
 
