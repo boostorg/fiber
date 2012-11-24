@@ -12,7 +12,6 @@ project boost/fiber/example
       <library>../build//boost_fibers
       <library>/boost/context//boost_context
       <library>/boost/system//boost_system
-      <library>/boost/thread//boost_thread
       <link>static
       <threading>multi
     ;

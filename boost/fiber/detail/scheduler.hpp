@@ -76,7 +76,6 @@ private:
     >                                           wqueue_t;
     typedef wqueue_t::index< f_tag_t >::type    f_idx_t;
     typedef wqueue_t::index< tp_tag_t >::type   tp_idx_t;
-
     typedef std::deque< fiber_base::ptr_t >     rqueue_t;
 
     fiber_base::ptr_t       active_fiber_;

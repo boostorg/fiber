@@ -13,7 +13,6 @@
 #include <boost/assert.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
-#include <boost/thread/tss.hpp>
 
 #include <boost/fiber/exceptions.hpp>
 
@@ -46,9 +45,14 @@ scheduler::~scheduler()
 scheduler &
 scheduler::instance()
 {
-	static thread_specific_ptr< scheduler > static_local;
-	if ( ! static_local.get() ) static_local.reset( new scheduler() );
-	return * static_local.get();
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
+    (defined(__ICC) && defined(BOOST_WINDOWS))
+	static __declspec(thread) scheduler * static_local = 0;
+#else
+	static __thread scheduler * static_local = 0;
+#endif
+	if ( ! static_local) static_local = new scheduler();
+	return * static_local;
 }
 
 void
