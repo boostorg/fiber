@@ -672,7 +672,6 @@ namespace fibers {
             future=other.future;
             return *this;
         }
-
         shared_future& operator=(BOOST_RV_REF(unique_future<R>) other)
         {
             future=other.future;
@@ -694,12 +693,14 @@ namespace fibers {
             other.future.reset();
             return *this;
         }
+#if 0
         shared_future& operator=(unique_future<R> && other)
         {
             future.swap(other.future);
             other.future.reset();
             return *this;
         }
+#endif
 #else            
         shared_future(BOOST_RV_REF(shared_future) other):
             future(other.future)
