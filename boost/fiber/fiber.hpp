@@ -80,13 +80,13 @@ public:
 
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocacator< fiber > const& alloc = std::allocator< fiber >() ) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
                 fiber_fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
@@ -96,13 +96,13 @@ public:
     template< typename StackAllocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    std::allocacator< fiber > const& alloc = std::allocator< fiber >() ) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
                 fiber_fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
@@ -112,13 +112,13 @@ public:
     template< typename StackAllocator, typename Allocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    Allocacator const& alloc) :
+                    Allocator const& alloc) :
         impl_()
     {
         typedef detail::fiber_object<
                 fiber_fn, StackAllocator, Allocator
             >                               object_t;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
