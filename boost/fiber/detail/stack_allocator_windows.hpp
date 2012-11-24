@@ -7,6 +7,8 @@
 #ifndef BOOST_FIBERS_DETAIL_STACK_ALLOCATOR_H
 #define BOOST_FIBERS_DETAIL_STACK_ALLOCATOR_H
 
+#define NOMINMAX
+
 #include <boost/config.hpp>
 
 extern "C" {
