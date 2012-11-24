@@ -6,6 +6,7 @@
 #define BOOST_FIBERS_SOURCE
 
 #include <boost/fiber/detail/scheduler.hpp>
+#include <boost/scope_exit.hpp>
 
 #include <memory>
 #include <utility>
@@ -62,12 +63,12 @@ scheduler::spawn( fiber_base::ptr_t const& f)
     BOOST_ASSERT( ! f->is_complete() );
     BOOST_ASSERT( f != active_fiber_);
 
-    // TODO: strong exception-safety must be guarantied
-    // use a guard for active_fiber_
     fiber_base::ptr_t tmp = active_fiber_;
+    BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
+        active_fiber_ = tmp;
+    } BOOST_SCOPE_EXIT_END
     active_fiber_ = f;
     RESUME_FIBER( active_fiber_);
-    active_fiber_ = tmp;
 }
 
 void
@@ -103,15 +104,17 @@ scheduler::cancel( fiber_base::ptr_t const& f)
     // ignore completed fiber
     if ( f->is_complete() ) return;
 
-    // TODO: strong exception-safety must be guarantied
-    // use a guard
     fiber_base::ptr_t tmp = active_fiber_;
-    active_fiber_ = f;
-    // terminate fiber means unwinding its stack
-    // so it becomes complete and joining fibers
-    // will be notified
-    active_fiber_->terminate();
-    active_fiber_ = tmp;
+    {
+        BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
+            active_fiber_ = tmp;
+        } BOOST_SCOPE_EXIT_END
+        active_fiber_ = f;
+        // terminate fiber means unwinding its stack
+        // so it becomes complete and joining fibers
+        // will be notified
+        active_fiber_->terminate();
+    }
     // erase completed fiber from waiting-queue
     f_idx_.erase( f);
 
@@ -179,12 +182,13 @@ scheduler::run()
         BOOST_ASSERT( f_idx_.end() == f_idx_.find( f) );
     }
     while ( f->is_complete() );
-    // store previous active fiber
-    f.swap( active_fiber_);
+    fiber_base::ptr_t tmp = active_fiber_;
+    BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
+        active_fiber_ = tmp;
+    } BOOST_SCOPE_EXIT_END
+    active_fiber_ = f;
     // resume new active fiber
     RESUME_FIBER( active_fiber_);
-    // restore previous active fiber
-    f.swap( active_fiber_);
 	return true;
 }
 
