@@ -36,7 +36,7 @@ mutex::lock()
         {
             waiting_.push_back(
                     detail::scheduler::instance().active() );
-            detail::scheduler::instance().active()->wait();
+            detail::scheduler::instance().wait();
         }
         else
             detail::scheduler::instance().run();
@@ -82,7 +82,8 @@ mutex::unlock()
             f.swap( waiting_.front() );
             waiting_.pop_front();
         } while ( f->is_complete() );
-        if ( f) f->notify();
+        if ( f)
+            detail::scheduler::instance().notify( f);
     }
 	state_ = UNLOCKED;
     owner_ = detail::fiber_base::id();

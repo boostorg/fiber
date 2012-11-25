@@ -35,7 +35,7 @@ auto_reset_event::wait()
         {
             waiting_.push_back(
                 detail::scheduler::instance().active() );
-            detail::scheduler::instance().active()->wait();
+            detail::scheduler::instance().wait();
         }
         else
             detail::scheduler::instance().run();
@@ -52,7 +52,7 @@ auto_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
         {
             waiting_.push_back(
                 detail::scheduler::instance().active() );
-            detail::scheduler::instance().active()->sleep( abs_time);
+            detail::scheduler::instance().sleep( abs_time);
         }
         else
             detail::scheduler::instance().run();
@@ -83,7 +83,8 @@ auto_reset_event::set()
             f.swap( waiting_.front() );
             waiting_.pop_front();
         } while ( f->is_complete() );
-        if ( f) f->notify();
+        if ( f)
+            detail::scheduler::instance().notify( f);
     }
     state_ = SET;
 }

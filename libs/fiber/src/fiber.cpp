@@ -28,7 +28,7 @@ void
 fiber::cancel()
 {
     BOOST_ASSERT( impl_);
-    impl_->cancel();
+    detail::scheduler::instance().cancel( impl_);
 }
 
 bool

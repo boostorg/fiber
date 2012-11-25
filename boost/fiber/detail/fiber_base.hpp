@@ -112,21 +112,13 @@ public:
     id get_id() const BOOST_NOEXCEPT
     { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
 
-    void join( ptr_t const&);
-
     void resume();
 
     void suspend();
 
-    void cancel();
-
-    void notify();
-
-    void wait();
-
-    void sleep( chrono::system_clock::time_point const& abs_time);
-
     void terminate();
+
+    void join( ptr_t const&);
 
     bool force_unwind() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_force_unwind); }

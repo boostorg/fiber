@@ -10,6 +10,8 @@
 
 #include <boost/foreach.hpp>
 
+#include <boost/fiber/detail/scheduler.hpp>
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -47,7 +49,8 @@ condition::notify_one()
             f.swap( waiting_.front() );
             waiting_.pop_front();
         } while ( f->is_complete() );
-        if ( f) f->notify();
+        if ( f)
+            detail::scheduler::instance().notify( f);
     }
     cmd_ = NOTIFY_ONE;
 }
@@ -66,7 +69,10 @@ condition::notify_all()
     if ( ! waiting_.empty() )
     {
         BOOST_FOREACH( detail::fiber_base::ptr_t const& f,  waiting_)
-        { if ( ! f->is_complete() ) f->notify(); }
+        {
+            if ( ! f->is_complete() )
+                detail::scheduler::instance().notify( f);
+        }
         waiting_.clear();
     }
 

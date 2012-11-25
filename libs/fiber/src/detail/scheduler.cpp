@@ -84,7 +84,9 @@ scheduler::join( fiber_base::ptr_t const& f)
         // fiber_base::join() calls scheduler::wait()
         // so that active-fiber gets suspended
         f->join( active_fiber_);
-        // p is complete and active-fiber is resumed
+        // suspend active-fiber until f becomes complete
+        wait();
+        // f is complete and active-fiber is resumed
     }
     else
     {
@@ -119,25 +121,6 @@ scheduler::cancel( fiber_base::ptr_t const& f)
     f_idx_.erase( f);
 
     BOOST_ASSERT( f->is_complete() );
-}
-
-void
-scheduler::wait( fiber_base::ptr_t const& f)
-{
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_complete() );
-    BOOST_ASSERT( f->is_resumed() );
-    BOOST_ASSERT( f == active_fiber_);
-
-    // fiber will be added to waiting-queue
-    f_idx_.insert( schedulable( f) );
-    // suspend fiber
-    f->suspend();
-    // fiber was notified
-
-    BOOST_ASSERT( ! f->is_complete() );
-    BOOST_ASSERT( f->is_resumed() );
-    BOOST_ASSERT( f == active_fiber_);
 }
 
 void
@@ -190,6 +173,23 @@ scheduler::run()
     // resume new active fiber
     RESUME_FIBER( active_fiber_);
 	return true;
+}
+
+void
+scheduler::wait()
+{
+    BOOST_ASSERT( active_fiber_);
+    BOOST_ASSERT( ! active_fiber_->is_complete() );
+    BOOST_ASSERT( active_fiber_->is_resumed() );
+
+    // fiber will be added to waiting-queue
+    f_idx_.insert( schedulable( active_fiber_) );
+    // suspend fiber
+    active_fiber_->suspend();
+    // fiber was notified
+
+    BOOST_ASSERT( ! active_fiber_->is_complete() );
+    BOOST_ASSERT( active_fiber_->is_resumed() );
 }
 
 void

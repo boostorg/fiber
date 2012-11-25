@@ -46,7 +46,10 @@ count_down_event::set()
 	if ( 0 == --current_)
     {
         BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
-        { if ( ! f->is_complete() ) f->notify(); }
+        {
+            if ( ! f->is_complete() )
+                detail::scheduler::instance().notify( f);
+        }
         waiting_.clear();
     }
 }
@@ -60,7 +63,7 @@ count_down_event::wait()
         {
             waiting_.push_back(
                 detail::scheduler::instance().active() );
-            detail::scheduler::instance().active()->wait();
+            detail::scheduler::instance().wait();
         }
         else
             detail::scheduler::instance().run();
@@ -76,7 +79,7 @@ count_down_event::timed_wait( chrono::system_clock::time_point const& abs_time)
         {
             waiting_.push_back(
                 detail::scheduler::instance().active() );
-            detail::scheduler::instance().active()->sleep( abs_time);
+            detail::scheduler::instance().sleep( abs_time);
         }
         else
             detail::scheduler::instance().run();

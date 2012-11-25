@@ -45,7 +45,7 @@ private:
         chrono::system_clock::time_point    tp;
 
         schedulable( fiber_base::ptr_t const& f_) :
-            f( f_), tp( chrono::system_clock::time_point::max() )
+            f( f_), tp( (chrono::system_clock::time_point::max)() )
         { BOOST_ASSERT( f); }
 
         schedulable(
@@ -54,7 +54,7 @@ private:
             f( f_), tp( tp_)
         {
             BOOST_ASSERT( f);
-            BOOST_ASSERT( chrono::system_clock::time_point::max() != tp);
+            BOOST_ASSERT( (chrono::system_clock::time_point::max)() != tp);
         }
     };
 
@@ -95,18 +95,18 @@ public:
 
     void cancel( fiber_base::ptr_t const&);
 
-    void wait( fiber_base::ptr_t const&);
-
     void notify( fiber_base::ptr_t const&);
 
-    bool run();
-
-    void yield();
-
-    fiber_base::ptr_t active()
+    fiber_base::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
     void sleep( chrono::system_clock::time_point const& abs_time);
+
+    bool run();
+
+    void wait();
+
+    void yield();
 
     ~scheduler();
 };
