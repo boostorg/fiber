@@ -305,6 +305,9 @@ public:
     }
 #endif
 
+    ~fiber()
+    { if ( impl_) join(); }
+
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
         impl_()
     { swap( other); }

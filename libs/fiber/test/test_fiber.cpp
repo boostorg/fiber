@@ -190,7 +190,7 @@ void test_cancel()
         // s' yields in its fiber-fn
         // s cancels s' and completes
         stm::fiber s( f3);
-        BOOST_CHECK( stm::run() );
+        BOOST_CHECK( ! stm::run() );
         BOOST_CHECK( ! s);
         BOOST_CHECK( ! stm::run() );
     }

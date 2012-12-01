@@ -1016,7 +1016,7 @@ void wait_for_either_invokes_callbacks()
     stm::unique_future<int> fi2=pt2.get_future();
     pt.set_wait_callback(wait_callback_for_task);
 
-    stm::fiber(boost::move(pt));
+    stm::fiber f(boost::move(pt));
     stm::waitfor_any(fi,fi2);
     
     BOOST_CHECK(fi.get()==42);
