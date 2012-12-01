@@ -317,7 +317,7 @@ public:
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return ( empty() || impl_->is_complete() ) ? 0 : & dummy::nonnull; }
+    { return ( ! empty() && ! impl_->is_complete() ) ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
     { return empty() || impl_->is_complete(); }

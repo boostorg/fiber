@@ -81,9 +81,10 @@ void test_waitfor_any()
     stm::fiber s2( boost::bind( f2, 5, boost::ref( v2) ) );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
-    stm::waitfor_any( s1, s2);
+    unsigned int i = stm::waitfor_any( s1, s2);
     BOOST_CHECK( ! s1);
     BOOST_CHECK( s2);
+    BOOST_CHECK_EQUAL( 1, i);
     BOOST_CHECK_EQUAL( 7, v1);
     BOOST_CHECK_EQUAL( 0, v2);
 }
@@ -97,9 +98,10 @@ void test_waitfor_any_and_cancel()
     stm::fiber s2( boost::bind( f3, 5, boost::ref( v2) ) );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
-    stm::waitfor_any_and_cancel( s1, s2);
+    unsigned int i = stm::waitfor_any_and_cancel( s1, s2);
     BOOST_CHECK( ! s1);
     BOOST_CHECK( ! s2);
+    BOOST_CHECK_EQUAL( 1, i);
     BOOST_CHECK_EQUAL( 7, v1);
     BOOST_CHECK_EQUAL( 0, v2);
 }
