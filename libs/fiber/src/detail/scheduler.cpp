@@ -11,9 +11,14 @@
 #include <memory>
 #include <utility>
 
+#if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+#include <pthread.h>                // pthread_key_create, pthread_[gs]etspecific
+#endif
+
 #include <boost/assert.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/utility.hpp>
 
 #include <boost/fiber/exceptions.hpp>
 
@@ -32,6 +37,55 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+// thread_local_ptr was a contribution from
+// Nat Goodspeed
+#if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+class thread_local_ptr : private noncopyable
+{
+private:
+    struct dummy
+    { void nonnull() {} };
+
+    typedef void ( dummy::*safe_bool)();
+
+    ::pthread_key_t     key_;
+
+public:
+    thread_local_ptr() BOOST_NOEXCEPT
+    { BOOST_ASSERT( ! ::pthread_key_create( & key_, 0) ); }
+
+    scheduler * get() const BOOST_NOEXCEPT
+    { return static_cast< scheduler * >( ::pthread_getspecific( key_) ); }
+
+    thread_local_ptr & operator=( scheduler * ptr) BOOST_NOEXCEPT
+    {
+        ::pthread_setspecific( key_, ptr);
+        return * this;
+    }
+
+    scheduler & operator*() const BOOST_NOEXCEPT
+    { return * get(); }
+
+    scheduler * operator->() const BOOST_NOEXCEPT
+    { return get(); }
+
+    operator scheduler * () const BOOST_NOEXCEPT
+    { return get(); }
+
+    operator safe_bool() const BOOST_NOEXCEPT
+    { return get() ? 0 : & dummy::nonnull; }
+
+    bool operator!() const BOOST_NOEXCEPT
+    { return ! get(); }
+
+    bool operator==( thread_local_ptr const& other) BOOST_NOEXCEPT
+    { return this->get() == other.get(); }
+
+    bool operator!=( thread_local_ptr const& other) BOOST_NOEXCEPT
+    { return ! ( * this == other); }
+};
+#endif
+
 scheduler::scheduler() :
 	active_fiber_(),
 	rqueue_(),
@@ -49,10 +103,12 @@ scheduler::instance()
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
 	static __declspec(thread) scheduler * static_local = 0;
+#elif defined(BOOST_MAC_PTHREADS)
+    thread_local_ptr static_local = 0;
 #else
 	static __thread scheduler * static_local = 0;
 #endif
-	if ( ! static_local) static_local = new scheduler();
+    if ( ! static_local) static_local = new scheduler();
 	return * static_local;
 }
 
