@@ -334,6 +334,9 @@ public:
     id get_id() const BOOST_NOEXCEPT
     { return impl_ ? impl_->get_id() : id(); }
 
+    void detach() BOOST_NOEXCEPT
+    { impl_.reset(); }
+
     void cancel();
 
     bool join();

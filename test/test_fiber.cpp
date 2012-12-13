@@ -167,6 +167,19 @@ void test_id()
     BOOST_CHECK_EQUAL( stm::fiber::id(), s2.get_id() );
 }
 
+void test_detach()
+{
+    stm::fiber s1( f1);
+    BOOST_CHECK( ! s1);
+    s1.detach();
+    BOOST_CHECK( ! s1);
+
+    stm::fiber s2( f2);
+    BOOST_CHECK( s2);
+    s2.detach();
+    BOOST_CHECK( ! s2);
+}
+
 void test_complete()
 {
     stm::fiber s1( f1);
@@ -315,6 +328,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
     test->add( BOOST_TEST_CASE( & test_move) );
     test->add( BOOST_TEST_CASE( & test_id) );
+    test->add( BOOST_TEST_CASE( & test_detach) );
     test->add( BOOST_TEST_CASE( & test_complete) );
     test->add( BOOST_TEST_CASE( & test_cancel) );
     test->add( BOOST_TEST_CASE( & test_join) );

@@ -133,7 +133,8 @@ operators on __id__ yield a total order for every non-equal __id__.
         
         bool is_joinable() const;
         bool is_complete() const;
-        
+
+        void detach();
         void cancel();
         void join();
     };
@@ -204,6 +205,14 @@ represents that fiber. Otherwise returns a default-constructed __fiber_id__.]]
 [[Effects:] [Returns `true` if `*this` is not a __not_a_fiber__ and
 fiber is not complete, otherwise `false`.
 [[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:detach `void detach()`]
+[variablelist
+[[Effects:] [Detaches `*this` from fiber context.]]
+[[Throws:] [Nothing.]]
+[[Postconditions:] [`operator unspecified-bool-type() const` returns `false`.]
 ]
 [endsect]
 
