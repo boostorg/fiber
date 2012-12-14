@@ -69,7 +69,7 @@ namespace fibers {
 inline
 bool run()
 { return detail::scheduler::instance().run(); }
-
+#if 0
 #define BOOST_FIBERS_WAITFOR_FIBER_FN_ARG(z,n,unused) \
     fiber & BOOST_PP_CAT(f,n)
 
@@ -135,7 +135,7 @@ BOOST_PP_REPEAT_FROM_TO( 2, BOOST_FIBERS_WAITFOR_FIBER_MAX_ARITY, BOOST_FIBERS_W
 #undef BOOST_FIBERS_WAITFOR_FIBER_AND
 #undef BOOST_FIBERS_WAITFOR_FIBER_ARGS
 #undef BOOST_FIBERS_WAITFOR_FIBER_ARG
-
+#endif
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS
