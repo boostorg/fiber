@@ -25,12 +25,12 @@ lib boost_fibers
       barrier.cpp
       condition.cpp
       count_down_event.cpp
+      detail/default_scheduler.cpp
+      detail/fiber_base.cpp
+      fiber.cpp
       manual_reset_event.cpp
       mutex.cpp
-      fiber.cpp
-      detail/default_scheduler.cpp
-      detail/scheduler.cpp
-      detail/fiber_base.cpp
+      scheduler.cpp
     : <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
     :
     : <link>shared:<library>../../context/build//boost_context

@@ -16,8 +16,8 @@
 #include <boost/multi_index/member.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber.hpp>
+#include <boost/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -32,7 +32,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class BOOST_FIBERS_DECL default_scheduler : public scheduler
+class BOOST_FIBERS_DECL default_scheduler : public boost::fibers::scheduler
 {
 private:
     struct schedulable

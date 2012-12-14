@@ -11,7 +11,7 @@
 #include <boost/assert.hpp>
 
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -34,11 +34,11 @@ auto_reset_event::wait()
 	    if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
+                scheduler::instance().active() );
+            scheduler::instance().wait();
         }
         else
-            detail::scheduler::instance().run();
+            scheduler::instance().run();
 	}
     state_ = RESET;
 }
@@ -51,11 +51,11 @@ auto_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 	    if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().sleep( abs_time);
+                scheduler::instance().active() );
+            scheduler::instance().sleep( abs_time);
         }
         else
-            detail::scheduler::instance().run();
+            scheduler::instance().run();
 	}
     state_ = RESET;
     return chrono::system_clock::now() <= abs_time;
@@ -84,7 +84,7 @@ auto_reset_event::set()
             waiting_.pop_front();
         } while ( f->is_complete() );
         if ( f)
-            detail::scheduler::instance().notify( f);
+            scheduler::instance().notify( f);
     }
     state_ = SET;
 }

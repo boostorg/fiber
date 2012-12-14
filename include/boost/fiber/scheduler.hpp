@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_SCHEDULER_H
-#define BOOST_FIBERS_DETAIL_SCHEDULER_H
+#ifndef BOOST_FIBERS_SCHEDULER_H
+#define BOOST_FIBERS_SCHEDULER_H
 
 #if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
 #include <pthread.h>                // pthread_key_create, pthread_[gs]etspecific
@@ -29,13 +29,14 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
-
-class scheduler;
 
 // thread_local_ptr was a contribution from
 // Nat Goodspeed
 #if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+class scheduler;
+
+namespace detail {
+
 class thread_local_ptr : private noncopyable
 {
 private:
@@ -80,6 +81,8 @@ public:
     bool operator!=( thread_local_ptr const& other) BOOST_NOEXCEPT
     { return ! ( * this == other); }
 };
+
+}
 #endif
 
 class BOOST_FIBERS_DECL scheduler : private noncopyable
@@ -89,7 +92,7 @@ private:
     (defined(__ICC) && defined(BOOST_WINDOWS))
     static __declspec(thread) scheduler     *   instance_;
 #elif defined(BOOST_MAC_PTHREADS)
-    static thread_local_ptr                     instance_;
+    static detail::thread_local_ptr             instance_;
 #else
     static __thread scheduler               *   instance_;
 #endif
@@ -97,15 +100,15 @@ private:
 public:
     static scheduler & instance();
 
-    virtual void spawn( fiber_base::ptr_t const&) = 0;
+    virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual void join( fiber_base::ptr_t const&) = 0;
+    virtual void join( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual void cancel( fiber_base::ptr_t const&) = 0;
+    virtual void cancel( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual void notify( fiber_base::ptr_t const&) = 0;
+    virtual void notify( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual fiber_base::ptr_t active() = 0;
+    virtual detail::fiber_base::ptr_t active() = 0;
 
     virtual void sleep( chrono::system_clock::time_point const& abs_time) = 0;
 
@@ -118,7 +121,7 @@ public:
     virtual ~scheduler() {}
 };
 
-}}}
+}}
 
 # if defined(BOOST_MSVC)
 # pragma warning(pop)
@@ -128,4 +131,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_SCHEDULER_H
+#endif // BOOST_FIBERS_SCHEDULER_H

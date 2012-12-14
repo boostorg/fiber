@@ -10,7 +10,7 @@
 
 #include <boost/assert.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -22,13 +22,13 @@ namespace fibers {
 
 void
 fiber::spawn_( ptr_t & f)
-{ detail::scheduler::instance().spawn( f); }
+{ scheduler::instance().spawn( f); }
 
 void
 fiber::cancel()
 {
     BOOST_ASSERT( impl_);
-    detail::scheduler::instance().cancel( impl_);
+    scheduler::instance().cancel( impl_);
 }
 
 bool
@@ -36,7 +36,7 @@ fiber::join()
 {
     BOOST_ASSERT( impl_);
     if ( ! impl_->is_complete() )
-        detail::scheduler::instance().join( impl_);
+        scheduler::instance().join( impl_);
     BOOST_ASSERT( impl_->is_complete() );
     return ! impl_->is_canceled();
 }

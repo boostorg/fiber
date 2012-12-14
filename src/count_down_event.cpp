@@ -11,7 +11,7 @@
 #include <boost/assert.hpp>
 #include <boost/foreach.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -48,7 +48,7 @@ count_down_event::set()
         BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
         {
             if ( ! f->is_complete() )
-                detail::scheduler::instance().notify( f);
+                scheduler::instance().notify( f);
         }
         waiting_.clear();
     }
@@ -62,11 +62,11 @@ count_down_event::wait()
 	    if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
+                scheduler::instance().active() );
+            scheduler::instance().wait();
         }
         else
-            detail::scheduler::instance().run();
+            scheduler::instance().run();
 	}
 }
 
@@ -78,11 +78,11 @@ count_down_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 	    if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().sleep( abs_time);
+                scheduler::instance().active() );
+            scheduler::instance().sleep( abs_time);
         }
         else
-            detail::scheduler::instance().run();
+            scheduler::instance().run();
 	}
     return chrono::system_clock::now() <= abs_time;
 }

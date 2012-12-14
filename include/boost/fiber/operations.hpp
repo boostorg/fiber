@@ -15,7 +15,7 @@
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -28,20 +28,20 @@ namespace this_fiber {
 
 inline
 bool is_fiberized()
-{ return fibers::detail::scheduler::instance().active(); }
+{ return fibers::scheduler::instance().active(); }
 
 inline
 fibers::fiber::id get_id()
 {
 	BOOST_ASSERT( is_fiberized() );
-	return fibers::detail::scheduler::instance().active()->get_id();
+	return fibers::scheduler::instance().active()->get_id();
 }
 
 inline
 void sleep( chrono::system_clock::time_point const& abs_time)
 {
 	BOOST_ASSERT( is_fiberized() );
-	fibers::detail::scheduler::instance().sleep( abs_time);
+	fibers::scheduler::instance().sleep( abs_time);
 }
 
 template< typename TimeDuration > 
@@ -52,7 +52,7 @@ inline
 void yield()
 {
 	BOOST_ASSERT( is_fiberized() );
-	fibers::detail::scheduler::instance().yield();
+	fibers::scheduler::instance().yield();
 }
 
 inline
@@ -68,7 +68,8 @@ namespace fibers {
 
 inline
 bool run()
-{ return detail::scheduler::instance().run(); }
+{ return scheduler::instance().run(); }
+
 #if 0
 #define BOOST_FIBERS_WAITFOR_FIBER_FN_ARG(z,n,unused) \
     fiber & BOOST_PP_CAT(f,n)

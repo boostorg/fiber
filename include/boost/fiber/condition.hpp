@@ -19,7 +19,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/mutex.hpp>
@@ -89,11 +89,11 @@ public:
                 if ( this_fiber::is_fiberized() )
                 {
                     waiting_.push_back(
-                        detail::scheduler::instance().active() );
-                    detail::scheduler::instance().wait();
+                        scheduler::instance().active() );
+                    scheduler::instance().wait();
                 }
                 else
-                    detail::scheduler::instance().run();
+                    scheduler::instance().run();
             }
 
             if ( NOTIFY_ONE == cmd_)
@@ -161,24 +161,24 @@ public:
                 if ( now >= abs_time)
                 {
                     while ( ! ( timed_out = enter_mtx_.try_lock() ) )
-                        detail::scheduler::instance().yield();
+                        scheduler::instance().yield();
                     break; 
                 }
 
                 if ( this_fiber::is_fiberized() )
                 {
                     waiting_.push_back(
-                        detail::scheduler::instance().active() );
-                    detail::scheduler::instance().sleep( abs_time);
+                        scheduler::instance().active() );
+                    scheduler::instance().sleep( abs_time);
                 }
                 else
-                    detail::scheduler::instance().run();
+                    scheduler::instance().run();
 
                 now = chrono::system_clock::now();
                 if ( now >= abs_time)
                 {
                     while ( ! ( timed_out = enter_mtx_.try_lock() ) )
-                        detail::scheduler::instance().yield();
+                        scheduler::instance().yield();
                     break; 
                 }
             }

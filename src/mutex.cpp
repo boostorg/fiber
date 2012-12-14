@@ -10,7 +10,7 @@
 
 #include <boost/assert.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -35,15 +35,15 @@ mutex::lock()
         if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                    detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
+                    scheduler::instance().active() );
+            scheduler::instance().wait();
         }
         else
-            detail::scheduler::instance().run();
+            scheduler::instance().run();
     }
     state_ = LOCKED;
     if ( this_fiber::is_fiberized() )
-        owner_ = detail::scheduler::instance().active()->get_id();
+        owner_ = scheduler::instance().active()->get_id();
     else
         owner_ = detail::fiber_base::id();
 }
@@ -54,7 +54,7 @@ mutex::try_lock()
     if ( LOCKED == state_) return false;
     state_ = LOCKED;
     if ( this_fiber::is_fiberized() )
-        owner_ = detail::scheduler::instance().active()->get_id();
+        owner_ = scheduler::instance().active()->get_id();
     else
         owner_ = detail::fiber_base::id();
     return true;
@@ -67,7 +67,7 @@ mutex::unlock()
     {
         if ( this_fiber::is_fiberized() )
         {
-            if ( detail::scheduler::instance().active()->get_id() != owner_)
+            if ( scheduler::instance().active()->get_id() != owner_)
                 std::abort();
         }
         else if ( detail::fiber_base::id() != owner_)
@@ -83,7 +83,7 @@ mutex::unlock()
             waiting_.pop_front();
         } while ( f->is_complete() );
         if ( f)
-            detail::scheduler::instance().notify( f);
+            scheduler::instance().notify( f);
     }
 	state_ = UNLOCKED;
     owner_ = detail::fiber_base::id();

@@ -33,7 +33,7 @@
 #include <boost/utility/enable_if.hpp>
 
 #include <boost/fiber/condition.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/mutex.hpp>
 
 namespace boost {
@@ -171,12 +171,12 @@ namespace fibers {
                 do_callback(lock);
                 while(!done)
                 {
-                    if ( detail::scheduler::instance().active() )
+                    if ( boost::fibers::scheduler::instance().active() )
                         waiters.wait(lock);
                     else
                     {
                         lock.unlock();
-                        detail::scheduler::instance().run();
+                        boost::fibers::scheduler::instance().run();
                         lock.lock();
                     }
                 }
