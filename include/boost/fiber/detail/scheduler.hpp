@@ -10,18 +10,9 @@
 #include <pthread.h>                // pthread_key_create, pthread_[gs]etspecific
 #endif
 
-#include <cstddef>
-#include <deque>
-#include <vector>
-
+#include <boost/assert.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
-#include <boost/function.hpp>
-#include <boost/move/move.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/optional.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -94,45 +85,6 @@ public:
 class BOOST_FIBERS_DECL scheduler : private noncopyable
 {
 private:
-    struct schedulable
-    {
-        fiber_base::ptr_t                   f;
-        chrono::system_clock::time_point    tp;
-
-        schedulable( fiber_base::ptr_t const& f_) :
-            f( f_), tp( (chrono::system_clock::time_point::max)() )
-        { BOOST_ASSERT( f); }
-
-        schedulable(
-                fiber_base::ptr_t const& f_,
-                chrono::system_clock::time_point const& tp_) :
-            f( f_), tp( tp_)
-        {
-            BOOST_ASSERT( f);
-            BOOST_ASSERT( (chrono::system_clock::time_point::max)() != tp);
-        }
-    };
-
-    struct f_tag_t {};
-    struct tp_tag_t {};
-
-    typedef multi_index::multi_index_container<
-        schedulable,
-        multi_index::indexed_by<
-            multi_index::ordered_unique<
-                multi_index::tag< f_tag_t >,
-                multi_index::member< schedulable, fiber_base::ptr_t, & schedulable::f >
-            >,
-            multi_index::ordered_non_unique<
-                multi_index::tag< tp_tag_t >,
-                multi_index::member< schedulable, chrono::system_clock::time_point, & schedulable::tp >
-            >
-        >
-    >                                           wqueue_t;
-    typedef wqueue_t::index< f_tag_t >::type    f_idx_t;
-    typedef wqueue_t::index< tp_tag_t >::type   tp_idx_t;
-    typedef std::deque< fiber_base::ptr_t >     rqueue_t;
-
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
     static __declspec(thread) scheduler     *   instance_;
@@ -142,37 +94,28 @@ private:
     static __thread scheduler               *   instance_;
 #endif
 
-    fiber_base::ptr_t       active_fiber_;
-    rqueue_t                rqueue_;
-    wqueue_t                wqueue_;
-    f_idx_t             &   f_idx_;
-    tp_idx_t            &   tp_idx_;
-
-    scheduler();
-
 public:
     static scheduler & instance();
 
-    void spawn( fiber_base::ptr_t const&);
+    virtual void spawn( fiber_base::ptr_t const&) = 0;
 
-    void join( fiber_base::ptr_t const&);
+    virtual void join( fiber_base::ptr_t const&) = 0;
 
-    void cancel( fiber_base::ptr_t const&);
+    virtual void cancel( fiber_base::ptr_t const&) = 0;
 
-    void notify( fiber_base::ptr_t const&);
+    virtual void notify( fiber_base::ptr_t const&) = 0;
 
-    fiber_base::ptr_t active() BOOST_NOEXCEPT
-    { return active_fiber_; }
+    virtual fiber_base::ptr_t active() = 0;
 
-    void sleep( chrono::system_clock::time_point const& abs_time);
+    virtual void sleep( chrono::system_clock::time_point const& abs_time) = 0;
 
-    bool run();
+    virtual bool run() = 0;
 
-    void wait();
+    virtual void wait() = 0;
 
-    void yield();
+    virtual void yield() = 0;
 
-    ~scheduler();
+    virtual ~scheduler() {}
 };
 
 }}}

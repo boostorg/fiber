@@ -28,6 +28,7 @@ lib boost_fibers
       manual_reset_event.cpp
       mutex.cpp
       fiber.cpp
+      detail/default_scheduler.cpp
       detail/scheduler.cpp
       detail/fiber_base.cpp
     : <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
