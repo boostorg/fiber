@@ -14,6 +14,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
+#include <boost/fiber/detail/default_scheduler.hpp>
 
 namespace stm = boost::fibers;
 namespace this_stm = boost::this_fiber;
@@ -180,6 +181,16 @@ void test_detach()
     BOOST_CHECK( ! s2);
 }
 
+void test_swap()
+{
+    stm::scheduler::swap(
+        new stm::detail::default_scheduler() );
+    stm::fiber s1( f1);
+    BOOST_CHECK( ! s1);
+    stm::fiber s2( f2);
+    BOOST_CHECK( s2);
+}
+
 void test_complete()
 {
     stm::fiber s1( f1);
@@ -330,6 +341,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_id) );
     test->add( BOOST_TEST_CASE( & test_detach) );
     test->add( BOOST_TEST_CASE( & test_complete) );
+    test->add( BOOST_TEST_CASE( & test_swap) );
     test->add( BOOST_TEST_CASE( & test_cancel) );
     test->add( BOOST_TEST_CASE( & test_join) );
     test->add( BOOST_TEST_CASE( & test_yield_break) );

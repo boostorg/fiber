@@ -5,6 +5,8 @@
 
 #define BOOST_FIBERS_SOURCE
 
+#include <algorithm>
+
 #include <boost/fiber/scheduler.hpp>
 
 #include <boost/fiber/detail/default_scheduler.hpp>
@@ -31,6 +33,10 @@ scheduler::instance()
     if ( ! instance_) instance_ = new detail::default_scheduler();
 	return * instance_;
 }
+
+void
+scheduler::swap( scheduler * sched)
+{ std::swap( instance_, sched); }
 
 }}
 
