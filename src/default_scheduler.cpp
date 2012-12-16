@@ -5,7 +5,7 @@
 
 #define BOOST_FIBERS_SOURCE
 
-#include <boost/fiber/detail/default_scheduler.hpp>
+#include <boost/fiber/default_scheduler.hpp>
 
 #include <memory>
 #include <utility>
@@ -30,7 +30,6 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
 
 default_scheduler::default_scheduler() :
 	active_fiber_(),
@@ -44,13 +43,13 @@ default_scheduler::~default_scheduler()
 {}
 
 void
-default_scheduler::spawn( fiber_base::ptr_t const& f)
+default_scheduler::spawn( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( ! f->is_complete() );
     BOOST_ASSERT( f != active_fiber_);
 
-    fiber_base::ptr_t tmp = active_fiber_;
+    detail::fiber_base::ptr_t tmp = active_fiber_;
     BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
         active_fiber_ = tmp;
     } BOOST_SCOPE_EXIT_END
@@ -59,7 +58,7 @@ default_scheduler::spawn( fiber_base::ptr_t const& f)
 }
 
 void
-default_scheduler::join( fiber_base::ptr_t const& f)
+default_scheduler::join( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( ! f->is_complete() );
@@ -68,7 +67,7 @@ default_scheduler::join( fiber_base::ptr_t const& f)
     if ( active_fiber_)
     {
         // store active-fiber as waiting fiber in p
-        // fiber_base::join() calls default_scheduler::wait()
+        // detail::fiber_base::join() calls default_scheduler::wait()
         // so that active-fiber gets suspended
         f->join( active_fiber_);
         // suspend active-fiber until f becomes complete
@@ -85,7 +84,7 @@ default_scheduler::join( fiber_base::ptr_t const& f)
 }
 
 void
-default_scheduler::cancel( fiber_base::ptr_t const& f)
+default_scheduler::cancel( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != active_fiber_);
@@ -93,7 +92,7 @@ default_scheduler::cancel( fiber_base::ptr_t const& f)
     // ignore completed fiber
     if ( f->is_complete() ) return;
 
-    fiber_base::ptr_t tmp = active_fiber_;
+    detail::fiber_base::ptr_t tmp = active_fiber_;
     {
         BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
             active_fiber_ = tmp;
@@ -111,7 +110,7 @@ default_scheduler::cancel( fiber_base::ptr_t const& f)
 }
 
 void
-default_scheduler::notify( fiber_base::ptr_t const& f)
+default_scheduler::notify( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( ! f->is_complete() );
@@ -143,7 +142,7 @@ default_scheduler::run()
 
     // pop new fiber from runnable-queue which is not complete
     // (example: fiber in runnable-queue could be canceled by active-fiber)
-    fiber_base::ptr_t f;
+    detail::fiber_base::ptr_t f;
     do
     {
         if ( rqueue_.empty() ) return false;
@@ -152,7 +151,7 @@ default_scheduler::run()
         BOOST_ASSERT( f_idx_.end() == f_idx_.find( f) );
     }
     while ( f->is_complete() );
-    fiber_base::ptr_t tmp = active_fiber_;
+    detail::fiber_base::ptr_t tmp = active_fiber_;
     BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
         active_fiber_ = tmp;
     } BOOST_SCOPE_EXIT_END
@@ -215,7 +214,7 @@ default_scheduler::sleep( chrono::system_clock::time_point const& abs_time)
     BOOST_ASSERT( active_fiber_->is_resumed() );
 }
 
-}}}
+}}
 
 #undef RESUME_FIBER
 

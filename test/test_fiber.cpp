@@ -14,7 +14,6 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/detail/default_scheduler.hpp>
 
 namespace stm = boost::fibers;
 namespace this_stm = boost::this_fiber;
@@ -184,7 +183,7 @@ void test_detach()
 void test_replace()
 {
     stm::scheduler::replace(
-        new stm::detail::default_scheduler() );
+        new stm::default_scheduler() );
     stm::fiber s1( f1);
     BOOST_CHECK( ! s1);
     stm::fiber s2( f2);

@@ -25,7 +25,7 @@ lib boost_fibers
       barrier.cpp
       condition.cpp
       count_down_event.cpp
-      detail/default_scheduler.cpp
+      default_scheduler.cpp
       detail/fiber_base.cpp
       fiber.cpp
       manual_reset_event.cpp

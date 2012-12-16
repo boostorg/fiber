@@ -7,7 +7,7 @@
 
 #include <boost/fiber/scheduler.hpp>
 
-#include <boost/fiber/detail/default_scheduler.hpp>
+#include <boost/fiber/default_scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -28,7 +28,7 @@ __thread scheduler * scheduler::instance_ = 0;
 scheduler &
 scheduler::instance()
 {
-    if ( ! instance_) instance_ = new detail::default_scheduler();
+    if ( ! instance_) instance_ = new default_scheduler();
 	return * instance_;
 }
 
