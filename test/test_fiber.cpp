@@ -181,9 +181,9 @@ void test_detach()
     BOOST_CHECK( ! s2);
 }
 
-void test_swap()
+void test_replace()
 {
-    stm::scheduler::swap(
+    stm::scheduler::replace(
         new stm::detail::default_scheduler() );
     stm::fiber s1( f1);
     BOOST_CHECK( ! s1);
@@ -341,7 +341,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_id) );
     test->add( BOOST_TEST_CASE( & test_detach) );
     test->add( BOOST_TEST_CASE( & test_complete) );
-    test->add( BOOST_TEST_CASE( & test_swap) );
+    test->add( BOOST_TEST_CASE( & test_replace) );
     test->add( BOOST_TEST_CASE( & test_cancel) );
     test->add( BOOST_TEST_CASE( & test_join) );
     test->add( BOOST_TEST_CASE( & test_yield_break) );

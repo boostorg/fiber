@@ -100,7 +100,7 @@ private:
 public:
     static scheduler & instance();
 
-    static void swap( scheduler *) BOOST_NOEXCEPT;
+    static scheduler * replace( scheduler *) BOOST_NOEXCEPT;
 
     virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
 
