@@ -21,6 +21,8 @@ void fn( std::string const& str, int n)
 
 int main()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
 	try
 	{
         stm::fiber s1( boost::bind( fn, "abc", 5) );

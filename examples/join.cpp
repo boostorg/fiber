@@ -44,12 +44,15 @@ void fn2( stm::fiber & s)
 
 int main()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
     try
     {
         stm::fiber s1( fn1);
         stm::fiber s2( boost::bind( fn2, boost::ref( s1) ) );
 
-        stm::waitfor_all( s1, s2);
+        s1.join();
+        s2.join();
 
         std::cout << "done." << std::endl;
 

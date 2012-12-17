@@ -117,12 +117,18 @@ void fn2()
 
 void test_wait()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
 	stm::fiber( fn1).join();
     fn1();
 }
 
 void test_try_wait()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
 	stm::fiber( fn2).join();
     fn2();
 }

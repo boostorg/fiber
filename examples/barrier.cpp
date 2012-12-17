@@ -73,6 +73,8 @@ void fn2( stm::barrier & b)
 
 int main()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
 	try
 	{
 		stm::barrier fb( 2);

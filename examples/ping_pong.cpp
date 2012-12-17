@@ -75,13 +75,16 @@ void f()
             boost::bind(
                 & pong, boost::ref( buf2), boost::ref( buf1) ) );
 
-    stm::waitfor_all( s1, s2);
+    s1.join();
+    s2.join();
 
     std::cout << "both channels deactivated" << std::endl;
 }
 
 int main()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
 	try
 	{
 		stm::fiber s( f);

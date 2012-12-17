@@ -33,6 +33,8 @@ void start()
 
 int main()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
 	try
 	{
         stm::fiber( start).join();

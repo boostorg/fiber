@@ -52,6 +52,9 @@ void fn2( stm::barrier & b)
 
 void test_barrier()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     value1 = 0;
     value2 = 0;
 

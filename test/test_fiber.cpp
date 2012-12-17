@@ -125,6 +125,9 @@ void f8( int t, stm::fiber & s, int & i)
 
 void test_move()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     {
         stm::fiber s1;
         BOOST_CHECK( s1.empty() );
@@ -148,6 +151,9 @@ void test_move()
 
 void test_id()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     stm::fiber s1;
     stm::fiber s2( f1);
     BOOST_CHECK( s1.empty() );
@@ -169,6 +175,9 @@ void test_id()
 
 void test_detach()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     stm::fiber s1( f1);
     BOOST_CHECK( ! s1);
     s1.detach();
@@ -182,6 +191,9 @@ void test_detach()
 
 void test_replace()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     stm::scheduler::replace(
         new stm::default_scheduler() );
     stm::fiber s1( f1);
@@ -192,6 +204,9 @@ void test_replace()
 
 void test_complete()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     stm::fiber s1( f1);
     BOOST_CHECK( ! s1);
     stm::fiber s2( f2);
@@ -200,6 +215,9 @@ void test_complete()
 
 void test_cancel()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     {
         stm::fiber s( f2);
         BOOST_CHECK( s);
@@ -221,6 +239,9 @@ void test_cancel()
 
 void test_join()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     {
         stm::fiber s( f2);
         BOOST_CHECK( s);
@@ -257,6 +278,9 @@ void test_join()
 
 void test_yield_break()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     stm::fiber s( f5);
     BOOST_CHECK( ! s);
     BOOST_CHECK( ! stm::run() );
@@ -264,6 +288,9 @@ void test_yield_break()
 
 void test_yield()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
@@ -278,6 +305,9 @@ void test_yield()
 
 void test_sleep()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
@@ -296,6 +326,9 @@ void test_sleep()
 
 void test_sleep_and_cancel()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     {
         int v1 = 0, v2 = 0;
         BOOST_CHECK_EQUAL( 0, v1);

@@ -16,12 +16,8 @@ project boost/fiber/example
       <threading>multi
     ;
 
-exe asio/host : asio/host.cpp ;
 exe barrier : barrier.cpp ;
 exe future : future.cpp ;
 exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe simple : simple.cpp ;
-exe wait_all : wait_all.cpp ;
-exe wait_any_cancel : wait_any_cancel.cpp ;
-exe wait_any : wait_any.cpp ;

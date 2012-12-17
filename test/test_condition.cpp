@@ -198,6 +198,9 @@ void do_test_condition_waits()
 
 void test_one_waiter_notify_one()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
 	value = 0;
 	stm::mutex mtx;
 	stm::condition cond;
@@ -230,6 +233,9 @@ void test_one_waiter_notify_one()
 
 void test_two_waiter_notify_one()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
 	value = 0;
 	stm::mutex mtx;
 	stm::condition cond;
@@ -284,6 +290,9 @@ void test_two_waiter_notify_one()
 
 void test_two_waiter_notify_all()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
 	value = 0;
 	stm::mutex mtx;
 	stm::condition cond;
@@ -353,7 +362,12 @@ void test_two_waiter_notify_all()
 }
 
 void test_condition_waits()
-{ do_test_condition_waits(); }
+{
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
+    do_test_condition_waits();
+}
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {

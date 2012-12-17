@@ -74,6 +74,9 @@ void fn2( stm::mutex & mtx)
 
 void test_locking()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     stm::fiber s( & do_test_mutex);
     BOOST_ASSERT( ! s);
 	BOOST_ASSERT( ! stm::run() );
@@ -81,6 +84,9 @@ void test_locking()
 
 void test_exclusive()
 {
+    stm::default_scheduler ds;
+    stm::scheduler::replace( & ds);
+
     value1 = 0;
     value2 = 0;
 	BOOST_CHECK_EQUAL( 0, value1);

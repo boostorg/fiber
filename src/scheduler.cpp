@@ -7,6 +7,7 @@
 
 #include <boost/fiber/scheduler.hpp>
 
+#include <boost/assert.hpp>
 #include <boost/fiber/default_scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -28,7 +29,7 @@ __thread scheduler * scheduler::instance_ = 0;
 scheduler &
 scheduler::instance()
 {
-    if ( ! instance_) instance_ = new default_scheduler();
+    BOOST_ASSERT( instance_);
 	return * instance_;
 }
 
