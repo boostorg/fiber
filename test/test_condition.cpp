@@ -198,8 +198,8 @@ void do_test_condition_waits()
 
 void test_one_waiter_notify_one()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
 	value = 0;
 	stm::mutex mtx;
@@ -233,8 +233,8 @@ void test_one_waiter_notify_one()
 
 void test_two_waiter_notify_one()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
 	value = 0;
 	stm::mutex mtx;
@@ -290,8 +290,8 @@ void test_two_waiter_notify_one()
 
 void test_two_waiter_notify_all()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
 	value = 0;
 	stm::mutex mtx;
@@ -363,8 +363,8 @@ void test_two_waiter_notify_all()
 
 void test_condition_waits()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     do_test_condition_waits();
 }

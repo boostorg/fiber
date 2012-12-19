@@ -58,8 +58,8 @@ void f3( int t, int & i)
 
 void test_waitfor_all()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
@@ -77,8 +77,8 @@ void test_waitfor_all()
 
 void test_waitfor_any()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
@@ -97,8 +97,8 @@ void test_waitfor_any()
 
 void test_waitfor_any_and_cancel()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);

@@ -74,8 +74,8 @@ void fn2( stm::mutex & mtx)
 
 void test_locking()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber s( & do_test_mutex);
     BOOST_ASSERT( ! s);
@@ -84,8 +84,8 @@ void test_locking()
 
 void test_exclusive()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     value1 = 0;
     value2 = 0;

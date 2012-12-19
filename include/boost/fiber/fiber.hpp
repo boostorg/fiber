@@ -34,21 +34,11 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
-
-class scheduler;
-
-}
-
-class fiber;
-fiber migrate_from();
-void migrate_to( BOOST_RV_REF( fiber) );
 
 class BOOST_FIBERS_DECL fiber
 {
 private:
-    friend fiber migrate_from();
-    friend void migrate_to( BOOST_RV_REF( fiber) );
+    friend void migrate( fiber &);
 
     struct dummy
     { void nonnull() {} };
@@ -63,16 +53,16 @@ private:
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
 
-    fiber( ptr_t const& impl) BOOST_NOEXCEPT :
-        impl_( impl)
-    { BOOST_ASSERT( impl_); }
-
 public:
     typedef detail::fiber_base::id        id;
 
     fiber() BOOST_NOEXCEPT :
         impl_()
     {}
+
+    fiber( ptr_t const& impl) BOOST_NOEXCEPT :
+        impl_( impl)
+    { BOOST_ASSERT( impl_); }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
 #ifdef BOOST_MSVC

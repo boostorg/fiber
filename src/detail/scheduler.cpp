@@ -5,10 +5,9 @@
 
 #define BOOST_FIBERS_SOURCE
 
-#include <boost/fiber/scheduler.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 
 #include <boost/assert.hpp>
-#include <boost/fiber/default_scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -16,32 +15,33 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
 
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
-__declspec(thread) scheduler * scheduler::instance_ = 0;
+__declspec(thread) algorithm * scheduler::instance_ = 0;
 #elif defined(BOOST_MAC_PTHREADS)
 detail::thread_local_ptr scheduler::instance_ = 0;
 #else
-__thread scheduler * scheduler::instance_ = 0;
+__thread algorithm * scheduler::instance_ = 0;
 #endif
 
-scheduler &
+algorithm &
 scheduler::instance()
 {
     BOOST_ASSERT( instance_);
 	return * instance_;
 }
 
-scheduler *
-scheduler::replace( scheduler * other)
+algorithm *
+scheduler::replace( algorithm * other)
 {
-    scheduler * old = instance_;
+    algorithm * old = instance_;
     instance_ = other;
     return old;
 }
 
-}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

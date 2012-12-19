@@ -11,7 +11,7 @@
 #include <boost/assert.hpp>
 
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/scheduler.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -22,41 +22,41 @@ namespace boost {
 namespace fibers {
 
 auto_reset_event::auto_reset_event( bool isset) :
-	state_( isset ? SET : RESET),
+    state_( isset ? SET : RESET),
     waiting_()
 {}
 
 void
 auto_reset_event::wait()
 {
-	while ( SET != state_)
-	{
-	    if ( this_fiber::is_fiberized() )
+    while ( SET != state_)
+    {
+        if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                scheduler::instance().active() );
-            scheduler::instance().wait();
+                detail::scheduler::instance().active() );
+            detail::scheduler::instance().wait();
         }
         else
-            scheduler::instance().run();
-	}
+            detail::scheduler::instance().run();
+    }
     state_ = RESET;
 }
 
 bool
 auto_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
-	while ( SET != state_)
-	{
-	    if ( this_fiber::is_fiberized() )
+    while ( SET != state_)
+    {
+        if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                scheduler::instance().active() );
-            scheduler::instance().sleep( abs_time);
+                detail::scheduler::instance().active() );
+            detail::scheduler::instance().sleep( abs_time);
         }
         else
-            scheduler::instance().run();
-	}
+            detail::scheduler::instance().run();
+    }
     state_ = RESET;
     return chrono::system_clock::now() <= abs_time;
 }
@@ -75,7 +75,7 @@ auto_reset_event::try_wait()
 void
 auto_reset_event::set()
 {
-	if ( ! waiting_.empty() )
+    if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;
         do
@@ -84,7 +84,7 @@ auto_reset_event::set()
             waiting_.pop_front();
         } while ( f->is_complete() );
         if ( f)
-            scheduler::instance().notify( f);
+            detail::scheduler::instance().notify( f);
     }
     state_ = SET;
 }

@@ -5,7 +5,7 @@
 
 #define BOOST_FIBERS_SOURCE
 
-#include <boost/fiber/default_scheduler.hpp>
+#include <boost/fiber/round_robin.hpp>
 
 #include <memory>
 #include <utility>
@@ -31,7 +31,7 @@
 namespace boost {
 namespace fibers {
 
-default_scheduler::default_scheduler() :
+round_robin::round_robin() :
 	active_fiber_(),
 	rqueue_(),
 	wqueue_(),
@@ -39,11 +39,8 @@ default_scheduler::default_scheduler() :
     tp_idx_( wqueue_.get< tp_tag_t >() )
 {}
 
-default_scheduler::~default_scheduler()
-{}
-
 void
-default_scheduler::spawn( detail::fiber_base::ptr_t const& f)
+round_robin::spawn( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( ! f->is_complete() );
@@ -58,7 +55,7 @@ default_scheduler::spawn( detail::fiber_base::ptr_t const& f)
 }
 
 void
-default_scheduler::join( detail::fiber_base::ptr_t const& f)
+round_robin::join( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( ! f->is_complete() );
@@ -67,7 +64,7 @@ default_scheduler::join( detail::fiber_base::ptr_t const& f)
     if ( active_fiber_)
     {
         // store active-fiber as waiting fiber in p
-        // detail::fiber_base::join() calls default_scheduler::wait()
+        // detail::fiber_base::join() calls round_robin::wait()
         // so that active-fiber gets suspended
         f->join( active_fiber_);
         // suspend active-fiber until f becomes complete
@@ -84,7 +81,7 @@ default_scheduler::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-default_scheduler::cancel( detail::fiber_base::ptr_t const& f)
+round_robin::cancel( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != active_fiber_);
@@ -110,7 +107,7 @@ default_scheduler::cancel( detail::fiber_base::ptr_t const& f)
 }
 
 void
-default_scheduler::notify( detail::fiber_base::ptr_t const& f)
+round_robin::notify( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( ! f->is_complete() );
@@ -128,7 +125,7 @@ default_scheduler::notify( detail::fiber_base::ptr_t const& f)
 }
 
 bool
-default_scheduler::run()
+round_robin::run()
 {
     // get all fibers with reached dead-line and push them
     // at the front of runnable-queue
@@ -162,7 +159,7 @@ default_scheduler::run()
 }
 
 void
-default_scheduler::wait()
+round_robin::wait()
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( ! active_fiber_->is_complete() );
@@ -179,7 +176,7 @@ default_scheduler::wait()
 }
 
 void
-default_scheduler::yield()
+round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( ! active_fiber_->is_complete() );
@@ -195,7 +192,7 @@ default_scheduler::yield()
 }
 
 void
-default_scheduler::sleep( chrono::system_clock::time_point const& abs_time)
+round_robin::sleep( chrono::system_clock::time_point const& abs_time)
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( ! active_fiber_->is_complete() );

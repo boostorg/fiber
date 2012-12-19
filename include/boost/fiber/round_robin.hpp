@@ -17,7 +17,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber.hpp>
-#include <boost/fiber/scheduler.hpp>
+#include <boost/fiber/algorithm.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -31,7 +31,7 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL default_scheduler : public scheduler
+class BOOST_FIBERS_DECL round_robin : public algorithm
 {
 private:
     struct schedulable
@@ -80,7 +80,22 @@ private:
     tp_idx_t                &   tp_idx_;
 
 public:
-    default_scheduler();
+    typedef rqueue_t::iterator          iterator;
+    typedef rqueue_t::const_iterator    const_iterator;
+
+    round_robin() BOOST_NOEXCEPT;
+
+    iterator begin()
+    { return rqueue_.begin(); }
+
+    const_iterator begin() const
+    { return rqueue_.begin(); }
+
+    iterator end()
+    { return rqueue_.end(); }
+
+    const_iterator end() const
+    { return rqueue_.end(); }
 
     void spawn( detail::fiber_base::ptr_t const&);
 
@@ -101,7 +116,8 @@ public:
 
     void yield();
 
-    ~default_scheduler();
+    void migrate( detail::fiber_base::ptr_t const& f)
+    { rqueue_.push_back( f); }
 };
 
 }}

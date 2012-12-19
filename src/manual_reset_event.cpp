@@ -11,7 +11,7 @@
 #include <boost/assert.hpp>
 #include <boost/foreach.hpp>
 
-#include <boost/fiber/scheduler.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -22,78 +22,78 @@ namespace boost {
 namespace fibers {
 
 manual_reset_event::manual_reset_event( bool isset) :
-	state_( isset ? SET : RESET),
-	waiters_( 0),
-	enter_mtx_( false),
+    state_( isset ? SET : RESET),
+    waiters_( 0),
+    enter_mtx_( false),
     waiting_()
 {}
 
 void
 manual_reset_event::wait()
 {
-	{
-		mutex::scoped_lock lk( enter_mtx_);
+    {
+        mutex::scoped_lock lk( enter_mtx_);
         BOOST_ASSERT( lk);
-		++waiters_;
-	}
+        ++waiters_;
+    }
 
-	while ( RESET == state_)
-	{
-	    if ( this_fiber::is_fiberized() )
+    while ( RESET == state_)
+    {
+        if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                scheduler::instance().active() );
-            scheduler::instance().wait();
+                detail::scheduler::instance().active() );
+            detail::scheduler::instance().wait();
         }
         else
-            scheduler::instance().run();
-	}
+            detail::scheduler::instance().run();
+    }
 
-	if ( 0 == --waiters_)
-		enter_mtx_.unlock();
+    if ( 0 == --waiters_)
+        enter_mtx_.unlock();
 }
 
 bool
 manual_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
-	{
-		mutex::scoped_lock lk( enter_mtx_);
+    {
+        mutex::scoped_lock lk( enter_mtx_);
         BOOST_ASSERT( lk);
-		++waiters_;
-	}
+        ++waiters_;
+    }
 
-	while ( RESET == state_)
-	{
-	    if ( this_fiber::is_fiberized() )
+    while ( RESET == state_)
+    {
+        if ( this_fiber::is_fiberized() )
         {
             waiting_.push_back(
-                scheduler::instance().active() );
-            scheduler::instance().sleep( abs_time);
+                detail::scheduler::instance().active() );
+            detail::scheduler::instance().sleep( abs_time);
         }
         else
-            scheduler::instance().run();
-	}
+            detail::scheduler::instance().run();
+    }
 
-	if ( 0 == --waiters_)
-		enter_mtx_.unlock();
+    if ( 0 == --waiters_)
+        enter_mtx_.unlock();
     return chrono::system_clock::now() <= abs_time;
 }
 
 bool
 manual_reset_event::try_wait()
 {
-	{
-		mutex::scoped_lock lk( enter_mtx_);
-		BOOST_ASSERT( lk);
-		++waiters_;
-	}
+    {
+        mutex::scoped_lock lk( enter_mtx_);
+        BOOST_ASSERT( lk);
+        ++waiters_;
+    }
 
-	bool result = SET == state_;
+    bool result = SET == state_;
 
-	if ( 0 == --waiters_)
-		enter_mtx_.unlock();
+    if ( 0 == --waiters_)
+        enter_mtx_.unlock();
 
-	return result;
+    return result;
 }
 
 void
@@ -108,7 +108,7 @@ manual_reset_event::set()
         BOOST_FOREACH ( detail::fiber_base::ptr_t const& f, waiting_)
         {
             if ( ! f->is_complete() )
-                scheduler::instance().notify( f);
+                detail::scheduler::instance().notify( f);
         }
         waiting_.clear();
     }

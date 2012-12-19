@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_SCHEDULER_H
-#define BOOST_FIBERS_SCHEDULER_H
+#ifndef BOOST_FIBERS_DETAIL_SCHEDULER_H
+#define BOOST_FIBERS_DETAIL_SCHEDULER_H
 
 #if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
 #include <pthread.h>                // pthread_key_create, pthread_[gs]etspecific
@@ -15,6 +15,7 @@
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
+#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -29,14 +30,11 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
 
 // thread_local_ptr was a contribution from
 // Nat Goodspeed
 #if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-class scheduler;
-
-namespace detail {
-
 class thread_local_ptr : private noncopyable
 {
 private:
@@ -51,22 +49,22 @@ public:
     thread_local_ptr() BOOST_NOEXCEPT
     { BOOST_ASSERT( ! ::pthread_key_create( & key_, 0) ); }
 
-    scheduler * get() const BOOST_NOEXCEPT
-    { return static_cast< scheduler * >( ::pthread_getspecific( key_) ); }
+    algorithm * get() const BOOST_NOEXCEPT
+    { return static_cast< algorithm * >( ::pthread_getspecific( key_) ); }
 
-    thread_local_ptr & operator=( scheduler * ptr) BOOST_NOEXCEPT
+    thread_local_ptr & operator=( algorithm * ptr) BOOST_NOEXCEPT
     {
         ::pthread_setspecific( key_, ptr);
         return * this;
     }
 
-    scheduler & operator*() const BOOST_NOEXCEPT
+    algorithm & operator*() const BOOST_NOEXCEPT
     { return * get(); }
 
-    scheduler * operator->() const BOOST_NOEXCEPT
+    algorithm * operator->() const BOOST_NOEXCEPT
     { return get(); }
 
-    operator scheduler * () const BOOST_NOEXCEPT
+    operator algorithm * () const BOOST_NOEXCEPT
     { return get(); }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -90,40 +88,20 @@ class BOOST_FIBERS_DECL scheduler : private noncopyable
 private:
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
-    static __declspec(thread) scheduler     *   instance_;
+    static __declspec(thread) algorithm     *   instance_;
 #elif defined(BOOST_MAC_PTHREADS)
     static detail::thread_local_ptr             instance_;
 #else
-    static __thread scheduler               *   instance_;
+    static __thread algorithm               *   instance_;
 #endif
 
 public:
-    static scheduler & instance();
+    static algorithm & instance();
 
-    static scheduler * replace( scheduler *) BOOST_NOEXCEPT;
-
-    virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
-
-    virtual void join( detail::fiber_base::ptr_t const&) = 0;
-
-    virtual void cancel( detail::fiber_base::ptr_t const&) = 0;
-
-    virtual void notify( detail::fiber_base::ptr_t const&) = 0;
-
-    virtual detail::fiber_base::ptr_t active() = 0;
-
-    virtual void sleep( chrono::system_clock::time_point const& abs_time) = 0;
-
-    virtual bool run() = 0;
-
-    virtual void wait() = 0;
-
-    virtual void yield() = 0;
-
-    virtual ~scheduler() {}
+    static algorithm * replace( algorithm *) BOOST_NOEXCEPT;
 };
 
-}}
+}}}
 
 # if defined(BOOST_MSVC)
 # pragma warning(pop)
@@ -133,4 +111,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_SCHEDULER_H
+#endif // BOOST_FIBERS_DETAIL_SCHEDULER_H

@@ -360,8 +360,8 @@ void try_lock_five()
 
 void test_lock_two_uncontended()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock_two_uncontended).join();
     lock_two_uncontended();
@@ -369,8 +369,8 @@ void test_lock_two_uncontended()
 
 void test_lock_five_uncontended()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock_five_uncontended).join();
     lock_five_uncontended();
@@ -378,8 +378,8 @@ void test_lock_five_uncontended()
 
 void test_lock_five_in_range()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock_five_in_range).join();
     lock_five_in_range();
@@ -387,8 +387,8 @@ void test_lock_five_in_range()
 
 void test_lock_ten_in_range()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock_ten_in_range).join();
     lock_ten_in_range();
@@ -396,8 +396,8 @@ void test_lock_ten_in_range()
 
 void test_try_lock_two_uncontended()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_two_uncontended).join();
     try_lock_two_uncontended();
@@ -405,8 +405,8 @@ void test_try_lock_two_uncontended()
 
 void test_try_lock_two_first_locked()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_two_first_locked).join();
     try_lock_two_first_locked();
@@ -414,8 +414,8 @@ void test_try_lock_two_first_locked()
 
 void test_try_lock_two_second_locked()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_two_second_locked).join();
     try_lock_two_second_locked();
@@ -423,8 +423,8 @@ void test_try_lock_two_second_locked()
 
 void test_try_lock_three()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_three).join();
     try_lock_three();
@@ -432,8 +432,8 @@ void test_try_lock_three()
 
 void test_try_lock_four()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_four).join();
     try_lock_four();
@@ -441,8 +441,8 @@ void test_try_lock_four()
 
 void test_try_lock_five()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_five).join();
     try_lock_five();

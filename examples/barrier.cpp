@@ -73,7 +73,7 @@ void fn2( stm::barrier & b)
 
 int main()
 {
-    stm::default_scheduler ds;
+    stm::round_robin ds;
     stm::scheduler::replace( & ds);
 	try
 	{

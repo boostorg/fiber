@@ -184,8 +184,8 @@ void swap()
 
 void test_lock()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock).join();
     lock();
@@ -193,8 +193,8 @@ void test_lock()
 
 void test_defer_lock()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( defer_lock).join();
     defer_lock();
@@ -202,8 +202,8 @@ void test_defer_lock()
 
 void test_adopt_lock()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( adopt_lock).join();
     adopt_lock();
@@ -211,8 +211,8 @@ void test_adopt_lock()
 
 void test_try_lock()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock).join();
     try_lock();
@@ -220,8 +220,8 @@ void test_try_lock()
 
 void test_lock_twice()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock_twice).join();
     lock_twice();
@@ -229,8 +229,8 @@ void test_lock_twice()
 
 void test_try_lock_twice()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_twice).join();
     try_lock_twice();
@@ -238,8 +238,8 @@ void test_try_lock_twice()
 
 void test_unlock_twice()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( unlock_twice).join();
     unlock_twice();
@@ -247,8 +247,8 @@ void test_unlock_twice()
 
 void test_default_ctor()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( default_ctor).join();
     default_ctor();
@@ -256,8 +256,8 @@ void test_default_ctor()
 
 void test_lock_concept()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( lock_concept).join();
     lock_concept();
@@ -265,8 +265,8 @@ void test_lock_concept()
 
 void test_try_lock_concept()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( try_lock_concept).join();
     try_lock_concept();
@@ -274,8 +274,8 @@ void test_try_lock_concept()
 
 void test_swap()
 {
-    stm::default_scheduler ds;
-    stm::scheduler::replace( & ds);
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
 
     stm::fiber( swap).join();
     swap();

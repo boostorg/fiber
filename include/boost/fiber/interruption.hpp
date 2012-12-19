@@ -14,7 +14,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/interrupt_flags.hpp>
-#include <boost/fiber/scheduler.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX

@@ -10,7 +10,7 @@
 
 #include <boost/foreach.hpp>
 
-#include <boost/fiber/scheduler.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -27,7 +27,7 @@ fiber_base::notify_()
     BOOST_ASSERT( ! is_resumed() );
 
     BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
-    { boost::fibers::scheduler::instance().notify( p); }
+    { boost::fibers::detail::scheduler::instance().notify( p); }
     joining_.clear();
 }
 
