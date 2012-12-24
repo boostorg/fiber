@@ -74,10 +74,6 @@ inline
 algorithm * scheduling_algorithm( algorithm * al)
 { return detail::scheduler::replace( al); }
 
-inline
-void migrate( fiber & f)
-{ detail::scheduler::instance().migrate( f.impl_); }
-
 #if 0
 #define BOOST_FIBERS_WAITFOR_FIBER_FN_ARG(z,n,unused) \
     fiber & BOOST_PP_CAT(f,n)

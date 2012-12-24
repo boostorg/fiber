@@ -108,7 +108,7 @@ public:
     detail::fiber_base::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
-    void sleep( chrono::system_clock::time_point const& abs_time);
+    void sleep( chrono::system_clock::time_point const&);
 
     bool run();
 
@@ -116,8 +116,9 @@ public:
 
     void yield();
 
-    void migrate( detail::fiber_base::ptr_t const& f)
-    { rqueue_.push_back( f); }
+    void migrate_to( detail::fiber_base::ptr_t const&);
+
+    detail::fiber_base::ptr_t migrate_from();
 };
 
 }}

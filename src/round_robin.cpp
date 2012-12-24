@@ -211,6 +211,28 @@ round_robin::sleep( chrono::system_clock::time_point const& abs_time)
     BOOST_ASSERT( active_fiber_->is_resumed() );
 }
 
+void
+round_robin::migrate_to( detail::fiber_base::ptr_t const& f)
+{
+    BOOST_ASSERT( f);
+
+    rqueue_.push_back( f);
+}
+
+detail::fiber_base::ptr_t
+round_robin::migrate_from()
+{
+    detail::fiber_base::ptr_t f;
+
+    if ( ! rqueue_.empty() )
+    {
+        f.swap( rqueue_.front() );
+        rqueue_.pop_front();
+    }
+
+    return f;
+}
+
 }}
 
 #undef RESUME_FIBER
