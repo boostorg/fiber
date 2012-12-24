@@ -24,10 +24,27 @@ void
 fiber::spawn_( ptr_t & f)
 { detail::scheduler::instance().spawn( f); }
 
+int
+fiber::priority() const
+{
+    BOOST_ASSERT( impl_);
+
+    return impl_->priority();
+}
+
+void
+fiber::priority( int prio)
+{
+    BOOST_ASSERT( impl_);
+
+    impl_->priority( prio);
+}
+
 void
 fiber::cancel()
 {
     BOOST_ASSERT( impl_);
+
     detail::scheduler::instance().cancel( impl_);
 }
 
@@ -35,6 +52,7 @@ bool
 fiber::join()
 {
     BOOST_ASSERT( impl_);
+
     if ( ! impl_->is_complete() )
         detail::scheduler::instance().join( impl_);
     BOOST_ASSERT( impl_->is_complete() );

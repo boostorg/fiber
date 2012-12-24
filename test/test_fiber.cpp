@@ -149,6 +149,17 @@ void test_move()
     }
 }
 
+void test_priority()
+{
+    stm::round_robin ds;
+    stm::scheduling_algorithm( & ds);
+
+    stm::fiber f( f2);
+    BOOST_CHECK_EQUAL( 0, f.priority() );
+    f.priority( 7);
+    BOOST_CHECK_EQUAL( 7, f.priority() );
+}
+
 void test_id()
 {
     stm::round_robin ds;
@@ -371,6 +382,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
     test->add( BOOST_TEST_CASE( & test_move) );
     test->add( BOOST_TEST_CASE( & test_id) );
+    test->add( BOOST_TEST_CASE( & test_priority) );
     test->add( BOOST_TEST_CASE( & test_detach) );
     test->add( BOOST_TEST_CASE( & test_complete) );
     test->add( BOOST_TEST_CASE( & test_replace) );

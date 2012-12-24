@@ -35,6 +35,7 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool unwind, bool preserve
     use_count_( 0),
     caller_(),
     callee_( callee),
+    priority_( 0),
     flags_( 0),
     except_(),
     joining_()

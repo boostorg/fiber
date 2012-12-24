@@ -43,6 +43,7 @@ private:
     std::size_t             use_count_;
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
+    int                     priority_;
     int                     flags_;
     exception_ptr           except_;
     std::vector< ptr_t >    joining_;
@@ -111,6 +112,12 @@ public:
 
     id get_id() const BOOST_NOEXCEPT
     { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
+
+    int priority() const BOOST_NOEXCEPT
+    { return priority_; }
+
+    void priority( int prio) BOOST_NOEXCEPT
+    { priority_ = prio; }
 
     void resume();
 
