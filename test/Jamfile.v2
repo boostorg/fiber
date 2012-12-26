@@ -35,4 +35,5 @@ test-suite fibers :
     [ fiber-test test_manual_reset_event ]
     [ fiber-test test_count_down_event ]
     [ fiber-test test_futures ]
-    ;
+    [ fiber-test test_then ]
+;

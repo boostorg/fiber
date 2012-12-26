@@ -31,6 +31,7 @@
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/type_traits/is_fundamental.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/utility/result_of.hpp>
 
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
@@ -97,6 +98,22 @@ namespace fibers {
 
     namespace detail
     {
+        struct future_continuation_base
+        {
+            future_continuation_base() {}
+
+            virtual ~future_continuation_base() {}
+
+            virtual void do_continuation(boost::unique_lock<boost::fibers::mutex>& ) {};
+
+        private:
+            future_continuation_base(future_continuation_base const&);
+            future_continuation_base& operator=(future_continuation_base const&);
+        };
+
+        template <typename F, typename R, typename C>
+        struct future_continuation;
+
         struct future_object_base
         {
             boost::exception_ptr exception;
@@ -106,6 +123,7 @@ namespace fibers {
             typedef std::list<boost::fibers::condition*> waiter_list;
             waiter_list external_waiters;
             boost::function<void()> callback;
+            shared_ptr<future_continuation_base>    continuation_ptr;
 
             future_object_base():
                 done(false)
@@ -126,7 +144,23 @@ namespace fibers {
                 external_waiters.erase(it);
             }
 
-            void mark_finished_internal()
+            void do_continuation(boost::unique_lock<boost::fibers::mutex>& lock)
+            {
+                if (continuation_ptr) {
+                    continuation_ptr->do_continuation(lock);
+                }
+            }
+
+            void set_continuation_ptr(future_continuation_base* continuation,
+                    boost::unique_lock<boost::fibers::mutex>& lock)
+            {
+                continuation_ptr.reset(continuation);
+                if (done) {
+                    do_continuation(lock);
+                }
+            }
+
+            void mark_finished_internal(boost::unique_lock<boost::fibers::mutex>& lock)
             {
                 done=true;
                 waiters.notify_all();
@@ -135,6 +169,13 @@ namespace fibers {
                 {
                     (*it)->notify_all();
                 }
+                do_continuation(lock);
+            }
+
+            void make_ready()
+            {
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
+                mark_finished_internal(lock);
             }
 
             struct relocker
@@ -201,15 +242,16 @@ namespace fibers {
                 return true;
             }
 
-            void mark_exceptional_finish_internal(boost::exception_ptr const& e)
+            void mark_exceptional_finish_internal(boost::exception_ptr const& e,
+                                          boost::unique_lock<boost::fibers::mutex>& lock)
             {
                 exception=e;
-                mark_finished_internal();
+                mark_finished_internal(lock);
             }
             void mark_exceptional_finish()
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
-                mark_exceptional_finish_internal(boost::current_exception());
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
+                mark_exceptional_finish_internal(boost::current_exception(),lock);
             }
 
             bool has_value()
@@ -318,26 +360,26 @@ namespace fibers {
                 result(0)
             {}
 
-            void mark_finished_with_result_internal(source_reference_type result_)
+            void mark_finished_with_result_internal(source_reference_type result_, boost::unique_lock<boost::fibers::mutex>& lock)
             {
                 future_traits<T>::init(result,result_);
-                mark_finished_internal();
+                mark_finished_internal(lock);
             }
-            void mark_finished_with_result_internal(rvalue_source_type result_)
+            void mark_finished_with_result_internal(rvalue_source_type result_, boost::unique_lock<boost::fibers::mutex>& lock)
             {
                 future_traits<T>::init(result,static_cast<rvalue_source_type>(result_));
-                mark_finished_internal();
+                mark_finished_internal( lock);
             }
 
             void mark_finished_with_result(source_reference_type result_)
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
-                mark_finished_with_result_internal(result_);
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
+                mark_finished_with_result_internal(result_, lock);
             }
             void mark_finished_with_result(rvalue_source_type result_)
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
-                mark_finished_with_result_internal(result_);
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
+                mark_finished_with_result_internal(result_, lock);
             }
 
             move_dest_type get()
@@ -371,15 +413,15 @@ namespace fibers {
             future_object()
             {}
 
-            void mark_finished_with_result_internal()
+            void mark_finished_with_result_internal(boost::unique_lock<boost::fibers::mutex>& lock)
             {
-                mark_finished_internal();
+                mark_finished_internal(lock);
             }
 
             void mark_finished_with_result()
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
-                mark_finished_with_result_internal();
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
+                mark_finished_with_result_internal(lock);
             }
 
             void get()
@@ -511,6 +553,47 @@ namespace fibers {
     template <typename R>
     class packaged_task;
 
+    namespace detail {
+
+        template <typename F, typename R, typename C>
+            struct future_continuation : future_continuation_base
+        {
+            F& parent;
+            C continuation;
+            promise<R> next;
+
+            future_continuation(F& f, BOOST_THREAD_FWD_REF(C) c) :
+                parent(f),
+                continuation(boost::forward<C>(c)),
+                next()
+            {}
+
+            ~future_continuation()
+            {}
+
+            void do_continuation(boost::unique_lock<boost::fibers::mutex>& lk)
+            {
+                try
+                {
+                    lk.unlock();
+                    {
+                        R val = continuation(parent);
+                        next.set_value(boost::move(val));
+                    }
+                }
+                catch (...)
+                {
+                    next.set_exception(boost::current_exception());
+                }
+            }
+        private:
+
+            future_continuation(future_continuation const&);
+            future_continuation& operator=(future_continuation const&);
+        };
+
+    }
+
     template <typename R>
     class unique_future
     {
@@ -522,6 +605,8 @@ namespace fibers {
         friend class promise<R>;
         friend class packaged_task<R>;
         friend class detail::future_waiter;
+        template <typename A, typename B, typename C>
+        friend struct detail::future_continuation;
 
         typedef typename detail::future_traits<R>::move_dest_type move_dest_type;
 
@@ -632,6 +717,49 @@ namespace fibers {
             return future->timed_wait_until(abs_time);
         }
 
+        template<typename RF>
+        unique_future<RF>
+        then(RF(*func)(unique_future< R >&))
+        {
+            typedef RF future_type;
+
+            if (future)
+            {
+                boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
+                detail::future_continuation<unique_future<R>, future_type, RF(*)(unique_future&) > *ptr =
+                    new detail::future_continuation<unique_future<R>, future_type, RF(*)(unique_future&)>(*this, func);
+                if (ptr==0) return unique_future<future_type>();
+                future->set_continuation_ptr(ptr, lock);
+                return ptr->next.get_future();
+            }
+            else
+            {
+                // fixme what to do when the future has no associated state?
+                return unique_future<future_type>();
+            }
+        }
+
+        template<typename F>
+        unique_future<typename boost::result_of<F(unique_future<R>&)>::type>
+        then(BOOST_RV_REF(F) func)
+        {
+            typedef typename boost::result_of<F(unique_future<R>&)>::type future_type;
+
+            if (future)
+            {
+                boost::unique_lock<boost::fibers::mutex> lock(future->mtx);
+                detail::future_continuation<unique_future<R>, future_type, F > *ptr =
+                    new detail::future_continuation<unique_future<R>, future_type, F>(*this, boost::forward<F>(func));
+                if (ptr==0) return unique_future<future_type>();
+                future->set_continuation_ptr(ptr, lock);
+                return ptr->next.get_future();
+            }
+            else
+            {
+                // fixme what to do when the future has no associated state?
+                return unique_future<future_type>();
+            }
+        }
     };
 
     template <typename R>
@@ -818,11 +946,11 @@ namespace fibers {
         {
             if(future)
             {
-                boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+                boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
 
                 if(!future->done)
                 {
-                    future->mark_exceptional_finish_internal(boost::copy_exception(broken_promise()));
+                    future->mark_exceptional_finish_internal(boost::copy_exception(broken_promise()),lock);
                 }
             }
         }
@@ -881,35 +1009,35 @@ namespace fibers {
         void set_value(typename detail::future_traits<R>::source_reference_type r)
         {
             lazy_init();
-            boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+            boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
             if(future->done)
             {
                 boost::throw_exception(promise_already_satisfied());
             }
-            future->mark_finished_with_result_internal(r);
+            future->mark_finished_with_result_internal(r, lock);
         }
 
 //         void set_value(R && r);
         void set_value(typename detail::future_traits<R>::rvalue_source_type r)
         {
             lazy_init();
-            boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+            boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
             if(future->done)
             {
                 boost::throw_exception(promise_already_satisfied());
             }
-            future->mark_finished_with_result_internal(static_cast<typename detail::future_traits<R>::rvalue_source_type>(r));
+            future->mark_finished_with_result_internal(static_cast<typename detail::future_traits<R>::rvalue_source_type>(r), lock);
         }
 
         void set_exception(boost::exception_ptr p)
         {
             lazy_init();
-            boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+            boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
             if(future->done)
             {
                 boost::throw_exception(promise_already_satisfied());
             }
-            future->mark_exceptional_finish_internal(p);
+            future->mark_exceptional_finish_internal(p, lock);
         }
 
         template<typename F>
@@ -950,11 +1078,11 @@ namespace fibers {
         {
             if(future)
             {
-                boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+                boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
 
                 if(!future->done)
                 {
-                    future->mark_exceptional_finish_internal(boost::copy_exception(broken_promise()));
+                    future->mark_exceptional_finish_internal(boost::copy_exception(broken_promise()),lock);
                 }
             }
         }
@@ -1014,23 +1142,23 @@ namespace fibers {
         void set_value()
         {
             lazy_init();
-            boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+            boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
             if(future->done)
             {
                 boost::throw_exception(promise_already_satisfied());
             }
-            future->mark_finished_with_result_internal();
+            future->mark_finished_with_result_internal( lock);
         }
 
         void set_exception(boost::exception_ptr p)
         {
             lazy_init();
-            boost::lock_guard<boost::fibers::mutex> lock(future->mutex);
+            boost::unique_lock<boost::fibers::mutex> lock(future->mutex);
             if(future->done)
             {
                 boost::throw_exception(promise_already_satisfied());
             }
-            future->mark_exceptional_finish_internal(p);
+            future->mark_exceptional_finish_internal(p,lock);
         }
 
         template<typename F>
@@ -1069,11 +1197,11 @@ namespace fibers {
 
             void owner_destroyed()
             {
-                boost::lock_guard<boost::fibers::mutex> lk(this->mutex);
+                boost::unique_lock<boost::fibers::mutex> lk(this->mutex);
                 if(!started)
                 {
                     started=true;
-                    this->mark_exceptional_finish_internal(boost::copy_exception(boost::fibers::broken_promise()));
+                    this->mark_exceptional_finish_internal(boost::copy_exception(boost::fibers::broken_promise()),lk);
                 }
             }
             
@@ -1242,6 +1370,32 @@ namespace fibers {
         }
         
     };
+
+    template <class R>
+    unique_future<R> async(R(*f)())
+    {
+        typedef packaged_task<R> packaged_task_type;
+
+        packaged_task_type pt( f);
+        unique_future<R> ret = pt.get_future();
+        fiber( boost::move(pt) );
+
+        return boost::move( ret);
+    }
+
+    template <class F>
+    unique_future<typename boost::result_of<typename decay<F>::type()>::type>
+    async(BOOST_RV_REF(F) f)
+    {
+        typedef typename boost::result_of<typename decay<F>::type()>::type R;
+        typedef packaged_task<R> packaged_task_type;
+
+        packaged_task_type pt( boost::forward<F>(f) );
+        unique_future<R> ret = pt.get_future();
+        fiber( boost::move(pt) );
+
+        return boost::move( ret);
+    }
 
 #define BOOST_FIBERS_WAITFOR_FUTURE_FN_ARG(z,n,unused) \
     BOOST_PP_CAT(F,n) & BOOST_PP_CAT(f,n)
