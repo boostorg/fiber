@@ -21,9 +21,6 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 int value = 0;
 
 inline
@@ -41,8 +38,8 @@ struct condition_test_data
 {
     condition_test_data() : notified(0), awoken(0) { }
 
-    stm::mutex mutex;
-    stm::condition condition;
+    boost::fibers::mutex mutex;
+    boost::fibers::condition condition;
     int notified;
     int awoken;
 };
@@ -60,28 +57,28 @@ private:
     
 };
 
-void notify_one_fn( stm::condition & cond)
+void notify_one_fn( boost::fibers::condition & cond)
 {
 	cond.notify_one();
 }
 
-void notify_all_fn( stm::condition & cond)
+void notify_all_fn( boost::fibers::condition & cond)
 {
 	cond.notify_all();
 }
 
 void wait_fn(
-	stm::mutex & mtx,
-	stm::condition & cond)
+	boost::fibers::mutex & mtx,
+	boost::fibers::condition & cond)
 {
-	stm::mutex::scoped_lock lk( mtx);
+	boost::fibers::mutex::scoped_lock lk( mtx);
 	cond.wait( lk);
 	++value;
 }
 
 void condition_test_waits( condition_test_data * data)
 {
-    stm::mutex::scoped_lock lock( data->mutex);
+    boost::fibers::mutex::scoped_lock lock( data->mutex);
     BOOST_CHECK( lock ? true : false);
 
     // Test wait.
@@ -141,11 +138,11 @@ void do_test_condition_waits()
 {
     condition_test_data data;
 
-    stm::fiber s(
+    boost::fibers::fiber s(
             boost::bind( & condition_test_waits, & data) );
 
     {
-        stm::mutex::scoped_lock lock( data.mutex);
+        boost::fibers::mutex::scoped_lock lock( data.mutex);
         BOOST_CHECK(lock ? true : false);
 
         fprintf( stderr, "main increments data.notified\n");
@@ -198,173 +195,173 @@ void do_test_condition_waits()
 
 void test_one_waiter_notify_one()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
 	value = 0;
-	stm::mutex mtx;
-	stm::condition cond;
+	boost::fibers::mutex mtx;
+	boost::fibers::condition cond;
 
-    stm::fiber s1(
+    boost::fibers::fiber s1(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	stm::fiber s2(
+	boost::fibers::fiber s2(
             boost::bind(
                 notify_one_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 }
 
 void test_two_waiter_notify_one()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
 	value = 0;
-	stm::mutex mtx;
-	stm::condition cond;
+	boost::fibers::mutex mtx;
+	boost::fibers::condition cond;
 
-    stm::fiber s1(
+    boost::fibers::fiber s1(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    stm::fiber s2(
+    boost::fibers::fiber s2(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    stm::fiber s3(
+    boost::fibers::fiber s3(
             boost::bind(
                 notify_one_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 
-    stm::fiber s4(
+    boost::fibers::fiber s4(
             boost::bind(
                 notify_one_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 }
 
 void test_two_waiter_notify_all()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
 	value = 0;
-	stm::mutex mtx;
-	stm::condition cond;
+	boost::fibers::mutex mtx;
+	boost::fibers::condition cond;
 
-    stm::fiber s1(
+    boost::fibers::fiber s1(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    stm::fiber s2(
+    boost::fibers::fiber s2(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    stm::fiber s3(
+    boost::fibers::fiber s3(
             boost::bind(
                 notify_all_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 
-    stm::fiber s4(
+    boost::fibers::fiber s4(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 2, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 
-    stm::fiber s5(
+    boost::fibers::fiber s5(
             boost::bind(
                 notify_all_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 2, value);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 3, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 3, value);
 }
 
 void test_condition_waits()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     do_test_condition_waits();
 }
@@ -372,7 +369,7 @@ void test_condition_waits()
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: condition test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: condition test suite");
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );

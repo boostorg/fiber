@@ -19,12 +19,9 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 int value = 0;
 
-void wait_fn( stm::auto_reset_event & ev)
+void wait_fn( boost::fibers::auto_reset_event & ev)
 {
 	ev.wait();
 	++value;
@@ -33,40 +30,40 @@ void wait_fn( stm::auto_reset_event & ev)
 void fn1()
 {
 	value = 0;
-	stm::auto_reset_event ev;
+	boost::fibers::auto_reset_event ev;
 
-	stm::fiber s1(
+	boost::fibers::fiber s1(
             boost::bind(
                 wait_fn,
                 boost::ref( ev) ) );
 	BOOST_CHECK( s1);
 	BOOST_CHECK_EQUAL( 0, value);
 
-	stm::fiber s2(
+	boost::fibers::fiber s2(
             boost::bind(
                 wait_fn,
                 boost::ref( ev) ) );
 	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK( s1);
 	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 0, value);
 
 	ev.set();
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK( ! s1);
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 1, value);
 
 	ev.set();
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK( ! s2);
 	BOOST_CHECK_EQUAL( 2, value);
 }
@@ -74,36 +71,36 @@ void fn1()
 void fn2()
 {
 	value = 0;
-	stm::auto_reset_event ev( true);
+	boost::fibers::auto_reset_event ev( true);
 
-	stm::fiber s1(
+	boost::fibers::fiber s1(
             boost::bind(
                 wait_fn,
                 boost::ref( ev) ) );
 	BOOST_CHECK( ! s1);
 	BOOST_CHECK_EQUAL( 1, value);
 
-	stm::fiber s2(
+	boost::fibers::fiber s2(
             boost::bind(
                 wait_fn,
                 boost::ref( ev) ) );
 	BOOST_CHECK( s2);
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 	BOOST_CHECK( s2);
 
     ev.set();
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 	BOOST_CHECK( ! s2);
 }
 
 void fn3()
 {
-	stm::auto_reset_event ev;
+	boost::fibers::auto_reset_event ev;
 
 	BOOST_CHECK_EQUAL( false, ev.try_wait() );
 
@@ -115,35 +112,35 @@ void fn3()
 
 void test_wait_set()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( fn1).join();
+    boost::fibers::fiber( fn1).join();
     fn1();
 }
 
 void test_wait_reset()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( fn2).join();
+    boost::fibers::fiber( fn2).join();
     fn2();
 }
 
 void test_try_wait()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( fn3).join();
+    boost::fibers::fiber( fn3).join();
     fn3();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: auto_reset_event test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: auto_reset_event test suite");
 
 	test->add( BOOST_TEST_CASE( & test_wait_set) );
 	test->add( BOOST_TEST_CASE( & test_wait_reset) );

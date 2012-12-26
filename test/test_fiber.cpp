@@ -15,9 +15,6 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 class copyable
 {
 private:
@@ -72,11 +69,11 @@ public:
 void f1() {}
 
 void f2()
-{ this_stm::yield(); }
+{ boost::this_fiber::yield(); }
 
 void f3()
 {
-    stm::fiber s( f2);
+    boost::fibers::fiber s( f2);
     BOOST_CHECK( s);
     s.cancel();
     BOOST_CHECK( ! s);
@@ -84,7 +81,7 @@ void f3()
 
 void f4()
 {
-    stm::fiber s( f2);
+    boost::fibers::fiber s( f2);
     BOOST_CHECK( s);
     //BOOST_CHECK( s.is_joinable() );
     BOOST_CHECK( s.join() );
@@ -93,45 +90,45 @@ void f4()
 }
 
 void f5()
-{ this_stm::yield_break(); }
+{ boost::this_fiber::yield_break(); }
 
 void f6( int & i)
 {
     i = 1;
-    this_stm::yield();
+    boost::this_fiber::yield();
     i = 1;
-    this_stm::yield();
+    boost::this_fiber::yield();
     i = 2;
-    this_stm::yield();
+    boost::this_fiber::yield();
     i = 3;
-    this_stm::yield();
+    boost::this_fiber::yield();
     i = 5;
-    this_stm::yield();
+    boost::this_fiber::yield();
     i = 8;
 }
 
 void f7( int t, int & i)
 {
-    this_stm::sleep( boost::chrono::seconds( t) );
+    boost::this_fiber::sleep( boost::chrono::seconds( t) );
     i = 7;
 }
 
-void f8( int t, stm::fiber & s, int & i)
+void f8( int t, boost::fibers::fiber & s, int & i)
 {
-    this_stm::sleep( boost::chrono::seconds( t) );
+    boost::this_fiber::sleep( boost::chrono::seconds( t) );
     s.cancel();
     i = 3;
 }
 
 void test_move()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     {
-        stm::fiber s1;
+        boost::fibers::fiber s1;
         BOOST_CHECK( s1.empty() );
-        stm::fiber s2( f1);
+        boost::fibers::fiber s2( f1);
         BOOST_CHECK( ! s2.empty() );
         s1 = boost::move( s2);
         BOOST_CHECK( ! s1.empty() );
@@ -140,21 +137,21 @@ void test_move()
 
     {
         copyable cp( 3);
-        stm::fiber s( cp);
+        boost::fibers::fiber s( cp);
     }
 
     {
         moveable mv( 7);
-        stm::fiber s( boost::move( mv) );
+        boost::fibers::fiber s( boost::move( mv) );
     }
 }
 
 void test_priority()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber f( f2);
+    boost::fibers::fiber f( f2);
     BOOST_CHECK_EQUAL( 0, f.priority() );
     f.priority( 7);
     BOOST_CHECK_EQUAL( 7, f.priority() );
@@ -162,39 +159,39 @@ void test_priority()
 
 void test_id()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber s1;
-    stm::fiber s2( f1);
+    boost::fibers::fiber s1;
+    boost::fibers::fiber s2( f1);
     BOOST_CHECK( s1.empty() );
     BOOST_CHECK( ! s2.empty() );
 
-    BOOST_CHECK_EQUAL( stm::fiber::id(), s1.get_id() );
-    BOOST_CHECK( stm::fiber::id() != s2.get_id() );
+    BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), s1.get_id() );
+    BOOST_CHECK( boost::fibers::fiber::id() != s2.get_id() );
 
-    stm::fiber s3( f1);
+    boost::fibers::fiber s3( f1);
     BOOST_CHECK( s2.get_id() != s3.get_id() );
 
     s1 = boost::move( s2);
     BOOST_CHECK( ! s1.empty() );
     BOOST_CHECK( s2.empty() );
 
-    BOOST_CHECK( stm::fiber::id() != s1.get_id() );
-    BOOST_CHECK_EQUAL( stm::fiber::id(), s2.get_id() );
+    BOOST_CHECK( boost::fibers::fiber::id() != s1.get_id() );
+    BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), s2.get_id() );
 }
 
 void test_detach()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber s1( f1);
+    boost::fibers::fiber s1( f1);
     BOOST_CHECK( ! s1);
     s1.detach();
     BOOST_CHECK( ! s1);
 
-    stm::fiber s2( f2);
+    boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
     s2.detach();
     BOOST_CHECK( ! s2);
@@ -202,35 +199,35 @@ void test_detach()
 
 void test_replace()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::scheduling_algorithm(
-        new stm::round_robin() );
-    stm::fiber s1( f1);
+    boost::fibers::scheduling_algorithm(
+        new boost::fibers::round_robin() );
+    boost::fibers::fiber s1( f1);
     BOOST_CHECK( ! s1);
-    stm::fiber s2( f2);
+    boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
 }
 
 void test_complete()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber s1( f1);
+    boost::fibers::fiber s1( f1);
     BOOST_CHECK( ! s1);
-    stm::fiber s2( f2);
+    boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
 }
 
 void test_cancel()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     {
-        stm::fiber s( f2);
+        boost::fibers::fiber s( f2);
         BOOST_CHECK( s);
         s.cancel();
         BOOST_CHECK( ! s);
@@ -241,20 +238,20 @@ void test_cancel()
         // s spawns an new fiber s' in its fiber-fn
         // s' yields in its fiber-fn
         // s cancels s' and completes
-        stm::fiber s( f3);
-        BOOST_CHECK( ! stm::run() );
+        boost::fibers::fiber s( f3);
+        BOOST_CHECK( ! boost::fibers::run() );
         BOOST_CHECK( ! s);
-        BOOST_CHECK( ! stm::run() );
+        BOOST_CHECK( ! boost::fibers::run() );
     }
 }
 
 void test_join()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     {
-        stm::fiber s( f2);
+        boost::fibers::fiber s( f2);
         BOOST_CHECK( s);
         //BOOST_CHECK( s.is_joinable() );
         s.join();
@@ -263,11 +260,11 @@ void test_join()
     }
 
     {
-        stm::fiber s( f2);
+        boost::fibers::fiber s( f2);
         BOOST_CHECK( s);
         //BOOST_CHECK( s.is_joinable() );
-        BOOST_CHECK( stm::run() );
-        BOOST_CHECK( ! stm::run() );
+        BOOST_CHECK( boost::fibers::run() );
+        BOOST_CHECK( ! boost::fibers::run() );
         BOOST_CHECK( ! s);
         //BOOST_CHECK( ! s.is_joinable() );
     }
@@ -277,37 +274,37 @@ void test_join()
         // s spawns an new fiber s' in its fiber-fn
         // s' yields in its fiber-fn
         // s joins s' and gets suspended (waiting on s') 
-        stm::fiber s( f4);
+        boost::fibers::fiber s( f4);
         // run() resumes s' which completes
-        BOOST_CHECK( stm::run() );
+        BOOST_CHECK( boost::fibers::run() );
         // run() resumes s which completes
-        BOOST_CHECK( stm::run() );
+        BOOST_CHECK( boost::fibers::run() );
         BOOST_CHECK( ! s);
-        BOOST_CHECK( ! stm::run() );
+        BOOST_CHECK( ! boost::fibers::run() );
     }
 }
 
 void test_yield_break()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber s( f5);
+    boost::fibers::fiber s( f5);
     BOOST_CHECK( ! s);
-    BOOST_CHECK( ! stm::run() );
+    BOOST_CHECK( ! boost::fibers::run() );
 }
 
 void test_yield()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( boost::bind( f6, boost::ref( v1) ) );
-    stm::fiber s2( boost::bind( f6, boost::ref( v2) ) );
-    while ( stm::run() );
+    boost::fibers::fiber s1( boost::bind( f6, boost::ref( v1) ) );
+    boost::fibers::fiber s2( boost::bind( f6, boost::ref( v2) ) );
+    while ( boost::fibers::run() );
     BOOST_CHECK( ! s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 8, v1);
@@ -316,40 +313,40 @@ void test_yield()
 
 void test_sleep()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    stm::fiber s1( boost::bind( f6, boost::ref( v1) ) );
-    stm::run();
+    boost::fibers::fiber s1( boost::bind( f6, boost::ref( v1) ) );
+    boost::fibers::run();
     BOOST_CHECK( s1);
-    stm::fiber s2( boost::bind( f7, 5, boost::ref( v2) ) );
+    boost::fibers::fiber s2( boost::bind( f7, 5, boost::ref( v2) ) );
     BOOST_CHECK( s2);
     while ( s1)
-        stm::run();
+        boost::fibers::run();
     while ( s2)
-        stm::run();
+        boost::fibers::run();
     BOOST_CHECK_EQUAL( 8, v1);
     BOOST_CHECK_EQUAL( 7, v2);
 }
 
 void test_sleep_and_cancel()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     {
         int v1 = 0, v2 = 0;
         BOOST_CHECK_EQUAL( 0, v1);
         BOOST_CHECK_EQUAL( 0, v2);
-        stm::fiber s1( boost::bind( f7, 3, boost::ref( v1) ) );
-        stm::fiber s2( boost::bind( f8, 5, boost::ref( s1), boost::ref( v2) ) );
+        boost::fibers::fiber s1( boost::bind( f7, 3, boost::ref( v1) ) );
+        boost::fibers::fiber s2( boost::bind( f8, 5, boost::ref( s1), boost::ref( v2) ) );
         BOOST_CHECK( s1);
         BOOST_CHECK( s2);
         while ( s1)
-            stm::run();
+            boost::fibers::run();
         BOOST_CHECK_EQUAL( 7, v1);
         BOOST_CHECK_EQUAL( 0, v2);
         BOOST_CHECK( s2);
@@ -362,12 +359,12 @@ void test_sleep_and_cancel()
         int v1 = 0, v2 = 0;
         BOOST_CHECK_EQUAL( 0, v1);
         BOOST_CHECK_EQUAL( 0, v2);
-        stm::fiber s1( boost::bind( f7, 5, boost::ref( v1) ) );
-        stm::fiber s2( boost::bind( f8, 3, boost::ref( s1), boost::ref( v2) ) );
+        boost::fibers::fiber s1( boost::bind( f7, 5, boost::ref( v1) ) );
+        boost::fibers::fiber s2( boost::bind( f8, 3, boost::ref( s1), boost::ref( v2) ) );
         BOOST_CHECK( s1);
         BOOST_CHECK( s2);
         while ( s2)
-            stm::run();
+            boost::fibers::run();
         BOOST_CHECK( ! s1);
         BOOST_CHECK( ! s2);
         BOOST_CHECK_EQUAL( 0, v1);
@@ -378,7 +375,7 @@ void test_sleep_and_cancel()
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: fiber test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
 
     test->add( BOOST_TEST_CASE( & test_move) );
     test->add( BOOST_TEST_CASE( & test_id) );

@@ -19,12 +19,9 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 int value = 0;
 
-void wait_fn( stm::count_down_event & ev)
+void wait_fn( boost::fibers::count_down_event & ev)
 {
 	ev.wait();
 	++value;
@@ -32,7 +29,7 @@ void wait_fn( stm::count_down_event & ev)
 
 void fn1()
 {
-	stm::count_down_event ev( 3);
+	boost::fibers::count_down_event ev( 3);
 
 	BOOST_CHECK_EQUAL( ev.initial(), ( std::size_t)3);
 	BOOST_CHECK_EQUAL( ev.current(), ( std::size_t)3);
@@ -57,30 +54,30 @@ void fn1()
 void fn2()
 {
 	value = 0;
-	stm::count_down_event ev( 3);
+	boost::fibers::count_down_event ev( 3);
 
 	BOOST_CHECK_EQUAL( ev.initial(), ( std::size_t)3);
 	BOOST_CHECK_EQUAL( ev.current(), ( std::size_t)3);
 
-	stm::fiber s(
+	boost::fibers::fiber s(
             boost::bind(
                 wait_fn,
                 boost::ref( ev) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	ev.set();
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
     ev.set();
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	ev.set();
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( ev.initial(), ( std::size_t)3);
 	BOOST_CHECK_EQUAL( ev.current(), ( std::size_t)0);
 	BOOST_CHECK_EQUAL( 1, value);
@@ -88,26 +85,26 @@ void fn2()
 
 void test_count_down()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( fn1).join();
+    boost::fibers::fiber( fn1).join();
     fn1();
 }
 
 void test_wait()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( fn2).join();
+    boost::fibers::fiber( fn2).join();
     fn2();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: count_down_event test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: count_down_event test suite");
 
 	test->add( BOOST_TEST_CASE( & test_count_down) );
 	test->add( BOOST_TEST_CASE( & test_wait) );

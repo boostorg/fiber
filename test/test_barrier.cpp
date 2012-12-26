@@ -12,120 +12,117 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 int value1 = 0;
 int value2 = 0;
 
-void fn1( stm::barrier & b)
+void fn1( boost::fibers::barrier & b)
 {
     ++value1;
-    this_stm::yield();
+    boost::this_fiber::yield();
 
     b.wait();
 
     ++value1;
-    this_stm::yield();
+    boost::this_fiber::yield();
     ++value1;
-    this_stm::yield();
+    boost::this_fiber::yield();
     ++value1;
-    this_stm::yield();
+    boost::this_fiber::yield();
     ++value1;
 }
 
-void fn2( stm::barrier & b)
+void fn2( boost::fibers::barrier & b)
 {
     ++value2;
-    this_stm::yield();
+    boost::this_fiber::yield();
     ++value2;
-    this_stm::yield();
+    boost::this_fiber::yield();
     ++value2;
-    this_stm::yield();
+    boost::this_fiber::yield();
 
     b.wait();
 
     ++value2;
-    this_stm::yield();
+    boost::this_fiber::yield();
     ++value2;
 }
 
 void test_barrier()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     value1 = 0;
     value2 = 0;
 
-    stm::barrier b( 2);
-    stm::fiber s1(
+    boost::fibers::barrier b( 2);
+    boost::fibers::fiber s1(
             boost::bind(
                 fn1, boost::ref( b) ) );
     BOOST_CHECK( s1);
     BOOST_CHECK_EQUAL( 1, value1);
 
-    stm::fiber s2(
+    boost::fibers::fiber s2(
             boost::bind(
                 fn2, boost::ref( b) ) );
     BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 1, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 1, value1);
     BOOST_CHECK_EQUAL( 1, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 1, value1);
     BOOST_CHECK_EQUAL( 2, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 1, value1);
     BOOST_CHECK_EQUAL( 3, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 1, value1);
     BOOST_CHECK_EQUAL( 4, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( s2);
     BOOST_CHECK_EQUAL( 2, value1);
     BOOST_CHECK_EQUAL( 4, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 2, value1);
     BOOST_CHECK_EQUAL( 5, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 3, value1);
     BOOST_CHECK_EQUAL( 5, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 4, value1);
     BOOST_CHECK_EQUAL( 5, value2);
 
-    BOOST_CHECK( stm::run() );
+    BOOST_CHECK( boost::fibers::run() );
     BOOST_CHECK( ! s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 5, value1);
     BOOST_CHECK_EQUAL( 5, value2);
 
-    BOOST_CHECK( ! stm::run() );
+    BOOST_CHECK( ! boost::fibers::run() );
     BOOST_CHECK( ! s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 5, value1);
@@ -135,7 +132,7 @@ void test_barrier()
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: barrier test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: barrier test suite");
 
     test->add( BOOST_TEST_CASE( & test_barrier) );
 

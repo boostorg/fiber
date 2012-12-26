@@ -20,9 +20,6 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 struct dummy_mutex
 {
     bool is_locked;
@@ -48,8 +45,8 @@ struct dummy_mutex
 
 void lock()
 {
-    stm::mutex mtx;
-    boost::unique_lock< stm::mutex > lk( mtx);
+    boost::fibers::mutex mtx;
+    boost::unique_lock< boost::fibers::mutex > lk( mtx);
 
     BOOST_CHECK( lk);
     BOOST_CHECK( lk.owns_lock() );
@@ -62,8 +59,8 @@ void lock()
 
 void defer_lock()
 {
-    stm::mutex mtx;
-    boost::unique_lock< stm::mutex > lk( mtx, boost::defer_lock);
+    boost::fibers::mutex mtx;
+    boost::unique_lock< boost::fibers::mutex > lk( mtx, boost::defer_lock);
 
     BOOST_CHECK( ! lk);
     BOOST_CHECK( ! lk.owns_lock() );
@@ -76,9 +73,9 @@ void defer_lock()
 
 void adopt_lock()
 {
-    stm::mutex mtx;
+    boost::fibers::mutex mtx;
     mtx.lock();
-    boost::unique_lock< stm::mutex > lk( mtx, boost::adopt_lock);
+    boost::unique_lock< boost::fibers::mutex > lk( mtx, boost::adopt_lock);
 
     BOOST_CHECK( lk);
     BOOST_CHECK( lk.owns_lock() );
@@ -86,8 +83,8 @@ void adopt_lock()
 
 void try_lock()
 {
-    stm::mutex mtx;
-    boost::unique_lock< stm::mutex > lk( mtx, boost::defer_lock);
+    boost::fibers::mutex mtx;
+    boost::unique_lock< boost::fibers::mutex > lk( mtx, boost::defer_lock);
 
     BOOST_CHECK( ! lk);
     BOOST_CHECK( ! lk.owns_lock() );
@@ -100,24 +97,24 @@ void try_lock()
 
 void lock_twice()
 {
-    stm::mutex mtx;
-    boost::unique_lock< stm::mutex > lk( mtx);
+    boost::fibers::mutex mtx;
+    boost::unique_lock< boost::fibers::mutex > lk( mtx);
 
     BOOST_CHECK_THROW( lk.lock(), boost::lock_error);
 }
 
 void try_lock_twice()
 {
-    stm::mutex mtx;
-    boost::unique_lock< stm::mutex > lk( mtx);
+    boost::fibers::mutex mtx;
+    boost::unique_lock< boost::fibers::mutex > lk( mtx);
 
     BOOST_CHECK_THROW( lk.try_lock(), boost::lock_error);
 }
 
 void unlock_twice()
 {
-    stm::mutex mtx;
-    boost::unique_lock< stm::mutex > lk( mtx);
+    boost::fibers::mutex mtx;
+    boost::unique_lock< boost::fibers::mutex > lk( mtx);
     lk.unlock();
 
     BOOST_CHECK_THROW( lk.unlock(), boost::lock_error);
@@ -125,7 +122,7 @@ void unlock_twice()
 
 void default_ctor()
 {
-    boost::unique_lock< stm::mutex > lk;
+    boost::unique_lock< boost::fibers::mutex > lk;
 
     BOOST_CHECK( ! lk);
     BOOST_CHECK( ! lk.owns_lock() );
@@ -133,9 +130,9 @@ void default_ctor()
 
 void lock_concept()
 {
-    stm::mutex mtx1, mtx2, mtx3;
+    boost::fibers::mutex mtx1, mtx2, mtx3;
 
-    stm::mutex::scoped_lock lk1( mtx1, boost::defer_lock),
+    boost::fibers::mutex::scoped_lock lk1( mtx1, boost::defer_lock),
         lk2( mtx2, boost::defer_lock),
         lk3( mtx3, boost::defer_lock);
 
@@ -169,9 +166,9 @@ void try_lock_concept()
 
 void swap()
 {
-    stm::mutex mtx1, mtx2;
+    boost::fibers::mutex mtx1, mtx2;
 
-    boost::unique_lock< stm::mutex > lk1( mtx1), lk2( mtx2);
+    boost::unique_lock< boost::fibers::mutex > lk1( mtx1), lk2( mtx2);
 
     BOOST_CHECK_EQUAL( lk1.mutex(), & mtx1);
     BOOST_CHECK_EQUAL( lk2.mutex(), & mtx2);
@@ -184,107 +181,107 @@ void swap()
 
 void test_lock()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock).join();
+    boost::fibers::fiber( lock).join();
     lock();
 }
 
 void test_defer_lock()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( defer_lock).join();
+    boost::fibers::fiber( defer_lock).join();
     defer_lock();
 }
 
 void test_adopt_lock()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( adopt_lock).join();
+    boost::fibers::fiber( adopt_lock).join();
     adopt_lock();
 }
 
 void test_try_lock()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock).join();
+    boost::fibers::fiber( try_lock).join();
     try_lock();
 }
 
 void test_lock_twice()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock_twice).join();
+    boost::fibers::fiber( lock_twice).join();
     lock_twice();
 }
 
 void test_try_lock_twice()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_twice).join();
+    boost::fibers::fiber( try_lock_twice).join();
     try_lock_twice();
 }
 
 void test_unlock_twice()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( unlock_twice).join();
+    boost::fibers::fiber( unlock_twice).join();
     unlock_twice();
 }
 
 void test_default_ctor()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( default_ctor).join();
+    boost::fibers::fiber( default_ctor).join();
     default_ctor();
 }
 
 void test_lock_concept()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock_concept).join();
+    boost::fibers::fiber( lock_concept).join();
     lock_concept();
 }
 
 void test_try_lock_concept()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_concept).join();
+    boost::fibers::fiber( try_lock_concept).join();
     try_lock_concept();
 }
 
 void test_swap()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( swap).join();
+    boost::fibers::fiber( swap).join();
     swap();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: lock test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: lock test suite");
 
     test->add( BOOST_TEST_CASE( & test_lock) );
     test->add( BOOST_TEST_CASE( & test_defer_lock) );

@@ -8,14 +8,11 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 struct wait_data
 {
-    stm::mutex m;
+    boost::fibers::mutex m;
     bool flag;
-    stm::condition cond;
+    boost::fibers::condition cond;
     
     wait_data():
         flag(false)
@@ -23,7 +20,7 @@ struct wait_data
     
     void wait()
     {
-        stm::mutex::scoped_lock l(m);
+        boost::fibers::mutex::scoped_lock l(m);
         while(!flag)
         {
             cond.wait(l);
@@ -32,20 +29,20 @@ struct wait_data
     
     void signal()
     {
-        stm::mutex::scoped_lock l(m);
+        boost::fibers::mutex::scoped_lock l(m);
         flag=true;
         cond.notify_all();
     }
 };
        
-void lock_pair(stm::mutex* m1,stm::mutex* m2)
+void lock_pair(boost::fibers::mutex* m1,boost::fibers::mutex* m2)
 {
     boost::lock(*m1,*m2);
-    stm::mutex::scoped_lock l1(*m1,boost::adopt_lock),
+    boost::fibers::mutex::scoped_lock l1(*m1,boost::adopt_lock),
         l2(*m2,boost::adopt_lock);
 }
 
-void lock_five(stm::mutex* m1,stm::mutex* m2,stm::mutex* m3,stm::mutex* m4,stm::mutex* m5)
+void lock_five(boost::fibers::mutex* m1,boost::fibers::mutex* m2,boost::fibers::mutex* m3,boost::fibers::mutex* m4,boost::fibers::mutex* m5)
 {
     boost::lock(*m1,*m2,*m3,*m4,*m5);
     m1->unlock();
@@ -55,7 +52,7 @@ void lock_five(stm::mutex* m1,stm::mutex* m2,stm::mutex* m3,stm::mutex* m4,stm::
     m5->unlock();
 }
 
-void lock_n(stm::mutex* mutexes,unsigned count)
+void lock_n(boost::fibers::mutex* mutexes,unsigned count)
 {
     boost::lock(mutexes,mutexes+count);
     for(unsigned i=0;i<count;++i)
@@ -104,9 +101,9 @@ namespace boost
 
 void lock_two_uncontended()
 {
-    stm::mutex m1,m2;
+    boost::fibers::mutex m1,m2;
 
-    stm::mutex::scoped_lock l1(m1,boost::defer_lock),
+    boost::fibers::mutex::scoped_lock l1(m1,boost::defer_lock),
         l2(m2,boost::defer_lock);
 
     BOOST_CHECK(!l1.owns_lock());
@@ -120,9 +117,9 @@ void lock_two_uncontended()
 
 void lock_five_uncontended()
 {
-    stm::mutex m1,m2,m3,m4,m5;
+    boost::fibers::mutex m1,m2,m3,m4,m5;
 
-    stm::mutex::scoped_lock l1(m1,boost::defer_lock),
+    boost::fibers::mutex::scoped_lock l1(m1,boost::defer_lock),
         l2(m2,boost::defer_lock),
         l3(m3,boost::defer_lock),
         l4(m4,boost::defer_lock),
@@ -360,98 +357,98 @@ void try_lock_five()
 
 void test_lock_two_uncontended()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock_two_uncontended).join();
+    boost::fibers::fiber( lock_two_uncontended).join();
     lock_two_uncontended();
 }
 
 void test_lock_five_uncontended()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock_five_uncontended).join();
+    boost::fibers::fiber( lock_five_uncontended).join();
     lock_five_uncontended();
 }
 
 void test_lock_five_in_range()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock_five_in_range).join();
+    boost::fibers::fiber( lock_five_in_range).join();
     lock_five_in_range();
 }
 
 void test_lock_ten_in_range()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( lock_ten_in_range).join();
+    boost::fibers::fiber( lock_ten_in_range).join();
     lock_ten_in_range();
 }
 
 void test_try_lock_two_uncontended()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_two_uncontended).join();
+    boost::fibers::fiber( try_lock_two_uncontended).join();
     try_lock_two_uncontended();
 }
 
 void test_try_lock_two_first_locked()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_two_first_locked).join();
+    boost::fibers::fiber( try_lock_two_first_locked).join();
     try_lock_two_first_locked();
 }
 
 void test_try_lock_two_second_locked()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_two_second_locked).join();
+    boost::fibers::fiber( try_lock_two_second_locked).join();
     try_lock_two_second_locked();
 }
 
 void test_try_lock_three()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_three).join();
+    boost::fibers::fiber( try_lock_three).join();
     try_lock_three();
 }
 
 void test_try_lock_four()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_four).join();
+    boost::fibers::fiber( try_lock_four).join();
     try_lock_four();
 }
 
 void test_try_lock_five()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber( try_lock_five).join();
+    boost::fibers::fiber( try_lock_five).join();
     try_lock_five();
 }
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: generic locks test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: generic locks test suite");
 
     test->add(BOOST_TEST_CASE(&test_lock_two_uncontended));
     test->add(BOOST_TEST_CASE(&test_lock_five_uncontended));

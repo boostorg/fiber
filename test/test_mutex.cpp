@@ -20,9 +20,6 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 template< typename M >
 struct test_lock
 {
@@ -51,80 +48,80 @@ struct test_lock
 
 void do_test_mutex()
 {
-    test_lock< stm::mutex >()();
+    test_lock< boost::fibers::mutex >()();
 }
 
 int value1 = 0;
 int value2 = 0;
 
-void fn1( stm::mutex & mtx)
+void fn1( boost::fibers::mutex & mtx)
 {
-	stm::mutex::scoped_lock lk( mtx);
+	boost::fibers::mutex::scoped_lock lk( mtx);
 	++value1;
 	for ( int i = 0; i < 3; ++i)
-		this_stm::yield();
+		boost::this_fiber::yield();
 }
 
-void fn2( stm::mutex & mtx)
+void fn2( boost::fibers::mutex & mtx)
 {
 	++value2;
-	stm::mutex::scoped_lock lk( mtx);
+	boost::fibers::mutex::scoped_lock lk( mtx);
 	++value2;
 }
 
 void test_locking()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    stm::fiber s( & do_test_mutex);
+    boost::fibers::fiber s( & do_test_mutex);
     BOOST_ASSERT( ! s);
-	BOOST_ASSERT( ! stm::run() );
+	BOOST_ASSERT( ! boost::fibers::run() );
 }
 
 void test_exclusive()
 {
-    stm::round_robin ds;
-    stm::scheduling_algorithm( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
     value1 = 0;
     value2 = 0;
 	BOOST_CHECK_EQUAL( 0, value1);
 	BOOST_CHECK_EQUAL( 0, value2);
 
-	stm::mutex mtx;
-    stm::fiber s1(
+	boost::fibers::mutex mtx;
+    boost::fibers::fiber s1(
 		boost::bind( & fn1, boost::ref( mtx) ) );
-    stm::fiber s2(
+    boost::fibers::fiber s2(
 		boost::bind( & fn2, boost::ref( mtx) ) );
     BOOST_ASSERT( s1);
     BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
     BOOST_ASSERT( s1);
     BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
     BOOST_ASSERT( s1);
     BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
     BOOST_ASSERT( ! s1);
     BOOST_ASSERT( s2);
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
-	BOOST_CHECK( stm::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 2, value2);
 
-	BOOST_CHECK( ! stm::run() );
+	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 2, value2);
 }
@@ -132,7 +129,7 @@ void test_exclusive()
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Stratified: mutex test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: mutex test suite");
 
     test->add( BOOST_TEST_CASE( & test_locking) );
     test->add( BOOST_TEST_CASE( & test_exclusive) );
