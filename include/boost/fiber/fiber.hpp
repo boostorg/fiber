@@ -297,7 +297,7 @@ public:
 #endif
 
     ~fiber()
-    { if ( * this) std::terminate(); }
+    { if ( joinable() ) std::terminate(); }
 
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
         impl_()
@@ -321,6 +321,9 @@ public:
 
     bool empty() const BOOST_NOEXCEPT
     { return ! impl_; }
+
+    bool joinable() const BOOST_NOEXCEPT
+    { return ! empty() && ! impl_->is_terminated(); }
 
     id get_id() const BOOST_NOEXCEPT
     { return impl_ ? impl_->get_id() : id(); }
