@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_FIBER_H
 
 #include <cstddef>
+#include <exception>
 #include <memory>
 
 #include <boost/assert.hpp>
@@ -296,7 +297,7 @@ public:
 #endif
 
     ~fiber()
-    { if ( impl_) join(); }
+    { if ( * this) std::terminate(); }
 
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
         impl_()
