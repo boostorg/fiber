@@ -4,6 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+// based on boost.thread
+
 #ifndef BOOST_fiber_EXCEPTIONS_H
 #define BOOST_fiber_EXCEPTIONS_H
 
@@ -11,6 +13,8 @@
 #include <string>
 
 #include <boost/config.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -21,55 +25,129 @@
 namespace boost {
 namespace fibers {
 
-class fiber_canceled : public std::runtime_error
-{
-public:
-	fiber_canceled() :
-		std::runtime_error("fiber was canceled")
-	{}
-};
-
-class fiber_error : public std::runtime_error
-{
-public:
-	fiber_error( std::string const& msg) :
-		std::runtime_error( msg)
-	{}
-};
-
 class fiber_interrupted
 {};
 
-class fiber_moved : public std::logic_error
+class fiber_exception : public system::system_error
 {
 public:
-    fiber_moved() :
-		std::logic_error("fibers moved")
-	{}
+    fiber_exception() :
+        system::system_error( 0, system::system_category() )
+    {}
+
+    fiber_exception( int sys_error_code) :
+        system::system_error( sys_error_code, system::system_category() )
+    {}
+
+    fiber_exception( int ev, const char * what_arg) :
+        system::system_error(
+            system::error_code( ev, system::system_category() ), what_arg)
+    {}
+
+    fiber_exception( int ev, const std::string & what_arg) :
+        system::system_error(
+            system::error_code( ev, system::system_category() ), what_arg)
+    {}
+
+    ~fiber_exception() throw()
+    {}
+
+    int native_error() const
+    { return code().value(); }
 };
 
-class fiber_terminated : public std::runtime_error
+class condition_error : public system::system_error
 {
 public:
-    fiber_terminated() :
-		std::runtime_error("fiber terminated")
-	{}
+    condition_error() :
+        system::system_error(
+            system::error_code( 0, system::system_category() ), "Condition error")
+    {}
+
+    condition_error( int ev) :
+        system::system_error(
+            system::error_code( ev, system::system_category() ), "Condition error")
+    {}
+
+    condition_error( int ev, const char * what_arg) :
+        system::system_error(
+            system::error_code( ev, system::system_category() ), what_arg)
+    {}
+
+    condition_error( int ev, const std::string & what_arg) :
+        system::system_error(
+            system::error_code( ev, system::system_category() ), what_arg)
+    {}
 };
 
-class invalid_watermark : public std::runtime_error
-{
-public:
-    invalid_watermark() :
-		std::runtime_error("invalid watermark")
-	{}
-};
-
-class lock_error : public std::logic_error
+class lock_error : public fiber_exception
 {
 public:
     lock_error() :
-		std::logic_error("lock invalid")
-	{}
+        fiber_exception(0, "boost::lock_error")
+    {}
+
+    lock_error( int ev ) :
+        fiber_exception( ev, "boost::lock_error")
+    {}
+
+    lock_error( int ev, const char * what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+
+    lock_error( int ev, const std::string & what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+
+    ~lock_error() throw()
+    {}
+};
+
+class fiber_resource_error : public fiber_exception
+{
+public:
+    fiber_resource_error() :
+        fiber_exception(
+            system::errc::resource_unavailable_try_again,
+            "boost::fiber_resource_error")
+    {}
+
+    fiber_resource_error( int ev) :
+        fiber_exception(i ev, "boost::fiber_resource_error")
+    {}
+
+    fiber_resource_error( int ev, const char * what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+
+    fiber_resource_error( int ev, const std::string & what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+
+    ~fiber_resource_error() throw()
+    {}
+};
+
+
+class invalid_argument : public fiber_exception
+{
+public:
+    invalid_argument() :
+        fiber_eception(
+            system::errc::invalid_argument, "boost::invalid_argument")
+    {}
+
+    invalid_argument( int ev) :
+        fiber_exception( ev, "boost::invalid_argument")
+    {}
+
+    invalid_argument( int ev, const char * what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+
+    invalid_argument( int ev, const std::string & what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
 };
 
 }}
