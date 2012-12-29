@@ -113,7 +113,7 @@ public:
     {}
 
     fiber_resource_error( int ev) :
-        fiber_exception(i ev, "boost::fiber_resource_error")
+        fiber_exception( ev, "boost::fiber_resource_error")
     {}
 
     fiber_resource_error( int ev, const char * what_arg) :
@@ -133,7 +133,7 @@ class invalid_argument : public fiber_exception
 {
 public:
     invalid_argument() :
-        fiber_eception(
+        fiber_exception(
             system::errc::invalid_argument, "boost::invalid_argument")
     {}
 

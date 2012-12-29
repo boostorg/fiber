@@ -335,9 +335,9 @@ public:
     void detach() BOOST_NOEXCEPT
     { impl_.reset(); }
 
-    void cancel();
+    void join();
 
-    bool join();
+    void cancel();
 };
 
 inline

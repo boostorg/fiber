@@ -84,7 +84,7 @@ void f4()
     boost::fibers::fiber s( f2);
     BOOST_CHECK( s);
     //BOOST_CHECK( s.is_joinable() );
-    BOOST_CHECK( s.join() );
+    s.join();
     BOOST_CHECK( ! s);
     //BOOST_CHECK( ! s.is_joinable() );
 }
