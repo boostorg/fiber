@@ -55,10 +55,18 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
 }
 
 void
+round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
+{
+    BOOST_ASSERT( f);
+
+    f->priority( prio);
+}
+
+void
 round_robin::join( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_complete() );
+    BOOST_ASSERT( ! f->is_terminated() );
     BOOST_ASSERT( f != active_fiber_);
 
     if ( active_fiber_)

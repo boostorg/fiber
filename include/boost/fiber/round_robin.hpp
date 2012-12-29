@@ -99,6 +99,8 @@ public:
 
     void spawn( detail::fiber_base::ptr_t const&);
 
+    void priority( detail::fiber_base::ptr_t const&, int);
+
     void join( detail::fiber_base::ptr_t const&);
 
     void cancel( detail::fiber_base::ptr_t const&);
