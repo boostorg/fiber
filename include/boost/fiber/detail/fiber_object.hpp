@@ -67,27 +67,27 @@ private:
 
     void enter_()
     {
-        flags_ |= flag_resumed;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             reinterpret_cast< intptr_t >( this),
             preserve_fpu() );
-        if ( except_) rethrow_exception( except_);
+        BOOST_ASSERT( ! except_);
     }
 
 protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! is_complete() );
+        BOOST_ASSERT( ! is_terminated() );
 
         flags_ |= flag_unwind_stack;
-        flags_ |= flag_resumed;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             0, preserve_fpu() );
         flags_ &= ~flag_unwind_stack;
 
-        BOOST_ASSERT( is_complete() );
+        BOOST_ASSERT( is_terminated() );
     }
 
 public:
@@ -99,7 +99,6 @@ public:
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
                 trampoline< fiber_object >),
-            stack_unwind == attr.do_unwind,
             fpu_preserved == attr.preserve_fpu),
         fn_( forward< Fn >( fn) ),
         stack_( fiber_base::callee_->fc_stack),
@@ -114,7 +113,6 @@ public:
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
                 trampoline< fiber_object >),
-            stack_unwind == attr.do_unwind,
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
@@ -129,7 +127,6 @@ public:
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
                 trampoline< fiber_object >),
-            stack_unwind == attr.do_unwind,
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
@@ -143,20 +140,19 @@ public:
 
     void exec()
     {
-        BOOST_ASSERT( ! is_complete() );
-
-        suspend();
+        BOOST_ASSERT( ! is_terminated() );
 
         try
-        { fn_(); }
+        {
+            yield();
+            fn_();
+        }
         catch ( forced_unwind const&)
         {}
         catch (...)
         { except_ = current_exception(); }
 
-        flags_ &= ~flag_resumed;
-        flags_ |= flag_complete;
-
+        set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber is complete");
     }
@@ -192,27 +188,27 @@ private:
 
     void enter_()
     {
-        flags_ |= flag_resumed;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             reinterpret_cast< intptr_t >( this),
             preserve_fpu() );
-        if ( except_) rethrow_exception( except_);
+        BOOST_ASSERT( ! except_);
     }
 
 protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! is_complete() );
+        BOOST_ASSERT( ! is_terminated() );
 
         flags_ |= flag_unwind_stack;
-        flags_ |= flag_resumed;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             0, preserve_fpu() );
         flags_ &= ~flag_unwind_stack;
 
-        BOOST_ASSERT( is_complete() );
+        BOOST_ASSERT( is_terminated() );
     }
 
 public:
@@ -223,7 +219,6 @@ public:
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
                 trampoline< fiber_object >),
-            stack_unwind == attr.do_unwind,
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
@@ -236,20 +231,19 @@ public:
 
     void exec()
     {
-        BOOST_ASSERT( ! is_complete() );
-
-        suspend();
+        BOOST_ASSERT( ! is_terminated() );
 
         try
-        { fn_(); }
+        {
+            yield();
+            fn_();
+        }
         catch ( forced_unwind const&)
         {}
         catch (...)
         { except_ = current_exception(); }
 
-        flags_ &= ~flag_resumed;
-        flags_ |= flag_complete;
-
+        set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber is complete");
     }
@@ -285,27 +279,27 @@ private:
 
     void enter_()
     {
-        flags_ |= flag_resumed;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             reinterpret_cast< intptr_t >( this),
             preserve_fpu() );
-        if ( except_) rethrow_exception( except_);
+        BOOST_ASSERT( ! except_);
     }
 
 protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! is_complete() );
+        BOOST_ASSERT( ! is_terminated() );
 
         flags_ |= flag_unwind_stack;
-        flags_ |= flag_resumed;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             0, preserve_fpu() );
         flags_ &= ~flag_unwind_stack;
 
-        BOOST_ASSERT( is_complete() );
+        BOOST_ASSERT( is_terminated() );
     }
 
 public:
@@ -316,7 +310,6 @@ public:
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
                 trampoline< fiber_object >),
-            stack_unwind == attr.do_unwind,
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
@@ -329,20 +322,19 @@ public:
 
     void exec()
     {
-        BOOST_ASSERT( ! is_complete() );
-
-        suspend();
+        BOOST_ASSERT( ! is_terminated() );
 
         try
-        { fn_(); }
+        {
+            yield();
+            fn_();
+        }
         catch ( forced_unwind const&)
         {}
         catch (...)
         { except_ = current_exception(); }
 
-        flags_ &= ~flag_resumed;
-        flags_ |= flag_complete;
-
+        set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber is complete");
     }

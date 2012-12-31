@@ -40,7 +40,7 @@ fiber::priority( int prio)
 {
     BOOST_ASSERT( impl_);
 
-    impl_->priority( prio);
+    detail::scheduler::instance().priority( impl_, prio);
 }
 
 void

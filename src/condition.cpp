@@ -48,7 +48,7 @@ condition::notify_one()
         {
             f.swap( waiting_.front() );
             waiting_.pop_front();
-        } while ( f->is_complete() );
+        } while ( f->is_terminated() );
         if ( f)
             detail::scheduler::instance().notify( f);
     }
@@ -70,7 +70,7 @@ condition::notify_all()
     {
         BOOST_FOREACH( detail::fiber_base::ptr_t const& f,  waiting_)
         {
-            if ( ! f->is_complete() )
+            if ( ! f->is_terminated() )
                 detail::scheduler::instance().notify( f);
         }
         waiting_.clear();

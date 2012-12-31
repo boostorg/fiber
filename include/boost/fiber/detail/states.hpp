@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_FLAGS_H
-#define BOOST_FIBERS_DETAIL_FLAGS_H
+#ifndef BOOST_FIBERS_DETAIL_STATES_H
+#define BOOST_FIBERS_DETAIL_STATES_H
 
 #include <boost/config.hpp>
 
@@ -19,11 +19,12 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-enum flag_t
+enum state_t
 {
-    flag_force_unwind  = 1 << 1,
-    flag_unwind_stack   = 1 << 2,
-    flag_preserve_fpu   = 1 << 3
+    state_terminated = 0,
+    state_ready      = 1 << 1,
+    state_running    = 1 << 2,
+    state_waiting    = 1 << 3
 };
 
 }}}
@@ -32,4 +33,4 @@ enum flag_t
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_FLAGS_H
+#endif // BOOST_FIBERS_DETAILSTATEGS_H

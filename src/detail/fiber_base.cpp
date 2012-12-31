@@ -20,84 +20,76 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-void
-fiber_base::notify_()
-{
-    BOOST_ASSERT( is_complete() );
-    BOOST_ASSERT( ! is_resumed() );
-
-    BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
-    { boost::fibers::detail::scheduler::instance().notify( p); }
-    joining_.clear();
-}
-
-fiber_base::fiber_base( context::fcontext_t * callee, bool unwind, bool preserve_fpu) :
+fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     use_count_( 0),
+    state_( state_ready),
+    priority_( 0),
     caller_(),
     callee_( callee),
-    priority_( 0),
     flags_( 0),
     except_(),
+    mtx_(),
     joining_()
-{
-    if ( unwind) flags_ |= flag_force_unwind;
-    if ( preserve_fpu) flags_ |= flag_preserve_fpu;
-}
+{ if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
 
 void
 fiber_base::resume()
 {
-    BOOST_ASSERT( ! is_complete() );
-    BOOST_ASSERT( ! is_resumed() );
+    BOOST_ASSERT( ! is_terminated() );
+    BOOST_ASSERT( ! is_running() );
 
-    flags_ |= flag_resumed;
+    set_running();
     context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
 
-    if ( is_complete() ) notify_();
-
-    BOOST_ASSERT( ! is_resumed() );
+    BOOST_ASSERT( ! is_running() );
 }
 
 void
 fiber_base::suspend()
 {
-    BOOST_ASSERT( ! is_complete() );
-    BOOST_ASSERT( is_resumed() );
+    BOOST_ASSERT( is_running() );
 
-    flags_ &= ~flag_resumed;
+    set_waiting();
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
-    BOOST_ASSERT( is_resumed() );
+    if ( unwind_requested() )
+        throw forced_unwind();
+}
 
-    if ( 0 != ( flags_ & flag_unwind_stack) )
+void
+fiber_base::yield()
+{
+    BOOST_ASSERT( is_running() );
+
+    set_ready();
+    context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
+
+    if ( unwind_requested() )
         throw forced_unwind();
 }
 
 void
 fiber_base::terminate()
 {
-    BOOST_ASSERT( ! is_resumed() );
+    BOOST_ASSERT( is_terminated() );
 
-    if ( ! is_complete() )
-    {
-        flags_ |= flag_canceled;
-        if ( ! is_complete() && force_unwind() )
-            unwind_stack();
-    }
+    unwind_stack();
 
-    notify_();
-
-    BOOST_ASSERT( is_complete() );
-    BOOST_ASSERT( ! is_resumed() );
-    BOOST_ASSERT( joining_.empty() );
+    // fiber_base::terminate() is called by ~fiber_object()
+    // therefore protecting by mtx_ is not required
+    // and joining_ is not required to be cleared
+    BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
+    { p->set_ready(); }
 }
 
 void
 fiber_base::join( ptr_t const& p)
 {
-    BOOST_ASSERT( ! p->is_complete() );
-    BOOST_ASSERT( p->is_resumed() );
+    BOOST_ASSERT( p->is_running() );
 
+    // protect against concurrent access to joining_
+    spin_mutex::scoped_lock lk( mtx_);
+    if ( is_terminated() ) return;
     joining_.push_back( p);
 }
 

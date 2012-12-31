@@ -27,6 +27,7 @@ lib boost_fibers
       count_down_event.cpp
       detail/fiber_base.cpp
       detail/scheduler.cpp
+      detail/spin_mutex.cpp
       fiber.cpp
       manual_reset_event.cpp
       mutex.cpp

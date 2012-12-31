@@ -30,7 +30,7 @@ mutex::mutex( bool checked) :
 void
 mutex::lock()
 {
-    while ( UNLOCKED != state_)
+    while ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) )
     {
         if ( this_fiber::is_fiberized() )
         {
@@ -41,7 +41,6 @@ mutex::lock()
         else
             detail::scheduler::instance().run();
     }
-    state_ = LOCKED;
     if ( this_fiber::is_fiberized() )
         owner_ = detail::scheduler::instance().active()->get_id();
     else
@@ -51,8 +50,7 @@ mutex::lock()
 bool
 mutex::try_lock()
 {
-    if ( LOCKED == state_) return false;
-    state_ = LOCKED;
+    if ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) ) return false;
     if ( this_fiber::is_fiberized() )
         owner_ = detail::scheduler::instance().active()->get_id();
     else
@@ -74,6 +72,9 @@ mutex::unlock()
                 std::abort();
     }
 
+    owner_ = detail::fiber_base::id();
+	state_.store( UNLOCKED);
+
 	if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;
@@ -81,12 +82,10 @@ mutex::unlock()
         {
             f.swap( waiting_.front() );
             waiting_.pop_front();
-        } while ( f->is_complete() );
+        } while ( f->is_terminated() );
         if ( f)
             detail::scheduler::instance().notify( f);
     }
-	state_ = UNLOCKED;
-    owner_ = detail::fiber_base::id();
 }
 
 }}

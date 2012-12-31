@@ -24,54 +24,27 @@ namespace fibers {
 struct attributes
 {
     std::size_t     size;
-    flag_unwind_t   do_unwind;
     flag_fpu_t      preserve_fpu;
 
     attributes() BOOST_NOEXCEPT :
         size( stack_allocator::default_stacksize() ),
-        do_unwind( stack_unwind),
         preserve_fpu( fpu_preserved)
     {}
 
     explicit attributes( std::size_t size_) BOOST_NOEXCEPT :
         size( size_),
-        do_unwind( stack_unwind),
-        preserve_fpu( fpu_preserved)
-    {}
-
-    explicit attributes( flag_unwind_t do_unwind_) BOOST_NOEXCEPT :
-        size( stack_allocator::default_stacksize() ),
-        do_unwind( do_unwind_),
         preserve_fpu( fpu_preserved)
     {}
 
     explicit attributes( flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT :
         size( stack_allocator::default_stacksize() ),
-        do_unwind( stack_unwind),
         preserve_fpu( preserve_fpu_)
-    {}
-
-    explicit attributes(
-            std::size_t size_,
-            flag_unwind_t do_unwind_) BOOST_NOEXCEPT :
-        size( size_),
-        do_unwind( do_unwind_),
-        preserve_fpu( fpu_preserved)
     {}
 
     explicit attributes(
             std::size_t size_,
             flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT :
         size( size_),
-        do_unwind( stack_unwind),
-        preserve_fpu( preserve_fpu_)
-    {}
-
-    explicit attributes(
-            flag_unwind_t do_unwind_,
-            flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT :
-        size( stack_allocator::default_stacksize() ),
-        do_unwind( do_unwind_),
         preserve_fpu( preserve_fpu_)
     {}
 };

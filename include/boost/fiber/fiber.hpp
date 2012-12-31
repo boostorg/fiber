@@ -39,8 +39,6 @@ namespace fibers {
 class BOOST_FIBERS_DECL fiber
 {
 private:
-    friend void migrate( fiber &);
-
     struct dummy
     { void nonnull() {} };
 
@@ -305,16 +303,17 @@ public:
 
     fiber & operator=( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT
     {
+        if ( joinable() ) std::terminate();
         fiber tmp( move( other) );
         swap( tmp);
         return * this;
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return ( ! empty() && ! impl_->is_complete() ) ? & dummy::nonnull : 0; }
+    { return ( ! empty() && ! impl_->is_terminated() ) ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return empty() || impl_->is_complete(); }
+    { return empty() || impl_->is_terminated(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
     { impl_.swap( other.impl_); }

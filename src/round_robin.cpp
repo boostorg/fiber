@@ -23,10 +23,10 @@
 
 #define RESUME_FIBER( f_) \
     BOOST_ASSERT( f_); \
-    BOOST_ASSERT( ! f_->is_complete() ); \
-    BOOST_ASSERT( ! f_->is_resumed() ); \
+    BOOST_ASSERT( ! f_->is_terminated() ); \
+    BOOST_ASSERT( ! f_->is_running() ); \
     f_->resume(); \
-    BOOST_ASSERT( ! f_->is_resumed() );
+    BOOST_ASSERT( ! f_->is_running() );
 
 namespace boost {
 namespace fibers {
@@ -43,7 +43,7 @@ void
 round_robin::spawn( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_complete() );
+    BOOST_ASSERT( ! f->is_terminated() );
     BOOST_ASSERT( f != active_fiber_);
 
     detail::fiber_base::ptr_t tmp = active_fiber_;
@@ -75,17 +75,17 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         // detail::fiber_base::join() calls round_robin::wait()
         // so that active-fiber gets suspended
         f->join( active_fiber_);
-        // suspend active-fiber until f becomes complete
+        // suspend active-fiber until f terminates
         wait();
-        // f is complete and active-fiber is resumed
+        // f has teminated and active-fiber is resumed
     }
     else
     {
-        while ( ! f->is_complete() )
+        while ( ! f->is_terminated() )
             run();
     }
 
-    BOOST_ASSERT( f->is_complete() );
+    BOOST_ASSERT( f->is_terminated() );
 }
 
 void
@@ -95,7 +95,7 @@ round_robin::cancel( detail::fiber_base::ptr_t const& f)
     BOOST_ASSERT( f != active_fiber_);
 
     // ignore completed fiber
-    if ( f->is_complete() ) return;
+    if ( f->is_terminated() ) return;
 
     detail::fiber_base::ptr_t tmp = active_fiber_;
     {
@@ -111,15 +111,15 @@ round_robin::cancel( detail::fiber_base::ptr_t const& f)
     // erase completed fiber from waiting-queue
     f_idx_.erase( f);
 
-    BOOST_ASSERT( f->is_complete() );
+    BOOST_ASSERT( f->is_terminated() );
 }
 
 void
 round_robin::notify( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_complete() );
-    BOOST_ASSERT( ! f->is_resumed() );
+    BOOST_ASSERT( ! f->is_terminated() );
+    BOOST_ASSERT( ! f->is_running() );
     BOOST_ASSERT( f != active_fiber_);
 
     // remove fiber from wait-queue
@@ -127,8 +127,8 @@ round_robin::notify( detail::fiber_base::ptr_t const& f)
     // push fiber at the front of the runnable-queue
     rqueue_.push_front( f);
 
-    BOOST_ASSERT( ! f->is_complete() );
-    BOOST_ASSERT( ! f->is_resumed() );
+    BOOST_ASSERT( ! f->is_terminated() );
+    BOOST_ASSERT( ! f->is_running() );
     BOOST_ASSERT( f != active_fiber_);
 }
 
@@ -155,7 +155,7 @@ round_robin::run()
         rqueue_.pop_front();
         BOOST_ASSERT( f_idx_.end() == f_idx_.find( f) );
     }
-    while ( f->is_complete() );
+    while ( f->is_terminated() ); //FIXME: test for state_terminated correct?
     detail::fiber_base::ptr_t tmp = active_fiber_;
     BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
         active_fiber_ = tmp;
@@ -170,41 +170,37 @@ void
 round_robin::wait()
 {
     BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( ! active_fiber_->is_complete() );
-    BOOST_ASSERT( active_fiber_->is_resumed() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     // fiber will be added to waiting-queue
     f_idx_.insert( schedulable( active_fiber_) );
     // suspend fiber
     active_fiber_->suspend();
-    // fiber was notified
+    // fiber is resumed
 
-    BOOST_ASSERT( ! active_fiber_->is_complete() );
-    BOOST_ASSERT( active_fiber_->is_resumed() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 }
 
 void
 round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( ! active_fiber_->is_complete() );
-    BOOST_ASSERT( active_fiber_->is_resumed() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     // yield() suspends the fiber and adds it
     // immediately to runnable-queue
     rqueue_.push_back( active_fiber_);
-    active_fiber_->suspend();
+    active_fiber_->yield();
     // fiber is resumed
 
-    BOOST_ASSERT( active_fiber_->is_resumed() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 }
 
 void
 round_robin::sleep( chrono::system_clock::time_point const& abs_time)
 {
     BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( ! active_fiber_->is_complete() );
-    BOOST_ASSERT( active_fiber_->is_resumed() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     if ( abs_time > chrono::system_clock::now() )
     {
@@ -212,17 +208,17 @@ round_robin::sleep( chrono::system_clock::time_point const& abs_time)
         // each call of run() will check if dead-line has reached
         wqueue_.insert( schedulable( active_fiber_, abs_time) );
         active_fiber_->suspend();
-        // fiber was resumed, dead-line has been reached
+        // fiber is resumed, dead-line has been reached
     }
 
-    BOOST_ASSERT( ! active_fiber_->is_complete() );
-    BOOST_ASSERT( active_fiber_->is_resumed() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 }
 
 void
 round_robin::migrate_to( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
+    BOOST_ASSERT( f->is_ready() );
 
     rqueue_.push_back( f);
 }
@@ -236,6 +232,7 @@ round_robin::migrate_from()
     {
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
+        BOOST_ASSERT( f->is_ready() );
     }
 
     return f;

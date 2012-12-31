@@ -47,7 +47,7 @@ count_down_event::set()
     {
         BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
         {
-            if ( ! f->is_complete() )
+            if ( ! f->is_terminated() )
                 detail::scheduler::instance().notify( f);
         }
         waiting_.clear();

@@ -11,6 +11,7 @@
 
 #include <deque>
 
+#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
@@ -33,13 +34,13 @@ namespace fibers {
 class BOOST_FIBERS_DECL mutex : private noncopyable
 {
 private:
-	enum state
-	{
-		LOCKED = 0,
-		UNLOCKED
-	};
+    enum state
+    {
+        LOCKED = 0,
+        UNLOCKED
+    };
 
-	state       			        state_;
+    atomic< state >                 state_;
     detail::fiber_base::id          owner_;
     std::deque<
         detail::fiber_base::ptr_t
@@ -47,15 +48,15 @@ private:
     bool                            checked_;
 
 public:
-	typedef unique_lock< mutex >	scoped_lock;
+    typedef unique_lock< mutex >    scoped_lock;
 
-	mutex( bool = true);
+    mutex( bool = true);
 
-	void lock();
+    void lock();
 
-	bool try_lock();
+    bool try_lock();
 
-	void unlock();
+    void unlock();
 };
 
 typedef mutex try_mutex;

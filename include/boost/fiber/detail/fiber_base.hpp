@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <boost/assert.hpp>
+#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/context/fcontext.hpp>
@@ -22,6 +23,8 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/flags.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/states.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -40,15 +43,15 @@ private:
     template< typename X, typename Y, typename Z >
     friend class fiber_object;
 
-    std::size_t             use_count_;
+    atomic< std::size_t >   use_count_;
+    atomic< state_t >       state_;
+    atomic< int >           priority_;
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
-    int                     priority_;
     int                     flags_;
     exception_ptr           except_;
+    spin_mutex              mtx_;
     std::vector< ptr_t >    joining_;
-
-    void notify_();
 
 protected:
     virtual void deallocate_object() = 0;
@@ -106,7 +109,7 @@ public:
         { return 0 == impl_; }
     };
 
-    fiber_base( context::fcontext_t *, bool, bool);
+    fiber_base( context::fcontext_t *, bool);
 
     virtual ~fiber_base() {}
 
@@ -114,14 +117,16 @@ public:
     { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
 
     int priority() const BOOST_NOEXCEPT
-    { return priority_; }
+    { return priority_.load(); }
 
     void priority( int prio) BOOST_NOEXCEPT
-    { priority_ = prio; }
+    { priority_.store( prio); }
 
     void resume();
 
     void suspend();
+
+    void yield();
 
     void terminate();
 
@@ -136,20 +141,56 @@ public:
     bool preserve_fpu() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_preserve_fpu); }
 
-    bool is_complete() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_complete); }
+    bool is_terminated() const BOOST_NOEXCEPT
+    { return state_terminated == state_.load(); }
 
-    bool is_canceled() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_canceled); }
+    bool is_ready() const BOOST_NOEXCEPT
+    { return state_ready == state_.load(); }
 
-    bool is_resumed() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_resumed); }
+    bool is_running() const BOOST_NOEXCEPT
+    { return state_running == state_.load(); }
+
+    bool is_waiting() const BOOST_NOEXCEPT
+    { return state_waiting == state_.load(); }
+
+    bool set_terminated() BOOST_NOEXCEPT
+    {
+        state_t expected = state_running;
+        return state_.compare_exchange_weak( expected, state_terminated, memory_order_release);
+    }
+
+    bool set_ready() BOOST_NOEXCEPT
+    {
+        state_t expected = state_waiting;
+        bool result = state_.compare_exchange_weak( expected, state_ready, memory_order_release);
+        if ( ! result && state_running == expected)
+            result = state_.compare_exchange_weak( expected, state_ready, memory_order_release);
+        return result;
+    }
+
+    bool set_running() BOOST_NOEXCEPT
+    {
+        state_t expected = state_ready;
+        return state_.compare_exchange_weak( expected, state_running, memory_order_release);
+    }
+
+    bool set_waiting() BOOST_NOEXCEPT
+    {
+        state_t expected = state_running;
+        return state_.compare_exchange_weak( expected, state_waiting, memory_order_release);
+    }
 
     friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
-    { ++p->use_count_; }
+    { p->use_count_.fetch_add( 1, memory_order_relaxed); }
 
     friend inline void intrusive_ptr_release( fiber_base * p)
-    { if ( --p->use_count_ == 0) p->deallocate_object(); }
+    {
+        if ( 1 == p->use_count_.fetch_sub( 1, memory_order_release) )
+        {
+            atomic_thread_fence( memory_order_acquire);
+            p->deallocate_object();
+        }
+    }
 };
 
 }}}

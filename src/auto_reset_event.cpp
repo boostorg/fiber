@@ -82,7 +82,7 @@ auto_reset_event::set()
         {
             f.swap( waiting_.front() );
             waiting_.pop_front();
-        } while ( f->is_complete() );
+        } while ( f->is_terminated() );
         if ( f)
             detail::scheduler::instance().notify( f);
     }
