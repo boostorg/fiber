@@ -2,3 +2,4 @@ bin.v2
 doc\html
 *~
 *.sw*
+cscope.*
