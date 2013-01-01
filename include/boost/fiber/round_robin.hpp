@@ -16,6 +16,7 @@
 #include <boost/multi_index/member.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/algorithm.hpp>
 
@@ -105,8 +106,6 @@ public:
 
     void cancel( detail::fiber_base::ptr_t const&);
 
-    void notify( detail::fiber_base::ptr_t const&);
-
     detail::fiber_base::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
@@ -114,7 +113,7 @@ public:
 
     bool run();
 
-    void wait();
+    void wait( detail::spin_mutex::scoped_lock &);
 
     void yield();
 

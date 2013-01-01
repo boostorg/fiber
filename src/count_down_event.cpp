@@ -22,8 +22,9 @@ namespace boost {
 namespace fibers {
 
 count_down_event::count_down_event( std::size_t initial) :
-	initial_( initial),
-	current_( initial_),
+    initial_( initial),
+    current_( initial_),
+    waiting_mtx_(),
     waiting_()
 {}
 
@@ -42,14 +43,12 @@ count_down_event::is_set() const
 void
 count_down_event::set()
 {
-	if ( 0 == current_) return;
-	if ( 0 == --current_)
+    if ( 0 == current_) return; //FIXME: set to initial_ instead?
+    if ( 0 == --current_)
     {
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
         BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
-        {
-            if ( ! f->is_terminated() )
-                detail::scheduler::instance().notify( f);
-        }
+        { f->set_ready(); }
         waiting_.clear();
     }
 }
@@ -57,34 +56,34 @@ count_down_event::set()
 void
 count_down_event::wait()
 {
-	while ( 0 != current_)
-	{
-	    if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
-        }
-        else
-            detail::scheduler::instance().run();
-	}
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    while ( 0 != current_)
+    {
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+        waiting_.push_back(
+            detail::scheduler::instance().active() );
+        detail::scheduler::instance().wait( lk);
+    }
 }
 
 bool
 count_down_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
-	while ( 0 != current_)
-	{
-	    if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().sleep( abs_time);
-        }
-        else
-            detail::scheduler::instance().run();
-	}
-    return chrono::system_clock::now() <= abs_time;
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    if ( chrono::system_clock::now() >= abs_time) return false;
+
+    while ( 0 != current_)
+    {
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+        waiting_.push_back(
+            detail::scheduler::instance().active() );
+        detail::scheduler::instance().wait( lk);
+
+        if ( chrono::system_clock::now() >= abs_time) return false;
+    }
+    return true;
 }
 
 }}

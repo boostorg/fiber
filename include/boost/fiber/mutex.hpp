@@ -18,6 +18,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -42,6 +43,7 @@ private:
 
     atomic< state >                 state_;
     detail::fiber_base::id          owner_;
+    detail::spin_mutex              mtx_;
     std::deque<
         detail::fiber_base::ptr_t
     >                               waiting_;

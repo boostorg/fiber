@@ -59,6 +59,6 @@ spin_mutex::try_lock()
 
 void
 spin_mutex::unlock()
-{ state_.store( UNLOCKED); }
+{ state_ = UNLOCKED; }
 
 }}}

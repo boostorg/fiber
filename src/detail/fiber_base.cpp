@@ -38,7 +38,6 @@ fiber_base::resume()
     BOOST_ASSERT( ! is_terminated() );
     BOOST_ASSERT( ! is_running() );
 
-    set_running();
     context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
 
     BOOST_ASSERT( ! is_running() );
@@ -49,7 +48,6 @@ fiber_base::suspend()
 {
     BOOST_ASSERT( is_running() );
 
-    set_waiting();
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
     if ( unwind_requested() )
@@ -61,7 +59,6 @@ fiber_base::yield()
 {
     BOOST_ASSERT( is_running() );
 
-    set_ready();
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
     if ( unwind_requested() )

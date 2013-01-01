@@ -10,12 +10,14 @@
 #include <cstddef>
 #include <deque>
 
+#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
 #include <boost/fiber/mutex.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -33,35 +35,34 @@ namespace fibers {
 class BOOST_FIBERS_DECL manual_reset_event : private noncopyable
 {
 private:
-	enum state
-	{
-		SET = 0,
-		RESET
-	};
+    enum state
+    {
+        SET = 0,
+        RESET
+    };
 
-	state       			state_;
-	std::size_t         	waiters_;
-	mutex					enter_mtx_;
-    std::deque<
-        detail::fiber_base::ptr_t
-    >                       waiting_;
+    atomic< state >                         state_;
+    std::size_t                             waiters_;
+    mutex                                   enter_mtx_;
+    detail::spin_mutex                      waiting_mtx_;
+    std::deque< detail::fiber_base::ptr_t > waiting_;
 
 public:
-	explicit manual_reset_event( bool = false);
+    explicit manual_reset_event( bool = false);
 
-	void set();
+    void set();
 
-	void reset();
+    void reset();
 
-	void wait();
+    void wait();
 
     template< typename TimeDuration >
-	bool timed_wait( TimeDuration const& dt)
+    bool timed_wait( TimeDuration const& dt)
     { return timed_wait( chrono::system_clock::now() + dt); }
 
     bool timed_wait( chrono::system_clock::time_point const& abs_time);
 
-	bool try_wait();
+    bool try_wait();
 };
 
 }}

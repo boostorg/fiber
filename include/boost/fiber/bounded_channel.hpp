@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <stdexcept>
 
+#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/exception/all.hpp>
@@ -78,8 +79,8 @@ private:
         DEACTIVE
     };
 
-    state                       state_;
-    std::size_t                 count_;
+    atomic< state >             state_;
+    atomic< std::size_t >       count_;
     typename node_type::ptr     head_;
     mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
@@ -173,10 +174,7 @@ public:
     }
 
     bool empty() const
-    {
-        mutex::scoped_lock lk( head_mtx_);
-        return empty_();
-    }
+    { return empty_(); }
 
     void put( T const& t)
     {
@@ -240,13 +238,13 @@ public:
             return false;
         if ( empty)
         {
-//          try
-//          {
+            try
+            {
                 while ( active_() && empty_() )
                     not_empty_cond_.wait( lk);
-//          }
-//          catch ( fibers_interrupted const&)
-//          { return false; }
+            }
+            catch ( fiber_interrupted const&)
+            { return false; }
         }
         if ( ! active_() && empty_() )
             return false;
@@ -276,16 +274,16 @@ public:
             return false;
         if ( empty)
         {
-//          try
-//          {
+            try
+            {
                 while ( active_() && empty_() )
                 {
                     if ( ! not_empty_cond_.timed_wait( lk, abs_time) )
                         return false;
                 }
-//          }
-//          catch ( fibers_interrupted const&)
-//          { return false; }
+            }
+            catch ( fiber_interrupted const&)
+            { return false; }
         }
         if ( ! active_() && empty_() )
             return false;

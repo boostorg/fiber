@@ -23,8 +23,7 @@ condition::condition() :
 	cmd_( SLEEPING),
 	waiters_( 0),
 	enter_mtx_( false),
-	check_mtx_(),
-    waiting_()
+	check_mtx_()
 {}
 
 condition::~condition()
@@ -33,6 +32,8 @@ condition::~condition()
 void
 condition::notify_one()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
 	enter_mtx_.lock();
 
 	if ( 0 == waiters_)
@@ -40,43 +41,41 @@ condition::notify_one()
 		enter_mtx_.unlock();
 		return;
 	}
-	
-    if ( ! waiting_.empty() )
+
+    command expected = NOTIFY_ONE;
+    while ( SLEEPING != cmd_.compare_exchange_strong( expected, SLEEPING) )
     {
-        detail::fiber_base::ptr_t f;
-        do
-        {
-            f.swap( waiting_.front() );
-            waiting_.pop_front();
-        } while ( f->is_terminated() );
-        if ( f)
-            detail::scheduler::instance().notify( f);
+        this_fiber::yield();
+        expected = NOTIFY_ONE;
     }
-    cmd_ = NOTIFY_ONE;
 }
 
 void
 condition::notify_all()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    //This mutex guarantees that no other thread can enter to the
+    //do_timed_wait method logic, so that thread count will be
+    //constant until the function writes a NOTIFY_ALL command.
+    //It also guarantees that no other notification can be signaled
+    //on this spin_condition before this one ends
 	enter_mtx_.lock();
 
+    //Return if there are no waiters
 	if ( 0 == waiters_)
 	{
 		enter_mtx_.unlock();
 		return;
 	}
-	
-    if ( ! waiting_.empty() )
-    {
-        BOOST_FOREACH( detail::fiber_base::ptr_t const& f,  waiting_)
-        {
-            if ( ! f->is_terminated() )
-                detail::scheduler::instance().notify( f);
-        }
-        waiting_.clear();
-    }
 
-    cmd_ = NOTIFY_ALL;
+    //Notify that all threads should execute wait logic
+    command expected = NOTIFY_ALL;
+    while ( SLEEPING != cmd_.compare_exchange_strong( expected, SLEEPING) )
+    {
+        this_fiber::yield();
+        expected = NOTIFY_ALL;
+    }
 }
 
 }}

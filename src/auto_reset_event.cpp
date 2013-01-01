@@ -23,58 +23,60 @@ namespace fibers {
 
 auto_reset_event::auto_reset_event( bool isset) :
     state_( isset ? SET : RESET),
+    waiting_mtx_(),
     waiting_()
 {}
 
 void
 auto_reset_event::wait()
 {
-    while ( SET != state_)
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    while ( RESET == state_.exchange( RESET, memory_order_acquire) )
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
-        }
-        else
-            detail::scheduler::instance().run();
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+        waiting_.push_back(
+            detail::scheduler::instance().active() );
+        detail::scheduler::instance().wait( lk);
     }
-    state_ = RESET;
 }
 
 bool
 auto_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
-    while ( SET != state_)
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    if ( chrono::system_clock::now() >= abs_time) return false;
+
+    while ( RESET == state_.exchange( RESET, memory_order_acquire) )
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
-                detail::scheduler::instance().active() );
-            detail::scheduler::instance().sleep( abs_time);
-        }
-        else
-            detail::scheduler::instance().run();
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+        waiting_.push_back(
+            detail::scheduler::instance().active() );
+        detail::scheduler::instance().wait( lk);
+
+        if ( chrono::system_clock::now() >= abs_time) return false;
     }
-    state_ = RESET;
-    return chrono::system_clock::now() <= abs_time;
+
+    return true;
 }
 
 bool
 auto_reset_event::try_wait()
 {
-    if ( SET == state_)
-    {
-        state_ = RESET;
-        return true;
-    }
-    return false;
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    return SET == state_.exchange( RESET, memory_order_acquire);
 }
 
 void
 auto_reset_event::set()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    state_ = SET;
+
+    detail::spin_mutex::scoped_lock lk( waiting_mtx_);
     if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;
@@ -82,11 +84,8 @@ auto_reset_event::set()
         {
             f.swap( waiting_.front() );
             waiting_.pop_front();
-        } while ( f->is_terminated() );
-        if ( f)
-            detail::scheduler::instance().notify( f);
+        } while ( ! f->is_ready() );
     }
-    state_ = SET;
 }
 
 }}

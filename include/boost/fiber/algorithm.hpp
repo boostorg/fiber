@@ -12,6 +12,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -36,15 +37,13 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
 
     virtual void cancel( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual void notify( detail::fiber_base::ptr_t const&) = 0;
-
     virtual detail::fiber_base::ptr_t active() = 0;
 
     virtual void sleep( chrono::system_clock::time_point const& abs_time) = 0;
 
     virtual bool run() = 0;
 
-    virtual void wait() = 0;
+    virtual void wait( detail::spin_mutex::scoped_lock &) = 0;
 
     virtual void yield() = 0;
 

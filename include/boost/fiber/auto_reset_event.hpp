@@ -9,12 +9,14 @@
 
 #include <deque>
 
+#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,10 +39,9 @@ private:
 		RESET
 	};
 
-	state   		state_;
-    std::deque<
-        detail::fiber_base::ptr_t
-    >               waiting_;
+	atomic< state >                         state_;
+    detail::spin_mutex                      waiting_mtx_;
+    std::deque< detail::fiber_base::ptr_t > waiting_;
 
 public:
 	explicit auto_reset_event( bool = false);

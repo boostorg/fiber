@@ -24,9 +24,8 @@
 #define RESUME_FIBER( f_) \
     BOOST_ASSERT( f_); \
     BOOST_ASSERT( ! f_->is_terminated() ); \
-    BOOST_ASSERT( ! f_->is_running() ); \
+    f_->set_running(); \
     f_->resume(); \
-    BOOST_ASSERT( ! f_->is_running() );
 
 namespace boost {
 namespace fibers {
@@ -76,7 +75,13 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         // so that active-fiber gets suspended
         f->join( active_fiber_);
         // suspend active-fiber until f terminates
-        wait();
+        // fiber will be added to waiting-queue
+        f_idx_.insert( schedulable( active_fiber_) );
+        // set active_fiber to state_waiting
+        active_fiber_->set_waiting();
+        // suspend fiber
+        active_fiber_->suspend();
+        // fiber is resumed
         // f has teminated and active-fiber is resumed
     }
     else
@@ -91,45 +96,28 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 void
 round_robin::cancel( detail::fiber_base::ptr_t const& f)
 {
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( f != active_fiber_);
-
-    // ignore completed fiber
-    if ( f->is_terminated() ) return;
-
-    detail::fiber_base::ptr_t tmp = active_fiber_;
-    {
-        BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
-            active_fiber_ = tmp;
-        } BOOST_SCOPE_EXIT_END
-        active_fiber_ = f;
-        // terminate fiber means unwinding its stack
-        // so it becomes complete and joining fibers
-        // will be notified
-        active_fiber_->terminate();
-    }
-    // erase completed fiber from waiting-queue
-    f_idx_.erase( f);
-
-    BOOST_ASSERT( f->is_terminated() );
-}
-
-void
-round_robin::notify( detail::fiber_base::ptr_t const& f)
-{
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_terminated() );
-    BOOST_ASSERT( ! f->is_running() );
-    BOOST_ASSERT( f != active_fiber_);
-
-    // remove fiber from wait-queue
-    f_idx_.erase( f);
-    // push fiber at the front of the runnable-queue
-    rqueue_.push_front( f);
-
-    BOOST_ASSERT( ! f->is_terminated() );
-    BOOST_ASSERT( ! f->is_running() );
-    BOOST_ASSERT( f != active_fiber_);
+    BOOST_ASSERT_MSG( false, "not implemented");
+//  BOOST_ASSERT( f);
+//  BOOST_ASSERT( f != active_fiber_);
+//
+//  // ignore completed fiber
+//  if ( f->is_terminated() ) return;
+//
+//  detail::fiber_base::ptr_t tmp = active_fiber_;
+//  {
+//      BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
+//          active_fiber_ = tmp;
+//      } BOOST_SCOPE_EXIT_END
+//      active_fiber_ = f;
+//      // terminate fiber means unwinding its stack
+//      // so it becomes complete and joining fibers
+//      // will be notified
+//      active_fiber_->terminate();
+//  }
+//  // erase completed fiber from waiting-queue
+//  f_idx_.erase( f);
+//
+//  BOOST_ASSERT( f->is_terminated() );
 }
 
 bool
@@ -167,13 +155,17 @@ round_robin::run()
 }
 
 void
-round_robin::wait()
+round_robin::wait( detail::spin_mutex::scoped_lock & lk)
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
 
     // fiber will be added to waiting-queue
     f_idx_.insert( schedulable( active_fiber_) );
+    // set active_fiber to state_waiting
+    active_fiber_->set_waiting();
+    // unlock Lock assoc. with sync. primitive
+    lk.unlock();
     // suspend fiber
     active_fiber_->suspend();
     // fiber is resumed
@@ -190,6 +182,9 @@ round_robin::yield()
     // yield() suspends the fiber and adds it
     // immediately to runnable-queue
     rqueue_.push_back( active_fiber_);
+    // set active_fiber to state_ready
+    active_fiber_->set_ready();
+    // suspend fiber
     active_fiber_->yield();
     // fiber is resumed
 
@@ -207,6 +202,9 @@ round_robin::sleep( chrono::system_clock::time_point const& abs_time)
         // fiber is added with a dead-line and gets suspended
         // each call of run() will check if dead-line has reached
         wqueue_.insert( schedulable( active_fiber_, abs_time) );
+        // set active_fiber to state_waiting
+        active_fiber_->set_waiting();
+        // suspend fiber
         active_fiber_->suspend();
         // fiber is resumed, dead-line has been reached
     }

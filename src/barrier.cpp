@@ -8,8 +8,9 @@
 
 #include "boost/fiber/barrier.hpp"
 
-#include <stdexcept>
+#include <boost/exception/all.hpp>
 
+#include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -25,7 +26,13 @@ barrier::barrier( std::size_t initial) :
 	cycle_( true),
 	mtx_(),
 	cond_()
-{ if ( initial == 0) throw std::invalid_argument("invalid barrier count"); }
+{
+    if ( 0 == initial)
+        boost::throw_exception(
+            invalid_argument(
+                system::errc::invalid_argument,
+                "boost fiber: zero initial barrier count") );
+}
 
 bool
 barrier::wait()

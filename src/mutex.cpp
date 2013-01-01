@@ -23,6 +23,7 @@ namespace fibers {
 mutex::mutex( bool checked) :
 	state_( UNLOCKED),
     owner_(),
+    mtx_(),
     waiting_(),
     checked_( checked)
 {}
@@ -30,51 +31,41 @@ mutex::mutex( bool checked) :
 void
 mutex::lock()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
     while ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) )
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
-                    detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
-        }
-        else
-            detail::scheduler::instance().run();
+        detail::spin_mutex::scoped_lock lk( mtx_);
+        waiting_.push_back(
+                detail::scheduler::instance().active() );
+        detail::scheduler::instance().wait( lk);
     }
-    if ( this_fiber::is_fiberized() )
-        owner_ = detail::scheduler::instance().active()->get_id();
-    else
-        owner_ = detail::fiber_base::id();
+    owner_ = detail::scheduler::instance().active()->get_id();
 }
 
 bool
 mutex::try_lock()
 {
-    if ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) ) return false;
-    if ( this_fiber::is_fiberized() )
-        owner_ = detail::scheduler::instance().active()->get_id();
-    else
-        owner_ = detail::fiber_base::id();
-    return true;
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    return UNLOCKED == state_.exchange( LOCKED, memory_order_acquire);
 }
 
 void
 mutex::unlock()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
     if ( checked_)
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            if ( detail::scheduler::instance().active()->get_id() != owner_)
-                std::abort();
-        }
-        else if ( detail::fiber_base::id() != owner_)
-                std::abort();
+        if ( detail::scheduler::instance().active()->get_id() != owner_)
+            std::abort();
     }
-
     owner_ = detail::fiber_base::id();
-	state_.store( UNLOCKED);
 
+	state_ = UNLOCKED;
+
+    detail::spin_mutex::scoped_lock lk( mtx_);
 	if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;
@@ -82,9 +73,7 @@ mutex::unlock()
         {
             f.swap( waiting_.front() );
             waiting_.pop_front();
-        } while ( f->is_terminated() );
-        if ( f)
-            detail::scheduler::instance().notify( f);
+        } while ( ! f->set_ready() );
     }
 }
 

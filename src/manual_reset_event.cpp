@@ -25,28 +25,27 @@ manual_reset_event::manual_reset_event( bool isset) :
     state_( isset ? SET : RESET),
     waiters_( 0),
     enter_mtx_( false),
+    waiting_mtx_(),
     waiting_()
 {}
 
 void
 manual_reset_event::wait()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
     {
         mutex::scoped_lock lk( enter_mtx_);
         BOOST_ASSERT( lk);
         ++waiters_;
     }
 
-    while ( RESET == state_)
+    while ( RESET == state_.exchange( RESET, memory_order_acquire) )
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+        waiting_.push_back(
                 detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait();
-        }
-        else
-            detail::scheduler::instance().run();
+        detail::scheduler::instance().wait( lk);
     }
 
     if ( 0 == --waiters_)
@@ -56,39 +55,44 @@ manual_reset_event::wait()
 bool
 manual_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    if ( chrono::system_clock::now() >= abs_time) return false;
+
     {
         mutex::scoped_lock lk( enter_mtx_);
         BOOST_ASSERT( lk);
         ++waiters_;
     }
 
-    while ( RESET == state_)
+    while ( RESET == state_.exchange( RESET, memory_order_acquire) )
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            waiting_.push_back(
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+        waiting_.push_back(
                 detail::scheduler::instance().active() );
-            detail::scheduler::instance().sleep( abs_time);
-        }
-        else
-            detail::scheduler::instance().run();
+        detail::scheduler::instance().wait( lk);
+
+        if ( chrono::system_clock::now() >= abs_time) return false;
     }
 
     if ( 0 == --waiters_)
         enter_mtx_.unlock();
-    return chrono::system_clock::now() <= abs_time;
+
+    return true;
 }
 
 bool
 manual_reset_event::try_wait()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
     {
         mutex::scoped_lock lk( enter_mtx_);
         BOOST_ASSERT( lk);
         ++waiters_;
     }
 
-    bool result = SET == state_;
+    bool result = SET == state_.exchange( RESET, memory_order_acquire);
 
     if ( 0 == --waiters_)
         enter_mtx_.unlock();
@@ -99,24 +103,27 @@ manual_reset_event::try_wait()
 void
 manual_reset_event::set()
 {
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
     mutex::scoped_lock lk( enter_mtx_);
     BOOST_ASSERT( lk);
 
-    if ( RESET == state_)
+    if ( RESET == state_.exchange( SET, memory_order_acquire) )
     {
-        state_ = SET;
+        detail::spin_mutex::scoped_lock lk( waiting_mtx_);
         BOOST_FOREACH ( detail::fiber_base::ptr_t const& f, waiting_)
-        {
-            if ( ! f->is_terminated() )
-                detail::scheduler::instance().notify( f);
-        }
+        { f->set_ready(); }
         waiting_.clear();
     }
 }
 
 void
 manual_reset_event::reset()
-{ state_ = RESET; }
+{
+    BOOST_ASSERT( this_fiber::is_fiberized() );
+
+    state_ = RESET;
+}
 
 }}
 

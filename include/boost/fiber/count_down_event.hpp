@@ -16,6 +16,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/spin_mutex.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -32,11 +33,10 @@ namespace fibers {
 class BOOST_FIBERS_DECL count_down_event : private noncopyable
 {
 private:
-	std::size_t				initial_;
-	std::size_t         	current_;
-    std::deque<
-        detail::fiber_base::ptr_t
-    >                       waiting_;
+	std::size_t			                    initial_;
+	atomic< std::size_t >                   current_;
+    detail::spin_mutex                      waiting_mtx_;
+    std::deque< detail::fiber_base::ptr_t > waiting_;
 
 public:
 	explicit count_down_event( std::size_t);

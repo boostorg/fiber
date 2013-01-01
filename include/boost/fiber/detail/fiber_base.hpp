@@ -117,10 +117,10 @@ public:
     { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
 
     int priority() const BOOST_NOEXCEPT
-    { return priority_.load(); }
+    { return priority_; }
 
     void priority( int prio) BOOST_NOEXCEPT
-    { priority_.store( prio); }
+    { priority_ = prio; }
 
     void resume();
 
@@ -142,16 +142,16 @@ public:
     { return 0 != ( flags_ & flag_preserve_fpu); }
 
     bool is_terminated() const BOOST_NOEXCEPT
-    { return state_terminated == state_.load(); }
+    { return state_terminated == state_; }
 
     bool is_ready() const BOOST_NOEXCEPT
-    { return state_ready == state_.load(); }
+    { return state_ready == state_; }
 
     bool is_running() const BOOST_NOEXCEPT
-    { return state_running == state_.load(); }
+    { return state_running == state_; }
 
     bool is_waiting() const BOOST_NOEXCEPT
-    { return state_waiting == state_.load(); }
+    { return state_waiting == state_; }
 
     bool set_terminated() BOOST_NOEXCEPT
     {
