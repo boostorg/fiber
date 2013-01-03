@@ -16,49 +16,31 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-typedef std::pair< state_t, fiber_base::ptr_t > container_value_t;
-
-class comparator
+struct comparator
 {
-private:
-    bool less_( container_value_t::first_type const& kl,
-                container_value_t::first_type const& kr) const
-    {
-        int x = static_cast< int >( kl);
-        int y = static_cast< int >( kr);
-        bool ret = x < y;
-        return ret;
-    }
-
-public:
     bool operator()(
-        container_value_t::first_type const& l,
-        container_value_t::first_type const& r) const
-    { return less_( l, r); }
+        fiber_base::ptr_t const& l,
+        fiber_base::ptr_t const& r) const
+    { return l->state() < r->state(); }
 
     bool operator()(
-        container_value_t const& l,
-        container_value_t const& r) const
-    { return less_( l.first, r.first); }
+        state_t const& l,
+        fiber_base::ptr_t const& r) const
+    { return l < r->state(); }
 
     bool operator()(
-        container_value_t const& l,
-        container_value_t::first_type const& r) const
-    { return less_( l.first, r); }
-
-    bool operator()(
-        container_value_t::first_type const& l,
-        container_value_t const& r) const
-    { return less_( l, r.first); }
+        fiber_base::ptr_t const& l,
+        state_t const& r) const
+    { return l->state() < r; }
 };
 
 template <
-    class A = std::allocator< container_value_t >
+    class A = std::allocator< fiber_base::ptr_t >
 >
 class container
 {
 private:
-    typedef std::vector< container_value_t, A >     base_t;
+    typedef std::vector< fiber_base::ptr_t, A >     base_t;
 
     base_t                                          base_;
 
@@ -98,16 +80,11 @@ public:
     void push_back( fiber_base::ptr_t const& f)
     {
         BOOST_ASSERT( f);
-        base_.push_back(
-            std::make_pair( f->state(), f) );
+        base_.push_back( f);
     }
 
-    void erase( key_type const& k)
-    {
-        std::pair< iterator, iterator > p = equal_range( k);
-        if ( p.first == p.second) return;
-        base_.erase( p.first, p.second);
-    }
+    void erase( iterator const& i)
+    { base_.erase( i); }
 
     void swap( container & other)
     { base_.swap( other); }

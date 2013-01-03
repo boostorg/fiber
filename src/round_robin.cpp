@@ -32,10 +32,6 @@
 namespace boost {
 namespace fibers {
 
-static detail::fiber_base::ptr_t extract_fiber_base(
-            std::pair< detail::state_t, detail::fiber_base::ptr_t > & p)
-{ return p.second; }
-
 void
 round_robin::process_fibers_()
 {
@@ -46,36 +42,23 @@ round_robin::process_fibers_()
     std::size_t new_capacity = n * std::log10( n) + n;
     if ( fibers_.capacity() < new_capacity)
         fibers_.reserve( new_capacity);
-    {
-        BOOST_FOREACH( container_t::value_type const& p, fibers_)
-        {
-            detail::fiber_base::ptr_t f = p.second;
-            int x = static_cast< int >( f->state() );
-            std::cout << x << "\n";
-        }
-    }
+
     // sort fibers_ depending on state
     fibers_.sort();
-    {
-        BOOST_FOREACH( container_t::value_type const& p, fibers_)
-        {
-            detail::fiber_base::ptr_t f = p.second;
-            int x = static_cast< int >( f->state() );
-            std::cout << x << "\n";
-        }
-    }
 
     // copy all ready fibers to rqueue_
     std::pair< container_t::iterator, container_t::iterator > p =
             fibers_.equal_range( detail::state_ready);
     if ( p.first != p.second)
-        std::transform(
-            p.first, p.second,
-            std::back_inserter( rqueue_),
-            extract_fiber_base);
+        rqueue_.insert( rqueue_.end(), p.first, p.second);
 
     // remove all terminated fibers from fibers_
-    fibers_.erase( detail::state_terminated);
+    p = fibers_.equal_range( detail::state_terminated);
+    for ( container_t::iterator i = p.first; i != p.second; ++i)
+    {
+        ( * i)->terminate();
+        fibers_.erase( i);
+    }
 }
 
 round_robin::round_robin() :
