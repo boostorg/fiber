@@ -21,10 +21,10 @@ namespace detail {
 
 enum state_t
 {
-    state_terminated = 0,
-    state_ready      = 1 << 1,
-    state_running    = 1 << 2,
-    state_waiting    = 1 << 3
+    state_ready      = 0,
+    state_running    = 1,
+    state_waiting    = 2,
+    state_terminated = 3
 };
 
 }}}

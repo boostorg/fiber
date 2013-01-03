@@ -7,15 +7,15 @@
 #define BOOST_FIBERS_DEFAULT_SCHEDULER_H
 
 #include <deque>
+#include <set>
+#include <vector>
 
 #include <boost/assert.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/container.hpp>
 #include <boost/fiber/detail/spin_mutex.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/algorithm.hpp>
@@ -52,51 +52,24 @@ private:
             BOOST_ASSERT( f);
             BOOST_ASSERT( (chrono::system_clock::time_point::max)() != tp);
         }
+
+        bool operator<( schedulable const& other)
+        { return tp < other.tp; }
     };
 
-    struct f_tag_t {};
-    struct tp_tag_t {};
-
-    typedef multi_index::multi_index_container<
-        schedulable,
-        multi_index::indexed_by<
-            multi_index::ordered_unique<
-                multi_index::tag< f_tag_t >,
-                multi_index::member< schedulable, detail::fiber_base::ptr_t, & schedulable::f >
-            >,
-            multi_index::ordered_non_unique<
-                multi_index::tag< tp_tag_t >,
-                multi_index::member< schedulable, chrono::system_clock::time_point, & schedulable::tp >
-            >
-        >
-    >                                                   wqueue_t;
-    typedef wqueue_t::index< f_tag_t >::type            f_idx_t;
-    typedef wqueue_t::index< tp_tag_t >::type           tp_idx_t;
+    typedef detail::container<>                         container_t;
     typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
+    typedef std::set< schedulable >                     sleeping_t;
 
     detail::fiber_base::ptr_t   active_fiber_;
+    container_t                 fibers_;
     rqueue_t                    rqueue_;
-    wqueue_t                    wqueue_;
-    f_idx_t                 &   f_idx_;
-    tp_idx_t                &   tp_idx_;
+    sleeping_t                  sleeping_;
+
+    void process_fibers_();
 
 public:
-    typedef rqueue_t::iterator          iterator;
-    typedef rqueue_t::const_iterator    const_iterator;
-
     round_robin() BOOST_NOEXCEPT;
-
-    iterator begin()
-    { return rqueue_.begin(); }
-
-    const_iterator begin() const
-    { return rqueue_.begin(); }
-
-    iterator end()
-    { return rqueue_.end(); }
-
-    const_iterator end() const
-    { return rqueue_.end(); }
 
     void spawn( detail::fiber_base::ptr_t const&);
 

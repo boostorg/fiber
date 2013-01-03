@@ -82,11 +82,12 @@ void f3()
 void f4()
 {
     boost::fibers::fiber s( f2);
+    std::cout << s.get_id() << "\n";
     BOOST_CHECK( s);
-    //BOOST_CHECK( s.is_joinable() );
+    BOOST_CHECK( s.joinable() );
     s.join();
     BOOST_CHECK( ! s);
-    //BOOST_CHECK( ! s.is_joinable() );
+    BOOST_CHECK( ! s.joinable() );
 }
 
 void f5()
@@ -247,43 +248,49 @@ void test_cancel()
     }
 }
 
-void test_join()
+void test_join_in_thread()
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    {
-        boost::fibers::fiber s( f2);
-        BOOST_CHECK( s);
-        BOOST_CHECK( s.joinable() );
-        s.join();
-        BOOST_CHECK( ! s);
-        BOOST_CHECK( ! s.joinable() );
-    }
+    boost::fibers::fiber s( f2);
+    BOOST_CHECK( s);
+    BOOST_CHECK( s.joinable() );
+    s.join();
+    BOOST_CHECK( ! s);
+    BOOST_CHECK( ! s.joinable() );
+}
 
-    {
-        boost::fibers::fiber s( f2);
-        BOOST_CHECK( s);
-        //BOOST_CHECK( s.is_joinable() );
-        BOOST_CHECK( boost::fibers::run() );
-        BOOST_CHECK( ! boost::fibers::run() );
-        BOOST_CHECK( ! s);
-        //BOOST_CHECK( ! s.is_joinable() );
-    }
+void test_join_and_run()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
 
-    {
-        // spawn fiber s
-        // s spawns an new fiber s' in its fiber-fn
-        // s' yields in its fiber-fn
-        // s joins s' and gets suspended (waiting on s') 
-        boost::fibers::fiber s( f4);
-        // run() resumes s' which completes
-        BOOST_CHECK( boost::fibers::run() );
-        // run() resumes s which completes
-        BOOST_CHECK( boost::fibers::run() );
-        BOOST_CHECK( ! s);
-        BOOST_CHECK( ! boost::fibers::run() );
-    }
+    boost::fibers::fiber s( f2);
+    BOOST_CHECK( s);
+    BOOST_CHECK( s.joinable() );
+    BOOST_CHECK( boost::fibers::run() );
+    BOOST_CHECK( ! boost::fibers::run() );
+    BOOST_CHECK( ! s);
+    BOOST_CHECK( ! s.joinable() );
+}
+
+void test_join_in_fiber()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // spawn fiber s
+    // s spawns an new fiber s' in its fiber-fn
+    // s' yields in its fiber-fn
+    // s joins s' and gets suspended (waiting on s')
+    boost::fibers::fiber s( f4);
+    std::cout << s.get_id() << "\n";
+    // run() resumes s + s' which completes
+    while ( s)
+        boost::fibers::run();
+    BOOST_CHECK( ! s);
+    BOOST_CHECK( ! boost::fibers::run() );
 }
 
 void test_yield_break()
@@ -378,7 +385,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
-
+#if 0
     test->add( BOOST_TEST_CASE( & test_move) );
     test->add( BOOST_TEST_CASE( & test_id) );
     test->add( BOOST_TEST_CASE( & test_priority) );
@@ -386,11 +393,15 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_complete) );
     test->add( BOOST_TEST_CASE( & test_replace) );
     //test->add( BOOST_TEST_CASE( & test_cancel) );
-    test->add( BOOST_TEST_CASE( & test_join) );
+    test->add( BOOST_TEST_CASE( & test_join_in_thread) );
+    test->add( BOOST_TEST_CASE( & test_join_and_run) );
+#endif
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
+#if 0
     test->add( BOOST_TEST_CASE( & test_yield_break) );
     test->add( BOOST_TEST_CASE( & test_yield) );
     test->add( BOOST_TEST_CASE( & test_sleep) );
     test->add( BOOST_TEST_CASE( & test_sleep_and_cancel) );
-
+#endif
     return test;
 }
