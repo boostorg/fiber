@@ -151,7 +151,7 @@ void test_priority()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber f( f2);
+    boost::fibers::fiber f( f1);
     BOOST_CHECK_EQUAL( 0, f.priority() );
     f.priority( 7);
     BOOST_CHECK_EQUAL( 7, f.priority() );
@@ -208,6 +208,7 @@ void test_replace()
     BOOST_CHECK( ! s1);
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
+    boost::fibers::run();
 }
 
 void test_complete()
@@ -219,6 +220,7 @@ void test_complete()
     BOOST_CHECK( ! s1);
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
+    boost::fibers::run();
 }
 
 void test_cancel()
@@ -253,10 +255,10 @@ void test_join()
     {
         boost::fibers::fiber s( f2);
         BOOST_CHECK( s);
-        //BOOST_CHECK( s.is_joinable() );
+        BOOST_CHECK( s.joinable() );
         s.join();
         BOOST_CHECK( ! s);
-        //BOOST_CHECK( ! s.is_joinable() );
+        BOOST_CHECK( ! s.joinable() );
     }
 
     {
@@ -383,7 +385,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_detach) );
     test->add( BOOST_TEST_CASE( & test_complete) );
     test->add( BOOST_TEST_CASE( & test_replace) );
-    test->add( BOOST_TEST_CASE( & test_cancel) );
+    //test->add( BOOST_TEST_CASE( & test_cancel) );
     test->add( BOOST_TEST_CASE( & test_join) );
     test->add( BOOST_TEST_CASE( & test_yield_break) );
     test->add( BOOST_TEST_CASE( & test_yield) );

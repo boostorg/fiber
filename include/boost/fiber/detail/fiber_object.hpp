@@ -78,8 +78,6 @@ private:
 protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! is_terminated() );
-
         flags_ |= flag_unwind_stack;
         set_running();
         context::jump_fcontext(
@@ -144,6 +142,7 @@ public:
 
         try
         {
+            set_ready();
             yield();
             fn_();
         }
@@ -154,7 +153,7 @@ public:
 
         set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-        BOOST_ASSERT_MSG( false, "fiber is complete");
+        BOOST_ASSERT_MSG( false, "fiber alredy terminated");
     }
 
     void deallocate_object()
@@ -199,8 +198,6 @@ private:
 protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! is_terminated() );
-
         flags_ |= flag_unwind_stack;
         set_running();
         context::jump_fcontext(
@@ -235,6 +232,7 @@ public:
 
         try
         {
+            set_ready();
             yield();
             fn_();
         }
@@ -245,7 +243,7 @@ public:
 
         set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-        BOOST_ASSERT_MSG( false, "fiber is complete");
+        BOOST_ASSERT_MSG( false, "fiber alredy terminated");
     }
 
     void deallocate_object()
@@ -290,8 +288,6 @@ private:
 protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! is_terminated() );
-
         flags_ |= flag_unwind_stack;
         set_running();
         context::jump_fcontext(
@@ -326,6 +322,7 @@ public:
 
         try
         {
+            set_ready();
             yield();
             fn_();
         }
@@ -336,7 +333,7 @@ public:
 
         set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-        BOOST_ASSERT_MSG( false, "fiber is complete");
+        BOOST_ASSERT_MSG( false, "fiber alredy terminated");
     }
 
     void deallocate_object()

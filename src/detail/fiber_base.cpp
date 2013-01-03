@@ -35,9 +35,6 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
 void
 fiber_base::resume()
 {
-    BOOST_ASSERT( ! is_terminated() );
-    BOOST_ASSERT( ! is_running() );
-
     context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
 
     BOOST_ASSERT( ! is_running() );
@@ -46,8 +43,6 @@ fiber_base::resume()
 void
 fiber_base::suspend()
 {
-    BOOST_ASSERT( is_running() );
-
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
     if ( unwind_requested() )
@@ -57,8 +52,6 @@ fiber_base::suspend()
 void
 fiber_base::yield()
 {
-    BOOST_ASSERT( is_running() );
-
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
     if ( unwind_requested() )
@@ -68,9 +61,7 @@ fiber_base::yield()
 void
 fiber_base::terminate()
 {
-    BOOST_ASSERT( is_terminated() );
-
-    unwind_stack();
+    if ( ! is_terminated() ) unwind_stack();
 
     // fiber_base::terminate() is called by ~fiber_object()
     // therefore protecting by mtx_ is not required

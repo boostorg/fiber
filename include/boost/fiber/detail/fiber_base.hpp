@@ -180,6 +180,9 @@ public:
         return state_.compare_exchange_weak( expected, state_waiting, memory_order_release);
     }
 
+    state_t state() const BOOST_NOEXCEPT
+    { return state_; }
+
     friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
     { p->use_count_.fetch_add( 1, memory_order_relaxed); }
 

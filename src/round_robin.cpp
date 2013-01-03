@@ -5,6 +5,8 @@
 
 #define BOOST_FIBERS_SOURCE
 
+#include <stdio.h>
+
 #include <boost/fiber/round_robin.hpp>
 
 #include <memory>
@@ -25,7 +27,7 @@
     BOOST_ASSERT( f_); \
     BOOST_ASSERT( ! f_->is_terminated() ); \
     f_->set_running(); \
-    f_->resume(); \
+    f_->resume();
 
 namespace boost {
 namespace fibers {
