@@ -23,6 +23,7 @@ __declspec(thread) algorithm * scheduler::instance_ = 0;
 #elif defined(BOOST_MAC_PTHREADS)
 detail::thread_local_ptr scheduler::instance_ = 0;
 #else
+//algorithm * scheduler::instance_ = 0;
 __thread algorithm * scheduler::instance_ = 0;
 #endif
 

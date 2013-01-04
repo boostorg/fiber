@@ -37,6 +37,7 @@ void trampoline( intptr_t vp)
     BOOST_ASSERT( vp);
 
     Fiber * f( reinterpret_cast< Fiber * >( vp) );
+    BOOST_ASSERT( f->is_running() );
     f->exec();
 }
 
@@ -79,7 +80,6 @@ protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
         flags_ |= flag_unwind_stack;
-        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             0, preserve_fpu() );
@@ -153,7 +153,7 @@ public:
 
         set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-        BOOST_ASSERT_MSG( false, "fiber alredy terminated");
+        BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
 
     void deallocate_object()
@@ -243,7 +243,7 @@ public:
 
         set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-        BOOST_ASSERT_MSG( false, "fiber alredy terminated");
+        BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
 
     void deallocate_object()
@@ -333,7 +333,7 @@ public:
 
         set_terminated();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-        BOOST_ASSERT_MSG( false, "fiber alredy terminated");
+        BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
 
     void deallocate_object()

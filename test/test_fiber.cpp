@@ -385,7 +385,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
-#if 0
     test->add( BOOST_TEST_CASE( & test_move) );
     test->add( BOOST_TEST_CASE( & test_id) );
     test->add( BOOST_TEST_CASE( & test_priority) );
@@ -395,13 +394,10 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     //test->add( BOOST_TEST_CASE( & test_cancel) );
     test->add( BOOST_TEST_CASE( & test_join_in_thread) );
     test->add( BOOST_TEST_CASE( & test_join_and_run) );
-#endif
     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
-#if 0
     test->add( BOOST_TEST_CASE( & test_yield_break) );
     test->add( BOOST_TEST_CASE( & test_yield) );
-    test->add( BOOST_TEST_CASE( & test_sleep) );
-    test->add( BOOST_TEST_CASE( & test_sleep_and_cancel) );
-#endif
+    //test->add( BOOST_TEST_CASE( & test_sleep) );
+    //test->add( BOOST_TEST_CASE( & test_sleep_and_cancel) );
     return test;
 }

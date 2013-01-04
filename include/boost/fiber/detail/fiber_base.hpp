@@ -153,31 +153,28 @@ public:
     bool is_waiting() const BOOST_NOEXCEPT
     { return state_waiting == state_; }
 
-    bool set_terminated() BOOST_NOEXCEPT
+    void set_terminated() BOOST_NOEXCEPT
     {
-        state_t expected = state_running;
-        return state_.compare_exchange_weak( expected, state_terminated, memory_order_release);
+        state_t previous = state_.exchange( state_terminated, memory_order_release);
+        BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
-    bool set_ready() BOOST_NOEXCEPT
+    void set_ready() BOOST_NOEXCEPT
     {
-        state_t expected = state_waiting;
-        bool result = state_.compare_exchange_weak( expected, state_ready, memory_order_release);
-        if ( ! result && state_running == expected)
-            result = state_.compare_exchange_weak( expected, state_ready, memory_order_release);
-        return result;
+        state_t previous = state_.exchange( state_ready, memory_order_release);
+        BOOST_ASSERT( state_running == previous || state_waiting == previous);
     }
 
-    bool set_running() BOOST_NOEXCEPT
+    void set_running() BOOST_NOEXCEPT
     {
-        state_t expected = state_ready;
-        return state_.compare_exchange_weak( expected, state_running, memory_order_release);
+        state_t previous = state_.exchange( state_running, memory_order_release);
+        BOOST_ASSERT( state_ready == previous);
     }
 
-    bool set_waiting() BOOST_NOEXCEPT
+    void set_waiting() BOOST_NOEXCEPT
     {
-        state_t expected = state_running;
-        return state_.compare_exchange_weak( expected, state_waiting, memory_order_release);
+        state_t previous = state_.exchange( state_waiting, memory_order_release);
+        BOOST_ASSERT( state_running == previous);
     }
 
     state_t state() const BOOST_NOEXCEPT

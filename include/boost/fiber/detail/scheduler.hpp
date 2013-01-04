@@ -92,6 +92,7 @@ private:
 #elif defined(BOOST_MAC_PTHREADS)
     static detail::thread_local_ptr             instance_;
 #else
+    //static algorithm               *   instance_;
     static __thread algorithm               *   instance_;
 #endif
 

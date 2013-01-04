@@ -69,11 +69,9 @@ mutex::unlock()
 	if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;
-        do
-        {
-            f.swap( waiting_.front() );
-            waiting_.pop_front();
-        } while ( ! f->set_ready() );
+        f.swap( waiting_.front() );
+        waiting_.pop_front();
+        f->set_ready();
     }
 }
 
