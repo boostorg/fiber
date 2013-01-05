@@ -68,6 +68,17 @@ round_robin::round_robin() :
     sleeping_()
 {}
 
+round_robin::~round_robin()
+{
+    BOOST_ASSERT( ! active_fiber_);
+
+    rqueue_.clear();
+    sleeping_.clear();
+
+    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, fibers_)
+    { p->terminate(); }
+}
+
 void
 round_robin::spawn( detail::fiber_base::ptr_t const& f)
 {

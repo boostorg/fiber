@@ -80,6 +80,7 @@ protected:
     void unwind_stack() BOOST_NOEXCEPT
     {
         flags_ |= flag_unwind_stack;
+        set_running();
         context::jump_fcontext(
             & caller_, callee_,
             0, preserve_fpu() );

@@ -69,7 +69,9 @@ public:
 void f1() {}
 
 void f2()
-{ boost::this_fiber::yield(); }
+{
+    boost::this_fiber::yield();
+}
 
 void f3()
 {
@@ -187,15 +189,19 @@ void test_detach()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber s1( f1);
-    BOOST_CHECK( ! s1);
-    s1.detach();
-    BOOST_CHECK( ! s1);
+    {
+        boost::fibers::fiber s1( f1);
+        BOOST_CHECK( ! s1);
+        s1.detach();
+        BOOST_CHECK( ! s1);
+    }
 
-    boost::fibers::fiber s2( f2);
-    BOOST_CHECK( s2);
-    s2.detach();
-    BOOST_CHECK( ! s2);
+    {
+        boost::fibers::fiber s2( f2);
+        BOOST_CHECK( s2);
+        s2.detach();
+        BOOST_CHECK( ! s2);
+    }
 }
 
 void test_replace()

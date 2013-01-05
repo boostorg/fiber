@@ -62,7 +62,7 @@ fiber_base::yield()
 
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
-//    BOOST_ASSERT( is_running() );
+    BOOST_ASSERT( is_running() );
 
     if ( unwind_requested() )
         throw forced_unwind();

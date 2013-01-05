@@ -71,6 +71,8 @@ private:
 public:
     round_robin() BOOST_NOEXCEPT;
 
+    ~round_robin() BOOST_NOEXCEPT;
+
     void spawn( detail::fiber_base::ptr_t const&);
 
     void priority( detail::fiber_base::ptr_t const&, int);
