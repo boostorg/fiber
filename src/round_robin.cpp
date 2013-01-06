@@ -29,8 +29,7 @@ namespace fibers {
 round_robin::round_robin() :
     active_fiber_(),
     fibers_(),
-    rqueue_(),
-    sleeping_()
+    rqueue_()
 {}
 
 round_robin::~round_robin()
@@ -38,7 +37,6 @@ round_robin::~round_robin()
     BOOST_ASSERT( ! active_fiber_);
 
     rqueue_.clear();
-    sleeping_.clear();
 
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, fibers_)
     { p->terminate(); }
@@ -127,20 +125,6 @@ round_robin::cancel( detail::fiber_base::ptr_t const& f)
 bool
 round_robin::run()
 {
-#if 0
-    // get all fibers with reached dead-line and push them
-    // at the front of runnable-queue
-    sleeping_t::iterator e(
-        sleeping_.upper_bound(
-            schedulable( chrono::system_clock::now() ) ) );
-    for (
-            sleeping_t::iterator i( sleeping_.begin() );
-            i != e; ++i)
-    { rqueue_.push_back( i->f); } //FIXME: rqueue_.push_front() ?
-    // remove all fibers with reached dead-line
-    sleeping_.erase( sleeping_.begin(), e);
-#endif
-
     // stable-sort has n*log(n) complexity if n*log(n) extra space is available
     std::size_t n = fibers_.size();
     if ( 1 < n)
@@ -224,27 +208,6 @@ round_robin::yield()
     active_fiber_->yield();
     // fiber is resumed
 
-    BOOST_ASSERT( active_fiber_->is_running() );
-}
-
-void
-round_robin::sleep( chrono::system_clock::time_point const& abs_time)
-{
-    BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
-#if 0
-    if ( abs_time > chrono::system_clock::now() )
-    {
-        // fiber is added with a dead-line and gets suspended
-        // each call of run() will check if dead-line has reached
-        sleeping_.insert( schedulable( active_fiber_, abs_time) );
-        // set active_fiber to state_waiting
-        active_fiber_->set_waiting();
-        // suspend fiber
-        active_fiber_->suspend();
-        // fiber is resumed, dead-line has been reached
-    }
-#endif
     BOOST_ASSERT( active_fiber_->is_running() );
 }
 

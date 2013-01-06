@@ -7,7 +7,6 @@
 #define BOOST_FIBERS_ALGORITHM_H
 
 #include <boost/assert.hpp>
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
@@ -38,8 +37,6 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
     virtual void cancel( detail::fiber_base::ptr_t const&) = 0;
 
     virtual detail::fiber_base::ptr_t active() = 0;
-
-    virtual void sleep( chrono::system_clock::time_point const& abs_time) = 0;
 
     virtual bool run() = 0;
 

@@ -56,7 +56,9 @@ void wait_callback_for_task(boost::fibers::packaged_task<int>& pt)
 
 int make_int_slowly()
 {
-    boost::this_fiber::sleep(boost::chrono::seconds(1));
+    boost::this_fiber::yield();
+    boost::this_fiber::yield();
+    boost::this_fiber::yield();
     return 42;
 }
 

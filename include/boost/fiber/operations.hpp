@@ -7,7 +7,6 @@
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
 #include <boost/assert.hpp>
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
 #include <boost/preprocessor/cat.hpp>
@@ -36,17 +35,6 @@ fibers::fiber::id get_id()
 	BOOST_ASSERT( is_fiberized() );
 	return fibers::detail::scheduler::instance().active()->get_id();
 }
-
-inline
-void sleep( chrono::system_clock::time_point const& abs_time)
-{
-	BOOST_ASSERT( is_fiberized() );
-	fibers::detail::scheduler::instance().sleep( abs_time);
-}
-
-template< typename TimeDuration > 
-void sleep( TimeDuration const& dt)
-{ sleep( chrono::system_clock::now() + dt); }
 
 inline
 void yield()
