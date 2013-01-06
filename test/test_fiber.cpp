@@ -202,7 +202,9 @@ void test_replace()
     BOOST_CHECK( ! s1);
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
-    boost::fibers::run();
+
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
 }
 
 void test_complete()
@@ -214,7 +216,9 @@ void test_complete()
     BOOST_CHECK( ! s1);
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
-    boost::fibers::run();
+
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
 }
 
 void test_cancel()
@@ -235,9 +239,8 @@ void test_cancel()
         // s' yields in its fiber-fn
         // s cancels s' and completes
         boost::fibers::fiber s( f3);
-        BOOST_CHECK( ! boost::fibers::run() );
+        if ( s.joinable() ) s.join();
         BOOST_CHECK( ! s);
-        BOOST_CHECK( ! boost::fibers::run() );
     }
 }
 
@@ -262,10 +265,9 @@ void test_join_and_run()
     boost::fibers::fiber s( f2);
     BOOST_CHECK( s);
     BOOST_CHECK( s.joinable() );
-    BOOST_CHECK( boost::fibers::run() );
-    BOOST_CHECK( ! boost::fibers::run() );
-    BOOST_CHECK( ! s);
+    s.join();
     BOOST_CHECK( ! s.joinable() );
+    BOOST_CHECK( ! s);
 }
 
 void test_join_in_fiber()
@@ -280,10 +282,8 @@ void test_join_in_fiber()
     boost::fibers::fiber s( f4);
     std::cout << s.get_id() << "\n";
     // run() resumes s + s' which completes
-    while ( s)
-        boost::fibers::run();
+    if ( s.joinable() ) s.join();
     BOOST_CHECK( ! s);
-    BOOST_CHECK( ! boost::fibers::run() );
 }
 
 void test_yield_break()
@@ -292,8 +292,8 @@ void test_yield_break()
     boost::fibers::scheduling_algorithm( & ds);
 
     boost::fibers::fiber s( f5);
+    if ( s.joinable() ) s.join();
     BOOST_CHECK( ! s);
-    BOOST_CHECK( ! boost::fibers::run() );
 }
 
 void test_yield()
@@ -306,7 +306,8 @@ void test_yield()
     BOOST_CHECK_EQUAL( 0, v2);
     boost::fibers::fiber s1( boost::bind( f6, boost::ref( v1) ) );
     boost::fibers::fiber s2( boost::bind( f6, boost::ref( v2) ) );
-    while ( boost::fibers::run() );
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
     BOOST_CHECK( ! s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 8, v1);

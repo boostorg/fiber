@@ -203,12 +203,6 @@ void test_one_waiter_notify_one()
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
 	boost::fibers::fiber s2(
             boost::bind(
                 notify_one_fn,
@@ -216,7 +210,8 @@ void test_one_waiter_notify_one()
 
 	BOOST_CHECK_EQUAL( 0, value);
 
-    while ( s1 || s2) boost::fibers::run();
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
 	BOOST_CHECK_EQUAL( 1, value);
 }
 
@@ -243,40 +238,23 @@ void test_two_waiter_notify_one()
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
     boost::fibers::fiber s3(
             boost::bind(
                 notify_one_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 1, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 1, value);
-
     boost::fibers::fiber s4(
             boost::bind(
                 notify_one_fn,
                 boost::ref( cond) ) );
-	BOOST_CHECK_EQUAL( 1, value);
+	BOOST_CHECK_EQUAL( 0, value);
 
     if ( s1.joinable() ) s1.join();
     if ( s2.joinable() ) s2.join();
     if ( s3.joinable() ) s3.join();
     if ( s4.joinable() ) s4.join();
 
-	BOOST_CHECK_EQUAL( 2, value);
-	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 }
 
@@ -303,55 +281,31 @@ void test_two_waiter_notify_all()
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 0, value);
-
     boost::fibers::fiber s3(
             boost::bind(
                 notify_all_fn,
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 1, value);
-
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 2, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 2, value);
-
     boost::fibers::fiber s4(
             boost::bind(
                 wait_fn,
                 boost::ref( mtx),
                 boost::ref( cond) ) );
-	BOOST_CHECK_EQUAL( 2, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 2, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 2, value);
+	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s5(
             boost::bind(
                 notify_all_fn,
                 boost::ref( cond) ) );
-	BOOST_CHECK_EQUAL( 2, value);
+	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 3, value);
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
+    if ( s3.joinable() ) s3.join();
+    if ( s4.joinable() ) s4.join();
+    if ( s5.joinable() ) s5.join();
 
-	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 3, value);
 }
 
