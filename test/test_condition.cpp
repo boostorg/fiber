@@ -82,19 +82,16 @@ void condition_test_waits( condition_test_data * data)
     BOOST_CHECK( lock ? true : false);
 
     // Test wait.
+    fprintf( stderr, "fiber wait.\n");
     while ( data->notified != 1)
-    {
-        fprintf( stderr, "fiber will wait\n");
         data->condition.wait(lock);
-        fprintf( stderr, "fiber notified\n");
-    }
-    fprintf( stderr, " data->notified == 1\n");
     BOOST_CHECK(lock ? true : false);
     BOOST_CHECK_EQUAL(data->notified, 1);
     data->awoken++;
     data->condition.notify_one();
 
     // Test predicate wait.
+    fprintf( stderr, "fiber predicate wait.\n");
     data->condition.wait(lock, cond_predicate(data->notified, 2));
     BOOST_CHECK(lock ? true : false);
     BOOST_CHECK_EQUAL(data->notified, 2);
@@ -102,15 +99,18 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test timed_wait.
+    fprintf( stderr, "fiber timed_wait.\n");
     boost::chrono::system_clock::time_point xt = delay(10);
     while (data->notified != 3)
-        data->condition.timed_wait(lock, xt);
+        data->condition.wait(lock);
+        //data->condition.timed_wait(lock, xt);
     BOOST_CHECK(lock ? true : false);
     BOOST_CHECK_EQUAL(data->notified, 3);
     data->awoken++;
     data->condition.notify_one();
 
     // Test predicate timed_wait.
+    fprintf( stderr, "fiber predicate timed_wait.\n");
     xt = delay(10);
     cond_predicate pred(data->notified, 4);
     BOOST_CHECK(data->condition.timed_wait(lock, xt, pred));
@@ -121,6 +121,7 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test predicate timed_wait with relative timeout
+    fprintf( stderr, "fiber predicate timed_wait with relative timeout.\n");
     cond_predicate pred_rel(data->notified, 5);
     BOOST_CHECK(data->condition.timed_wait(lock, boost::chrono::seconds(10), pred_rel));
     BOOST_CHECK(lock ? true : false);
@@ -130,6 +131,7 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test timeout timed_wait.
+    fprintf( stderr, "fiber timeout timed_wait.\n");
     BOOST_CHECK(!data->condition.timed_wait(lock, boost::chrono::seconds(2)));
     BOOST_CHECK(lock ? true : false);
 }
@@ -145,17 +147,10 @@ void do_test_condition_waits()
         boost::fibers::mutex::scoped_lock lock( data.mutex);
         BOOST_CHECK(lock ? true : false);
 
-        fprintf( stderr, "main increments data.notified\n");
         data.notified++;
-        fprintf( stderr, "main notifies one fiber\n");
         data.condition.notify_one();
         while (data.awoken != 1)
-        {
-            fprintf( stderr, "main will wait\n");
             data.condition.wait(lock);
-            fprintf( stderr, "main was notified\n");
-        }
-        fprintf( stderr, "main data.awoken == 1\n");
         BOOST_CHECK(lock ? true : false);
         BOOST_CHECK_EQUAL(data.awoken, 1);
 
@@ -180,7 +175,6 @@ void do_test_condition_waits()
         BOOST_CHECK(lock ? true : false);
         BOOST_CHECK_EQUAL(data.awoken, 4);
 
-
         data.notified++;
         data.condition.notify_one();
         while (data.awoken != 5)
@@ -189,7 +183,7 @@ void do_test_condition_waits()
         BOOST_CHECK_EQUAL(data.awoken, 5);
     }
 
-    s.join();
+    if ( s.joinable() ) s.join();
     BOOST_CHECK_EQUAL(data.awoken, 5);
 }
 
@@ -219,12 +213,10 @@ void test_one_waiter_notify_one()
             boost::bind(
                 notify_one_fn,
                 boost::ref( cond) ) );
+
 	BOOST_CHECK_EQUAL( 0, value);
 
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 1, value);
-
-	BOOST_CHECK( ! boost::fibers::run() );
+    while ( s1 || s2) boost::fibers::run();
 	BOOST_CHECK_EQUAL( 1, value);
 }
 
@@ -278,9 +270,12 @@ void test_two_waiter_notify_one()
                 boost::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 1, value);
 
-	BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK_EQUAL( 2, value);
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
+    if ( s3.joinable() ) s3.join();
+    if ( s4.joinable() ) s4.join();
 
+	BOOST_CHECK_EQUAL( 2, value);
 	BOOST_CHECK( ! boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 2, value);
 }
@@ -324,6 +319,7 @@ void test_two_waiter_notify_all()
 	BOOST_CHECK_EQUAL( 0, value);
 
 	BOOST_CHECK( boost::fibers::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 1, value);
 
 	BOOST_CHECK( boost::fibers::run() );
@@ -352,6 +348,7 @@ void test_two_waiter_notify_all()
 	BOOST_CHECK_EQUAL( 2, value);
 
 	BOOST_CHECK( boost::fibers::run() );
+	BOOST_CHECK( boost::fibers::run() );
 	BOOST_CHECK_EQUAL( 3, value);
 
 	BOOST_CHECK( ! boost::fibers::run() );
@@ -363,17 +360,18 @@ void test_condition_waits()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    do_test_condition_waits();
+    boost::fibers::fiber( do_test_condition_waits).join();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: condition test suite");
+
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
-	test->add( BOOST_TEST_CASE( & test_condition_waits) );
+    test->add( BOOST_TEST_CASE( & test_condition_waits) );
 
 	return test;
 }

@@ -66,8 +66,6 @@ private:
     rqueue_t                    rqueue_;
     sleeping_t                  sleeping_;
 
-    void process_fibers_();
-
 public:
     round_robin() BOOST_NOEXCEPT;
 

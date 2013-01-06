@@ -170,7 +170,7 @@ public:
         if ( now >= abs_time) return false;
 
         {
-            mutex::scoped_lock lk( enter_mtx_);
+            mutex::scoped_lock lk( enter_mtx_); // FIXME: abs_time!
             BOOST_ASSERT( lk);
             ++waiters_;
             lt.unlock();
@@ -185,10 +185,13 @@ public:
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
+#if 0
                 detail::spin_mutex::scoped_lock lk( waiting_mtx_);
                 waiting_.push_back(
                     detail::scheduler::instance().active() );
                 detail::scheduler::instance().wait( lk);
+#endif
+                this_fiber::yield();
 
                 now = chrono::system_clock::now();
                 if ( now >= abs_time)
@@ -217,37 +220,38 @@ public:
                 --waiters_;
                 break;
             }
-
-            command expected = NOTIFY_ONE;
-            cmd_.compare_exchange_strong( expected, SLEEPING);
-            if ( SLEEPING == expected)
-                //Other thread has been notified and since it was a NOTIFY one
-                //command, this thread must sleep again
-                continue;
-            else if ( NOTIFY_ONE == expected)
-            {
-                //If it was a NOTIFY_ONE command, only this thread should
-                //exit. This thread has atomically marked command as sleep before
-                //so no other thread will exit.
-                //Decrement wait count.
-                unlock_enter_mtx = true;
-                --waiters_;
-                cmd_ = SLEEPING;
-                break;
-            }
             else
             {
-                //If it is a NOTIFY_ALL command, all threads should return
-                //from do_timed_wait function. Decrement wait count.
-                unlock_enter_mtx = 0 == --waiters_;
-                //Check if this is the last thread of notify_all waiters
-                //Only the last thread will release the mutex
-                if ( unlock_enter_mtx)
+                command expected = NOTIFY_ONE;
+                cmd_.compare_exchange_strong( expected, SLEEPING);
+                if ( SLEEPING == expected)
+                    //Other thread has been notified and since it was a NOTIFY one
+                    //command, this thread must sleep again
+                    continue;
+                else if ( NOTIFY_ONE == expected)
                 {
-                    expected = NOTIFY_ALL;
-                    cmd_.compare_exchange_strong( expected, SLEEPING);
+                    //If it was a NOTIFY_ONE command, only this thread should
+                    //exit. This thread has atomically marked command as sleep before
+                    //so no other thread will exit.
+                    //Decrement wait count.
+                    unlock_enter_mtx = true;
+                    --waiters_;
+                    break;
                 }
-                break;
+                else
+                {
+                    //If it is a NOTIFY_ALL command, all threads should return
+                    //from do_timed_wait function. Decrement wait count.
+                    unlock_enter_mtx = 0 == --waiters_;
+                    //Check if this is the last thread of notify_all waiters
+                    //Only the last thread will release the mutex
+                    if ( unlock_enter_mtx)
+                    {
+                        expected = NOTIFY_ALL;
+                        cmd_.compare_exchange_strong( expected, SLEEPING);
+                    }
+                    break;
+                }
             }
         }
 

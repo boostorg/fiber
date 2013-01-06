@@ -23,7 +23,9 @@ condition::condition() :
 	cmd_( SLEEPING),
 	waiters_( 0),
 	enter_mtx_( false),
-	check_mtx_()
+	check_mtx_(),
+    waiting_mtx_(),
+    waiting_()
 {}
 
 condition::~condition()
@@ -42,11 +44,20 @@ condition::notify_one()
 		return;
 	}
 
-    command expected = NOTIFY_ONE;
-    while ( SLEEPING != cmd_.compare_exchange_strong( expected, SLEEPING) )
+    command expected = SLEEPING;
+    while ( ! cmd_.compare_exchange_strong( expected, NOTIFY_ONE) )
     {
         this_fiber::yield();
-        expected = NOTIFY_ONE;
+        expected = SLEEPING;
+    }
+
+    detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+	if ( ! waiting_.empty() )
+    {
+        detail::fiber_base::ptr_t f;
+        f.swap( waiting_.front() );
+        waiting_.pop_front();
+        f->set_ready();
     }
 }
 
@@ -70,12 +81,17 @@ condition::notify_all()
 	}
 
     //Notify that all threads should execute wait logic
-    command expected = NOTIFY_ALL;
-    while ( SLEEPING != cmd_.compare_exchange_strong( expected, SLEEPING) )
+    command expected = SLEEPING;
+    while ( SLEEPING != cmd_.compare_exchange_strong( expected, NOTIFY_ALL) )
     {
         this_fiber::yield();
-        expected = NOTIFY_ALL;
+        expected = SLEEPING;
     }
+
+    detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+	BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
+    { f->set_ready(); }
+    waiting_.clear();
 }
 
 }}

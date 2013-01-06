@@ -23,43 +23,8 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-#define RESUME_FIBER( f_) \
-    BOOST_ASSERT( f_); \
-    BOOST_ASSERT( ! f_->is_terminated() ); \
-    f_->set_running(); \
-    f_->resume();
-
 namespace boost {
 namespace fibers {
-
-void
-round_robin::process_fibers_()
-{
-    if ( fibers_.empty() ) return;
-
-    // stable-sort has n*log(n) complexity if n*log(n) extra space is available
-    std::size_t n = fibers_.size();
-    std::size_t new_capacity = n * std::log10( n) + n;
-    if ( fibers_.capacity() < new_capacity)
-        fibers_.reserve( new_capacity);
-
-    // sort fibers_ depending on state
-    fibers_.sort();
-
-    // copy all ready fibers to rqueue_
-    std::pair< container_t::iterator, container_t::iterator > p =
-            fibers_.equal_range( detail::state_ready);
-    if ( p.first != p.second)
-        rqueue_.insert( rqueue_.end(), p.first, p.second);
-
-    // remove all terminated fibers from fibers_
-    p = fibers_.equal_range( detail::state_terminated);
-    for ( container_t::iterator i = p.first; i != p.second; ++i)
-    {
-        ( * i)->terminate();
-        fibers_.erase( i);
-    }
-}
 
 round_robin::round_robin() :
     active_fiber_(),
@@ -91,7 +56,8 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
         active_fiber_ = tmp;
     } BOOST_SCOPE_EXIT_END
     active_fiber_ = f;
-    RESUME_FIBER( active_fiber_);
+    active_fiber_->set_running(); \
+    active_fiber_->resume();
     if ( ! f->is_terminated() )
         fibers_.push_back( f);
 }
@@ -170,26 +136,59 @@ round_robin::run()
     for (
             sleeping_t::iterator i( sleeping_.begin() );
             i != e; ++i)
-    { rqueue_.push_back( i->f); } //FIXME: rqeue_.push_front() ?
+    { rqueue_.push_back( i->f); } //FIXME: rqueue_.push_front() ?
     // remove all fibers with reached dead-line
     sleeping_.erase( sleeping_.begin(), e);
 #endif
-    if ( rqueue_.empty() )
-        process_fibers_();
+
+    // stable-sort has n*log(n) complexity if n*log(n) extra space is available
+    std::size_t n = fibers_.size();
+    if ( 1 < n)
+    {
+        std::size_t new_capacity = n * std::log10( n) + n;
+        if ( fibers_.capacity() < new_capacity)
+            fibers_.reserve( new_capacity);
+
+        // sort fibers_ depending on state
+        fibers_.sort();
+    }
+
+    // copy all ready fibers to rqueue_
+    std::pair< container_t::iterator, container_t::iterator > p =
+            fibers_.equal_range( detail::state_ready);
+    if ( p.first != p.second)
+        rqueue_.insert( rqueue_.end(), p.first, p.second);
+
+    // remove all terminated fibers from fibers_
+    p = fibers_.equal_range( detail::state_terminated);
+    for ( container_t::iterator i = p.first; i != p.second; ++i)
+    {
+        ( * i)->terminate();
+        fibers_.erase( i);
+    }
+
+    if ( rqueue_.empty() ) return false;
 
     // pop new fiber from runnable-queue which is not complete
     // (example: fiber in runnable-queue could be canceled by active-fiber)
-    if ( rqueue_.empty() ) return false;
+    detail::fiber_base::ptr_t f;
+    do
+    {
+        if ( rqueue_.empty() ) return false;
+        f.swap( rqueue_.front() );
+        rqueue_.pop_front();
+    }
+    while ( ! f->is_ready() );
+
     detail::fiber_base::ptr_t tmp = active_fiber_;
     BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
         active_fiber_ = tmp;
     } BOOST_SCOPE_EXIT_END
-    detail::fiber_base::ptr_t f( rqueue_.front() );
-    rqueue_.pop_front();
-    BOOST_ASSERT( f->is_ready() );
     active_fiber_ = f;
     // resume new active fiber
-    RESUME_FIBER( active_fiber_);
+    active_fiber_->set_running();
+    active_fiber_->resume();
+
     return true;
 }
 
@@ -274,8 +273,6 @@ round_robin::migrate_from()
 }
 
 }}
-
-#undef RESUME_FIBER
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
