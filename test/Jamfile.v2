@@ -31,9 +31,9 @@ test-suite fibers :
    [ fiber-test test_unique_lock ]
    [ fiber-test test_lock ]
    [ fiber-test test_barrier ]
-#  [ fiber-test test_auto_reset_event ]
+   [ fiber-test test_auto_reset_event ]
 #  [ fiber-test test_manual_reset_event ]
 #  [ fiber-test test_count_down_event ]
-   [ fiber-test test_futures ]
+#  [ fiber-test test_futures ]
 #  [ fiber-test test_then ]
 ;

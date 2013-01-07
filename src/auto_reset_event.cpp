@@ -79,12 +79,13 @@ auto_reset_event::set()
     state_ = SET;
 
     detail::spin_mutex::scoped_lock lk( waiting_mtx_);
-    detail::fiber_base::ptr_t f;
-    do
+	if ( ! waiting_.empty() )
     {
+        detail::fiber_base::ptr_t f;
         f.swap( waiting_.front() );
         waiting_.pop_front();
-    } while ( ! f->is_ready() );
+        f->set_ready();
+    }
 }
 
 }}
