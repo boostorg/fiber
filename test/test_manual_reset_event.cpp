@@ -65,12 +65,10 @@ void fn1()
 
     ev.set();
     
-    BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK( ! s4);
-    BOOST_CHECK_EQUAL( 1, value);
-    
-    BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK( ! s3);
+    if ( s3.joinable() ) s3.join();
+#if 0
+    if ( s4.joinable() ) s4.join();
+
     BOOST_CHECK_EQUAL( 2, value);
     
     ev.reset();
@@ -85,15 +83,11 @@ void fn1()
     
     ev.set();
     
-    BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK( ! s1);
-    BOOST_CHECK_EQUAL( 3, value);
-    
-    BOOST_CHECK( boost::fibers::run() );
-	BOOST_CHECK( ! s2);
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
+
     BOOST_CHECK_EQUAL( 4, value);
-    
-    BOOST_CHECK( ! boost::fibers::run() );
+#endif
 }
 
 void fn2()
@@ -112,13 +106,24 @@ void fn2()
     BOOST_CHECK_EQUAL( false, ev.try_wait() );
 }
 
+void do_wait()
+{
+	boost::fibers::fiber( fn1).join();
+    fn1();
+}
+
+void do_try_wait()
+{
+	boost::fibers::fiber( fn2).join();
+    fn2();
+}
+
 void test_wait()
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-	boost::fibers::fiber( fn1).join();
-    fn1();
+	boost::fibers::fiber( do_wait).join();
 }
 
 void test_try_wait()
@@ -126,8 +131,7 @@ void test_try_wait()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-	boost::fibers::fiber( fn2).join();
-    fn2();
+	boost::fibers::fiber( do_try_wait).join();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])

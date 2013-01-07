@@ -44,7 +44,7 @@ manual_reset_event::wait()
     {
         detail::spin_mutex::scoped_lock lk( waiting_mtx_);
         waiting_.push_back(
-                detail::scheduler::instance().active() );
+            detail::scheduler::instance().active() );
         detail::scheduler::instance().wait( lk);
     }
 
@@ -69,7 +69,7 @@ manual_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time
     {
         detail::spin_mutex::scoped_lock lk( waiting_mtx_);
         waiting_.push_back(
-                detail::scheduler::instance().active() );
+            detail::scheduler::instance().active() );
         detail::scheduler::instance().wait( lk);
 
         if ( chrono::system_clock::now() >= abs_time) return false;
