@@ -42,17 +42,15 @@ private:
     };
 
     atomic< state >                 state_;
-    detail::fiber_base::id          owner_;
     detail::spin_mutex              mtx_;
     std::deque<
         detail::fiber_base::ptr_t
     >                               waiting_;
-    bool                            checked_;
 
 public:
     typedef unique_lock< mutex >    scoped_lock;
 
-    mutex( bool = true);
+    mutex();
 
     void lock();
 

@@ -22,7 +22,7 @@ namespace fibers {
 condition::condition() :
 	cmd_( SLEEPING),
 	waiters_( 0),
-	enter_mtx_( false),
+	enter_mtx_(),
 	check_mtx_(),
     waiting_mtx_(),
     waiting_()

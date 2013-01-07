@@ -24,7 +24,7 @@ namespace fibers {
 manual_reset_event::manual_reset_event( bool isset) :
     state_( isset ? SET : RESET),
     waiters_( 0),
-    enter_mtx_( false),
+    enter_mtx_(),
     waiting_mtx_(),
     waiting_()
 {}

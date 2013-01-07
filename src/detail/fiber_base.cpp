@@ -83,8 +83,6 @@ fiber_base::terminate()
 void
 fiber_base::join( ptr_t const& p)
 {
-    BOOST_ASSERT( p->is_running() );
-
     // protect against concurrent access to joining_
     spin_mutex::scoped_lock lk( mtx_);
     if ( is_terminated() ) return;

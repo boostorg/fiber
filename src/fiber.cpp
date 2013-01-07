@@ -47,7 +47,7 @@ void
 fiber::join()
 {
     BOOST_ASSERT( impl_);
-
+#if 0
     if ( boost::this_fiber::is_fiberized() && boost::this_fiber::get_id() == get_id() )
         boost::throw_exception(
             fiber_resource_error(
@@ -57,7 +57,7 @@ fiber::join()
         boost::throw_exception(
             fiber_resource_error(
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
-
+#endif
     detail::scheduler::instance().join( impl_);
 
     BOOST_ASSERT( impl_->is_terminated() );

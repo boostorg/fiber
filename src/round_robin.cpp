@@ -72,8 +72,9 @@ void
 round_robin::join( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_terminated() );
     BOOST_ASSERT( f != active_fiber_);
+
+    if ( f->is_terminated() ) return;
 
     if ( active_fiber_)
     {

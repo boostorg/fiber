@@ -20,12 +20,10 @@
 namespace boost {
 namespace fibers {
 
-mutex::mutex( bool checked) :
+mutex::mutex() :
 	state_( UNLOCKED),
-    owner_(),
     mtx_(),
-    waiting_(),
-    checked_( checked)
+    waiting_()
 {}
 
 void
@@ -40,7 +38,6 @@ mutex::lock()
                 detail::scheduler::instance().active() );
         detail::scheduler::instance().wait( lk);
     }
-    owner_ = detail::scheduler::instance().active()->get_id();
 }
 
 bool
@@ -55,13 +52,6 @@ void
 mutex::unlock()
 {
     BOOST_ASSERT( this_fiber::is_fiberized() );
-
-    if ( checked_)
-    {
-        if ( detail::scheduler::instance().active()->get_id() != owner_)
-            std::abort();
-    }
-    owner_ = detail::fiber_base::id();
 
 	state_ = UNLOCKED;
 

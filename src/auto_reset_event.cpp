@@ -44,6 +44,8 @@ auto_reset_event::wait()
 bool
 auto_reset_event::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
+    BOOST_ASSERT_MSG( false, "not implemented");
+
     BOOST_ASSERT( this_fiber::is_fiberized() );
 
     if ( chrono::system_clock::now() >= abs_time) return false;
@@ -77,15 +79,12 @@ auto_reset_event::set()
     state_ = SET;
 
     detail::spin_mutex::scoped_lock lk( waiting_mtx_);
-    if ( ! waiting_.empty() )
+    detail::fiber_base::ptr_t f;
+    do
     {
-        detail::fiber_base::ptr_t f;
-        do
-        {
-            f.swap( waiting_.front() );
-            waiting_.pop_front();
-        } while ( ! f->is_ready() );
-    }
+        f.swap( waiting_.front() );
+        waiting_.pop_front();
+    } while ( ! f->is_ready() );
 }
 
 }}
