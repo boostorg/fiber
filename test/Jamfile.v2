@@ -24,16 +24,12 @@ rule fiber-test ( source )
 
 test-suite fibers :
    [ fiber-test test_fiber ]
-##   [ fiber-test test_waitfor ]
    [ fiber-test test_mutex ]
    [ fiber-test test_condition ]
    [ fiber-test test_generic_locks ]
    [ fiber-test test_unique_lock ]
    [ fiber-test test_lock ]
    [ fiber-test test_barrier ]
-   [ fiber-test test_auto_reset_event ]
-   [ fiber-test test_manual_reset_event ]
-#  [ fiber-test test_count_down_event ]
-#  [ fiber-test test_futures ]
+   [ fiber-test test_futures ]
 #  [ fiber-test test_then ]
 ;
