@@ -21,15 +21,12 @@ project boost/fiber
     ;
 
 lib boost_fibers
-    : auto_reset_event.cpp
-      barrier.cpp
+    : barrier.cpp
       condition.cpp
-      count_down_event.cpp
       detail/fiber_base.cpp
       detail/scheduler.cpp
       detail/spin_mutex.cpp
       fiber.cpp
-      manual_reset_event.cpp
       mutex.cpp
       round_robin.cpp
     : <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
