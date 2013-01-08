@@ -799,7 +799,7 @@ void wait_for_either_of_four_futures_1()
     boost::fibers::packaged_task<int> pt4(make_int_slowly);
     boost::fibers::unique_future<int> f4(pt4.get_future());
     
-    boost::fibers::fiber x(boost::move(pt));
+    boost::fibers::fiber(boost::move(pt)).detach();
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4);
     
@@ -822,7 +822,7 @@ void wait_for_either_of_four_futures_2()
     boost::fibers::packaged_task<int> pt4(make_int_slowly);
     boost::fibers::unique_future<int> f4(pt4.get_future());
     
-    boost::fibers::fiber(boost::move(pt2));
+    boost::fibers::fiber x(boost::move(pt2));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4);
     
@@ -845,7 +845,7 @@ void wait_for_either_of_four_futures_3()
     boost::fibers::packaged_task<int> pt4(make_int_slowly);
     boost::fibers::unique_future<int> f4(pt4.get_future());
     
-    boost::fibers::fiber(boost::move(pt3));
+    boost::fibers::fiber x(boost::move(pt3));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4);
     
@@ -868,7 +868,7 @@ void wait_for_either_of_four_futures_4()
     boost::fibers::packaged_task<int> pt4(make_int_slowly);
     boost::fibers::unique_future<int> f4(pt4.get_future());
     
-    boost::fibers::fiber(boost::move(pt4));
+    boost::fibers::fiber x(boost::move(pt4));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4);
     
@@ -893,7 +893,7 @@ void wait_for_either_of_five_futures_1()
     boost::fibers::packaged_task<int> pt5(make_int_slowly);
     boost::fibers::unique_future<int> f5(pt5.get_future());
     
-    boost::fibers::fiber(boost::move(pt));
+    boost::fibers::fiber(boost::move(pt)).detach();
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -919,7 +919,7 @@ void wait_for_either_of_five_futures_2()
     boost::fibers::packaged_task<int> pt5(make_int_slowly);
     boost::fibers::unique_future<int> f5(pt5.get_future());
     
-    boost::fibers::fiber(boost::move(pt2));
+    boost::fibers::fiber x(boost::move(pt2));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -944,7 +944,7 @@ void wait_for_either_of_five_futures_3()
     boost::fibers::packaged_task<int> pt5(make_int_slowly);
     boost::fibers::unique_future<int> f5(pt5.get_future());
     
-    boost::fibers::fiber(boost::move(pt3));
+    boost::fibers::fiber x(boost::move(pt3));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -969,7 +969,7 @@ void wait_for_either_of_five_futures_4()
     boost::fibers::packaged_task<int> pt5(make_int_slowly);
     boost::fibers::unique_future<int> f5(pt5.get_future());
     
-    boost::fibers::fiber(boost::move(pt4));
+    boost::fibers::fiber x(boost::move(pt4));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -994,7 +994,7 @@ void wait_for_either_of_five_futures_5()
     boost::fibers::packaged_task<int> pt5(make_int_slowly);
     boost::fibers::unique_future<int> f5(pt5.get_future());
     
-    boost::fibers::fiber(boost::move(pt5));
+    boost::fibers::fiber x(boost::move(pt5));
     
     unsigned const future=boost::fibers::waitfor_any(f1,f2,f3,f4,f5);
     
@@ -1035,7 +1035,7 @@ void wait_for_any_from_range()
             tasks[j]=boost::fibers::packaged_task<int>(make_int_slowly);
             futures[j]=tasks[j].get_future();
         }
-        boost::fibers::fiber(boost::move(tasks[i]));
+        boost::fibers::fiber x(boost::move(tasks[i]));
     
         BOOST_CHECK(boost::fibers::waitfor_any(futures,futures)==futures);
         
@@ -1065,7 +1065,7 @@ void wait_for_all_from_range()
     {
         boost::fibers::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        boost::fibers::fiber(boost::move(task));
+        boost::fibers::fiber x(boost::move(task));
     }
     
     boost::fibers::waitfor_all(futures,futures+count);
@@ -1085,7 +1085,7 @@ void wait_for_all_two_futures()
     {
         boost::fibers::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        boost::fibers::fiber(boost::move(task));
+        boost::fibers::fiber(boost::move(task)).detach();
     }
     
     boost::fibers::waitfor_all(futures[0],futures[1]);
@@ -1104,7 +1104,7 @@ void wait_for_all_three_futures()
     {
         boost::fibers::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        boost::fibers::fiber(boost::move(task));
+        boost::fibers::fiber x(boost::move(task));
     }
     
     boost::fibers::waitfor_all(futures[0],futures[1],futures[2]);
@@ -1123,7 +1123,7 @@ void wait_for_all_four_futures()
     {
         boost::fibers::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        boost::fibers::fiber(boost::move(task));
+        boost::fibers::fiber x(boost::move(task));
     }
     
     boost::fibers::waitfor_all(futures[0],futures[1],futures[2],futures[3]);
@@ -1142,7 +1142,7 @@ void wait_for_all_five_futures()
     {
         boost::fibers::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        boost::fibers::fiber(boost::move(task));
+        boost::fibers::fiber x(boost::move(task));
     }
     
     boost::fibers::waitfor_all(futures[0],futures[1],futures[2],futures[3],futures[4]);
@@ -1587,7 +1587,6 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     boost::unit_test_framework::test_suite* test =
         BOOST_TEST_SUITE("Boost.Fiber: futures test suite");
 
-#if 0
     test->add(BOOST_TEST_CASE(test_initial_state));
     test->add(BOOST_TEST_CASE(test_waiting_future));
     test->add(BOOST_TEST_CASE(test_cannot_get_future_twice));
@@ -1625,9 +1624,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_three_futures_1));
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_three_futures_2));
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_three_futures_3));
-#endif
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_four_futures_1));
-#if 0
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_four_futures_2));
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_four_futures_3));
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_four_futures_4));
@@ -1640,6 +1637,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 //  test->add(BOOST_TEST_CASE(test_wait_for_any_from_range));
 //  test->add(BOOST_TEST_CASE(test_wait_for_all_from_range));
     test->add(BOOST_TEST_CASE(test_wait_for_all_two_futures));
+#if 0
     test->add(BOOST_TEST_CASE(test_wait_for_all_three_futures));
     test->add(BOOST_TEST_CASE(test_wait_for_all_four_futures));
     test->add(BOOST_TEST_CASE(test_wait_for_all_five_futures));
