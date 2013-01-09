@@ -22,7 +22,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
@@ -53,7 +53,7 @@ private:
     atomic< std::size_t >                   waiters_;
     mutex                                   enter_mtx_;
     mutex                                   check_mtx_;
-    detail::spin_mutex                      waiting_mtx_;
+    detail::spinlock                        waiting_mtx_;
     std::deque< detail::fiber_base::ptr_t > waiting_;
 
 public:
@@ -75,8 +75,6 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        BOOST_ASSERT( this_fiber::is_fiberized() );
-
         {
             mutex::scoped_lock lk( enter_mtx_);
             BOOST_ASSERT( lk);
@@ -93,10 +91,17 @@ public:
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
-                detail::spin_mutex::scoped_lock lk( waiting_mtx_);
-                waiting_.push_back(
-                    detail::scheduler::instance().active() );
-                detail::scheduler::instance().wait( lk);
+                if ( this_fiber::is_fiberized() )
+                {
+                    unique_lock< detail::spinlock > lk( waiting_mtx_);
+                    waiting_.push_back(
+                            detail::scheduler::instance().active() );
+                    detail::scheduler::instance().wait( lk);
+                }
+                else
+                {
+                    run();
+                }
             }
 
 			command expected = NOTIFY_ONE;
@@ -160,8 +165,6 @@ public:
     template< typename LockType >
     bool timed_wait( LockType & lt, chrono::system_clock::time_point const& abs_time)
     {
-        BOOST_ASSERT( this_fiber::is_fiberized() );
-
         if ( (chrono::system_clock::time_point::max)() == abs_time){
             wait( lt);
             return true;
@@ -186,12 +189,15 @@ public:
             while ( SLEEPING == cmd_)
             {
 #if 0
-                detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
                 waiting_.push_back(
                     detail::scheduler::instance().active() );
                 detail::scheduler::instance().wait( lk);
 #endif
-                this_fiber::yield();
+                if ( this_fiber::is_fiberized() )
+                    this_fiber::yield();
+                else
+                    run();
 
                 now = chrono::system_clock::now();
                 if ( now >= abs_time)

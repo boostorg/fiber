@@ -1159,7 +1159,7 @@ void test_store_value_from_thread()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( store_value_from_thread).join();
+    store_value_from_thread();
 }
 
 void test_store_exception()
@@ -1167,7 +1167,7 @@ void test_store_exception()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( store_exception).join();
+    store_exception();
 }
 
 void test_initial_state()
@@ -1175,7 +1175,7 @@ void test_initial_state()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( initial_state).join();
+    initial_state();
 }
 
 void test_waiting_future()
@@ -1183,7 +1183,7 @@ void test_waiting_future()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( waiting_future).join();
+    waiting_future();
 }
 
 void test_cannot_get_future_twice()
@@ -1191,7 +1191,7 @@ void test_cannot_get_future_twice()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( cannot_get_future_twice).join();
+    cannot_get_future_twice();
 }
 
 void test_set_value_updates_future_state()
@@ -1199,7 +1199,7 @@ void test_set_value_updates_future_state()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( set_value_updates_future_state).join();
+    set_value_updates_future_state();
 }
 
 void test_set_value_can_be_retrieved()
@@ -1207,7 +1207,7 @@ void test_set_value_can_be_retrieved()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( set_value_can_be_retrieved).join();
+    set_value_can_be_retrieved();
 }
 
 void test_set_value_can_be_moved()
@@ -1219,7 +1219,7 @@ void test_future_from_packaged_task_is_waiting()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( future_from_packaged_task_is_waiting).join();
+    future_from_packaged_task_is_waiting();
 }
 
 void test_invoking_a_packaged_task_populates_future()
@@ -1227,7 +1227,7 @@ void test_invoking_a_packaged_task_populates_future()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( invoking_a_packaged_task_populates_future).join();
+    invoking_a_packaged_task_populates_future();
 }
 
 void test_invoking_a_packaged_task_twice_throws()
@@ -1235,7 +1235,7 @@ void test_invoking_a_packaged_task_twice_throws()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( invoking_a_packaged_task_twice_throws).join();
+    invoking_a_packaged_task_twice_throws();
 }
 
 void test_cannot_get_future_twice_from_task()
@@ -1243,7 +1243,7 @@ void test_cannot_get_future_twice_from_task()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( cannot_get_future_twice_from_task).join();
+    cannot_get_future_twice_from_task();
 }
 
 void test_task_stores_exception_if_function_throws()
@@ -1251,7 +1251,7 @@ void test_task_stores_exception_if_function_throws()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( task_stores_exception_if_function_throws).join();
+    task_stores_exception_if_function_throws();
 }
 
 void test_void_promise()
@@ -1259,7 +1259,7 @@ void test_void_promise()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( void_promise).join();
+    void_promise();
 }
 
 void test_reference_promise()
@@ -1267,7 +1267,7 @@ void test_reference_promise()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( reference_promise).join();
+    reference_promise();
 }
 
 void test_task_returning_void()
@@ -1275,7 +1275,7 @@ void test_task_returning_void()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( task_returning_void).join();
+    task_returning_void();
 }
 
 void test_task_returning_reference()
@@ -1283,7 +1283,7 @@ void test_task_returning_reference()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( task_returning_reference).join();
+    task_returning_reference();
 }
 
 void test_shared_future()
@@ -1291,7 +1291,7 @@ void test_shared_future()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( shared_future).join();
+    shared_future();
 }
 
 void test_copies_of_shared_future_become_ready_together()
@@ -1299,7 +1299,7 @@ void test_copies_of_shared_future_become_ready_together()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( copies_of_shared_future_become_ready_together).join();
+    copies_of_shared_future_become_ready_together();
 }
 
 void test_shared_future_can_be_move_assigned_from_unique_future()
@@ -1307,7 +1307,7 @@ void test_shared_future_can_be_move_assigned_from_unique_future()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( shared_future_can_be_move_assigned_from_unique_future).join();
+    shared_future_can_be_move_assigned_from_unique_future();
 }
 
 void test_shared_future_void()
@@ -1315,7 +1315,7 @@ void test_shared_future_void()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( shared_future_void).join();
+    shared_future_void();
 }
 
 void test_shared_future_ref()
@@ -1323,7 +1323,7 @@ void test_shared_future_ref()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( shared_future_ref).join();
+    shared_future_ref();
 }
 
 void test_can_get_a_second_future_from_a_moved_promise()
@@ -1331,7 +1331,7 @@ void test_can_get_a_second_future_from_a_moved_promise()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( can_get_a_second_future_from_a_moved_promise).join();
+    can_get_a_second_future_from_a_moved_promise();
 }
 
 void test_can_get_a_second_future_from_a_moved_void_promise()
@@ -1339,7 +1339,7 @@ void test_can_get_a_second_future_from_a_moved_void_promise()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( can_get_a_second_future_from_a_moved_void_promise).join();
+    can_get_a_second_future_from_a_moved_void_promise();
 }
 #if 0
 void test_unique_future_for_move_only_udt()
@@ -1347,7 +1347,7 @@ void test_unique_future_for_move_only_udt()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( unique_future_for_move_only_udt).join();
+    unique_future_for_move_only_udt();
 }
 #endif
 void test_unique_future_for_string()
@@ -1355,7 +1355,7 @@ void test_unique_future_for_string()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( unique_future_for_string).join();
+    unique_future_for_string();
 }
 
 void test_wait_callback()
@@ -1363,7 +1363,7 @@ void test_wait_callback()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_callback).join();
+    wait_callback();
 }
 
 void test_wait_callback_with_timed_wait()
@@ -1371,7 +1371,7 @@ void test_wait_callback_with_timed_wait()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_callback_with_timed_wait).join();
+    wait_callback_with_timed_wait();
 }
 
 void test_wait_callback_for_packaged_task()
@@ -1379,7 +1379,7 @@ void test_wait_callback_for_packaged_task()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_callback_for_packaged_task).join();
+    wait_callback_for_packaged_task();
 }
 
 void test_packaged_task_can_be_moved()
@@ -1387,7 +1387,7 @@ void test_packaged_task_can_be_moved()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( packaged_task_can_be_moved).join();
+    packaged_task_can_be_moved();
 }
 
 void test_destroying_a_promise_stores_broken_promise()
@@ -1395,7 +1395,7 @@ void test_destroying_a_promise_stores_broken_promise()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( destroying_a_promise_stores_broken_promise).join();
+    destroying_a_promise_stores_broken_promise();
 }
 
 void test_destroying_a_packaged_task_stores_broken_promise()
@@ -1403,7 +1403,7 @@ void test_destroying_a_packaged_task_stores_broken_promise()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( destroying_a_packaged_task_stores_broken_promise).join();
+    destroying_a_packaged_task_stores_broken_promise();
 }
 
 void test_wait_for_either_of_two_futures_1()
@@ -1411,7 +1411,7 @@ void test_wait_for_either_of_two_futures_1()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_two_futures_1).join();
+    wait_for_either_of_two_futures_1();
 }
 
 void test_wait_for_either_of_two_futures_2()
@@ -1419,7 +1419,7 @@ void test_wait_for_either_of_two_futures_2()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_two_futures_2).join();
+    wait_for_either_of_two_futures_2();
 }
 
 void test_wait_for_either_of_three_futures_1()
@@ -1427,7 +1427,7 @@ void test_wait_for_either_of_three_futures_1()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_three_futures_1).join();
+    wait_for_either_of_three_futures_1();
 }
 
 void test_wait_for_either_of_three_futures_2()
@@ -1435,7 +1435,7 @@ void test_wait_for_either_of_three_futures_2()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_three_futures_2).join();
+    wait_for_either_of_three_futures_2();
 }
 
 void test_wait_for_either_of_three_futures_3()
@@ -1443,7 +1443,7 @@ void test_wait_for_either_of_three_futures_3()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_three_futures_3).join();
+    wait_for_either_of_three_futures_3();
 }
 
 void test_wait_for_either_of_four_futures_1()
@@ -1451,7 +1451,7 @@ void test_wait_for_either_of_four_futures_1()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_four_futures_1).join();
+    wait_for_either_of_four_futures_1();
 }
 
 void test_wait_for_either_of_four_futures_2()
@@ -1459,7 +1459,7 @@ void test_wait_for_either_of_four_futures_2()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_four_futures_2).join();
+    wait_for_either_of_four_futures_2();
 }
 
 void test_wait_for_either_of_four_futures_3()
@@ -1467,7 +1467,7 @@ void test_wait_for_either_of_four_futures_3()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_four_futures_3).join();
+    wait_for_either_of_four_futures_3();
 }
 
 void test_wait_for_either_of_four_futures_4()
@@ -1475,7 +1475,7 @@ void test_wait_for_either_of_four_futures_4()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_four_futures_4).join();
+    wait_for_either_of_four_futures_4();
 }
 
 void test_wait_for_either_of_five_futures_1()
@@ -1483,7 +1483,7 @@ void test_wait_for_either_of_five_futures_1()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_five_futures_1).join();
+    wait_for_either_of_five_futures_1();
 }
 
 void test_wait_for_either_of_five_futures_2()
@@ -1491,7 +1491,7 @@ void test_wait_for_either_of_five_futures_2()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_five_futures_2).join();
+    wait_for_either_of_five_futures_2();
 }
 
 void test_wait_for_either_of_five_futures_3()
@@ -1499,7 +1499,7 @@ void test_wait_for_either_of_five_futures_3()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_five_futures_3).join();
+    wait_for_either_of_five_futures_3();
 }
 
 void test_wait_for_either_of_five_futures_4()
@@ -1507,7 +1507,7 @@ void test_wait_for_either_of_five_futures_4()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_five_futures_4).join();
+    wait_for_either_of_five_futures_4();
 }
 
 void test_wait_for_either_of_five_futures_5()
@@ -1515,7 +1515,7 @@ void test_wait_for_either_of_five_futures_5()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_of_five_futures_5).join();
+    wait_for_either_of_five_futures_5();
 }
 
 void test_wait_for_either_invokes_callbacks()
@@ -1523,7 +1523,7 @@ void test_wait_for_either_invokes_callbacks()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_either_invokes_callbacks).join();
+    wait_for_either_invokes_callbacks();
 }
 #if 0
 void test_wait_for_any_from_range()
@@ -1531,7 +1531,7 @@ void test_wait_for_any_from_range()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_any_from_range).join();
+    wait_for_any_from_range();
 }
 
 void test_wait_for_all_from_range()
@@ -1539,7 +1539,7 @@ void test_wait_for_all_from_range()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_all_from_range).join();
+    wait_for_all_from_range();
 }
 #endif
 void test_wait_for_all_two_futures()
@@ -1547,7 +1547,7 @@ void test_wait_for_all_two_futures()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_all_two_futures).join();
+    wait_for_all_two_futures();
 }
 
 void test_wait_for_all_three_futures()
@@ -1555,7 +1555,7 @@ void test_wait_for_all_three_futures()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_all_three_futures).join();
+    wait_for_all_three_futures();
 }
 
 void test_wait_for_all_four_futures()
@@ -1563,7 +1563,7 @@ void test_wait_for_all_four_futures()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_all_four_futures).join();
+    wait_for_all_four_futures();
 }
 
 void test_wait_for_all_five_futures()
@@ -1571,7 +1571,7 @@ void test_wait_for_all_five_futures()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( wait_for_all_five_futures).join();
+    wait_for_all_five_futures();
 }
 
 void test_future_wait()
@@ -1579,7 +1579,7 @@ void test_future_wait()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( future_wait).join();
+    future_wait();
 }
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])

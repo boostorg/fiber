@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
-//  based on boost::interprocess::sync::interprocess_spin_mutex
+//  based on boost::interprocess::sync::interprocess_spinlock
 
 #ifndef BOOST_FIBERS_MUTEX_H
 #define BOOST_FIBERS_MUTEX_H
@@ -18,7 +18,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -42,7 +42,7 @@ private:
     };
 
     atomic< state >                 state_;
-    detail::spin_mutex              mtx_;
+    detail::spinlock                waiting_mtx_;
     std::deque<
         detail::fiber_base::ptr_t
     >                               waiting_;

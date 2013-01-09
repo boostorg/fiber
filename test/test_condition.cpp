@@ -314,7 +314,7 @@ void test_condition_waits()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( do_test_condition_waits).join();
+    do_test_condition_waits();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])

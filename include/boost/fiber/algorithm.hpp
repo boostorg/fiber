@@ -8,10 +8,11 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -40,7 +41,7 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
 
     virtual bool run() = 0;
 
-    virtual void wait( detail::spin_mutex::scoped_lock &) = 0;
+    virtual void wait( unique_lock< detail::spinlock > &) = 0;
 
     virtual void yield() = 0;
 

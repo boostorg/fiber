@@ -12,10 +12,11 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/thread/locks.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/container.hpp>
-#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/algorithm.hpp>
 
@@ -59,7 +60,7 @@ public:
 
     bool run();
 
-    void wait( detail::spin_mutex::scoped_lock &);
+    void wait( unique_lock< detail::spinlock > &);
 
     void yield();
 

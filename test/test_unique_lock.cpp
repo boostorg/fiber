@@ -184,7 +184,7 @@ void test_lock()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock).join();
+    lock();
 }
 
 void test_defer_lock()
@@ -192,7 +192,7 @@ void test_defer_lock()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( defer_lock).join();
+    defer_lock();
 }
 
 void test_adopt_lock()
@@ -200,7 +200,7 @@ void test_adopt_lock()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( adopt_lock).join();
+    adopt_lock();
 }
 
 void test_try_lock()
@@ -208,7 +208,7 @@ void test_try_lock()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock).join();
+    try_lock();
 }
 
 void test_lock_twice()
@@ -216,7 +216,7 @@ void test_lock_twice()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock_twice).join();
+    lock_twice();
 }
 
 void test_try_lock_twice()
@@ -224,7 +224,7 @@ void test_try_lock_twice()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_twice).join();
+    try_lock_twice();
 }
 
 void test_unlock_twice()
@@ -232,7 +232,7 @@ void test_unlock_twice()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( unlock_twice).join();
+    unlock_twice();
 }
 
 void test_default_ctor()
@@ -240,7 +240,7 @@ void test_default_ctor()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( default_ctor).join();
+    default_ctor();
 }
 
 void test_lock_concept()
@@ -248,7 +248,7 @@ void test_lock_concept()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock_concept).join();
+    lock_concept();
 }
 
 void test_try_lock_concept()
@@ -256,7 +256,7 @@ void test_try_lock_concept()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_concept).join();
+    try_lock_concept();
 }
 
 void test_swap()
@@ -264,7 +264,7 @@ void test_swap()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( swap).join();
+    swap();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])

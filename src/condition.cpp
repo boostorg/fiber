@@ -34,8 +34,6 @@ condition::~condition()
 void
 condition::notify_one()
 {
-    BOOST_ASSERT( this_fiber::is_fiberized() );
-
 	enter_mtx_.lock();
 
 	if ( 0 == waiters_)
@@ -51,7 +49,7 @@ condition::notify_one()
         expected = SLEEPING;
     }
 
-    detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+    unique_lock< detail::spinlock > lk( waiting_mtx_);
 	if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;
@@ -64,8 +62,6 @@ condition::notify_one()
 void
 condition::notify_all()
 {
-    BOOST_ASSERT( this_fiber::is_fiberized() );
-
     //This mutex guarantees that no other thread can enter to the
     //do_timed_wait method logic, so that thread count will be
     //constant until the function writes a NOTIFY_ALL command.
@@ -88,7 +84,7 @@ condition::notify_all()
         expected = SLEEPING;
     }
 
-    detail::spin_mutex::scoped_lock lk( waiting_mtx_);
+    unique_lock< detail::spinlock > lk( waiting_mtx_);
 	BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
     { f->set_ready(); }
     waiting_.clear();

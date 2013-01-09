@@ -23,7 +23,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/flags.hpp>
-#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/states.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -50,7 +50,7 @@ private:
     context::fcontext_t *   callee_;
     int                     flags_;
     exception_ptr           except_;
-    spin_mutex              mtx_;
+    spinlock              mtx_;
     std::vector< ptr_t >    joining_;
 
 protected:

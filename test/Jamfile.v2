@@ -31,5 +31,5 @@ test-suite fibers :
    [ fiber-test test_lock ]
    [ fiber-test test_barrier ]
    [ fiber-test test_futures ]
-#  [ fiber-test test_then ]
+   [ fiber-test test_then ]
 ;

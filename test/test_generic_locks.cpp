@@ -360,7 +360,7 @@ void test_lock_two_uncontended()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock_two_uncontended).join();
+    lock_two_uncontended();
 }
 
 void test_lock_five_uncontended()
@@ -368,7 +368,7 @@ void test_lock_five_uncontended()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock_five_uncontended).join();
+    lock_five_uncontended();
 }
 
 void test_lock_five_in_range()
@@ -376,7 +376,7 @@ void test_lock_five_in_range()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock_five_in_range).join();
+    lock_five_in_range();
 }
 
 void test_lock_ten_in_range()
@@ -384,7 +384,7 @@ void test_lock_ten_in_range()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( lock_ten_in_range).join();
+    lock_ten_in_range();
 }
 
 void test_try_lock_two_uncontended()
@@ -392,7 +392,7 @@ void test_try_lock_two_uncontended()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_two_uncontended).join();
+    try_lock_two_uncontended();
 }
 
 void test_try_lock_two_first_locked()
@@ -400,7 +400,7 @@ void test_try_lock_two_first_locked()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_two_first_locked).join();
+    try_lock_two_first_locked();
 }
 
 void test_try_lock_two_second_locked()
@@ -408,7 +408,7 @@ void test_try_lock_two_second_locked()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_two_second_locked).join();
+    try_lock_two_second_locked();
 }
 
 void test_try_lock_three()
@@ -416,7 +416,7 @@ void test_try_lock_three()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_three).join();
+    try_lock_three();
 }
 
 void test_try_lock_four()
@@ -424,7 +424,7 @@ void test_try_lock_four()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_four).join();
+    try_lock_four();
 }
 
 void test_try_lock_five()
@@ -432,7 +432,7 @@ void test_try_lock_five()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( try_lock_five).join();
+    try_lock_five();
 }
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])

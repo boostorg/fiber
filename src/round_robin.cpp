@@ -178,7 +178,7 @@ round_robin::run()
 }
 
 void
-round_robin::wait( detail::spin_mutex::scoped_lock & lk)
+round_robin::wait( unique_lock< detail::spinlock > & lk)
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );

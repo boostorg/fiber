@@ -22,40 +22,39 @@ namespace fibers {
 
 mutex::mutex() :
 	state_( UNLOCKED),
-    mtx_(),
+    waiting_mtx_(),
     waiting_()
 {}
 
 void
 mutex::lock()
 {
-    BOOST_ASSERT( this_fiber::is_fiberized() );
-
     while ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) )
     {
-        detail::spin_mutex::scoped_lock lk( mtx_);
-        waiting_.push_back(
-                detail::scheduler::instance().active() );
-        detail::scheduler::instance().wait( lk);
+        if ( this_fiber::is_fiberized() )
+        {
+            unique_lock< detail::spinlock > lk( waiting_mtx_);
+            waiting_.push_back(
+                    detail::scheduler::instance().active() );
+            detail::scheduler::instance().wait( lk);
+        }
+        else
+        {
+            run();
+        }
     }
 }
 
 bool
 mutex::try_lock()
-{
-    BOOST_ASSERT( this_fiber::is_fiberized() );
-
-    return UNLOCKED == state_.exchange( LOCKED, memory_order_acquire);
-}
+{ return UNLOCKED == state_.exchange( LOCKED, memory_order_acquire); }
 
 void
 mutex::unlock()
 {
-    BOOST_ASSERT( this_fiber::is_fiberized() );
-
 	state_ = UNLOCKED;
 
-    detail::spin_mutex::scoped_lock lk( mtx_);
+    unique_lock< detail::spinlock > lk( waiting_mtx_);
 	if ( ! waiting_.empty() )
     {
         detail::fiber_base::ptr_t f;

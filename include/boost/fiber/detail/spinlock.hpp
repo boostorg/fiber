@@ -6,12 +6,10 @@
 //
 //  based on boost::interprocess::sync::interprocess_spin::mutex
 
-#ifndef BOOST_FIBERS_SPIN_MUTEX_H
-#define BOOST_FIBERS_SPIN_MUTEX_H
+#ifndef BOOST_FIBERS_SPINLOCK_H
+#define BOOST_FIBERS_SPINLOCK_H
 
 #include <boost/atomic.hpp>
-#include <boost/chrono/system_clocks.hpp>
-#include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -20,7 +18,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class BOOST_FIBERS_DECL spin_mutex : private noncopyable
+class BOOST_FIBERS_DECL spinlock : private noncopyable
 {
 private:
 	enum state
@@ -32,23 +30,13 @@ private:
 	atomic< state >			state_;
 
 public:
-	typedef unique_lock< spin_mutex >	scoped_lock;
-
-	spin_mutex();
+	spinlock();
 
 	void lock();
-
-	bool try_lock();
-
-	bool timed_lock( chrono::system_clock::time_point const& abs_time);
-
-	template< typename TimeDuration >
-	bool timed_lock( TimeDuration const& rel_time)
-	{ return timed_lock( chrono::system_clock::now() + rel_time); }
 
 	void unlock();
 };
 
 }}}
 
-#endif // BOOST_FIBERS_SPIN_MUTEX_H
+#endif // BOOST_FIBERS_SPINLOCK_H

@@ -25,7 +25,7 @@ lib boost_fibers
       condition.cpp
       detail/fiber_base.cpp
       detail/scheduler.cpp
-      detail/spin_mutex.cpp
+      detail/spinlock.cpp
       fiber.cpp
       mutex.cpp
       round_robin.cpp

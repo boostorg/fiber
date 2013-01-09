@@ -140,7 +140,7 @@ namespace fibers {
             
             void remove_external_waiter(waiter_list::iterator it)
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
                 external_waiters.erase(it);
             }
 
@@ -256,12 +256,12 @@ namespace fibers {
 
             bool has_value()
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
                 return done && !exception;
             }
             bool has_exception()
             {
-                boost::lock_guard<boost::fibers::mutex> lock(mutex);
+                boost::unique_lock<boost::fibers::mutex> lock(mutex);
                 return done && exception;
             }
 
@@ -390,7 +390,7 @@ namespace fibers {
 
             future_state::state get_state()
             {
-                boost::lock_guard<boost::fibers::mutex> guard(mutex);
+                boost::unique_lock<boost::fibers::mutex> guard(mutex);
                 if(!done)
                 {
                     return future_state::waiting;
@@ -431,7 +431,7 @@ namespace fibers {
             
             future_state::state get_state()
             {
-                boost::lock_guard<boost::fibers::mutex> guard(mutex);
+                boost::unique_lock<boost::fibers::mutex> guard(mutex);
                 if(!done)
                 {
                     return future_state::waiting;
@@ -1185,7 +1185,7 @@ namespace fibers {
             void run()
             {
                 {
-                    boost::lock_guard<boost::fibers::mutex> lk(this->mutex);
+                    boost::unique_lock<boost::fibers::mutex> lk(this->mutex);
                     if(started)
                     {
                         boost::throw_exception(task_already_started());

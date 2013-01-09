@@ -9,6 +9,7 @@
 #include <boost/fiber/detail/fiber_base.hpp>
 
 #include <boost/foreach.hpp>
+#include <boost/thread/locks.hpp>
 
 #include <boost/fiber/detail/scheduler.hpp>
 
@@ -84,7 +85,7 @@ void
 fiber_base::join( ptr_t const& p)
 {
     // protect against concurrent access to joining_
-    spin_mutex::scoped_lock lk( mtx_);
+    unique_lock< spinlock > lk( mtx_);
     if ( is_terminated() ) return;
     joining_.push_back( p);
 }

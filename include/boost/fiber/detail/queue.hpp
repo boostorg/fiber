@@ -16,7 +16,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/spin_mutex.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -53,16 +53,16 @@ class queue : private noncopyable
 {
 private:
     node::ptr_t             head_;
-    mutable spin_mutex      head_mtx_;
+    mutable spinlock      head_mtx_;
     node::ptr_t             tail_;
-    mutable spin_mutex      tail_mtx_;
+    mutable spinlock      tail_mtx_;
 
     bool empty_() const
     { return head_ == get_tail_(); }
 
     node_type::ptr get_tail_() const
     {
-        spin_mutex::scoped_lock lk( tail_mtx_); 
+        spinlock::scoped_lock lk( tail_mtx_);
         node::ptr_t tmp = tail_;
         return tmp;
     }
@@ -84,7 +84,7 @@ public:
 
     bool empty() const
     {
-        spin_mutex::scoped_lock lk( head_mtx_);
+        spinlock::scoped_lock lk( head_mtx_);
         return empty_();
     }
 
@@ -92,7 +92,7 @@ public:
     {
         node::ptr_t new_node( new node_type() );
         {
-            spin_mutex::scoped_lock lk( tail_mtx_);
+            spinlock::scoped_lock lk( tail_mtx_);
             tail_->f = f;
             tail_->next = new_node;
             tail_ = new_node;
@@ -101,7 +101,7 @@ public:
 
     void notify_one()
     {
-        spin_mutex::scoped_lock lk( head_mtx_);
+        spinlock::scoped_lock lk( head_mtx_);
         while ( ! empty_() )
         {
             BOOST_ASSERT( head_->f);
@@ -113,7 +113,7 @@ public:
 
     void notify_all()
     {
-        spin_mutex::scoped_lock lk( head_mtx_);
+        spinlock::scoped_lock lk( head_mtx_);
         while ( ! empty_() )
         {
             BOOST_ASSERT( head_->f);
