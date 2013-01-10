@@ -336,6 +336,8 @@ public:
 
     void join();
 
+    void interrupt() BOOST_NOEXCEPT;
+
     void cancel();
 };
 

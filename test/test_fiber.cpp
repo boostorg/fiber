@@ -221,29 +221,6 @@ void test_complete()
     if ( s2.joinable() ) s2.join();
 }
 
-void test_cancel()
-{
-    boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
-
-    {
-        boost::fibers::fiber s( f2);
-        BOOST_CHECK( s);
-        s.cancel();
-        BOOST_CHECK( ! s);
-    }
-
-    {
-        // spawn fiber s
-        // s spawns an new fiber s' in its fiber-fn
-        // s' yields in its fiber-fn
-        // s cancels s' and completes
-        boost::fibers::fiber s( f3);
-        if ( s.joinable() ) s.join();
-        BOOST_CHECK( ! s);
-    }
-}
-
 void test_join_in_thread()
 {
     boost::fibers::round_robin ds;

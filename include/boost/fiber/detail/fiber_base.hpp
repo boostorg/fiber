@@ -45,12 +45,12 @@ private:
 
     atomic< std::size_t >   use_count_;
     atomic< state_t >       state_;
+    atomic< int >           flags_;
     atomic< int >           priority_;
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
-    int                     flags_;
     exception_ptr           except_;
-    spinlock              mtx_;
+    spinlock                joining_mtx_;
     std::vector< ptr_t >    joining_;
 
 protected:
@@ -140,6 +140,26 @@ public:
 
     bool preserve_fpu() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_preserve_fpu); }
+
+    bool interruption_enabled() const BOOST_NOEXCEPT
+    { return 0 == ( flags_ & flag_interruption_blocked); }
+
+    bool interruption_blocked() const BOOST_NOEXCEPT
+    { return 0 != ( flags_ & flag_interruption_blocked); }
+
+    void interruption_blocked( bool blck) BOOST_NOEXCEPT
+    {
+        if ( blck)
+            flags_ |= flag_interruption_blocked;
+        else
+            flags_ &= ~flag_interruption_blocked;
+    }
+
+    bool interruption_requested() const BOOST_NOEXCEPT
+    { return 0 != ( flags_ & flag_interruption_requested); }
+
+    void request_interruption() BOOST_NOEXCEPT
+    { flags_ |= flag_interruption_requested; }
 
     bool is_terminated() const BOOST_NOEXCEPT
     { return state_terminated == state_; }

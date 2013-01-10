@@ -21,9 +21,11 @@ namespace detail {
 
 enum flag_t
 {
-    flag_force_unwind  = 1 << 1,
-    flag_unwind_stack   = 1 << 2,
-    flag_preserve_fpu   = 1 << 3
+    flag_force_unwind           = 1 << 1,
+    flag_unwind_stack           = 1 << 2,
+    flag_preserve_fpu           = 1 << 3,
+    flag_interruption_blocked   = 1 << 4,
+    flag_interruption_requested = 1 << 5
 };
 
 }}}

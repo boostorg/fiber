@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_STRATIFIED_DETAIL_INTERRUPT_FLAGS_H
-#define BOOST_STRATIFIED_DETAIL_INTERRUPT_FLAGS_H
+#ifndef BOOST_FIBERS_DETAIL_INTERRUPT_FLAGS_H
+#define BOOST_FIBERS_DETAIL_INTERRUPT_FLAGS_H
 
 #include <boost/config.hpp>
 
@@ -32,4 +32,4 @@ typedef char interrupt_type;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_STRATIFIED_DETAIL_INTERRUPT_FLAGS_H
+#endif // BOOST_FIBERS_DETAIL_INTERRUPT_FLAGS_H

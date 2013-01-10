@@ -24,12 +24,12 @@ namespace detail {
 fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     use_count_( 0),
     state_( state_ready),
+    flags_( 0),
     priority_( 0),
     caller_(),
     callee_( callee),
-    flags_( 0),
     except_(),
-    mtx_(),
+    joining_mtx_(),
     joining_()
 { if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
 
@@ -75,7 +75,7 @@ fiber_base::terminate()
     if ( ! is_terminated() ) unwind_stack();
 
     // fiber_base::terminate() is called by ~fiber_object()
-    // therefore protecting by mtx_ is not required
+    // therefore protecting by joining_mtx_ is not required
     // and joining_ is not required to be cleared
     BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
     { p->set_ready(); }
@@ -85,7 +85,7 @@ void
 fiber_base::join( ptr_t const& p)
 {
     // protect against concurrent access to joining_
-    unique_lock< spinlock > lk( mtx_);
+    unique_lock< spinlock > lk( joining_mtx_);
     if ( is_terminated() ) return;
     joining_.push_back( p);
 }

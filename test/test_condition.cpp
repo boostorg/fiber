@@ -44,6 +44,16 @@ struct condition_test_data
     int awoken;
 };
 
+void condition_test_fiber(condition_test_data* data)
+{
+    boost::unique_lock<boost::fibers::mutex> lock(data->mutex);
+    BOOST_CHECK(lock ? true : false);
+    while (!(data->notified > 0))
+        data->condition.wait(lock);
+    BOOST_CHECK(lock ? true : false);
+    data->awoken++;
+}
+
 struct cond_predicate
 {
     cond_predicate(int& var, int val) : _var(var), _val(val) { }
@@ -187,6 +197,20 @@ void do_test_condition_waits()
     BOOST_CHECK_EQUAL(data.awoken, 5);
 }
 
+void test_condition_wait_is_a_interruption_point()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    condition_test_data data;
+
+    boost::fibers::fiber f(boost::bind(&condition_test_fiber, &data));
+
+    f.interrupt();
+    f.join();
+    BOOST_CHECK_EQUAL(data.awoken,0);
+}
+
 void test_one_waiter_notify_one()
 {
     boost::fibers::round_robin ds;
@@ -326,6 +350,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
     test->add( BOOST_TEST_CASE( & test_condition_waits) );
+    test->add(  BOOST_TEST_CASE( & test_condition_wait_is_a_interruption_point) );
 
 	return test;
 }

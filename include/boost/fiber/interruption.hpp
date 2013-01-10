@@ -4,8 +4,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_THIS_STRATUM_INTERRUPTION_H
-#define BOOST_THIS_STRATUM_INTERRUPTION_H
+// based on boost.thread
+
+#ifndef BOOST_THIS_FIBER_INTERRUPTION_H
+#define BOOST_THIS_FIBER_INTERRUPTION_H
 
 #include <cstddef>
 
@@ -13,8 +15,6 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/interrupt_flags.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -33,23 +33,9 @@ private:
 	bool	set_;
 
 public:
-	disable_interruption() :
-		set_( ( fibers::scheduler::get_instance_()->active_fibers_->impl_->interrupt & fibers::detail::INTERRUPTION_BLOCKED) != 0)
-	{
-		if ( ! set_)
-			fibers::scheduler::get_instance_()->active_fibers_->impl_->interrupt |= fibers::detail::INTERRUPTION_BLOCKED;
-	}
+	disable_interruption() BOOST_NOEXCEPT;
 
-	~disable_interruption()
-	{
-		try
-		{
-			if ( ! set_)
-				fibers::scheduler::get_instance_()->active_fibers_->impl_->interrupt &= ~fibers::detail::INTERRUPTION_BLOCKED;
-		}
-		catch (...)
-		{}
-	}
+	~disable_interruption() BOOST_NOEXCEPT;
 };
 
 class restore_interruption : private noncopyable
@@ -58,24 +44,16 @@ private:
 	disable_interruption	&	disabler_;
 
 public:
-	explicit restore_interruption( disable_interruption & disabler) :
-		disabler_( disabler)
-	{
-		if ( ! disabler_.set_)
-			fibers::scheduler::get_instance_()->active_fibers_->impl_->interrupt &= ~fibers::detail::INTERRUPTION_BLOCKED;
-	}
+	explicit restore_interruption( disable_interruption & disabler) BOOST_NOEXCEPT;
 
-	~restore_interruption()
-	{
-	   try
-	   {	   
-			if ( ! disabler_.set_)
-				fibers::scheduler::get_instance_()->active_fibers_->impl_->interrupt |= fibers::detail::INTERRUPTION_BLOCKED;
-		}
-		catch (...)
-		{}
-	}
+	~restore_interruption() BOOST_NOEXCEPT;
 };
+
+bool interruption_enabled() BOOST_NOEXCEPT;
+
+bool interruption_requested() BOOST_NOEXCEPT;
+
+void interruption_point();
 
 }}
 
@@ -83,4 +61,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_THIS_STRATUM_INTERRUPTION_H
+#endif // BOOST_THIS_FIBER_INTERRUPTION_H
