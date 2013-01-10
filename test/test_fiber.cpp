@@ -191,6 +191,45 @@ void test_detach()
     }
 }
 
+void interruption_point_fiber(boost::fibers::mutex* m,bool* failed)
+{
+    boost::unique_lock<boost::fibers::mutex> lk(*m);
+    boost::this_fiber::interruption_point();
+    *failed=true;
+}
+
+void test_fiber_interrupts_at_interruption_point()
+{
+    boost::fibers::mutex m;
+    bool failed=false;
+    boost::unique_lock<boost::fibers::mutex> lk(m);
+    boost::fibers::fiber f(boost::bind(&interruption_point_fiber,&m,&failed));
+    f.interrupt();
+    lk.unlock();
+    f.join();
+    BOOST_CHECK(!failed);
+}
+
+void disabled_interruption_point_fiber(boost::fibers::mutex* m,bool* failed)
+{
+    boost::unique_lock<boost::fibers::mutex> lk(*m);
+    boost::this_fiber::disable_interruption dc;
+    boost::this_fiber::interruption_point();
+    *failed=false;
+}
+
+void test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point()
+{
+    boost::fibers::mutex m;
+    bool failed=true;
+    boost::unique_lock<boost::fibers::mutex> lk(m);
+    boost::fibers::fiber f(boost::bind(&disabled_interruption_point_fiber,&m,&failed));
+    f.interrupt();
+    lk.unlock();
+    f.join();
+    BOOST_CHECK(!failed);
+}
+
 void test_replace()
 {
     boost::fibers::round_robin ds;
@@ -307,5 +346,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
     test->add( BOOST_TEST_CASE( & test_yield_break) );
     test->add( BOOST_TEST_CASE( & test_yield) );
+    test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
+    test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
     return test;
 }
