@@ -130,7 +130,7 @@ public:
 
     void terminate();
 
-    void join( ptr_t const&);
+    bool join( ptr_t const&);
 
     bool force_unwind() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_force_unwind); }
@@ -158,8 +158,13 @@ public:
     bool interruption_requested() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_interruption_requested); }
 
-    void request_interruption() BOOST_NOEXCEPT
-    { flags_ |= flag_interruption_requested; }
+    void request_interruption( bool req) BOOST_NOEXCEPT
+    {
+        if ( req)
+            flags_ |= flag_interruption_requested;
+        else
+            flags_ &= ~flag_interruption_requested;
+    }
 
     bool is_terminated() const BOOST_NOEXCEPT
     { return state_terminated == state_; }
@@ -173,6 +178,8 @@ public:
     bool is_waiting() const BOOST_NOEXCEPT
     { return state_waiting == state_; }
 
+    // set terminate is only set inside fiber_object::exec()
+    // it is set after the fiber-function was left == at the end of exec()
     void set_terminated() BOOST_NOEXCEPT
     {
         state_t previous = state_.exchange( state_terminated, memory_order_release);

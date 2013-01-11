@@ -18,6 +18,7 @@
 #include <boost/scope_exit.hpp>
 
 #include <boost/fiber/exceptions.hpp>
+#include <boost/fiber/interruption.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -39,7 +40,10 @@ round_robin::~round_robin()
     rqueue_.clear();
 
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, fibers_)
-    { p->terminate(); }
+    {
+        p->request_interruption( true);
+        while ( ! fibers_.empty() ) run();
+    }
 }
 
 void
@@ -54,10 +58,12 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
         active_fiber_ = tmp;
     } BOOST_SCOPE_EXIT_END
     active_fiber_ = f;
-    active_fiber_->set_running(); \
+    active_fiber_->set_running();
     active_fiber_->resume();
     if ( ! f->is_terminated() )
+    {
         fibers_.push_back( f);
+    }
 }
 
 void
@@ -78,49 +84,30 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 
     if ( active_fiber_)
     {
-        // add active_fiber_ to joinig-list of f
-        f->join( active_fiber_);
         // set active_fiber to state_waiting
         active_fiber_->set_waiting();
+        // add active_fiber_ to joinig-list of f
+        if ( ! f->join( active_fiber_) )
+            //FIXME: in-performant -> better state changed to running
+            active_fiber_->set_ready();
         // suspend active-fiber until f terminates
         active_fiber_->suspend();
         // fiber is resumed
         // f has teminated and active-fiber is resumed
+
+        // check if fiber was interrupted
+        this_fiber::interruption_point();
     }
     else
     {
         while ( ! f->is_terminated() )
+        {
+            //FIXME: this_thread::yield() ?
             run();
+        }
     }
 
     BOOST_ASSERT( f->is_terminated() );
-}
-
-void
-round_robin::cancel( detail::fiber_base::ptr_t const& f)
-{
-    BOOST_ASSERT_MSG( false, "not implemented");
-//  BOOST_ASSERT( f);
-//  BOOST_ASSERT( f != active_fiber_);
-//
-//  // ignore completed fiber
-//  if ( f->is_terminated() ) return;
-//
-//  detail::fiber_base::ptr_t tmp = active_fiber_;
-//  {
-//      BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
-//          active_fiber_ = tmp;
-//      } BOOST_SCOPE_EXIT_END
-//      active_fiber_ = f;
-//      // terminate fiber means unwinding its stack
-//      // so it becomes complete and joining fibers
-//      // will be notified
-//      active_fiber_->terminate();
-//  }
-//  // erase completed fiber from waiting-queue
-//  f_idx_.erase( f);
-//
-//  BOOST_ASSERT( f->is_terminated() );
 }
 
 bool
@@ -138,9 +125,21 @@ round_robin::run()
         fibers_.sort();
     }
 
-    // copy all ready fibers to rqueue_
+    // check which waiting fdiber should be interrupted
+    // make it ready and add it to rqueue_
     std::pair< container_t::iterator, container_t::iterator > p =
-            fibers_.equal_range( detail::state_ready);
+            fibers_.equal_range( detail::state_waiting);
+    for ( container_t::iterator i = p.first; i != p.second; ++i)
+    {
+        if ( ( * i)->interruption_requested() )
+        {
+            ( * i)->set_ready();
+            rqueue_.push_back( * i);
+        }
+    }
+
+    // copy all ready fibers to rqueue_
+    p = fibers_.equal_range( detail::state_ready);
     if ( p.first != p.second)
         rqueue_.insert( rqueue_.end(), p.first, p.second);
 

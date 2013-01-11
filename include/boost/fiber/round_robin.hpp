@@ -53,8 +53,6 @@ public:
 
     void join( detail::fiber_base::ptr_t const&);
 
-    void cancel( detail::fiber_base::ptr_t const&);
-
     detail::fiber_base::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 

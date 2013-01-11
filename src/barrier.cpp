@@ -49,6 +49,8 @@ barrier::wait()
 	else
 	{
 		while ( cycle == cycle_)
+            //FIXME: what happend if fiber is interrupted?
+            // ++current_ ?
 			cond_.wait( lk);
 	}
 	return false;

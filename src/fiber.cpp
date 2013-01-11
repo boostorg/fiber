@@ -54,9 +54,12 @@ fiber::join()
                 system::errc::resource_deadlock_would_occur, "boost fiber: trying joining itself") );
 
     if ( ! joinable() )
+    {
+        if ( impl_->is_terminated() ) return;
         boost::throw_exception(
             fiber_resource_error(
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
+    }
 
     detail::scheduler::instance().join( impl_);
 
@@ -68,15 +71,7 @@ fiber::interrupt()
 {
     BOOST_ASSERT( impl_);
 
-    impl_->request_interruption();
-}
-
-void
-fiber::cancel()
-{
-    BOOST_ASSERT( impl_);
-
-    detail::scheduler::instance().cancel( impl_);
+    impl_->request_interruption( true);
 }
 
 }}

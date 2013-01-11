@@ -20,10 +20,11 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
+#include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 
@@ -93,10 +94,26 @@ public:
             {
                 if ( this_fiber::is_fiberized() )
                 {
+                    try
+                    { this_fiber::interruption_point(); }
+                    catch ( fiber_interrupted const&)
+                    {
+                        --waiters_;
+                        throw;
+                    }
+
                     unique_lock< detail::spinlock > lk( waiting_mtx_);
                     waiting_.push_back(
                             detail::scheduler::instance().active() );
                     detail::scheduler::instance().wait( lk);
+
+                    try
+                    { this_fiber::interruption_point(); }
+                    catch ( fiber_interrupted const&)
+                    {
+                        --waiters_;
+                        throw;
+                    }
                 }
                 else
                 {
@@ -195,9 +212,29 @@ public:
                 detail::scheduler::instance().wait( lk);
 #endif
                 if ( this_fiber::is_fiberized() )
+                {
+                    try
+                    { this_fiber::interruption_point(); }
+                    catch ( fiber_interrupted const&)
+                    {
+                        --waiters_;
+                        throw;
+                    }
+
                     this_fiber::yield();
+
+                    try
+                    { this_fiber::interruption_point(); }
+                    catch ( fiber_interrupted const&)
+                    {
+                        --waiters_;
+                        throw;
+                    }
+                }
                 else
+                {
                     run();
+                }
 
                 now = chrono::system_clock::now();
                 if ( now >= abs_time)

@@ -74,20 +74,22 @@ fiber_base::terminate()
 {
     if ( ! is_terminated() ) unwind_stack();
 
-    // fiber_base::terminate() is called by ~fiber_object()
-    // therefore protecting by joining_mtx_ is not required
-    // and joining_ is not required to be cleared
+    // set all waiting fibers in joining_ to state_ready
+    // so they can be resumed
+    // protect against concurrent access to joining_
+    unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
-    { p->set_ready(); }
+    { if ( ! p->is_terminated() ) p->set_ready(); }
 }
 
-void
+bool
 fiber_base::join( ptr_t const& p)
 {
     // protect against concurrent access to joining_
     unique_lock< spinlock > lk( joining_mtx_);
-    if ( is_terminated() ) return;
+    if ( is_terminated() ) return false;
     joining_.push_back( p);
+    return true;
 }
 
 }}}

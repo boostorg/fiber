@@ -14,6 +14,7 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/future.hpp>
+#include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 #include <boost/fiber/round_robin.hpp>

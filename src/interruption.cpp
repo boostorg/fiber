@@ -61,8 +61,14 @@ bool interruption_requested() BOOST_NOEXCEPT
 
 void interruption_point()
 {
-    if ( interruption_enabled() && interruption_requested() )
-       throw fibers::fiber_interrupted();
+    if ( interruption_requested() )
+    {
+    if ( interruption_enabled() )
+    {
+        fibers::detail::scheduler::instance().active()->request_interruption( false);
+        throw fibers::fiber_interrupted();
+    }
+    }
 }
 
 }}
