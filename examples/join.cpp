@@ -6,27 +6,24 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 int value1 = 0;
 int value2 = 0;
 
 void fn1()
 {
-    stm::fiber::id id = this_stm::get_id();
+    boost::fibers::fiber::id id =boost::this_fiber::get_id();
     for ( int i = 0; i < 5; ++i)
     {
         ++value1;
         std::cout << "fiber " << id << " fn1: increment value1: " << value1 << std::endl;
-        this_stm::yield();
+        boost::this_fiber::yield();
     }
     std::cout << "fiber " << id << " fn1: returns" << std::endl;
 }
 
-void fn2( stm::fiber & s)
+void fn2( boost::fibers::fiber & s)
 {
-    stm::fiber::id id = this_stm::get_id();
+    boost::fibers::fiber::id id =boost::this_fiber::get_id();
     for ( int i = 0; i < 5; ++i)
     {
         ++value2;
@@ -37,19 +34,20 @@ void fn2( stm::fiber & s)
             s.join();
             std::cout << "fiber " << id << " fn2: joined fiber " << s.get_id() << std::endl;
         }
-        this_stm::yield();
+        boost::this_fiber::yield();
     }
     std::cout << "fiber " << id << " fn2: returns" << std::endl;
 }
 
 int main()
 {
-    stm::round_robin ds;
-    stm::scheduler::replace( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
     try
     {
-        stm::fiber s1( fn1);
-        stm::fiber s2( boost::bind( fn2, boost::ref( s1) ) );
+        boost::fibers::fiber s1( fn1);
+        boost::fibers::fiber s2( boost::bind( fn2, boost::ref( s1) ) );
 
         s1.join();
         s2.join();

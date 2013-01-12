@@ -9,15 +9,12 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
-typedef stm::unbounded_channel< std::string >	fifo_t;
+typedef boost::fibers::unbounded_channel< std::string >	fifo_t;
 
 inline
 void ping( fifo_t & recv_buf, fifo_t & send_buf)
 {
-    stm::fiber::id id( this_stm::get_id() );
+    boost::fibers::fiber::id id( boost::this_fiber::get_id() );
 
 	boost::optional< std::string > value;
 
@@ -42,7 +39,7 @@ void ping( fifo_t & recv_buf, fifo_t & send_buf)
 inline
 void pong( fifo_t & recv_buf, fifo_t & send_buf)
 {
-    stm::fiber::id id( this_stm::get_id() );
+    boost::fibers::fiber::id id( boost::this_fiber::get_id() );
 
 	boost::optional< std::string > value;
 
@@ -68,10 +65,10 @@ void f()
 {
 	fifo_t buf1, buf2;
 	
-	stm::fiber s1(
+	boost::fibers::fiber s1(
             boost::bind(
                 & ping, boost::ref( buf1), boost::ref( buf2) ) );
-	stm::fiber s2(
+	boost::fibers::fiber s2(
             boost::bind(
                 & pong, boost::ref( buf2), boost::ref( buf1) ) );
 
@@ -83,13 +80,14 @@ void f()
 
 int main()
 {
-    stm::round_robin ds;
-    stm::scheduler::replace( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
 	try
 	{
-		stm::fiber s( f);
+		boost::fibers::fiber s( f);
 
-        while ( s) stm::run();
+        while ( s) boost::fibers::run();
 
 		std::cout << "done." << std::endl;
 

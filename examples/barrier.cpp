@@ -7,21 +7,18 @@
 
 #include <boost/fiber/all.hpp>
 
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
-
 int value1 = 0;
 int value2 = 0;
 
 inline
-void fn1( stm::barrier & b)
+void fn1( boost::fibers::barrier & b)
 {
-    stm::fiber::id id = this_stm::get_id();
+    boost::fibers::fiber::id id = boost::this_fiber::get_id();
 	std::cout << "fiber " << id << ": fn1 entered" << std::endl;
 
 	++value1;
 	std::cout << "fiber " << id << ": incremented value1: " << value1 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	std::cout << "fiber " << id << ": waits for barrier" << std::endl;
 	b.wait();
@@ -29,36 +26,36 @@ void fn1( stm::barrier & b)
 
 	++value1;
 	std::cout << "fiber " << id << ": incremented value1: " << value1 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	++value1;
 	std::cout << "fiber " << id << ": incremented value1: " << value1 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	++value1;
 	std::cout << "fiber " << id << ": incremented value1: " << value1 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	std::cout << "fiber " << id << ": fn1 returns" << std::endl;
 }
 
 inline
-void fn2( stm::barrier & b)
+void fn2( boost::fibers::barrier & b)
 {
-    stm::fiber::id id = this_stm::get_id();
+    boost::fibers::fiber::id id = boost::this_fiber::get_id();
 	std::cout << "fiber " << id << ": fn2 entered" << std::endl;
 
 	++value2;
 	std::cout << "fiber " << id << ": incremented value2: " << value2 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	++value2;
 	std::cout << "fiber " << id << ": incremented value2: " << value2 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	++value2;
 	std::cout << "fiber " << id << ": incremented value2: " << value2 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	std::cout << "fiber " << id << ": waits for barrier" << std::endl;
 	b.wait();
@@ -66,24 +63,25 @@ void fn2( stm::barrier & b)
 
 	++value2;
 	std::cout << "fiber " << id << ": incremented value2: " << value2 << std::endl;
-	this_stm::yield();
+	boost::this_fiber::yield();
 
 	std::cout << "fiber " << id << ": fn2 returns" << std::endl;
 }
 
 int main()
 {
-    stm::round_robin ds;
-    stm::scheduler::replace( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
 	try
 	{
-		stm::barrier fb( 2);
+		boost::fibers::barrier fb( 2);
 
-		stm::fiber s1( boost::bind( & fn1, boost::ref( fb) ) );
-		stm::fiber s2( boost::bind( & fn2, boost::ref( fb) ) );
+		boost::fibers::fiber s1( boost::bind( & fn1, boost::ref( fb) ) );
+		boost::fibers::fiber s2( boost::bind( & fn2, boost::ref( fb) ) );
 
 		while ( s1 || s2)
-			stm::run();
+			boost::fibers::run();
 
 		std::cout << "done." << std::endl;
 

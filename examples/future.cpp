@@ -3,11 +3,9 @@
 #include <string>
 
 #include <boost/bind.hpp>
+#include <boost/thread.hpp>
 
 #include <boost/fiber/all.hpp>
-
-namespace stm = boost::fibers;
-namespace this_stm = boost::this_fiber;
 
 inline
 int fn( std::string const& str, int n)
@@ -15,7 +13,7 @@ int fn( std::string const& str, int n)
 	for ( int i = 0; i < n; ++i)
 	{
 		std::cout << i << ": " << str << std::endl;
-		this_stm::yield();
+		boost::this_fiber::yield();
 	}
 
     return n;
@@ -23,21 +21,22 @@ int fn( std::string const& str, int n)
 
 void start()
 {
-    stm::packaged_task<int> pt(
+    boost::fibers::packaged_task<int> pt(
         boost::bind( fn, "abc", 5) );
-    stm::unique_future<int> fi=pt.get_future();
-    stm::fiber( boost::move( pt) );
+    boost::fibers::unique_future<int> fi=pt.get_future();
+    boost::fibers::fiber( boost::move( pt) ).detach();
     fi.wait();
     std::cout << "fn() returned " << fi.get() << std::endl;
 }
 
 int main()
 {
-    stm::round_robin ds;
-    stm::scheduler::replace( & ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
 	try
 	{
-        stm::fiber( start).join();
+        boost::fibers::fiber( start).join();
 		std::cout << "done." << std::endl;
 
 		return EXIT_SUCCESS;
