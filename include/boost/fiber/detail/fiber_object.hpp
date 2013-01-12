@@ -135,7 +135,7 @@ public:
 #endif
 
     ~fiber_object()
-    { terminate(); }
+    { release(); }
 
     void exec()
     {
@@ -225,7 +225,7 @@ public:
     { enter_(); }
 
     ~fiber_object()
-    { terminate(); }
+    { release(); }
 
     void exec()
     {
@@ -315,7 +315,7 @@ public:
     { enter_(); }
 
     ~fiber_object()
-    { terminate(); }
+    { release(); }
 
     void exec()
     {

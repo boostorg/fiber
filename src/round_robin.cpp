@@ -1,9 +1,10 @@
+
 //          Copyright Oliver Kowalke 2009.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#define BOOST_FIBERS_SOURCE
+#define BOOST_wqueue_SOURCE
 
 #include <boost/fiber/round_robin.hpp>
 
@@ -30,7 +31,7 @@ namespace fibers {
 
 round_robin::round_robin() :
     active_fiber_(),
-    fibers_(),
+    wqueue_(),
     rqueue_mtx_(),
     rqueue_()
 {}
@@ -39,15 +40,15 @@ round_robin::~round_robin()
 {
     BOOST_ASSERT( ! active_fiber_);
 
-    unique_lock< detail::spinlock > lk( rqueue_mtx_);
-    rqueue_.clear();
-    lk.unlock();
-
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, fibers_)
+    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
     {
         p->request_interruption( true);
-        while ( ! fibers_.empty() ) run();
     }
+
+    unique_lock< detail::spinlock > lk( rqueue_mtx_);
+    rqueue_.insert( rqueue_.end(), wqueue_.begin(), wqueue_.end() );
+    lk.unlock();
+    while ( ! wqueue_.empty() ) run();
 }
 
 void
@@ -64,10 +65,14 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
     active_fiber_ = f;
     active_fiber_->set_running();
     active_fiber_->resume();
-    if ( ! f->is_terminated() )
-    {
-        fibers_.push_back( f);
-    }
+    // after return from fiber::resume() the fiber is:
+    // ready      -> already in requeue_
+    // waiting    -> already in wqueue_
+    // terminated -> not stored in round_robin/will be deleted
+    //               call terminate() in order to release
+    //               joining fibers
+    if ( active_fiber_->is_terminated() )
+        f->release();
 }
 
 void
@@ -88,16 +93,19 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 
     if ( active_fiber_)
     {
-        // set active_fiber to state_waiting
+        // set active fiber to state_waiting
         active_fiber_->set_waiting();
-        // add active_fiber_ to joinig-list of f
+        // push active fiber to wqueue_
+        wqueue_.push_back( active_fiber_);
+        // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
-            //FIXME: in-performant -> better state changed to running
+            // f must be already terminated therefore we set
+            // active fiber to state_ready
+            // FIXME: better state_running and no suspend
             active_fiber_->set_ready();
-        // suspend active-fiber until f terminates
+        // suspend active fiber until f terminates
         active_fiber_->suspend();
-        // fiber is resumed
-        // f has teminated and active-fiber is resumed
+        // active fiber is resumed and f has teminated
 
         // check if fiber was interrupted
         this_fiber::interruption_point();
@@ -106,7 +114,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
     {
         while ( ! f->is_terminated() )
         {
-            //FIXME: this_thread::yield() ?
+            //FIXME: call this_thread::yield() before ?
             run();
         }
     }
@@ -118,50 +126,36 @@ bool
 round_robin::run()
 {
     // stable-sort has n*log(n) complexity if n*log(n) extra space is available
-    std::size_t n = fibers_.size();
+    std::size_t n = wqueue_.size();
     if ( 1 < n)
     {
         std::size_t new_capacity = n * std::log10( n) + n;
-        if ( fibers_.capacity() < new_capacity)
-            fibers_.reserve( new_capacity);
+        if ( wqueue_.capacity() < new_capacity)
+            wqueue_.reserve( new_capacity);
 
-        // sort fibers_ depending on state
-        fibers_.sort();
+        // sort wqueue_ depending on state
+        wqueue_.sort();
     }
 
-    // check which waiting fdiber should be interrupted
+    // check which waiting fiber should be interrupted
     // make it ready and add it to rqueue_
-    std::pair< container_t::iterator, container_t::iterator > p =
-            fibers_.equal_range( detail::state_waiting);
-    for ( container_t::iterator i = p.first; i != p.second; ++i)
+    std::pair< wqueue_t::iterator, wqueue_t::iterator > p =
+            wqueue_.equal_range( detail::state_waiting);
+    for ( wqueue_t::iterator i = p.first; i != p.second; ++i)
     {
         if ( ( * i)->interruption_requested() )
-        {
             ( * i)->set_ready();
-            unique_lock< detail::spinlock > lk( rqueue_mtx_);
-            rqueue_.push_back( * i);
-        }
     }
 
     // copy all ready fibers to rqueue_
-    p = fibers_.equal_range( detail::state_ready);
+    // and remove fibers from wqueue_
+    p = wqueue_.equal_range( detail::state_ready);
     if ( p.first != p.second)
     {
         unique_lock< detail::spinlock > lk( rqueue_mtx_);
         rqueue_.insert( rqueue_.end(), p.first, p.second);
-    }
-
-    // remove all terminated fibers from fibers_
-    p = fibers_.equal_range( detail::state_terminated);
-    for ( container_t::iterator i = p.first; i != p.second; ++i)
-    {
-        ( * i)->terminate();
-        fibers_.erase( i);
-    }
-
-    {
-        unique_lock< detail::spinlock > lk( rqueue_mtx_);
-        if ( rqueue_.empty() ) return false;
+        lk.unlock();
+        wqueue_.erase( p.first, p.second);
     }
 
     // pop new fiber from runnable-queue which is not complete
@@ -184,6 +178,10 @@ round_robin::run()
     // resume new active fiber
     active_fiber_->set_running();
     active_fiber_->resume();
+    // call terminate() in order to release
+    // joining fibers if resumed fiber has terminated
+    if ( active_fiber_->is_terminated() )
+        f->release();
 
     return true;
 }
@@ -196,8 +194,10 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
 
     // set active_fiber to state_waiting
     active_fiber_->set_waiting();
-    // unlock Lock assoc. with sync. primitive
+    // unlock assoc. sync. primitive
     lk.unlock();
+    // push active fiber to wqueue_
+    wqueue_.push_back( active_fiber_);
     // suspend fiber
     active_fiber_->suspend();
     // fiber is resumed
@@ -211,13 +211,14 @@ round_robin::yield()
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
 
-    // yield() suspends the fiber and adds it
-    // immediately to ready-queue
-    unique_lock< detail::spinlock > lk( rqueue_mtx_);
-    rqueue_.push_back( active_fiber_);
-    lk.unlock();
     // set active_fiber to state_ready
     active_fiber_->set_ready();
+    // suspends active fiber and adds it to wqueue_
+    // Note: adding to rqueue_ could result in a raise
+    // between adding to rqueue_ and calling yield another
+    // thread could steel fiber from rqueue_ and resume it
+    // at the same time as yield is called
+    wqueue_.push_back( active_fiber_);
     // suspend fiber
     active_fiber_->yield();
     // fiber is resumed
@@ -231,8 +232,7 @@ round_robin::exec_in( detail::fiber_base::ptr_t const& f)
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
-    unique_lock< detail::spinlock > lk( rqueue_mtx_);
-    rqueue_.push_back( f);
+    wqueue_.push_back( f);
 }
 
 detail::fiber_base::ptr_t

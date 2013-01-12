@@ -128,7 +128,7 @@ public:
 
     void yield();
 
-    void terminate();
+    void release();
 
     bool join( ptr_t const&);
 
@@ -182,14 +182,38 @@ public:
     // it is set after the fiber-function was left == at the end of exec()
     void set_terminated() BOOST_NOEXCEPT
     {
+        // other thread could have called set_ready() before
+        // case: - this fiber has joined another fiber running in another thread,
+        //       - other fiber terminated and releases its joining fibers
+        //       - this fiber was interrupted before and therefore resumed
+        //         and throws fiber_interrupted
+        //       - fiber_interrupted was not catched and swallowed
+        //       - other fiber calls set_ready() on this fiber happend before this
+        //         fiber calls set_terminated()
+        //       - this fiber stack gets unwound and set_terminated() is called at the end
         state_t previous = state_.exchange( state_terminated, memory_order_release);
         BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
     void set_ready() BOOST_NOEXCEPT
     {
-        state_t previous = state_.exchange( state_ready, memory_order_release);
-        BOOST_ASSERT( state_running == previous || state_waiting == previous);
+        // this fiber calls set_ready(): - only transition from state_waiting (wake-up)
+        //                               - or transition from state_running (yield) allowed
+        // other fiber calls set_ready(): - only if this fiber was joinig other fiber
+        //                                - if this fiber was not interrupted then this fiber
+        //                                  should in state_waiting
+        //                                - if this fiber was interrupted the this fiber might
+        //                                  be in state_ready, state_running or already in
+        //                                  state_terminated
+        for (;;)
+        {
+            state_t expected = state_waiting;
+            bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
+            if ( result || state_terminated == expected || state_ready == expected) return;
+            expected = state_running;
+            result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
+            if ( result || state_terminated == expected || state_ready == expected) return;
+        }
     }
 
     void set_running() BOOST_NOEXCEPT
@@ -200,8 +224,17 @@ public:
 
     void set_waiting() BOOST_NOEXCEPT
     {
+        // other thread could have called set_ready() before
+        // case: - this fiber has joined another fiber running in another thread,
+        //       - other fiber terminated and releases its joining fibers
+        //       - this fiber was interrupted and therefore resumed and
+        //         throws fiber_interrupted
+        //       - fiber_interrupted was catched and swallowed
+        //       - other fiber calls set_ready() on this fiber happend before this
+        //         fiber calls set_waiting()
+        //       - this fiber might wait on some sync. primitive calling set_waiting()
         state_t previous = state_.exchange( state_waiting, memory_order_release);
-        BOOST_ASSERT( state_running == previous);
+        BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
     state_t state() const BOOST_NOEXCEPT

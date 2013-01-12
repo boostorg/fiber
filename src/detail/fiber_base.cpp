@@ -70,7 +70,7 @@ fiber_base::yield()
 }
 
 void
-fiber_base::terminate()
+fiber_base::release()
 {
     if ( ! is_terminated() ) unwind_stack();
 
@@ -79,7 +79,7 @@ fiber_base::terminate()
     // protect against concurrent access to joining_
     unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
-    { if ( ! p->is_terminated() ) p->set_ready(); }
+    { p->set_ready(); }
 }
 
 bool

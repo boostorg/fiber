@@ -86,6 +86,9 @@ public:
     void erase( iterator const& i)
     { base_.erase( i); }
 
+    void erase( iterator const& i, iterator const& e)
+    { base_.erase( i, e); }
+
     void swap( container & other)
     { base_.swap( other); }
 

@@ -35,11 +35,11 @@ namespace fibers {
 class BOOST_FIBERS_DECL round_robin : public algorithm
 {
 private:
-    typedef detail::container<>                         container_t;
+    typedef detail::container<>                         wqueue_t;
     typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
 
     detail::fiber_base::ptr_t   active_fiber_;
-    container_t                 fibers_;
+    wqueue_t                    wqueue_;
     detail::spinlock            rqueue_mtx_;
     rqueue_t                    rqueue_;
 

@@ -76,7 +76,6 @@ void f2()
 void f4()
 {
     boost::fibers::fiber s( f2);
-    std::cout << s.get_id() << "\n";
     BOOST_CHECK( s);
     BOOST_CHECK( s.joinable() );
     s.join();
@@ -269,9 +268,8 @@ void test_join_in_fiber()
     // s' yields in its fiber-fn
     // s joins s' and gets suspended (waiting on s')
     boost::fibers::fiber s( f4);
-    std::cout << s.get_id() << "\n";
     // run() resumes s + s' which completes
-    if ( s.joinable() ) s.join();
+    s.join();
     BOOST_CHECK( ! s);
 }
 
@@ -354,6 +352,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
+
     test->add( BOOST_TEST_CASE( & test_move) );
     test->add( BOOST_TEST_CASE( & test_id) );
     test->add( BOOST_TEST_CASE( & test_priority) );
@@ -368,5 +367,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_join) );
+
     return test;
 }
