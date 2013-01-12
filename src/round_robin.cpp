@@ -40,15 +40,16 @@ round_robin::~round_robin()
 {
     BOOST_ASSERT( ! active_fiber_);
 
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
+    unique_lock< detail::spinlock > lk( rqueue_mtx_);
+    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
     {
-        p->request_interruption( true);
+        p->release();
     }
 
-    unique_lock< detail::spinlock > lk( rqueue_mtx_);
-    rqueue_.insert( rqueue_.end(), wqueue_.begin(), wqueue_.end() );
-    lk.unlock();
-    while ( ! wqueue_.empty() ) run();
+    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
+    {
+        p->release();
+    }
 }
 
 void
