@@ -16,6 +16,7 @@
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/thread/locks.hpp>
 
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/interruption.hpp>
@@ -30,6 +31,7 @@ namespace fibers {
 round_robin::round_robin() :
     active_fiber_(),
     fibers_(),
+    rqueue_mtx_(),
     rqueue_()
 {}
 
@@ -37,7 +39,9 @@ round_robin::~round_robin()
 {
     BOOST_ASSERT( ! active_fiber_);
 
+    unique_lock< detail::spinlock > lk( rqueue_mtx_);
     rqueue_.clear();
+    lk.unlock();
 
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, fibers_)
     {
@@ -134,6 +138,7 @@ round_robin::run()
         if ( ( * i)->interruption_requested() )
         {
             ( * i)->set_ready();
+            unique_lock< detail::spinlock > lk( rqueue_mtx_);
             rqueue_.push_back( * i);
         }
     }
@@ -141,7 +146,10 @@ round_robin::run()
     // copy all ready fibers to rqueue_
     p = fibers_.equal_range( detail::state_ready);
     if ( p.first != p.second)
+    {
+        unique_lock< detail::spinlock > lk( rqueue_mtx_);
         rqueue_.insert( rqueue_.end(), p.first, p.second);
+    }
 
     // remove all terminated fibers from fibers_
     p = fibers_.equal_range( detail::state_terminated);
@@ -151,13 +159,17 @@ round_robin::run()
         fibers_.erase( i);
     }
 
-    if ( rqueue_.empty() ) return false;
+    {
+        unique_lock< detail::spinlock > lk( rqueue_mtx_);
+        if ( rqueue_.empty() ) return false;
+    }
 
     // pop new fiber from runnable-queue which is not complete
     // (example: fiber in runnable-queue could be canceled by active-fiber)
     detail::fiber_base::ptr_t f;
     do
     {
+        unique_lock< detail::spinlock > lk( rqueue_mtx_);
         if ( rqueue_.empty() ) return false;
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
@@ -201,7 +213,9 @@ round_robin::yield()
 
     // yield() suspends the fiber and adds it
     // immediately to ready-queue
+    unique_lock< detail::spinlock > lk( rqueue_mtx_);
     rqueue_.push_back( active_fiber_);
+    lk.unlock();
     // set active_fiber to state_ready
     active_fiber_->set_ready();
     // suspend fiber
@@ -217,6 +231,7 @@ round_robin::exec_in( detail::fiber_base::ptr_t const& f)
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
+    unique_lock< detail::spinlock > lk( rqueue_mtx_);
     rqueue_.push_back( f);
 }
 
@@ -225,6 +240,7 @@ round_robin::steel_from()
 {
     detail::fiber_base::ptr_t f;
 
+    unique_lock< detail::spinlock > lk( rqueue_mtx_);
     if ( ! rqueue_.empty() )
     {
         f.swap( rqueue_.back() );

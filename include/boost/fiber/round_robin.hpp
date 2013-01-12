@@ -40,6 +40,7 @@ private:
 
     detail::fiber_base::ptr_t   active_fiber_;
     container_t                 fibers_;
+    detail::spinlock            rqueue_mtx_;
     rqueue_t                    rqueue_;
 
 public:
