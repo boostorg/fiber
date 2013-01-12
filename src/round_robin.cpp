@@ -212,7 +212,7 @@ round_robin::yield()
 }
 
 void
-round_robin::migrate_to( detail::fiber_base::ptr_t const& f)
+round_robin::exec_in( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -221,7 +221,7 @@ round_robin::migrate_to( detail::fiber_base::ptr_t const& f)
 }
 
 detail::fiber_base::ptr_t
-round_robin::migrate_from()
+round_robin::steel_from()
 {
     detail::fiber_base::ptr_t f;
 

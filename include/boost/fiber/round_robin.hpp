@@ -62,9 +62,9 @@ public:
 
     void yield();
 
-    void migrate_to( detail::fiber_base::ptr_t const&);
+    void exec_in( detail::fiber_base::ptr_t const&);
 
-    detail::fiber_base::ptr_t migrate_from();
+    detail::fiber_base::ptr_t steel_from();
 };
 
 }}
