@@ -116,6 +116,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         while ( ! f->is_terminated() )
         {
             //FIXME: call this_thread::yield() before ?
+            //FIXME: rethrow exception from f?
             run();
         }
     }

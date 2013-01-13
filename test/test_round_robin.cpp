@@ -26,12 +26,16 @@ void lazy_generate_running( boost::barrier & b)
     b.wait();
     value1 = 2;
     boost::this_fiber::yield();
+    boost::this_fiber::interruption_point();
     value1 = 3;
     boost::this_fiber::yield();
+    boost::this_fiber::interruption_point();
     value1 = 4;
     boost::this_fiber::yield();
+    boost::this_fiber::interruption_point();
     value1 = 5;
     boost::this_fiber::yield();
+    boost::this_fiber::interruption_point();
     value1 = 6;
 }
 
@@ -52,8 +56,11 @@ void lazy_generate()
 
 void join_other( boost::barrier & b)
 {
+    fprintf(stderr, "1\n");
     b.wait();
+    fprintf(stderr, "2\n");
     other_f->join();
+    fprintf(stderr, "3\n");
     BOOST_CHECK_EQUAL( 6, value1);
     value2 = 7;
 }
@@ -95,10 +102,18 @@ void fn_interrupted_inside( boost::barrier & b)
     boost::fibers::scheduling_algorithm( & ds);
     other_ds = & ds;
 
+    bool interrupted = false;
     other_f = new boost::fibers::fiber(
             boost::bind( lazy_generate_running, boost::ref( b) ) );
+    fprintf( stderr, "other_f->interrupt()\n");
     other_f->interrupt();
-    other_f->join();
+    fprintf( stderr, "other_f->join()\n");
+    try
+    { other_f->join(); }
+    catch ( boost::fibers::fiber_interrupted const&)
+    { interrupted = true; }
+    BOOST_CHECK( interrupted);
+    fprintf( stderr, "fn_interrupted_inside() finished\n");
 }
 
 void fn_join( boost::barrier & b)
@@ -168,6 +183,7 @@ void test_join_interrupted_inside()
     boost::thread t2( boost::bind( fn_join, boost::ref( b) ) );
 
     t1.join();
+    fprintf(stderr, "t1.joined\n");
     t2.join();
 
     BOOST_CHECK_EQUAL( 6, value1);
@@ -201,11 +217,12 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: round_robin test suite");
-
+#if 0
     test->add( BOOST_TEST_CASE( & test_join_runing) );
     test->add( BOOST_TEST_CASE( & test_join_terminated) );
+#endif
     test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
-    test->add( BOOST_TEST_CASE( & test_join_interrupted_other) );
+    //test->add( BOOST_TEST_CASE( & test_join_interrupted_other) );
 
     return test;
 }
