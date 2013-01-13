@@ -210,7 +210,6 @@ void
 round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active_fiber to state_ready
     active_fiber_->set_ready();
@@ -221,7 +220,7 @@ round_robin::yield()
     // at the same time as yield is called
     wqueue_.push_back( active_fiber_);
     // suspend fiber
-    active_fiber_->yield();
+    active_fiber_->suspend();
     // fiber is resumed
 
     BOOST_ASSERT( active_fiber_->is_running() );

@@ -35,35 +35,12 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
 
 void
 fiber_base::resume()
-{
-    BOOST_ASSERT( is_running() );
-
-    context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
-
-    BOOST_ASSERT( ! is_running() );
-}
+{ context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() ); }
 
 void
 fiber_base::suspend()
 {
-    BOOST_ASSERT( is_waiting() );
-
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-
-    BOOST_ASSERT( is_running() );
-
-    if ( unwind_requested() )
-        throw forced_unwind();
-}
-
-void
-fiber_base::yield()
-{
-    BOOST_ASSERT( is_ready() );
-
-    context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
-
-    BOOST_ASSERT( is_running() );
 
     if ( unwind_requested() )
         throw forced_unwind();

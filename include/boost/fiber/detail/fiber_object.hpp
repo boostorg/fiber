@@ -144,7 +144,7 @@ public:
         try
         {
             set_ready();
-            yield();
+            suspend();
             fn_();
         }
         catch ( forced_unwind const&)
@@ -234,7 +234,7 @@ public:
         try
         {
             set_ready();
-            yield();
+            suspend();
             fn_();
         }
         catch ( forced_unwind const&)
@@ -324,7 +324,7 @@ public:
         try
         {
             set_ready();
-            yield();
+            suspend();
             fn_();
         }
         catch ( forced_unwind const&)

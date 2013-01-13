@@ -126,8 +126,6 @@ public:
 
     void suspend();
 
-    void yield();
-
     void release();
 
     bool join( ptr_t const&);
