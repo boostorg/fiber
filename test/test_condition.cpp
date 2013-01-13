@@ -203,11 +203,15 @@ void test_condition_wait_is_a_interruption_point()
     boost::fibers::scheduling_algorithm( & ds);
 
     condition_test_data data;
-
+    bool interrupted = false;
     boost::fibers::fiber f(boost::bind(&condition_test_fiber, &data));
 
     f.interrupt();
-    f.join();
+    try
+    { f.join(); }
+    catch ( boost::fibers::fiber_interrupted const&)
+    { interrupted = true; }
+    BOOST_CHECK(interrupted);
     BOOST_CHECK_EQUAL(data.awoken,0);
 }
 

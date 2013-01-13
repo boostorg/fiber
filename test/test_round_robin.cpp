@@ -58,6 +58,15 @@ void join_other( boost::barrier & b)
     value2 = 7;
 }
 
+void join_interrupt_other( boost::barrier & b)
+{
+    b.wait();
+    other_f->interrupt();
+    other_f->join();
+    BOOST_CHECK_EQUAL( 6, value1);
+    value2 = 7;
+}
+
 void fn_running( boost::barrier & b)
 {
     boost::fibers::round_robin ds;
@@ -101,6 +110,15 @@ void fn_join( boost::barrier & b)
         boost::bind( join_other, boost::ref( b) ) ).join();
 }
 
+void fn_join_interrupt( boost::barrier & b)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber(
+        boost::bind( join_interrupt_other, boost::ref( b) ) ).join();
+}
+
 void test_join_runing()
 {
     BOOST_CHECK_EQUAL( 0, value1);
@@ -139,7 +157,7 @@ void test_join_terminated()
 
 void test_join_interrupted_inside()
 {
-    for ( int i = 0; i < 10000; ++i) {
+    for ( int i = 0; i < 1000; ++i) {
     value1 = 0;
     value2 = 0;
     BOOST_CHECK_EQUAL( 0, value1);
@@ -158,6 +176,27 @@ void test_join_interrupted_inside()
     }
 }
 
+void test_join_interrupted_other()
+{
+    for ( int i = 0; i < 1000; ++i) {
+    value1 = 0;
+    value2 = 0;
+    BOOST_CHECK_EQUAL( 0, value1);
+    BOOST_CHECK_EQUAL( 0, value2);
+
+    boost::barrier b( 2);
+    boost::thread t1( boost::bind( fn_running, boost::ref( b) ) );
+    boost::thread t2( boost::bind( fn_join_interrupt, boost::ref( b) ) );
+
+    t1.join();
+    t2.join();
+
+    BOOST_CHECK_EQUAL( 6, value1);
+    BOOST_CHECK_EQUAL( 7, value2);
+    delete other_f;
+    }
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
@@ -166,6 +205,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_join_runing) );
     test->add( BOOST_TEST_CASE( & test_join_terminated) );
     test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
+    test->add( BOOST_TEST_CASE( & test_join_interrupted_other) );
 
     return test;
 }

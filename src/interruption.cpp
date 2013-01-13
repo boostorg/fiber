@@ -8,6 +8,8 @@
 
 #include <boost/fiber/interruption.hpp>
 
+#include <boost/throw_exception.hpp>
+
 #include <boost/fiber/detail/interrupt_flags.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -64,7 +66,7 @@ void interruption_point()
     if ( interruption_requested() && interruption_enabled() )
     {
         fibers::detail::scheduler::instance().active()->request_interruption( false);
-        throw fibers::fiber_interrupted();
+        boost::throw_exception( fibers::fiber_interrupted() );
     }
 }
 

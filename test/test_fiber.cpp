@@ -101,6 +101,31 @@ void f6( int & i)
     i = 8;
 }
 
+void f7( int & i, bool & failed)
+{
+    try
+    {
+        i = 1;
+        boost::this_fiber::yield();
+        boost::this_fiber::interruption_point();
+        i = 1;
+        boost::this_fiber::yield();
+        boost::this_fiber::interruption_point();
+        i = 2;
+        boost::this_fiber::yield();
+        boost::this_fiber::interruption_point();
+        i = 3;
+        boost::this_fiber::yield();
+        boost::this_fiber::interruption_point();
+        i = 5;
+        boost::this_fiber::yield();
+        boost::this_fiber::interruption_point();
+        i = 8;
+    }
+    catch ( boost::fibers::fiber_interrupted const&)
+    { failed = true; }
+}
+
 void interruption_point_wait(boost::fibers::mutex* m,bool* failed)
 {
     boost::unique_lock<boost::fibers::mutex> lk(*m);
@@ -308,11 +333,16 @@ void test_fiber_interrupts_at_interruption_point()
 
     boost::fibers::mutex m;
     bool failed=false;
+    bool interrupted = false;
     boost::unique_lock<boost::fibers::mutex> lk(m);
     boost::fibers::fiber f(boost::bind(&interruption_point_wait,&m,&failed));
     f.interrupt();
     lk.unlock();
-    f.join();
+    try
+    { f.join(); }
+    catch ( boost::fibers::fiber_interrupted const& e)
+    { interrupted = true; }
+    BOOST_CHECK( interrupted);
     BOOST_CHECK(!failed);
 }
 
@@ -337,15 +367,17 @@ void test_fiber_interrupts_at_join()
     boost::fibers::scheduling_algorithm( & ds);
 
     int i = 0;
-    boost::fibers::fiber f1( boost::bind( f6, boost::ref( i) ) );
+    bool failed = false;
+    boost::fibers::fiber f1( boost::bind( f7, boost::ref( i), boost::ref( failed) ) );
     BOOST_CHECK_EQUAL( 1, i);
     boost::fibers::fiber f2( boost::bind( interruption_point_join, boost::ref( f1) ) );
-    f2.interrupt();
+    f1.interrupt();
     BOOST_CHECK_EQUAL( 1, i);
     f2.join();
     BOOST_CHECK_EQUAL( 1, i);
     f1.join();
-    BOOST_CHECK_EQUAL( 8, i);
+    BOOST_CHECK( failed);
+    BOOST_CHECK_EQUAL( 1, i);
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])

@@ -25,9 +25,6 @@
 namespace boost {
 namespace fibers {
 
-class fiber_interrupted
-{};
-
 class fiber_exception : public system::system_error
 {
 public:
@@ -147,6 +144,15 @@ public:
 
     invalid_argument( int ev, const std::string & what_arg) :
         fiber_exception( ev, what_arg)
+    {}
+};
+
+class fiber_interrupted : public fiber_exception
+{
+public:
+    fiber_interrupted() :
+        fiber_exception(
+            system::errc::interrupted, "boost::fiber_interrupted")
     {}
 };
 

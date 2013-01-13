@@ -8,6 +8,7 @@
 
 #include <boost/fiber/detail/fiber_base.hpp>
 
+#include <boost/exception_ptr.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
 
@@ -35,15 +36,18 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
 
 void
 fiber_base::resume()
-{ context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() ); }
+{
+    context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
+
+    if ( except_) rethrow_exception( except_);
+}
 
 void
 fiber_base::suspend()
 {
     context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
 
-    if ( unwind_requested() )
-        throw forced_unwind();
+    if ( unwind_requested() ) throw forced_unwind();
 }
 
 void
