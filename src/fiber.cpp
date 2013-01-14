@@ -10,6 +10,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/scope_exit.hpp>
 #include <boost/system/error_code.hpp>
 
 #include <boost/fiber/detail/scheduler.hpp>
@@ -55,15 +56,16 @@ fiber::join()
 
     if ( ! joinable() )
     {
-        if ( impl_->is_terminated() ) return;
         boost::throw_exception(
             fiber_resource_error(
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
+    BOOST_SCOPE_EXIT( & impl_) {
+        BOOST_ASSERT( impl_->is_terminated() );
+        impl_.reset();
+    } BOOST_SCOPE_EXIT_END
     detail::scheduler::instance().join( impl_);
-
-    BOOST_ASSERT( impl_->is_terminated() );
 }
 
 void

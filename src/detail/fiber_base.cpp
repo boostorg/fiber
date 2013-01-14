@@ -39,7 +39,7 @@ fiber_base::resume()
 {
     context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
 
-    if ( except_) rethrow_exception( except_);
+    if ( has_exception() ) rethrow();
 }
 
 void
@@ -71,6 +71,37 @@ fiber_base::join( ptr_t const& p)
     if ( is_terminated() ) return false;
     joining_.push_back( p);
     return true;
+}
+
+void
+fiber_base::rethrow() const
+{
+    BOOST_ASSERT( has_exception() );
+
+    rethrow_exception( except_);
+}
+
+
+void
+fiber_base::set_ready()
+{
+    // this fiber calls set_ready(): - only transition from state_waiting (wake-up)
+    //                               - or transition from state_running (yield) allowed
+    // other fiber calls set_ready(): - only if this fiber was joinig other fiber
+    //                                - if this fiber was not interrupted then this fiber
+    //                                  should in state_waiting
+    //                                - if this fiber was interrupted the this fiber might
+    //                                  be in state_ready, state_running or already in
+    //                                  state_terminated
+    for (;;)
+    {
+        state_t expected = state_waiting;
+        bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
+        if ( result || state_terminated == expected || state_ready == expected) return;
+        expected = state_running;
+        result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
+        if ( result || state_terminated == expected || state_ready == expected) return;
+    }
 }
 
 }}}

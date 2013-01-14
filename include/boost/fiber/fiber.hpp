@@ -322,7 +322,7 @@ public:
     { return ! impl_; }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return ! empty() && ! impl_->is_terminated(); }
+    { return ! empty(); }
 
     id get_id() const BOOST_NOEXCEPT
     { return impl_ ? impl_->get_id() : id(); }

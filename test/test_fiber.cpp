@@ -159,16 +159,20 @@ void test_move()
         s1 = boost::move( s2);
         BOOST_CHECK( ! s1.empty() );
         BOOST_CHECK( s2.empty() );
+        if ( s1.joinable() ) s1.join();
+        if ( s2.joinable() ) s2.join();
     }
 
     {
         copyable cp( 3);
         boost::fibers::fiber s( cp);
+        s.join();
     }
 
     {
         moveable mv( 7);
         boost::fibers::fiber s( boost::move( mv) );
+        s.join();
     }
 }
 
@@ -181,6 +185,7 @@ void test_priority()
     BOOST_CHECK_EQUAL( 0, f.priority() );
     f.priority( 7);
     BOOST_CHECK_EQUAL( 7, f.priority() );
+    f.join();
 }
 
 void test_id()
@@ -205,6 +210,10 @@ void test_id()
 
     BOOST_CHECK( boost::fibers::fiber::id() != s1.get_id() );
     BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), s2.get_id() );
+
+    if ( s1.joinable() ) s1.join();
+    if ( s2.joinable() ) s2.join();
+    if ( s3.joinable() ) s3.join();
 }
 
 void test_detach()
@@ -217,6 +226,7 @@ void test_detach()
         BOOST_CHECK( ! s1);
         s1.detach();
         BOOST_CHECK( ! s1);
+        BOOST_CHECK( ! s1.joinable() );
     }
 
     {
@@ -224,6 +234,7 @@ void test_detach()
         BOOST_CHECK( s2);
         s2.detach();
         BOOST_CHECK( ! s2);
+        BOOST_CHECK( ! s2.joinable() );
     }
 }
 
@@ -304,7 +315,7 @@ void test_yield_break()
     boost::fibers::scheduling_algorithm( & ds);
 
     boost::fibers::fiber s( f5);
-    if ( s.joinable() ) s.join();
+    s.join();
     BOOST_CHECK( ! s);
 }
 
@@ -318,8 +329,8 @@ void test_yield()
     BOOST_CHECK_EQUAL( 0, v2);
     boost::fibers::fiber s1( boost::bind( f6, boost::ref( v1) ) );
     boost::fibers::fiber s2( boost::bind( f6, boost::ref( v2) ) );
-    if ( s1.joinable() ) s1.join();
-    if ( s2.joinable() ) s2.join();
+    s1.join();
+    s2.join();
     BOOST_CHECK( ! s1);
     BOOST_CHECK( ! s2);
     BOOST_CHECK_EQUAL( 8, v1);
@@ -375,7 +386,6 @@ void test_fiber_interrupts_at_join()
     BOOST_CHECK_EQUAL( 1, i);
     f2.join();
     BOOST_CHECK_EQUAL( 1, i);
-    f1.join();
     BOOST_CHECK( failed);
     BOOST_CHECK_EQUAL( 1, i);
 }

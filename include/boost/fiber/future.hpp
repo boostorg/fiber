@@ -1378,7 +1378,7 @@ namespace fibers {
 
         packaged_task_type pt( f);
         unique_future<R> ret = pt.get_future();
-        fiber( boost::move(pt) );
+        fiber( boost::move(pt) ).detach();
 
         return boost::move( ret);
     }
@@ -1392,7 +1392,7 @@ namespace fibers {
 
         packaged_task_type pt( boost::forward<F>(f) );
         unique_future<R> ret = pt.get_future();
-        fiber( boost::move(pt) );
+        fiber( boost::move(pt) ).detach();
 
         return boost::move( ret);
     }

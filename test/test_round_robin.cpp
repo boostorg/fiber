@@ -13,202 +13,214 @@
 
 #include <boost/fiber/all.hpp>
 
-int value1 = 0;
-int value2 = 0;
-
 boost::fibers::round_robin * other_ds = 0;
 boost::fibers::fiber * other_f = 0;
 
-void lazy_generate_running( boost::barrier & b)
+void lazy_generate( boost::barrier * b, int * value)
 {
-    value1 = 1;
+    * value = 1;
     boost::this_fiber::yield();
-    b.wait();
-    value1 = 2;
-    boost::this_fiber::yield();
-    boost::this_fiber::interruption_point();
-    value1 = 3;
-    boost::this_fiber::yield();
-    boost::this_fiber::interruption_point();
-    value1 = 4;
+
+    if ( b) b->wait();
+
+    * value = 2;
     boost::this_fiber::yield();
     boost::this_fiber::interruption_point();
-    value1 = 5;
+    * value = 3;
     boost::this_fiber::yield();
     boost::this_fiber::interruption_point();
-    value1 = 6;
+    * value = 4;
+    boost::this_fiber::yield();
+    boost::this_fiber::interruption_point();
+    * value = 5;
+    boost::this_fiber::yield();
+    boost::this_fiber::interruption_point();
+    * value = 6;
 }
 
-void lazy_generate()
+void join_fiber( boost::barrier * b, int * value, bool * interrupted)
 {
-    value1 = 1;
-    boost::this_fiber::yield();
-    value1 = 2;
-    boost::this_fiber::yield();
-    value1 = 3;
-    boost::this_fiber::yield();
-    value1 = 4;
-    boost::this_fiber::yield();
-    value1 = 5;
-    boost::this_fiber::yield();
-    value1 = 6;
+    b->wait();
+    try
+    {
+        other_f->join();
+        * value = 7;
+    }
+    catch ( boost::fibers::fiber_interrupted const&)
+    { * interrupted = true; }
 }
 
-void join_other( boost::barrier & b)
+void interrupt_join_fiber( boost::barrier * b, int * value, bool * interrupted)
 {
-    fprintf(stderr, "1\n");
-    b.wait();
-    fprintf(stderr, "2\n");
-    other_f->join();
-    fprintf(stderr, "3\n");
-    BOOST_CHECK_EQUAL( 6, value1);
-    value2 = 7;
-}
-
-void join_interrupt_other( boost::barrier & b)
-{
-    b.wait();
+    b->wait();
     other_f->interrupt();
-    other_f->join();
-    BOOST_CHECK_EQUAL( 6, value1);
-    value2 = 7;
+    try
+    {
+        other_f->join();
+        * value = 7;
+    }
+    catch ( boost::fibers::fiber_interrupted const&)
+    { * interrupted = true; }
 }
 
-void fn_running( boost::barrier & b)
+
+
+void fn_running( boost::barrier * b, int * value)
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
     other_ds = & ds;
 
     other_f = new boost::fibers::fiber(
-            boost::bind( lazy_generate_running, boost::ref( b) ) );
-    other_f->join();
+            boost::bind( lazy_generate, b, value) );
+    // other_f will joined by another fiber
 }
 
-void fn_terminated( boost::barrier & b)
+void fn_terminated( boost::barrier * b, int * value)
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
     other_ds = & ds;
 
-    other_f = new boost::fibers::fiber( lazy_generate);
-    other_f->join();
-    b.wait();
-}
-
-void fn_interrupted_inside( boost::barrier & b)
-{
-    boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
-    other_ds = & ds;
-
-    bool interrupted = false;
     other_f = new boost::fibers::fiber(
-            boost::bind( lazy_generate_running, boost::ref( b) ) );
-    fprintf( stderr, "other_f->interrupt()\n");
+            boost::bind( lazy_generate, ( boost::barrier *) 0, value) );
+    other_f->join();
+    b->wait();
+}
+
+void fn_interrupt_from_same_thread( boost::barrier * b, int * value, bool * interrupted)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    other_f = new boost::fibers::fiber(
+            boost::bind( lazy_generate, b, value) );
     other_f->interrupt();
-    fprintf( stderr, "other_f->join()\n");
     try
     { other_f->join(); }
     catch ( boost::fibers::fiber_interrupted const&)
-    { interrupted = true; }
-    BOOST_CHECK( interrupted);
-    fprintf( stderr, "fn_interrupted_inside() finished\n");
+    { * interrupted = true; }
 }
 
-void fn_join( boost::barrier & b)
+void fn_join( boost::barrier * b, int * value, bool * interrupted)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    join_fiber( b, value, interrupted);
+}
+
+void fn_join_in_fiber( boost::barrier * b, int * value, bool * interrupted)
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
     boost::fibers::fiber(
-        boost::bind( join_other, boost::ref( b) ) ).join();
+        boost::bind( join_fiber, b, value, interrupted) ).join();
 }
 
-void fn_join_interrupt( boost::barrier & b)
+void fn_join_interrupt( boost::barrier * b, int * value, bool * interrupted)
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
     boost::fibers::fiber(
-        boost::bind( join_interrupt_other, boost::ref( b) ) ).join();
+        boost::bind( interrupt_join_fiber, b, value, interrupted) ).join();
 }
 
 void test_join_runing()
 {
-    BOOST_CHECK_EQUAL( 0, value1);
-    BOOST_CHECK_EQUAL( 0, value2);
+    int value1 = 0;
+    int value2 = 0;
+    bool interrupted = false;
 
     boost::barrier b( 2);
-    boost::thread t1( boost::bind( fn_running, boost::ref( b) ) );
-    boost::thread t2( boost::bind( fn_join, boost::ref( b) ) );
+    boost::thread t1( boost::bind( fn_running, &b, &value1) );
+    boost::thread t2( boost::bind( fn_join, &b, &value2, &interrupted) );
 
     t1.join();
     t2.join();
 
     BOOST_CHECK_EQUAL( 6, value1);
     BOOST_CHECK_EQUAL( 7, value2);
+    BOOST_CHECK( ! interrupted);
+    delete other_f;
+}
+
+void test_join_in_fiber_runing()
+{
+    int value1 = 0;
+    int value2 = 0;
+    bool interrupted = false;
+
+    boost::barrier b( 2);
+    boost::thread t1( boost::bind( fn_running, &b, &value1) );
+    boost::thread t2( boost::bind( fn_join_in_fiber, &b, &value2, &interrupted) );
+
+    t1.join();
+    t2.join();
+
+    BOOST_CHECK_EQUAL( 6, value1);
+    BOOST_CHECK_EQUAL( 7, value2);
+    BOOST_CHECK( ! interrupted);
     delete other_f;
 }
 
 void test_join_terminated()
 {
-    value1 = 0;
-    value2 = 0;
-    BOOST_CHECK_EQUAL( 0, value1);
-    BOOST_CHECK_EQUAL( 0, value2);
+    int value1 = 0;
+    int value2 = 0;
+    bool interrupted = false;
 
     boost::barrier b( 2);
-    boost::thread t1( boost::bind( fn_terminated, boost::ref( b) ) );
-    boost::thread t2( boost::bind( fn_join, boost::ref( b) ) );
+    boost::thread t1( boost::bind( fn_terminated, &b, &value1) );
+    boost::thread t2( boost::bind( fn_join, &b, &value2, &interrupted) );
 
     t1.join();
     t2.join();
 
     BOOST_CHECK_EQUAL( 6, value1);
     BOOST_CHECK_EQUAL( 7, value2);
+    BOOST_CHECK( ! interrupted);
+    delete other_f;
+}
+
+void test_join_in_fiber_terminated()
+{
+    int value1 = 0;
+    int value2 = 0;
+    bool interrupted = false;
+
+    boost::barrier b( 2);
+    boost::thread t1( boost::bind( fn_terminated, &b, &value1) );
+    boost::thread t2( boost::bind( fn_join_in_fiber, &b, &value2, &interrupted) );
+
+    t1.join();
+    t2.join();
+
+    BOOST_CHECK_EQUAL( 6, value1);
+    BOOST_CHECK_EQUAL( 7, value2);
+    BOOST_CHECK( ! interrupted);
     delete other_f;
 }
 
 void test_join_interrupted_inside()
 {
-    for ( int i = 0; i < 1000; ++i) {
-    value1 = 0;
-    value2 = 0;
-    BOOST_CHECK_EQUAL( 0, value1);
-    BOOST_CHECK_EQUAL( 0, value2);
+    for ( int i = 0; i < 1; ++i) {
+    int value1 = 0;
+    int value2 = 0;
+    bool interrupted1 = false, interrupted2 = false;
 
     boost::barrier b( 2);
-    boost::thread t1( boost::bind( fn_interrupted_inside, boost::ref( b) ) );
-    boost::thread t2( boost::bind( fn_join, boost::ref( b) ) );
-
-    t1.join();
-    fprintf(stderr, "t1.joined\n");
-    t2.join();
-
-    BOOST_CHECK_EQUAL( 6, value1);
-    BOOST_CHECK_EQUAL( 7, value2);
-    delete other_f;
-    }
-}
-
-void test_join_interrupted_other()
-{
-    for ( int i = 0; i < 1000; ++i) {
-    value1 = 0;
-    value2 = 0;
-    BOOST_CHECK_EQUAL( 0, value1);
-    BOOST_CHECK_EQUAL( 0, value2);
-
-    boost::barrier b( 2);
-    boost::thread t1( boost::bind( fn_running, boost::ref( b) ) );
-    boost::thread t2( boost::bind( fn_join_interrupt, boost::ref( b) ) );
+    boost::thread t1( boost::bind( fn_interrupt_from_same_thread, &b, &value1, &interrupted1) );
+    boost::thread t2( boost::bind( fn_join, &b, &value2, &interrupted2) );
 
     t1.join();
     t2.join();
 
-    BOOST_CHECK_EQUAL( 6, value1);
-    BOOST_CHECK_EQUAL( 7, value2);
+    BOOST_CHECK( interrupted1);
+    BOOST_CHECK( interrupted2);
+    BOOST_CHECK_EQUAL( 0, value2);
     delete other_f;
     }
 }
@@ -217,12 +229,16 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: round_robin test suite");
+
 #if 0
     test->add( BOOST_TEST_CASE( & test_join_runing) );
-    test->add( BOOST_TEST_CASE( & test_join_terminated) );
 #endif
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
+#if 0
+    test->add( BOOST_TEST_CASE( & test_join_terminated) );
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber_terminated) );
     test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
-    //test->add( BOOST_TEST_CASE( & test_join_interrupted_other) );
-
+#endif
     return test;
 }

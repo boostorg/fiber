@@ -193,26 +193,7 @@ public:
         BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
-    void set_ready() BOOST_NOEXCEPT
-    {
-        // this fiber calls set_ready(): - only transition from state_waiting (wake-up)
-        //                               - or transition from state_running (yield) allowed
-        // other fiber calls set_ready(): - only if this fiber was joinig other fiber
-        //                                - if this fiber was not interrupted then this fiber
-        //                                  should in state_waiting
-        //                                - if this fiber was interrupted the this fiber might
-        //                                  be in state_ready, state_running or already in
-        //                                  state_terminated
-        for (;;)
-        {
-            state_t expected = state_waiting;
-            bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
-            if ( result || state_terminated == expected || state_ready == expected) return;
-            expected = state_running;
-            result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
-            if ( result || state_terminated == expected || state_ready == expected) return;
-        }
-    }
+    void set_ready() BOOST_NOEXCEPT;
 
     void set_running() BOOST_NOEXCEPT
     {
@@ -237,6 +218,11 @@ public:
 
     state_t state() const BOOST_NOEXCEPT
     { return state_; }
+
+    bool has_exception() const BOOST_NOEXCEPT
+    { return except_; }
+
+    void rethrow() const;
 
     friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
     { p->use_count_.fetch_add( 1, memory_order_relaxed); }
