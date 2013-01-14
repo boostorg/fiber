@@ -99,7 +99,10 @@ void fn_interrupt_from_same_thread( boost::barrier * b, int * value, bool * inte
             boost::bind( lazy_generate, b, value) );
     other_f->interrupt();
     // other_f will joined by another fiber
-    while ( * other_f) boost::fibers::run();
+    try
+    { while ( * other_f) boost::fibers::run(); }
+    catch ( boost::fibers::fiber_interrupted const&)
+    { * interrupted = true; }
 }
 
 void fn_join( boost::barrier * b, int * value, bool * interrupted)
@@ -218,7 +221,28 @@ void test_join_interrupted_inside()
     t1.join();
     t2.join();
 
-    BOOST_CHECK( ! interrupted1);
+    BOOST_CHECK( interrupted1);
+    BOOST_CHECK( interrupted2);
+    BOOST_CHECK_EQUAL( 0, value2);
+    delete other_f;
+    }
+}
+
+void test_join_in_fiber_interrupted_inside()
+{
+    for ( int i = 0; i < 1; ++i) {
+    int value1 = 0;
+    int value2 = 0;
+    bool interrupted1 = false, interrupted2 = false;
+
+    boost::barrier b( 2);
+    boost::thread t1( boost::bind( fn_interrupt_from_same_thread, &b, &value1, &interrupted1) );
+    boost::thread t2( boost::bind( fn_join_in_fiber, &b, &value2, &interrupted2) );
+
+    t1.join();
+    t2.join();
+
+    BOOST_CHECK( interrupted1);
     BOOST_CHECK( interrupted2);
     BOOST_CHECK_EQUAL( 0, value2);
     delete other_f;
@@ -234,7 +258,8 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
     test->add( BOOST_TEST_CASE( & test_join_terminated) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_terminated) );
-//    test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
+    test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
+    //test->add( BOOST_TEST_CASE( & test_join_in_fiber_interrupted_inside) );
 
     return test;
 }
