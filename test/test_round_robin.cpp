@@ -74,6 +74,7 @@ void fn_running( boost::barrier * b, int * value)
     other_f = new boost::fibers::fiber(
             boost::bind( lazy_generate, b, value) );
     // other_f will joined by another fiber
+    while ( * other_f) boost::fibers::run();
 }
 
 void fn_terminated( boost::barrier * b, int * value)
@@ -84,7 +85,8 @@ void fn_terminated( boost::barrier * b, int * value)
 
     other_f = new boost::fibers::fiber(
             boost::bind( lazy_generate, ( boost::barrier *) 0, value) );
-    other_f->join();
+    // other_f will joined by another fiber
+    while ( * other_f) boost::fibers::run();
     b->wait();
 }
 
@@ -96,10 +98,8 @@ void fn_interrupt_from_same_thread( boost::barrier * b, int * value, bool * inte
     other_f = new boost::fibers::fiber(
             boost::bind( lazy_generate, b, value) );
     other_f->interrupt();
-    try
-    { other_f->join(); }
-    catch ( boost::fibers::fiber_interrupted const&)
-    { * interrupted = true; }
+    // other_f will joined by another fiber
+    while ( * other_f) boost::fibers::run();
 }
 
 void fn_join( boost::barrier * b, int * value, bool * interrupted)
@@ -218,7 +218,7 @@ void test_join_interrupted_inside()
     t1.join();
     t2.join();
 
-    BOOST_CHECK( interrupted1);
+    BOOST_CHECK( ! interrupted1);
     BOOST_CHECK( interrupted2);
     BOOST_CHECK_EQUAL( 0, value2);
     delete other_f;
@@ -230,15 +230,11 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: round_robin test suite");
 
-#if 0
     test->add( BOOST_TEST_CASE( & test_join_runing) );
-#endif
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
-#if 0
     test->add( BOOST_TEST_CASE( & test_join_terminated) );
-    test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_terminated) );
-    test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
-#endif
+//    test->add( BOOST_TEST_CASE( & test_join_interrupted_inside) );
+
     return test;
 }
