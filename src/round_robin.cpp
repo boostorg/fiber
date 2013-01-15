@@ -39,7 +39,7 @@ round_robin::round_robin() :
 round_robin::~round_robin()
 {
     BOOST_ASSERT( ! active_fiber_);
-
+#if 0
     unique_lock< detail::spinlock > lk( rqueue_mtx_);
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
     {
@@ -50,6 +50,7 @@ round_robin::~round_robin()
     {
         p->release();
     }
+#endif
 }
 
 void
@@ -194,7 +195,8 @@ void
 round_robin::wait( unique_lock< detail::spinlock > & lk)
 {
     BOOST_ASSERT( active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
+    //FIXME: mabye other threads can change the state of active fiber?
+    //BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active_fiber to state_waiting
     active_fiber_->set_waiting();

@@ -65,6 +65,7 @@ fiber::join()
         BOOST_ASSERT( impl_->is_terminated() );
         impl_.reset();
     } BOOST_SCOPE_EXIT_END
+
     detail::scheduler::instance().join( impl_);
 }
 
