@@ -35,15 +35,23 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
+
+class scheduler;
+
+}
 
 class BOOST_FIBERS_DECL fiber
 {
 private:
+    friend class detail::scheduler;
+
     struct dummy
     { void nonnull() {} };
 
     typedef detail::fiber_base    base_t;
     typedef base_t::ptr_t         ptr_t;
+    typedef base_t::deleter     deleter;
     typedef void ( dummy::*safe_bool)();
 
     static void spawn_( ptr_t &);
@@ -61,7 +69,7 @@ public:
 
     fiber( ptr_t const& impl) BOOST_NOEXCEPT :
         impl_( impl)
-    { BOOST_ASSERT( impl_); }
+    {}
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
 #ifdef BOOST_MSVC
@@ -78,7 +86,7 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -94,7 +102,7 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -110,7 +118,7 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 #endif
@@ -130,7 +138,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -150,7 +158,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -169,7 +177,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 #else
@@ -189,7 +197,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -209,7 +217,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -229,7 +237,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -249,7 +257,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -269,7 +277,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 
@@ -289,7 +297,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
         spawn_( impl_);
     }
 #endif
@@ -319,7 +327,7 @@ public:
     { impl_.swap( other.impl_); }
 
     bool empty() const BOOST_NOEXCEPT
-    { return ! impl_; }
+    { return 0 == impl_.get(); }
 
     bool joinable() const BOOST_NOEXCEPT
     { return ! empty(); }

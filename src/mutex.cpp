@@ -29,7 +29,7 @@ mutex::mutex() :
 void
 mutex::lock()
 {
-    while ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) )
+    while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
         if ( this_fiber::is_fiberized() )
         {
@@ -47,7 +47,7 @@ mutex::lock()
 
 bool
 mutex::try_lock()
-{ return UNLOCKED == state_.exchange( LOCKED, memory_order_acquire); }
+{ return UNLOCKED == state_.exchange( LOCKED, memory_order_seq_cst); }
 
 void
 mutex::unlock()

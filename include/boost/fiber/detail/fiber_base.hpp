@@ -26,6 +26,8 @@
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/states.hpp>
 
+#include <boost/shared_ptr.hpp>
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -37,7 +39,15 @@ namespace detail {
 class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
 public:
-    typedef intrusive_ptr< fiber_base >           ptr_t;
+    struct deleter
+    {
+        void operator()( fiber_base * p)
+        {
+            p->deallocate_object();
+        }
+    };
+    typedef shared_ptr< fiber_base >           ptr_t;
+    //typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
     template< typename X, typename Y, typename Z >
@@ -189,7 +199,7 @@ public:
         //       - other fiber calls set_ready() on this fiber happend before this
         //         fiber calls set_terminated()
         //       - this fiber stack gets unwound and set_terminated() is called at the end
-        state_t previous = state_.exchange( state_terminated, memory_order_release);
+        state_t previous = state_.exchange( state_terminated, memory_order_seq_cst);
         BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
@@ -197,7 +207,7 @@ public:
 
     void set_running() BOOST_NOEXCEPT
     {
-        state_t previous = state_.exchange( state_running, memory_order_release);
+        state_t previous = state_.exchange( state_running, memory_order_seq_cst);
         BOOST_ASSERT( state_ready == previous);
     }
 
@@ -212,7 +222,7 @@ public:
         //       - other fiber calls set_ready() on this fiber happend before this
         //         fiber calls set_waiting()
         //       - this fiber might wait on some sync. primitive calling set_waiting()
-        state_t previous = state_.exchange( state_waiting, memory_order_release);
+        state_t previous = state_.exchange( state_waiting, memory_order_seq_cst);
         BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
@@ -225,15 +235,12 @@ public:
     void rethrow() const;
 
     friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
-    { p->use_count_.fetch_add( 1, memory_order_relaxed); }
+    { p->use_count_.fetch_add( 1, memory_order_seq_cst); }
 
     friend inline void intrusive_ptr_release( fiber_base * p)
     {
-        if ( 1 == p->use_count_.fetch_sub( 1, memory_order_release) )
-        {
-            atomic_thread_fence( memory_order_acquire);
+        if ( 1 == p->use_count_.fetch_sub( 1, memory_order_seq_cst) )
             p->deallocate_object();
-        }
     }
 };
 

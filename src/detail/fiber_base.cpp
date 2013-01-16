@@ -96,10 +96,10 @@ fiber_base::set_ready()
     for (;;)
     {
         state_t expected = state_waiting;
-        bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
+        bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_seq_cst);
         if ( result || state_terminated == expected || state_ready == expected) return;
         expected = state_running;
-        result = state_.compare_exchange_strong( expected, state_ready, memory_order_release);
+        result = state_.compare_exchange_strong( expected, state_ready, memory_order_seq_cst);
         if ( result || state_terminated == expected || state_ready == expected) return;
     }
 }

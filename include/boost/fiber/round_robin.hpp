@@ -63,9 +63,9 @@ public:
 
     void yield();
 
-    void exec_in( detail::fiber_base::ptr_t const&);
+    void migrate_to( fiber const&);
 
-    detail::fiber_base::ptr_t steel_from();
+    fiber steel_from();
 };
 
 }}

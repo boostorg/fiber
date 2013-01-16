@@ -19,6 +19,7 @@
 #include <boost/scope_exit.hpp>
 #include <boost/thread/locks.hpp>
 
+#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/interruption.hpp>
 
@@ -38,8 +39,8 @@ round_robin::round_robin() :
 
 round_robin::~round_robin()
 {
-    BOOST_ASSERT( ! active_fiber_);
 #if 0
+    BOOST_ASSERT( ! active_fiber_);
     unique_lock< detail::spinlock > lk( rqueue_mtx_);
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
     {
@@ -61,70 +62,26 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
     BOOST_ASSERT( f != active_fiber_);
 
     detail::fiber_base::ptr_t tmp = active_fiber_;
-    BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
+    try
+    {
+        active_fiber_ = f;
+        active_fiber_->set_running();
+        active_fiber_->resume();
+        // after return from fiber::resume() the fiber is:
+        // ready      -> already in requeue_
+        // waiting    -> already in wqueue_
+        // terminated -> not stored in round_robin/will be deleted
+        //               call terminate() in order to release
+        //               joining fibers
+        if ( f->is_terminated() )
+            f->release();
+    }
+    catch (...)
+    {
         active_fiber_ = tmp;
-    } BOOST_SCOPE_EXIT_END
-    active_fiber_ = f;
-    active_fiber_->set_running();
-    active_fiber_->resume();
-    // after return from fiber::resume() the fiber is:
-    // ready      -> already in requeue_
-    // waiting    -> already in wqueue_
-    // terminated -> not stored in round_robin/will be deleted
-    //               call terminate() in order to release
-    //               joining fibers
-    if ( active_fiber_->is_terminated() )
-        f->release();
-}
-
-void
-round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
-{
-    BOOST_ASSERT( f);
-
-    f->priority( prio);
-}
-
-void
-round_robin::join( detail::fiber_base::ptr_t const& f)
-{
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( f != active_fiber_);
-
-    if ( active_fiber_)
-    {
-        // set active fiber to state_waiting
-        active_fiber_->set_waiting();
-        // push active fiber to wqueue_
-        wqueue_.push_back( active_fiber_);
-        // add active fiber to joinig-list of f
-        if ( ! f->join( active_fiber_) )
-            // f must be already terminated therefore we set
-            // active fiber to state_ready
-            // FIXME: better state_running and no suspend
-            active_fiber_->set_ready();
-        // suspend active fiber until f terminates
-        active_fiber_->suspend();
-        // active fiber is resumed and f has teminated
-
-        // check if fiber was interrupted
-        this_fiber::interruption_point();
+        throw;
     }
-    else
-    {
-        while ( ! f->is_terminated() )
-        {
-            //FIXME: call this_thread::yield() before ?
-            //FIXME: rethrow exception from f?
-            run();
-        }
-    }
-
-    // check if joined fiber has an exception
-    // rethrow exception if YES
-    if ( f->has_exception() ) f->rethrow();
-
-    BOOST_ASSERT( f->is_terminated() );
+    active_fiber_ = tmp;
 }
 
 bool
@@ -172,21 +129,28 @@ round_robin::run()
         if ( rqueue_.empty() ) return false;
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
+        lk.unlock();
     }
     while ( ! f->is_ready() );
 
     detail::fiber_base::ptr_t tmp = active_fiber_;
-    BOOST_SCOPE_EXIT( & tmp, & active_fiber_) {
+    try
+    {
+        active_fiber_ = f;
+        // resume new active fiber
+        active_fiber_->set_running();
+        active_fiber_->resume();
+        // call terminate() in order to release
+        // joining fibers if resumed fiber has terminated
+        if ( f->is_terminated() )
+            f->release();
+    }
+    catch (...)
+    {
         active_fiber_ = tmp;
-    } BOOST_SCOPE_EXIT_END
-    active_fiber_ = f;
-    // resume new active fiber
-    active_fiber_->set_running();
-    active_fiber_->resume();
-    // call terminate() in order to release
-    // joining fibers if resumed fiber has terminated
-    if ( active_fiber_->is_terminated() )
-        f->release();
+        throw;
+    }
+    active_fiber_ = tmp;
 
     return true;
 }
@@ -196,7 +160,7 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
 {
     BOOST_ASSERT( active_fiber_);
     //FIXME: mabye other threads can change the state of active fiber?
-    //BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active_fiber to state_waiting
     active_fiber_->set_waiting();
@@ -204,11 +168,13 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
     lk.unlock();
     // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
+    // preserve active fiber on stack
+    detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend fiber
-    active_fiber_->suspend();
+    tmp->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( tmp->is_running() );
 }
 
 void
@@ -224,23 +190,77 @@ round_robin::yield()
     // thread could steel fiber from rqueue_ and resume it
     // at the same time as yield is called
     wqueue_.push_back( active_fiber_);
+    // preserve active fiber on stack
+    detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend fiber
-    active_fiber_->suspend();
+    tmp->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( tmp->is_running() );
 }
 
 void
-round_robin::exec_in( detail::fiber_base::ptr_t const& f)
+round_robin::join( detail::fiber_base::ptr_t const& f)
 {
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( f != active_fiber_);
+
+    if ( active_fiber_)
+    {
+        // set active fiber to state_waiting
+        active_fiber_->set_waiting();
+        // push active fiber to wqueue_
+        wqueue_.push_back( active_fiber_);
+        // add active fiber to joinig-list of f
+        if ( ! f->join( active_fiber_) )
+            // f must be already terminated therefore we set
+            // active fiber to state_ready
+            // FIXME: better state_running and no suspend
+            active_fiber_->set_ready();
+        detail::fiber_base::ptr_t tmp = active_fiber_;
+        // suspend fiber until f terminates
+        tmp->suspend();
+        // fiber is resumed and by f
+
+        // check if fiber was interrupted
+        this_fiber::interruption_point();
+    }
+    else
+    {
+        while ( ! f->is_terminated() )
+        {
+            //FIXME: call this_thread::yield() before ?
+            //FIXME: rethrow exception from f?
+            run();
+        }
+    }
+
+    // check if joined fiber has an exception
+    // rethrow exception if YES
+    if ( f->has_exception() ) f->rethrow();
+
+    BOOST_ASSERT( f->is_terminated() );
+}
+
+void
+round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
+{
+    BOOST_ASSERT( f);
+
+    f->priority( prio);
+}
+
+void
+round_robin::migrate_to( fiber const& f_)
+{
+    detail::fiber_base::ptr_t f = detail::scheduler::extract( f_);
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
     wqueue_.push_back( f);
 }
 
-detail::fiber_base::ptr_t
+fiber
 round_robin::steel_from()
 {
     detail::fiber_base::ptr_t f;
@@ -252,8 +272,9 @@ round_robin::steel_from()
         rqueue_.pop_back();
         BOOST_ASSERT( f->is_ready() );
     }
+    lk.unlock();
 
-    return f;
+    return fiber( f);
 }
 
 }}

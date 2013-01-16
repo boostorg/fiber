@@ -75,7 +75,7 @@ void test_locking()
     boost::fibers::scheduling_algorithm( & ds);
 
     boost::fibers::fiber s( & do_test_mutex);
-    if ( s.joinable() ) s.join();
+    s.join();
     BOOST_ASSERT( ! s);
 }
 
@@ -99,8 +99,8 @@ void test_exclusive()
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 1, value2);
 
-    if ( s1.joinable() ) s1.join();
-    if ( s2.joinable() ) s2.join();
+    s1.join();
+    s2.join();
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 2, value2);
 }

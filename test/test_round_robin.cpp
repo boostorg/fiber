@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include <boost/atomic.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
@@ -15,6 +16,7 @@
 
 #define MAXCOUNT 1
 
+boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
 boost::fibers::fiber * other_f = 0;
 
@@ -27,7 +29,7 @@ void lazy_generate( boost::barrier * b, int * value)
 
     boost::xtime xt;
     boost::xtime_get(&xt, boost::TIME_UTC_);
-    xt.nsec += 150000000 ; // 50ms
+    xt.nsec += 50000000 ; // 50ms
     //xt.sec += 1; //1 second
     boost::this_thread::sleep( xt);
 
@@ -64,6 +66,11 @@ void interrupt_join_fiber( boost::barrier * b, int * value, bool * interrupted)
     other_f->interrupt();
     try
     {
+    boost::xtime xt;
+    boost::xtime_get(&xt, boost::TIME_UTC_);
+    xt.nsec += 150000000 ; // 50ms
+    //xt.sec += 1; //1 second
+    boost::this_thread::sleep( xt);
         other_f->join();
         * value = 7;
     }
@@ -258,15 +265,272 @@ void test_join_in_fiber_interrupted_outside()
     }
 }
 
+void mutex_exclusive_1( boost::fibers::mutex * mtx, int * value)
+{
+	boost::fibers::mutex::scoped_lock lk( * mtx);
+	++( * value);
+	for ( int i = 0; i < 3; ++i)
+		boost::this_fiber::yield();
+}
+
+void mutex_exclusive_2( boost::fibers::mutex * mtx, int * value)
+{
+	++( * value);
+	boost::fibers::mutex::scoped_lock lk( * mtx);
+	++( * value);
+}
+
+void fn_mutex_exclusive_1( boost::fibers::mutex * mtx, int * value)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber(
+		boost::bind( & mutex_exclusive_1, mtx, value) ).join();
+}
+
+void fn_mutex_exclusive_2( boost::fibers::mutex * mtx, int * value)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber(
+		boost::bind( & mutex_exclusive_2, mtx, value) ).join();
+}
+
+void test_mutex_exclusive()
+{
+    for ( int i = 0; i < MAXCOUNT; ++i) {
+    int value1 = 0;
+    int value2 = 0;
+
+    boost::fibers::mutex mtx;
+    boost::thread t1( boost::bind( fn_mutex_exclusive_1, &mtx, &value1) );
+    boost::thread t2( boost::bind( fn_mutex_exclusive_2, &mtx, &value2) );
+
+    t1.join();
+    t2.join();
+
+	BOOST_CHECK_EQUAL( 1, value1);
+	BOOST_CHECK_EQUAL( 2, value2);
+    fprintf(stderr, "%d. finished\n", i);
+    }
+}
+
+void wait_fn( boost::fibers::mutex * mtx, boost::fibers::condition * cond,
+              int * value)
+{
+	boost::fibers::mutex::scoped_lock lk( * mtx);
+	cond->wait( lk);
+	++( * value);
+}
+
+void fn_two_waiter( boost::barrier * b, boost::fibers::mutex * mtx,
+                    boost::fibers::condition * cond, int * value)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber s1(
+            boost::bind( wait_fn, mtx, cond, value) );
+	BOOST_CHECK_EQUAL( 0, * value);
+
+    boost::fibers::fiber s2(
+            boost::bind( wait_fn, mtx, cond, value) );
+	BOOST_CHECK_EQUAL( 0, * value);
+
+    b->wait();
+
+    s1.join();
+    s2.join();
+
+	BOOST_CHECK_EQUAL( 2, * value);
+}
+
+void notify_one_fn( boost::fibers::condition * cond, int count)
+{
+    for ( int i = 0; i < count; ++i)
+	    cond->notify_one();
+}
+
+void fn_notify_one( boost::barrier * b, boost::fibers::condition * cond)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    b->wait();
+
+    boost::fibers::fiber(
+            boost::bind( notify_one_fn, cond, 2) ).join();
+}
+
+void test_two_waiter_notify_one()
+{
+    for ( int i = 0; i < MAXCOUNT; ++i) {
+	int value = 0;
+
+    boost::barrier b( 2);
+	boost::fibers::mutex mtx;
+	boost::fibers::condition cond;
+    boost::thread t1( boost::bind( fn_two_waiter, &b, &mtx, &cond, &value) );
+    boost::thread t2( boost::bind( fn_notify_one, &b, &cond) );
+
+    t1.join();
+    t2.join();
+
+	BOOST_CHECK_EQUAL( 2, value);
+    fprintf(stderr, "%d. finished\n", i);
+    }
+}
+
+void notify_all_fn( boost::fibers::condition * cond)
+{
+	cond->notify_all();
+}
+
+void fn_notify_all( boost::barrier * b, boost::fibers::condition * cond)
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    b->wait();
+
+    boost::fibers::fiber(
+            boost::bind( notify_all_fn, cond) ).join();
+}
+
+void test_two_waiter_notify_all()
+{
+    for ( int i = 0; i < MAXCOUNT; ++i) {
+	int value = 0;
+
+    boost::barrier b( 2);
+	boost::fibers::mutex mtx;
+	boost::fibers::condition cond;
+    boost::thread t1( boost::bind( fn_two_waiter, &b, &mtx, &cond, &value) );
+    boost::thread t2( boost::bind( fn_notify_all, &b, &cond) );
+
+    t1.join();
+    t2.join();
+
+	BOOST_CHECK_EQUAL( 2, value);
+    fprintf(stderr, "%d. finished\n", i);
+    }
+}
+
+boost::fibers::shared_future< int > fibonacci( int n);
+
+int fibonacci_( int n)
+{
+    boost::this_fiber::yield();
+
+    int res = 1;
+
+    if ( 0 != n && 1 != n)
+    {
+        boost::fibers::shared_future< int > f1 = fibonacci( n - 1);
+        boost::fibers::shared_future< int > f2 = fibonacci( n - 2);
+
+        res = f1.get() + f2.get();
+    }
+
+    //fprintf(stderr, "fibonacci(%d) == %d\n", n, res);
+    return res;
+}
+
+boost::fibers::shared_future< int > fibonacci( int n)
+{
+    boost::fibers::packaged_task<int> pt(
+        boost::bind( fibonacci_, n) );
+    boost::fibers::shared_future<int> f(pt.get_future());
+    boost::fibers::fiber( boost::move(pt) ).detach();
+    return f;
+}
+
+void create_fibers( int n)
+{
+    int res = fibonacci( n).get();
+
+    fprintf(stderr, "fibonacci(%d) == %d\n", n, res);
+}
+
+void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int n)
+{
+    boost::fibers::scheduling_algorithm( ds);
+
+    b->wait();
+
+    boost::fibers::fiber f1(
+        boost::bind( create_fibers, n) );
+    boost::fibers::fiber f2(
+        boost::bind( create_fibers, n) );
+
+    f1.join();
+    f2.join();
+
+    fini = true;
+}
+
+void fn_steel_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b, int * count)
+{
+    BOOST_ASSERT( other_ds);
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    b->wait();
+
+    while ( ! fini)
+    {
+        boost::fibers::fiber f( other_ds->steel_from() );
+        if ( f)
+        {
+            fprintf(stderr, "===> fiber stolen\n");
+            ++( * count);
+            ds.migrate_to( f);
+            bool res = false;
+            do
+            {
+                res = boost::fibers::run();
+            }
+            while ( res);
+        }
+        f.detach();
+    }
+}
+
+void test_migrate_fiber()
+{
+    for ( int i = 0; i < MAXCOUNT; ++i) {
+	int n = 10, count = 0;
+
+    boost::fibers::round_robin * ds = new boost::fibers::round_robin();
+    boost::barrier b( 2);
+    boost::thread t1( boost::bind( fn_create_fibers, ds, &b, n) );
+    boost::thread t2( boost::bind( fn_steel_fibers, ds, &b, &count) );
+
+    t1.join();
+    t2.join();
+
+	BOOST_CHECK( count > 0);
+    fprintf(stderr, "%d. finished\n", i);
+    delete ds;
+    }
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: round_robin test suite");
-
-//    test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
-//    test->add( BOOST_TEST_CASE( & test_join_in_fiber_terminated) );
-//  test->add( BOOST_TEST_CASE( & test_join_in_fiber_interrupted_inside) );
+#if 0
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber_terminated) );
+    test->add( BOOST_TEST_CASE( & test_join_in_fiber_interrupted_inside) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_interrupted_outside) );
+    test->add( BOOST_TEST_CASE( & test_mutex_exclusive) );
+    test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
+    test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
+#endif
+    test->add( BOOST_TEST_CASE( & test_migrate_fiber) );
 
     return test;
 }

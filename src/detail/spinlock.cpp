@@ -22,11 +22,12 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    while ( LOCKED == state_.exchange( LOCKED, memory_order_acquire) )
+    while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
         // busy-wait
-		BOOST_ASSERT( this_fiber::is_fiberized() );
-		this_fiber::yield();
+		// BOOST_ASSERT( this_fiber::is_fiberized() );
+		if ( this_fiber::is_fiberized() )
+		    this_fiber::yield();
     }
 }
 
