@@ -61,10 +61,7 @@ fiber_base::release()
     unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
     {
-        // active fiber migth join this fiber
-        // therefore do not set to state_ready
-        if ( ! p->is_running() )
-            p->set_ready();
+        p->wake_up( true);
     }
 }
 

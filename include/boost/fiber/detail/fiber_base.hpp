@@ -176,6 +176,17 @@ public:
             flags_ &= ~flag_interruption_requested;
     }
 
+    bool wake_up() const BOOST_NOEXCEPT
+    { return 0 != ( flags_ & flag_wake_up); }
+
+    void wake_up( bool req) BOOST_NOEXCEPT
+    {
+        if ( req)
+            flags_ |= flag_wake_up;
+        else
+            flags_ &= ~flag_wake_up;
+    }
+
     bool is_terminated() const BOOST_NOEXCEPT
     { return state_terminated == state_; }
 
@@ -228,7 +239,7 @@ public:
     }
 #endif
         state_t previous = state_.exchange( state_ready, memory_order_seq_cst);
-        BOOST_ASSERT( state_waiting == previous || state_running == previous);
+        BOOST_ASSERT( state_waiting == previous || state_running == previous || state_ready == previous);
     }
 
     void set_running() BOOST_NOEXCEPT
