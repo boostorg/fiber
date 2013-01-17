@@ -51,10 +51,9 @@ private:
 
     typedef detail::fiber_base    base_t;
     typedef base_t::ptr_t         ptr_t;
-    typedef base_t::deleter     deleter;
     typedef void ( dummy::*safe_bool)();
 
-    static void spawn_( ptr_t &);
+    static void spawn_( fiber &);
 
     ptr_t       impl_;
 
@@ -86,8 +85,8 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename StackAllocator >
@@ -102,8 +101,8 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename StackAllocator, typename Allocator >
@@ -118,8 +117,8 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+        spawn_( * this);
     }
 #endif
     template< typename Fn >
@@ -138,8 +137,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename Fn, typename StackAllocator >
@@ -158,8 +157,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+        spawn_( * this);
     }
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
@@ -177,8 +176,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+        spawn_( * this);
     }
 #else
     template< typename Fn >
@@ -197,8 +196,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename Fn, typename StackAllocator >
@@ -217,8 +216,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -237,8 +236,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename Fn >
@@ -257,8 +256,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename Fn, typename StackAllocator >
@@ -277,8 +276,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+        spawn_( * this);
     }
 
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -297,8 +296,8 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), deleter() );
-        spawn_( impl_);
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+        spawn_( * this);
     }
 #endif
 

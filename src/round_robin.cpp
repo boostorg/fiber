@@ -87,6 +87,7 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
 bool
 round_robin::run()
 {
+#if 0
     // stable-sort has n*log(n) complexity if n*log(n) extra space is available
     std::size_t n = wqueue_.size();
     if ( 1 < n)
@@ -119,6 +120,21 @@ round_robin::run()
         lk.unlock();
         wqueue_.erase( p.first, p.second);
     }
+#endif
+    wqueue_t wqueue;
+    BOOST_FOREACH( detail::fiber_base::ptr_t const& f, wqueue_)
+    {
+        if ( f->interruption_requested() && ! f->is_ready() )
+            f->set_ready();
+        if ( f->is_ready() )
+        {
+            unique_lock< detail::spinlock > lk( rqueue_mtx_);
+            rqueue_.push_back( f);
+        }
+        else
+            wqueue.push_back( f);
+    }
+    wqueue_.swap( wqueue);
 
     // pop new fiber from runnable-queue which is not complete
     // (example: fiber in runnable-queue could be canceled by active-fiber)
@@ -130,8 +146,12 @@ round_robin::run()
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
         lk.unlock();
+
+        if ( f->is_ready() ) break;
+        if ( f->is_waiting() ) wqueue_.push_back( f);
+        else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
-    while ( ! f->is_ready() );
+    while ( true);
 
     detail::fiber_base::ptr_t tmp = active_fiber_;
     try
@@ -221,6 +241,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         // suspend fiber until f terminates
         tmp->suspend();
         // fiber is resumed and by f
+        BOOST_ASSERT( tmp->is_running() );
 
         // check if fiber was interrupted
         this_fiber::interruption_point();
@@ -255,7 +276,7 @@ round_robin::migrate_to( fiber const& f_)
 {
     detail::fiber_base::ptr_t f = detail::scheduler::extract( f_);
     BOOST_ASSERT( f);
-    BOOST_ASSERT( f->is_ready() );
+    BOOST_ASSERT( ! f->is_terminated() );
 
     wqueue_.push_back( f);
 }
@@ -270,7 +291,6 @@ round_robin::steel_from()
     {
         f.swap( rqueue_.back() );
         rqueue_.pop_back();
-        BOOST_ASSERT( f->is_ready() );
     }
     lk.unlock();
 

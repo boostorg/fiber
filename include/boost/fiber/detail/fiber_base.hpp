@@ -39,6 +39,7 @@ namespace detail {
 class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
 public:
+#if 0
     struct deleter
     {
         void operator()( fiber_base * p)
@@ -47,7 +48,8 @@ public:
         }
     };
     typedef shared_ptr< fiber_base >           ptr_t;
-    //typedef intrusive_ptr< fiber_base >           ptr_t;
+#endif
+    typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
     template< typename X, typename Y, typename Z >
@@ -200,10 +202,34 @@ public:
         //         fiber calls set_terminated()
         //       - this fiber stack gets unwound and set_terminated() is called at the end
         state_t previous = state_.exchange( state_terminated, memory_order_seq_cst);
-        BOOST_ASSERT( state_running == previous || state_ready == previous);
+        BOOST_ASSERT( state_running == previous);
+        //BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
-    void set_ready() BOOST_NOEXCEPT;
+    void set_ready() BOOST_NOEXCEPT
+    {
+#if 0
+    // this fiber calls set_ready(): - only transition from state_waiting (wake-up)
+    //                               - or transition from state_running (yield) allowed
+    // other fiber calls set_ready(): - only if this fiber was joinig other fiber
+    //                                - if this fiber was not interrupted then this fiber
+    //                                  should in state_waiting
+    //                                - if this fiber was interrupted the this fiber might
+    //                                  be in state_ready, state_running or already in
+    //                                  state_terminated
+    for (;;)
+    {
+        state_t expected = state_waiting;
+        bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_seq_cst);
+        if ( result || state_terminated == expected || state_ready == expected) return;
+        expected = state_running;
+        result = state_.compare_exchange_strong( expected, state_ready, memory_order_seq_cst);
+        if ( result || state_terminated == expected || state_ready == expected) return;
+    }
+#endif
+        state_t previous = state_.exchange( state_ready, memory_order_seq_cst);
+        BOOST_ASSERT( state_waiting == previous || state_running == previous);
+    }
 
     void set_running() BOOST_NOEXCEPT
     {
@@ -223,7 +249,8 @@ public:
         //         fiber calls set_waiting()
         //       - this fiber might wait on some sync. primitive calling set_waiting()
         state_t previous = state_.exchange( state_waiting, memory_order_seq_cst);
-        BOOST_ASSERT( state_running == previous || state_ready == previous);
+        BOOST_ASSERT( state_running == previous);
+        //BOOST_ASSERT( state_running == previous || state_ready == previous);
     }
 
     state_t state() const BOOST_NOEXCEPT

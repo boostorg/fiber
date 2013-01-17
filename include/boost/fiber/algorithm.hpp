@@ -43,6 +43,10 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
 
     virtual void yield() = 0;
 
+    virtual void migrate_to( fiber const&) = 0;
+
+    virtual fiber steel_from() = 0;
+
     virtual ~algorithm() {}
 };
 

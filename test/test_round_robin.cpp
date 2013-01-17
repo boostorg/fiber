@@ -4,6 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <cstdio>
 #include <sstream>
 #include <string>
 
@@ -14,7 +15,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#define MAXCOUNT 1
+#define MAXCOUNT 50
 
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
@@ -434,7 +435,6 @@ int fibonacci_( int n)
         res = f1.get() + f2.get();
     }
 
-    //fprintf(stderr, "fibonacci(%d) == %d\n", n, res);
     return res;
 }
 
@@ -484,15 +484,9 @@ void fn_steel_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b,
         boost::fibers::fiber f( other_ds->steel_from() );
         if ( f)
         {
-            fprintf(stderr, "===> fiber stolen\n");
             ++( * count);
             ds.migrate_to( f);
-            bool res = false;
-            do
-            {
-                res = boost::fibers::run();
-            }
-            while ( res);
+            while ( boost::fibers::run() );
         }
         f.detach();
     }
@@ -501,6 +495,7 @@ void fn_steel_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b,
 void test_migrate_fiber()
 {
     for ( int i = 0; i < MAXCOUNT; ++i) {
+    fini = false;
 	int n = 10, count = 0;
 
     boost::fibers::round_robin * ds = new boost::fibers::round_robin();
@@ -511,7 +506,7 @@ void test_migrate_fiber()
     t1.join();
     t2.join();
 
-	BOOST_CHECK( count > 0);
+    fprintf(stderr, "stolen fibers == %d\n", count);
     fprintf(stderr, "%d. finished\n", i);
     delete ds;
     }

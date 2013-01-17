@@ -60,16 +60,16 @@ void test_barrier()
             boost::bind(
                 fn1, boost::ref( b) ) );
     BOOST_CHECK( s1);
-    BOOST_CHECK_EQUAL( 1, value1);
+    BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber s2(
             boost::bind(
                 fn2, boost::ref( b) ) );
     BOOST_CHECK( s2);
-    BOOST_CHECK_EQUAL( 1, value2);
+    BOOST_CHECK_EQUAL( 0, value2);
 
-    if ( s1.joinable() ) s1.join();
-    if ( s2.joinable() ) s2.join();
+    s1.join();
+    s2.join();
 
     BOOST_CHECK_EQUAL( 5, value1);
     BOOST_CHECK_EQUAL( 5, value2);
