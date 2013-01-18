@@ -216,6 +216,7 @@ round_robin::migrate_to( fiber const& f_)
 {
     detail::fiber_base::ptr_t f = detail::scheduler::extract( f_);
     BOOST_ASSERT( f);
+    BOOST_ASSERT( ! f->is_running() );
     BOOST_ASSERT( ! f->is_terminated() );
 
     wqueue_.push_back( f);
