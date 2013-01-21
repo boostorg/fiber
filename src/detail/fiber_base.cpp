@@ -57,8 +57,6 @@ fiber_base::suspend()
 void
 fiber_base::release()
 {
-    if ( ! is_terminated() ) unwind_stack();
-
     // set all waiting fibers in joining_ to state_ready
     // so they can be resumed
     // protect against concurrent access to joining_

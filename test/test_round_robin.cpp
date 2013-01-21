@@ -15,13 +15,16 @@
 
 #include <boost/fiber/all.hpp>
 
+#include <cstdio>
+#include <sstream>
+
 #define MAXCOUNT 50
 
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
 boost::fibers::fiber * other_f = 0;
 
-void lazy_generate( boost::barrier * b, int * value)
+int lazy_generate( boost::barrier * b, int * value)
 {
     * value = 1;
     boost::this_fiber::yield();
@@ -47,6 +50,8 @@ void lazy_generate( boost::barrier * b, int * value)
     boost::this_fiber::yield();
     boost::this_fiber::interruption_point();
     * value = 6;
+
+    return * value;
 }
 
 void join_fiber( boost::barrier * b, int * value, bool * interrupted)
@@ -59,6 +64,10 @@ void join_fiber( boost::barrier * b, int * value, bool * interrupted)
     }
     catch ( boost::fibers::fiber_interrupted const&)
     { * interrupted = true; }
+
+    std::stringstream ss;
+    ss << other_f->get_id();
+    fprintf(stderr, "other_f joined : %s\n", ss.str().c_str() );
 }
 
 void interrupt_join_fiber( boost::barrier * b, int * value, bool * interrupted)
@@ -101,13 +110,16 @@ void terminated( boost::barrier * b, int * value)
 
 void interrupt_from_same_thread( boost::barrier * b, int * value, bool * interrupted)
 {
-    boost::fibers::packaged_task<void> pt( boost::bind( lazy_generate, b, value) );
-    boost::fibers::unique_future<void> ft = pt.get_future();
+    boost::fibers::packaged_task<int> pt( boost::bind( lazy_generate, b, value) );
+    boost::fibers::unique_future<int> ft = pt.get_future();
     other_f = new boost::fibers::fiber( boost::move( pt) );
     other_f->interrupt();
     // other_f will joined by another fiber
     try
-    { ft.get(); }
+    {
+        int res = ft.get();
+        BOOST_ASSERT( res > 0);
+    }
     catch ( boost::fibers::fiber_interrupted const&)
     { * interrupted = true; }
 }
@@ -148,8 +160,14 @@ void fn_interrupt_from_same_thread( boost::barrier * b, int * value, bool * inte
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber(
-        boost::bind( interrupt_from_same_thread, b, value, interrupted) ).join();
+    boost::fibers::fiber f(
+        boost::bind( interrupt_from_same_thread, b, value, interrupted) );
+
+    std::stringstream ss;
+    ss << f.get_id();
+    fprintf(stderr, "interrupt_from_same_thread 1() : %s\n", ss.str().c_str() );
+    f.join();
+    fprintf(stderr, "interrupt_from_same_thread 2() : %s\n", ss.str().c_str() );
 }
 
 void fn_interrupt_from_other_thread( boost::barrier * b, int * value, bool * result)
@@ -166,8 +184,14 @@ void fn_join_in_fiber( boost::barrier * b, int * value, bool * interrupted)
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber(
-        boost::bind( join_fiber, b, value, interrupted) ).join();
+    boost::fibers::fiber f(
+        boost::bind( join_fiber, b, value, interrupted) );
+
+    std::stringstream ss;
+    ss << f.get_id();
+    fprintf(stderr, "join_fiber 1() : %s\n", ss.str().c_str() );
+    f.join();
+    fprintf(stderr, "join_fiber 2() : %s\n", ss.str().c_str() );
 }
 
 void fn_join_in_fiber_interrupt( boost::barrier * b, int * value, bool * interrupted)

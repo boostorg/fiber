@@ -69,6 +69,8 @@ protected:
     virtual void deallocate_object() = 0;
     virtual void unwind_stack() = 0;
 
+    void release();
+
 public:
     class id
     {
@@ -137,8 +139,6 @@ public:
     void resume();
 
     void suspend();
-
-    void release();
 
     bool join( ptr_t const&);
 

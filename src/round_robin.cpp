@@ -61,6 +61,7 @@ round_robin::run()
     wqueue_t wqueue;
     BOOST_FOREACH( detail::fiber_base::ptr_t const& f, wqueue_)
     {
+        detail::state_t s = f->state();
         // set fiber to state_ready if interruption was requested
         if ( f->interruption_requested() || f->wake_up() || f->is_ready() )
         {
@@ -69,7 +70,7 @@ round_robin::run()
             unique_lock< detail::spinlock > lk( rqueue_mtx_);
             rqueue_.push_back( f);
         }
-        else
+        else if ( f->is_waiting() )
         // otherwise in the local waiting queue
             wqueue.push_back( f);
     }
@@ -100,10 +101,12 @@ round_robin::run()
         // resume new active fiber
         active_fiber_->set_running();
         active_fiber_->resume();
+#if 0
         // call terminate() in order to release
         // joining fibers if resumed fiber has terminated
         if ( f->is_terminated() )
             f->release();
+#endif
     }
     catch (...)
     {

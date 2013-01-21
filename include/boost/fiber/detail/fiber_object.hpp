@@ -135,7 +135,10 @@ public:
 #endif
 
     ~fiber_object()
-    { release(); }
+    {
+        if ( ! is_terminated() )
+            unwind_stack();
+    }
 
     void exec()
     {
@@ -155,6 +158,7 @@ public:
         { except_ = current_exception(); }
 
         set_terminated();
+        release();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
@@ -227,7 +231,10 @@ public:
     { enter_(); }
 
     ~fiber_object()
-    { release(); }
+    {
+        if ( ! is_terminated() )
+            unwind_stack();
+    }
 
     void exec()
     {
@@ -245,6 +252,7 @@ public:
         { except_ = current_exception(); }
 
         set_terminated();
+        release();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
@@ -317,7 +325,10 @@ public:
     { enter_(); }
 
     ~fiber_object()
-    { release(); }
+    {
+        if ( ! is_terminated() )
+            unwind_stack();
+    }
 
     void exec()
     {
@@ -335,6 +346,7 @@ public:
         { except_ = current_exception(); }
 
         set_terminated();
+        release();
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
