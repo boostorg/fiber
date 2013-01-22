@@ -52,6 +52,8 @@ public:
 
     mutex();
 
+    ~mutex();
+
     void lock();
 
     bool try_lock();

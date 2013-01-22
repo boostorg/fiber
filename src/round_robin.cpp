@@ -61,18 +61,18 @@ round_robin::run()
     wqueue_t wqueue;
     BOOST_FOREACH( detail::fiber_base::ptr_t const& f, wqueue_)
     {
+        BOOST_ASSERT( ! f->is_running() );
+        BOOST_ASSERT( ! f->is_terminated() );
         detail::state_t s = f->state();
         // set fiber to state_ready if interruption was requested
-        if ( f->interruption_requested() || f->wake_up() || f->is_ready() )
+        // or the fiber was woken up
+        if ( f->interruption_requested() || f->woken_up() ) f->set_ready();
+        if ( f->is_ready() )
         {
-            f->wake_up( false);
-            f->set_ready();
             unique_lock< detail::spinlock > lk( rqueue_mtx_);
             rqueue_.push_back( f);
         }
-        else if ( f->is_waiting() )
-        // otherwise in the local waiting queue
-            wqueue.push_back( f);
+        else wqueue.push_back( f);
     }
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);

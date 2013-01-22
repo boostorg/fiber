@@ -39,16 +39,6 @@ namespace detail {
 class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
 public:
-#if 0
-    struct deleter
-    {
-        void operator()( fiber_base * p)
-        {
-            p->deallocate_object();
-        }
-    };
-    typedef shared_ptr< fiber_base >           ptr_t;
-#endif
     typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
@@ -59,6 +49,7 @@ private:
     atomic< state_t >       state_;
     atomic< int >           flags_;
     atomic< int >           priority_;
+    atomic< bool >          wake_up_;
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
     exception_ptr           except_;
@@ -176,16 +167,11 @@ public:
             flags_ &= ~flag_interruption_requested;
     }
 
-    bool wake_up() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_wake_up); }
+    bool woken_up() BOOST_NOEXCEPT
+    { return wake_up_.exchange( false, memory_order_seq_cst); }
 
-    void wake_up( bool req) BOOST_NOEXCEPT
-    {
-        if ( req)
-            flags_ |= flag_wake_up;
-        else
-            flags_ &= ~flag_wake_up;
-    }
+    void wake_up() BOOST_NOEXCEPT
+    { wake_up_.exchange( true, memory_order_seq_cst); }
 
     bool is_terminated() const BOOST_NOEXCEPT
     { return state_terminated == state_; }

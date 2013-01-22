@@ -26,6 +26,9 @@ mutex::mutex() :
     waiting_()
 {}
 
+mutex::~mutex()
+{ BOOST_ASSERT( waiting_.empty() ); }
+
 void
 mutex::lock()
 {

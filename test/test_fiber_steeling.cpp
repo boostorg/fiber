@@ -17,6 +17,9 @@
 
 #define MAXCOUNT 50
 
+#include <cstdio>
+#include <sstream>
+
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
 
@@ -61,13 +64,13 @@ void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int 
 
     b->wait();
 
-    boost::fibers::fiber f1(
-        boost::bind( create_fibers, n) );
-    boost::fibers::fiber f2(
+    boost::fibers::fiber f(
         boost::bind( create_fibers, n) );
 
-    f1.join();
-    f2.join();
+    std::stringstream ss;
+    ss << f.get_id();
+    fprintf(stderr, "create_fibers(): %s\n", ss.str().c_str());
+    f.join();
 
     fini = true;
 }

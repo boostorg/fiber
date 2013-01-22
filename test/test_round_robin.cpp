@@ -30,13 +30,13 @@ int lazy_generate( boost::barrier * b, int * value)
     boost::this_fiber::yield();
 
     if ( b) b->wait();
-
+#if 0
     boost::xtime xt;
     boost::xtime_get(&xt, boost::TIME_UTC_);
     xt.nsec += 150000000 ; // 150ms
     //xt.sec += 1; //1 second
     boost::this_thread::sleep( xt);
-
+#endif
     * value = 2;
     boost::this_fiber::yield();
     boost::this_fiber::interruption_point();
@@ -57,6 +57,7 @@ int lazy_generate( boost::barrier * b, int * value)
 void join_fiber( boost::barrier * b, int * value, bool * interrupted)
 {
     b->wait();
+    std::stringstream ss;
     try
     {
         other_f->join();
@@ -64,10 +65,6 @@ void join_fiber( boost::barrier * b, int * value, bool * interrupted)
     }
     catch ( boost::fibers::fiber_interrupted const&)
     { * interrupted = true; }
-
-    std::stringstream ss;
-    ss << other_f->get_id();
-    fprintf(stderr, "other_f joined : %s\n", ss.str().c_str() );
 }
 
 void interrupt_join_fiber( boost::barrier * b, int * value, bool * interrupted)
@@ -113,6 +110,9 @@ void interrupt_from_same_thread( boost::barrier * b, int * value, bool * interru
     boost::fibers::packaged_task<int> pt( boost::bind( lazy_generate, b, value) );
     boost::fibers::unique_future<int> ft = pt.get_future();
     other_f = new boost::fibers::fiber( boost::move( pt) );
+    std::stringstream ss;
+    ss << other_f->get_id();
+    fprintf(stderr, "other_f: %s\n", ss.str().c_str() );
     other_f->interrupt();
     // other_f will joined by another fiber
     try
@@ -165,9 +165,8 @@ void fn_interrupt_from_same_thread( boost::barrier * b, int * value, bool * inte
 
     std::stringstream ss;
     ss << f.get_id();
-    fprintf(stderr, "interrupt_from_same_thread 1() : %s\n", ss.str().c_str() );
+    fprintf(stderr, "interrupt_from_same_thread: %s\n", ss.str().c_str() );
     f.join();
-    fprintf(stderr, "interrupt_from_same_thread 2() : %s\n", ss.str().c_str() );
 }
 
 void fn_interrupt_from_other_thread( boost::barrier * b, int * value, bool * result)
@@ -189,9 +188,8 @@ void fn_join_in_fiber( boost::barrier * b, int * value, bool * interrupted)
 
     std::stringstream ss;
     ss << f.get_id();
-    fprintf(stderr, "join_fiber 1() : %s\n", ss.str().c_str() );
+    fprintf(stderr, "join_fiber: %s\n", ss.str().c_str() );
     f.join();
-    fprintf(stderr, "join_fiber 2() : %s\n", ss.str().c_str() );
 }
 
 void fn_join_in_fiber_interrupt( boost::barrier * b, int * value, bool * interrupted)
@@ -448,16 +446,14 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: round_robin test suite");
-#if 0
+
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_runing) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_terminated) );
-#endif
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_interrupted_inside) );
-#if 0
     test->add( BOOST_TEST_CASE( & test_join_in_fiber_interrupted_outside) );
     test->add( BOOST_TEST_CASE( & test_mutex_exclusive) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
-#endif
+
     return test;
 }

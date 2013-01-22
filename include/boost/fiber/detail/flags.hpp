@@ -25,8 +25,7 @@ enum flag_t
     flag_unwind_stack           = 1 << 2,
     flag_preserve_fpu           = 1 << 3,
     flag_interruption_blocked   = 1 << 4,
-    flag_interruption_requested = 1 << 5,
-    flag_wake_up                = 1 << 6
+    flag_interruption_requested = 1 << 5
 };
 
 }}}

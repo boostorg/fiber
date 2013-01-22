@@ -18,6 +18,9 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#include <cstdio>
+#include <sstream>
+
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -27,6 +30,7 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     state_( state_ready),
     flags_( 0),
     priority_( 0),
+    wake_up_( false),
     caller_(),
     callee_( callee),
     except_(),
@@ -63,7 +67,10 @@ fiber_base::release()
     unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
     {
-        p->wake_up( true);
+        std::stringstream ss;
+        ss << p->get_id();
+        fprintf(stderr, "p->wake-up( true) : %s\n", ss.str().c_str() );
+        p->wake_up();
     }
 }
 
