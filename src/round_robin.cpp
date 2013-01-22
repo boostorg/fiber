@@ -131,7 +131,7 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
     lk.unlock();
     // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
-    // preserve active fiber on stack
+    // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend fiber
     tmp->suspend();
@@ -144,6 +144,8 @@ void
 round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
+    //FIXME: mabye other threads can change the state of active fiber?
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active_fiber to state_ready
     active_fiber_->set_ready();
@@ -153,7 +155,7 @@ round_robin::yield()
     // thread could steel fiber from rqueue_ and resume it
     // at the same time as yield is called
     wqueue_.push_back( active_fiber_);
-    // preserve active fiber on stack
+    // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend fiber
     tmp->suspend();
@@ -180,11 +182,10 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
             // active fiber to state_ready
             // FIXME: better state_running and no suspend
             active_fiber_->set_ready();
-        detail::fiber_base::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
-        tmp->suspend();
+        active_fiber_->suspend();
         // fiber is resumed and by f
-        BOOST_ASSERT( tmp->is_running() );
+        BOOST_ASSERT( active_fiber_->is_running() );
 
         // check if fiber was interrupted
         this_fiber::interruption_point();
