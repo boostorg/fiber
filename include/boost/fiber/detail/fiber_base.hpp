@@ -26,7 +26,7 @@
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/states.hpp>
 
-#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -116,7 +116,7 @@ public:
 
     fiber_base( context::fcontext_t *, bool);
 
-    virtual ~fiber_base() {}
+    virtual ~fiber_base();
 
     id get_id() const BOOST_NOEXCEPT
     { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }

@@ -38,6 +38,12 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     joining_()
 { if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
 
+fiber_base::~fiber_base()
+{
+    BOOST_ASSERT( is_terminated() );
+    BOOST_ASSERT( joining_.empty() );
+}
+
 void
 fiber_base::resume()
 {
@@ -72,6 +78,7 @@ fiber_base::release()
         fprintf(stderr, "p->wake-up( true) : %s\n", ss.str().c_str() );
         p->wake_up();
     }
+    joining_.clear();
 }
 
 bool
