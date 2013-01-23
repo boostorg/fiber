@@ -34,17 +34,12 @@ mutex::lock()
 {
     while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
-        if ( this_fiber::is_fiberized() )
-        {
-            unique_lock< detail::spinlock > lk( waiting_mtx_);
-            waiting_.push_back(
-                    detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait( lk);
-        }
-        else
-        {
-            run();
-        }
+        BOOST_ASSERT( this_fiber::is_fiberized() );
+
+        unique_lock< detail::spinlock > lk( waiting_mtx_);
+        waiting_.push_back(
+                detail::scheduler::instance().active() );
+        detail::scheduler::instance().wait( lk);
     }
 }
 
@@ -63,7 +58,7 @@ mutex::unlock()
         detail::fiber_base::ptr_t f;
         f.swap( waiting_.front() );
         waiting_.pop_front();
-        f->set_ready();
+        f->wake_up();
     }
 }
 

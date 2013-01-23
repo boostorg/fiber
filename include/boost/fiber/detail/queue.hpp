@@ -105,7 +105,7 @@ public:
         while ( ! empty_() )
         {
             BOOST_ASSERT( head_->f);
-            bool result = head_->f->set_ready();
+            bool result = head_->f->wake_up();
             pop_head_();
             if ( result) break;
         }
@@ -117,7 +117,7 @@ public:
         while ( ! empty_() )
         {
             BOOST_ASSERT( head_->f);
-            head_->f->set_ready();
+            head_->f->wake_up();
             pop_head_();
         }
     }

@@ -55,7 +55,7 @@ condition::notify_one()
         detail::fiber_base::ptr_t f;
         f.swap( waiting_.front() );
         waiting_.pop_front();
-        f->set_ready();
+        f->wake_up();
     }
 }
 
@@ -86,7 +86,7 @@ condition::notify_all()
 
     unique_lock< detail::spinlock > lk( waiting_mtx_);
 	BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
-    { f->set_ready(); }
+    { f->wake_up(); }
     waiting_.clear();
 }
 

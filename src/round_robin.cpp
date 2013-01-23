@@ -147,8 +147,10 @@ round_robin::yield()
     //FIXME: mabye other threads can change the state of active fiber?
     BOOST_ASSERT( active_fiber_->is_running() );
 
+    // set active fiber to state_waiting
+    active_fiber_->set_waiting();
     // set active_fiber to state_ready
-    active_fiber_->set_ready();
+    active_fiber_->wake_up();
     // suspends active fiber and adds it to wqueue_
     // Note: adding to rqueue_ could result in a raise
     // between adding to rqueue_ and calling yield another
@@ -181,7 +183,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
             // f must be already terminated therefore we set
             // active fiber to state_ready
             // FIXME: better state_running and no suspend
-            active_fiber_->set_ready();
+            active_fiber_->wake_up();
         // suspend fiber until f terminates
         active_fiber_->suspend();
         // fiber is resumed and by f

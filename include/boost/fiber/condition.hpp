@@ -92,32 +92,27 @@ public:
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
-                if ( this_fiber::is_fiberized() )
+                BOOST_ASSERT( this_fiber::is_fiberized() );
+
+                try
+                { this_fiber::interruption_point(); }
+                catch ( fiber_interrupted const&)
                 {
-                    try
-                    { this_fiber::interruption_point(); }
-                    catch ( fiber_interrupted const&)
-                    {
-                        --waiters_;
-                        throw;
-                    }
-
-                    unique_lock< detail::spinlock > lk( waiting_mtx_);
-                    waiting_.push_back(
-                            detail::scheduler::instance().active() );
-                    detail::scheduler::instance().wait( lk);
-
-                    try
-                    { this_fiber::interruption_point(); }
-                    catch ( fiber_interrupted const&)
-                    {
-                        --waiters_;
-                        throw;
-                    }
+                    --waiters_;
+                    throw;
                 }
-                else
+
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                waiting_.push_back(
+                        detail::scheduler::instance().active() );
+                detail::scheduler::instance().wait( lk);
+
+                try
+                { this_fiber::interruption_point(); }
+                catch ( fiber_interrupted const&)
                 {
-                    run();
+                    --waiters_;
+                    throw;
                 }
             }
 
@@ -211,29 +206,24 @@ public:
                     detail::scheduler::instance().active() );
                 detail::scheduler::instance().wait( lk);
 #endif
-                if ( this_fiber::is_fiberized() )
+                BOOST_ASSERT( this_fiber::is_fiberized() );
+
+                try
+                { this_fiber::interruption_point(); }
+                catch ( fiber_interrupted const&)
                 {
-                    try
-                    { this_fiber::interruption_point(); }
-                    catch ( fiber_interrupted const&)
-                    {
-                        --waiters_;
-                        throw;
-                    }
-
-                    this_fiber::yield();
-
-                    try
-                    { this_fiber::interruption_point(); }
-                    catch ( fiber_interrupted const&)
-                    {
-                        --waiters_;
-                        throw;
-                    }
+                    --waiters_;
+                    throw;
                 }
-                else
+
+                this_fiber::yield();
+
+                try
+                { this_fiber::interruption_point(); }
+                catch ( fiber_interrupted const&)
                 {
-                    run();
+                    --waiters_;
+                    throw;
                 }
 
                 now = chrono::system_clock::now();
