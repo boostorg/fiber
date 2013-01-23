@@ -35,7 +35,6 @@
 
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/mutex.hpp>
-#include <boost/fiber/operations.hpp>
 
 namespace boost {
 namespace fibers {
@@ -212,14 +211,7 @@ namespace fibers {
                 do_callback(lock);
                 while(!done)
                 {
-                    if ( this_fiber::is_fiberized() )
-                        waiters.wait(lock);
-                    else
-                    {
-                        lock.unlock();
-                        boost::fibers::run();
-                        lock.lock();
-                    }
+                    waiters.wait(lock);
                 }
                 if(rethrow && exception)
                 {
