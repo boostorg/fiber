@@ -29,6 +29,8 @@ namespace fibers {
 
 struct BOOST_FIBERS_DECL algorithm : private noncopyable
 {
+    virtual void add( detail::fiber_base::ptr_t const&) = 0;
+
     virtual void priority( detail::fiber_base::ptr_t const&, int) = 0;
 
     virtual void join( detail::fiber_base::ptr_t const&) = 0;
@@ -40,10 +42,6 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
     virtual void wait( unique_lock< detail::spinlock > &) = 0;
 
     virtual void yield() = 0;
-
-    virtual void migrate_to( fiber const&) = 0;
-
-    virtual fiber steel_from() = 0;
 
     virtual ~algorithm() {}
 };

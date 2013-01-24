@@ -25,8 +25,8 @@ namespace boost {
 namespace fibers {
 
 void
-fiber::spawn_( fiber & f)
-{ detail::scheduler::instance().migrate_to( f); }
+fiber::spawn_( detail::fiber_base::ptr_t const& f)
+{ detail::scheduler::instance().add( f); }
 
 int
 fiber::priority() const
