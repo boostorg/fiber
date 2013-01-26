@@ -14,14 +14,6 @@
 # undef BOOST_FIBERS_DECL
 #endif
 
-#if ! defined BOOST_FIBERS_NOEXCEPT_OR_THROW
-# ifdef BOOST_NO_NOEXCEPT
-#  define BOOST_FIBERS_NOEXCEPT_OR_THROW throw()
-# else
-#  define BOOST_FIBERS_NOEXCEPT_OR_THROW noexcept
-# endif
-#endif
-
 #if defined(BOOST_HAS_DECLSPEC)
 # if defined(BOOST_ALL_DYN_LINK) || defined(BOOST_FIBERS_DYN_LINK)
 #  if ! defined(BOOST_DYN_LINK)
@@ -33,14 +25,14 @@
 #   define BOOST_FIBERS_DECL BOOST_SYMBOL_IMPORT
 #  endif
 # endif
-#elif (__GNUC__ == 4 && __GNUC_MINOR__ >= 1) || (__GNUC__ > 4)
-# define BOOST_FIBERS_DECL BOOST_SYMBOL_VISIBLE
-#else
+#endif
+
+#if ! defined(BOOST_FIBERS_DECL)
 # define BOOST_FIBERS_DECL
 #endif
 
 #if ! defined(BOOST_FIBERS_SOURCE) && ! defined(BOOST_ALL_NO_LIB) && ! defined(BOOST_FIBERS_NO_LIB)
-# define BOOST_LIB_NAME boost_context
+# define BOOST_LIB_NAME boost_fiber
 # if defined(BOOST_ALL_DYN_LINK) || defined(BOOST_FIBERS_DYN_LINK)
 #  define BOOST_DYN_LINK
 # endif
