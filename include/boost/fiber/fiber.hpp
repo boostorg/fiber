@@ -17,7 +17,7 @@
 #include <boost/type_traits/decay.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/type_traits/is_same.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <boost/utility.hpp>
 
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
@@ -41,7 +41,7 @@ class scheduler;
 
 }
 
-class BOOST_FIBERS_DECL fiber
+class BOOST_FIBERS_DECL fiber : private noncopyable
 {
 private:
     friend class detail::scheduler;
@@ -53,7 +53,7 @@ private:
     typedef base_t::ptr_t         ptr_t;
     typedef void ( dummy::*safe_bool)();
 
-    static void spawn_( fiber &);
+    static void spawn_( detail::fiber_base::ptr_t const&);
 
     ptr_t       impl_;
 
@@ -86,7 +86,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename StackAllocator >
@@ -102,7 +102,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename StackAllocator, typename Allocator >
@@ -118,7 +118,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 #endif
     template< typename Fn >
@@ -138,7 +138,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename Fn, typename StackAllocator >
@@ -158,7 +158,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
@@ -177,7 +177,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 #else
     template< typename Fn >
@@ -197,7 +197,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename Fn, typename StackAllocator >
@@ -217,7 +217,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -237,7 +237,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename Fn >
@@ -257,7 +257,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename Fn, typename StackAllocator >
@@ -277,7 +277,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -297,7 +297,7 @@ public:
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
-        spawn_( * this);
+        spawn_( impl_);
     }
 #endif
 
@@ -317,19 +317,16 @@ public:
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return ( ! empty() && ! impl_->is_terminated() ) ? & dummy::nonnull : 0; }
+    { return joinable() ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return empty() || impl_->is_terminated(); }
+    { return ! joinable(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
     { impl_.swap( other.impl_); }
 
-    bool empty() const BOOST_NOEXCEPT
-    { return 0 == impl_.get(); }
-
     bool joinable() const BOOST_NOEXCEPT
-    { return ! empty(); }
+    { return impl_ && ! impl_->is_terminated(); }
 
     id get_id() const BOOST_NOEXCEPT
     { return impl_ ? impl_->get_id() : id(); }
