@@ -74,9 +74,10 @@ public:
     private:
         friend class fiber_base;
 
-        fiber_base::ptr_t   impl_;
+        fiber_base const*   impl_;
+
     public:
-        explicit id( fiber_base::ptr_t const& impl) BOOST_NOEXCEPT :
+        explicit id( fiber_base const* impl) BOOST_NOEXCEPT :
             impl_( impl)
         {}
 
@@ -125,7 +126,7 @@ public:
     virtual ~fiber_base();
 
     id get_id() const BOOST_NOEXCEPT
-    { return id( ptr_t( const_cast< fiber_base * >( this) ) ); }
+    { return id( this); }
 
     int priority() const BOOST_NOEXCEPT
     { return priority_; }

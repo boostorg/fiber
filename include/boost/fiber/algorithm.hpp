@@ -30,9 +30,9 @@ namespace fibers {
 
 struct BOOST_FIBERS_DECL algorithm : private noncopyable
 {
-    virtual void priority( BOOST_RV_REF( fiber), int) = 0;
+    virtual void priority( detail::fiber_base::ptr_t const&, int) = 0;
 
-    virtual void join( BOOST_RV_REF( fiber) ) = 0;
+    virtual void join( detail::fiber_base::ptr_t const&) = 0;
 
     virtual detail::fiber_base::ptr_t active() = 0;
 

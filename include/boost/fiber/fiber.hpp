@@ -332,8 +332,7 @@ public:
     { return ! empty(); }
 
     id get_id() const BOOST_NOEXCEPT
-    { return impl_ ? id( impl_) : id(); }
-    //{ return impl_ ? impl_->get_id() : id(); }
+    { return impl_ ? impl_->get_id() : id(); }
 
     int priority() const BOOST_NOEXCEPT;
 
