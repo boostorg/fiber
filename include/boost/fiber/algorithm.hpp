@@ -8,6 +8,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/move/move.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
@@ -29,11 +30,9 @@ namespace fibers {
 
 struct BOOST_FIBERS_DECL algorithm : private noncopyable
 {
-    virtual void add( detail::fiber_base::ptr_t const&) = 0;
+    virtual void priority( BOOST_RV_REF( fiber), int) = 0;
 
-    virtual void priority( detail::fiber_base::ptr_t const&, int) = 0;
-
-    virtual void join( detail::fiber_base::ptr_t const&) = 0;
+    virtual void join( BOOST_RV_REF( fiber) ) = 0;
 
     virtual detail::fiber_base::ptr_t active() = 0;
 
@@ -42,6 +41,10 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
     virtual void wait( unique_lock< detail::spinlock > &) = 0;
 
     virtual void yield() = 0;
+
+    virtual void migrate_to( fiber const&) = 0;
+
+    virtual fiber steel_from() = 0;
 
     virtual ~algorithm() {}
 };

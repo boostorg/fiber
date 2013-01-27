@@ -12,7 +12,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/move/move.hpp>
 #include <boost/thread/locks.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -50,8 +49,6 @@ public:
 
     ~round_robin() BOOST_NOEXCEPT;
 
-    void add( detail::fiber_base::ptr_t const&);
-
     void priority( detail::fiber_base::ptr_t const&, int);
 
     void join( detail::fiber_base::ptr_t const&);
@@ -65,7 +62,7 @@ public:
 
     void yield();
 
-    void migrate_to( BOOST_RV_REF( fiber) f);
+    void migrate_to( fiber const&);
 
     fiber steel_from();
 };

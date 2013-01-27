@@ -71,7 +71,7 @@ fiber_base::release()
     // so they can be resumed
     // protect against concurrent access to joining_
     unique_lock< spinlock > lk( joining_mtx_);
-    BOOST_FOREACH( fiber_base::ptr_t & p, joining_)
+    BOOST_FOREACH( fiber_base::ptr_t p, joining_)
     {
         std::stringstream ss;
         ss << p->get_id();

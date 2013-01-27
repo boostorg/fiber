@@ -54,16 +54,6 @@ round_robin::~round_robin()
 #endif
 }
 
-void
-round_robin::add( detail::fiber_base::ptr_t const& f)
-{
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_running() );
-    BOOST_ASSERT( ! f->is_terminated() );
-
-    wqueue_.push_back( f);
-}
-
 bool
 round_robin::run()
 {
@@ -228,9 +218,14 @@ round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
 }
 
 void
-round_robin::migrate_to( BOOST_RV_REF( fiber) f)
+round_robin::migrate_to( fiber const& f_)
 {
-    add( detail::scheduler::extract( f) );
+    detail::fiber_base::ptr_t f = detail::scheduler::extract( f_);
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( ! f->is_running() );
+    BOOST_ASSERT( ! f->is_terminated() );
+
+    wqueue_.push_back( f);
 }
 
 fiber
