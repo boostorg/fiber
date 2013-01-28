@@ -90,6 +90,7 @@ void fn_steel_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b,
         {
             ++( * count);
             ds.migrate_to( f);
+            fprintf(stderr, "fiber migrated\n");
             while ( boost::fibers::run() );
         }
         f.detach();

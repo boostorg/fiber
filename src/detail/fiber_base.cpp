@@ -70,7 +70,8 @@ fiber_base::release()
     // set all waiting fibers in joining_ to state_ready
     // so they can be resumed
     // protect against concurrent access to joining_
-    unique_lock< spinlock > lk( joining_mtx_);
+    unique_lock< boost::mutex > lk( joining_mtx_);
+    //unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t p, joining_)
     {
         std::stringstream ss;
@@ -85,7 +86,8 @@ bool
 fiber_base::join( ptr_t const& p)
 {
     // protect against concurrent access to joining_
-    unique_lock< spinlock > lk( joining_mtx_);
+    unique_lock< boost::mutex > lk( joining_mtx_);
+    //unique_lock< spinlock > lk( joining_mtx_);
     if ( is_terminated() ) return false;
     joining_.push_back( p);
     return true;

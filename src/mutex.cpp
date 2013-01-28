@@ -11,6 +11,7 @@
 #include <boost/assert.hpp>
 
 #include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/interruption.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -40,6 +41,9 @@ mutex::lock()
             waiting_.push_back(
                     detail::scheduler::instance().active() );
             detail::scheduler::instance().wait( lk);
+
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
         }
         else run();
     }

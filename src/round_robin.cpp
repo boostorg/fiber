@@ -101,12 +101,6 @@ round_robin::run()
         // resume new active fiber
         active_fiber_->set_running();
         active_fiber_->resume();
-#if 0
-        // call terminate() in order to release
-        // joining fibers if resumed fiber has terminated
-        if ( f->is_terminated() )
-            f->release();
-#endif
     }
     catch (...)
     {
@@ -137,6 +131,7 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
     tmp->suspend();
     // fiber is resumed
 
+    BOOST_ASSERT( tmp == active_fiber_);
     BOOST_ASSERT( tmp->is_running() );
 }
 
@@ -163,6 +158,7 @@ round_robin::yield()
     tmp->suspend();
     // fiber is resumed
 
+    BOOST_ASSERT( tmp == active_fiber_);
     BOOST_ASSERT( tmp->is_running() );
 }
 
@@ -184,10 +180,12 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
             // active fiber to state_ready
             // FIXME: better state_running and no suspend
             active_fiber_->wake_up();
+        // store active fiber in local var
+        detail::fiber_base::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
-        active_fiber_->suspend();
+        tmp->suspend();
         // fiber is resumed and by f
-        BOOST_ASSERT( active_fiber_->is_running() );
+        BOOST_ASSERT( tmp->is_running() );
 
         // check if fiber was interrupted
         this_fiber::interruption_point();
