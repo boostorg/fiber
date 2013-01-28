@@ -228,7 +228,7 @@ round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
 }
 
 void
-round_robin::migrate_to( BOOST_RV_REF( fiber) f)
+round_robin::migrate_to( fiber const& f)
 {
     BOOST_ASSERT( f);
 

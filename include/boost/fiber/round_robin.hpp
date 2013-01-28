@@ -65,7 +65,7 @@ public:
 
     void yield();
 
-    void migrate_to( BOOST_RV_REF( fiber) );
+    void migrate_to( fiber const&);
 
     fiber steel_from();
 };
