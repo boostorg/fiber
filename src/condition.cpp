@@ -45,17 +45,15 @@ condition::notify_one()
     command expected = SLEEPING;
     while ( ! cmd_.compare_exchange_strong( expected, NOTIFY_ONE) )
     {
-        this_fiber::yield();
+        if ( this_fiber::is_fiberized() ) this_fiber::yield();
         expected = SLEEPING;
     }
 
     unique_lock< detail::spinlock > lk( waiting_mtx_);
 	if ( ! waiting_.empty() )
     {
-        detail::fiber_base::ptr_t f;
-        f.swap( waiting_.front() );
+        waiting_.front()->wake_up();
         waiting_.pop_front();
-        f->wake_up();
     }
 }
 
@@ -80,7 +78,7 @@ condition::notify_all()
     command expected = SLEEPING;
     while ( SLEEPING != cmd_.compare_exchange_strong( expected, NOTIFY_ALL) )
     {
-        this_fiber::yield();
+        if ( this_fiber::is_fiberized() ) this_fiber::yield();
         expected = SLEEPING;
     }
 
