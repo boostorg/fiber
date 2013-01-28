@@ -92,24 +92,22 @@ public:
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
-                BOOST_ASSERT( this_fiber::is_fiberized() );
-
                 try
-                { this_fiber::interruption_point(); }
-                catch ( fiber_interrupted const&)
                 {
-                    --waiters_;
-                    throw;
+                    if ( this_fiber::is_fiberized() )
+                    {
+                        this_fiber::interruption_point();
+
+                        unique_lock< detail::spinlock > lk( waiting_mtx_);
+                        waiting_.push_back(
+                                detail::scheduler::instance().active() );
+                        detail::scheduler::instance().wait( lk);
+
+                        this_fiber::interruption_point();
+                    }
+                    else run();
                 }
-
-                unique_lock< detail::spinlock > lk( waiting_mtx_);
-                waiting_.push_back(
-                        detail::scheduler::instance().active() );
-                detail::scheduler::instance().wait( lk);
-
-                try
-                { this_fiber::interruption_point(); }
-                catch ( fiber_interrupted const&)
+                catch (...)
                 {
                     --waiters_;
                     throw;
@@ -200,27 +198,18 @@ public:
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
-#if 0
-                unique_lock< detail::spinlock > lk( waiting_mtx_);
-                waiting_.push_back(
-                    detail::scheduler::instance().active() );
-                detail::scheduler::instance().wait( lk);
-#endif
-                BOOST_ASSERT( this_fiber::is_fiberized() );
-
                 try
-                { this_fiber::interruption_point(); }
-                catch ( fiber_interrupted const&)
                 {
-                    --waiters_;
-                    throw;
+                    if ( this_fiber::is_fiberized() )
+                    {
+                        this_fiber::interruption_point();
+                        this_fiber::yield();
+
+                        this_fiber::interruption_point();
+                    }
+                    else run();
                 }
-
-                this_fiber::yield();
-
-                try
-                { this_fiber::interruption_point(); }
-                catch ( fiber_interrupted const&)
+                catch (...)
                 {
                     --waiters_;
                     throw;
