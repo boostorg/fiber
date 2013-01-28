@@ -57,10 +57,8 @@ mutex::unlock()
     unique_lock< detail::spinlock > lk( waiting_mtx_);
 	if ( ! waiting_.empty() )
     {
-        detail::fiber_base::ptr_t f;
-        f.swap( waiting_.front() );
+        waiting_.front()->wake_up();
         waiting_.pop_front();
-        f->wake_up();
     }
 }
 
