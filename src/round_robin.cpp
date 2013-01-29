@@ -101,6 +101,7 @@ round_robin::run()
         // resume new active fiber
         active_fiber_->set_running();
         active_fiber_->resume();
+        BOOST_ASSERT( f == active_fiber_);
     }
     catch (...)
     {
@@ -131,8 +132,8 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
     tmp->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == active_fiber_);
     BOOST_ASSERT( tmp->is_running() );
+    BOOST_ASSERT( tmp == detail::scheduler::instance().active() );
 }
 
 void
@@ -158,8 +159,8 @@ round_robin::yield()
     tmp->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == active_fiber_);
     BOOST_ASSERT( tmp->is_running() );
+    BOOST_ASSERT( tmp == detail::scheduler::instance().active() );
 }
 
 void
@@ -184,8 +185,10 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         detail::fiber_base::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
         tmp->suspend();
-        // fiber is resumed and by f
+        // fiber is resumed by f
+
         BOOST_ASSERT( tmp->is_running() );
+        BOOST_ASSERT( tmp == detail::scheduler::instance().active() );
 
         // check if fiber was interrupted
         this_fiber::interruption_point();
