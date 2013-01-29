@@ -27,7 +27,6 @@
 #include <boost/fiber/detail/states.hpp>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -60,8 +59,7 @@ private:
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
     exception_ptr           except_;
-    boost::mutex                joining_mtx_;
-    //spinlock                joining_mtx_;
+    spinlock                joining_mtx_;
     std::vector< ptr_t >    joining_;
 
 protected:
