@@ -29,7 +29,10 @@ condition::condition() :
 {}
 
 condition::~condition()
-{ BOOST_ASSERT( 0 == waiters_); }
+{
+    BOOST_ASSERT( 0 == waiters_);
+    BOOST_ASSERT( waiting_.empty() );
+}
 
 void
 condition::notify_one()
