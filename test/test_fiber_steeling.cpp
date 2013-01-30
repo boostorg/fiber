@@ -54,6 +54,7 @@ boost::fibers::shared_future< int > fibonacci( int n)
 void create_fibers( int n)
 {
     int res = fibonacci( n).get();
+    fprintf( stderr, "fibonacci(%d) = %d\n", n, res);
 }
 
 void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int n)
@@ -107,6 +108,7 @@ void test_migrate_fiber()
     t1.join();
     t2.join();
 
+    fprintf(stderr, "%d fibers stolen\n", count);
     fprintf(stderr, "%d. finished\n", i);
     delete ds;
     }
