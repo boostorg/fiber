@@ -204,6 +204,7 @@ void test_join_in_fiber_runing()
     BOOST_CHECK_EQUAL( 7, value2);
     BOOST_CHECK( ! interrupted);
     delete other_f;
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
@@ -225,6 +226,7 @@ void test_join_in_fiber_terminated()
     BOOST_CHECK_EQUAL( 7, value2);
     BOOST_CHECK( ! interrupted);
     delete other_f;
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
@@ -246,6 +248,7 @@ void test_join_in_fiber_interrupted_inside()
     BOOST_CHECK( !interrupted2);
     BOOST_CHECK_EQUAL( 7, value2);
     delete other_f;
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
@@ -267,6 +270,7 @@ void test_join_in_fiber_interrupted_outside()
     BOOST_CHECK( ! interrupted);
     BOOST_CHECK_EQUAL( 7, value2);
     delete other_f;
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
@@ -318,6 +322,7 @@ void test_mutex_exclusive()
 
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 2, value2);
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
@@ -383,6 +388,7 @@ void test_two_waiter_notify_one()
     t2.join();
 
 	BOOST_CHECK_EQUAL( 2, value);
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
@@ -417,6 +423,7 @@ void test_two_waiter_notify_all()
     t2.join();
 
 	BOOST_CHECK_EQUAL( 2, value);
+    fprintf(stderr, "%s finished\n", __func__);
     }
 }
 
