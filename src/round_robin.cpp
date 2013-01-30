@@ -63,7 +63,7 @@ round_robin::run()
     {
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
-        detail::state_t s = f->state();
+
         // set fiber to state_ready if interruption was requested
         // or the fiber was woken up
         if ( f->interruption_requested() || f->woken_up() ) f->set_ready();
