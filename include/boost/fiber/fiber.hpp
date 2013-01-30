@@ -317,10 +317,10 @@ public:
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return joinable() ? & dummy::nonnull : 0; }
+    { return impl_ && ! impl_->is_terminated() ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return ! joinable(); }
+    { return ! ( * this); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
     { impl_.swap( other.impl_); }
