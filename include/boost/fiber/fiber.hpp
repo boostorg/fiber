@@ -320,7 +320,7 @@ public:
     { return impl_ && ! impl_->is_terminated() ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return ! ( * this); }
+    { return ! impl_ || impl_->is_terminated(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
     { impl_.swap( other.impl_); }
