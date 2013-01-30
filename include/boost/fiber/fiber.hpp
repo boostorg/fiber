@@ -326,7 +326,7 @@ public:
     { impl_.swap( other.impl_); }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return impl_ && ! impl_->is_terminated(); }
+    { return impl_ /* && ! impl_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
     { return impl_ ? impl_->get_id() : id(); }
