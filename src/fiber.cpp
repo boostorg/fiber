@@ -48,12 +48,12 @@ void
 fiber::join()
 {
     BOOST_ASSERT( impl_);
-#if 0
+
     if ( boost::this_fiber::is_fiberized() && boost::this_fiber::get_id() == get_id() )
         boost::throw_exception(
             fiber_resource_error(
                 system::errc::resource_deadlock_would_occur, "boost fiber: trying joining itself") );
-#endif
+
     if ( ! joinable() )
     {
         boost::throw_exception(
