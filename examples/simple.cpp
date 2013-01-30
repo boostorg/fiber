@@ -23,10 +23,11 @@ int main()
 
 	try
 	{
-        boost::fibers::fiber s1( boost::bind( fn, "abc", 5) );
-        boost::fibers::fiber s2( boost::bind( fn, "xyz", 7) );
+        boost::fibers::fiber f1( boost::bind( fn, "abc", 5) );
+        boost::fibers::fiber f2( boost::bind( fn, "xyz", 7) );
 
-		while ( s1 || s2 ) boost::fibers::run();
+	f1.join();
+	f2.join();
 
 		std::cout << "done." << std::endl;
 

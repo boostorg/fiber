@@ -46,11 +46,11 @@ int main()
 
     try
     {
-        boost::fibers::fiber s1( fn1);
-        boost::fibers::fiber s2( boost::bind( fn2, boost::ref( s1) ) );
+        boost::fibers::fiber f1( fn1);
+        boost::fibers::fiber f2( boost::bind( fn2, boost::ref( f1) ) );
 
-        s1.join();
-        s2.join();
+        f1.join();
+        f2.join();
 
         std::cout << "done." << std::endl;
 

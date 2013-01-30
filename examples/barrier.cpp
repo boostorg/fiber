@@ -77,11 +77,11 @@ int main()
 	{
 		boost::fibers::barrier fb( 2);
 
-		boost::fibers::fiber s1( boost::bind( & fn1, boost::ref( fb) ) );
-		boost::fibers::fiber s2( boost::bind( & fn2, boost::ref( fb) ) );
+		boost::fibers::fiber f1( boost::bind( & fn1, boost::ref( fb) ) );
+		boost::fibers::fiber f2( boost::bind( & fn2, boost::ref( fb) ) );
 
-		while ( s1 || s2)
-			boost::fibers::run();
+        f1.join();
+        f2.join();
 
 		std::cout << "done." << std::endl;
 

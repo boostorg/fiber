@@ -61,23 +61,6 @@ void pong( fifo_t & recv_buf, fifo_t & send_buf)
 	send_buf.deactivate();
 }
 
-void f()
-{
-	fifo_t buf1, buf2;
-	
-	boost::fibers::fiber s1(
-            boost::bind(
-                & ping, boost::ref( buf1), boost::ref( buf2) ) );
-	boost::fibers::fiber s2(
-            boost::bind(
-                & pong, boost::ref( buf2), boost::ref( buf1) ) );
-
-    s1.join();
-    s2.join();
-
-    std::cout << "both channels deactivated" << std::endl;
-}
-
 int main()
 {
     boost::fibers::round_robin ds;
@@ -85,9 +68,17 @@ int main()
 
 	try
 	{
-		boost::fibers::fiber s( f);
+        fifo_t buf1, buf2;
 
-        while ( s) boost::fibers::run();
+        boost::fibers::fiber f1(
+                boost::bind(
+                    & ping, boost::ref( buf1), boost::ref( buf2) ) );
+        boost::fibers::fiber f2(
+                boost::bind(
+                    & pong, boost::ref( buf2), boost::ref( buf1) ) );
+
+        f1.join();
+        f2.join();
 
 		std::cout << "done." << std::endl;
 
