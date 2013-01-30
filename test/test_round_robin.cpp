@@ -5,7 +5,6 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cstdio>
-#include <sstream>
 #include <string>
 
 #include <boost/atomic.hpp>
@@ -15,10 +14,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#include <cstdio>
-#include <sstream>
-
-#define MAXCOUNT 50
+#define MAXCOUNT 1
 
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
@@ -57,7 +53,6 @@ int lazy_generate( boost::barrier * b, int * value)
 void join_fiber( boost::barrier * b, int * value, bool * interrupted)
 {
     b->wait();
-    std::stringstream ss;
     try
     {
         other_f->join();
@@ -83,7 +78,6 @@ void interrupt_join_fiber( boost::barrier * b, int * value, bool * interrupted)
     }
     catch ( boost::fibers::fiber_interrupted const&)
     { * interrupted = true; }
-    //fprintf(stderr, "interrupt_join_fiber() returned\n");
 }
 
 void running( boost::barrier * b, int * value)
@@ -110,9 +104,6 @@ void interrupt_from_same_thread( boost::barrier * b, int * value, bool * interru
     boost::fibers::packaged_task<int> pt( boost::bind( lazy_generate, b, value) );
     boost::fibers::unique_future<int> ft = pt.get_future();
     other_f = new boost::fibers::fiber( boost::move( pt) );
-    std::stringstream ss;
-    ss << other_f->get_id();
-    fprintf(stderr, "other_f: %s\n", ss.str().c_str() );
     other_f->interrupt();
     // other_f will joined by another fiber
     try
@@ -163,9 +154,6 @@ void fn_interrupt_from_same_thread( boost::barrier * b, int * value, bool * inte
     boost::fibers::fiber f(
         boost::bind( interrupt_from_same_thread, b, value, interrupted) );
 
-    std::stringstream ss;
-    ss << f.get_id();
-    fprintf(stderr, "interrupt_from_same_thread: %s\n", ss.str().c_str() );
     f.join();
 }
 
@@ -186,9 +174,6 @@ void fn_join_in_fiber( boost::barrier * b, int * value, bool * interrupted)
     boost::fibers::fiber f(
         boost::bind( join_fiber, b, value, interrupted) );
 
-    std::stringstream ss;
-    ss << f.get_id();
-    fprintf(stderr, "join_fiber: %s\n", ss.str().c_str() );
     f.join();
 }
 
@@ -219,7 +204,6 @@ void test_join_in_fiber_runing()
     BOOST_CHECK_EQUAL( 7, value2);
     BOOST_CHECK( ! interrupted);
     delete other_f;
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 
@@ -241,7 +225,6 @@ void test_join_in_fiber_terminated()
     BOOST_CHECK_EQUAL( 7, value2);
     BOOST_CHECK( ! interrupted);
     delete other_f;
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 
@@ -263,7 +246,6 @@ void test_join_in_fiber_interrupted_inside()
     BOOST_CHECK( !interrupted2);
     BOOST_CHECK_EQUAL( 7, value2);
     delete other_f;
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 
@@ -285,7 +267,6 @@ void test_join_in_fiber_interrupted_outside()
     BOOST_CHECK( ! interrupted);
     BOOST_CHECK_EQUAL( 7, value2);
     delete other_f;
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 
@@ -337,7 +318,6 @@ void test_mutex_exclusive()
 
 	BOOST_CHECK_EQUAL( 1, value1);
 	BOOST_CHECK_EQUAL( 2, value2);
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 
@@ -403,7 +383,6 @@ void test_two_waiter_notify_one()
     t2.join();
 
 	BOOST_CHECK_EQUAL( 2, value);
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 
@@ -438,7 +417,6 @@ void test_two_waiter_notify_all()
     t2.join();
 
 	BOOST_CHECK_EQUAL( 2, value);
-    fprintf(stderr, "%d. finished\n", i);
     }
 }
 

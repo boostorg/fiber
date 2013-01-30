@@ -92,7 +92,6 @@ void condition_test_waits( condition_test_data * data)
     BOOST_CHECK( lock ? true : false);
 
     // Test wait.
-    fprintf( stderr, "fiber wait.\n");
     while ( data->notified != 1)
         data->condition.wait(lock);
     BOOST_CHECK(lock ? true : false);
@@ -101,7 +100,6 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test predicate wait.
-    fprintf( stderr, "fiber predicate wait.\n");
     data->condition.wait(lock, cond_predicate(data->notified, 2));
     BOOST_CHECK(lock ? true : false);
     BOOST_CHECK_EQUAL(data->notified, 2);
@@ -109,7 +107,6 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test timed_wait.
-    fprintf( stderr, "fiber timed_wait.\n");
     boost::chrono::system_clock::time_point xt = delay(10);
     while (data->notified != 3)
         data->condition.wait(lock);
@@ -120,7 +117,6 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test predicate timed_wait.
-    fprintf( stderr, "fiber predicate timed_wait.\n");
     xt = delay(10);
     cond_predicate pred(data->notified, 4);
     BOOST_CHECK(data->condition.timed_wait(lock, xt, pred));
@@ -131,7 +127,6 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test predicate timed_wait with relative timeout
-    fprintf( stderr, "fiber predicate timed_wait with relative timeout.\n");
     cond_predicate pred_rel(data->notified, 5);
     BOOST_CHECK(data->condition.timed_wait(lock, boost::chrono::seconds(10), pred_rel));
     BOOST_CHECK(lock ? true : false);
@@ -141,7 +136,6 @@ void condition_test_waits( condition_test_data * data)
     data->condition.notify_one();
 
     // Test timeout timed_wait.
-    fprintf( stderr, "fiber timeout timed_wait.\n");
     BOOST_CHECK(!data->condition.timed_wait(lock, boost::chrono::seconds(2)));
     BOOST_CHECK(lock ? true : false);
 }

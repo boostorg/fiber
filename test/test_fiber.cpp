@@ -75,15 +75,12 @@ void f2()
 
 void f4()
 {
-    fprintf(stderr, "enter f4()\n");
     boost::fibers::fiber s( f2);
-    fprintf(stderr, "f4 1\n");
     BOOST_CHECK( s);
     BOOST_CHECK( s.joinable() );
     s.join();
     BOOST_CHECK( ! s);
     BOOST_CHECK( ! s.joinable() );
-    fprintf(stderr, "leave f4()\n");
 }
 
 void f5()
@@ -156,12 +153,12 @@ void test_move()
 
     {
         boost::fibers::fiber s1;
-        BOOST_CHECK( s1.empty() );
+        BOOST_CHECK( ! s1);
         boost::fibers::fiber s2( f1);
-        BOOST_CHECK( ! s2.empty() );
+        BOOST_CHECK( s2);
         s1 = boost::move( s2);
-        BOOST_CHECK( ! s1.empty() );
-        BOOST_CHECK( s2.empty() );
+        BOOST_CHECK( s1);
+        BOOST_CHECK( ! s2);
         s1.join();
     }
 
@@ -197,8 +194,8 @@ void test_id()
 
     boost::fibers::fiber s1;
     boost::fibers::fiber s2( f1);
-    BOOST_CHECK( s1.empty() );
-    BOOST_CHECK( ! s2.empty() );
+    BOOST_CHECK( ! s1);
+    BOOST_CHECK( s2);
 
     BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), s1.get_id() );
     BOOST_CHECK( boost::fibers::fiber::id() != s2.get_id() );
@@ -207,8 +204,8 @@ void test_id()
     BOOST_CHECK( s2.get_id() != s3.get_id() );
 
     s1 = boost::move( s2);
-    BOOST_CHECK( ! s1.empty() );
-    BOOST_CHECK( s2.empty() );
+    BOOST_CHECK( s1);
+    BOOST_CHECK( ! s2);
 
     BOOST_CHECK( boost::fibers::fiber::id() != s1.get_id() );
     BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), s2.get_id() );
@@ -305,13 +302,10 @@ void test_join_in_fiber()
     // s spawns an new fiber s' in its fiber-fn
     // s' yields in its fiber-fn
     // s joins s' and gets suspended (waiting on s')
-    fprintf(stderr, "enter test_join_in_fiber()\n");
     boost::fibers::fiber s( f4);
-    fprintf(stderr, "test_join_in_fiber 1\n");
     // run() resumes s + s' which completes
     s.join();
     //BOOST_CHECK( ! s);
-    fprintf(stderr, "leave test_join_in_fiber()\n");
 }
 
 void test_yield_break()

@@ -54,8 +54,6 @@ boost::fibers::shared_future< int > fibonacci( int n)
 void create_fibers( int n)
 {
     int res = fibonacci( n).get();
-
-    fprintf(stderr, "fibonacci(%d) == %d\n", n, res);
 }
 
 void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int n)
@@ -69,7 +67,6 @@ void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int 
 
     std::stringstream ss;
     ss << f.get_id();
-    fprintf(stderr, "create_fibers(): %s\n", ss.str().c_str());
     f.join();
 
     fini = true;
@@ -90,7 +87,6 @@ void fn_steel_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b,
         {
             ++( * count);
             ds.migrate_to( f);
-            fprintf(stderr, "%d fibers stolen\n", * count);
             while ( boost::fibers::run() );
         }
         f.detach();
@@ -111,7 +107,6 @@ void test_migrate_fiber()
     t1.join();
     t2.join();
 
-    fprintf(stderr, "stolen fibers == %d\n", count);
     fprintf(stderr, "%d. finished\n", i);
     delete ds;
     }
