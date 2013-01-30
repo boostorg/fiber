@@ -18,9 +18,6 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-#include <cstdio>
-#include <sstream>
-
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -72,12 +69,7 @@ fiber_base::release()
     // protect against concurrent access to joining_
     unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t p, joining_)
-    {
-        std::stringstream ss;
-        ss << p->get_id();
-        fprintf(stderr, "p->wake-up( true) : %s\n", ss.str().c_str() );
-        p->wake_up();
-    }
+    { p->wake_up(); }
     joining_.clear();
 }
 
