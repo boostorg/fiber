@@ -14,7 +14,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#define MAXCOUNT 10
+#define MAXCOUNT 1
 
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
