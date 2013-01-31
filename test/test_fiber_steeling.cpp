@@ -108,7 +108,7 @@ void test_migrate_fiber()
     t1.join();
     t2.join();
 
-    fprintf(stderr, ", %d fibers stolen\n\n", count);
+    fprintf(stderr, ", %d fibers stolen\n", count);
     delete ds;
     }
 }
