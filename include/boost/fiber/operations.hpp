@@ -55,10 +55,6 @@ void yield_break()
 namespace fibers {
 
 inline
-bool run()
-{ return detail::scheduler::instance().run(); }
-
-inline
 algorithm * scheduling_algorithm( algorithm * al)
 { return detail::scheduler::replace( al); }
 
