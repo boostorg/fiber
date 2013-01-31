@@ -77,14 +77,15 @@ mutex::try_lock()
 void
 mutex::unlock()
 {
-	state_ = UNLOCKED;
-
     unique_lock< detail::spinlock > lk( waiting_mtx_);
 	if ( ! waiting_.empty() )
     {
-        waiting_.front()->wake_up();
+        if ( waiting_.front() )
+            waiting_.front()->wake_up();
         waiting_.pop_front();
     }
+
+	state_ = UNLOCKED;
 }
 
 }}
