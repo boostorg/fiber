@@ -53,7 +53,6 @@ private:
     atomic< command >                       cmd_;
     atomic< std::size_t >                   waiters_;
     mutex                                   enter_mtx_;
-    mutex                                   check_mtx_;
     detail::spinlock                        waiting_mtx_;
     std::deque< detail::fiber_base::ptr_t > waiting_;
 
