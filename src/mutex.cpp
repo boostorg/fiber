@@ -8,11 +8,12 @@
 
 #include <boost/fiber/mutex.hpp>
 
+#include <algorithm>
+
 #include <boost/assert.hpp>
 
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/interruption.hpp>
-#include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -33,19 +34,39 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
+    detail::fiber_base::ptr_t f( detail::scheduler::instance().active() );
+    if ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
-        if ( this_fiber::is_fiberized() )
+        // store this fiber in order to be notified later
+        unique_lock< detail::spinlock > lk( waiting_mtx_);
+        waiting_.push_back( f);
+        lk.unlock();
+        do
         {
-            unique_lock< detail::spinlock > lk( waiting_mtx_);
-            waiting_.push_back(
-                    detail::scheduler::instance().active() );
-            detail::scheduler::instance().wait( lk);
-
-            // check if fiber was interrupted
-            this_fiber::interruption_point();
+            try
+            {
+                if ( f)
+                {
+                    // suspend this fiber
+                    detail::scheduler::instance().wait();
+                }
+                else
+                {
+                    // run scheduler
+                    detail::scheduler::instance().run();
+                }
+            }
+            catch (...)
+            {
+                // FIXME: use multi-index container
+                // remove fiber from waiting_
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                waiting_.erase(
+                    std::find( waiting_.begin(), waiting_.end(), f) );
+                throw;
+            }
         }
-        else run();
+        while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) );
     }
 }
 
