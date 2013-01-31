@@ -151,13 +151,13 @@ public:
 			return false;
 		if ( empty)
 		{
-//  		try
-//  		{
+		try
+		{
 				while ( active_() && empty_() )
 					not_empty_cond_.wait( lk);
-//  		}
-//  		catch ( fibers_interrupted const&)
-//  		{ return false; }
+		}
+		catch ( fiber_interrupted const&)
+		{ return false; }
 		}
 		if ( ! active_() && empty_() )
 			return false;
@@ -178,16 +178,16 @@ public:
 			return false;
 		if ( empty)
 		{
-//  		try
-//  		{
+		try
+		{
 				while ( active_() && empty_() )
                 {
 					if ( ! not_empty_cond_.timed_wait( lk, abs_time) )
                         return false;
                 }
-//  		}
-//  		catch ( fibers_interrupted const&)
-//  		{ return false; }
+		}
+		catch ( fiber_interrupted const&)
+		{ return false; }
 		}
 		if ( ! active_() && empty_() )
 			return false;
