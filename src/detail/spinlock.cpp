@@ -16,7 +16,7 @@ namespace fibers {
 namespace detail {
 
 spinlock::spinlock() :
-	state_( UNLOCKED)
+    state_( UNLOCKED)
 {}
 
 void
@@ -24,10 +24,12 @@ spinlock::lock()
 {
     while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
-        // busy-wait
-		// BOOST_ASSERT( this_fiber::is_fiberized() );
-		if ( this_fiber::is_fiberized() )
-		    this_fiber::yield();
+//      // busy-wait
+//      // BOOST_ASSERT( this_fiber::is_fiberized() );
+//      if ( this_fiber::is_fiberized() )
+//          this_fiber::yield();
+//      else
+//          run();
     }
 }
 
