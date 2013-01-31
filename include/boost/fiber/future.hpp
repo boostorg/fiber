@@ -1390,6 +1390,48 @@ namespace fibers {
         return boost::move( ret);
     }
 
+    template< typename T >
+    struct is_future_type
+    {
+        BOOST_STATIC_CONSTANT( bool, value = false);
+    };
+
+    template< typename T >
+    struct is_future_type< unique_future< T > >
+    {
+        BOOST_STATIC_CONSTANT( bool, value = true);
+    };
+
+    template< typename T >
+    struct is_future_type< shared_future< T > >
+    {
+        BOOST_STATIC_CONSTANT( bool, value = true);
+    };
+
+    template< typename Iterator >
+    typename boost::disable_if< is_future_type< Iterator >,void >::type
+    waitfor_all( Iterator begin,Iterator end)
+    {
+        for ( Iterator current = begin; current != end; ++current)
+        {
+            current->wait();
+        }
+    }
+
+    template< typename Iterator >
+    typename boost::disable_if< is_future_type< Iterator >, Iterator >::type
+    waitfor_any( Iterator begin, Iterator end)
+    {
+        if ( begin == end) return end;
+
+        detail::future_waiter waiter;
+        for ( Iterator current = begin; current != end; ++current)
+        {
+            waiter.add( * current);
+        }
+        return boost::next( begin, waiter.wait() );
+    }
+
 #define BOOST_FIBERS_WAITFOR_FUTURE_FN_ARG(z,n,unused) \
     BOOST_PP_CAT(F,n) & BOOST_PP_CAT(f,n)
 
