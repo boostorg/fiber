@@ -54,6 +54,29 @@ round_robin::~round_robin()
 #endif
 }
 
+void
+round_robin::spawn( detail::fiber_base::ptr_t const& f)
+{
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( f->is_ready() );
+
+    detail::fiber_base::ptr_t tmp = active_fiber_;
+    try
+    {
+        active_fiber_ = f;
+        // resume new active fiber
+        active_fiber_->set_running();
+        active_fiber_->resume();
+        BOOST_ASSERT( f == active_fiber_);
+    }
+    catch (...)
+    {
+        active_fiber_ = tmp;
+        throw;
+    }
+    active_fiber_ = tmp;
+}
+
 bool
 round_robin::run()
 {
@@ -94,21 +117,8 @@ round_robin::run()
     }
     while ( true);
 
-    detail::fiber_base::ptr_t tmp = active_fiber_;
-    try
-    {
-        active_fiber_ = f;
-        // resume new active fiber
-        active_fiber_->set_running();
-        active_fiber_->resume();
-        BOOST_ASSERT( f == active_fiber_);
-    }
-    catch (...)
-    {
-        active_fiber_ = tmp;
-        throw;
-    }
-    active_fiber_ = tmp;
+    // resume fiber
+    spawn( f);
 
     return true;
 }
@@ -209,16 +219,6 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-round_robin::add( detail::fiber_base::ptr_t const& f)
-{
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( ! f->is_running() );
-    BOOST_ASSERT( ! f->is_terminated() );
-
-    wqueue_.push_back( f);
-}
-
-void
 round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
 {
     BOOST_ASSERT( f);
@@ -231,7 +231,7 @@ round_robin::migrate_to( fiber const& f)
 {
     BOOST_ASSERT( f);
 
-    add( detail::scheduler::extract( f) );
+    spawn( detail::scheduler::extract( f) );
 }
 
 fiber

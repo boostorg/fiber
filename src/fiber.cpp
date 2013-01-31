@@ -26,7 +26,7 @@ namespace fibers {
 
 void
 fiber::spawn_( detail::fiber_base::ptr_t const& f)
-{ detail::scheduler::instance().add( f); }
+{ detail::scheduler::instance().spawn( f); }
 
 int
 fiber::priority() const

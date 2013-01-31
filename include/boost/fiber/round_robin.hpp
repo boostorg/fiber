@@ -50,7 +50,7 @@ public:
 
     ~round_robin() BOOST_NOEXCEPT;
 
-    void add( detail::fiber_base::ptr_t const&);
+    void spawn( detail::fiber_base::ptr_t const&);
 
     void priority( detail::fiber_base::ptr_t const&, int);
 
