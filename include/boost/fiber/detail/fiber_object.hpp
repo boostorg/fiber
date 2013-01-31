@@ -244,7 +244,9 @@ public:
         {
             set_ready();
             suspend();
+            BOOST_ASSERT( is_running() );
             fn_();
+            BOOST_ASSERT( is_running() );
         }
         catch ( forced_unwind const&)
         {}
@@ -339,6 +341,9 @@ public:
             set_ready();
             suspend();
             fn_();
+            BOOST_ASSERT( is_running() );
+            fn_();
+            BOOST_ASSERT( is_running() );
         }
         catch ( forced_unwind const&)
         {}
