@@ -14,7 +14,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#define MAXCOUNT 1
+#define MAXCOUNT 50
 
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
@@ -68,11 +68,13 @@ void interrupt_join_fiber( boost::barrier * b, int * value, bool * interrupted)
     other_f->interrupt();
     try
     {
+#if 0
     boost::xtime xt;
     boost::xtime_get(&xt, boost::TIME_UTC_);
     xt.nsec += 150000000 ; // 50ms
     //xt.sec += 1; //1 second
     boost::this_thread::sleep( xt);
+#endif
         other_f->join();
         * value = 7;
     }

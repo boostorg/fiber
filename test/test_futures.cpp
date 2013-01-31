@@ -592,7 +592,7 @@ void wait_callback()
     fi.wait();
     BOOST_CHECK(callback_called==1);
 }
-
+#if 0
 void wait_callback_with_timed_wait()
 {
     callback_called=0;
@@ -614,7 +614,7 @@ void wait_callback_with_timed_wait()
     BOOST_CHECK(fi.get()==42);
     BOOST_CHECK(callback_called==3);
 }
-
+#endif
 void wait_callback_for_packaged_task()
 {
     callback_called=0;
@@ -1022,7 +1022,7 @@ void wait_for_either_invokes_callbacks()
     BOOST_CHECK(fi.get()==42);
     BOOST_CHECK(callback_called==1);
 }
-#if 0
+
 void wait_for_any_from_range()
 {
     unsigned const count=10;
@@ -1035,7 +1035,7 @@ void wait_for_any_from_range()
             tasks[j]=boost::fibers::packaged_task<int>(make_int_slowly);
             futures[j]=tasks[j].get_future();
         }
-        boost::fibers::fiber x(boost::move(tasks[i]));
+        boost::fibers::fiber(boost::move(tasks[i])).detach();
     
         BOOST_CHECK(boost::fibers::waitfor_any(futures,futures)==futures);
         
@@ -1065,7 +1065,7 @@ void wait_for_all_from_range()
     {
         boost::fibers::packaged_task<int> task(make_int_slowly);
         futures[j]=task.get_future();
-        boost::fibers::fiber x(boost::move(task));
+        boost::fibers::fiber(boost::move(task)).detach();
     }
     
     boost::fibers::waitfor_all(futures,futures+count);
@@ -1075,7 +1075,6 @@ void wait_for_all_from_range()
         BOOST_CHECK(futures[j].is_ready());
     }
 }
-#endif
 
 void wait_for_all_two_futures()
 {
@@ -1365,7 +1364,7 @@ void test_wait_callback()
 
     wait_callback();
 }
-
+#if 0
 void test_wait_callback_with_timed_wait()
 {
     boost::fibers::round_robin ds;
@@ -1373,7 +1372,7 @@ void test_wait_callback_with_timed_wait()
 
     wait_callback_with_timed_wait();
 }
-
+#endif
 void test_wait_callback_for_packaged_task()
 {
     boost::fibers::round_robin ds;
@@ -1525,7 +1524,7 @@ void test_wait_for_either_invokes_callbacks()
 
     wait_for_either_invokes_callbacks();
 }
-#if 0
+
 void test_wait_for_any_from_range()
 {
     boost::fibers::round_robin ds;
@@ -1541,7 +1540,7 @@ void test_wait_for_all_from_range()
 
     wait_for_all_from_range();
 }
-#endif
+
 void test_wait_for_all_two_futures()
 {
     boost::fibers::round_robin ds;
@@ -1614,7 +1613,9 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 //  test->add(BOOST_TEST_CASE(test_unique_future_for_move_only_udt));
     test->add(BOOST_TEST_CASE(test_unique_future_for_string));
     test->add(BOOST_TEST_CASE(test_wait_callback));
+#if 0
     test->add(BOOST_TEST_CASE(test_wait_callback_with_timed_wait));
+#endif
     test->add(BOOST_TEST_CASE(test_wait_callback_for_packaged_task));
     test->add(BOOST_TEST_CASE(test_packaged_task_can_be_moved));
     test->add(BOOST_TEST_CASE(test_destroying_a_promise_stores_broken_promise));
@@ -1634,14 +1635,13 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_five_futures_4));
     test->add(BOOST_TEST_CASE(test_wait_for_either_of_five_futures_5));
     test->add(BOOST_TEST_CASE(test_wait_for_either_invokes_callbacks));
-//  test->add(BOOST_TEST_CASE(test_wait_for_any_from_range));
-//  test->add(BOOST_TEST_CASE(test_wait_for_all_from_range));
+    test->add(BOOST_TEST_CASE(test_wait_for_any_from_range));
+    test->add(BOOST_TEST_CASE(test_wait_for_all_from_range));
     test->add(BOOST_TEST_CASE(test_wait_for_all_two_futures));
-#if 0
     test->add(BOOST_TEST_CASE(test_wait_for_all_three_futures));
     test->add(BOOST_TEST_CASE(test_wait_for_all_four_futures));
     test->add(BOOST_TEST_CASE(test_wait_for_all_five_futures));
     test->add(BOOST_TEST_CASE(test_future_wait));
-#endif
+
     return test;
 }

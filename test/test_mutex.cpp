@@ -96,8 +96,8 @@ void test_exclusive()
 		boost::bind( & fn2, boost::ref( mtx) ) );
     BOOST_ASSERT( s1);
     BOOST_ASSERT( s2);
-	BOOST_CHECK_EQUAL( 0, value1);
-	BOOST_CHECK_EQUAL( 0, value2);
+	BOOST_CHECK_EQUAL( 1, value1);
+	BOOST_CHECK_EQUAL( 1, value2);
 
     s1.join();
     s2.join();
