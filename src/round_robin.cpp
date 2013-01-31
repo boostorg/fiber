@@ -114,7 +114,7 @@ round_robin::run()
 }
 
 void
-round_robin::wait( unique_lock< detail::spinlock > & lk)
+round_robin::wait()
 {
     BOOST_ASSERT( active_fiber_);
     //FIXME: mabye other threads can change the state of active fiber?
@@ -122,8 +122,6 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
 
     // set active_fiber to state_waiting
     active_fiber_->set_waiting();
-    // unlock assoc. sync. primitive
-    lk.unlock();
     // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var

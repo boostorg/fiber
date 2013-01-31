@@ -40,7 +40,7 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
 
     virtual bool run() = 0;
 
-    virtual void wait( unique_lock< detail::spinlock > &) = 0;
+    virtual void wait() = 0;
 
     virtual void yield() = 0;
 
