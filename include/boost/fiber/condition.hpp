@@ -147,14 +147,14 @@ public:
         }
 
         //Unlock the enter mutex if it is a single notification, if this is
-        //the last notified thread in a notify_all or a timeout has occurred
+        //the last notified fiber in a notify_all or a timeout has occurred
         if ( unlock_enter_mtx)
             enter_mtx_.unlock();
 
         //Lock external again before returning from the method
         lt.lock();
     }
-
+#if 0
     template< typename LockType, typename TimeDuration > 
     bool timed_wait( LockType & lt, TimeDuration const& dt)
     { return timed_wait( lt, chrono::system_clock::now() + dt); }
@@ -286,6 +286,7 @@ public:
         lt.lock();
         return ! timed_out;
     }
+#endif
 };
 
 typedef condition condition_variable;

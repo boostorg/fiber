@@ -198,7 +198,7 @@ public:
         }
         not_empty_cond_.notify_one();
     }
-
+#if 0
     template< typename TimeDuration >
     bool put( T const& t, TimeDuration const& dt)
     { return put( t, chrono::system_clock::now() + dt); }
@@ -229,7 +229,7 @@ public:
         not_empty_cond_.notify_one();
         return true;
     }
-
+#endif
     bool take( value_type & va)
     {
         mutex::scoped_lock lk( head_mtx_);
@@ -261,7 +261,7 @@ public:
         }
         return va;
     }
-
+#if 0
     template< typename TimeDuration >
     bool take( value_type & va, TimeDuration const& dt)
     { return take( va, chrono::system_clock::now() + dt); }
@@ -300,7 +300,7 @@ public:
         }
         return va;
     }
-
+#endif
     bool try_take( value_type & va)
     {
         mutex::scoped_lock lk( head_mtx_);

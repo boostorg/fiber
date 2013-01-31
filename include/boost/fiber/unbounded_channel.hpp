@@ -165,7 +165,7 @@ public:
 		pop_head_();
 		return va;
 	}
-
+#if 0
     template< typename TimeDuration >
 	bool take( value_type & va, TimeDuration const& dt)
 	{ return take( va, chrono::system_clock::now() + dt); }
@@ -195,7 +195,7 @@ public:
 		pop_head_();
 		return va;
 	}
-
+#endif
 	bool try_take( value_type & va)
 	{
 		mutex::scoped_lock lk( head_mtx_);

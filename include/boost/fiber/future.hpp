@@ -218,7 +218,7 @@ namespace fibers {
                     boost::rethrow_exception(exception);
                 }
             }
-
+#if 0
             bool timed_wait_until(chrono::system_clock::time_point const& target_time)
             {
                 boost::unique_lock<boost::fibers::mutex> lock(mutex);
@@ -233,7 +233,7 @@ namespace fibers {
                 }
                 return true;
             }
-
+#endif
             void mark_exceptional_finish_internal(boost::exception_ptr const& e,
                                           boost::unique_lock<boost::fibers::mutex>& lock)
             {
@@ -693,7 +693,7 @@ namespace fibers {
             }
             future->wait(false);
         }
-
+#if 0
         template<typename Duration>
         bool timed_wait(Duration const& rel_time) const
         {
@@ -708,7 +708,7 @@ namespace fibers {
             }
             return future->timed_wait_until(abs_time);
         }
-
+#endif
         template<typename RF>
         unique_future<RF>
         then(RF(*func)(unique_future< R >&))
@@ -891,7 +891,7 @@ namespace fibers {
             }
             future->wait(false);
         }
-
+#if 0
         template<typename Duration>
         bool timed_wait(Duration const& rel_time) const
         {
@@ -906,6 +906,7 @@ namespace fibers {
             }
             return future->timed_wait_until(abs_time);
         }
+#endif
     };
 
     template <typename R>
