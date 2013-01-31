@@ -9,6 +9,7 @@
 #ifndef BOOST_FIBERS_CONDITION_H
 #define BOOST_FIBERS_CONDITION_H
 
+#include <algorithm>
 #include <cstddef>
 #include <deque>
 
@@ -75,39 +76,53 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
+        detail::fiber_base::ptr_t f( detail::scheduler::instance().active() );
         {
-            mutex::scoped_lock lk( enter_mtx_);
+            unique_lock< mutex > lk( enter_mtx_);
             BOOST_ASSERT( lk);
-            ++waiters_;
+            {
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                BOOST_ASSERT( lk);
+                waiting_.push_back( f);
+                ++waiters_;
+            }
             lt.unlock();
         }
 
         bool unlock_enter_mtx = false;
 
-        //Loop until a notification indicates that the thread should exit
+        //Loop until a notification indicates that the fiber should exit
         for (;;)
         {
-            //The thread sleeps/spins until a spin_condition commands a notification
+            //The fiber sleeps/spins until a spin_condition commands a notification
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
                 try
                 {
-                    if ( this_fiber::is_fiberized() )
+                    if ( f)
                     {
+                        // check if fiber was interrupted
                         this_fiber::interruption_point();
 
-                        unique_lock< detail::spinlock > lk( waiting_mtx_);
-                        waiting_.push_back(
-                                detail::scheduler::instance().active() );
-                        detail::scheduler::instance().wait( lk);
+                        detail::scheduler::instance().wait();
 
+                        // check if fiber was interrupted
                         this_fiber::interruption_point();
                     }
-                    else run();
+                    else
+                    {
+                        // run scheduler
+                        detail::scheduler::instance().run();
+                    }
                 }
                 catch (...)
                 {
+                    // FIXME: use multi-index container
+                    // remove fiber from waiting_
+                    unique_lock< detail::spinlock > lk( waiting_mtx_);
+                    waiting_.erase(
+                            std::find( waiting_.begin(), waiting_.end(), f) );
                     --waiters_;
                     throw;
                 }
@@ -116,26 +131,28 @@ public:
 			command expected = NOTIFY_ONE;
 			cmd_.compare_exchange_strong( expected, SLEEPING);
 			if ( SLEEPING == expected)
-                //Other thread has been notified and since it was a NOTIFY one
-                //command, this thread must sleep again
+                //Other fiber has been notified and since it was a NOTIFY one
+                //command, this fiber must sleep again
 				continue;
 			else if ( NOTIFY_ONE == expected)
 			{
-                //If it was a NOTIFY_ONE command, only this thread should
-                //exit. This thread has atomically marked command as sleep before
-                //so no other thread will exit.
+                //If it was a NOTIFY_ONE command, only this fiber should
+                //exit. This fiber has atomically marked command as sleep before
+                //so no other fiber will exit.
                 //Decrement wait count.
+                --waiters_;
 				unlock_enter_mtx = true;
-				--waiters_;
 				break;
 			}
             else
             {
-                //If it is a NOTIFY_ALL command, all threads should return
+                //If it is a NOTIFY_ALL command, all fibers should return
                 //from do_timed_wait function. Decrement wait count.
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
 				unlock_enter_mtx = 0 == --waiters_;
-                //Check if this is the last thread of notify_all waiters
-                //Only the last thread will release the mutex
+                lk.unlock();
+                //Check if this is the last fiber of notify_all waiters
+                //Only the last fiber will release the mutex
                 if ( unlock_enter_mtx)
 				{
 					expected = NOTIFY_ALL;
@@ -189,28 +206,44 @@ public:
         }
 
         bool unlock_enter_mtx = false, timed_out = false;
-        //Loop until a notification indicates that the thread should
+        //Loop until a notification indicates that the fiber should
         //exit or timeout occurs
         for (;;)
         {
-            //The thread sleeps/spins until a spin_condition commands a notification
+            //The fiber sleeps/spins until a spin_condition commands a notification
             //Notification occurred, we will lock the checking mutex so that
             while ( SLEEPING == cmd_)
             {
+                detail::fiber_base::ptr_t f( detail::scheduler::instance().active() );
                 try
                 {
-                    if ( this_fiber::is_fiberized() )
+                    if ( f)
                     {
+                        // check if fiber was interrupted
                         this_fiber::interruption_point();
+
                         this_fiber::yield();
 
+                        // check if fiber was interrupted
                         this_fiber::interruption_point();
                     }
-                    else run();
+                    else
+                    {
+                        // store a dummy fiber
+                        unique_lock< detail::spinlock > lk( waiting_mtx_);
+                        waiting_.push_back( f);
+                        // run scheduler
+                        run();
+                    }
                 }
                 catch (...)
                 {
                     --waiters_;
+                    // FIXME: use multi-index container
+                    // remove fiber from waiting_
+                    unique_lock< detail::spinlock > lk( waiting_mtx_);
+                    waiting_.erase(
+                            std::find( waiting_.ebgin(), waiting_.end(), f) );
                     throw;
                 }
 
@@ -221,7 +254,7 @@ public:
                     //is being executed in this spin_condition variable
                     timed_out = enter_mtx_.try_lock();
 
-                    //If locking fails, indicates that another thread is executing
+                    //If locking fails, indicates that another fiber is executing
                     //notification, so we play the notification game
                     if ( ! timed_out)
                         //There is an ongoing notification, we will try again later
@@ -246,14 +279,14 @@ public:
                 command expected = NOTIFY_ONE;
                 cmd_.compare_exchange_strong( expected, SLEEPING);
                 if ( SLEEPING == expected)
-                    //Other thread has been notified and since it was a NOTIFY one
-                    //command, this thread must sleep again
+                    //Other fiber has been notified and since it was a NOTIFY one
+                    //command, this fiber must sleep again
                     continue;
                 else if ( NOTIFY_ONE == expected)
                 {
-                    //If it was a NOTIFY_ONE command, only this thread should
-                    //exit. This thread has atomically marked command as sleep before
-                    //so no other thread will exit.
+                    //If it was a NOTIFY_ONE command, only this fiber should
+                    //exit. This fiber has atomically marked command as sleep before
+                    //so no other fiber will exit.
                     //Decrement wait count.
                     unlock_enter_mtx = true;
                     --waiters_;
@@ -261,11 +294,11 @@ public:
                 }
                 else
                 {
-                    //If it is a NOTIFY_ALL command, all threads should return
+                    //If it is a NOTIFY_ALL command, all fibers should return
                     //from do_timed_wait function. Decrement wait count.
                     unlock_enter_mtx = 0 == --waiters_;
-                    //Check if this is the last thread of notify_all waiters
-                    //Only the last thread will release the mutex
+                    //Check if this is the last fiber of notify_all waiters
+                    //Only the last fiber will release the mutex
                     if ( unlock_enter_mtx)
                     {
                         expected = NOTIFY_ALL;
@@ -277,7 +310,7 @@ public:
         }
 
         //Unlock the enter mutex if it is a single notification, if this is
-        //the last notified thread in a notify_all or a timeout has occurred
+        //the last notified fiber in a notify_all or a timeout has occurred
         if ( unlock_enter_mtx)
             enter_mtx_.unlock();
 
