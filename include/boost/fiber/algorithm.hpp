@@ -13,6 +13,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -43,6 +44,8 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
     virtual void wait( unique_lock< detail::spinlock > &) = 0;
 
     virtual void yield() = 0;
+
+    virtual detail::notify::ptr_t notifier() = 0;
 
     virtual ~algorithm() {}
 };

@@ -29,9 +29,40 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
+
+class main_notifier : public detail::notify
+{
+private:
+    atomic< std::size_t >    use_count_;
+
+    void add_ref() BOOST_NOEXCEPT
+    { use_count_.fetch_add( 1, memory_order_seq_cst); }
+
+    void release_ref()
+    {
+        if ( 1 == use_count_.fetch_sub( 1, memory_order_seq_cst) )
+            delete this;
+    }
+
+public:
+    main_notifier() :
+        detail::notify(),
+        use_count_( 0)
+    {}
+
+    friend inline void intrusive_ptr_add_ref( main_notifier * p) BOOST_NOEXCEPT
+    { p->add_ref(); }
+
+    friend inline void intrusive_ptr_release( main_notifier * p)
+    { p->release_ref(); }
+};
+
+}
 
 round_robin::round_robin() :
     active_fiber_(),
+    notifier_( new detail::main_notifier() ),
     wqueue_(),
     rqueue_mtx_(),
     rqueue_()
@@ -136,6 +167,8 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
+    // release lock
+    lk.unlock();
     // suspend fiber
     tmp->suspend();
     // fiber is resumed
@@ -163,8 +196,6 @@ round_robin::yield()
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
-    // release lock
-    lk.unlock();
     // suspend fiber
     tmp->suspend();
     // fiber is resumed
@@ -206,11 +237,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
     else
     {
         while ( ! f->is_terminated() )
-        {
-            //FIXME: call this_thread::yield() before ?
-            //FIXME: rethrow exception from f?
             run();
-        }
     }
 
     // check if joined fiber has an exception
@@ -227,6 +254,10 @@ round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
 
     f->priority( prio);
 }
+
+detail::notify::ptr_t
+round_robin::notifier()
+{ return notifier_; }
 
 void
 round_robin::migrate_to( fiber const& f)

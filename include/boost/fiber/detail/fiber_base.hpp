@@ -23,6 +23,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/flags.hpp>
+#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/states.hpp>
 
@@ -34,7 +35,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class BOOST_FIBERS_DECL fiber_base : private noncopyable
+class BOOST_FIBERS_DECL fiber_base : public notify
 {
 public:
     typedef intrusive_ptr< fiber_base >           ptr_t;
@@ -47,12 +48,20 @@ private:
     atomic< state_t >       state_;
     atomic< int >           flags_;
     atomic< int >           priority_;
-    atomic< bool >          wake_up_;
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
     exception_ptr           except_;
     spinlock                joining_mtx_;
     std::vector< ptr_t >    joining_;
+
+    void add_ref() BOOST_NOEXCEPT
+    { use_count_.fetch_add( 1, memory_order_seq_cst); }
+
+    void release_ref()
+    {
+        if ( 1 == use_count_.fetch_sub( 1, memory_order_seq_cst) )
+            deallocate_object();
+    }
 
 protected:
     virtual void deallocate_object() = 0;
@@ -166,12 +175,6 @@ public:
             flags_ &= ~flag_interruption_requested;
     }
 
-    bool woken_up() BOOST_NOEXCEPT
-    { return wake_up_.exchange( false, memory_order_seq_cst); }
-
-    void wake_up() BOOST_NOEXCEPT
-    { wake_up_.exchange( true, memory_order_seq_cst); }
-
     bool is_terminated() const BOOST_NOEXCEPT
     { return state_terminated == state_; }
 
@@ -258,13 +261,10 @@ public:
     void rethrow() const;
 
     friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
-    { p->use_count_.fetch_add( 1, memory_order_seq_cst); }
+    { p->add_ref(); }
 
     friend inline void intrusive_ptr_release( fiber_base * p)
-    {
-        if ( 1 == p->use_count_.fetch_sub( 1, memory_order_seq_cst) )
-            p->deallocate_object();
-    }
+    { p->release_ref(); }
 };
 
 }}}

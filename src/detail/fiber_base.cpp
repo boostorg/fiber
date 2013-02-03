@@ -23,11 +23,11 @@ namespace fibers {
 namespace detail {
 
 fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
+    notify(),
     use_count_( 0),
     state_( state_ready),
     flags_( 0),
     priority_( 0),
-    wake_up_( false),
     caller_(),
     callee_( callee),
     except_(),
