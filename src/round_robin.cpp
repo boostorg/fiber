@@ -124,7 +124,7 @@ round_robin::run()
 }
 
 void
-round_robin::wait()
+round_robin::wait( unique_lock< detail::spinlock > & lk)
 {
     BOOST_ASSERT( active_fiber_);
     //FIXME: mabye other threads can change the state of active fiber?
@@ -163,6 +163,8 @@ round_robin::yield()
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
+    // release lock
+    lk.unlock();
     // suspend fiber
     tmp->suspend();
     // fiber is resumed

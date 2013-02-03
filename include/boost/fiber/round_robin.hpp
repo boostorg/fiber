@@ -61,7 +61,7 @@ public:
 
     bool run();
 
-    void wait();
+    void wait( unique_lock< detail::spinlock > &);
 
     void yield();
 
