@@ -19,8 +19,20 @@ project boost/fiber
 		<link>shared:<define>BOOST_FIBERS_DYN_LINK=1
     ;
 
+alias yield_sources
+    : detail/windows_thread_yield.cpp
+    : <target-os>windows
+    ;
+
+alias yield_sources
+    : detail/posix_thread_yield.cpp
+    ;
+
+explicit yield_sources ;
+
 lib boost_fibers
-    : barrier.cpp
+    : yield_sources
+      barrier.cpp
       condition.cpp
       detail/fiber_base.cpp
       detail/scheduler.cpp
