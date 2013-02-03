@@ -39,15 +39,8 @@ fibers::fiber::id get_id()
 inline
 void yield()
 {
-	BOOST_ASSERT( is_fiberized() );
-	fibers::detail::scheduler::instance().yield();
-}
-
-inline
-void yield_break()
-{
-	BOOST_ASSERT( is_fiberized() );
-	throw fibers::detail::forced_unwind();
+    BOOST_ASSERT( is_fiberized() );
+    fibers::detail::scheduler::instance().yield();
 }
 
 }

@@ -83,9 +83,6 @@ void f4()
     BOOST_CHECK( ! s.joinable() );
 }
 
-void f5()
-{ boost::this_fiber::yield_break(); }
-
 void f6( int & i)
 {
     i = 1;
@@ -309,16 +306,6 @@ void test_join_in_fiber()
     //BOOST_CHECK( ! s);
 }
 
-void test_yield_break()
-{
-    boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
-
-    boost::fibers::fiber s( f5);
-    s.join();
-    BOOST_CHECK( ! s);
-}
-
 void test_yield()
 {
     boost::fibers::round_robin ds;
@@ -404,7 +391,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_join_in_thread) );
     test->add( BOOST_TEST_CASE( & test_join_and_run) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
-    test->add( BOOST_TEST_CASE( & test_yield_break) );
     test->add( BOOST_TEST_CASE( & test_yield) );
     test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
