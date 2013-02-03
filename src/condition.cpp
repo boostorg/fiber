@@ -22,9 +22,6 @@ namespace boost {
 namespace fibers {
 
 condition::condition() :
-	cmd_( SLEEPING),
-    waiters_( 0),
-	enter_mtx_(),
     waiting_mtx_(),
     waiting_()
 {}
@@ -35,68 +32,31 @@ condition::~condition()
 void
 condition::notify_one()
 {
-    // This mutex guarantees that no other thread can enter to the
-    // wait method logic, so that thread count will be
-    // constant until the function writes a NOTIFY_ONE command.
-    // It also guarantees that no other notification can be signaled
-    // on this condition before this one ends
-	enter_mtx_.lock();
+    detail::notify::ptr_t n;
 
-    // Return if there are no waiters
-    if ( waiting_.empty() )
-	{
-        BOOST_ASSERT( 0 == waiters_);
-		enter_mtx_.unlock();
-		return;
-	}
-    else
-    {
-        if ( waiting_.front() )
-            waiting_.front()->wake_up();
+    unique_lock< detail::spinlock > lk( waiting_mtx_);
+    if ( ! waiting_.empty() ) {
+        n.swap( waiting_.front() );
         waiting_.pop_front();
     }
+    lk.unlock();
 
-    // Notify that all fibers should execute wait logic
-    command expected = SLEEPING;
-    while ( ! cmd_.compare_exchange_strong( expected, NOTIFY_ONE) )
-    {
-//      if ( this_fiber::is_fiberized() )
-//          this_fiber::yield();
-        expected = SLEEPING;
-    }
+    if ( n)
+        n->wake_up();
 }
 
 void
 condition::notify_all()
 {
-    // This mutex guarantees that no other thread can enter to the
-    // wait method logic, so that thread count will be
-    // constant until the function writes a NOTIFY_ALL command.
-    // It also guarantees that no other notification can be signaled
-    // on this condition before this one ends
-	enter_mtx_.lock();
+    std::deque< detail::notify::ptr_t > waiting;
 
-    // Return if there are no waiters
-    if ( waiting_.empty() )
-	{
-        BOOST_ASSERT( 0 == waiters_);
-		enter_mtx_.unlock();
-		return;
-	}
-    else
-    {
-        BOOST_FOREACH( detail::fiber_base::ptr_t const& f, waiting_)
-        { if ( f) f->wake_up(); }
-        waiting_.clear();
-    }
+    unique_lock< detail::spinlock > lk( waiting_mtx_);
+    waiting.swap( waiting_);
+    lk.unlock();
 
-    // Notify that all fibers should execute wait logic
-    command expected = SLEEPING;
-    while ( SLEEPING != cmd_.compare_exchange_strong( expected, NOTIFY_ALL) )
+    BOOST_FOREACH( detail::notify::ptr_t const& n, waiting)
     {
-//      if ( this_fiber::is_fiberized() )
-//          this_fiber::yield();
-        expected = SLEEPING;
+        n->wake_up();
     }
 }
 
