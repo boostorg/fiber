@@ -19,6 +19,8 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#include <cstdio>
+
 namespace boost {
 namespace fibers {
 
@@ -34,39 +36,46 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    detail::fiber_base::ptr_t f( detail::scheduler::instance().active() );
     if ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
-        // store this fiber in order to be notified later
-        unique_lock< detail::spinlock > lk( waiting_mtx_);
-        waiting_.push_back( f);
-        lk.unlock();
-        do
+        detail::notify::ptr_t n( detail::scheduler::instance().active() );
+        try
         {
-            try
+            if ( n)
             {
-                if ( f)
+                // store this fiber in order to be notified later
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                waiting_.push_back( n);
+
+                // suspend this fiber
+                detail::scheduler::instance().wait( lk);
+            }
+            else
+            {
+                // notifier for main-fiber
+                n = detail::scheduler::instance().notifier();
+                // store this fiber in order to be notified later
+                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                waiting_.push_back( n);
+
+                lk.unlock();
+                while ( ! n->woken_up() )
                 {
-                    // suspend this fiber
-                    detail::scheduler::instance().wait();
-                }
-                else
-                {
+                    fprintf(stdout, "mutex: main-fiber not woken-up\n");
                     // run scheduler
                     detail::scheduler::instance().run();
                 }
-            }
-            catch (...)
-            {
-                // FIXME: use multi-index container
-                // remove fiber from waiting_
-                unique_lock< detail::spinlock > lk( waiting_mtx_);
-                waiting_.erase(
-                    std::find( waiting_.begin(), waiting_.end(), f) );
-                throw;
+                    fprintf(stdout, "mutex: main-fiber woken-up\n");
             }
         }
-        while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) );
+        catch (...)
+        {
+            // remove fiber from waiting_
+            unique_lock< detail::spinlock > lk( waiting_mtx_);
+            waiting_.erase(
+                std::find( waiting_.begin(), waiting_.end(), n) );
+            throw;
+        }
     }
 }
 
@@ -77,15 +86,19 @@ mutex::try_lock()
 void
 mutex::unlock()
 {
+    detail::notify::ptr_t n;
+
     unique_lock< detail::spinlock > lk( waiting_mtx_);
-	if ( ! waiting_.empty() )
-    {
-        if ( waiting_.front() )
-            waiting_.front()->wake_up();
+    if ( ! waiting_.empty() ) {
+        n.swap( waiting_.front() );
         waiting_.pop_front();
     }
+    lk.unlock();
 
 	state_ = UNLOCKED;
+
+    if ( n)
+        n->wake_up();
 }
 
 }}

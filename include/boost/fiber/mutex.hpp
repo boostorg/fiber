@@ -17,7 +17,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -44,7 +44,7 @@ private:
     atomic< state >                 state_;
     detail::spinlock                waiting_mtx_;
     std::deque<
-        detail::fiber_base::ptr_t
+        detail::notify::ptr_t
     >                               waiting_;
 
 public:
