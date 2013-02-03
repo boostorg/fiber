@@ -26,8 +26,6 @@
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/states.hpp>
 
-#include <boost/shared_ptr.hpp>
-
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -39,13 +37,7 @@ namespace detail {
 class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
 public:
-    struct deleter
-    {
-        void operator()( fiber_base * f)
-        { f->deallocate_object(); }
-    };
-    typedef shared_ptr< fiber_base >           ptr_t;
-    //typedef intrusive_ptr< fiber_base >           ptr_t;
+    typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
     template< typename X, typename Y, typename Z >

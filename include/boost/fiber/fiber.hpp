@@ -85,7 +85,7 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -101,7 +101,7 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -117,7 +117,7 @@ public:
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
         spawn_( impl_);
     }
 #endif
@@ -137,7 +137,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -157,7 +157,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
         spawn_( impl_);
     }
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -176,7 +176,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
         spawn_( impl_);
     }
 #else
@@ -196,7 +196,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -216,7 +216,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -236,7 +236,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -256,7 +256,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -276,7 +276,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         spawn_( impl_);
     }
 
@@ -296,7 +296,7 @@ public:
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a), detail::fiber_base::deleter() );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         spawn_( impl_);
     }
 #endif
