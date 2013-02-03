@@ -9,7 +9,9 @@
 #include <boost/fiber/detail/spinlock.hpp>
 
 #include <boost/assert.hpp>
-#include <boost/fiber/operations.hpp>
+
+#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/detail/thread_yield.hpp>
 
 namespace boost {
 namespace fibers {
@@ -24,12 +26,11 @@ spinlock::lock()
 {
     while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
-//      // busy-wait
-//      // BOOST_ASSERT( this_fiber::is_fiberized() );
-//      if ( this_fiber::is_fiberized() )
-//          this_fiber::yield();
-//      else
-//          run();
+        // busy-wait
+        if ( scheduler::instance().active() )
+            scheduler::instance().yield();
+        else
+            thread_yield();
     }
 }
 
