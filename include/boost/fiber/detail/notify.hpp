@@ -27,9 +27,6 @@ namespace detail {
 
 class notify : private noncopyable
 {
-private:
-    atomic< bool >          wake_up_;
-
 protected:
     virtual void add_ref() BOOST_NOEXCEPT = 0;
     virtual void release_ref() = 0;
@@ -37,17 +34,11 @@ protected:
 public:
     typedef intrusive_ptr< notify >     ptr_t;
 
-    notify() :
-        wake_up_( false)
-    {}
-
     virtual ~notify() {};
 
-    bool woken_up() BOOST_NOEXCEPT
-    { return wake_up_.exchange( false, memory_order_seq_cst); }
+    virtual bool is_ready() const BOOST_NOEXCEPT = 0;
 
-    void wake_up() BOOST_NOEXCEPT
-    { wake_up_.exchange( true, memory_order_seq_cst); }
+    virtual void set_ready() BOOST_NOEXCEPT = 0;
 
     friend inline void intrusive_ptr_add_ref( notify * p) BOOST_NOEXCEPT
     { p->add_ref(); }

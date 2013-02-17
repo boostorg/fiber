@@ -42,7 +42,7 @@ condition::notify_one()
     lk.unlock();
 
     if ( n)
-        n->wake_up();
+        n->set_ready();
 }
 
 void
@@ -56,7 +56,7 @@ condition::notify_all()
 
     BOOST_FOREACH( detail::notify::ptr_t const& n, waiting)
     {
-        n->wake_up();
+        n->set_ready();
     }
 }
 

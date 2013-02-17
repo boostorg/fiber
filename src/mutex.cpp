@@ -36,7 +36,7 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    if ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
+    while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
     {
         detail::notify::ptr_t n( detail::scheduler::instance().active() );
         try
@@ -59,7 +59,7 @@ mutex::lock()
                 waiting_.push_back( n);
 
                 lk.unlock();
-                while ( ! n->woken_up() )
+                while ( ! n->is_ready() )
                 {
                     fprintf(stdout, "mutex: main-fiber not woken-up\n");
                     // run scheduler
@@ -98,7 +98,7 @@ mutex::unlock()
 	state_ = UNLOCKED;
 
     if ( n)
-        n->wake_up();
+        n->set_ready();
 }
 
 }}

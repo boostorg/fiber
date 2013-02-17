@@ -55,11 +55,11 @@ private:
     std::vector< ptr_t >    joining_;
 
     void add_ref() BOOST_NOEXCEPT
-    { use_count_.fetch_add( 1, memory_order_seq_cst); }
+    { ++use_count_; }
 
     void release_ref()
     {
-        if ( 1 == use_count_.fetch_sub( 1, memory_order_seq_cst) )
+        if ( 0 == --use_count_)
             deallocate_object();
     }
 

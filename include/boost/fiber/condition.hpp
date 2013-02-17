@@ -94,7 +94,7 @@ public:
                 lt.unlock();
 
                 lk.unlock();
-                while ( ! n->woken_up() )
+                while ( ! n->is_ready() )
                 {
                     fprintf(stdout, "condition: main-fiber not woken-up\n");
                     // run scheduler

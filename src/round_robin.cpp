@@ -35,21 +35,26 @@ class main_notifier : public detail::notify
 {
 private:
     atomic< std::size_t >    use_count_;
+    mutable atomic< bool >   ready_;
 
     void add_ref() BOOST_NOEXCEPT
-    { use_count_.fetch_add( 1, memory_order_seq_cst); }
+    { ++use_count_; }
 
     void release_ref()
-    {
-        if ( 1 == use_count_.fetch_sub( 1, memory_order_seq_cst) )
-            delete this;
-    }
+    { if ( 0 == --use_count_) delete this; }
 
 public:
     main_notifier() :
-        detail::notify(),
-        use_count_( 0)
+        use_count_( 0), ready_( false)
     {}
+
+    bool is_ready() const BOOST_NOEXCEPT
+    {
+        return ready_.exchange( false, memory_order_seq_cst);
+    }
+
+    void set_ready() BOOST_NOEXCEPT
+    { ready_ = true; }
 
     friend inline void intrusive_ptr_add_ref( main_notifier * p) BOOST_NOEXCEPT
     { p->add_ref(); }
@@ -120,7 +125,8 @@ round_robin::run()
 
         // set fiber to state_ready if interruption was requested
         // or the fiber was woken up
-        if ( f->interruption_requested() || f->woken_up() ) f->set_ready();
+        if ( f->interruption_requested() )
+            f->set_ready();
         if ( f->is_ready() )
         {
             unique_lock< detail::spinlock > lk( rqueue_mtx_);
@@ -185,10 +191,7 @@ round_robin::yield()
     BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active fiber to state_waiting
-    active_fiber_->set_waiting();
-    // set active_fiber to state_ready
-    active_fiber_->wake_up();
-    // suspends active fiber and adds it to wqueue_
+    active_fiber_->set_ready();
     // Note: adding to rqueue_ could result in a raise
     // between adding to rqueue_ and calling yield another
     // thread could steel fiber from rqueue_ and resume it
@@ -221,7 +224,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
             // f must be already terminated therefore we set
             // active fiber to state_ready
             // FIXME: better state_running and no suspend
-            active_fiber_->wake_up();
+            active_fiber_->set_ready();
         // store active fiber in local var
         detail::fiber_base::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates

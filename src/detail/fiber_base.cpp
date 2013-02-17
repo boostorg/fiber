@@ -23,7 +23,6 @@ namespace fibers {
 namespace detail {
 
 fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
-    notify(),
     use_count_( 0),
     state_( state_ready),
     flags_( 0),
@@ -69,7 +68,7 @@ fiber_base::release()
     // protect against concurrent access to joining_
     unique_lock< spinlock > lk( joining_mtx_);
     BOOST_FOREACH( fiber_base::ptr_t p, joining_)
-    { p->wake_up(); }
+    { p->set_ready(); }
     joining_.clear();
 }
 

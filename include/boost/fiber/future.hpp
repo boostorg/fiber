@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include <boost/atomic.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
@@ -116,7 +117,7 @@ namespace fibers {
         struct future_object_base
         {
             boost::exception_ptr exception;
-            bool done;
+            atomic< bool > done;
             boost::fibers::mutex mutex;
             boost::fibers::condition waiters;
             typedef std::list<boost::fibers::condition*> waiter_list;
