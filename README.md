@@ -23,13 +23,23 @@ migrated between threads.
 Buiding: Detailed instructions can be found at https://svn.boost.org/trac/boost/wiki/TryModBoost.
 
 git clone http://github.com/boostorg/boost modular-boost
+
 cd modular-boost
+
 git submodule update --init
+
 cd libs
+
 git clone http://github.com/olk/boost-fiber fiber
+
 cd ..
+
 cmake -P forward_headers.cmake
+
 ./bootstrap.sh
+
 cp b2 /usr/local/bin
+
 cd libs/fiber/test
+
 b2

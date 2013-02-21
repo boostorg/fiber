@@ -91,9 +91,9 @@ public:
                 // store this fiber in order to be notified later
                 unique_lock< detail::spinlock > lk( waiting_mtx_);
                 waiting_.push_back( n);
-                lt.unlock();
 
                 lk.unlock();
+                lt.unlock();
                 while ( ! n->is_ready() )
                 {
                     fprintf(stdout, "condition: main-fiber not woken-up\n");
