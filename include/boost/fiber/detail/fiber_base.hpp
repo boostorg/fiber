@@ -25,7 +25,6 @@
 #include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/detail/states.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -44,8 +43,13 @@ private:
     template< typename X, typename Y, typename Z >
     friend class fiber_object;
 
+    static const int READY;
+    static const int RUNNING;
+    static const int WAITING;
+    static const int TERMINATED;
+
     atomic< std::size_t >   use_count_;
-    atomic< state_t >       state_;
+    atomic< int >           state_;
     atomic< int >           flags_;
     atomic< int >           priority_;
     context::fcontext_t     caller_;
@@ -176,16 +180,16 @@ public:
     }
 
     bool is_terminated() const BOOST_NOEXCEPT
-    { return state_terminated == state_; }
+    { return TERMINATED == state_; }
 
     bool is_ready() const BOOST_NOEXCEPT
-    { return state_ready == state_; }
+    { return READY == state_; }
 
     bool is_running() const BOOST_NOEXCEPT
-    { return state_running == state_; }
+    { return RUNNING == state_; }
 
     bool is_waiting() const BOOST_NOEXCEPT
-    { return state_waiting == state_; }
+    { return WAITING == state_; }
 
     // set terminate is only set inside fiber_object::exec()
     // it is set after the fiber-function was left == at the end of exec()
@@ -200,40 +204,40 @@ public:
         //       - other fiber calls set_ready() on this fiber happend before this
         //         fiber calls set_terminated()
         //       - this fiber stack gets unwound and set_terminated() is called at the end
-        state_t previous = state_.exchange( state_terminated, memory_order_seq_cst);
-        BOOST_ASSERT( state_running == previous);
-        //BOOST_ASSERT( state_running == previous || state_ready == previous);
+        int previous = state_.exchange( TERMINATED);
+        BOOST_ASSERT( RUNNING == previous);
+        //BOOST_ASSERT( RUNNING == previous || READY == previous);
     }
 
     void set_ready() BOOST_NOEXCEPT
     {
 #if 0
-    // this fiber calls set_ready(): - only transition from state_waiting (wake-up)
-    //                               - or transition from state_running (yield) allowed
+    // this fiber calls set_ready(): - only transition from WAITING (wake-up)
+    //                               - or transition from RUNNING (yield) allowed
     // other fiber calls set_ready(): - only if this fiber was joinig other fiber
     //                                - if this fiber was not interrupted then this fiber
-    //                                  should in state_waiting
+    //                                  should in WAITING
     //                                - if this fiber was interrupted the this fiber might
-    //                                  be in state_ready, state_running or already in
-    //                                  state_terminated
+    //                                  be in READY, RUNNING or already in
+    //                                  TERMINATED
     for (;;)
     {
-        state_t expected = state_waiting;
-        bool result = state_.compare_exchange_strong( expected, state_ready, memory_order_seq_cst);
-        if ( result || state_terminated == expected || state_ready == expected) return;
-        expected = state_running;
-        result = state_.compare_exchange_strong( expected, state_ready, memory_order_seq_cst);
-        if ( result || state_terminated == expected || state_ready == expected) return;
+        int expected = WAITING;
+        bool result = state_.compare_exchange_strong( expected, READY);
+        if ( result || TERMINATED == expected || READY == expected) return;
+        expected = RUNNING;
+        result = state_.compare_exchange_strong( expected, READY);
+        if ( result || TERMINATED == expected || READY == expected) return;
     }
 #endif
-        state_t previous = state_.exchange( state_ready, memory_order_seq_cst);
-        BOOST_ASSERT( state_waiting == previous || state_running == previous || state_ready == previous);
+        int previous = state_.exchange( READY);
+        BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
     }
 
     void set_running() BOOST_NOEXCEPT
     {
-        state_t previous = state_.exchange( state_running, memory_order_seq_cst);
-        BOOST_ASSERT( state_ready == previous);
+        int previous = state_.exchange( RUNNING);
+        BOOST_ASSERT( READY == previous);
     }
 
     void set_waiting() BOOST_NOEXCEPT
@@ -247,13 +251,10 @@ public:
         //       - other fiber calls set_ready() on this fiber happend before this
         //         fiber calls set_waiting()
         //       - this fiber might wait on some sync. primitive calling set_waiting()
-        state_t previous = state_.exchange( state_waiting, memory_order_seq_cst);
-        BOOST_ASSERT( state_running == previous);
-        //BOOST_ASSERT( state_running == previous || state_ready == previous);
+        int previous = state_.exchange( WAITING);
+        BOOST_ASSERT( RUNNING == previous);
+        //BOOST_ASSERT( RUNNING == previous || READY == previous);
     }
-
-    state_t state() const BOOST_NOEXCEPT
-    { return state_; }
 
     bool has_exception() const BOOST_NOEXCEPT
     { return except_; }

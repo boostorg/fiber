@@ -22,9 +22,14 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+const int fiber_base::READY = 0;
+const int fiber_base::RUNNING = 1;
+const int fiber_base::WAITING = 2;
+const int fiber_base::TERMINATED = 3;
+
 fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     use_count_( 0),
-    state_( state_ready),
+    state_( READY),
     flags_( 0),
     priority_( 0),
     caller_(),
@@ -63,7 +68,7 @@ fiber_base::suspend()
 void
 fiber_base::release()
 {
-    // set all waiting fibers in joining_ to state_ready
+    // set all waiting fibers in joining_ to READY
     // so they can be resumed
     // protect against concurrent access to joining_
     unique_lock< spinlock > lk( joining_mtx_);
