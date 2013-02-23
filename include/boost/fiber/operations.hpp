@@ -18,20 +18,16 @@ namespace boost {
 namespace this_fiber {
 
 inline
-bool is_fiberized()
-{ return fibers::detail::scheduler::instance().active(); }
-
-inline
 fibers::fiber::id get_id()
 {
-    BOOST_ASSERT( is_fiberized() );
-	return fibers::detail::scheduler::instance().active()->get_id();
+	return fibers::detail::scheduler::instance().active()
+	    ? fibers::detail::scheduler::instance().active()->get_id()
+        : fibers::fiber::id();
 }
 
 inline
 void yield()
 {
-    BOOST_ASSERT( is_fiberized() );
     fibers::detail::scheduler::instance().yield();
 }
 
