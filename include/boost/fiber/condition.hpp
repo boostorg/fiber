@@ -3,8 +3,6 @@
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
-//
-//  based on boost::interprocess::sync::interprocess_condition
 
 #ifndef BOOST_FIBERS_CONDITION_H
 #define BOOST_FIBERS_CONDITION_H
@@ -38,15 +36,13 @@
 # pragma warning(disable:4355 4251 4275)
 # endif
 
-#include <cstdio>
-
 namespace boost {
 namespace fibers {
 
 class BOOST_FIBERS_DECL condition : private noncopyable
 {
 private:
-    detail::spinlock                       waiting_mtx_;
+    detail::spinlock                       splk_;
     std::deque< detail::notify::ptr_t >    waiting_;
 
 public:
@@ -74,7 +70,7 @@ public:
             if ( n)
             {
                 // store this fiber in order to be notified later
-                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
                 lt.unlock();
 
@@ -89,24 +85,22 @@ public:
                 // notifier for main-fiber
                 n = detail::scheduler::instance().notifier();
                 // store this fiber in order to be notified later
-                unique_lock< detail::spinlock > lk( waiting_mtx_);
+                unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
 
                 lk.unlock();
                 lt.unlock();
                 while ( ! n->is_ready() )
                 {
-                    fprintf(stdout, "condition: main-fiber not woken-up\n");
                     // run scheduler
                     detail::scheduler::instance().run();
                 }
-                    fprintf(stdout, "condition: main-fiber woken-up\n");
             }
         }
         catch (...)
         {
             // remove fiber from waiting_
-            unique_lock< detail::spinlock > lk( waiting_mtx_);
+            unique_lock< detail::spinlock > lk( splk_);
             waiting_.erase(
                 std::find( waiting_.begin(), waiting_.end(), n) );
             throw;

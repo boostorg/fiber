@@ -3,8 +3,6 @@
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
-//
-//  based on boost::interprocess::sync::interprocess_condition
 
 #define BOOST_FIBERS_SOURCE
 
@@ -22,7 +20,7 @@ namespace boost {
 namespace fibers {
 
 condition::condition() :
-    waiting_mtx_(),
+    splk_(),
     waiting_()
 {}
 
@@ -34,7 +32,7 @@ condition::notify_one()
 {
     detail::notify::ptr_t n;
 
-    unique_lock< detail::spinlock > lk( waiting_mtx_);
+    unique_lock< detail::spinlock > lk( splk_);
     if ( ! waiting_.empty() ) {
         n.swap( waiting_.front() );
         waiting_.pop_front();
@@ -50,7 +48,7 @@ condition::notify_all()
 {
     std::deque< detail::notify::ptr_t > waiting;
 
-    unique_lock< detail::spinlock > lk( waiting_mtx_);
+    unique_lock< detail::spinlock > lk( splk_);
     waiting.swap( waiting_);
     lk.unlock();
 
