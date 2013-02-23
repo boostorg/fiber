@@ -50,7 +50,7 @@ public:
 
     bool is_ready() const BOOST_NOEXCEPT
     {
-        return ready_.exchange( false, memory_order_seq_cst);
+        return ready_.exchange( false);
     }
 
     void set_ready() BOOST_NOEXCEPT
