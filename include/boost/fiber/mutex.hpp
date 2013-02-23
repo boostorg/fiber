@@ -35,14 +35,11 @@ namespace fibers {
 class BOOST_FIBERS_DECL mutex : private noncopyable
 {
 private:
-    enum state
-    {
-        LOCKED = 0,
-        UNLOCKED
-    };
+    static const int LOCKED;
+    static const int UNLOCKED;
 
-    atomic< state >                 state_;
-    detail::spinlock                waiting_mtx_;
+    atomic< int >                   state_;
+    detail::spinlock                splk_;
     std::deque<
         detail::notify::ptr_t
     >                               waiting_;
