@@ -21,13 +21,10 @@ namespace detail {
 class BOOST_FIBERS_DECL spinlock : private noncopyable
 {
 private:
-	enum state
-	{
-		LOCKED = 0,
-		UNLOCKED
-	};
+	static const int LOCKED;
+	static const int UNLOCKED;
 
-	atomic< state >			state_;
+	atomic< int >   state_;
 
 public:
 	spinlock();

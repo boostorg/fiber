@@ -17,6 +17,9 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+const int spinlock::LOCKED = 0;
+const int spinlock::UNLOCKED = 1;
+
 spinlock::spinlock() :
     state_( UNLOCKED)
 {}
@@ -24,7 +27,7 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    while ( LOCKED == state_.exchange( LOCKED, memory_order_seq_cst) )
+    while ( LOCKED == state_.exchange( LOCKED) )
     {
         // busy-wait
         if ( scheduler::instance().active() )
