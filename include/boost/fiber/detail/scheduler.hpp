@@ -98,7 +98,7 @@ private:
 
 public:
     static fiber_base::ptr_t extract( fiber const& f) BOOST_NOEXCEPT
-    { return f.impl_; }
+    { return f.fiber_data_; }
 
     static algorithm & instance() BOOST_NOEXCEPT;
 

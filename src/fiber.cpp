@@ -25,29 +25,29 @@ namespace boost {
 namespace fibers {
 
 void
-fiber::spawn_( detail::fiber_base::ptr_t const& f)
-{ detail::scheduler::instance().spawn( f); }
+fiber::start_fiber_()
+{ detail::scheduler::instance().spawn( fiber_data_); }
 
 int
 fiber::priority() const
 {
-    BOOST_ASSERT( impl_);
+    BOOST_ASSERT( fiber_data_);
 
-    return impl_->priority();
+    return fiber_data_->priority();
 }
 
 void
 fiber::priority( int prio)
 {
-    BOOST_ASSERT( impl_);
+    BOOST_ASSERT( fiber_data_);
 
-    detail::scheduler::instance().priority( impl_, prio);
+    detail::scheduler::instance().priority( fiber_data_, prio);
 }
 
 void
 fiber::join()
 {
-    BOOST_ASSERT( impl_);
+    BOOST_ASSERT( fiber_data_);
 
     if ( boost::this_fiber::get_id() == get_id() )
         boost::throw_exception(
@@ -62,21 +62,21 @@ fiber::join()
     }
 
     try
-    { detail::scheduler::instance().join( impl_); }
+    { detail::scheduler::instance().join( fiber_data_); }
     catch (...)
     {
-        impl_.reset();
+        fiber_data_.reset();
         throw;
     }
-    impl_.reset();
+    fiber_data_.reset();
 }
 
 void
 fiber::interrupt()
 {
-    BOOST_ASSERT( impl_);
+    BOOST_ASSERT( fiber_data_);
 
-    impl_->request_interruption( true);
+    fiber_data_->request_interruption( true);
 }
 
 }}

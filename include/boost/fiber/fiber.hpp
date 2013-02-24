@@ -53,9 +53,9 @@ private:
     typedef base_t::ptr_t         ptr_t;
     typedef void ( dummy::*safe_bool)();
 
-    static void spawn_( detail::fiber_base::ptr_t const&);
+    void start_fiber_();
 
-    ptr_t       impl_;
+    ptr_t       fiber_data_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
 
@@ -63,11 +63,11 @@ public:
     typedef detail::fiber_base::id        id;
 
     fiber() BOOST_NOEXCEPT :
-        impl_()
+        fiber_data_()
     {}
 
     fiber( ptr_t const& impl) BOOST_NOEXCEPT :
-        impl_( impl)
+        fiber_data_( impl)
     {}
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
@@ -77,48 +77,48 @@ public:
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 fiber_fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename StackAllocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 fiber_fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename StackAllocator, typename Allocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     Allocator const& alloc) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 fiber_fn, StackAllocator, Allocator
             >                               object_t;
         object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 #endif
     template< typename Fn >
@@ -129,16 +129,16 @@ public:
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator >
@@ -149,16 +149,16 @@ public:
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
@@ -168,16 +168,16 @@ public:
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 #else
     template< typename Fn >
@@ -188,16 +188,16 @@ public:
                         is_convertible< Fn &, BOOST_RV_REF( Fn) >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator >
@@ -208,16 +208,16 @@ public:
                         is_convertible< Fn &, BOOST_RV_REF( Fn) >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -228,16 +228,16 @@ public:
                         is_convertible< Fn &, BOOST_RV_REF( Fn) >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename Fn >
@@ -248,16 +248,16 @@ public:
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator >
@@ -268,16 +268,16 @@ public:
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator, typename Allocator >
@@ -288,16 +288,16 @@ public:
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
-        impl_()
+        fiber_data_()
     {
         typedef detail::fiber_object<
                 Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
+        fiber_data_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
-        spawn_( impl_);
+        start_fiber_();
     }
 #endif
 
@@ -305,7 +305,7 @@ public:
     { if ( joinable() ) std::terminate(); }
 
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
-        impl_()
+        fiber_data_()
     { swap( other); }
 
     fiber & operator=( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT
@@ -317,26 +317,26 @@ public:
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return impl_ && ! impl_->is_terminated() ? & dummy::nonnull : 0; }
+    { return fiber_data_ && ! fiber_data_->is_terminated() ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return ! impl_ || impl_->is_terminated(); }
+    { return ! fiber_data_ || fiber_data_->is_terminated(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
-    { impl_.swap( other.impl_); }
+    { fiber_data_.swap( other.fiber_data_); }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return impl_ /* && ! impl_->is_terminated() */; }
+    { return fiber_data_ /* && ! fiber_data_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
-    { return impl_ ? impl_->get_id() : id(); }
+    { return fiber_data_ ? fiber_data_->get_id() : id(); }
 
     int priority() const BOOST_NOEXCEPT;
 
     void priority( int) BOOST_NOEXCEPT;
 
     void detach() BOOST_NOEXCEPT
-    { impl_.reset(); }
+    { fiber_data_.reset(); }
 
     void join();
 
