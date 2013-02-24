@@ -37,7 +37,6 @@ condition::notify_one()
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    lk.unlock();
 
     if ( n)
         n->set_ready();
@@ -46,16 +45,22 @@ condition::notify_one()
 void
 condition::notify_all()
 {
-    std::deque< detail::notify::ptr_t > waiting;
+    detail::notify::ptr_t n;
 
     unique_lock< detail::spinlock > lk( splk_);
-    waiting.swap( waiting_);
-    lk.unlock();
-
-    BOOST_FOREACH( detail::notify::ptr_t const& n, waiting)
+    while ( ! waiting_.empty() )
+    {
+        n.swap( waiting_.front() );
+        waiting_.pop_front();
+        n->set_ready();
+    }
+#if 0
+    BOOST_FOREACH( detail::notify::ptr_t const& n, waiting_)
     {
         n->set_ready();
     }
+    waiting_.clear();
+#endif
 }
 
 }}

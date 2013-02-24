@@ -92,12 +92,11 @@ mutex::unlock()
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    lk.unlock();
+
+	state_ = UNLOCKED;
 
     if ( n)
         n->set_ready();
-
-	state_ = UNLOCKED;
 }
 
 }}
