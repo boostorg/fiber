@@ -40,7 +40,7 @@ public:
     typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
-    template< typename X, typename Y, typename Z >
+    template< typename X, typename Y >
     friend class fiber_object;
 
     static const int READY;
@@ -48,7 +48,6 @@ private:
     static const int WAITING;
     static const int TERMINATED;
 
-    atomic< std::size_t >   use_count_;
     atomic< int >           state_;
     atomic< int >           flags_;
     atomic< int >           priority_;
@@ -58,17 +57,7 @@ private:
     spinlock                joining_mtx_;
     std::vector< ptr_t >    joining_;
 
-    void add_ref() BOOST_NOEXCEPT
-    { ++use_count_; }
-
-    void release_ref()
-    {
-        if ( 0 == --use_count_)
-            deallocate_object();
-    }
-
 protected:
-    virtual void deallocate_object() = 0;
     virtual void unwind_stack() = 0;
 
     void release();
@@ -260,12 +249,6 @@ public:
     { return except_; }
 
     void rethrow() const;
-
-    friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
-    { p->add_ref(); }
-
-    friend inline void intrusive_ptr_release( fiber_base * p)
-    { p->release_ref(); }
 };
 
 }}}

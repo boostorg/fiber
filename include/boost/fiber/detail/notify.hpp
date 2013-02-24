@@ -27,12 +27,15 @@ namespace detail {
 
 class notify : private noncopyable
 {
-protected:
-    virtual void add_ref() BOOST_NOEXCEPT = 0;
-    virtual void release_ref() = 0;
+private:
+    atomic< std::size_t >   use_count_;
 
 public:
     typedef intrusive_ptr< notify >     ptr_t;
+
+    notify() :
+        use_count_( 0)
+    {}
 
     virtual ~notify() {};
 
@@ -41,10 +44,13 @@ public:
     virtual void set_ready() BOOST_NOEXCEPT = 0;
 
     friend inline void intrusive_ptr_add_ref( notify * p) BOOST_NOEXCEPT
-    { p->add_ref(); }
+    { ++p->use_count_; }
 
     friend inline void intrusive_ptr_release( notify * p)
-    { p->release_ref(); }
+    {
+        if ( 0 == --p->use_count_)
+            delete p;
+    }
 };
 
 }}}

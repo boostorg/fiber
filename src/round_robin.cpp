@@ -34,33 +34,18 @@ namespace detail {
 class main_notifier : public detail::notify
 {
 private:
-    atomic< std::size_t >    use_count_;
     mutable atomic< bool >   ready_;
-
-    void add_ref() BOOST_NOEXCEPT
-    { ++use_count_; }
-
-    void release_ref()
-    { if ( 0 == --use_count_) delete this; }
 
 public:
     main_notifier() :
-        use_count_( 0), ready_( false)
+        ready_( false)
     {}
 
     bool is_ready() const BOOST_NOEXCEPT
-    {
-        return ready_.exchange( false);
-    }
+    { return ready_.exchange( false); }
 
     void set_ready() BOOST_NOEXCEPT
     { ready_ = true; }
-
-    friend inline void intrusive_ptr_add_ref( main_notifier * p) BOOST_NOEXCEPT
-    { p->add_ref(); }
-
-    friend inline void intrusive_ptr_release( main_notifier * p)
-    { p->release_ref(); }
 };
 
 }

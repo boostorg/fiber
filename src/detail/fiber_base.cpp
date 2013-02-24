@@ -28,7 +28,6 @@ const int fiber_base::WAITING = 2;
 const int fiber_base::TERMINATED = 3;
 
 fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
-    use_count_( 0),
     state_( READY),
     flags_( 0),
     priority_( 0),

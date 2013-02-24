@@ -41,27 +41,13 @@ void trampoline( intptr_t vp)
     f->exec();
 }
 
-template< typename Fn, typename StackAllocator, typename Allocator >
+template< typename Fn, typename StackAllocator >
 class fiber_object : public fiber_base
 {
-public:
-    typedef typename Allocator::template rebind<
-        fiber_object<
-            Fn, StackAllocator, Allocator
-        >
-    >::other                                        allocator_t;
-
 private:
     Fn                  fn_;
     context::stack_t    stack_;
     StackAllocator      stack_alloc_;
-    allocator_t         alloc_;
-
-    static void destroy_( allocator_t & alloc, fiber_object * p)
-    {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
-    }
 
     fiber_object( fiber_object &);
     fiber_object & operator=( fiber_object const&);
@@ -92,8 +78,7 @@ protected:
 public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
     fiber_object( BOOST_RV_REF( Fn) fn, attributes const& attr,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
+                  StackAllocator const& stack_alloc) :
         fiber_base(
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
@@ -101,13 +86,11 @@ public:
             fpu_preserved == attr.preserve_fpu),
         fn_( forward< Fn >( fn) ),
         stack_( fiber_base::callee_->fc_stack),
-        stack_alloc_( stack_alloc),
-        alloc_( alloc)
+        stack_alloc_( stack_alloc)
     { enter_(); }
 #else
     fiber_object( Fn fn, attributes const& attr,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
+                  StackAllocator const& stack_alloc) :
         fiber_base(
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
@@ -115,13 +98,11 @@ public:
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
-        stack_alloc_( stack_alloc),
-        alloc_( alloc)
+        stack_alloc_( stack_alloc)
     { enter_(); }
 
     fiber_object( BOOST_RV_REF( Fn) fn, attributes const& attr,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
+                  StackAllocator const& stack_alloc) :
         fiber_base(
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
@@ -129,8 +110,7 @@ public:
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
-        stack_alloc_( stack_alloc),
-        alloc_( alloc)
+        stack_alloc_( stack_alloc)
     { enter_(); }
 #endif
 
@@ -162,32 +142,15 @@ public:
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
-
-    void deallocate_object()
-    { destroy_( alloc_, this); }
 };
 
-template< typename Fn, typename StackAllocator, typename Allocator >
-class fiber_object< reference_wrapper< Fn >, StackAllocator, Allocator > : public fiber_base
+template< typename Fn, typename StackAllocator >
+class fiber_object< reference_wrapper< Fn >, StackAllocator > : public fiber_base
 {
-public:
-    typedef typename Allocator::template rebind<
-        fiber_object<
-            Fn, StackAllocator, Allocator
-        >
-    >::other                                        allocator_t;
-
 private:
     Fn                  fn_;
     context::stack_t    stack_;
     StackAllocator      stack_alloc_;
-    allocator_t         alloc_;
-
-    static void destroy_( allocator_t & alloc, fiber_object * p)
-    {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
-    }
 
     fiber_object( fiber_object &);
     fiber_object & operator=( fiber_object const&);
@@ -217,8 +180,7 @@ protected:
 
 public:
     fiber_object( reference_wrapper< Fn > fn, attributes const& attr,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
+                  StackAllocator const& stack_alloc) :
         fiber_base(
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
@@ -226,8 +188,7 @@ public:
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
-        stack_alloc_( stack_alloc),
-        alloc_( alloc)
+        stack_alloc_( stack_alloc)
     { enter_(); }
 
     ~fiber_object()
@@ -258,32 +219,15 @@ public:
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
-
-    void deallocate_object()
-    { destroy_( alloc_, this); }
 };
 
-template< typename Fn, typename StackAllocator, typename Allocator >
-class fiber_object< const reference_wrapper< Fn >, StackAllocator, Allocator > : public fiber_base
+template< typename Fn, typename StackAllocator >
+class fiber_object< const reference_wrapper< Fn >, StackAllocator > : public fiber_base
 {
-public:
-    typedef typename Allocator::template rebind<
-        fiber_object<
-            Fn, StackAllocator, Allocator
-        >
-    >::other                                        allocator_t;
-
 private:
     Fn                  fn_;
     context::stack_t    stack_;
     StackAllocator      stack_alloc_;
-    allocator_t         alloc_;
-
-    static void destroy_( allocator_t & alloc, fiber_object * p)
-    {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
-    }
 
     fiber_object( fiber_object &);
     fiber_object & operator=( fiber_object const&);
@@ -313,8 +257,7 @@ protected:
 
 public:
     fiber_object( const reference_wrapper< Fn > fn, attributes const& attr,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
+                  StackAllocator const& stack_alloc) :
         fiber_base(
             context::make_fcontext(
                 stack_alloc.allocate( attr.size), attr.size,
@@ -322,8 +265,7 @@ public:
             fpu_preserved == attr.preserve_fpu),
         fn_( fn),
         stack_( fiber_base::callee_->fc_stack),
-        stack_alloc_( stack_alloc),
-        alloc_( alloc)
+        stack_alloc_( stack_alloc)
     { enter_(); }
 
     ~fiber_object()
@@ -355,9 +297,6 @@ public:
         context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
-
-    void deallocate_object()
-    { destroy_( alloc_, this); }
 };
 
 }}}
