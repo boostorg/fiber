@@ -17,7 +17,7 @@ project boost/fiber/example
     ;
 
 exe barrier : barrier.cpp ;
-exe future : future.cpp ;
+#exe future : future.cpp ;
 exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe simple : simple.cpp ;
