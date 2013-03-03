@@ -21,6 +21,7 @@
 #include <boost/fiber/operations.hpp>
 #include <boost/fiber/promise.hpp>
 #include <boost/fiber/round_robin.hpp>
+#include <boost/fiber/shared_future.hpp>
 #include <boost/fiber/unbounded_channel.hpp>
 
 #endif // BOOST_FIBERS_H

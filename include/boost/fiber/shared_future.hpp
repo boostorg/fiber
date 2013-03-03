@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_FUTURE_HPP
-#define BOOST_FIBERS_FUTURE_HPP
+#ifndef BOOST_FIBERS_SHARED_FUTURE_HPP
+#define BOOST_FIBERS_SHARED_FUTURE_HPP
 
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
@@ -15,21 +15,20 @@
 
 #include <boost/fiber/detail/future_base.hpp>
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/shared_future.hpp>
 
 namespace boost {
 namespace fibers {
 
 template< typename R >
-class promise;
+class future;
 
 template< typename R >
-class future : private noncopyable
+class shared_future
 {
 private:
     typedef typename detail::future_base< R >::ptr_t   ptr_t;
 
-    friend class promise< R >;
+    friend class future< R >;
 
     struct dummy
     { void nonnull() {} };
@@ -38,66 +37,80 @@ private:
 
     ptr_t           future_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
-
-    future( ptr_t const& p) :
+    shared_future( ptr_t const& p) :
         future_( p)
     {}
 
 public:
-    future() BOOST_NOEXCEPT :
+    shared_future() BOOST_NOEXCEPT :
         future_()
     {
-        //TODO: constructs a future with no shared state
+        //TODO: constructs a shared_future with no shared state
         //      after construction, valid() == false
     }
 
-    ~future()
+    ~shared_future()
     {
-        //TODO: abandon ownership if any
+        //TODO: if *this is the last object referring to the shared state,
+        //      destroys the shared state otherwise does nothing
+    }
+
+    shared_future( shared_future const& other) :
+        future_( other.future_)
+    {
+        //TODO: constructs a shared future that refers to the same shared state,
+        //      as other, if there's any
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    future( future && other) BOOST_NOEXCEPT :
+    shared_future( shared_future && other) BOOST_NOEXCEPT :
         future_()
     {
-        //TODO: constructs a future with the shared state of other using move semantics
+        //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
         swap( other);
     }
 
-    future & operator=( future && other) BOOST_NOEXCEPT
+    shared_future & operator=( shared_future && other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
         //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
+        shared_future tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
 #else
-    future( BOOST_RV_REF( future) other) BOOST_NOEXCEPT :
+    shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
         future_()
     {
-        //TODO: constructs a future with the shared state of other using move semantics
+        //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
         swap( other);
     }
 
-    future & operator=( BOOST_RV_REF( future) other) BOOST_NOEXCEPT
+    shared_future & operator=( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
         //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
+        shared_future tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
 #endif   
 
-    void swap( future & other) BOOST_NOEXCEPT
+    shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {
-        //TODO: exchange the shared states of two futures
+        //TODO:
+        shared_future tmp( other);
+        swap( tmp);
+        return * this; 
+    }
+
+    void swap( shared_future & other) BOOST_NOEXCEPT
+    {
+        //TODO: exchange the shared states of two shared_futures
         future_.swap( other.future_);
     }
 
@@ -109,32 +122,16 @@ public:
 
     bool valid() const BOOST_NOEXCEPT
     {
-        //TODO: checks if the future refers to a shared state
-        //      this is the case only for futures returned by
-        //      promise::get_future(), packaged_task::get_future()
+        //TODO: checks if the shared_future refers to a shared state
+        //      this is the case only for shared_futures returned by
+        //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
         return future_;
     }
 
-    shared_future< R > share()
-    {
-        //TODO: transfer the shared state of *this to a shared_future object
-        //      multiple shared_future objects may reference the same shared state,
-        //      which is not possible with future
-        //      after calling share on a future, valid() == false
-        //      detect the case when valid == false before the call and throw a
-        //      future_error with an error condition of future_errc::no_state
-        if ( ! valid() )
-            boost::throw_exception(
-                future_uninitialized() );
-        ptr_t tmp;
-        tmp.swap( future_);
-        return shared_future< R >( tmp);
-    }
-
     R get()
     {
-        //TODO: the get method waits until the future has a valid result and
+        //TODO: the get method waits until the shared_future has a valid result and
         //      (depending on which template is used) retrieves it
         //      it effectively calls wait() in order to wait for the result
         //      the value stored in the shared state
@@ -163,12 +160,12 @@ public:
 };
 
 template<>
-class future< void > : private noncopyable
+class shared_future< void >
 {
 private:
     typedef typename detail::future_base< void >::ptr_t   ptr_t;
 
-    friend class promise< void >;
+    friend class future< void >;
 
     struct dummy
     { void nonnull() {} };
@@ -177,66 +174,80 @@ private:
 
     ptr_t           future_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
-
-    future( ptr_t const& p) :
+    shared_future( ptr_t const& p) :
         future_( p)
     {}
 
 public:
-    future() BOOST_NOEXCEPT :
+    shared_future() BOOST_NOEXCEPT :
         future_()
     {
-        //TODO: constructs a future with no shared state
+        //TODO: constructs a shared_future with no shared state
         //      after construction, valid() == false
     }
 
-    ~future()
+    ~shared_future()
     {
-        //TODO: abandon ownership if any
+        //TODO: if *this is the last object referring to the shared state,
+        //      destroys the shared state otherwise does nothing
+    }
+
+    shared_future( shared_future const& other) :
+        future_( other.future_)
+    {
+        //TODO: constructs a shared future that refers to the same shared state,
+        //      as other, if there's any
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    future( future && other) BOOST_NOEXCEPT :
+    shared_future( shared_future && other) BOOST_NOEXCEPT :
         future_()
     {
-        //TODO: constructs a future with the shared state of other using move semantics
+        //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
         swap( other);
     }
 
-    future & operator=( future && other) BOOST_NOEXCEPT
+    shared_future & operator=( shared_future && other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
         //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
+        shared_future tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
 #else
-    future( BOOST_RV_REF( future) other) BOOST_NOEXCEPT :
+    shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
         future_()
     {
-        //TODO: constructs a future with the shared state of other using move semantics
+        //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
         swap( other);
     }
 
-    future & operator=( BOOST_RV_REF( future) other) BOOST_NOEXCEPT
+    shared_future & operator=( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
         //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
+        shared_future tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
-#endif
+#endif   
 
-    void swap( future & other) BOOST_NOEXCEPT
+    shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {
-        //TODO: exchange the shared states of two futures
+        //TODO:
+        shared_future tmp( other);
+        swap( tmp);
+        return * this; 
+    }
+
+    void swap( shared_future & other) BOOST_NOEXCEPT
+    {
+        //TODO: exchange the shared states of two shared_futures
         future_.swap( other.future_);
     }
 
@@ -248,32 +259,16 @@ public:
 
     bool valid() const BOOST_NOEXCEPT
     {
-        //TODO: checks if the future refers to a shared state
-        //      this is the case only for futures returned by
-        //      promise::get_future(), packaged_task::get_future()
+        //TODO: checks if the shared_future refers to a shared state
+        //      this is the case only for shared_futures returned by
+        //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
         return future_;
     }
 
-    shared_future< void > share()
-    {
-        //TODO: transfer the shared state of *this to a shared_future object
-        //      multiple shared_future objects may reference the same shared state,
-        //      which is not possible with future
-        //      after calling share on a future, valid() == false
-        //      detect the case when valid == false before the call and throw a
-        //      future_error with an error condition of future_errc::no_state
-        if ( ! valid() )
-            boost::throw_exception(
-                future_uninitialized() );
-        ptr_t tmp;
-        tmp.swap( future_);
-        return shared_future< void >( tmp);
-    }
-
     void get()
     {
-        //TODO: the get method waits until the future has a valid result and
+        //TODO: the get method waits until the shared_future has a valid result and
         //      (depending on which template is used) retrieves it
         //      it effectively calls wait() in order to wait for the result
         //      the value stored in the shared state
@@ -302,9 +297,9 @@ public:
 };
 
 template< typename R >
-void swap( future< R > & l, future< R > & r)
+void swap( shared_future< R > & l, shared_future< R > & r)
 { l.swap( r); }
 
 }}
 
-#endif
+#endif // BOOST_FIBERS_SHARED_FUTURE_HPP

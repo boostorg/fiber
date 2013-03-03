@@ -520,6 +520,56 @@ void test_future_get_void()
     BOOST_CHECK( thrown);
 }
 
+void test_future_share()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int > p1;
+    p1.set_value( 7);
+
+    boost::fibers::future< int > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // share
+    boost::fibers::shared_future< int > sf1 = f1.share();
+    BOOST_CHECK( sf1);
+    BOOST_CHECK( sf1.valid() );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+
+    // get
+    BOOST_CHECK( 7 == sf1.get() );
+    BOOST_CHECK( ! sf1.valid() );
+}
+
+void test_future_share_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< void > p1;
+    p1.set_value();
+
+    boost::fibers::future< void > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // share
+    boost::fibers::shared_future< void > sf1 = f1.share();
+    BOOST_CHECK( sf1);
+    BOOST_CHECK( sf1.valid() );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+
+    // get
+    sf1.get();
+    BOOST_CHECK( ! sf1.valid() );
+}
+
 void test_future_wait()
 {
     boost::fibers::round_robin ds;
@@ -600,6 +650,8 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_future_swap_void));
     test->add(BOOST_TEST_CASE(test_future_get));
     test->add(BOOST_TEST_CASE(test_future_get_void));
+    test->add(BOOST_TEST_CASE(test_future_share));
+    test->add(BOOST_TEST_CASE(test_future_share_void));
     test->add(BOOST_TEST_CASE(test_future_wait));
     test->add(BOOST_TEST_CASE(test_future_wait_void));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_1));
