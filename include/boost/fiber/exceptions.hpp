@@ -13,6 +13,7 @@
 #include <string>
 
 #include <boost/config.hpp>
+#include <boost/detail/scoped_enum_emulation.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 
@@ -125,7 +126,6 @@ public:
     {}
 };
 
-
 class invalid_argument : public fiber_exception
 {
 public:
@@ -153,6 +153,115 @@ public:
     fiber_interrupted() :
         fiber_exception(
             system::errc::interrupted, "boost::fiber_interrupted")
+    {}
+};
+
+BOOST_SCOPED_ENUM_DECLARE_BEGIN(future_errc)
+{
+  broken_promise = 1,
+  future_already_retrieved,
+  promise_already_satisfied,
+  no_state
+}
+BOOST_SCOPED_ENUM_DECLARE_END(future_errc)
+
+BOOST_FIBERS_DECL system::error_category const& future_category() BOOST_NOEXCEPT;
+
+}
+
+namespace system {
+
+template<>
+struct is_error_code_enum< fibers::future_errc > : public true_type
+{};
+
+#ifdef BOOST_NO_CXX11_SCOPED_ENUMS
+template<>
+struct is_error_code_enum< fibers::future_errc::enum_type > : public true_type
+{};
+#endif
+
+inline
+error_code make_error_code( fibers::future_errc e) //BOOST_NOEXCEPT
+{
+    return error_code( underlying_cast< int >( e), fibers::future_category() );
+}
+
+inline
+error_condition make_error_condition( fibers::future_errc e) //BOOST_NOEXCEPT
+{
+    return error_condition( underlying_cast< int >( e), fibers::future_category() );
+}
+
+}
+
+namespace fibers {
+
+class future_error : public std::logic_error
+{
+private:
+    system::error_code  ec_;
+
+public:
+    future_error( system::error_code ec) :
+        logic_error( ec.message() ),
+        ec_( ec)
+    {}
+
+    system::error_code const& code() const BOOST_NOEXCEPT
+    { return ec_; }
+
+    const char* what() const throw()
+    { return code().message().c_str(); }
+};
+
+class future_uninitialized : public future_error
+{
+public:
+    future_uninitialized() :
+        future_error(
+            system::make_error_code(
+                future_errc::no_state) )
+    {}
+};
+
+class future_already_retrieved : public future_error
+{
+public:
+    future_already_retrieved() :
+        future_error(
+            system::make_error_code(
+                future_errc::future_already_retrieved) )
+    {}
+};
+
+class broken_promise : public future_error
+{
+public:
+    broken_promise() :
+        future_error(
+            system::make_error_code(
+                future_errc::broken_promise) )
+    {}
+};
+
+class promise_already_satisfied : public future_error
+{
+public:
+    promise_already_satisfied() :
+        future_error(
+            system::make_error_code(
+                future_errc::promise_already_satisfied) )
+    {}
+};
+
+class promise_uninitialized : public future_error
+{
+public:
+    promise_uninitialized() :
+        future_error(
+            system::make_error_code(
+                future_errc::no_state) )
     {}
 };
 

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include <boost/bind.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/utility.hpp>
 

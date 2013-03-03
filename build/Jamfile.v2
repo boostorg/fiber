@@ -38,6 +38,7 @@ lib boost_fibers
       detail/scheduler.cpp
       detail/spinlock.cpp
       fiber.cpp
+      future.cpp
       interruption.cpp
       mutex.cpp
       round_robin.cpp
