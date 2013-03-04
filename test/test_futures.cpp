@@ -624,6 +624,58 @@ void test_future_wait_with_fiber_2()
     boost::fibers::fiber( fn2).join();
 }
 
+void test_shared_future_move()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int > p1;
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< int > f2( boost::move( f1) );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = boost::move( f2);
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2);
+    BOOST_CHECK( ! f2.valid() );
+}
+
+void test_shared_future_move_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< void > p1;
+    boost::fibers::shared_future< void > f1 = p1.get_future().share();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< void > f2( boost::move( f1) );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = boost::move( f2);
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2);
+    BOOST_CHECK( ! f2.valid() );
+}
+
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 {
     boost::unit_test_framework::test_suite* test =
@@ -656,6 +708,9 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_future_wait_void));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_1));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_2));
+
+    test->add(BOOST_TEST_CASE(test_shared_future_move));
+    test->add(BOOST_TEST_CASE(test_shared_future_move_void));
 
     return test;
 }
