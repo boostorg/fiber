@@ -19,7 +19,6 @@
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
-#include <boost/fiber/promise.hpp>
 #include <boost/fiber/round_robin.hpp>
 #include <boost/fiber/unbounded_channel.hpp>
 

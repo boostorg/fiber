@@ -16,10 +16,10 @@
 #include <boost/throw_exception.hpp>
 #include <boost/utility.hpp>
 
-#include <boost/fiber/detail/future_base.hpp>
-#include <boost/fiber/detail/future_object.hpp>
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/future.hpp>
+#include <boost/fiber/future/detail/future_base.hpp>
+#include <boost/fiber/future/detail/future_object.hpp>
+#include <boost/fiber/future/future.hpp>
 
 namespace boost {
 namespace fibers {
