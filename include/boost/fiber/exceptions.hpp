@@ -265,6 +265,16 @@ public:
     {}
 };
 
+class packaged_task_uninitialized : public future_error
+{
+public:
+    packaged_task_uninitialized() :
+        future_error(
+            system::make_error_code(
+                future_errc::no_state) )
+    {}
+};
+
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS
