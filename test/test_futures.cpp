@@ -32,6 +32,12 @@ void fn2()
     BOOST_CHECK( 7 == f.get() );
 }
 
+int fn3()
+{ return 3; }
+
+void fn4()
+{}
+
 // promise
 void test_promise_create()
 {
@@ -676,6 +682,88 @@ void test_shared_future_move_void()
     BOOST_CHECK( ! f2.valid() );
 }
 
+// packaged_task
+void test_packaged_task_create()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // default constructed packaged_task is not valid
+    boost::fibers::packaged_task< int() > t1;
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+
+    // packaged_task from function
+    boost::fibers::packaged_task< int() > t2( fn3);
+    BOOST_CHECK( t2);
+    BOOST_CHECK( t2.valid() );
+}
+
+void test_packaged_task_create_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // default constructed packaged_task is not valid
+    boost::fibers::packaged_task< void() > t1;
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+
+    // packaged_task from function
+    boost::fibers::packaged_task< void() > t2( fn4);
+    BOOST_CHECK( t2);
+    BOOST_CHECK( t2.valid() );
+}
+
+void test_packaged_task_move()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< int() > t1( fn3);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+
+    // move construction
+    boost::fibers::packaged_task< int() > t2( boost::move( t1) );
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+    BOOST_CHECK( t2);
+    BOOST_CHECK( t2.valid() );
+
+    // move assignment
+    t1 = boost::move( t2);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+    BOOST_CHECK( ! t2);
+    BOOST_CHECK( ! t2.valid() );
+}
+
+void test_packaged_task_move_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::future< void() > t1( fn4);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+
+    // move construction
+    boost::fibers::pavckaged_task< void() > t2( boost::move( t1) );
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+    BOOST_CHECK( t2);
+    BOOST_CHECK( t2.valid() );
+
+    // move assignment
+    t1 = boost::move( t2);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+    BOOST_CHECK( ! t2);
+    BOOST_CHECK( ! t2.valid() );
+}
+
+
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 {
     boost::unit_test_framework::test_suite* test =
@@ -709,8 +797,13 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_1));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_2));
 
-    test->add(BOOST_TEST_CASE(test_shared_future_move));
-    test->add(BOOST_TEST_CASE(test_shared_future_move_void));
+//  test->add(BOOST_TEST_CASE(test_shared_future_move));
+//  test->add(BOOST_TEST_CASE(test_shared_future_move_void));
+
+    test->add(BOOST_TEST_CASE(test_packaged_task_create));
+    test->add(BOOST_TEST_CASE(test_packaged_task_create_void));
+    test->add(BOOST_TEST_CASE(test_packaged_task_move));
+    test->add(BOOST_TEST_CASE(test_packaged_task_move_void));
 
     return test;
 }

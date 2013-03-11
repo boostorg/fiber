@@ -19,6 +19,9 @@
 namespace boost {
 namespace fibers {
 
+template< typename S >
+class packaged_task;
+
 template< typename R >
 class promise;
 
@@ -31,6 +34,7 @@ class future : private noncopyable
 private:
     typedef typename detail::future_base< R >::ptr_t   ptr_t;
 
+    friend class packaged_task< R() >;
     friend class promise< R >;
     friend class shared_future< R >;
 
@@ -116,7 +120,7 @@ public:
         //      this is the case only for futures returned by
         //      promise::get_future(), packaged_task::get_future()
         //      or async() until the first time get()or share() is called
-        return future_;
+        return 0 != future_.get();
     }
 
     shared_future< R > share();
@@ -157,6 +161,7 @@ class future< void > : private noncopyable
 private:
     typedef typename detail::future_base< void >::ptr_t   ptr_t;
 
+    friend class packaged_task< void() >;
     friend class promise< void >;
     friend class shared_future< void >;
 
@@ -242,7 +247,7 @@ public:
         //      this is the case only for futures returned by
         //      promise::get_future(), packaged_task::get_future()
         //      or async() until the first time get()or share() is called
-        return future_;
+        return 0 != future_.get();
     }
 
     shared_future< void > share();
@@ -403,7 +408,7 @@ public:
         //      this is the case only for shared_futures returned by
         //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
-        return future_;
+        return 0 != future_.get();
     }
 
     R get()
@@ -557,7 +562,7 @@ public:
         //      this is the case only for shared_futures returned by
         //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
-        return future_;
+        return 0 != future_.get();
     }
 
     void get()

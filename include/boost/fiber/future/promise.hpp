@@ -9,7 +9,6 @@
 
 #include <memory>
 
-#include <boost/assert.hpp>
 #include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
@@ -77,7 +76,7 @@ public:
     {
         //TODO: abandon ownership if any
         if ( future_)
-            future_->promise_destroyed();
+            future_->owner_destroyed();
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
@@ -130,10 +129,10 @@ public:
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return future_ ? & dummy::nonnull : 0; }
+    { return 0 != future_.get() ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return ! future_; }
+    { return 0 == future_.get(); }
 
     future< R > get_future()
     {
@@ -258,7 +257,7 @@ public:
     {
         //TODO: abandon ownership if any
         if ( future_)
-            future_->promise_destroyed();
+            future_->owner_destroyed();
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
@@ -311,10 +310,10 @@ public:
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return future_ ? & dummy::nonnull : 0; }
+    { return 0 != future_.get() ? & dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
-    { return ! future_; }
+    { return 0 == future_.get(); }
 
     future< void > get_future()
     {

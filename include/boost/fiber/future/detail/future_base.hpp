@@ -49,7 +49,7 @@ private:
         waiters_.notify_all();
     }
 
-    void promise_destroyed_()
+    void owner_destroyed_()
     {
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
@@ -134,13 +134,15 @@ public:
         value_(), except_()
     {}
 
-    void promise_destroyed()
+    virtual ~future_base() {}
+
+    void owner_destroyed()
     {
         //TODO: lock mutex
         //      set broken_exception if future was not already done
         //      done = true, notify all waiters
         unique_lock< mutex > lk( mtx_);
-        promise_destroyed_();
+        owner_destroyed_();
     }
 
     void set_value( R const& value)
@@ -238,7 +240,7 @@ private:
         waiters_.notify_all();
     }
 
-    void promise_destroyed_()
+    void owner_destroyed_()
     {
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
@@ -296,13 +298,15 @@ public:
         use_count_( 0), mtx_(), ready_( false), except_()
     {}
 
-    void promise_destroyed()
+    virtual ~future_base() {}
+
+    void owner_destroyed()
     {
         //TODO: lock mutex
         //      set broken_exception if future was not already done
         //      done = true, notify all waiters
         unique_lock< mutex > lk( mtx_);
-        promise_destroyed_();
+        owner_destroyed_();
     }
 
     void set_value()
