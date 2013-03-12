@@ -23,7 +23,7 @@
 boost::atomic< bool > fini( false);
 boost::fibers::round_robin * other_ds = 0;
 
-boost::fibers::shared_future< int > fibonacci( int n);
+boost::fibers::future< int > fibonacci( int);
 
 int fibonacci_( int n)
 {
@@ -33,8 +33,8 @@ int fibonacci_( int n)
 
     if ( 0 != n && 1 != n)
     {
-        boost::fibers::shared_future< int > f1 = fibonacci( n - 1);
-        boost::fibers::shared_future< int > f2 = fibonacci( n - 2);
+        boost::fibers::future< int > f1 = fibonacci( n - 1);
+        boost::fibers::future< int > f2 = fibonacci( n - 2);
 
         res = f1.get() + f2.get();
     }
@@ -42,13 +42,12 @@ int fibonacci_( int n)
     return res;
 }
 
-boost::fibers::shared_future< int > fibonacci( int n)
+boost::fibers::future< int > fibonacci( int n)
 {
-    boost::fibers::packaged_task<int> pt(
-        boost::bind( fibonacci_, n) );
-    boost::fibers::shared_future<int> f(pt.get_future());
-    boost::fibers::fiber( boost::move(pt) ).detach();
-    return f;
+    boost::fibers::packaged_task< int() > pt( boost::bind( fibonacci_, n) );
+    boost::fibers::future< int > f( pt.get_future() );
+    boost::fibers::fiber( boost::move( pt) ).detach();
+    return boost::move( f);
 }
 
 void create_fibers( int n)
@@ -63,12 +62,7 @@ void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int 
 
     b->wait();
 
-    boost::fibers::fiber f(
-        boost::bind( create_fibers, n) );
-
-    std::stringstream ss;
-    ss << f.get_id();
-    f.join();
+    boost::fibers::fiber( boost::bind( create_fibers, n) ).join();
 
     fini = true;
 }
@@ -88,9 +82,9 @@ void fn_steel_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b,
         {
             ++( * count);
             ds.migrate_to( f);
-            while ( boost::fibers::detail::scheduler::instance().run() );
+            f.detach();
         }
-        f.detach();
+        while ( boost::fibers::detail::scheduler::instance().run() );
     }
 }
 

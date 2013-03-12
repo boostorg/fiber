@@ -6,6 +6,7 @@
 
 #include <utility>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <boost/bind.hpp>
@@ -13,8 +14,12 @@
 #include <boost/fiber/all.hpp>
 #include <boost/test/unit_test.hpp>
 
-struct my_exception
-{};
+struct my_exception : public std::runtime_error
+{
+    my_exception() :
+        std::runtime_error("my_exception")
+    {}
+};
 
 void fn1( boost::fibers::promise< int > * p, int i)
 {
@@ -37,6 +42,17 @@ int fn3()
 
 void fn4()
 {}
+
+int fn5()
+{
+    boost::throw_exception( my_exception() );
+    return 3;
+}
+
+void fn6()
+{
+    boost::throw_exception( my_exception() );
+}
 
 // promise
 void test_promise_create()
@@ -744,12 +760,12 @@ void test_packaged_task_move_void()
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::future< void() > t1( fn4);
+    boost::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1);
     BOOST_CHECK( t1.valid() );
 
     // move construction
-    boost::fibers::pavckaged_task< void() > t2( boost::move( t1) );
+    boost::fibers::packaged_task< void() > t2( boost::move( t1) );
     BOOST_CHECK( ! t1);
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2);
@@ -761,6 +777,266 @@ void test_packaged_task_move_void()
     BOOST_CHECK( t1.valid() );
     BOOST_CHECK( ! t2);
     BOOST_CHECK( ! t2.valid() );
+}
+
+void test_packaged_task_swap()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< int() > t1( fn3);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+
+    boost::fibers::packaged_task< int() > t2;
+    BOOST_CHECK( ! t2);
+    BOOST_CHECK( ! t2.valid() );
+
+    // swap
+    t1.swap( t2);
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+    BOOST_CHECK( t2);
+    BOOST_CHECK( t2.valid() );
+}
+
+void test_packaged_task_swap_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< void() > t1( fn4);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+
+    boost::fibers::packaged_task< void() > t2;
+    BOOST_CHECK( ! t2);
+    BOOST_CHECK( ! t2.valid() );
+
+    // swap
+    t1.swap( t2);
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+    BOOST_CHECK( t2);
+    BOOST_CHECK( t2.valid() );
+}
+
+void test_packaged_task_reset()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< int() > t1( fn3);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+
+    // reset
+    t1.reset();
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+
+    // reset a second time
+    bool thrown = false;
+    try
+    { t1.reset(); }
+    catch ( boost::fibers::packaged_task_uninitialized const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
+void test_packaged_task_reset_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< void() > t1( fn4);
+    BOOST_CHECK( t1);
+    BOOST_CHECK( t1.valid() );
+
+    // reset
+    t1.reset();
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( ! t1.valid() );
+
+    // reset a second time
+    bool thrown = false;
+    try
+    { t1.reset(); }
+    catch ( boost::fibers::packaged_task_uninitialized const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
+void test_packaged_task_get_future()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< int() > t1( fn3);
+    BOOST_CHECK( t1);
+
+    // retrieve future
+    boost::fibers::future< int > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // retrieve future a second time
+    bool thrown = false;
+    try
+    { f1 = t1.get_future(); }
+    catch ( boost::fibers::future_already_retrieved const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    // move construction
+    boost::fibers::packaged_task< int() > t2( boost::move( t1) );
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( t2);
+
+    // retrieve future from uninitialized
+    thrown = false;
+    try
+    { f1 = t1.get_future(); }
+    catch ( boost::fibers::packaged_task_uninitialized const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
+void test_packaged_task_get_future_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::packaged_task< void() > t1( fn4);
+    BOOST_CHECK( t1);
+
+    // retrieve future
+    boost::fibers::future< void > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // retrieve future a second time
+    bool thrown = false;
+    try
+    { f1 = t1.get_future(); }
+    catch ( boost::fibers::future_already_retrieved const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    // move construction
+    boost::fibers::packaged_task< void() > t2( boost::move( t1) );
+    BOOST_CHECK( ! t1);
+    BOOST_CHECK( t2);
+
+    // retrieve future from uninitialized
+    thrown = false;
+    try
+    { f1 = t1.get_future(); }
+    catch ( boost::fibers::packaged_task_uninitialized const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
+void test_packaged_task_exec()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // promise takes a copyable as return type
+    boost::fibers::packaged_task< int() > t1( fn3);
+    BOOST_CHECK( t1);
+    boost::fibers::future< int > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // exec
+    t1();
+    BOOST_CHECK( 3 == f1.get() );
+
+    // exec a second time
+    bool thrown = false;
+    try
+    { t1(); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    //TODO: packaged_task returns a reference as return type
+
+    //TODO: packaged_task returns a moveable-only as return type
+}
+
+void test_packaged_task_exec_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // promise takes a copyable as return type
+    boost::fibers::packaged_task< void() > t1( fn4);
+    BOOST_CHECK( t1);
+    boost::fibers::future< void > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // set void
+    t1();
+    f1.get();
+
+    // exec a second time
+    bool thrown = false;
+    try
+    { t1(); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
+void test_packaged_task_exception()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // promise takes a copyable as return type
+    boost::fibers::packaged_task< int() > t1( fn5);
+    BOOST_CHECK( t1);
+    boost::fibers::future< int > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // exec
+    t1();
+    bool thrown = false;
+    try
+    { f1.get(); }
+    catch ( my_exception const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    //TODO: packaged_task returns a reference as return type
+
+    //TODO: packaged_task returns a moveable-only as return type
+}
+
+void test_packaged_task_exception_void()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // promise takes a copyable as return type
+    boost::fibers::packaged_task< void() > t1( fn6);
+    BOOST_CHECK( t1);
+    boost::fibers::future< void > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // set void
+    t1();
+    bool thrown = false;
+    try
+    { f1.get(); }
+    catch ( my_exception const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
 }
 
 
@@ -804,6 +1080,16 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_packaged_task_create_void));
     test->add(BOOST_TEST_CASE(test_packaged_task_move));
     test->add(BOOST_TEST_CASE(test_packaged_task_move_void));
+    test->add(BOOST_TEST_CASE(test_packaged_task_swap));
+    test->add(BOOST_TEST_CASE(test_packaged_task_swap_void));
+    test->add(BOOST_TEST_CASE(test_packaged_task_reset));
+    test->add(BOOST_TEST_CASE(test_packaged_task_reset_void));
+    test->add(BOOST_TEST_CASE(test_packaged_task_get_future));
+    test->add(BOOST_TEST_CASE(test_packaged_task_get_future_void));
+    test->add(BOOST_TEST_CASE(test_packaged_task_exec));
+    test->add(BOOST_TEST_CASE(test_packaged_task_exec_void));
+    test->add(BOOST_TEST_CASE(test_packaged_task_exception));
+    test->add(BOOST_TEST_CASE(test_packaged_task_exception_void));
 
     return test;
 }
