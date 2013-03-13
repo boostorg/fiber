@@ -55,11 +55,13 @@ mutex::lock()
             {
                 // notifier for main-fiber
                 n = detail::scheduler::instance().notifier();
+
                 // store this fiber in order to be notified later
                 unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
-
                 lk.unlock();
+
+                // wait until main-fiber gets notified
                 while ( ! n->is_ready() )
                 {
                     // run scheduler
@@ -92,6 +94,7 @@ mutex::unlock()
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
+    lk.unlock();
 
 	state_ = UNLOCKED;
 
