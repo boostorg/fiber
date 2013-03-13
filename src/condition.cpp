@@ -32,12 +32,15 @@ condition::notify_one()
 {
     detail::notify::ptr_t n;
 
+    // get one waiting fiber
     unique_lock< detail::spinlock > lk( splk_);
     if ( ! waiting_.empty() ) {
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
+    lk.unlock();
 
+    // notify waiting fiber
     if ( n)
         n->set_ready();
 }
@@ -45,22 +48,21 @@ condition::notify_one()
 void
 condition::notify_all()
 {
-    detail::notify::ptr_t n;
+    std::deque< detail::notify::ptr_t > waiting;
 
+    // get all waiting fibers
     unique_lock< detail::spinlock > lk( splk_);
-    while ( ! waiting_.empty() )
+    waiting.swap( waiting_);
+    lk.unlock();
+
+    // notify all waiting fibers
+    while ( ! waiting.empty() )
     {
-        n.swap( waiting_.front() );
-        waiting_.pop_front();
+        detail::notify::ptr_t n( waiting.front() );
+        waiting.pop_front();
+        BOOST_ASSERT( n);
         n->set_ready();
     }
-#if 0
-    BOOST_FOREACH( detail::notify::ptr_t const& n, waiting_)
-    {
-        n->set_ready();
-    }
-    waiting_.clear();
-#endif
 }
 
 }}

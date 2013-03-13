@@ -87,8 +87,8 @@ public:
                 // store this fiber in order to be notified later
                 unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
-
                 lk.unlock();
+
                 lt.unlock();
                 while ( ! n->is_ready() )
                 {
