@@ -54,8 +54,8 @@ private:
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
     exception_ptr           except_;
-    spinlock                joining_mtx_;
-    std::vector< ptr_t >    joining_;
+    spinlock                waiting_mtx_;
+    std::vector< ptr_t >    waiting_;
 
 protected:
     virtual void unwind_stack() = 0;

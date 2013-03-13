@@ -34,14 +34,14 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     caller_(),
     callee_( callee),
     except_(),
-    joining_mtx_(),
-    joining_()
+    waiting_mtx_(),
+    waiting_()
 { if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
 
 fiber_base::~fiber_base()
 {
     BOOST_ASSERT( is_terminated() );
-    BOOST_ASSERT( joining_.empty() );
+    BOOST_ASSERT( waiting_.empty() );
 }
 
 void
@@ -67,22 +67,27 @@ fiber_base::suspend()
 void
 fiber_base::release()
 {
-    // set all waiting fibers in joining_ to READY
-    // so they can be resumed
-    // protect against concurrent access to joining_
-    unique_lock< spinlock > lk( joining_mtx_);
-    BOOST_FOREACH( fiber_base::ptr_t p, joining_)
+    BOOST_ASSERT( is_terminated() );
+
+    std::vector< ptr_t > waiting;
+
+    // get all waiting fibers
+    unique_lock< spinlock > lk( waiting_mtx_);
+    waiting.swap( waiting_);
+    lk.unlock();
+
+    // notify all waiting fibers
+    BOOST_FOREACH( fiber_base::ptr_t p, waiting)
     { p->set_ready(); }
-    joining_.clear();
 }
 
 bool
 fiber_base::join( ptr_t const& p)
 {
-    // protect against concurrent access to joining_
-    unique_lock< spinlock > lk( joining_mtx_);
+    // protect against concurrent access to waiting_
+    unique_lock< spinlock > lk( waiting_mtx_);
     if ( is_terminated() ) return false;
-    joining_.push_back( p);
+    waiting_.push_back( p);
     return true;
 }
 
