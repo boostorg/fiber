@@ -14,6 +14,8 @@
 #include <boost/fiber/all.hpp>
 #include <boost/test/unit_test.hpp>
 
+int gi = 7;
+
 struct my_exception : public std::runtime_error
 {
     my_exception() :
@@ -54,6 +56,9 @@ void fn6()
     boost::throw_exception( my_exception() );
 }
 
+int & fn7()
+{ return gi; }
+
 // promise
 void test_promise_create()
 {
@@ -67,6 +72,21 @@ void test_promise_create()
     // use std::allocator<> as user defined
     std::allocator< boost::fibers::promise< int > > alloc;
     boost::fibers::promise< int > p2( alloc);
+    BOOST_CHECK( p2);
+}
+
+void test_promise_create_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // use std::allocator<> as default
+    boost::fibers::promise< int& > p1;
+    BOOST_CHECK( p1);
+
+    // use std::allocator<> as user defined
+    std::allocator< boost::fibers::promise< int& > > alloc;
+    boost::fibers::promise< int& > p2( alloc);
     BOOST_CHECK( p2);
 }
 
@@ -95,6 +115,25 @@ void test_promise_move()
 
     // move construction
     boost::fibers::promise< int > p2( boost::move( p1) );
+    BOOST_CHECK( ! p1);
+    BOOST_CHECK( p2);
+
+    // move assigment
+    p1 = boost::move( p2);
+    BOOST_CHECK( p1);
+    BOOST_CHECK( ! p2);
+}
+
+void test_promise_move_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::promise< int& > p1;
+    BOOST_CHECK( p1);
+
+    // move construction
+    boost::fibers::promise< int& > p2( boost::move( p1) );
     BOOST_CHECK( ! p1);
     BOOST_CHECK( p2);
 
@@ -133,6 +172,25 @@ void test_promise_swap()
 
     // move construction
     boost::fibers::promise< int > p2( boost::move( p1) );
+    BOOST_CHECK( ! p1);
+    BOOST_CHECK( p2);
+
+    // swap
+    p1.swap( p2);
+    BOOST_CHECK( p1);
+    BOOST_CHECK( ! p2);
+}
+
+void test_promise_swap_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::promise< int& > p1;
+    BOOST_CHECK( p1);
+
+    // move construction
+    boost::fibers::promise< int& > p2( boost::move( p1) );
     BOOST_CHECK( ! p1);
     BOOST_CHECK( p2);
 
@@ -184,6 +242,41 @@ void test_promise_get_future()
 
     // move construction
     boost::fibers::promise< int > p2( boost::move( p1) );
+    BOOST_CHECK( ! p1);
+    BOOST_CHECK( p2);
+
+    // retrieve future from uninitialized
+    thrown = false;
+    try
+    { f1 = p1.get_future(); }
+    catch ( boost::fibers::promise_uninitialized const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
+void test_promise_get_future_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::promise< int& > p1;
+    BOOST_CHECK( p1);
+
+    // retrieve future
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // retrieve future a second time
+    bool thrown = false;
+    try
+    { f1 = p1.get_future(); }
+    catch ( boost::fibers::future_already_retrieved const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    // move construction
+    boost::fibers::promise< int& > p2( boost::move( p1) );
     BOOST_CHECK( ! p1);
     BOOST_CHECK( p2);
 
@@ -255,9 +348,34 @@ void test_promise_set_value()
     { thrown = true; }
     BOOST_CHECK( thrown);
 
-    //TODO: promise takes a reference as return type
-
     //TODO: promise takes a moveable-only as return type
+}
+
+void test_promise_set_value_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // promise takes a reference as return type
+    boost::fibers::promise< int& > p1;
+    BOOST_CHECK( p1);
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // copy value
+    int i = 7;
+    p1.set_value( i);
+    int & j = f1.get();
+    BOOST_CHECK( &i == &j);
+
+    // set value a second time
+    bool thrown = false;
+    try
+    { p1.set_value( i); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
 }
 
 void test_promise_set_value_void()
@@ -314,6 +432,36 @@ void test_promise_set_exception()
     BOOST_CHECK( thrown);
 }
 
+void test_promise_set_exception_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::promise< int& > p1;
+    BOOST_CHECK( p1);
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+    p1.set_exception( boost::copy_exception( my_exception() ) );
+
+    // set exception a second time
+    bool thrown = false;
+    try
+    { p1.set_exception( boost::copy_exception( my_exception() ) ); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    // set value
+    thrown = false;
+    int i = 11;
+    try
+    { p1.set_value( i); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+}
+
 void test_promise_set_exception_void()
 {
     boost::fibers::round_robin ds;
@@ -361,6 +509,23 @@ void test_future_create()
     BOOST_CHECK( f2.valid() );
 }
 
+void test_future_create_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // default constructed future is not valid
+    boost::fibers::future< int& > f1;
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p2;
+    boost::fibers::future< int& > f2 = p2.get_future();
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+}
+
 void test_future_create_void()
 {
     boost::fibers::round_robin ds;
@@ -391,6 +556,32 @@ void test_future_move()
 
     // move construction
     boost::fibers::future< int > f2( boost::move( f1) );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = boost::move( f2);
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2);
+    BOOST_CHECK( ! f2.valid() );
+}
+
+void test_future_move_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::future< int& > f2( boost::move( f1) );
     BOOST_CHECK( ! f1);
     BOOST_CHECK( ! f1.valid() );
     BOOST_CHECK( f2);
@@ -453,6 +644,29 @@ void test_future_swap()
     BOOST_CHECK( f2.valid() );
 }
 
+void test_future_swap_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    boost::fibers::future< int& > f2;
+    BOOST_CHECK( ! f2);
+    BOOST_CHECK( ! f2.valid() );
+
+    // swap
+    f1.swap( f2);
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+}
+
 void test_future_swap_void()
 {
     boost::fibers::round_robin ds;
@@ -493,8 +707,6 @@ void test_future_get()
     BOOST_CHECK( 7 == f1.get() );
     BOOST_CHECK( ! f1.valid() );
 
-    //TODO: future gets a reference as return type
-
     //TODO: future gets a moveable-only as return type
 
     // throw broken_promise if promise is destroyed without set
@@ -510,6 +722,40 @@ void test_future_get()
     BOOST_CHECK( ! f1.valid() );
     BOOST_CHECK( thrown);
 }
+
+void test_future_get_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    int i = 7;
+    p1.set_value( i);
+
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // get
+    int & j = f1.get();
+    BOOST_CHECK( &i == &j);
+    BOOST_CHECK( ! f1.valid() );
+
+    // throw broken_promise if promise is destroyed without set
+    {
+        boost::fibers::promise< int& > p2;
+        f1 = p2.get_future();
+    }
+    bool thrown = false;
+    try
+    { f1.get(); }
+    catch ( boost::fibers::broken_promise const&)
+    { thrown = true; }
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( thrown);
+}
+
 
 void test_future_get_void()
 {
@@ -567,6 +813,33 @@ void test_future_share()
     BOOST_CHECK( ! sf1.valid() );
 }
 
+void test_future_share_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    int i = 7;
+    p1.set_value( i);
+
+    boost::fibers::future< int& > f1 = p1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // share
+    boost::fibers::shared_future< int& > sf1 = f1.share();
+    BOOST_CHECK( sf1);
+    BOOST_CHECK( sf1.valid() );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+
+    // get
+    int & j = sf1.get();
+    BOOST_CHECK( &i == &j);
+    BOOST_CHECK( ! sf1.valid() );
+}
+
 void test_future_share_void()
 {
     boost::fibers::round_robin ds;
@@ -605,6 +878,23 @@ void test_future_wait()
     p1.set_value( 7);
     f1.wait();
     BOOST_CHECK( 7 == f1.get() );
+}
+
+void test_future_wait_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    boost::fibers::future< int& > f1 = p1.get_future();
+
+    // wait on future
+    int i = 7;
+    p1.set_value( i);
+    f1.wait();
+    int & j = f1.get();
+    BOOST_CHECK( &i == &j);
 }
 
 void test_future_wait_void()
@@ -659,6 +949,32 @@ void test_shared_future_move()
 
     // move construction
     boost::fibers::shared_future< int > f2( boost::move( f1) );
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = boost::move( f2);
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2);
+    BOOST_CHECK( ! f2.valid() );
+}
+
+void test_shared_future_move_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    boost::fibers::shared_future< int& > f1 = p1.get_future().share();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< int& > f2( boost::move( f1) );
     BOOST_CHECK( ! f1);
     BOOST_CHECK( ! f1.valid() );
     BOOST_CHECK( f2);
@@ -961,7 +1277,33 @@ void test_packaged_task_exec()
     { thrown = true; }
     BOOST_CHECK( thrown);
 
-    //TODO: packaged_task returns a reference as return type
+    //TODO: packaged_task returns a moveable-only as return type
+}
+
+void test_packaged_task_exec_ref()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    // promise takes a copyable as return type
+    boost::fibers::packaged_task< int&() > t1( fn7);
+    BOOST_CHECK( t1);
+    boost::fibers::future< int& > f1 = t1.get_future();
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    // exec
+    t1();
+    int & i = f1.get();
+    BOOST_CHECK( &gi == &i);
+
+    // exec a second time
+    bool thrown = false;
+    try
+    { t1(); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
 
     //TODO: packaged_task returns a moveable-only as return type
 }
@@ -1012,8 +1354,6 @@ void test_packaged_task_exception()
     { thrown = true; }
     BOOST_CHECK( thrown);
 
-    //TODO: packaged_task returns a reference as return type
-
     //TODO: packaged_task returns a moveable-only as return type
 }
 
@@ -1046,34 +1386,48 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
         BOOST_TEST_SUITE("Boost.Fiber: futures test suite");
 
     test->add(BOOST_TEST_CASE(test_promise_create));
+    test->add(BOOST_TEST_CASE(test_promise_create_ref));
     test->add(BOOST_TEST_CASE(test_promise_create_void));
     test->add(BOOST_TEST_CASE(test_promise_move));
+    test->add(BOOST_TEST_CASE(test_promise_move_ref));
     test->add(BOOST_TEST_CASE(test_promise_move_void));
     test->add(BOOST_TEST_CASE(test_promise_swap));
+    test->add(BOOST_TEST_CASE(test_promise_swap_ref));
     test->add(BOOST_TEST_CASE(test_promise_swap_void));
     test->add(BOOST_TEST_CASE(test_promise_get_future));
+    test->add(BOOST_TEST_CASE(test_promise_get_future_ref));
     test->add(BOOST_TEST_CASE(test_promise_get_future_void));
     test->add(BOOST_TEST_CASE(test_promise_set_value));
+    test->add(BOOST_TEST_CASE(test_promise_set_value_ref));
     test->add(BOOST_TEST_CASE(test_promise_set_value_void));
     test->add(BOOST_TEST_CASE(test_promise_set_exception));
+    test->add(BOOST_TEST_CASE(test_promise_set_exception_ref));
     test->add(BOOST_TEST_CASE(test_promise_set_exception_void));
 
     test->add(BOOST_TEST_CASE(test_future_create));
+    test->add(BOOST_TEST_CASE(test_future_create_ref));
     test->add(BOOST_TEST_CASE(test_future_create_void));
     test->add(BOOST_TEST_CASE(test_future_move));
+    test->add(BOOST_TEST_CASE(test_future_move_ref));
     test->add(BOOST_TEST_CASE(test_future_move_void));
     test->add(BOOST_TEST_CASE(test_future_swap));
+    test->add(BOOST_TEST_CASE(test_future_swap_ref));
     test->add(BOOST_TEST_CASE(test_future_swap_void));
     test->add(BOOST_TEST_CASE(test_future_get));
+    test->add(BOOST_TEST_CASE(test_future_get_ref));
+    test->add(BOOST_TEST_CASE(test_future_get_ref));
     test->add(BOOST_TEST_CASE(test_future_get_void));
     test->add(BOOST_TEST_CASE(test_future_share));
+    test->add(BOOST_TEST_CASE(test_future_share_ref));
     test->add(BOOST_TEST_CASE(test_future_share_void));
     test->add(BOOST_TEST_CASE(test_future_wait));
+    test->add(BOOST_TEST_CASE(test_future_wait_ref));
     test->add(BOOST_TEST_CASE(test_future_wait_void));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_1));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_2));
 
 //  test->add(BOOST_TEST_CASE(test_shared_future_move));
+//  test->add(BOOST_TEST_CASE(test_shared_future_move_ref));
 //  test->add(BOOST_TEST_CASE(test_shared_future_move_void));
 
     test->add(BOOST_TEST_CASE(test_packaged_task_create));
@@ -1087,6 +1441,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_packaged_task_get_future));
     test->add(BOOST_TEST_CASE(test_packaged_task_get_future_void));
     test->add(BOOST_TEST_CASE(test_packaged_task_exec));
+    test->add(BOOST_TEST_CASE(test_packaged_task_exec_ref));
     test->add(BOOST_TEST_CASE(test_packaged_task_exec_void));
     test->add(BOOST_TEST_CASE(test_packaged_task_exception));
     test->add(BOOST_TEST_CASE(test_packaged_task_exception_void));

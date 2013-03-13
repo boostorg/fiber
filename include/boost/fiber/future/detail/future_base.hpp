@@ -224,6 +224,150 @@ public:
     }
 };
 
+template< typename R >
+class future_base< R & > : public noncopyable
+{
+private:
+    atomic< std::size_t >   use_count_;
+    mutable mutex           mtx_;
+    mutable condition       waiters_;
+    bool                    ready_;
+    R                   *   value_;
+    exception_ptr           except_;
+
+    void mark_ready_and_notify_()
+    {
+        ready_ = true;
+        waiters_.notify_all();
+    }
+
+    void owner_destroyed_()
+    {
+        //TODO: set broken_exception if future was not already done
+        //      notify all waiters
+        if ( ! ready_)
+            set_exception_( copy_exception( broken_promise() ) );
+    }
+
+    void set_value_( R & value)
+    {
+        //TODO: store the value and make the future ready
+        //      notify all waiters
+        if ( ready_)
+            boost::throw_exception(
+                promise_already_satisfied() );
+        value_ = & value;
+        mark_ready_and_notify_();
+    }
+
+    void set_exception_( exception_ptr except)
+    {
+        //TODO: store the exception pointer p into the shared state and make the state ready
+        //      done = true, notify all waiters
+        if ( ready_)
+            boost::throw_exception(
+                promise_already_satisfied() );
+        except_ = except;
+        mark_ready_and_notify_();
+    }
+
+    R & get_( unique_lock< mutex > & lk)
+    {
+        //TODO: the get method waits until the future has a valid result and
+        //      (depending on which template is used) retrieves it
+        //      it effectively calls wait_() in order to wait for the result
+        //      if it satisfies the requirements of MoveAssignable, the value is moved,
+        //      otherwise it is copied
+        wait_( lk);
+        if ( except_)
+            rethrow_exception( except_);
+        return * value_;
+    }
+
+    void wait_( unique_lock< mutex > & lk) const
+    {
+        //TODO: blocks until the result becomes available
+        while ( ! ready_)
+            waiters_.wait( lk);
+    }
+
+protected:
+    virtual void deallocate_future() = 0;
+
+public:
+    typedef intrusive_ptr< future_base >    ptr_t;
+
+    future_base() :
+        use_count_( 0), mtx_(), ready_( false),
+        value_( 0), except_()
+    {}
+
+    virtual ~future_base() {}
+
+    void owner_destroyed()
+    {
+        //TODO: lock mutex
+        //      set broken_exception if future was not already done
+        //      done = true, notify all waiters
+        unique_lock< mutex > lk( mtx_);
+        owner_destroyed_();
+    }
+
+    void set_value( R & value)
+    {
+        //TODO: store the value into the shared state and make the state ready
+        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
+        //      associated with the promise object while updating the promise object
+        //      an exception is thrown if there is no shared state or the shared state already
+        //      stores a value or exception
+        unique_lock< mutex > lk( mtx_);
+        set_value_( value);
+    }
+
+    void set_exception( exception_ptr except)
+    {
+        //TODO: store the exception pointer p into the shared state and make the state ready
+        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
+        //      associated with the promise object while updating the promise object
+        //      an exception is thrown if there is no shared state or the shared state already
+        //      stores a value or exception
+        unique_lock< mutex > lk( mtx_);
+        set_exception_( except);
+    }
+
+    R & get()
+    {
+        //TODO: the get method waits until the future has a valid result and
+        //      (depending on which template is used) retrieves it
+        //      it effectively calls wait() in order to wait for the result
+        //      the value stored in the shared state
+        //      if it satisfies the requirements of MoveAssignable, the value is moved,
+        //      otherwise it is copied
+        //      valid() == false after a call to this method.
+        //      detect the case when valid == false before the call and throw a
+        //      future_error with an error condition of future_errc::no_state
+        unique_lock< mutex > lk( mtx_);
+        return get_( lk);
+    }
+
+    void wait() const
+    {
+        //TODO: blocks until the result becomes available
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        wait_( lk);
+    }
+
+    friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
+    { ++p->use_count_; }
+
+    friend inline void intrusive_ptr_release( future_base * p)
+    {
+        if ( 0 == --p->use_count_)
+           p->deallocate_future();
+    }
+};
+
 template<>
 class future_base< void > : public noncopyable
 {

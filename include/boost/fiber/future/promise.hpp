@@ -204,6 +204,159 @@ public:
     }
 };
 
+template< typename R >
+class promise< R & > : private noncopyable
+{
+private:
+    typedef typename detail::future_base< R & >::ptr_t   ptr_t;
+
+    struct dummy
+    { void nonnull() {} };
+
+    typedef void ( dummy::*safe_bool)();
+
+    atomic< bool >  obtained_;
+    ptr_t           future_;
+
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
+
+public:
+    promise() :
+        obtained_( false),
+        future_()
+    {
+        // TODO: constructs the promise with an empty shared state
+        //       the shared state is allocated using alloc
+        //       alloc must meet the requirements of Allocator
+        typedef detail::future_object<
+            R &, std::allocator< promise< R & > >
+        >                                               object_t;
+        std::allocator< promise< R > > alloc;
+        typename object_t::allocator_t a( alloc);
+        future_ = ptr_t(
+            // placement new
+            ::new( a.allocate( 1) ) object_t( a) );
+    }
+
+    template< typename Allocator >
+    promise( Allocator alloc) :
+        obtained_( false),
+        future_()
+    {
+        // TODO: constructs the promise with an empty shared state
+        //       the shared state is allocated using alloc
+        //       alloc must meet the requirements of Allocator
+        typedef detail::future_object< R &, Allocator >  object_t;
+        typename object_t::allocator_t a( alloc);
+        future_ = ptr_t(
+            // placement new
+            ::new( a.allocate( 1) ) object_t( a) );
+    }
+
+    ~promise()
+    {
+        //TODO: abandon ownership if any
+        if ( future_)
+            future_->owner_destroyed();
+    }
+
+#ifndef BOOST_NO_RVALUE_REFERENCES
+    promise( promise && other) BOOST_NOEXCEPT :
+        obtained_( false),
+        future_()
+    {
+        //TODO: take over ownership
+        //      other is valid before but in
+        //      undefined state afterwards
+        swap( other);
+    }
+
+    promise & operator=( promise && other) BOOST_NOEXCEPT
+    {
+        //TODO: take over ownership
+        //      other is valid before but in
+        //      undefined state afterwards
+        promise tmp( boost::move( other) );
+        swap( tmp);
+        return * this;
+    }
+#else
+    promise( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT :
+        obtained_( false),
+        future_()
+    {
+        //TODO: take over ownership
+        //      other is valid before but in
+        //      undefined state afterwards
+        swap( other);
+    }
+
+    promise & operator=( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT
+    {
+        //TODO: take over ownership
+        //      other is valid before but in
+        //      undefined state afterwards
+        promise tmp( boost::move( other) );
+        swap( tmp);
+        return * this;
+    }
+#endif
+
+    void swap( promise & other) BOOST_NOEXCEPT
+    {
+        //TODO: exchange the shared states of two promises
+        obtained_ = other.obtained_.exchange( obtained_.load() );
+        future_.swap( other.future_);
+    }
+
+    operator safe_bool() const BOOST_NOEXCEPT
+    { return 0 != future_.get() ? & dummy::nonnull : 0; }
+
+    bool operator!() const BOOST_NOEXCEPT
+    { return 0 == future_.get(); }
+
+    future< R & > get_future()
+    {
+        //TODO: returns a future object associated with the same shared state
+        //      exception is thrown if *this has no shared state or get_future
+        //      has already been called.
+        if ( obtained_)
+            boost::throw_exception(
+                future_already_retrieved() );
+        if ( ! future_)
+            boost::throw_exception(
+                promise_uninitialized() );
+        obtained_ = true;
+        return future< R & >( future_);
+    }
+
+    void set_value( R & value)
+    {
+        //TODO: store the value into the shared state and make the state ready
+        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
+        //      associated with the promise object while updating the promise object
+        //      an exception is thrown if there is no shared state or the shared state already
+        //      stores a value or exception
+        if ( ! future_)
+            boost::throw_exception(
+                promise_uninitialized() );
+        future_->set_value( value);
+    }
+
+    void set_exception( exception_ptr p)
+    {
+        //TODO: store the exception pointer p into the shared state and make the state ready
+        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
+        //      associated with the promise object while updating the promise object
+        //      an exception is thrown if there is no shared state or the shared state already
+        //      stores a value or exception
+        if ( ! future_)
+            boost::throw_exception(
+                promise_uninitialized() );
+        future_->set_exception( p);
+    }
+};
+
 template<>
 class promise< void > : private noncopyable
 {
