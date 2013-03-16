@@ -3,6 +3,7 @@
 #include <string>
 
 #include <boost/assert.hpp>
+#include <boost/bind.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/ref.hpp>
 #include <boost/optional.hpp>
@@ -20,17 +21,17 @@ void ping( fifo_t & recv_buf, fifo_t & send_buf)
 
 	send_buf.put("ping");
 	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "statum " <<  id << ": ping received: " << * value << std::endl;
+	std::cout << "fiber " <<  id << ": ping received: " << * value << std::endl;
 	value.reset();
 
 	send_buf.put("ping");
 	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "statum " <<  id << ": ping received: " << * value << std::endl;
+	std::cout << "fiber " <<  id << ": ping received: " << * value << std::endl;
 	value.reset();
 
 	send_buf.put("ping");
 	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "statum " <<  id << ": ping received: " << * value << std::endl;
+	std::cout << "fiber " <<  id << ": ping received: " << * value << std::endl;
 	value.reset();
 
 	send_buf.deactivate();
@@ -44,17 +45,17 @@ void pong( fifo_t & recv_buf, fifo_t & send_buf)
 	boost::optional< std::string > value;
 
 	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "statum " <<  id << ": pong received: " << * value << std::endl;
+	std::cout << "fiber " <<  id << ": pong received: " << * value << std::endl;
 	value.reset();
 	send_buf.put("pong");
 
 	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "statum " <<  id << ": pong received: " << * value << std::endl;
+	std::cout << "fiber " <<  id << ": pong received: " << * value << std::endl;
 	value.reset();
 	send_buf.put("pong");
 
 	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "statum " <<  id << ": pong received: " << * value << std::endl;
+	std::cout << "fiber " <<  id << ": pong received: " << * value << std::endl;
 	value.reset();
 	send_buf.put("pong");
 
