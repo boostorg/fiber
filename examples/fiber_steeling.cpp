@@ -45,8 +45,7 @@ boost::fibers::future< int > fibonacci( int n)
 {
     boost::fibers::packaged_task< int() > pt( boost::bind( fibonacci_, n) );
     boost::fibers::future< int > f( pt.get_future() );
-    boost::fibers::fiber * fi = new boost::fibers::fiber( boost::move( pt) );
-//  fi->detach();
+    boost::fibers::fiber( boost::move( pt) ).detach();
     return boost::move( f);
 }
 
