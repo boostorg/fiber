@@ -13,9 +13,6 @@ execution paths running on a single thread using a sort of cooperative schedulin
 preemptively scheduled) - the running fiber decides explicitly when its yields to allow another fiber to
 run (context switching).
 
-Fibers can be synchronized running in different threads. In order to support task steeling it boost.fiber
-support migration of fibers between threads.
-
 A context switch between threads costs usally thousends of CPU cycles on x86 compared to a fiber switch 
 with less than 100 cycles. A fiber can only run on a single thread at any point in time but may be 
 migrated between threads.
