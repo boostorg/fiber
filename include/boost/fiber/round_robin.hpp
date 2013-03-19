@@ -67,10 +67,6 @@ public:
     void yield();
 
     detail::notify::ptr_t notifier();
-
-    void migrate_to( fiber const&);
-
-    fiber steel_from();
 };
 
 }}

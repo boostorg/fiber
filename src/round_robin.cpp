@@ -247,30 +247,6 @@ detail::notify::ptr_t
 round_robin::notifier()
 { return notifier_; }
 
-void
-round_robin::migrate_to( fiber const& f)
-{
-    BOOST_ASSERT( f);
-
-    spawn( detail::scheduler::extract( f) );
-}
-
-fiber
-round_robin::steel_from()
-{
-    detail::fiber_base::ptr_t f;
-
-    unique_lock< detail::spinlock > lk( rqueue_mtx_);
-    if ( ! rqueue_.empty() )
-    {
-        f.swap( rqueue_.back() );
-        rqueue_.pop_back();
-    }
-    lk.unlock();
-
-    return fiber( f);
-}
-
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS
