@@ -10,7 +10,6 @@
 #include <cstddef>
 
 #include <boost/assert.hpp>
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/utility.hpp>
@@ -28,7 +27,7 @@ namespace detail {
 class notify : private noncopyable
 {
 private:
-    atomic< std::size_t >   use_count_;
+    std::size_t     use_count_;
 
 public:
     typedef intrusive_ptr< notify >     ptr_t;

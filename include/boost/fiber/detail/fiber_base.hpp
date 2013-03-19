@@ -11,8 +11,6 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/assert.hpp>
-#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/context/fcontext.hpp>
@@ -24,7 +22,6 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/notify.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -43,18 +40,20 @@ private:
     template< typename X, typename Y >
     friend class fiber_object;
 
-    static const int READY;
-    static const int RUNNING;
-    static const int WAITING;
-    static const int TERMINATED;
+    enum state_t
+    {
+        READY = 0,
+        RUNNING,
+        WAITING,
+        TERMINATED
+    };
 
-    atomic< int >           state_;
-    atomic< int >           flags_;
-    atomic< int >           priority_;
+    state_t                 state_;
+    int                     flags_;
+    int                     priority_;
     context::fcontext_t     caller_;
     context::fcontext_t *   callee_;
     exception_ptr           except_;
-    spinlock                waiting_mtx_;
     std::vector< ptr_t >    waiting_;
 
 protected:
@@ -193,7 +192,8 @@ public:
         //       - other fiber calls set_ready() on this fiber happend before this
         //         fiber calls set_terminated()
         //       - this fiber stack gets unwound and set_terminated() is called at the end
-        int previous = state_.exchange( TERMINATED);
+        state_t previous = TERMINATED;
+        std::swap( state_, previous);
         BOOST_ASSERT( RUNNING == previous);
         //BOOST_ASSERT( RUNNING == previous || READY == previous);
     }
@@ -219,13 +219,15 @@ public:
         if ( result || TERMINATED == expected || READY == expected) return;
     }
 #endif
-        int previous = state_.exchange( READY);
+        state_t previous = READY;
+        std::swap( state_, previous);
         BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
     }
 
     void set_running() BOOST_NOEXCEPT
     {
-        int previous = state_.exchange( RUNNING);
+        state_t previous = RUNNING;
+        std::swap( state_, previous);
         BOOST_ASSERT( READY == previous);
     }
 
@@ -240,7 +242,8 @@ public:
         //       - other fiber calls set_ready() on this fiber happend before this
         //         fiber calls set_waiting()
         //       - this fiber might wait on some sync. primitive calling set_waiting()
-        int previous = state_.exchange( WAITING);
+        state_t previous = WAITING;
+        std::swap( state_, previous);
         BOOST_ASSERT( RUNNING == previous);
         //BOOST_ASSERT( RUNNING == previous || READY == previous);
     }

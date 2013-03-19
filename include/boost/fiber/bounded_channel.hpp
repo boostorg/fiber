@@ -12,7 +12,6 @@
 #include <cstddef>
 #include <stdexcept>
 
-#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/exception/all.hpp>
@@ -73,14 +72,14 @@ private:
     template< typename X >
     friend void intrusive_ptr_release( bounded_channel< X > * p);
 
-    enum state
+    enum state_t
     {
         ACTIVE = 0,
         DEACTIVE
     };
 
-    atomic< state >             state_;
-    atomic< std::size_t >       count_;
+    state_t                     state_;
+    std::size_t                 count_;
     typename node_type::ptr     head_;
     mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;

@@ -9,7 +9,6 @@
 
 #include <memory>
 
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
 #include <boost/throw_exception.hpp>
@@ -40,7 +39,7 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    atomic< bool >  obtained_;
+    bool            obtained_;
     ptr_t           task_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( packaged_task);
@@ -304,7 +303,7 @@ public:
     void swap( packaged_task & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two packaged_task
-        obtained_ = other.obtained_.exchange( obtained_.load() );
+        std::swap( obtained_, other.obtained_);
         task_.swap( other.task_);
     }
 
@@ -371,7 +370,7 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    atomic< bool >  obtained_;
+    bool            obtained_;
     ptr_t           task_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( packaged_task);
@@ -635,7 +634,7 @@ public:
     void swap( packaged_task & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two packaged_task
-        obtained_ = other.obtained_.exchange( obtained_.load() );
+        std::swap( obtained_, other.obtained_);
         task_.swap( other.task_);
     }
 

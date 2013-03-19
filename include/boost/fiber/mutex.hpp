@@ -11,14 +11,12 @@
 
 #include <deque>
 
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/notify.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -35,11 +33,13 @@ namespace fibers {
 class BOOST_FIBERS_DECL mutex : private noncopyable
 {
 private:
-    static const int LOCKED;
-    static const int UNLOCKED;
+    enum state_t
+    {
+        LOCKED = 0,
+        UNLOCKED
+    };
 
-    atomic< int >                   state_;
-    detail::spinlock                splk_;
+    volatile state_t                state_;
     std::deque<
         detail::notify::ptr_t
     >                               waiting_;

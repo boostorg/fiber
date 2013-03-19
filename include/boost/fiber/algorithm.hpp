@@ -14,7 +14,6 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/notify.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -41,7 +40,7 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
 
     virtual bool run() = 0;
 
-    virtual void wait( unique_lock< detail::spinlock > &) = 0;
+    virtual void wait() = 0;
 
     virtual void yield() = 0;
 

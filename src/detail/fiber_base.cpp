@@ -22,11 +22,6 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-const int fiber_base::READY = 0;
-const int fiber_base::RUNNING = 1;
-const int fiber_base::WAITING = 2;
-const int fiber_base::TERMINATED = 3;
-
 fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     state_( READY),
     flags_( 0),
@@ -34,7 +29,6 @@ fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
     caller_(),
     callee_( callee),
     except_(),
-    waiting_mtx_(),
     waiting_()
 { if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
 
@@ -72,9 +66,7 @@ fiber_base::release()
     std::vector< ptr_t > waiting;
 
     // get all waiting fibers
-    unique_lock< spinlock > lk( waiting_mtx_);
     waiting.swap( waiting_);
-    lk.unlock();
 
     // notify all waiting fibers
     BOOST_FOREACH( fiber_base::ptr_t p, waiting)
@@ -85,7 +77,6 @@ bool
 fiber_base::join( ptr_t const& p)
 {
     // protect against concurrent access to waiting_
-    unique_lock< spinlock > lk( waiting_mtx_);
     if ( is_terminated() ) return false;
     waiting_.push_back( p);
     return true;

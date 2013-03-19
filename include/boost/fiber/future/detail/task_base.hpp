@@ -9,7 +9,6 @@
 
 #include <cstddef>
 
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/throw_exception.hpp>

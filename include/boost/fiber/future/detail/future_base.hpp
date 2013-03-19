@@ -10,7 +10,6 @@
 #include <cstddef>
 
 #include <boost/assert.hpp>
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -36,7 +35,7 @@ template< typename R >
 class future_base : public noncopyable
 {
 private:
-    atomic< std::size_t >   use_count_;
+    std::size_t             use_count_;
     mutable mutex           mtx_;
     mutable condition       waiters_;
     bool                    ready_;
@@ -228,7 +227,7 @@ template< typename R >
 class future_base< R & > : public noncopyable
 {
 private:
-    atomic< std::size_t >   use_count_;
+    std::size_t             use_count_;
     mutable mutex           mtx_;
     mutable condition       waiters_;
     bool                    ready_;
@@ -372,7 +371,7 @@ template<>
 class future_base< void > : public noncopyable
 {
 private:
-    atomic< std::size_t >   use_count_;
+    std::size_t             use_count_;
     mutable mutex           mtx_;
     mutable condition       waiters_;
     bool                    ready_;

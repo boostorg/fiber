@@ -34,7 +34,7 @@ namespace detail {
 class main_notifier : public detail::notify
 {
 private:
-    mutable atomic< bool >   ready_;
+    mutable bool   ready_;
 
 public:
     main_notifier() :
@@ -42,7 +42,14 @@ public:
     {}
 
     bool is_ready() const BOOST_NOEXCEPT
-    { return ready_.exchange( false); }
+    {
+        if ( ready_)
+        {
+            ready_ = false;
+            return true;
+        }
+        return false;
+    }
 
     void set_ready() BOOST_NOEXCEPT
     { ready_ = true; }
@@ -54,7 +61,6 @@ round_robin::round_robin() :
     active_fiber_(),
     notifier_( new detail::main_notifier() ),
     wqueue_(),
-    rqueue_mtx_(),
     rqueue_()
 {}
 
@@ -62,7 +68,6 @@ round_robin::~round_robin()
 {
 #if 0
     BOOST_ASSERT( ! active_fiber_);
-    unique_lock< detail::spinlock > lk( rqueue_mtx_);
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
     {
         p->release();
@@ -113,10 +118,7 @@ round_robin::run()
         if ( f->interruption_requested() )
             f->set_ready();
         if ( f->is_ready() )
-        {
-            unique_lock< detail::spinlock > lk( rqueue_mtx_);
             rqueue_.push_back( f);
-        }
         else wqueue.push_back( f);
     }
     // exchange local with global waiting queue
@@ -127,11 +129,9 @@ round_robin::run()
     detail::fiber_base::ptr_t f;
     do
     {
-        unique_lock< detail::spinlock > lk( rqueue_mtx_);
         if ( rqueue_.empty() ) return false;
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
-        lk.unlock();
 
         if ( f->is_ready() ) break;
         if ( f->is_waiting() ) wqueue_.push_back( f);
@@ -146,7 +146,7 @@ round_robin::run()
 }
 
 void
-round_robin::wait( unique_lock< detail::spinlock > & lk)
+round_robin::wait()
 {
     BOOST_ASSERT( active_fiber_);
     //FIXME: mabye other threads can change the state of active fiber?
@@ -158,8 +158,6 @@ round_robin::wait( unique_lock< detail::spinlock > & lk)
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
-    // release lock
-    lk.unlock();
     // suspend fiber
     tmp->suspend();
     // fiber is resumed

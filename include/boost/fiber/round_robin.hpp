@@ -18,7 +18,6 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/notify.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/algorithm.hpp>
 
@@ -43,7 +42,6 @@ private:
     detail::fiber_base::ptr_t   active_fiber_;
     detail::notify::ptr_t       notifier_;
     wqueue_t                    wqueue_;
-    detail::spinlock            rqueue_mtx_;
     rqueue_t                    rqueue_;
 
 public:
@@ -62,7 +60,7 @@ public:
 
     bool run();
 
-    void wait( unique_lock< detail::spinlock > &);
+    void wait();
 
     void yield();
 

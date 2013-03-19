@@ -12,7 +12,6 @@
 #include <deque>
 
 #include <boost/assert.hpp>
-#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/locks.hpp>
@@ -21,7 +20,6 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
@@ -42,7 +40,6 @@ namespace fibers {
 class BOOST_FIBERS_DECL condition : private noncopyable
 {
 private:
-    detail::spinlock                       splk_;
     std::deque< detail::notify::ptr_t >    waiting_;
 
 public:
@@ -70,12 +67,11 @@ public:
             if ( n)
             {
                 // store this fiber in order to be notified later
-                unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
                 lt.unlock();
 
                 // suspend fiber
-                detail::scheduler::instance().wait( lk);
+                detail::scheduler::instance().wait();
 
                 // check if fiber was interrupted
                 this_fiber::interruption_point();
@@ -85,9 +81,7 @@ public:
                 // notifier for main-fiber
                 n = detail::scheduler::instance().notifier();
                 // store this fiber in order to be notified later
-                unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
-                lk.unlock();
 
                 lt.unlock();
                 while ( ! n->is_ready() )
@@ -100,7 +94,6 @@ public:
         catch (...)
         {
             // remove fiber from waiting_
-            unique_lock< detail::spinlock > lk( splk_);
             waiting_.erase(
                 std::find( waiting_.begin(), waiting_.end(), n) );
             throw;

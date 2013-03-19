@@ -20,7 +20,6 @@ namespace boost {
 namespace fibers {
 
 condition::condition() :
-    splk_(),
     waiting_()
 {}
 
@@ -33,12 +32,10 @@ condition::notify_one()
     detail::notify::ptr_t n;
 
     // get one waiting fiber
-    unique_lock< detail::spinlock > lk( splk_);
     if ( ! waiting_.empty() ) {
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    lk.unlock();
 
     // notify waiting fiber
     if ( n)
@@ -51,9 +48,7 @@ condition::notify_all()
     std::deque< detail::notify::ptr_t > waiting;
 
     // get all waiting fibers
-    unique_lock< detail::spinlock > lk( splk_);
     waiting.swap( waiting_);
-    lk.unlock();
 
     // notify all waiting fibers
     while ( ! waiting.empty() )

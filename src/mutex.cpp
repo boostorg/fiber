@@ -22,12 +22,8 @@
 namespace boost {
 namespace fibers {
 
-const int mutex::LOCKED = 0;
-const int mutex::UNLOCKED = 1;
-
 mutex::mutex() :
 	state_( UNLOCKED),
-    splk_(),
     waiting_()
 {}
 
@@ -37,7 +33,7 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    while ( LOCKED == state_.exchange( LOCKED) )
+    while ( LOCKED == state_)
     {
         detail::notify::ptr_t n( detail::scheduler::instance().active() );
         try
@@ -45,11 +41,10 @@ mutex::lock()
             if ( n)
             {
                 // store this fiber in order to be notified later
-                unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
 
                 // suspend this fiber
-                detail::scheduler::instance().wait( lk);
+                detail::scheduler::instance().wait();
             }
             else
             {
@@ -57,9 +52,7 @@ mutex::lock()
                 n = detail::scheduler::instance().notifier();
 
                 // store this fiber in order to be notified later
-                unique_lock< detail::spinlock > lk( splk_);
                 waiting_.push_back( n);
-                lk.unlock();
 
                 // wait until main-fiber gets notified
                 while ( ! n->is_ready() )
@@ -72,29 +65,34 @@ mutex::lock()
         catch (...)
         {
             // remove fiber from waiting_
-            unique_lock< detail::spinlock > lk( splk_);
             waiting_.erase(
                 std::find( waiting_.begin(), waiting_.end(), n) );
             throw;
         }
     }
+    state_ = LOCKED;
 }
 
 bool
 mutex::try_lock()
-{ return UNLOCKED == state_.exchange( LOCKED); }
+{
+    if ( UNLOCKED == state_)
+    {
+        state_ = LOCKED;
+        return true;
+    }
+    return false;
+}
 
 void
 mutex::unlock()
 {
     detail::notify::ptr_t n;
 
-    unique_lock< detail::spinlock > lk( splk_);
     if ( ! waiting_.empty() ) {
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    lk.unlock();
 
 	state_ = UNLOCKED;
 

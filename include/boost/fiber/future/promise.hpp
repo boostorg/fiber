@@ -9,7 +9,6 @@
 
 #include <memory>
 
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
 #include <boost/throw_exception.hpp>
@@ -34,7 +33,7 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    atomic< bool >  obtained_;
+    bool            obtained_;
     ptr_t           future_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
@@ -124,7 +123,7 @@ public:
     void swap( promise & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two promises
-        obtained_ = other.obtained_.exchange( obtained_.load() );
+        std::swap( obtained_, other.obtained_);
         future_.swap( other.future_);
     }
 
@@ -215,7 +214,7 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    atomic< bool >  obtained_;
+    bool            obtained_;
     ptr_t           future_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
@@ -305,7 +304,7 @@ public:
     void swap( promise & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two promises
-        obtained_ = other.obtained_.exchange( obtained_.load() );
+        std::swap( obtained_, other.obtained_);
         future_.swap( other.future_);
     }
 
@@ -368,7 +367,7 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    atomic< bool >  obtained_;
+    bool            obtained_;
     ptr_t           future_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
@@ -458,7 +457,7 @@ public:
     void swap( promise & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two promises
-        obtained_ = other.obtained_.exchange( obtained_.load() );
+        std::swap( obtained_, other.obtained_);
         future_.swap( other.future_);
     }
 
