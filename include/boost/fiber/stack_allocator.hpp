@@ -7,17 +7,31 @@
 #ifndef BOOST_FIBERS_STACK_ALLOCATOR_H
 #define BOOST_FIBERS_STACK_ALLOCATOR_H
 
+#include <cstddef>
+
 #include <boost/config.hpp>
 
-#if defined (BOOST_WINDOWS)
-#include <boost/fiber/detail/stack_allocator_windows.hpp>
-#else
-#include <boost/fiber/detail/stack_allocator_posix.hpp>
+#include <boost/context/detail/config.hpp>
+#include <boost/fiber/detail/segmented_stack_allocator.hpp>
+#include <boost/fiber/detail/standard_stack_allocator.hpp>
+
+#ifdef BOOST_HAS_ABI_HEADERS
+#  include BOOST_ABI_PREFIX
 #endif
 
 namespace boost {
 namespace fibers {
-using detail::stack_allocator;
+
+#if defined(BOOST_USE_SEGMENTED_STACKS)
+typedef detail::segmented_stack_allocator   stack_allocator;
+#else
+typedef detail::standard_stack_allocator    stack_allocator;
+#endif
+
 }}
+
+#ifdef BOOST_HAS_ABI_HEADERS
+#  include BOOST_ABI_SUFFIX
+#endif
 
 #endif // BOOST_FIBERS_STACK_ALLOCATOR_H

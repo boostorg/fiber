@@ -22,12 +22,14 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-fiber_base::fiber_base( context::fcontext_t * callee, bool preserve_fpu) :
+fiber_base::fiber_base( fiber_context::ctx_fn fn,
+                        stack_context * stack_ctx,
+                        bool preserve_fpu) :
     state_( READY),
     flags_( 0),
     priority_( 0),
     caller_(),
-    callee_( callee),
+    callee_( fn, stack_ctx),
     except_(),
     waiting_()
 { if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
@@ -43,7 +45,7 @@ fiber_base::resume()
 {
     BOOST_ASSERT( is_running() );
 
-    context::jump_fcontext( & caller_, callee_, 0, preserve_fpu() );
+    caller_.jump( callee_, 0, preserve_fpu() );
 
     if ( has_exception() ) rethrow();
 }
@@ -51,7 +53,7 @@ fiber_base::resume()
 void
 fiber_base::suspend()
 {
-    context::jump_fcontext( callee_, & caller_, 0, preserve_fpu() );
+    callee_.jump( caller_, 0, preserve_fpu() );
 
     BOOST_ASSERT( is_running() );
 

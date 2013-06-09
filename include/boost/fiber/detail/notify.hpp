@@ -29,6 +29,9 @@ class notify : private noncopyable
 private:
     std::size_t     use_count_;
 
+protected:
+    virtual void deallocate_object() = 0;
+
 public:
     typedef intrusive_ptr< notify >     ptr_t;
 
@@ -46,10 +49,7 @@ public:
     { ++p->use_count_; }
 
     friend inline void intrusive_ptr_release( notify * p)
-    {
-        if ( 0 == --p->use_count_)
-            delete p;
-    }
+    { if ( --p->use_count_ == 0) p->deallocate_object(); }
 };
 
 }}}

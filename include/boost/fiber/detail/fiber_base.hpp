@@ -20,6 +20,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/fiber_context.hpp>
 #include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/notify.hpp>
 
@@ -37,9 +38,6 @@ public:
     typedef intrusive_ptr< fiber_base >           ptr_t;
 
 private:
-    template< typename X, typename Y >
-    friend class fiber_object;
-
     enum state_t
     {
         READY = 0,
@@ -48,15 +46,15 @@ private:
         TERMINATED
     };
 
+protected:
     state_t                 state_;
     int                     flags_;
     int                     priority_;
-    context::fcontext_t     caller_;
-    context::fcontext_t *   callee_;
+    fiber_context           caller_;
+    fiber_context           callee_;
     exception_ptr           except_;
     std::vector< ptr_t >    waiting_;
 
-protected:
     virtual void unwind_stack() = 0;
 
     void release();
@@ -114,7 +112,9 @@ public:
         { return 0 == impl_; }
     };
 
-    fiber_base( context::fcontext_t *, bool);
+    fiber_base( fiber_context::ctx_fn fn,
+                stack_context * stack_ctx,
+                bool preserve_fpu);
 
     virtual ~fiber_base();
 

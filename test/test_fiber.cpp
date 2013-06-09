@@ -15,55 +15,55 @@
 
 #include <boost/fiber/all.hpp>
 
+bool value1 = false;
+
 class copyable
 {
-private:
-    int i_;
-
 public:
-    copyable( int i) :
-        i_( i)
+    bool    state;
+
+    copyable() :
+        state( false)
     {}
 
-    int operator()()
-    { return i_; }
+    copyable( int) :
+        state( true)
+    {}
+
+    void operator()()
+    { value1 = state; }
 };
 
 class moveable
 {
 private:
-    bool    state_;
-    int     i_;
-
     BOOST_MOVABLE_BUT_NOT_COPYABLE( moveable);
 
 public:
+    bool    state;
+
     moveable() :
-        state_( false), i_( 0)
+        state( false)
     {}
 
-    moveable( int i) :
-        state_( false), i_( i)
+    moveable( int) :
+        state( true)
     {}
 
     moveable( BOOST_RV_REF( moveable) other) :
-        state_( false), i_( 0)
-    {
-        std::swap( state_, other.state_);
-        std::swap( i_, other.i_);
-    }
+        state( false)
+    { std::swap( state, other.state); }
 
     moveable & operator=( BOOST_RV_REF( moveable) other)
     {
         if ( this == & other) return * this;
         moveable tmp( boost::move( other) );
-        std::swap( state_, tmp.state_);
-        std::swap( i_, tmp.i_);
+        std::swap( state, tmp.state);
         return * this;
     }
 
-    int operator()()
-    { return i_; }
+    void operator()()
+    { value1 = state; }
 };
 
 void f1() {}
@@ -160,15 +160,25 @@ void test_move()
     }
 
     {
+        value1 = false;
         copyable cp( 3);
+        BOOST_CHECK( cp.state);
+        BOOST_CHECK( ! value1);
         boost::fibers::fiber s( cp);
         s.join();
+        BOOST_CHECK( cp.state);
+        BOOST_CHECK( value1);
     }
 
     {
+        value1 = false;
         moveable mv( 7);
+        BOOST_CHECK( mv.state);
+        BOOST_CHECK( ! value1);
         boost::fibers::fiber s( boost::move( mv) );
         s.join();
+        BOOST_CHECK( ! mv.state);
+        BOOST_CHECK( value1);
     }
 }
 
