@@ -24,27 +24,27 @@
 namespace boost {
 namespace this_fiber {
 
-disable_interruption::disable_interruption() :
+disable_interruption::disable_interruption() BOOST_NOEXCEPT :
     set_( ( fibers::detail::scheduler::instance().active()->interruption_blocked() ) )
 {
     if ( ! set_)
         fibers::detail::scheduler::instance().active()->interruption_blocked( true);
 }
 
-disable_interruption::~disable_interruption()
+disable_interruption::~disable_interruption() BOOST_NOEXCEPT
 {
     if ( ! set_)
         fibers::detail::scheduler::instance().active()->interruption_blocked( false);
 }
 
-restore_interruption::restore_interruption( disable_interruption & disabler) :
+restore_interruption::restore_interruption( disable_interruption & disabler) BOOST_NOEXCEPT :
     disabler_( disabler)
 {
     if ( ! disabler_.set_)
         fibers::detail::scheduler::instance().active()->interruption_blocked( false);
 }
 
-restore_interruption::~restore_interruption()
+restore_interruption::~restore_interruption() BOOST_NOEXCEPT
 {
     if ( ! disabler_.set_)
         fibers::detail::scheduler::instance().active()->interruption_blocked( true);

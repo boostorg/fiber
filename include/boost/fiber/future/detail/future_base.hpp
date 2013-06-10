@@ -53,7 +53,7 @@ private:
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
         if ( ! ready_)
-            set_exception_( copy_exception( broken_promise() ) );
+            set_exception_( boost::copy_exception( broken_promise() ) );
     }
 
     void set_value_( R const& value)
@@ -164,7 +164,7 @@ public:
         //      an exception is thrown if there is no shared state or the shared state already
         //      stores a value or exception
         unique_lock< mutex > lk( mtx_);
-        set_value_( boot::move( value) );
+        set_value_( boost::move( value) );
     }
 #else
     void set_value( BOOST_RV_REF( R) value)
@@ -245,7 +245,7 @@ private:
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
         if ( ! ready_)
-            set_exception_( copy_exception( broken_promise() ) );
+            set_exception_( boost::copy_exception( broken_promise() ) );
     }
 
     void set_value_( R & value)
@@ -388,7 +388,7 @@ private:
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
         if ( ! ready_)
-            set_exception_( copy_exception( broken_promise() ) );
+            set_exception_( boost::copy_exception( broken_promise() ) );
     }
 
     void set_value_()

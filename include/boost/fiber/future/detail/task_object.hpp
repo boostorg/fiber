@@ -32,7 +32,7 @@ public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
     task_object( Fn && fn, allocator_t const& alloc) :
         task_base< R >(),
-        fn_( boost::forward( fn) ), alloc_( alloc)
+        fn_( forward< Fn >( fn) ), alloc_( alloc)
     {}
 #else
     task_object( Fn const& fn, allocator_t const& alloc) :
@@ -42,7 +42,7 @@ public:
 
     task_object( BOOST_RV_REF( Fn) fn, allocator_t const& alloc) :
         task_base< R >(),
-        fn_( boost::forward( fn) ), alloc_( alloc)
+        fn_( fn), alloc_( alloc)
     {}
 #endif
 
@@ -85,7 +85,7 @@ public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
     task_object( Fn && fn, allocator_t const& alloc) :
         task_base< void >(),
-        fn_( boost::forward( fn) ), alloc_( alloc)
+        fn_( forward< Fn >( fn) ), alloc_( alloc)
     {}
 #else
     task_object( Fn const& fn, allocator_t const& alloc) :
@@ -95,7 +95,7 @@ public:
 
     task_object( BOOST_RV_REF( Fn) fn, allocator_t const& alloc) :
         task_base< void >(),
-        fn_( boost::forward( fn) ), alloc_( alloc)
+        fn_( fn), alloc_( alloc)
     {}
 #endif
 

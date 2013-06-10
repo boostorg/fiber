@@ -83,7 +83,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 
     template< typename Allocator >
@@ -104,10 +104,9 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 #endif
-
     template< typename Fn >
     explicit packaged_task( Fn && fn,
                             typename disable_if<
@@ -131,7 +130,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
     }
 
     template< typename Fn, typename Allocator >
@@ -158,29 +157,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
-    }
-
-    packaged_task( packaged_task && other) BOOST_NOEXCEPT :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task with thes
-        //       shared state and task formerly owned by rhs,
-        //       leaving rhs with no shared state and a moved-from task
-        swap( other);
-    }
-
-    packaged_task & operator=( packaged_task && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases the shared state, if any, destroys the
-        //       previously-held task, and moves the shared state
-        //       and the task owned by rhs into *this
-        //       rhs is left without a shared state and with a
-        //       moved-from task
-        packaged_task tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
     }
 #else
     template< typename Fn >
@@ -253,7 +230,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( fn, a) );
     }
 
     template< typename Fn, typename Allocator >
@@ -274,8 +251,9 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( fn, a) );
     }
+#endif
 
     packaged_task( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT :
         obtained_( false),
@@ -298,7 +276,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     void swap( packaged_task & other) BOOST_NOEXCEPT
     {
@@ -462,7 +439,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
     }
 
     template< typename Fn, typename Allocator >
@@ -489,7 +466,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
     }
 
     packaged_task( packaged_task && other) BOOST_NOEXCEPT :
@@ -584,7 +561,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
     }
 
     template< typename Fn, typename Allocator >
@@ -605,7 +582,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
     }
 
     packaged_task( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT :

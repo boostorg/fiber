@@ -762,12 +762,11 @@ public:
     }
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    shared_future( future< R > && other) BOOST_NOEXCEPT :
+    shared_future( future< void > && other) BOOST_NOEXCEPT :
         future_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        swap( other);
         future_.swap( other.future_);
     }
 
@@ -822,6 +821,12 @@ public:
         shared_future tmp( other);
         swap( tmp);
         return * this;
+    }
+
+    void swap( future< void > & other) BOOST_NOEXCEPT
+    {
+        //TODO: exchange the shared states of two shared_futures
+        future_.swap( other.future_);
     }
 
     void swap( shared_future & other) BOOST_NOEXCEPT

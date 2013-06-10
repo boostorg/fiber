@@ -16,14 +16,14 @@
 extern "C" {
     
 void *__splitstack_makecontext( std::size_t,
-                                void * [BOOST_fiberS_SEGMENTS],
+                                void * [BOOST_FIBERS_SEGMENTS],
                                 std::size_t *);
 
-void __splitstack_releasecontext( void * [BOOST_fiberS_SEGMENTS]);
+void __splitstack_releasecontext( void * [BOOST_FIBERS_SEGMENTS]);
 
-void __splitstack_resetcontext( void * [BOOST_fiberS_SEGMENTS]);
+void __splitstack_resetcontext( void * [BOOST_FIBERS_SEGMENTS]);
 
-void __splitstack_block_signals_context( void * [BOOST_fiberS_SEGMENTS],
+void __splitstack_block_signals_context( void * [BOOST_FIBERS_SEGMENTS],
                                          int * new_value, int * old_value);
 }
 

@@ -32,6 +32,48 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
+
+template< typename Allocator >
+class main_notifier : public detail::notify
+{
+public:
+    typedef typename Allocator::template rebind<
+            main_notifier< Allocator >
+    >::other            allocator_t;
+
+    main_notifier( allocator_t const& alloc) :
+        ready_( false), alloc_( alloc)
+    {}
+
+    bool is_ready() const BOOST_NOEXCEPT
+    {
+        if ( ready_)
+        {
+            ready_ = false;
+            return true;
+        }
+        return false;
+    }
+
+    void set_ready() BOOST_NOEXCEPT
+    { ready_ = true; }
+
+    void deallocate_object()
+    { destroy_( alloc_, this); }
+
+private:
+    mutable bool    ready_;
+    allocator_t     alloc_;
+
+    static void destroy_( allocator_t & alloc, main_notifier * p)
+    {
+        alloc.destroy( p);
+        alloc.deallocate( p, 1);
+    }
+};
+
+}
 
 class BOOST_FIBERS_DECL round_robin : public algorithm
 {

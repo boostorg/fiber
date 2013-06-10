@@ -28,14 +28,14 @@ __thread algorithm * scheduler::instance_ = 0;
 #endif
 
 algorithm &
-scheduler::instance()
+scheduler::instance() BOOST_NOEXCEPT
 {
     BOOST_ASSERT( instance_);
 	return * instance_;
 }
 
 algorithm *
-scheduler::replace( algorithm * other)
+scheduler::replace( algorithm * other) BOOST_NOEXCEPT
 {
     algorithm * old = instance_;
     instance_ = other;

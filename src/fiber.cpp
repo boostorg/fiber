@@ -29,7 +29,7 @@ fiber::start_fiber_()
 { detail::scheduler::instance().spawn( fiber_data_); }
 
 int
-fiber::priority() const
+fiber::priority() const BOOST_NOEXCEPT
 {
     BOOST_ASSERT( fiber_data_);
 
@@ -37,7 +37,7 @@ fiber::priority() const
 }
 
 void
-fiber::priority( int prio)
+fiber::priority( int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( fiber_data_);
 
@@ -72,7 +72,7 @@ fiber::join()
 }
 
 void
-fiber::interrupt()
+fiber::interrupt() BOOST_NOEXCEPT
 {
     BOOST_ASSERT( fiber_data_);
 

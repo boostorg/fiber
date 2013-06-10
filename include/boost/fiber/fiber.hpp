@@ -181,7 +181,7 @@ public:
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    Allocator< fiber > const& alloc,
+                    Allocator const& alloc,
                     typename disable_if<
                         is_same< typename decay< Fn >::type, fiber >,
                         dummy *
@@ -215,7 +215,7 @@ public:
         typename object_t::allocator_t a( alloc);
         fiber_data_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         start_fiber_();
     }
 
@@ -236,7 +236,7 @@ public:
         typename object_t::allocator_t a( alloc);
         fiber_data_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         start_fiber_();
     }
 
@@ -256,7 +256,7 @@ public:
         typename object_t::allocator_t a( alloc);
         fiber_data_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         start_fiber_();
     }
 
@@ -277,7 +277,7 @@ public:
         typename object_t::allocator_t a( alloc);
         fiber_data_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         start_fiber_();
     }
 
@@ -298,7 +298,7 @@ public:
         typename object_t::allocator_t a( alloc);
         fiber_data_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         start_fiber_();
     }
 
@@ -318,7 +318,7 @@ public:
         typename object_t::allocator_t a( alloc);
         fiber_data_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
         start_fiber_();
     }
 #endif
@@ -348,7 +348,7 @@ public:
     { fiber_data_.swap( other.fiber_data_); }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return fiber_data_ /* && ! fiber_data_->is_terminated() */; }
+    { return 0 != fiber_data_.get() /* && ! fiber_data_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
     { return fiber_data_ ? fiber_data_->get_id() : id(); }

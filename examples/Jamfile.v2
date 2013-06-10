@@ -12,6 +12,7 @@ project boost/fiber/example
       <library>../build//boost_fibers
       <library>/boost/context//boost_context
       <library>/boost/system//boost_system
+      <library>/boost/thread//boost_thread
       <link>static
       <threading>multi
     ;
@@ -21,3 +22,4 @@ exe future : future.cpp ;
 exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe simple : simple.cpp ;
+exe segmented_stack : segmented_stack.cpp ;

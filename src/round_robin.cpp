@@ -29,42 +29,22 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
 
-class main_notifier : public detail::notify
-{
-private:
-    mutable bool   ready_;
-
-public:
-    main_notifier() :
-        ready_( false)
-    {}
-
-    bool is_ready() const BOOST_NOEXCEPT
-    {
-        if ( ready_)
-        {
-            ready_ = false;
-            return true;
-        }
-        return false;
-    }
-
-    void set_ready() BOOST_NOEXCEPT
-    { ready_ = true; }
-};
-
-}
-
-round_robin::round_robin() :
+round_robin::round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
-    notifier_( new detail::main_notifier() ),
+    notifier_(),
     wqueue_(),
     rqueue_()
-{}
+{
+    typedef detail::main_notifier< std::allocator< round_robin > > notifier_t;
+    std::allocator< round_robin > alloc;
+    typename notifier_t::allocator_t a( alloc);
+    notifier_ =  detail::notify::ptr_t(
+        // placement new
+        ::new( a.allocate( 1) ) notifier_t( a) );
+}
 
-round_robin::~round_robin()
+round_robin::~round_robin() BOOST_NOEXCEPT
 {
 #if 0
     BOOST_ASSERT( ! active_fiber_);

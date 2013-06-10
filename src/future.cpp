@@ -14,7 +14,7 @@ namespace fibers {
 class future_error_category : public system::error_category
 {
 public:
-    virtual const char* name() const
+    virtual const char* name() const BOOST_NOEXCEPT
     { return "future"; }
 
     virtual std::string message( int ev) const
