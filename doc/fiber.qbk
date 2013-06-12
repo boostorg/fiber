@@ -5,23 +5,23 @@
   http://www.boost.org/LICENSE_1_0.txt).
 ]
 
-[section:fiber Stratum]
+[section:fiber Fiber]
 
 [heading Synopsis]
 
 Each __fiber__ represents a micro-thread which will be launched and
 managed cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
 
-    boost::fibers::fiber s1; // not-a-fiber
+    boost::fibers::fiber f1; // not-a-fiber
 
     void f()
     {
-        boost::fibers::fiber s2(
+        boost::fibers::fiber f2(
             boost::fibers::spawn( some_fn) );
 
-        s1 boost::move( s2); // s2 gets moved
+        f1 boost::move( f2); // f2 gets moved
 
-        std::cout << s1.get_id() << std::endl;
+        std::cout << f2.get_id() << std::endl;
     }
 
 
