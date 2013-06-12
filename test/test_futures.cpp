@@ -71,7 +71,7 @@ void test_promise_create()
 
     // use std::allocator<> as user defined
     std::allocator< boost::fibers::promise< int > > alloc;
-    boost::fibers::promise< int > p2( alloc);
+    boost::fibers::promise< int > p2( boost::allocator_arg,  alloc);
     BOOST_CHECK( p2);
 }
 
@@ -86,7 +86,7 @@ void test_promise_create_ref()
 
     // use std::allocator<> as user defined
     std::allocator< boost::fibers::promise< int& > > alloc;
-    boost::fibers::promise< int& > p2( alloc);
+    boost::fibers::promise< int& > p2( boost::allocator_arg, alloc);
     BOOST_CHECK( p2);
 }
 
@@ -101,7 +101,7 @@ void test_promise_create_void()
 
     // use std::allocator<> as user defined
     std::allocator< boost::fibers::promise< void > > alloc;
-    boost::fibers::promise< void > p2( alloc);
+    boost::fibers::promise< void > p2( boost::allocator_arg, alloc);
     BOOST_CHECK( p2);
 }
 

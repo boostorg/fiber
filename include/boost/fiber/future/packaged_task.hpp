@@ -11,6 +11,7 @@
 
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
+#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 #include <boost/throw_exception.hpp>
 #include <boost/type_traits/decay.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -87,7 +88,7 @@ public:
     }
 
     template< typename Allocator >
-    explicit packaged_task( Allocator const& alloc, task_fn fn) :
+    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, task_fn fn) :
         obtained_( false),
         task_()
     {
@@ -134,7 +135,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, Fn && fn,
+    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn && fn,
                             typename disable_if<
                                 is_same<
                                     typename decay< Fn >::type,
@@ -185,7 +186,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, Fn const& fn,
+    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn const& fn,
                             typename disable_if<
                                 is_convertible< Fn &, BOOST_RV_REF( Fn) >,
                                 dummy *
@@ -234,7 +235,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, BOOST_RV_REF( Fn) fn) :
+    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {

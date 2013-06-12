@@ -11,6 +11,7 @@
 
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
+#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 #include <boost/throw_exception.hpp>
 #include <boost/utility.hpp>
 
@@ -57,7 +58,7 @@ public:
     }
 
     template< typename Allocator >
-    promise( Allocator alloc) :
+    promise( boost::allocator_arg_t, Allocator alloc) :
         obtained_( false),
         future_()
     {
@@ -70,7 +71,22 @@ public:
             // placement new
             ::new( a.allocate( 1) ) object_t( a) );
     }
-
+#if 0
+    template< typename Allocator >
+    promise( std::allocator_arg_t, Allocator alloc) :
+        obtained_( false),
+        future_()
+    {
+        // TODO: constructs the promise with an empty shared state
+        //       the shared state is allocated using alloc
+        //       alloc must meet the requirements of Allocator
+        typedef detail::future_object< R, Allocator >  object_t;
+        typename object_t::allocator_t a( alloc);
+        future_ = ptr_t(
+            // placement new
+            ::new( a.allocate( 1) ) object_t( a) );
+    }
+#endif
     ~promise()
     {
         //TODO: abandon ownership if any
@@ -238,7 +254,7 @@ public:
     }
 
     template< typename Allocator >
-    promise( Allocator alloc) :
+    promise( boost::allocator_arg_t, Allocator alloc) :
         obtained_( false),
         future_()
     {
@@ -251,7 +267,22 @@ public:
             // placement new
             ::new( a.allocate( 1) ) object_t( a) );
     }
-
+#if 0
+    template< typename Allocator >
+    promise( std::allocator_arg_t, Allocator alloc) :
+        obtained_( false),
+        future_()
+    {
+        // TODO: constructs the promise with an empty shared state
+        //       the shared state is allocated using alloc
+        //       alloc must meet the requirements of Allocator
+        typedef detail::future_object< R &, Allocator >  object_t;
+        typename object_t::allocator_t a( alloc);
+        future_ = ptr_t(
+            // placement new
+            ::new( a.allocate( 1) ) object_t( a) );
+    }
+#endif
     ~promise()
     {
         //TODO: abandon ownership if any
@@ -391,7 +422,7 @@ public:
     }
 
     template< typename Allocator >
-    promise( Allocator alloc) :
+    promise( boost::allocator_arg_t, Allocator alloc) :
         obtained_( false),
         future_()
     {
@@ -404,7 +435,22 @@ public:
             // placement new
             ::new( a.allocate( 1) ) object_t( a) );
     }
-
+#if 0
+    template< typename Allocator >
+    promise( std::allocator_arg_t, Allocator alloc) :
+        obtained_( false),
+        future_()
+    {
+        // TODO: constructs the promise with an empty shared state
+        //       the shared state is allocated using alloc
+        //       alloc must meet the requirements of Allocator
+        typedef detail::future_object< void, Allocator >  object_t;
+        typename object_t::allocator_t a( alloc);
+        future_ = ptr_t(
+            // placement new
+            ::new( a.allocate( 1) ) object_t( a) );
+    }
+#endif
     ~promise()
     {
         //TODO: abandon ownership if any
