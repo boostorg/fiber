@@ -7,7 +7,7 @@
 
 # For more information, see http://www.boost.org/
 
-project boost/fiber/example
+project boost/fiber/example/cpp03
     : requirements
       <library>../build//boost_fibers
       <library>/boost/context//boost_context
@@ -23,3 +23,4 @@ exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe simple : simple.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
+exe daytime_client : daytime_client.cpp ;
