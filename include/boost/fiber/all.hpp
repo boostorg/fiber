@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_H
 
 #include <boost/fiber/algorithm.hpp>
+#include <boost/fiber/asio/use_future.hpp>
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/barrier.hpp>
 #include <boost/fiber/bounded_channel.hpp>

@@ -1,5 +1,5 @@
 //
-// use_ffuture.hpp
+// use_future.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
@@ -8,12 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_USE_FFUTURE_HPP
-#define BOOST_ASIO_USE_FFUTURE_HPP
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
-#endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
+#ifndef BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
+#define BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
 
 #include <memory>
 
@@ -29,70 +25,12 @@
 #include <boost/thread/detail/memory.hpp>
 #include <boost/throw_exception.hpp>
 
-#include <boost/fiber/all.hpp>
+#include <boost/fiber/future/future.hpp>
+#include <boost/fiber/future/promise.hpp>
 
-#include <boost/asio/detail/push_options.hpp>
-
-namespace boost {
-namespace asio {
-
-/// Class used to specify that an asynchronous operation should return a future.
-/**
- * The use_ffuture_t class is used to indicate that an asynchronous operation
- * should return a boost::fibers::future object. A use_ffuture_t object may be passed as a
- * handler to an asynchronous operation, typically using the special value @c
- * boost::asio::use_ffuture. For example:
- *
- * @code boost::fibers::future<std::size_t> my_future
- *   = my_socket.async_read_some(my_buffer, boost::asio::use_ffuture); @endcode
- *
- * The initiating function (async_read_some in the above example) returns a
- * future that will receive the result of the operation. If the operation
- * completes with an error_code indicating failure, it is converted into a
- * system_error and passed back to the caller via the future.
- */
-template <typename Allocator = std::allocator<void> >
-class use_ffuture_t
-{
-public:
-  typedef Allocator allocator_type;
-
-  /// Construct using default-constructed allocator.
-  use_ffuture_t()
-  {
-  }
-
-  /// Construct using specified allocator.
-  explicit use_ffuture_t(const Allocator& allocator)
-    : allocator_(allocator)
-  {
-  }
-
-  /// Specify an alternate allocator.
-  template <typename OtherAllocator>
-  use_ffuture_t<OtherAllocator> operator[](const OtherAllocator& allocator) const
-  {
-    return use_ffuture_t<OtherAllocator>(allocator);
-  }
-
-  /// Obtain allocator.
-  allocator_type get_allocator() const
-  {
-    return allocator_;
-  }
-
-private:
-  Allocator allocator_;
-};
-
-/// A special value, similar to std::nothrow.
-/**
- * See the documentation for boost::asio::use_ffuture_t for a usage example.
- */
-BOOST_CONSTEXPR_OR_CONST use_ffuture_t<> use_ffuture;
-
-} // namespace asio
-} // namespace boost
+#ifdef BOOST_HAS_ABI_HEADERS
+#  include BOOST_ABI_PREFIX
+#endif
 
 namespace boost {
 namespace asio {
@@ -100,12 +38,12 @@ namespace detail {
 
   // Completion handler to adapt a promise as a completion handler.
   template <typename T>
-  class fpromise_handler
+  class promise_handler
   {
   public:
-    // Construct from use_ffuture special value.
+    // Construct from use_future special value.
     template <typename Allocator>
-    fpromise_handler(use_ffuture_t<Allocator> uf)
+    promise_handler(boost::fibers::asio::use_future_t<Allocator> uf)
       : promise_(boost::allocate_shared<boost::fibers::promise<T> >(
             uf.get_allocator(), boost::allocator_arg, uf.get_allocator()))
     {
@@ -134,12 +72,12 @@ namespace detail {
 
   // Completion handler to adapt a void promise as a completion handler.
   template <>
-  class fpromise_handler<void>
+  class promise_handler<void>
   {
   public:
-    // Construct from use_ffuture special value. Used during rebinding.
+    // Construct from use_future special value. Used during rebinding.
     template <typename Allocator>
-    fpromise_handler(use_ffuture_t<Allocator> uf)
+    promise_handler(boost::fibers::asio::use_future_t<Allocator> uf)
       : promise_(boost::allocate_shared<boost::fibers::promise<void> >(
             uf.get_allocator(), boost::allocator_arg, uf.get_allocator()))
     {
@@ -169,7 +107,7 @@ namespace detail {
   // Ensure any exceptions thrown from the handler are propagated back to the
   // caller via the future.
   template <typename Function, typename T>
-  void asio_handler_invoke(Function f, fpromise_handler<T>* h)
+  void asio_handler_invoke(Function f, promise_handler<T>* h)
   {
     boost::shared_ptr<boost::fibers::promise<T> > p(h->promise_);
     try
@@ -186,17 +124,16 @@ namespace detail {
 
 #if !defined(GENERATING_DOCUMENTATION)
 
-// Handler traits specialisation for fpromise_handler.
+// Handler traits specialisation for promise_handler.
 template <typename T>
-class async_result<detail::fpromise_handler<T> >
+class async_result<detail::promise_handler<T> >
 {
 public:
   // The initiating function will return a future.
   typedef boost::fibers::future<T> type;
-
-  // Constructor creates a new promise for the async operation, and obtains the
+// Constructor creates a new promise for the async operation, and obtains the
   // corresponding future.
-  explicit async_result(detail::fpromise_handler<T>& h)
+  explicit async_result(detail::promise_handler<T>& h)
   {
     value_ = h.promise_->get_future();
   }
@@ -211,34 +148,34 @@ private:
   type value_;
 };
 
-// Handler type specialisation for use_ffuture.
+// Handler type specialisation for use_future.
 template <typename Allocator, typename ReturnType>
-struct handler_type<use_ffuture_t<Allocator>, ReturnType()>
+struct handler_type<boost::fibers::asio::use_future_t<Allocator>, ReturnType()>
 {
-  typedef detail::fpromise_handler<void> type;
+  typedef detail::promise_handler<void> type;
 };
 
-// Handler type specialisation for use_ffuture.
+// Handler type specialisation for use_future.
 template <typename Allocator, typename ReturnType, typename Arg1>
-struct handler_type<use_ffuture_t<Allocator>, ReturnType(Arg1)>
+struct handler_type<boost::fibers::asio::use_future_t<Allocator>, ReturnType(Arg1)>
 {
-  typedef detail::fpromise_handler<Arg1> type;
+  typedef detail::promise_handler<Arg1> type;
 };
 
-// Handler type specialisation for use_ffuture.
+// Handler type specialisation for use_future.
 template <typename Allocator, typename ReturnType>
-struct handler_type<use_ffuture_t<Allocator>,
+struct handler_type<boost::fibers::asio::use_future_t<Allocator>,
     ReturnType(boost::system::error_code)>
 {
-  typedef detail::fpromise_handler<void> type;
+  typedef detail::promise_handler<void> type;
 };
 
-// Handler type specialisation for use_ffuture.
+// Handler type specialisation for use_future.
 template <typename Allocator, typename ReturnType, typename Arg2>
-struct handler_type<use_ffuture_t<Allocator>,
+struct handler_type<boost::fibers::asio::use_future_t<Allocator>,
     ReturnType(boost::system::error_code, Arg2)>
 {
-  typedef detail::fpromise_handler<Arg2> type;
+  typedef detail::promise_handler<Arg2> type;
 };
 
 #endif // !defined(GENERATING_DOCUMENTATION)
@@ -246,6 +183,8 @@ struct handler_type<use_ffuture_t<Allocator>,
 } // namespace asio
 } // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#ifdef BOOST_HAS_ABI_HEADERS
+#  include BOOST_ABI_SUFFIX
+#endif
 
-#endif // BOOST_ASIO_USE_FFUTURE_HPP
+#endif // BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
