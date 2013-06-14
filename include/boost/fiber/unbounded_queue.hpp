@@ -31,15 +31,15 @@ namespace fibers {
 namespace detail {
 
 template< typename T >
-struct unbounded_channel_node
+struct unbounded_queue_node
 {
-	typedef intrusive_ptr< unbounded_channel_node >	ptr;
+	typedef intrusive_ptr< unbounded_queue_node >	ptr;
 
 	std::size_t 	use_count;
 	T				va;
 	ptr				next;
 
-	unbounded_channel_node() :
+	unbounded_queue_node() :
 		use_count( 0),
 		va(),
 		next()
@@ -47,23 +47,23 @@ struct unbounded_channel_node
 };
 
 template< typename T >
-void intrusive_ptr_add_ref( unbounded_channel_node< T > * p)
+void intrusive_ptr_add_ref( unbounded_queue_node< T > * p)
 { ++p->use_count; }
 
 template< typename T >
-void intrusive_ptr_release( unbounded_channel_node< T > * p)
+void intrusive_ptr_release( unbounded_queue_node< T > * p)
 { if ( 0 == --p->use_count) delete p; }
 
 }
 
 template< typename T >
-class unbounded_channel : private noncopyable
+class unbounded_queue : private noncopyable
 {
 public:
 	typedef optional< T >	value_type;
 
 private:
-	typedef detail::unbounded_channel_node< value_type >	node_type;
+	typedef detail::unbounded_queue_node< value_type >	node_type;
 
 	enum state
 	{
@@ -102,7 +102,7 @@ private:
 	}
 
 public:
-	unbounded_channel() :
+	unbounded_queue() :
 		state_( ACTIVE),
 		head_( new node_type() ),
 		head_mtx_(),

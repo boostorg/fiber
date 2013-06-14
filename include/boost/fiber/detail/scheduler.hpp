@@ -10,14 +10,11 @@
 #include <pthread.h>                // pthread_key_create, pthread_[gs]etspecific
 #endif
 
-#include <boost/assert.hpp>
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -32,8 +29,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-// thread_local_ptr was a contribution from
-// Nat Goodspeed
+// thread_local_ptr was contributed by Nat Goodspeed
 #if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
 class thread_local_ptr : private noncopyable
 {
@@ -92,14 +88,10 @@ private:
 #elif defined(BOOST_MAC_PTHREADS)
     static detail::thread_local_ptr             instance_;
 #else
-    //static algorithm               *   instance_;
     static __thread algorithm               *   instance_;
 #endif
 
 public:
-    static fiber_base::ptr_t extract( fiber const& f) BOOST_NOEXCEPT
-    { return f.fiber_data_; }
-
     static algorithm & instance() BOOST_NOEXCEPT;
 
     static algorithm * replace( algorithm *) BOOST_NOEXCEPT;

@@ -32,31 +32,18 @@ namespace fibers {
 
 round_robin::round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
-    notifier_(),
     wqueue_(),
     rqueue_()
-{
-    typedef detail::main_notifier< std::allocator< round_robin > > notifier_t;
-    std::allocator< round_robin > alloc;
-    typename notifier_t::allocator_t a( alloc);
-    notifier_ =  detail::notify::ptr_t(
-        // placement new
-        ::new( a.allocate( 1) ) notifier_t( a) );
-}
+{}
 
 round_robin::~round_robin() BOOST_NOEXCEPT
 {
 #if 0
-    BOOST_ASSERT( ! active_fiber_);
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
-    {
-        p->release();
-    }
+    { p->release(); }
 
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
-    {
-        p->release();
-    }
+    { p->release(); }
 #endif
 }
 
@@ -66,20 +53,27 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
+    // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     try
     {
+        // assign new fiber to active fiber
         active_fiber_ = f;
-        // resume new active fiber
+        // set active fiber to state_running
         active_fiber_->set_running();
+        // resume active fiber
         active_fiber_->resume();
+        // fiber is resumed
+
         BOOST_ASSERT( f == active_fiber_);
     }
     catch (...)
     {
+        // reset active fiber to previous
         active_fiber_ = tmp;
         throw;
     }
+    // reset active fiber to previous
     active_fiber_ = tmp;
 }
 
@@ -129,45 +123,40 @@ void
 round_robin::wait()
 {
     BOOST_ASSERT( active_fiber_);
-    //FIXME: mabye other threads can change the state of active fiber?
     BOOST_ASSERT( active_fiber_->is_running() );
 
-    // set active_fiber to state_waiting
+    // set active fiber to state_waiting
     active_fiber_->set_waiting();
     // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
-    // suspend fiber
-    tmp->suspend();
+    // suspend active fiber
+    active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp->is_running() );
-    BOOST_ASSERT( tmp == detail::scheduler::instance().active() );
+    BOOST_ASSERT( tmp == active_fiber_);
+    BOOST_ASSERT( active_fiber_->is_running() );
 }
 
 void
 round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
-    //FIXME: mabye other threads can change the state of active fiber?
     BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active fiber to state_waiting
     active_fiber_->set_ready();
-    // Note: adding to rqueue_ could result in a raise
-    // between adding to rqueue_ and calling yield another
-    // thread could steel fiber from rqueue_ and resume it
-    // at the same time as yield is called
+    // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend fiber
-    tmp->suspend();
+    active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp->is_running() );
-    BOOST_ASSERT( tmp == detail::scheduler::instance().active() );
+    BOOST_ASSERT( tmp == active_fiber_);
+    BOOST_ASSERT( active_fiber_->is_running() );
 }
 
 void
@@ -191,11 +180,11 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         // store active fiber in local var
         detail::fiber_base::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
-        tmp->suspend();
+        active_fiber_->suspend();
         // fiber is resumed by f
 
-        BOOST_ASSERT( tmp->is_running() );
-        BOOST_ASSERT( tmp == detail::scheduler::instance().active() );
+        BOOST_ASSERT( tmp == active_fiber_);
+        BOOST_ASSERT( active_fiber_->is_running() );
 
         // check if fiber was interrupted
         this_fiber::interruption_point();
@@ -207,7 +196,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
     }
 
     // check if joined fiber has an exception
-    // rethrow exception if YES
+    // and rethrow exception
     if ( f->has_exception() ) f->rethrow();
 
     BOOST_ASSERT( f->is_terminated() );
@@ -218,12 +207,10 @@ round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
 {
     BOOST_ASSERT( f);
 
+    // set only priority to fiber
+    // round-robin does not respect priorities
     f->priority( prio);
 }
-
-detail::notify::ptr_t
-round_robin::notifier()
-{ return notifier_; }
 
 }}
 

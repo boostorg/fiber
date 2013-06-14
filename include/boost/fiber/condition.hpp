@@ -18,6 +18,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/main_notifier.hpp>
 #include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -79,7 +80,9 @@ public:
             else
             {
                 // notifier for main-fiber
-                n = detail::scheduler::instance().notifier();
+                detail::main_notifier mn;
+                n = detail::main_notifier::make_pointer( mn);
+
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
 

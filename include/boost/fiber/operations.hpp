@@ -27,9 +27,7 @@ fibers::fiber::id get_id()
 
 inline
 void yield()
-{
-    fibers::detail::scheduler::instance().yield();
-}
+{ fibers::detail::scheduler::instance().yield(); }
 
 }
 

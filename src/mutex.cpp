@@ -12,6 +12,7 @@
 
 #include <boost/assert.hpp>
 
+#include <boost/fiber/detail/main_notifier.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/interruption.hpp>
 
@@ -49,7 +50,8 @@ mutex::lock()
             else
             {
                 // notifier for main-fiber
-                n = detail::scheduler::instance().notifier();
+                detail::main_notifier mn;
+                n = detail::main_notifier::make_pointer( mn);
 
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);

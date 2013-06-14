@@ -11,7 +11,7 @@
 #include <boost/fiber/asio/use_future.hpp>
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/barrier.hpp>
-#include <boost/fiber/bounded_channel.hpp>
+#include <boost/fiber/bounded_queue.hpp>
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
@@ -21,6 +21,6 @@
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 #include <boost/fiber/round_robin.hpp>
-#include <boost/fiber/unbounded_channel.hpp>
+#include <boost/fiber/unbounded_queue.hpp>
 
 #endif // BOOST_FIBERS_H

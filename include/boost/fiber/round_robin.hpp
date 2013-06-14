@@ -17,8 +17,7 @@
 #include <boost/thread/locks.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/notify.hpp>
-#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/algorithm.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -32,48 +31,6 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
-
-template< typename Allocator >
-class main_notifier : public detail::notify
-{
-public:
-    typedef typename Allocator::template rebind<
-            main_notifier< Allocator >
-    >::other            allocator_t;
-
-    main_notifier( allocator_t const& alloc) :
-        ready_( false), alloc_( alloc)
-    {}
-
-    bool is_ready() const BOOST_NOEXCEPT
-    {
-        if ( ready_)
-        {
-            ready_ = false;
-            return true;
-        }
-        return false;
-    }
-
-    void set_ready() BOOST_NOEXCEPT
-    { ready_ = true; }
-
-    void deallocate_object()
-    { destroy_( alloc_, this); }
-
-private:
-    mutable bool    ready_;
-    allocator_t     alloc_;
-
-    static void destroy_( allocator_t & alloc, main_notifier * p)
-    {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
-    }
-};
-
-}
 
 class BOOST_FIBERS_DECL round_robin : public algorithm
 {
@@ -82,7 +39,6 @@ private:
     typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
 
     detail::fiber_base::ptr_t   active_fiber_;
-    detail::notify::ptr_t       notifier_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
 
@@ -105,8 +61,6 @@ public:
     void wait();
 
     void yield();
-
-    detail::notify::ptr_t notifier();
 };
 
 }}

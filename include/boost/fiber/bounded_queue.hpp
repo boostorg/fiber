@@ -33,15 +33,15 @@ namespace fibers {
 namespace detail {
 
 template< typename T >
-struct bounded_channel_node
+struct bounded_queue_node
 {
-    typedef intrusive_ptr< bounded_channel_node >   ptr;
+    typedef intrusive_ptr< bounded_queue_node >   ptr;
 
     std::size_t use_count;
     T           va;
     ptr         next;
 
-    bounded_channel_node() :
+    bounded_queue_node() :
         use_count( 0),
         va(),
         next()
@@ -49,28 +49,28 @@ struct bounded_channel_node
 };
 
 template< typename T >
-void intrusive_ptr_add_ref( bounded_channel_node< T > * p)
+void intrusive_ptr_add_ref( bounded_queue_node< T > * p)
 { ++p->use_count; }
 
 template< typename T >
-void intrusive_ptr_release( bounded_channel_node< T > * p)
+void intrusive_ptr_release( bounded_queue_node< T > * p)
 { if ( 0 == --p->use_count) delete p; }
 
 }
 
 template< typename T >
-class bounded_channel : private noncopyable
+class bounded_queue : private noncopyable
 {
 public:
     typedef optional< T >   value_type;
 
 private:
-    typedef detail::bounded_channel_node< value_type >      node_type;  
+    typedef detail::bounded_queue_node< value_type >      node_type;  
 
     template< typename X >
-    friend void intrusive_ptr_add_ref( bounded_channel< X > * p);
+    friend void intrusive_ptr_add_ref( bounded_queue< X > * p);
     template< typename X >
-    friend void intrusive_ptr_release( bounded_channel< X > * p);
+    friend void intrusive_ptr_release( bounded_queue< X > * p);
 
     enum state_t
     {
@@ -120,7 +120,7 @@ private:
     }
 
 public:
-    bounded_channel(
+    bounded_queue(
             std::size_t hwm,
             std::size_t lwm) :
         state_( ACTIVE),
@@ -138,10 +138,10 @@ public:
             boost::throw_exception(
                 invalid_argument(
                     system::errc::invalid_argument,
-                    "boost fiber: high-watermark is less than low-watermark for bounded_channel") );
+                    "boost fiber: high-watermark is less than low-watermark for bounded_queue") );
     }
 
-    bounded_channel( std::size_t wm) :
+    bounded_queue( std::size_t wm) :
         state_( ACTIVE),
         count_( 0),
         head_( new node_type() ),

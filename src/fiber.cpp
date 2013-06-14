@@ -26,28 +26,28 @@ namespace fibers {
 
 void
 fiber::start_fiber_()
-{ detail::scheduler::instance().spawn( fiber_data_); }
+{ detail::scheduler::instance().spawn( impl_); }
 
 int
 fiber::priority() const BOOST_NOEXCEPT
 {
-    BOOST_ASSERT( fiber_data_);
+    BOOST_ASSERT( impl_);
 
-    return fiber_data_->priority();
+    return impl_->priority();
 }
 
 void
 fiber::priority( int prio) BOOST_NOEXCEPT
 {
-    BOOST_ASSERT( fiber_data_);
+    BOOST_ASSERT( impl_);
 
-    detail::scheduler::instance().priority( fiber_data_, prio);
+    detail::scheduler::instance().priority( impl_, prio);
 }
 
 void
 fiber::join()
 {
-    BOOST_ASSERT( fiber_data_);
+    BOOST_ASSERT( impl_);
 
     if ( boost::this_fiber::get_id() == get_id() )
         boost::throw_exception(
@@ -62,21 +62,21 @@ fiber::join()
     }
 
     try
-    { detail::scheduler::instance().join( fiber_data_); }
+    { detail::scheduler::instance().join( impl_); }
     catch (...)
     {
-        fiber_data_.reset();
+        impl_.reset();
         throw;
     }
-    fiber_data_.reset();
+    impl_.reset();
 }
 
 void
 fiber::interrupt() BOOST_NOEXCEPT
 {
-    BOOST_ASSERT( fiber_data_);
+    BOOST_ASSERT( impl_);
 
-    fiber_data_->request_interruption( true);
+    impl_->request_interruption( true);
 }
 
 }}

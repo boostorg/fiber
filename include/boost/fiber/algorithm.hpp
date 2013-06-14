@@ -13,7 +13,6 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -43,8 +42,6 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
     virtual void wait() = 0;
 
     virtual void yield() = 0;
-
-    virtual detail::notify::ptr_t notifier() = 0;
 
     virtual ~algorithm() {}
 };
