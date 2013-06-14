@@ -91,7 +91,7 @@ public:
         boost::fibers::detail::scheduler::instance().run();
     }
 
-    void operator()(t boost::system::error_code const& ec)
+    void operator()( boost::system::error_code const& ec)
     {
         if ( ec)
             promise_->set_exception(
