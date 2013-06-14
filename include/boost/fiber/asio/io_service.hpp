@@ -1,45 +1,40 @@
-//          Copyright Oliver Kowalke 2009.
+
+//   Copyright Oliver Kowalke, Christopher M. Kohlhoff 2009.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DEFAULT_SCHEDULER_H
-#define BOOST_FIBERS_DEFAULT_SCHEDULER_H
+#ifndef BOOST_FIBERS_ASIO_IO_SERVICE_HPP
+#define BOOST_FIBERS_ASIO_IO_SERVICE_HPP
 
 #include <deque>
 
+#include <boost/asio/io_service.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
-
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
+namespace asio {
 
-class BOOST_FIBERS_DECL round_robin : public algorithm
+class BOOST_FIBERS_DECL io_service : public algorithm
 {
 private:
     typedef std::deque< detail::fiber_base::ptr_t >     wqueue_t;
-    typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
+    typedef std::deque< boost::asio::io_service::work > wqueue_work_t;
 
+    boost::asio::io_service&    io_service_;
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
-    rqueue_t                    rqueue_;
+    wqueue_work_t               wqueue_work_;
 
 public:
-    round_robin() BOOST_NOEXCEPT;
+    io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT;
 
-    ~round_robin() BOOST_NOEXCEPT;
+    ~io_service() BOOST_NOEXCEPT;
 
     void spawn( detail::fiber_base::ptr_t const&);
 
@@ -57,14 +52,6 @@ public:
     void yield();
 };
 
-}}
+}}}
 
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
-
-#endif // BOOST_FIBERS_DEFAULT_SCHEDULER_H
+#endif // BOOST_FIBERS_ASIO_IO_SERVICE_HPP

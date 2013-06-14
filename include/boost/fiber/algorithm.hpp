@@ -8,12 +8,10 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/move/move.hpp>
-#include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX

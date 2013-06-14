@@ -15,6 +15,7 @@ project boost/fiber/example/cpp03
       <library>/boost/thread//boost_thread
       <link>static
       <threading>multi
+      <define>BOOST_ASIO_ENABLE_HANDLER_TRACKING
     ;
 
 exe barrier : barrier.cpp ;
@@ -25,3 +26,4 @@ exe simple : simple.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
 
 exe asio/daytime_client : asio/daytime_client.cpp ;
+exe asio/daytime_client2 : asio/daytime_client2.cpp ;

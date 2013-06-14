@@ -13,6 +13,8 @@
 #ifndef BOOST_FIBERS_ASIO_USE_FUTURE_HPP
 #define BOOST_FIBERS_ASIO_USE_FUTURE_HPP
 
+#include <memory>
+
 #include <boost/asio/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -45,7 +47,7 @@ public:
     typedef Allocator allocator_type;
 
     /// Construct using default-constructed allocator.
-    use_future_t()
+    BOOST_CONSTEXPR use_future_t()
     {}
 
     /// Construct using specified allocator.
@@ -70,7 +72,7 @@ private:
 /**
  * See the documentation for boost::asio::use_future_t for a usage example.
  */
-BOOST_CONSTEXPR use_future_t<> use_future;
+BOOST_CONSTEXPR_OR_CONST use_future_t<> use_future;
 
 } // namespace asio
 } // namespace fibers

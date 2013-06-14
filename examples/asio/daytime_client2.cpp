@@ -28,39 +28,30 @@ void get_daytime(boost::asio::io_service& io_service, const char* hostname)
   {
     udp::resolver resolver(io_service);
 
-    boost::fibers::future<udp::resolver::iterator> iter =
+    udp::resolver::iterator iter =
       resolver.async_resolve(
           udp::resolver::query( udp::v4(), hostname, "daytime"),
-          boost::fibers::asio::use_future);
-
-    // The async_resolve operation above returns the endpoint iterator as a
-    // future value that is not retrieved ...
+          boost::fibers::asio::yield);
 
     udp::socket socket(io_service, udp::v4());
 
     boost::array<char, 1> send_buf  = {{ 0 }};
-    boost::fibers::future<std::size_t> send_length =
+    std::size_t send_length =
       socket.async_send_to(boost::asio::buffer(send_buf),
-          *iter.get(), // ... until here. This call may block.
-          boost::fibers::asio::use_future);
-
-    // Do other things here while the send completes.
-
-    send_length.get(); // Blocks until the send is complete. Throws any errors.
+          *iter, boost::fibers::asio::yield);
+    (void)send_length;
 
     boost::array<char, 128> recv_buf;
     udp::endpoint sender_endpoint;
-    boost::fibers::future<std::size_t> recv_length =
+    std::size_t recv_length =
       socket.async_receive_from(
           boost::asio::buffer(recv_buf),
           sender_endpoint,
-          boost::fibers::asio::use_future);
-
-    // Do other things here while the receive completes.
+          boost::fibers::asio::yield);
 
     std::cout.write(
         recv_buf.data(),
-        recv_length.get()); // Blocks until receive is complete.
+        recv_length);
   }
   catch (boost::system::system_error& e)
   {

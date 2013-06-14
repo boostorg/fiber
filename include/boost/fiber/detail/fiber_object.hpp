@@ -30,8 +30,6 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-struct forced_unwind {};
-
 template< typename Fiber >
 void trampoline( intptr_t vp)
 {

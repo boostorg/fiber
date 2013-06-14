@@ -1,12 +1,12 @@
 
-//          Copyright Oliver Kowalke 2009.
+//   Copyright Oliver Kowalke, Christopher M. Kohlhoff 2009.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_FIBERS_SOURCE
 
-#include <boost/fiber/round_robin.hpp>
+#include <boost/fiber/asio/io_service.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -29,14 +29,14 @@
 
 namespace boost {
 namespace fibers {
+namespace asio {
 
-round_robin::round_robin() BOOST_NOEXCEPT :
-    active_fiber_(),
-    wqueue_(),
-    rqueue_()
+io_service::io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT :
+    io_service_( svc),
+    active_fiber_()
 {}
 
-round_robin::~round_robin() BOOST_NOEXCEPT
+io_service::~io_service() BOOST_NOEXCEPT
 {
 #if 0
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
@@ -48,7 +48,7 @@ round_robin::~round_robin() BOOST_NOEXCEPT
 }
 
 void
-round_robin::spawn( detail::fiber_base::ptr_t const& f)
+io_service::spawn( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -78,10 +78,11 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
 }
 
 bool
-round_robin::run()
+io_service::run()
 {
     // loop over waiting queue
     wqueue_t wqueue;
+    wqueue_work_t wqueue_work;
     BOOST_FOREACH( detail::fiber_base::ptr_t const& f, wqueue_)
     {
         BOOST_ASSERT( ! f->is_running() );
@@ -92,43 +93,43 @@ round_robin::run()
         if ( f->interruption_requested() )
             f->set_ready();
         if ( f->is_ready() )
-            rqueue_.push_back( f);
-        else wqueue.push_back( f);
+        {
+            io_service_.post(
+              [this, f]()
+              {
+                  if ( f->is_waiting() )
+                  {
+                      wqueue_.push_back( f);
+                      wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
+                  }
+                  else if ( f->is_ready() ) spawn( f);
+                  else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
+              });
+        }
+        else
+        {
+            wqueue.push_back( f);
+            wqueue_work.push_back( boost::asio::io_service::work( io_service_) );
+        }
     }
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
+    wqueue_work_.swap( wqueue_work);
 
-    // pop new fiber from ready-queue which is not complete
-    // (example: fiber in ready-queue could be canceled by active-fiber)
-    detail::fiber_base::ptr_t f;
-    do
-    {
-        if ( rqueue_.empty() ) return false;
-        f.swap( rqueue_.front() );
-        rqueue_.pop_front();
-
-        if ( f->is_ready() ) break;
-        if ( f->is_waiting() ) wqueue_.push_back( f);
-        else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
-    }
-    while ( true);
-
-    // resume fiber
-    spawn( f);
-
-    return true;
+    return io_service_.run_one() > 0;
 }
 
 void
-round_robin::wait()
+io_service::wait()
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
 
-    // set active fiber to state_waiting
+    // set active_fiber to state_waiting
     active_fiber_->set_waiting();
     // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
+    wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend active fiber
@@ -140,7 +141,7 @@ round_robin::wait()
 }
 
 void
-round_robin::yield()
+io_service::yield()
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
@@ -149,6 +150,7 @@ round_robin::yield()
     active_fiber_->set_ready();
     // push active fiber to wqueue_
     wqueue_.push_back( active_fiber_);
+    wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend acitive fiber
@@ -160,7 +162,7 @@ round_robin::yield()
 }
 
 void
-round_robin::join( detail::fiber_base::ptr_t const& f)
+io_service::join( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != active_fiber_);
@@ -171,6 +173,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         active_fiber_->set_waiting();
         // push active fiber to wqueue_
         wqueue_.push_back( active_fiber_);
+        wqueue_work_.push_back( boost::asio::io_service::work( io_service_));
         // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
             // f must be already terminated therefore we set
@@ -203,7 +206,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
+io_service::priority( detail::fiber_base::ptr_t const& f, int prio)
 {
     BOOST_ASSERT( f);
 
@@ -212,7 +215,7 @@ round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
     f->priority( prio);
 }
 
-}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

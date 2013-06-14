@@ -32,6 +32,8 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+struct forced_unwind {};
+
 class BOOST_FIBERS_DECL fiber_base : public notify
 {
 public:

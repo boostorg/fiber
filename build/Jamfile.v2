@@ -54,6 +54,7 @@ explicit yield_sources ;
 lib boost_fibers
     : allocator_sources
       yield_sources
+      asio/io_service.cpp
       barrier.cpp
       condition.cpp
       detail/fiber_base.cpp
