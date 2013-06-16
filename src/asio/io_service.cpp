@@ -77,6 +77,17 @@ io_service::spawn( detail::fiber_base::ptr_t const& f)
     active_fiber_ = tmp;
 }
 
+void
+io_service::evaluate_( detail::fiber_base::ptr_t const& f) {
+    if ( f->is_waiting() )
+    {
+        wqueue_.push_back( f);
+        wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
+    }
+    else if ( f->is_ready() ) spawn( f);
+    else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
+}
+
 bool
 io_service::run()
 {
@@ -95,16 +106,7 @@ io_service::run()
         if ( f->is_ready() )
         {
             io_service_.post(
-              [this, f]()
-              {
-                  if ( f->is_waiting() )
-                  {
-                      wqueue_.push_back( f);
-                      wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
-                  }
-                  else if ( f->is_ready() ) spawn( f);
-                  else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
-              });
+                boost::bind( & io_service::evaluate_, this, f) );
         }
         else
         {

@@ -31,6 +31,8 @@ private:
     wqueue_t                    wqueue_;
     wqueue_work_t               wqueue_work_;
 
+    void evaluate_( detail::fiber_base::ptr_t const&);
+
 public:
     io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT;
 
