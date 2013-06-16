@@ -32,7 +32,7 @@ public:
         ec_( 0)
     {}
 
-    yield_t operator[]( boost::system::error_code & ec)
+    yield_t operator[]( boost::system::error_code & ec) const
     {
         yield_t tmp;
         tmp.ec_ = & ec;
