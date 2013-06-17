@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_ASIO_IO_SERVICE_HPP
 
 #include <deque>
+#include <utility>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/config.hpp>
@@ -23,13 +24,16 @@ namespace asio {
 class BOOST_FIBERS_DECL io_service : public algorithm
 {
 private:
-    typedef std::deque< detail::fiber_base::ptr_t >     wqueue_t;
-    typedef std::deque< boost::asio::io_service::work > wqueue_work_t;
+    typedef std::deque<
+        std::pair<
+            detail::fiber_base::ptr_t,
+            boost::asio::io_service::work
+        >
+    >                                                   wqueue_t;
 
-    boost::asio::io_service&    io_service_;
+    boost::asio::io_service &   io_service_;
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
-    wqueue_work_t               wqueue_work_;
 
     void evaluate_( detail::fiber_base::ptr_t const&);
 

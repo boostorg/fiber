@@ -33,17 +33,15 @@ namespace asio {
 
 io_service::io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT :
     io_service_( svc),
-    active_fiber_()
+    active_fiber_(),
+    wqueue_()
 {}
 
 io_service::~io_service() BOOST_NOEXCEPT
 {
 #if 0
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
-    { p->release(); }
-
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
-    { p->release(); }
+    { p.first->release(); }
 #endif
 }
 
@@ -81,8 +79,10 @@ void
 io_service::evaluate_( detail::fiber_base::ptr_t const& f) {
     if ( f->is_waiting() )
     {
-        wqueue_.push_back( f);
-        wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
+        wqueue_.push_back(
+            std::make_pair(
+                f,
+                boost::asio::io_service::work( io_service_) ) );
     }
     else if ( f->is_ready() ) spawn( f);
     else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
@@ -93,30 +93,26 @@ io_service::run()
 {
     // loop over waiting queue
     wqueue_t wqueue;
-    wqueue_work_t wqueue_work;
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& f, wqueue_)
+    typedef wqueue_t::value_type pair_t;
+    BOOST_FOREACH( pair_t const& pair, wqueue_)
     {
-        BOOST_ASSERT( ! f->is_running() );
-        BOOST_ASSERT( ! f->is_terminated() );
+        BOOST_ASSERT( ! pair.first->is_running() );
+        BOOST_ASSERT( ! pair.first->is_terminated() );
 
         // set fiber to state_ready if interruption was requested
         // or the fiber was woken up
-        if ( f->interruption_requested() )
-            f->set_ready();
-        if ( f->is_ready() )
+        if ( pair.first->interruption_requested() )
+            pair.first->set_ready();
+        if ( pair.first->is_ready() )
         {
             io_service_.post(
-                boost::bind( & io_service::evaluate_, this, f) );
+                boost::bind( & io_service::evaluate_, this, pair.first) );
         }
         else
-        {
-            wqueue.push_back( f);
-            wqueue_work.push_back( boost::asio::io_service::work( io_service_) );
-        }
+            wqueue.push_back( pair);
     }
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
-    wqueue_work_.swap( wqueue_work);
 
     return io_service_.run_one() > 0;
 }
@@ -130,8 +126,10 @@ io_service::wait()
     // set active_fiber to state_waiting
     active_fiber_->set_waiting();
     // push active fiber to wqueue_
-    wqueue_.push_back( active_fiber_);
-    wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
+    wqueue_.push_back(
+        std::make_pair(
+            active_fiber_,
+            boost::asio::io_service::work( io_service_) ) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend active fiber
@@ -151,8 +149,10 @@ io_service::yield()
     // set active fiber to state_waiting
     active_fiber_->set_ready();
     // push active fiber to wqueue_
-    wqueue_.push_back( active_fiber_);
-    wqueue_work_.push_back( boost::asio::io_service::work( io_service_) );
+    wqueue_.push_back(
+        std::make_pair(
+            active_fiber_,
+            boost::asio::io_service::work( io_service_) ) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend acitive fiber
@@ -174,8 +174,10 @@ io_service::join( detail::fiber_base::ptr_t const& f)
         // set active fiber to state_waiting
         active_fiber_->set_waiting();
         // push active fiber to wqueue_
-        wqueue_.push_back( active_fiber_);
-        wqueue_work_.push_back( boost::asio::io_service::work( io_service_));
+        wqueue_.push_back(
+            std::make_pair(
+                active_fiber_,
+                boost::asio::io_service::work( io_service_) ) );
         // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
             // f must be already terminated therefore we set
