@@ -42,6 +42,7 @@ io_service::~io_service() BOOST_NOEXCEPT
 #if 0
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
     { p.first->release(); }
+    wqueue_.clear();
 #endif
 }
 
@@ -78,12 +79,10 @@ io_service::spawn( detail::fiber_base::ptr_t const& f)
 void
 io_service::evaluate_( detail::fiber_base::ptr_t const& f) {
     if ( f->is_waiting() )
-    {
         wqueue_.push_back(
             std::make_pair(
                 f,
                 boost::asio::io_service::work( io_service_) ) );
-    }
     else if ( f->is_ready() ) spawn( f);
     else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
 }

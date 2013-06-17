@@ -108,7 +108,7 @@ round_robin::run()
         rqueue_.pop_front();
 
         if ( f->is_ready() ) break;
-        if ( f->is_waiting() ) wqueue_.push_back( f);
+        else if ( f->is_waiting() ) wqueue_.push_back( f);
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
     while ( true);
