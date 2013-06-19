@@ -92,6 +92,11 @@ private:
 #endif
 
 public:
+    template< typename F >
+    static fiber_base::ptr_t extract( F const& f) {
+        return f.impl_;
+    }
+
     static algorithm & instance() BOOST_NOEXCEPT;
 
     static algorithm * replace( algorithm *) BOOST_NOEXCEPT;

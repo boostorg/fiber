@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include <boost/config.hpp>
 #include <boost/asio/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS

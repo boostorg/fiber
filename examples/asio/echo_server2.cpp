@@ -38,13 +38,16 @@ public:
 
     void go()
     {
-        boost::fibers::fiber(
-            boost::bind( & session::timeout, shared_from_this() ) ).detach();
-        echo();
+        boost::fibers::asio::spawn(strand_,
+                boost::bind(&session::echo,
+                    shared_from_this(), _1));
+        boost::fibers::asio::spawn(strand_,
+                boost::bind(&session::timeout,
+                    shared_from_this(), _1));
     }
 
 private:
-    void echo()
+    void echo( boost::fibers::asio::yield_context yield)
     {
         try
         {
@@ -69,7 +72,7 @@ private:
         }
     }
 
-    void timeout()
+    void timeout( boost::fibers::asio::yield_context yield)
     {
         while ( socket_.is_open() )
         {
@@ -87,7 +90,8 @@ private:
     boost::asio::deadline_timer       timer_;
 };
 
-void do_accept( boost::asio::io_service & io_service, unsigned short port)
+void do_accept(boost::asio::io_service& io_service,
+    unsigned short port, boost::fibers::asio::yield_context yield)
 {
     tcp::acceptor acceptor( io_service, tcp::endpoint( tcp::v4(), port) );
 
@@ -119,10 +123,11 @@ int main( int argc, char* argv[])
         boost::fibers::scheduling_algorithm( & ds);
 
         using namespace std; // For atoi.
-        boost::fibers::fiber fiber(
-            boost::bind( do_accept, boost::ref( io_service), atoi( argv[1]) ) );
+        boost::fibers::asio::spawn( io_service,
+            boost::bind( do_accept,
+                boost::ref( io_service), atoi( argv[1]), _1) );
+
         io_service.run();
-        fiber.join();
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }
