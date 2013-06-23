@@ -1,5 +1,5 @@
 
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -19,6 +19,7 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/flags.hpp>
+#include <boost/fiber/fss.hpp>
 #include <boost/fiber/future.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
