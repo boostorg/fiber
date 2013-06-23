@@ -1,6 +1,6 @@
 # Boost.strand Library Tests Jamfile
 
-#          Copyright Oliver Kowalke 2009.
+#          Copyright Oliver Kowalke 2013.
 # Distributed under the Boost Software License, Version 1.0.
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
@@ -31,6 +31,7 @@ test-suite fibers :
   [ fiber-test test_unique_lock ]
   [ fiber-test test_lock ]
   [ fiber-test test_barrier ]
+  [ fiber-test test_fss ]
   [ fiber-test test_futures ]
 # [ fiber-test test_then ]
 ;

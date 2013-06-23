@@ -27,12 +27,9 @@ detail::thread_local_ptr scheduler::instance_ = 0;
 __thread algorithm * scheduler::instance_ = 0;
 #endif
 
-algorithm &
+algorithm *
 scheduler::instance() BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( instance_);
-	return * instance_;
-}
+{ return instance_; }
 
 algorithm *
 scheduler::replace( algorithm * other) BOOST_NOEXCEPT

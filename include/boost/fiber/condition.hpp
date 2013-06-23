@@ -1,5 +1,5 @@
 
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -62,7 +62,7 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        detail::notify::ptr_t n( detail::scheduler::instance().active() );
+        detail::notify::ptr_t n( detail::scheduler::instance()->active() );
         try
         {
             if ( n)
@@ -72,7 +72,7 @@ public:
                 lt.unlock();
 
                 // suspend fiber
-                detail::scheduler::instance().wait();
+                detail::scheduler::instance()->wait();
 
                 // check if fiber was interrupted
                 this_fiber::interruption_point();
@@ -90,7 +90,7 @@ public:
                 while ( ! n->is_ready() )
                 {
                     // run scheduler
-                    detail::scheduler::instance().run();
+                    detail::scheduler::instance()->run();
                 }
             }
         }

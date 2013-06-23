@@ -1,4 +1,4 @@
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -97,7 +97,7 @@ public:
         return f.impl_;
     }
 
-    static algorithm & instance() BOOST_NOEXCEPT;
+    static algorithm * instance() BOOST_NOEXCEPT;
 
     static algorithm * replace( algorithm *) BOOST_NOEXCEPT;
 };

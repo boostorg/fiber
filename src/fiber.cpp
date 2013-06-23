@@ -26,7 +26,7 @@ namespace fibers {
 
 void
 fiber::start_fiber_()
-{ detail::scheduler::instance().spawn( impl_); }
+{ detail::scheduler::instance()->spawn( impl_); }
 
 int
 fiber::priority() const BOOST_NOEXCEPT
@@ -41,7 +41,7 @@ fiber::priority( int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( impl_);
 
-    detail::scheduler::instance().priority( impl_, prio);
+    detail::scheduler::instance()->priority( impl_, prio);
 }
 
 void
@@ -62,7 +62,7 @@ fiber::join()
     }
 
     try
-    { detail::scheduler::instance().join( impl_); }
+    { detail::scheduler::instance()->join( impl_); }
     catch (...)
     {
         impl_.reset();

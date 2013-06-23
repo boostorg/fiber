@@ -50,7 +50,7 @@ public:
         * ec_ = boost::system::error_code();
         * value_ = value;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
     void operator()( boost::system::error_code ec, T value)
@@ -58,7 +58,7 @@ public:
         * ec_ = ec;
         * value_ = value;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
 //private:
@@ -83,14 +83,14 @@ public:
     {
         * ec_ = boost::system::error_code();
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
     void operator()( boost::system::error_code ec)
     {
         * ec_ = ec;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
 //private:
@@ -187,8 +187,8 @@ public:
 
     type get()
     {
-        boost::fibers::detail::scheduler::instance().active()->set_waiting();
-        boost::fibers::detail::scheduler::instance().active()->suspend();
+        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
+        boost::fibers::detail::scheduler::instance()->active()->suspend();
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
         return value_;
     }
@@ -214,8 +214,8 @@ public:
 
     void get()
     {
-        boost::fibers::detail::scheduler::instance().active()->set_waiting();
-        boost::fibers::detail::scheduler::instance().active()->suspend();
+        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
+        boost::fibers::detail::scheduler::instance()->active()->suspend();
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
     }
 
@@ -252,8 +252,8 @@ struct fiber_entry_point
   void operator()()
   {
     shared_ptr< spawn_data< Handler, Function > > data( data_);
-    boost::fibers::detail::scheduler::instance().active()->set_waiting();
-    boost::fibers::detail::scheduler::instance().active()->suspend();
+    boost::fibers::detail::scheduler::instance()->active()->set_waiting();
+    boost::fibers::detail::scheduler::instance()->active()->suspend();
     const basic_yield_context< Handler > yield(
         data->fiber_, data->handler_);
     ( data->function_)( yield);
@@ -274,7 +274,7 @@ struct spawn_helper
     data_->fiber_ = boost::fibers::detail::scheduler::extract( fiber);
     fiber.detach();
     data_->fiber_->set_ready();
-    boost::fibers::detail::scheduler::instance().spawn( data_->fiber_);
+    boost::fibers::detail::scheduler::instance()->spawn( data_->fiber_);
   }
 
   shared_ptr< spawn_data< Handler, Function > > data_;

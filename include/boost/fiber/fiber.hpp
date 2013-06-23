@@ -1,5 +1,5 @@
 
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -20,6 +20,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/attributes.hpp>
+#include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/fiber_object.hpp>
 #include <boost/fiber/stack_allocator.hpp>

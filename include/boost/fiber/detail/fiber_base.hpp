@@ -1,5 +1,5 @@
 
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -9,11 +9,11 @@
 
 #include <cstddef>
 #include <iostream>
+#include <map>
 #include <vector>
 
-#include <boost/chrono/system_clocks.hpp>
+#include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/fcontext.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -22,6 +22,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_context.hpp>
 #include <boost/fiber/detail/flags.hpp>
+#include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/notify.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -37,7 +38,7 @@ struct forced_unwind {};
 class BOOST_FIBERS_DECL fiber_base : public notify
 {
 public:
-    typedef intrusive_ptr< fiber_base >           ptr_t;
+    typedef intrusive_ptr< fiber_base >     ptr_t;
 
 private:
     enum state_t
@@ -47,6 +48,29 @@ private:
         WAITING,
         TERMINATED
     };
+
+    struct fss_data
+    {
+        void                       *   vp;
+        fss_cleanup_function::ptr_t     cleanup_function;
+
+        fss_data() :
+            vp( 0), cleanup_function( 0)
+        {}
+
+        fss_data(
+                void * vp_,
+                fss_cleanup_function::ptr_t const& fn) :
+            vp( vp_), cleanup_function( fn)
+        { BOOST_ASSERT( cleanup_function); }
+
+        void do_cleanup()
+        { ( * cleanup_function)( vp); }
+    };
+
+    typedef std::map< uintptr_t, fss_data >   fss_data_t;
+
+    fss_data_t              fss_data_;
 
 protected:
     state_t                 state_;
@@ -241,9 +265,10 @@ public:
         //       - this fiber was interrupted and therefore resumed and
         //         throws fiber_interrupted
         //       - fiber_interrupted was catched and swallowed
-        //       - other fiber calls set_ready() on this fiber happend before this
-        //         fiber calls set_waiting()
-        //       - this fiber might wait on some sync. primitive calling set_waiting()
+        //       - other fiber calls set_ready() on this fiber happend before
+        //         this fiber calls set_waiting()
+        //       - this fiber might wait on some sync. primitive calling
+        //         set_waiting()
         state_t previous = WAITING;
         std::swap( state_, previous);
         BOOST_ASSERT( RUNNING == previous);
@@ -254,6 +279,14 @@ public:
     { return except_; }
 
     void rethrow() const;
+
+    void * get_fss_data( void const* vp) const;
+
+    void set_fss_data(
+        void const* vp,
+        fss_cleanup_function::ptr_t const& cleanup_fn,
+        void * data,
+        bool cleanup_existing);
 };
 
 }}}

@@ -36,7 +36,7 @@ mutex::lock()
 {
     while ( LOCKED == state_)
     {
-        detail::notify::ptr_t n( detail::scheduler::instance().active() );
+        detail::notify::ptr_t n( detail::scheduler::instance()->active() );
         try
         {
             if ( n)
@@ -45,7 +45,7 @@ mutex::lock()
                 waiting_.push_back( n);
 
                 // suspend this fiber
-                detail::scheduler::instance().wait();
+                detail::scheduler::instance()->wait();
             }
             else
             {
@@ -60,7 +60,7 @@ mutex::lock()
                 while ( ! n->is_ready() )
                 {
                     // run scheduler
-                    detail::scheduler::instance().run();
+                    detail::scheduler::instance()->run();
                 }
             }
         }

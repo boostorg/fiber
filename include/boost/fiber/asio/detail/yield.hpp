@@ -24,7 +24,7 @@ class yield_handler
 {
 public:
     yield_handler( yield_t const& y) :
-        fiber_( boost::fibers::detail::scheduler::instance().active() ),
+        fiber_( boost::fibers::detail::scheduler::instance()->active() ),
         ec_( y.ec_), value_( 0)
     {}
 
@@ -33,7 +33,7 @@ public:
         * ec_ = boost::system::error_code();
         * value_ = t;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
     void operator()( boost::system::error_code const& ec, T t)
@@ -41,7 +41,7 @@ public:
         * ec_ = ec;
         * value_ = t;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
 //private:
@@ -56,7 +56,7 @@ class yield_handler< void >
 {
 public:
     yield_handler( yield_t const& y) :
-        fiber_( boost::fibers::detail::scheduler::instance().active() ),
+        fiber_( boost::fibers::detail::scheduler::instance()->active() ),
         ec_( y.ec_)
     {}
     
@@ -64,14 +64,14 @@ public:
     {
         * ec_ = boost::system::error_code();
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
     
     void operator()( boost::system::error_code const& ec)
     {
         * ec_ = ec;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance().spawn( fiber_);
+        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
     }
 
 //private:
@@ -102,8 +102,8 @@ public:
     
     type get()
     {
-        boost::fibers::detail::scheduler::instance().active()->set_waiting();
-        boost::fibers::detail::scheduler::instance().active()->suspend();
+        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
+        boost::fibers::detail::scheduler::instance()->active()->suspend();
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
         return value_;
@@ -129,8 +129,8 @@ public:
 
     void get()
     {
-        boost::fibers::detail::scheduler::instance().active()->set_waiting();
-        boost::fibers::detail::scheduler::instance().active()->suspend();
+        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
+        boost::fibers::detail::scheduler::instance()->active()->suspend();
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
     }

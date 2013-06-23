@@ -45,6 +45,8 @@ round_robin::~round_robin() BOOST_NOEXCEPT
     BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
     { p->release(); }
 #endif
+    if ( detail::scheduler::instance() == this)
+        detail::scheduler::replace( 0);
 }
 
 void
