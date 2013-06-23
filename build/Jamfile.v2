@@ -61,6 +61,7 @@ lib boost_fibers
       detail/fiber_context.cpp
       detail/scheduler.cpp
       fiber.cpp
+      fiber_group.cpp
       future.cpp
       interruption.cpp
       mutex.cpp

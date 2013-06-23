@@ -55,7 +55,6 @@ void fss()
 {
     fss_instances = 0;
     fss_total = 0;
-#if 0
     boost::fibers::fiber_group fibers;
     try
     {
@@ -69,8 +68,6 @@ void fss()
         fibers.join_all();
         throw;
     }
-#endif
-    boost::fibers::fiber(fss_fiber).join();
     std::cout
         << "fss_instances = " << fss_instances
         << "; fss_total = " << fss_total
@@ -78,8 +75,7 @@ void fss()
     std::cout.flush();
 
     BOOST_CHECK_EQUAL(fss_instances, 0);
-    BOOST_CHECK_EQUAL(fss_total, 1);
-   // BOOST_CHECK_EQUAL(fss_total, 5);
+    BOOST_CHECK_EQUAL(fss_total, 5);
 }
 
 void test_fss()
