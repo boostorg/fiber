@@ -45,6 +45,65 @@ struct test_lock
         BOOST_CHECK(lk ? true : false);
     }
 };
+#if 0
+template< typename M >
+struct test_trylock
+{
+    typedef M mutex_type;
+    typedef typename M::scoped_try_lock try_lock_type;
+
+    void operator()()
+    {
+        mutex_type mutex;
+        boost::fibers::condition condition;
+
+        // Test the lock's constructors.
+        {
+            try_lock_type lock(mutex);
+            BOOST_CHECK(lock ? true : false);
+        }
+        {
+            try_lock_type lock(mutex, boost::defer_lock);
+            BOOST_CHECK(!lock);
+        }
+        try_lock_type lock(mutex);
+        BOOST_CHECK(lock ? true : false);
+
+        // Construct and initialize an xtime for a fast time out.
+        boost::xtime xt = delay(0, 100);
+
+        // Test the lock and the mutex with condition variables.
+        // No one is going to notify this condition variable.  We expect to
+        // time out.
+        BOOST_CHECK(!condition.timed_wait(lock, xt));
+        BOOST_CHECK(lock ? true : false);
+
+        // Test the lock, unlock and trylock methods.
+        lock.unlock();
+        BOOST_CHECK(!lock);
+        lock.lock();
+        BOOST_CHECK(lock ? true : false);
+        lock.unlock();
+        BOOST_CHECK(!lock);
+        BOOST_CHECK(lock.try_lock());
+        BOOST_CHECK(lock ? true : false);
+    }
+};
+#endif
+
+template< typename M >
+struct test_recursive_lock
+{
+    typedef M mutex_type;
+    typedef typename M::scoped_lock lock_type;
+
+    void operator()()
+    {
+        mutex_type mx;
+        lock_type lock1(mx);
+        lock_type lock2(mx);
+    }
+};
 
 void do_test_mutex()
 {
@@ -105,6 +164,35 @@ void test_exclusive()
 	BOOST_CHECK_EQUAL( 2, value2);
 }
 
+void do_test_recursive_mutex()
+{
+    test_lock< boost::fibers::recursive_mutex >()();
+    test_recursive_lock< boost::fibers::recursive_mutex >()();
+}
+
+void test_recursive_mutex()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( do_test_recursive_mutex).join();
+}
+
+void do_test_recursive_try_mutex()
+{
+    test_lock< boost::fibers::recursive_try_mutex >()();
+    //test_trylock< boost::fibers::recursive_try_mutex >()();
+    test_recursive_lock< boost::fibers::recursive_try_mutex >()();
+}
+
+void test_recursive_try_mutex()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( do_test_recursive_try_mutex).join();
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
@@ -112,6 +200,8 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
     test->add( BOOST_TEST_CASE( & test_locking) );
     test->add( BOOST_TEST_CASE( & test_exclusive) );
+    test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
+    test->add( BOOST_TEST_CASE( & test_recursive_try_mutex) );
 
 	return test;
 }

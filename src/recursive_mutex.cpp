@@ -6,7 +6,7 @@
 
 #define BOOST_FIBERS_SOURCE
 
-#include <boost/fiber/mutex.hpp>
+#include <boost/fiber/recursive_mutex.hpp>
 
 #include <algorithm>
 
@@ -24,21 +24,29 @@
 namespace boost {
 namespace fibers {
 
-mutex::mutex() :
+recursive_mutex::recursive_mutex() :
     owner_(),
+    count_( 0),
 	state_( UNLOCKED),
     waiting_()
 {}
 
-mutex::~mutex()
+recursive_mutex::~recursive_mutex()
 {
     BOOST_ASSERT( ! owner_);
+    BOOST_ASSERT( 0 == count_);
     BOOST_ASSERT( waiting_.empty() );
 }
 
 void
-mutex::lock()
+recursive_mutex::lock()
 {
+    if ( LOCKED == state_ && this_fiber::get_id() == owner_)
+    {
+        ++count_;
+        return;
+    }
+
     while ( LOCKED == state_)
     {
         detail::notify::ptr_t n( detail::scheduler::instance()->active() );
@@ -78,39 +86,45 @@ mutex::lock()
         }
     }
     BOOST_ASSERT( ! owner_);
+    BOOST_ASSERT( 0 == count_);
 
     state_ = LOCKED;
     owner_ = this_fiber::get_id();
+    ++count_;
 }
 
 bool
-mutex::try_lock()
+recursive_mutex::try_lock()
 {
     if ( LOCKED == state_) return false;
 
     state_ = LOCKED;
     owner_ = this_fiber::get_id();
+    ++count_;
     return true;
 }
 
 void
-mutex::unlock()
+recursive_mutex::unlock()
 {
     BOOST_ASSERT( LOCKED == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
+    
+    if ( 0 == --count_)
+    {
+        detail::notify::ptr_t n;
 
-    detail::notify::ptr_t n;
+        if ( ! waiting_.empty() ) {
+            n.swap( waiting_.front() );
+            waiting_.pop_front();
+        }
 
-    if ( ! waiting_.empty() ) {
-        n.swap( waiting_.front() );
-        waiting_.pop_front();
+        state_ = UNLOCKED;
+        owner_ = detail::fiber_base::id();
+
+        if ( n)
+            n->set_ready();
     }
-
-	state_ = UNLOCKED;
-    owner_ = detail::fiber_base::id();
-
-    if ( n)
-        n->set_ready();
 }
 
 }}

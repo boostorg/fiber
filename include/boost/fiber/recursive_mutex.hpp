@@ -6,9 +6,10 @@
 //
 //  based on boost::interprocess::sync::interprocess_spinlock
 
-#ifndef BOOST_FIBERS_MUTEX_H
-#define BOOST_FIBERS_MUTEX_H
+#ifndef BOOST_FIBERS_RECURSIVE_MUTEX_H
+#define BOOST_FIBERS_RECURSIVE_MUTEX_H
 
+#include <cstddef>
 #include <deque>
 
 #include <boost/config.hpp>
@@ -31,7 +32,7 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL mutex : private noncopyable
+class BOOST_FIBERS_DECL recursive_mutex : private noncopyable
 {
 private:
     enum state_t
@@ -41,17 +42,18 @@ private:
     };
 
     detail::fiber_base::id          owner_;
+    std::size_t                     count_;
     volatile state_t                state_;
     std::deque<
         detail::notify::ptr_t
     >                               waiting_;
 
 public:
-    typedef unique_lock< mutex >    scoped_lock;
+    typedef unique_lock< recursive_mutex >    scoped_lock;
 
-    mutex();
+    recursive_mutex();
 
-    ~mutex();
+    ~recursive_mutex();
 
     void lock();
 
@@ -60,7 +62,7 @@ public:
     void unlock();
 };
 
-typedef mutex try_mutex;
+typedef recursive_mutex recursive_try_mutex;
 
 }}
 
@@ -72,4 +74,4 @@ typedef mutex try_mutex;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_MUTEX_H
+#endif // BOOST_FIBERS_RECURSIVE_MUTEX_H

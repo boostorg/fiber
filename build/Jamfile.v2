@@ -65,6 +65,7 @@ lib boost_fibers
       future.cpp
       interruption.cpp
       mutex.cpp
+      recursive_mutex.cpp
       round_robin.cpp
     : <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
     :
