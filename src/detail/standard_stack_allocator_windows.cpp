@@ -1,10 +1,8 @@
 
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
-
-#define BOOST_FIBERS_SOURCE
 
 #include "boost/fiber/detail/standard_stack_allocator.hpp"
 
@@ -24,7 +22,7 @@ extern "C" {
 #include <boost/context/detail/config.hpp>
 #include <boost/context/fcontext.hpp>
 
-#include <boost/fiber/stack_context.hpp>
+#include "boost/fiber/stack_context.hpp"
 
 # if defined(BOOST_MSVC)
 # pragma warning(push)

@@ -14,16 +14,12 @@
 # undef BOOST_FIBERS_DECL
 #endif
 
-#if defined(BOOST_HAS_DECLSPEC)
-# if defined(BOOST_ALL_DYN_LINK) || defined(BOOST_FIBERS_DYN_LINK)
-#  if ! defined(BOOST_DYN_LINK)
-#   define BOOST_DYN_LINK
-#  endif
-#  if defined(BOOST_FIBERS_SOURCE)
-#   define BOOST_FIBERS_DECL BOOST_SYMBOL_EXPORT
-#  else 
-#   define BOOST_FIBERS_DECL BOOST_SYMBOL_IMPORT
-#  endif
+#if (defined(BOOST_ALL_DYN_LINK) || defined(BOOST_FIBERS_DYN_LINK) ) && ! defined(BOOST_FIBERS_STATIC_LINK)
+# if defined(BOOST_FIBERS_SOURCE)
+#  define BOOST_FIBERS_DECL BOOST_SYMBOL_EXPORT
+#  define BOOST_FIBERS_BUILD_DLL
+# else
+#  define BOOST_FIBERS_DECL BOOST_SYMBOL_IMPORT
 # endif
 #endif
 
