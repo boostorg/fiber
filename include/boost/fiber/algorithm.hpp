@@ -10,6 +10,7 @@
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 
@@ -38,6 +39,10 @@ struct BOOST_FIBERS_DECL algorithm : private noncopyable
     virtual bool run() = 0;
 
     virtual void wait() = 0;
+    virtual void timed_wait( chrono::system_clock::time_point const&) = 0;
+    template< typename TimeDuration >
+    void timed_wait( TimeDuration const& dt)
+    { timed_wait( chrono::system_clock::now() + dt); }
 
     virtual void yield() = 0;
 

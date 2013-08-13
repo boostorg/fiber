@@ -8,7 +8,13 @@
 
 #include <deque>
 
+#include <boost/assert.hpp>
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -29,7 +35,26 @@ namespace fibers {
 class BOOST_FIBERS_DECL round_robin : public algorithm
 {
 private:
-    typedef std::deque< detail::fiber_base::ptr_t >     wqueue_t;
+    struct schedulable
+    {
+        detail::fiber_base::ptr_t           f;
+        chrono::system_clock::time_point    tp;
+
+        schedulable( detail::fiber_base::ptr_t const& f_) :
+            f( f_),
+            tp( (chrono::system_clock::time_point::max)() )
+        { BOOST_ASSERT( f); }
+
+        schedulable( detail::fiber_base::ptr_t const& f_,
+                     chrono::system_clock::time_point const& tp_) :
+            f( f_), tp( tp_)
+        {
+            BOOST_ASSERT( f);
+            BOOST_ASSERT( (chrono::system_clock::time_point::max)() != tp);
+        }
+    };
+
+    typedef std::deque< schedulable >                   wqueue_t;
     typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
 
     detail::fiber_base::ptr_t   active_fiber_;
@@ -53,6 +78,7 @@ public:
     bool run();
 
     void wait();
+    void timed_wait( chrono::system_clock::time_point const&);
 
     void yield();
 };

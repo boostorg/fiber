@@ -80,20 +80,25 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
 bool
 round_robin::run()
 {
-    // loop over waiting queue
     wqueue_t wqueue;
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& f, wqueue_)
+    // move all fibers witch are ready (state_ready)
+    // from waiting-queue to the runnable-queue
+    BOOST_FOREACH( schedulable const& s, wqueue_)
     {
+        detail::fiber_base::ptr_t f( s.f);
+
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
 
+        // set fiber to state_ready if dead-line was reached
+        if ( s.tp <= chrono::system_clock::now() )
+            f->set_ready();
         // set fiber to state_ready if interruption was requested
-        // or the fiber was woken up
         if ( f->interruption_requested() )
             f->set_ready();
         if ( f->is_ready() )
             rqueue_.push_back( f);
-        else wqueue.push_back( f);
+        else wqueue.push_back( s);
     }
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
@@ -108,7 +113,7 @@ round_robin::run()
         rqueue_.pop_front();
 
         if ( f->is_ready() ) break;
-        else if ( f->is_waiting() ) wqueue_.push_back( f);
+        //else if ( f->is_waiting() ) wqueue_.push_back( schedulable( f) );
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
     while ( true);
@@ -121,6 +126,10 @@ round_robin::run()
 
 void
 round_robin::wait()
+{ timed_wait( chrono::system_clock::time_point() ); }
+
+void
+round_robin::timed_wait( chrono::system_clock::time_point const& abs_time)
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
@@ -128,7 +137,7 @@ round_robin::wait()
     // set active fiber to state_waiting
     active_fiber_->set_waiting();
     // push active fiber to wqueue_
-    wqueue_.push_back( active_fiber_);
+    wqueue_.push_back( schedulable( active_fiber_, abs_time) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend active fiber
@@ -148,7 +157,7 @@ round_robin::yield()
     // set active fiber to state_waiting
     active_fiber_->set_ready();
     // push active fiber to wqueue_
-    wqueue_.push_back( active_fiber_);
+    wqueue_.push_back( schedulable( active_fiber_) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend acitive fiber
@@ -170,7 +179,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         // set active fiber to state_waiting
         active_fiber_->set_waiting();
         // push active fiber to wqueue_
-        wqueue_.push_back( active_fiber_);
+        wqueue_.push_back( schedulable( active_fiber_) );
         // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
             // f must be already terminated therefore we set
