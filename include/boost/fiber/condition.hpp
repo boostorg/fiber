@@ -14,6 +14,7 @@
 #include <boost/assert.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
+#include <boost/detail/scoped_enum_emulation.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
@@ -37,6 +38,13 @@
 
 namespace boost {
 namespace fibers {
+
+BOOST_SCOPED_ENUM_DECLARE_BEGIN(cv_status)
+{
+    no_timeout = 1,
+    timeout
+}
+BOOST_SCOPED_ENUM_DECLARE_END(cv_status)
 
 class BOOST_FIBERS_DECL condition : private noncopyable
 {
@@ -96,7 +104,7 @@ public:
         }
         catch (...)
         {
-            // remove fiber from waiting_
+            // remove fiber from waiting-list
             waiting_.erase(
                 std::find( waiting_.begin(), waiting_.end(), n) );
             throw;
@@ -104,6 +112,100 @@ public:
 
         // lock external again before returning
         lt.lock();
+    }
+
+    template< typename LockType >
+    cv_status wait_until( LockType & lt, clock_type::time_point const& timeout_time)
+    {
+        cv_status status = cv_status::no_timeout;
+
+        detail::notify::ptr_t n( detail::scheduler::instance()->active() );
+        try
+        {
+            if ( n)
+            {
+                // store this fiber in order to be notified later
+                waiting_.push_back( n);
+                lt.unlock();
+
+                // suspend fiber
+                if ( ! detail::scheduler::instance()->wait_until( timeout_time) )
+                {
+                    // remove fiber from waiting-list
+                    waiting_.erase(
+                        std::find( waiting_.begin(), waiting_.end(), n) );
+                
+                    status = cv_status::timeout;
+                }
+
+                // check if fiber was interrupted
+                this_fiber::interruption_point();
+            }
+            else
+            {
+                // notifier for main-fiber
+                detail::main_notifier mn;
+                n = detail::main_notifier::make_pointer( mn);
+
+                // store this fiber in order to be notified later
+                waiting_.push_back( n);
+
+                lt.unlock();
+                while ( ! n->is_ready() )
+                {
+                    if ( ! ( clock_type::now() < timeout_time) )
+                    {
+                        // remove fiber from waiting-list
+                        waiting_.erase(
+                            std::find( waiting_.begin(), waiting_.end(), n) );
+
+                        status = cv_status::timeout;
+
+                        break;
+                    }
+                    // run scheduler
+                    detail::scheduler::instance()->run();
+                }
+            }
+        }
+        catch (...)
+        {
+            // remove fiber from waiting-list
+            waiting_.erase(
+                std::find( waiting_.begin(), waiting_.end(), n) );
+            throw;
+        }
+
+        // lock external again before returning
+        lt.lock();
+
+        return status;
+    }
+
+    template< typename LockType, typename Pred >
+    bool wait_until( LockType & lt, clock_type::time_point const& timeout_time, Pred pred)
+    {
+        while ( ! pred() )
+        {
+            if ( cv_status::timeout == wait_until( lt, timeout_time) )
+                return pred();
+        }
+        return true;
+    }
+
+    template< typename LockType, typename Rep, typename Period >
+    cv_status wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration)
+    { return wait_until( lt, clock_type::now() + timeout_duration); }
+
+    template< typename LockType, typename Rep, typename Period, typename Pred >
+    bool wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration, Pred pred)
+    {
+        while ( ! pred() )
+        {
+            if ( cv_status::timeout == wait_for( lt, timeout_duration) )
+                return pred();
+        }
+        return true;
     }
 };
 

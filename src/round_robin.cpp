@@ -36,13 +36,11 @@ round_robin::round_robin() BOOST_NOEXCEPT :
 
 round_robin::~round_robin() BOOST_NOEXCEPT
 {
-#if 0
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, rqueue_)
-    { p->release(); }
-
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
-    { p->release(); }
-#endif
+    // fibers will be destroyed (stack-unwinding)
+    // if last reference goes out-of-scope
+    // therefore destructing wqueue_ && rqueue_
+    // will destroy the fibers in this scheduler
+    // if not referenced on other places
     if ( detail::scheduler::instance() == this)
         detail::scheduler::replace( 0);
 }
@@ -91,7 +89,7 @@ round_robin::run()
         BOOST_ASSERT( ! f->is_terminated() );
 
         // set fiber to state_ready if dead-line was reached
-        if ( s.tp <= chrono::system_clock::now() )
+        if ( s.tp <= clock_type::now() )
             f->set_ready();
         // set fiber to state_ready if interruption was requested
         if ( f->interruption_requested() )
@@ -126,18 +124,20 @@ round_robin::run()
 
 void
 round_robin::wait()
-{ timed_wait( chrono::system_clock::time_point() ); }
+{ wait_until( clock_type::time_point( (clock_type::duration::max)() ) ); }
 
-void
-round_robin::timed_wait( chrono::system_clock::time_point const& abs_time)
+bool
+round_robin::wait_until( clock_type::time_point const& timeout_time)
 {
+    clock_type::time_point start( clock_type::now() );
+
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active fiber to state_waiting
     active_fiber_->set_waiting();
     // push active fiber to wqueue_
-    wqueue_.push_back( schedulable( active_fiber_, abs_time) );
+    wqueue_.push_back( schedulable( active_fiber_, timeout_time) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend active fiber
@@ -146,6 +146,8 @@ round_robin::timed_wait( chrono::system_clock::time_point const& abs_time)
 
     BOOST_ASSERT( tmp == active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
+
+    return clock_type::now() < timeout_time;
 }
 
 void

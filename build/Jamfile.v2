@@ -67,7 +67,9 @@ lib boost_fibers
       interruption.cpp
       mutex.cpp
       recursive_mutex.cpp
+      recursive_timed_mutex.cpp
       round_robin.cpp
+      timed_mutex.cpp
     : <link>shared:<library>../../context/build//boost_context
       <link>shared:<library>../../chrono/build//boost_chrono
     ;

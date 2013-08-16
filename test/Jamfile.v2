@@ -12,6 +12,7 @@ project boost/fiber/test
       <library>../../test/build//boost_unit_test_framework
       <library>/boost/fiber//boost_fibers
       <library>/boost/system//boost_system
+      <library>/boost/thread//boost_thread
       <link>static
       <threading>multi
     ;

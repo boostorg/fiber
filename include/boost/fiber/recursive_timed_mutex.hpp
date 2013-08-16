@@ -6,8 +6,8 @@
 //
 //  based on boost::interprocess::sync::interprocess_spinlock
 
-#ifndef BOOST_FIBERS_RECURSIVE_MUTEX_H
-#define BOOST_FIBERS_RECURSIVE_MUTEX_H
+#ifndef BOOST_FIBERS_RECURSIVE_TIMED_MUTEX_H
+#define BOOST_FIBERS_RECURSIVE_TIMED_MUTEX_H
 
 #include <cstddef>
 #include <deque>
@@ -32,7 +32,7 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL recursive_mutex : private noncopyable
+class BOOST_FIBERS_DECL recursive_timed_mutex : private noncopyable
 {
 private:
     enum state_t
@@ -49,15 +49,21 @@ private:
     >                               waiting_;
 
 public:
-    typedef unique_lock< recursive_mutex >    scoped_lock;
+    typedef unique_lock< recursive_timed_mutex >    scoped_lock;
 
-    recursive_mutex();
+    recursive_timed_mutex();
 
-    ~recursive_mutex();
+    ~recursive_timed_mutex();
 
     void lock();
 
     bool try_lock();
+
+    bool try_lock_until( clock_type::time_point const& timeout_time);
+
+    template< typename Rep, typename Period >
+    bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
+    { return try_lock_until( clock_type::now() + timeout_duration); }
 
     void unlock();
 };
@@ -72,4 +78,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_RECURSIVE_MUTEX_H
+#endif // BOOST_FIBERS_RECURSIVE_TIMED_MUTEX_H

@@ -158,10 +158,10 @@ public:
 
 BOOST_SCOPED_ENUM_DECLARE_BEGIN(future_errc)
 {
-  broken_promise = 1,
-  future_already_retrieved,
-  promise_already_satisfied,
-  no_state
+    broken_promise = 1,
+    future_already_retrieved,
+    promise_already_satisfied,
+    no_state
 }
 BOOST_SCOPED_ENUM_DECLARE_END(future_errc)
 

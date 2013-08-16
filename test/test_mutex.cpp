@@ -13,12 +13,205 @@
 #include <vector>
 
 #include <boost/bind.hpp>
+#include <boost/chrono.hpp>
 #include <boost/function.hpp>
 #include <boost/ref.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
+
+typedef boost::chrono::nanoseconds  ns;
+typedef boost::chrono::milliseconds ms;
+
+int value1 = 0;
+int value2 = 0;
+
+template< typename M >
+void fn1( M & mtx)
+{
+    typedef M mutex_type;
+	typename mutex_type::scoped_lock lk( mtx);
+	++value1;
+	for ( int i = 0; i < 3; ++i)
+		boost::this_fiber::yield();
+}
+
+template< typename M >
+void fn2( M & mtx)
+{
+    typedef M mutex_type;
+	++value2;
+	typename mutex_type::scoped_lock lk( mtx);
+	++value2;
+}
+
+void fn3( boost::fibers::timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    m.lock();
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+}
+
+void fn4( boost::fibers::timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    while ( ! m.try_lock() );
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(50000000)+ms(2000)); // within 50 ms
+}
+
+void fn5( boost::fibers::timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK( m.try_lock_for(ms(300)+ms(2000)) == true);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
+}
+
+void fn6( boost::fibers::timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_for(ms(250)) == false);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+}
+
+void fn7( boost::fibers::timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_until(boost::fibers::clock_type::now() + ms(300) + ms(1000)) == true);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
+}
+
+void fn8( boost::fibers::timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_until(boost::fibers::clock_type::now() + ms(250)) == false);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
+}
+
+void fn9( boost::fibers::recursive_timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    m.lock();
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.lock();
+    m.unlock();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+}
+
+void fn10( boost::fibers::recursive_timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    while (!m.try_lock()) ;
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock());
+    m.unlock();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
+}
+
+void fn11( boost::fibers::recursive_timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_for(ms(300)+ms(1000)) == true);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock());
+    m.unlock();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+}
+
+void fn12( boost::fibers::recursive_timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_for(ms(250)) == false);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+}
+
+void fn13( boost::fibers::recursive_timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_until(boost::fibers::clock_type::now() + ms(300) + ms(1000)) == true);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+}
+
+void fn14( boost::fibers::recursive_timed_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock_until(boost::fibers::clock_type::now() + ms(250)) == false);
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+}
+
+void fn15( boost::fibers::recursive_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    m.lock();
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.lock();
+    m.unlock();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+}
+
+void fn16( boost::fibers::recursive_mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    while (!m.try_lock());
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    BOOST_CHECK(m.try_lock());
+    m.unlock();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
+}
+
+void fn17( boost::fibers::mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    m.lock();
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+}
+
+void fn18( boost::fibers::mutex & m)
+{
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    while (!m.try_lock()) ;
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    m.unlock();
+    ns d = t1 - t0 - ms(250);
+    BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
+}
 
 template< typename M >
 struct test_lock
@@ -45,51 +238,36 @@ struct test_lock
         BOOST_CHECK(lk ? true : false);
     }
 };
-#if 0
+
 template< typename M >
-struct test_trylock
+struct test_exclusive
 {
     typedef M mutex_type;
-    typedef typename M::scoped_try_lock try_lock_type;
+    typedef typename M::scoped_lock lock_type;
 
     void operator()()
     {
-        mutex_type mutex;
-        boost::fibers::condition condition;
+        value1 = 0;
+        value2 = 0;
+        BOOST_CHECK_EQUAL( 0, value1);
+        BOOST_CHECK_EQUAL( 0, value2);
 
-        // Test the lock's constructors.
-        {
-            try_lock_type lock(mutex);
-            BOOST_CHECK(lock ? true : false);
-        }
-        {
-            try_lock_type lock(mutex, boost::defer_lock);
-            BOOST_CHECK(!lock);
-        }
-        try_lock_type lock(mutex);
-        BOOST_CHECK(lock ? true : false);
+        mutex_type mtx;
+        boost::fibers::fiber f1(
+                boost::bind( & fn1< mutex_type >, boost::ref( mtx) ) );
+        boost::fibers::fiber f2(
+                boost::bind( & fn2< mutex_type >, boost::ref( mtx) ) );
+        BOOST_ASSERT( f1);
+        BOOST_ASSERT( f2);
+        BOOST_CHECK_EQUAL( 1, value1);
+        BOOST_CHECK_EQUAL( 1, value2);
 
-        // Construct and initialize an xtime for a fast time out.
-        boost::xtime xt = delay(0, 100);
-
-        // Test the lock and the mutex with condition variables.
-        // No one is going to notify this condition variable.  We expect to
-        // time out.
-        BOOST_CHECK(!condition.timed_wait(lock, xt));
-        BOOST_CHECK(lock ? true : false);
-
-        // Test the lock, unlock and trylock methods.
-        lock.unlock();
-        BOOST_CHECK(!lock);
-        lock.lock();
-        BOOST_CHECK(lock ? true : false);
-        lock.unlock();
-        BOOST_CHECK(!lock);
-        BOOST_CHECK(lock.try_lock());
-        BOOST_CHECK(lock ? true : false);
+        f1.join();
+        f2.join();
+        BOOST_CHECK_EQUAL( 1, value1);
+        BOOST_CHECK_EQUAL( 2, value2);
     }
 };
-#endif
 
 template< typename M >
 struct test_recursive_lock
@@ -108,66 +286,58 @@ struct test_recursive_lock
 void do_test_mutex()
 {
     test_lock< boost::fibers::mutex >()();
+    test_exclusive< boost::fibers::mutex >()();
+
+    {
+        boost::fibers::mutex mtx;
+        mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn17, boost::ref( mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::mutex mtx;
+        mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn18, boost::ref( mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        mtx.unlock();
+        f.join();
+    }
 }
 
-int value1 = 0;
-int value2 = 0;
-
-void fn1( boost::fibers::mutex & mtx)
-{
-	boost::fibers::mutex::scoped_lock lk( mtx);
-	++value1;
-	for ( int i = 0; i < 3; ++i)
-		boost::this_fiber::yield();
-}
-
-void fn2( boost::fibers::mutex & mtx)
-{
-	++value2;
-	boost::fibers::mutex::scoped_lock lk( mtx);
-	++value2;
-}
-
-void test_locking()
-{
-    boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
-
-    boost::fibers::fiber s( & do_test_mutex);
-    s.join();
-    BOOST_ASSERT( ! s);
-}
-
-void test_exclusive()
+void test_mutex()
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    value1 = 0;
-    value2 = 0;
-	BOOST_CHECK_EQUAL( 0, value1);
-	BOOST_CHECK_EQUAL( 0, value2);
-
-	boost::fibers::mutex mtx;
-    boost::fibers::fiber s1(
-		boost::bind( & fn1, boost::ref( mtx) ) );
-    boost::fibers::fiber s2(
-		boost::bind( & fn2, boost::ref( mtx) ) );
-    BOOST_ASSERT( s1);
-    BOOST_ASSERT( s2);
-	BOOST_CHECK_EQUAL( 1, value1);
-	BOOST_CHECK_EQUAL( 1, value2);
-
-    s1.join();
-    s2.join();
-	BOOST_CHECK_EQUAL( 1, value1);
-	BOOST_CHECK_EQUAL( 2, value2);
+    boost::fibers::fiber( & do_test_mutex).join();
 }
 
 void do_test_recursive_mutex()
 {
     test_lock< boost::fibers::recursive_mutex >()();
+    test_exclusive< boost::fibers::recursive_mutex >()();
     test_recursive_lock< boost::fibers::recursive_mutex >()();
+
+    {
+        boost::fibers::recursive_mutex mtx;
+        mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn15, boost::ref( mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::recursive_mutex mtx;
+        mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn16, boost::ref( mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        mtx.unlock();
+        f.join();
+    }
 }
 
 void test_recursive_mutex()
@@ -178,19 +348,141 @@ void test_recursive_mutex()
     boost::fibers::fiber( do_test_recursive_mutex).join();
 }
 
-void do_test_recursive_try_mutex()
+void do_test_timed_mutex()
 {
-    test_lock< boost::fibers::recursive_try_mutex >()();
-    //test_trylock< boost::fibers::recursive_try_mutex >()();
-    test_recursive_lock< boost::fibers::recursive_try_mutex >()();
+    test_lock< boost::fibers::timed_mutex >()();
+    test_exclusive< boost::fibers::timed_mutex >()();
+
+    {
+        boost::fibers::timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn3, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn4, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn5, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn6, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(300) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn7, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn8, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(300) + ms(1000) );
+        timed_mtx.unlock();
+        f.join();
+    }
 }
 
-void test_recursive_try_mutex()
+void test_timed_mutex()
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    boost::fibers::fiber( do_test_recursive_try_mutex).join();
+    boost::fibers::fiber( & do_test_timed_mutex).join();
+}
+
+void do_test_recursive_timed_mutex()
+{
+    test_lock< boost::fibers::recursive_timed_mutex >()();
+    test_exclusive< boost::fibers::recursive_timed_mutex >()();
+    test_recursive_lock< boost::fibers::recursive_timed_mutex >()();
+
+    {
+        boost::fibers::recursive_timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn9, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::recursive_timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn10, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::recursive_timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn11, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::recursive_timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn12, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(400) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::recursive_timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn13, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(250) );
+        timed_mtx.unlock();
+        f.join();
+    }
+
+    {
+        boost::fibers::recursive_timed_mutex timed_mtx;
+        timed_mtx.lock();
+        boost::fibers::fiber f( boost::bind( & fn14, boost::ref( timed_mtx) ) );
+        boost::this_fiber::sleep_for( ms(300) );
+        timed_mtx.unlock();
+        f.join();
+    }
+}
+
+void test_recursive_timed_mutex()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( & do_test_recursive_timed_mutex).join();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
@@ -198,10 +490,10 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: mutex test suite");
 
-    test->add( BOOST_TEST_CASE( & test_locking) );
-    test->add( BOOST_TEST_CASE( & test_exclusive) );
+    test->add( BOOST_TEST_CASE( & test_mutex) );
     test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
-    test->add( BOOST_TEST_CASE( & test_recursive_try_mutex) );
+    test->add( BOOST_TEST_CASE( & test_timed_mutex) );
+    test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );
 
 	return test;
 }

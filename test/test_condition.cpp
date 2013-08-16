@@ -3,6 +3,8 @@
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+//
+// This test is based on the tests of Boost.Thread 
 
 #include <cstdlib>
 #include <cstdio>
@@ -20,6 +22,9 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
+
+typedef boost::chrono::nanoseconds  ns;
+typedef boost::chrono::milliseconds ms;
 
 int value = 0;
 
@@ -84,125 +89,6 @@ void wait_fn(
 	boost::fibers::mutex::scoped_lock lk( mtx);
 	cond.wait( lk);
 	++value;
-}
-
-void condition_test_waits( condition_test_data * data)
-{
-    boost::fibers::mutex::scoped_lock lock( data->mutex);
-    BOOST_CHECK( lock ? true : false);
-
-    // Test wait.
-    while ( data->notified != 1)
-    {
-        data->condition.wait(lock);
-    }
-    BOOST_CHECK(lock ? true : false);
-    BOOST_CHECK_EQUAL(data->notified, 1);
-    data->awoken++;
-    data->condition.notify_one();
-
-    while ( data->notified != 2)
-    {
-        data->condition.wait(lock);
-    }
-    BOOST_CHECK(lock ? true : false);
-    BOOST_CHECK_EQUAL(data->notified, 2);
-    data->awoken++;
-    data->condition.notify_one();
-
-    // Test predicate wait.
-//   data->condition.wait(lock, cond_predicate(data->notified, 2));
-//   BOOST_CHECK(lock ? true : false);
-//   BOOST_CHECK_EQUAL(data->notified, 2);
-//   data->awoken++;
-//   data->condition.notify_one();
-#if 0
-    // Test timed_wait.
-    boost::chrono::system_clock::time_point xt = delay(10);
-    while (data->notified != 3)
-        data->condition.wait(lock);
-        //data->condition.timed_wait(lock, xt);
-    BOOST_CHECK(lock ? true : false);
-    BOOST_CHECK_EQUAL(data->notified, 3);
-    data->awoken++;
-    data->condition.notify_one();
-
-    // Test predicate timed_wait.
-    xt = delay(10);
-    cond_predicate pred(data->notified, 4);
-    BOOST_CHECK(data->condition.timed_wait(lock, xt, pred));
-    BOOST_CHECK(lock ? true : false);
-    BOOST_CHECK(pred());
-    BOOST_CHECK_EQUAL(data->notified, 4);
-    data->awoken++;
-    data->condition.notify_one();
-
-    // Test predicate timed_wait with relative timeout
-    cond_predicate pred_rel(data->notified, 5);
-    BOOST_CHECK(data->condition.timed_wait(lock, boost::chrono::seconds(10), pred_rel));
-    BOOST_CHECK(lock ? true : false);
-    BOOST_CHECK(pred_rel());
-    BOOST_CHECK_EQUAL(data->notified, 5);
-    data->awoken++;
-    data->condition.notify_one();
-
-    // Test timeout timed_wait.
-    BOOST_CHECK(!data->condition.timed_wait(lock, boost::chrono::seconds(2)));
-    BOOST_CHECK(lock ? true : false);
-#endif
-}
-
-void do_test_condition_waits()
-{
-    condition_test_data data;
-
-    boost::fibers::fiber s(
-            boost::bind( & condition_test_waits, & data) );
-
-    {
-        boost::fibers::mutex::scoped_lock lock( data.mutex);
-        BOOST_CHECK(lock ? true : false);
-
-        data.notified++;
-        data.condition.notify_one();
-        while (data.awoken != 1)
-            data.condition.wait(lock);
-        BOOST_CHECK(lock ? true : false);
-        BOOST_CHECK_EQUAL(data.awoken, 1);
-
-        data.notified++;
-        data.condition.notify_one();
-        while (data.awoken != 2)
-            data.condition.wait(lock);
-        BOOST_CHECK(lock ? true : false);
-        BOOST_CHECK_EQUAL(data.awoken, 2);
-#if 0
-        data.notified++;
-        data.condition.notify_one();
-        while (data.awoken != 3)
-            data.condition.wait(lock);
-        BOOST_CHECK(lock ? true : false);
-        BOOST_CHECK_EQUAL(data.awoken, 3);
-
-        data.notified++;
-        data.condition.notify_one();
-        while (data.awoken != 4)
-            data.condition.wait(lock);
-        BOOST_CHECK(lock ? true : false);
-        BOOST_CHECK_EQUAL(data.awoken, 4);
-
-        data.notified++;
-        data.condition.notify_one();
-        while (data.awoken != 5)
-            data.condition.wait(lock);
-        BOOST_CHECK(lock ? true : false);
-        BOOST_CHECK_EQUAL(data.awoken, 5);
-#endif
-    }
-
-    s.join();
-
-    BOOST_CHECK_EQUAL(data.awoken, 2);
 }
 
 void test_condition_wait_is_a_interruption_point()
@@ -346,12 +232,333 @@ void test_two_waiter_notify_all()
 	BOOST_CHECK_EQUAL( 3, value);
 }
 
-void test_condition_waits()
+int test1 = 0;
+int test2 = 0;
+
+int runs = 0;
+
+void fn1( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
+{
+    boost::unique_lock< boost::fibers::mutex > lk( m);
+    BOOST_CHECK(test2 == 0);
+    test1 = 1;
+    cv.notify_one();
+    while (test2 == 0) {
+        cv.wait(lk);
+    }
+    BOOST_CHECK(test2 != 0);
+}
+
+void fn2( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
+{
+    boost::unique_lock< boost::fibers::mutex > lk( m);
+    BOOST_CHECK(test2 == 0);
+    test1 = 1;
+    cv.notify_one();
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    boost::fibers::clock_type::time_point t = t0 + ms(250);
+    int count=0;
+    while (test2 == 0 && cv.wait_until(lk, t) == boost::fibers::cv_status::no_timeout)
+        count++;
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    if (runs == 0)
+    {
+        BOOST_CHECK(t1 - t0 < ms(250));
+        BOOST_CHECK(test2 != 0);
+    }
+    else
+    {
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+5+1000));
+        BOOST_CHECK(test2 == 0);
+    }
+    ++runs;
+}
+
+class Pred
+{
+     int    &   i_;
+
+public:
+    explicit Pred(int& i) :
+        i_(i)
+    {}
+
+    bool operator()()
+    { return i_ != 0; }
+};
+
+void fn3( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
+{
+    boost::unique_lock< boost::fibers::mutex > lk( m);
+    BOOST_CHECK(test2 == 0);
+    test1 = 1;
+    cv.notify_one();
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    boost::fibers::clock_type::time_point t = t0 + ms(250);
+    bool r = cv.wait_until(lk, t, Pred(test2));
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    if (runs == 0)
+    {
+        BOOST_CHECK(t1 - t0 < ms(250));
+        BOOST_CHECK(test2 != 0);
+        BOOST_CHECK(r);
+    }
+    else
+    {
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(250+2));
+        BOOST_CHECK(test2 == 0);
+        BOOST_CHECK(!r);
+    }
+    ++runs;
+}
+
+void fn4( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
+{
+    boost::unique_lock< boost::fibers::mutex > lk( m);
+    BOOST_CHECK(test2 == 0);
+    test1 = 1;
+    cv.notify_one();
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    int count=0;
+    while (test2 == 0 && cv.wait_for(lk, ms(250)) == boost::fibers::cv_status::no_timeout)
+        count++;
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    if (runs == 0)
+    {
+        BOOST_CHECK(t1 - t0 < ms(250));
+        BOOST_CHECK(test2 != 0);
+    }
+    else
+    {
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+5+1000));
+        BOOST_CHECK(test2 == 0);
+    }
+    ++runs;
+}
+
+void fn5( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
+{
+    boost::unique_lock< boost::fibers::mutex > lk( m);
+    BOOST_CHECK(test2 == 0);
+    test1 = 1;
+    cv.notify_one();
+    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    int count=0;
+    cv.wait_for(lk, ms(250), Pred(test2));
+    count++;
+    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    if (runs == 0)
+    {
+        BOOST_CHECK(t1 - t0 < ms(250+1000));
+        BOOST_CHECK(test2 != 0);
+    }
+    else
+    {
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+2));
+        BOOST_CHECK(test2 == 0);
+    }
+    ++runs;
+}
+
+void do_test_condition_wait()
+{
+    test1 = 0;
+    test2 = 0;
+    runs = 0;
+
+    boost::fibers::mutex m;
+    boost::fibers::condition_variable cv;
+    boost::unique_lock< boost::fibers::mutex > lk( m);
+    boost::fibers::fiber f( boost::bind( & fn1, boost::ref( m), boost::ref( cv) ) );
+    BOOST_CHECK(test1 == 0);
+    while (test1 == 0)
+        cv.wait(lk);
+    BOOST_CHECK(test1 != 0);
+    test2 = 1;
+    lk.unlock();
+    cv.notify_one();
+    f.join();
+}
+
+void test_condition_wait()
 {
     boost::fibers::round_robin ds;
     boost::fibers::scheduling_algorithm( & ds);
 
-    do_test_condition_waits();
+    boost::fibers::fiber( & do_test_condition_wait).join();
+    do_test_condition_wait();
+}
+
+void do_test_condition_wait_until()
+{
+    test1 = 0;
+    test2 = 0;
+    runs = 0;
+
+    boost::fibers::mutex m;
+    boost::fibers::condition_variable cv;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn2, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        test2 = 1;
+        lk.unlock();
+        cv.notify_one();
+        f.join();
+    }
+    test1 = 0;
+    test2 = 0;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn2, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        lk.unlock();
+        f.join();
+    }
+}
+
+void test_condition_wait_until()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( & do_test_condition_wait_until).join();
+    do_test_condition_wait_until();
+}
+
+void do_test_condition_wait_until_pred()
+{
+    test1 = 0;
+    test2 = 0;
+    runs = 0;
+
+    boost::fibers::mutex m;
+    boost::fibers::condition_variable cv;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn3, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        test2 = 1;
+        lk.unlock();
+        cv.notify_one();
+        f.join();
+    }
+    test1 = 0;
+    test2 = 0;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn3, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        lk.unlock();
+        f.join();
+    }
+}
+
+void test_condition_wait_until_pred()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( & do_test_condition_wait_until_pred).join();
+    do_test_condition_wait_until_pred();
+}
+
+void do_test_condition_wait_for()
+{
+    test1 = 0;
+    test2 = 0;
+    runs = 0;
+
+    boost::fibers::mutex m;
+    boost::fibers::condition_variable cv;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn4, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        test2 = 1;
+        lk.unlock();
+        cv.notify_one();
+        f.join();
+    }
+    test1 = 0;
+    test2 = 0;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn4, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        lk.unlock();
+        f.join();
+    }
+}
+
+void test_condition_wait_for()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( & do_test_condition_wait_for).join();
+    do_test_condition_wait_for();
+}
+
+void do_test_condition_wait_for_pred()
+{
+    test1 = 0;
+    test2 = 0;
+    runs = 0;
+
+    boost::fibers::mutex m;
+    boost::fibers::condition_variable cv;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn5, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        test2 = 1;
+        lk.unlock();
+        cv.notify_one();
+        f.join();
+    }
+    test1 = 0;
+    test2 = 0;
+    {
+        boost::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( boost::bind( & fn5, boost::ref( m), boost::ref( cv) ) );
+        BOOST_CHECK(test1 == 0);
+        while (test1 == 0)
+            cv.wait(lk);
+        BOOST_CHECK(test1 != 0);
+        lk.unlock();
+        f.join();
+    }
+}
+
+void test_condition_wait_for_pred()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::fiber( & do_test_condition_wait_for_pred).join();
+    do_test_condition_wait_for_pred();
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
@@ -362,8 +569,12 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
-    test->add( BOOST_TEST_CASE( & test_condition_waits) );
-    test->add(  BOOST_TEST_CASE( & test_condition_wait_is_a_interruption_point) );
+    test->add( BOOST_TEST_CASE( & test_condition_wait) );
+    test->add( BOOST_TEST_CASE( & test_condition_wait_is_a_interruption_point) );
+    test->add( BOOST_TEST_CASE( & test_condition_wait_until) );
+    test->add( BOOST_TEST_CASE( & test_condition_wait_until_pred) );
+    test->add( BOOST_TEST_CASE( & test_condition_wait_for) );
+    test->add( BOOST_TEST_CASE( & test_condition_wait_for_pred) );
 
 	return test;
 }

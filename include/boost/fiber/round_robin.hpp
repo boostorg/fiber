@@ -9,7 +9,6 @@
 #include <deque>
 
 #include <boost/assert.hpp>
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -38,20 +37,13 @@ private:
     struct schedulable
     {
         detail::fiber_base::ptr_t           f;
-        chrono::system_clock::time_point    tp;
-
-        schedulable( detail::fiber_base::ptr_t const& f_) :
-            f( f_),
-            tp( (chrono::system_clock::time_point::max)() )
-        { BOOST_ASSERT( f); }
+        clock_type::time_point    tp;
 
         schedulable( detail::fiber_base::ptr_t const& f_,
-                     chrono::system_clock::time_point const& tp_) :
+                    clock_type::time_point const& tp_ =
+                        (clock_type::time_point::max)() ) :
             f( f_), tp( tp_)
-        {
-            BOOST_ASSERT( f);
-            BOOST_ASSERT( (chrono::system_clock::time_point::max)() != tp);
-        }
+        { BOOST_ASSERT( f); }
     };
 
     typedef std::deque< schedulable >                   wqueue_t;
@@ -78,7 +70,7 @@ public:
     bool run();
 
     void wait();
-    void timed_wait( chrono::system_clock::time_point const&);
+    bool wait_until( clock_type::time_point const&);
 
     void yield();
 };
