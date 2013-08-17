@@ -13,8 +13,10 @@
 #include <boost/throw_exception.hpp>
 #include <boost/utility.hpp>
 
+#include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/future/detail/future_base.hpp>
+#include <boost/fiber/future/future_status.hpp>
 
 namespace boost {
 namespace fibers {
@@ -153,6 +155,27 @@ public:
                 future_uninitialized() );
         future_->wait();
     }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_for( timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_until( timeout_time);
+    }
 };
 
 template< typename R >
@@ -280,6 +303,27 @@ public:
                 future_uninitialized() );
         future_->wait();
     }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_for( timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_until( timeout_time);
+    }
 };
 
 template<>
@@ -406,6 +450,27 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         future_->wait();
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_for( timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_until( timeout_time);
     }
 };
 
@@ -566,6 +631,27 @@ public:
                 future_uninitialized() );
         future_->wait();
     }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_for( timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_until( timeout_time);
+    }
 };
 
 template< typename R >
@@ -718,6 +804,27 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         future_->wait();
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_for( timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_until( timeout_time);
     }
 };
 
@@ -877,6 +984,27 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         future_->wait();
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_for( timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return future_->wait_until( timeout_time);
     }
 };
 

@@ -19,6 +19,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/future/future_status.hpp>
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/mutex.hpp>
@@ -122,6 +123,33 @@ private:
             waiters_.wait( lk);
     }
 
+    template< class Rep, class Period >
+    future_status wait_for_( unique_lock< mutex > & lk,
+                             chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        while ( ! ready_)
+        {
+            cv_status st( waiters_.wait_for( lk, timeout_duration) );
+            if ( cv_status::timeout == st && ! ready_)
+                return future_status::timeout;
+        }
+        return future_status::ready;
+    }
+
+    future_status wait_until_( unique_lock< mutex > & lk,
+                              clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        while ( ! ready_)
+        {
+            cv_status st( waiters_.wait_until( lk, timeout_time) );
+            if ( cv_status::timeout == st && ! ready_)
+                return future_status::timeout;
+        }
+        return future_status::ready;
+    }
+
 protected:
     virtual void deallocate_future() = 0;
 
@@ -213,6 +241,23 @@ public:
         wait_( lk);
     }
 
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        return wait_for_( lk, timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        return wait_until_( lk, timeout_time);
+    }
+
     friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
     { ++p->use_count_; }
 
@@ -290,6 +335,33 @@ private:
             waiters_.wait( lk);
     }
 
+    template< class Rep, class Period >
+    future_status wait_for_( unique_lock< mutex > & lk,
+                             chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        while ( ! ready_)
+        {
+            cv_status st( waiters_.wait_for( lk, timeout_duration) );
+            if ( cv_status::timeout == st && ! ready_)
+                return future_status::timeout;
+        }
+        return future_status::ready;
+    }
+
+    future_status wait_until_( unique_lock< mutex > & lk,
+                              clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        while ( ! ready_)
+        {
+            cv_status st( waiters_.wait_until( lk, timeout_time) );
+            if ( cv_status::timeout == st && ! ready_)
+                return future_status::timeout;
+        }
+        return future_status::ready;
+    }
+
 protected:
     virtual void deallocate_future() = 0;
 
@@ -355,6 +427,23 @@ public:
         //      valid() == true after the call
         unique_lock< mutex > lk( mtx_);
         wait_( lk);
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        return wait_for_( lk, timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        return wait_until_( lk, timeout_time);
     }
 
     friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
@@ -431,6 +520,33 @@ private:
             waiters_.wait( lk);
     }
 
+    template< class Rep, class Period >
+    future_status wait_for_( unique_lock< mutex > & lk,
+                             chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        while ( ! ready_)
+        {
+            cv_status st( waiters_.wait_for( lk, timeout_duration) );
+            if ( cv_status::timeout == st && ! ready_)
+                return future_status::timeout;
+        }
+        return future_status::ready;
+    }
+
+    future_status wait_until_( unique_lock< mutex > & lk,
+                              clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        while ( ! ready_)
+        {
+            cv_status st( waiters_.wait_until( lk, timeout_time) );
+            if ( cv_status::timeout == st && ! ready_)
+                return future_status::timeout;
+        }
+        return future_status::ready;
+    }
+
 protected:
     virtual void deallocate_future() = 0;
 
@@ -495,6 +611,23 @@ public:
         //      valid() == true after the call
         unique_lock< mutex > lk( mtx_);
         wait_( lk);
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        return wait_for_( lk, timeout_duration);
+    }
+
+    future_status wait_until( clock_type::time_point const& timeout_time) const
+    {
+        //TODO: blocks until the result becomes available or timeout
+        //      valid() == true after the call
+        unique_lock< mutex > lk( mtx_);
+        return wait_until_( lk, timeout_time);
     }
 
     friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
