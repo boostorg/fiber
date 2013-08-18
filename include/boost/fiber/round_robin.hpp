@@ -36,11 +36,11 @@ class BOOST_FIBERS_DECL round_robin : public algorithm
 private:
     struct schedulable
     {
-        detail::fiber_base::ptr_t           f;
-        clock_type::time_point    tp;
+        detail::fiber_base::ptr_t   f;
+        clock_type::time_point      tp;
 
         schedulable( detail::fiber_base::ptr_t const& f_,
-                    clock_type::time_point const& tp_ =
+                     clock_type::time_point const& tp_ =
                         (clock_type::time_point::max)() ) :
             f( f_), tp( tp_)
         { BOOST_ASSERT( f); }

@@ -37,11 +37,13 @@ io_service::io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT :
 
 io_service::~io_service() BOOST_NOEXCEPT
 {
-#if 0
-    BOOST_FOREACH( detail::fiber_base::ptr_t const& p, wqueue_)
-    { p.first->release(); }
-    wqueue_.clear();
-#endif
+    // fibers will be destroyed (stack-unwinding)
+    // if last reference goes out-of-scope
+    // therefore destructing wqueue_ && rqueue_
+    // will destroy the fibers in this scheduler
+    // if not referenced on other places
+    if ( detail::scheduler::instance() == this)
+        detail::scheduler::replace( 0);
 }
 
 void
@@ -78,7 +80,7 @@ void
 io_service::evaluate_( detail::fiber_base::ptr_t const& f) {
     if ( f->is_waiting() )
         wqueue_.push_back(
-            std::make_pair(
+            schedulable(
                 f,
                 boost::asio::io_service::work( io_service_) ) );
     else if ( f->is_ready() ) spawn( f);
@@ -88,25 +90,28 @@ io_service::evaluate_( detail::fiber_base::ptr_t const& f) {
 bool
 io_service::run()
 {
-    // loop over waiting queue
     wqueue_t wqueue;
-    typedef wqueue_t::value_type pair_t;
-    BOOST_FOREACH( pair_t const& pair, wqueue_)
+    // move all fibers witch are ready (state_ready)
+    // from waiting-queue to the runnable-queue
+    BOOST_FOREACH( schedulable const& s, wqueue_)
     {
-        BOOST_ASSERT( ! pair.first->is_running() );
-        BOOST_ASSERT( ! pair.first->is_terminated() );
+        detail::fiber_base::ptr_t f( s.f);
 
+        BOOST_ASSERT( ! f->is_running() );
+        BOOST_ASSERT( ! f->is_terminated() );
+
+        // set fiber to state_ready if dead-line was reached
+        if ( s.tp <= clock_type::now() )
+            f->set_ready();
         // set fiber to state_ready if interruption was requested
-        // or the fiber was woken up
-        if ( pair.first->interruption_requested() )
-            pair.first->set_ready();
-        if ( pair.first->is_ready() )
+        if ( f->interruption_requested() )
+            f->set_ready();
+        if ( f->is_ready() )
         {
             io_service_.post(
-                boost::bind( & io_service::evaluate_, this, pair.first) );
+                boost::bind( & io_service::evaluate_, this, s.f) );
         }
-        else
-            wqueue.push_back( pair);
+        else wqueue.push_back( s);
     }
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
@@ -116,7 +121,13 @@ io_service::run()
 
 void
 io_service::wait()
+{ wait_until( clock_type::time_point( (clock_type::duration::max)() ) ); }
+
+bool
+io_service::wait_until( clock_type::time_point const& timeout_time)
 {
+    clock_type::time_point start( clock_type::now() );
+
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
 
@@ -124,8 +135,8 @@ io_service::wait()
     active_fiber_->set_waiting();
     // push active fiber to wqueue_
     wqueue_.push_back(
-        std::make_pair(
-            active_fiber_,
+        schedulable(
+            active_fiber_, timeout_time,
             boost::asio::io_service::work( io_service_) ) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
@@ -135,6 +146,8 @@ io_service::wait()
 
     BOOST_ASSERT( tmp == active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
+
+    return clock_type::now() < timeout_time;
 }
 
 void
@@ -147,7 +160,7 @@ io_service::yield()
     active_fiber_->set_ready();
     // push active fiber to wqueue_
     wqueue_.push_back(
-        std::make_pair(
+        schedulable(
             active_fiber_,
             boost::asio::io_service::work( io_service_) ) );
     // store active fiber in local var
@@ -172,7 +185,7 @@ io_service::join( detail::fiber_base::ptr_t const& f)
         active_fiber_->set_waiting();
         // push active fiber to wqueue_
         wqueue_.push_back(
-            std::make_pair(
+            schedulable(
                 active_fiber_,
                 boost::asio::io_service::work( io_service_) ) );
         // add active fiber to joinig-list of f
