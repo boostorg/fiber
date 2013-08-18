@@ -79,7 +79,7 @@ public:
 }
 #endif
 
-class BOOST_FIBERS_DECL scheduler : private noncopyable
+class scheduler : private noncopyable
 {
 private:
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
@@ -97,9 +97,15 @@ public:
         return f.impl_;
     }
 
-    static algorithm * instance() BOOST_NOEXCEPT;
+    static algorithm * instance() BOOST_NOEXCEPT
+	{ return instance_; }
 
-    static algorithm * replace( algorithm *) BOOST_NOEXCEPT;
+    static algorithm * replace( algorithm * other) BOOST_NOEXCEPT
+	{
+		algorithm * old = instance_;
+		instance_ = other;
+		return old;
+	}
 };
 
 }}}

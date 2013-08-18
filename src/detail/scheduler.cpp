@@ -25,18 +25,6 @@ detail::thread_local_ptr scheduler::instance_ = 0;
 __thread algorithm * scheduler::instance_ = 0;
 #endif
 
-algorithm *
-scheduler::instance() BOOST_NOEXCEPT
-{ return instance_; }
-
-algorithm *
-scheduler::replace( algorithm * other) BOOST_NOEXCEPT
-{
-    algorithm * old = instance_;
-    instance_ = other;
-    return old;
-}
-
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS

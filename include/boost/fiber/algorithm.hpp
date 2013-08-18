@@ -25,7 +25,7 @@
 namespace boost {
 namespace fibers {
 
-struct BOOST_FIBERS_DECL algorithm : private noncopyable
+struct algorithm : private noncopyable
 {
     virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
 
