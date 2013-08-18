@@ -78,8 +78,8 @@ public:
 
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< push_coroutine > const& alloc =
-                        std::allocator< push_coroutine >(),
+                    std::allocator< fiber > const& alloc =
+                        std::allocator< fiber >(),
                     typename disable_if<
                         is_same< typename decay< fiber_fn >::type, fiber >,
                         dummy *
@@ -99,8 +99,8 @@ public:
     template< typename StackAllocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    std::allocator< push_coroutine > const& alloc =
-                        std::allocator< push_coroutine >(),
+                    std::allocator< fiber > const& alloc =
+                        std::allocator< fiber >(),
                     typename disable_if<
                         is_same< typename decay< fiber_fn >::type, fiber >,
                         dummy *
