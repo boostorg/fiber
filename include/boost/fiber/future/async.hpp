@@ -24,7 +24,7 @@ template< typename R >
 future< R >
 async( R( *f)() )
 {
-    packaged_task< R > pt( f);
+    packaged_task< R() > pt( f);
     future< R > fi( pt.get_future() );
     fiber( move( pt) ).detach();
     return move( fi);
