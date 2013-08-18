@@ -66,7 +66,7 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
 #ifdef BOOST_MSVC
-    typedef void ( * task_fn)();
+    typedef R ( * task_fn)();
 
     explicit packaged_task( task_fn fn) :
         obtained_( false),
@@ -76,7 +76,7 @@ public:
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
         typedef detail::task_object<
-            R(),
+            task_fn,
             std::allocator< packaged_task< R() > >,
             R
         >                                       object_t;
@@ -98,7 +98,7 @@ public:
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
-            R(),
+            task_fn,
             Allocator,
             R
         >                                       object_t;
