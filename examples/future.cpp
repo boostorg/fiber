@@ -21,10 +21,9 @@ int fn( std::string const& str, int n)
 
 void start()
 {
-    boost::fibers::packaged_task< int() > pt(
-        boost::bind( fn, "abc", 5) );
-    boost::fibers::future< int > fi=pt.get_future();
-    boost::fibers::fiber( boost::move( pt) ).detach();
+    boost::fibers::future< int > fi(
+        boost::fibers::async(
+            boost::bind( fn, "abc", 5) ) );
     fi.wait();
     std::cout << "fn() returned " << fi.get() << std::endl;
 }

@@ -59,6 +59,9 @@ void fn6()
 int & fn7()
 { return gi; }
 
+int fn8( int i)
+{ return i; }
+
 // promise
 void test_promise_create()
 {
@@ -1379,6 +1382,30 @@ void test_packaged_task_exception_void()
     BOOST_CHECK( thrown);
 }
 
+void test_async_1()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::future< int > f1 = boost::fibers::async( fn3);
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    BOOST_CHECK( 3 == f1.get());
+}
+
+void test_async_2()
+{
+    boost::fibers::round_robin ds;
+    boost::fibers::scheduling_algorithm( & ds);
+
+    boost::fibers::future< int > f1 = boost::fibers::async( boost::bind( fn8, 3) );
+    BOOST_CHECK( f1);
+    BOOST_CHECK( f1.valid() );
+
+    BOOST_CHECK( 3 == f1.get());
+}
+
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 {
@@ -1445,6 +1472,9 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_packaged_task_exec_void));
     test->add(BOOST_TEST_CASE(test_packaged_task_exception));
     test->add(BOOST_TEST_CASE(test_packaged_task_exception_void));
+
+    test->add(BOOST_TEST_CASE(test_async_1));
+    test->add(BOOST_TEST_CASE(test_async_2));
 
     return test;
 }
