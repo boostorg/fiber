@@ -10,7 +10,7 @@ import testing ;
 project boost/fiber/test
     : requirements
       <library>../../test/build//boost_unit_test_framework
-      <library>/boost/fiber//boost_fibers
+      <library>/boost/fiber//boost_fiber
       <library>/boost/system//boost_system
       <library>/boost/thread//boost_thread
       <link>static
