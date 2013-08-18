@@ -52,7 +52,7 @@ alias yield_sources
 
 explicit yield_sources ;
 
-lib boost_fibers
+lib boost_fiber
     : allocator_sources
       yield_sources
       asio/io_service.cpp
@@ -74,4 +74,4 @@ lib boost_fibers
       <link>shared:<library>../../chrono/build//boost_chrono
     ;
 
-boost-install boost_fibers ;
+boost-install boost_fiber ;
