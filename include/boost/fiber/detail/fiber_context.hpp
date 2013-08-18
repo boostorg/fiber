@@ -20,6 +20,11 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+# if defined(BOOST_MSVC)
+# pragma warning(push)
+# pragma warning(disable:4275)
+# endif
+
 #if defined(BOOST_USE_SEGMENTED_STACKS)
 extern "C"  void *__splitstack_makecontext(
         std::size_t, void * [BOOST_FIBERS_SEGMENTS], std::size_t *);
@@ -52,6 +57,10 @@ public:
 };
 
 }}}
+
+# if defined(BOOST_MSVC)
+# pragma warning(pop)
+# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

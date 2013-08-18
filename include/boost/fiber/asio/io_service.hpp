@@ -17,6 +17,15 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 
+#ifdef BOOST_HAS_ABI_HEADERS
+#  include BOOST_ABI_PREFIX
+#endif
+
+# if defined(BOOST_MSVC)
+# pragma warning(push)
+# pragma warning(disable:4251)
+# endif
+
 namespace boost {
 namespace fibers {
 namespace asio {
@@ -73,5 +82,13 @@ public:
 };
 
 }}}
+
+# if defined(BOOST_MSVC)
+# pragma warning(pop)
+# endif
+
+#ifdef BOOST_HAS_ABI_HEADERS
+#  include BOOST_ABI_SUFFIX
+#endif
 
 #endif // BOOST_FIBERS_ASIO_IO_SERVICE_HPP

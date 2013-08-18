@@ -29,6 +29,11 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+# if defined(BOOST_MSVC)
+# pragma warning(push)
+# pragma warning(disable:4251)
+# endif
+
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -49,7 +54,7 @@ private:
         TERMINATED
     };
 
-    struct fss_data
+    struct BOOST_FIBERS_DECL fss_data
     {
         void                       *   vp;
         fss_cleanup_function::ptr_t     cleanup_function;
@@ -290,6 +295,10 @@ public:
 };
 
 }}}
+
+# if defined(BOOST_MSVC)
+# pragma warning(pop)
+# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

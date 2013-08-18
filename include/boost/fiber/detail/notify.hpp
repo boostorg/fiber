@@ -20,11 +20,17 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+# if defined(BOOST_MSVC)
+# pragma warning(push)
+# pragma warning(disable:4275)
+# endif
+
+
 namespace boost {
 namespace fibers {
 namespace detail {
 
-class notify : private noncopyable
+class BOOST_FIBERS_DECL notify : private noncopyable
 {
 private:
     std::size_t     use_count_;
@@ -53,6 +59,10 @@ public:
 };
 
 }}}
+
+# if defined(BOOST_MSVC)
+# pragma warning(pop)
+# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

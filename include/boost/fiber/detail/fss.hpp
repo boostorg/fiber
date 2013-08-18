@@ -22,7 +22,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class fss_cleanup_function
+class BOOST_FIBERS_DECL fss_cleanup_function
 {
 private:
     std::size_t use_count_;
