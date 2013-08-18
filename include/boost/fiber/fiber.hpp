@@ -80,8 +80,8 @@ public:
                     stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc =
                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_same< typename decay< fiber_fn >::type, fiber >,
+                    disable_if<
+                        is_same< decay< fiber_fn >::type, fiber >,
                         dummy *
                     >::type = 0) :
         impl_()
@@ -89,7 +89,7 @@ public:
         typedef detail::fiber_object<
                 fiber_fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );

@@ -330,7 +330,7 @@ template<>
 class future< void > : private noncopyable
 {
 private:
-    typedef typename detail::future_base< void >::ptr_t   ptr_t;
+    typedef detail::future_base< void >::ptr_t   ptr_t;
 
     friend class packaged_task< void() >;
     friend class promise< void >;
@@ -832,7 +832,7 @@ template<>
 class shared_future< void >
 {
 private:
-    typedef typename detail::future_base< void >::ptr_t   ptr_t;
+    typedef detail::future_base< void >::ptr_t   ptr_t;
 
     friend class future< void >;
 

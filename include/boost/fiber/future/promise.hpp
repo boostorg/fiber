@@ -391,7 +391,7 @@ template<>
 class promise< void > : private noncopyable
 {
 private:
-    typedef typename detail::future_base< void >::ptr_t   ptr_t;
+    typedef detail::future_base< void >::ptr_t   ptr_t;
 
     struct dummy
     { void nonnull() {} };
@@ -415,7 +415,7 @@ public:
             void, std::allocator< promise< void > >
         >                                               object_t;
         std::allocator< promise< void > > alloc;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         future_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( a) );
@@ -430,7 +430,7 @@ public:
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
         typedef detail::future_object< void, Allocator >  object_t;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         future_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( a) );

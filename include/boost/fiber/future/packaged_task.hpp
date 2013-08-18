@@ -341,7 +341,7 @@ template<>
 class packaged_task< void() > : private noncopyable
 {
 private:
-    typedef typename detail::task_base< void >::ptr_t   ptr_t;
+    typedef detail::task_base< void >::ptr_t   ptr_t;
 
     struct dummy
     { void nonnull() {} };
@@ -384,15 +384,15 @@ public:
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
         typedef detail::task_object<
-            void(),
+            task_fn,
             std::allocator< packaged_task< void() > >,
             void
         >                                       object_t;
         std::allocator< packaged_task< void() > > alloc;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 
     template< typename Allocator >
@@ -406,14 +406,14 @@ public:
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
-            void(),
+            task_fn,
             Allocator,
             void
         >                                       object_t;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 #endif
 
