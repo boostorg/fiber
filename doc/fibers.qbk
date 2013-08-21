@@ -6,7 +6,7 @@
 ]
 
 [article Fiber
-    [quickbook 1.4]
+    [quickbook 1.5]
     [authors [Kowalke, Oliver]]
     [copyright 2013 Oliver Kowalke]
     [purpose C++ Library for cooperativly schedule and synchronize micro-threads]
@@ -84,7 +84,7 @@
 
 
 [include overview.qbk]
-[include fiber.qbk]
+[include fiber_mgmt.qbk]
 [include synchronization.qbk]
-[include todo.qbk]
+[include fls.qbk]
 [include acknowledgements.qbk]

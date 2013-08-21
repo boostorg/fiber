@@ -5,10 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:synchronization Synchronization]
-[include mutexes.qbk]
-[include condition_variables.qbk]
-[include barrier.qbk]
-[include channel.qbk]
-[include future.qbk]
+[section:this_fiber Namespace this_fiber]
+
+
 [endsect]
