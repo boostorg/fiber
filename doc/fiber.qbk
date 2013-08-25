@@ -10,7 +10,8 @@
 [heading Synopsis]
 
 Each __fiber__ represents a micro-thread which will be launched and
-managed cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
+managed cooperativly by a scheduler. Objects of type __fiber__ are only
+moveable.
 
     boost::fibers::fiber f1; // not-a-fiber
 
@@ -18,17 +19,15 @@ managed cooperativly by a scheduler. Objects of type __fiber__ are only moveable
     {
         boost::fibers::fiber f2( some_fn);
 
-        f1 boost::move( f2); // f2 gets moved
-
-        std::cout << f2.get_id() << std::endl;
+        f1 = boost::move( f2); // f2 moved to f1
     }
 
 
 [heading Launching]
 
 A new fiber is launched by passing an object of a callable type that can be
-invoked with no parameters to __spawn__.
-If the object must not (or cannot) be copied, then `boost::ref` can be used to
+invoked with no parameters.
+If the object must not (or cannot) be copied, then ['boost::ref] can be used to
 pass in a reference to the function object. In this case, the user must ensure
 that the referred-to object outlives the newly-created fiber.
 
@@ -48,9 +47,9 @@ that the referred-to object outlives the newly-created fiber.
     } // x is destroyed, but the newly-created fiber still has a reference
       // this leads to undefined behaviour
 
-The execution control is immediately transfered to the spawned __fiber__.
-If __spawn_ returns the __fiber__ might be complete or the fiber is waiting/
-sleeping.
+The execution control is immediately transfered to the spawned __fiber__ at
+construction. If the constructor returns the __fiber__ might be complete or the
+fiber is waiting/sleeping.
 
 
 [heading Exceptions]
@@ -90,6 +89,61 @@ Instances that refer to __not_a_fiber__ compare equal to each other, but
 not equal to any instances that refer to an actual fiber. The comparison
 operators on __id__ yield a total order for every non-equal __id__.
 
+
+        class fiber
+        {
+        public:
+            typedef uspecified-class        id;
+
+            fiber() noexcept;
+
+            template< typename Fn >
+            explicit fiber( Fn && fn, attributes const& attr = attributes(),
+                            stack_allocator const& stack_alloc = stack_allocator(),
+                            std::allocator< fiber > const& alloc =
+                                 std::allocator< fiber >() );
+
+            template< typename Fn, typename StackAllocator >
+            explicit fiber( Fn && fn, attributes const& attr,
+                            StackAllocator const& stack_alloc,
+                            std::allocator< fiber > const& alloc =
+                                 std::allocator< fiber >() );
+
+            template< typename Fn, typename StackAllocator, typename Allocator >
+            explicit fiber( Fn && fn, attributes const& attr,
+                            StackAllocator const& stack_alloc,
+                            Allocator const& alloc);
+
+            ~fiber();
+
+            fiber( BOOST_RV_REF( fiber) other) noexcept;
+
+            fiber & operator=( BOOST_RV_REF( fiber) other) noexcept;
+
+            operator safe_bool() const noexcept;
+
+            bool operator!() const noexcept;
+
+            void swap( fiber & other) noexcept;
+
+            bool joinable() const noexcept;
+
+            id get_id() const noexcept;
+
+            int priority() const noexcept;
+
+            void priority( int) noexcept;
+
+            void detach() noexcept;
+
+            void join();
+
+            void interrupt() noexcept;
+        };
+
+        bool operator<( fiber const& l, fiber const& r);
+
+        void swap( fiber & l, fiber & r);
 
 
 [endsect]
