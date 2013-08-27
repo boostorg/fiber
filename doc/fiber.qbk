@@ -1,29 +1,72 @@
 [/
+  (C) Copyright 2007-8 Anthony Williams.
+  (C) Copyright 2011-12 Vicente J. Botet Escriba.
   (C) Copyright 2013 Oliver Kowalke.
   Distributed under the Boost Software License, Version 1.0.
   (See accompanying file LICENSE_1_0.txt or copy at
   http://www.boost.org/LICENSE_1_0.txt).
 ]
 
-[section Class fiber]
+[section Fiber management]
 
-[heading Synopsis]
+[section Synopsis]
 
-Each __fiber__ represents a micro-thread which will be launched and
-managed cooperativly by a scheduler. Objects of type __fiber__ are only
-moveable.
+        #include <boost/fibers/fiber.hpp>
 
-    boost::fibers::fiber f1; // not-a-fiber
+        namespace boost {
+        namespace fibers {
 
-    void f()
-    {
-        boost::fibers::fiber f2( some_fn);
+        class fiber;
+        bool operator<( fiber const& l, fiber const& r) noexcept;
+        void swap( fiber & l, fiber & r) noexcept;
+        class fiber_group;
+        class scheduling_algorithm( algorithm &);
+        class algorithm;
+        class round_robin;
 
-        f1 = boost::move( f2); // f2 moved to f1
-    }
+        }
+
+        namespace this_fiber {
+
+        fibers::id get_id() noexcept;
+        void yield();
+        void sleep_until( fibers::clock_type::time_point const& timeout_point);
+        template< typename Rep, typename Period >
+        void sleep_for( fibers::clock_type::duration< Rep, Period > const& timeout_duration); 
+
+        void interruption_point();
+        bool interruption_requested() noexcept;
+        bool interruption_enabled() noexcept;
+        class disable_interruption;
+        class restore_interruption;
+
+        }}
+
+[endsect] [/ section Synopsis]
+
+[section Tutorial]
+
+Each __fiber__ represents a micro-thread which will be launched and managed
+cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
+
+        boost::fibers::fiber f1; // not-a-fiber
+
+        void f()
+        {
+            boost::fibers::fiber f2( some_fn);
+
+            f1 = boost::move( f2); // f2 moved to f1
+        }
 
 
 [heading Launching]
+
+Each thread must set the fiber-scheduler before any __fiber__ construction.
+
+        boost::fibers::round_robin ds;
+        boost::fibers::scheduling_algorithm( & ds);
+
+        boost::fibers::fiber f1( some_fn);
 
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
@@ -31,21 +74,21 @@ If the object must not (or cannot) be copied, then ['boost::ref] can be used to
 pass in a reference to the function object. In this case, the user must ensure
 that the referred-to object outlives the newly-created fiber.
 
-    struct callable
-    { void operator()(); };
+        struct callable
+        { void operator()(); };
 
-    boost::fibers::fiber copies_are_safe()
-    {
-        callable x;
-        return boost::fibers::fiber( x);
-    } // x is destroyed, but the newly-created fiber has a copy, so this is OK
+        boost::fibers::fiber copies_are_safe()
+        {
+            callable x;
+            return boost::fibers::fiber( x);
+        } // x is destroyed, but the newly-created fiber has a copy, so this is OK
 
-    boost::fibers::fiber oops()
-    {
-        callable x;
-        return boost::fibers::fiber( boost::ref( x) );
-    } // x is destroyed, but the newly-created fiber still has a reference
-      // this leads to undefined behaviour
+        boost::fibers::fiber oops()
+        {
+            callable x;
+            return boost::fibers::fiber( boost::ref( x) );
+        } // x is destroyed, but the newly-created fiber still has a reference
+          // this leads to undefined behaviour
 
 The execution control is immediately transfered to the spawned __fiber__ at
 construction. If the constructor returns the __fiber__ might be complete or the
@@ -59,6 +102,14 @@ constructor are consumed by the framework (if it required to know which
 exceptions was thrown use __future__ and __packaged_task__).
 
 
+[heading Detaching]
+
+A __fiber__ can be detached by explicitly invoking the __detach__ member
+function. In this case, the fiber represents __not_a_fiber__.
+
+        boost::fibers::fiber( some_fn).detach();
+
+
 [heading Joining]
 
 In order to wait for a fiber to finish, the __join__ member functions of the
@@ -67,11 +118,48 @@ has completed.
 If the __fiber__ has already completed, or the __fiber__ object represents
 __not_a_fiber__, then __join__ returns immediately.
 
-    void some_fn()
-    { ... }
+        void some_fn()
+        { ... }
 
-    boost::fibers::fiber f( some_fn);
-    f.join();
+        boost::fibers::fiber f( some_fn);
+        ...
+        f.join();
+
+If the fiber has already completed, then __join__ returns immediately and
+the joined __fiber__ becomes __not_a_fiber__.
+
+
+[heading Destruction]
+
+When a __fiber__, representing a vailid execution context, is destroyed the
+programm terminates if the fiber is __joinable__.
+
+        {
+            boost::fibers::fiber f( some_fn);
+        } // std::terminate() ill be called
+
+
+[heading Interruption]
+
+A vaild fiber can be interuppted by invoking the __interrupt__ member function.
+When the fiber executes on of the specific __interruption_points__ with
+interruption enabled, then a __fiber_interupted__ exception will be thrown.
+If not caught, the fiber will be terminated and the stack will be unwound, and
+destructors of objects will be called.
+
+With __disable_interruption__ a fiber can avoid to be interrupted.
+
+        // interruption enabled at this point
+        {
+            boost::this_fiber::disable_interruptuion di1;
+            // interruption disabled
+            {
+                boost::this::fiber::disable_interruption di2;
+                // interruption still disabled
+            } // di2 destructed; interruption state restored
+            // interruption still disabled
+        } // di destructed; interruption state restored
+        // interruption enabled
 
 
 [heading Fiber IDs]
@@ -89,6 +177,11 @@ Instances that refer to __not_a_fiber__ compare equal to each other, but
 not equal to any instances that refer to an actual fiber. The comparison
 operators on __id__ yield a total order for every non-equal __id__.
 
+[endsect] [/ section Tutorial]
+
+[section:fiber Class `fiber`]
+
+        #include <boost/fiber/fiber.hpp>
 
         class fiber
         {
@@ -141,9 +234,11 @@ operators on __id__ yield a total order for every non-equal __id__.
             void interrupt() noexcept;
         };
 
-        bool operator<( fiber const& l, fiber const& r);
+        bool operator<( fiber const& l, fiber const& r) noexcept;
 
-        void swap( fiber & l, fiber & r);
+        void swap( fiber & l, fiber & r) noexcept;
 
 
-[endsect]
+[endsect] [/ section Class fiber]
+
+[endsect] [/ section Fiber Management]
