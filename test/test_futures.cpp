@@ -66,7 +66,7 @@ int fn8( int i)
 void test_promise_create()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // use std::allocator<> as default
     boost::fibers::promise< int > p1;
@@ -81,7 +81,7 @@ void test_promise_create()
 void test_promise_create_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // use std::allocator<> as default
     boost::fibers::promise< int& > p1;
@@ -96,7 +96,7 @@ void test_promise_create_ref()
 void test_promise_create_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // use std::allocator<> as default
     boost::fibers::promise< void > p1;
@@ -111,7 +111,7 @@ void test_promise_create_void()
 void test_promise_move()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int > p1;
     BOOST_CHECK( p1);
@@ -130,7 +130,7 @@ void test_promise_move()
 void test_promise_move_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int& > p1;
     BOOST_CHECK( p1);
@@ -149,7 +149,7 @@ void test_promise_move_ref()
 void test_promise_move_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< void > p1;
     BOOST_CHECK( p1);
@@ -168,7 +168,7 @@ void test_promise_move_void()
 void test_promise_swap()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int > p1;
     BOOST_CHECK( p1);
@@ -187,7 +187,7 @@ void test_promise_swap()
 void test_promise_swap_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int& > p1;
     BOOST_CHECK( p1);
@@ -206,7 +206,7 @@ void test_promise_swap_ref()
 void test_promise_swap_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< void > p1;
     BOOST_CHECK( p1);
@@ -225,7 +225,7 @@ void test_promise_swap_void()
 void test_promise_get_future()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int > p1;
     BOOST_CHECK( p1);
@@ -260,7 +260,7 @@ void test_promise_get_future()
 void test_promise_get_future_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int& > p1;
     BOOST_CHECK( p1);
@@ -295,7 +295,7 @@ void test_promise_get_future_ref()
 void test_promise_get_future_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< void > p1;
     BOOST_CHECK( p1);
@@ -330,7 +330,7 @@ void test_promise_get_future_void()
 void test_promise_set_value()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::promise< int > p1;
@@ -357,7 +357,7 @@ void test_promise_set_value()
 void test_promise_set_value_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a reference as return type
     boost::fibers::promise< int& > p1;
@@ -384,7 +384,7 @@ void test_promise_set_value_ref()
 void test_promise_set_value_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::promise< void > p1;
@@ -409,7 +409,7 @@ void test_promise_set_value_void()
 void test_promise_set_exception()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int > p1;
     BOOST_CHECK( p1);
@@ -438,7 +438,7 @@ void test_promise_set_exception()
 void test_promise_set_exception_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int& > p1;
     BOOST_CHECK( p1);
@@ -468,7 +468,7 @@ void test_promise_set_exception_ref()
 void test_promise_set_exception_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< void > p1;
     BOOST_CHECK( p1);
@@ -498,7 +498,7 @@ void test_promise_set_exception_void()
 void test_future_create()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // default constructed future is not valid
     boost::fibers::future< int > f1;
@@ -515,7 +515,7 @@ void test_future_create()
 void test_future_create_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // default constructed future is not valid
     boost::fibers::future< int& > f1;
@@ -532,7 +532,7 @@ void test_future_create_ref()
 void test_future_create_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // default constructed future is not valid
     boost::fibers::future< void > f1;
@@ -549,7 +549,7 @@ void test_future_create_void()
 void test_future_move()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
@@ -575,7 +575,7 @@ void test_future_move()
 void test_future_move_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
@@ -601,7 +601,7 @@ void test_future_move_ref()
 void test_future_move_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
@@ -627,7 +627,7 @@ void test_future_move_void()
 void test_future_swap()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
@@ -650,7 +650,7 @@ void test_future_swap()
 void test_future_swap_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
@@ -673,7 +673,7 @@ void test_future_swap_ref()
 void test_future_swap_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
@@ -696,7 +696,7 @@ void test_future_swap_void()
 void test_future_get()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
@@ -729,7 +729,7 @@ void test_future_get()
 void test_future_get_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
@@ -763,7 +763,7 @@ void test_future_get_ref()
 void test_future_get_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
@@ -794,7 +794,7 @@ void test_future_get_void()
 void test_future_share()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
@@ -819,7 +819,7 @@ void test_future_share()
 void test_future_share_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
@@ -846,7 +846,7 @@ void test_future_share_ref()
 void test_future_share_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
@@ -871,7 +871,7 @@ void test_future_share_void()
 void test_future_wait()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
@@ -886,7 +886,7 @@ void test_future_wait()
 void test_future_wait_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
@@ -903,7 +903,7 @@ void test_future_wait_ref()
 void test_future_wait_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
@@ -919,7 +919,7 @@ void test_future_wait_void()
 void test_future_wait_with_fiber_1()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::promise< int > p1;
     boost::fibers::fiber(
@@ -934,7 +934,7 @@ void test_future_wait_with_fiber_1()
 void test_future_wait_with_fiber_2()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::fiber( fn2).join();
 }
@@ -942,7 +942,7 @@ void test_future_wait_with_fiber_2()
 void test_shared_future_move()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
@@ -968,7 +968,7 @@ void test_shared_future_move()
 void test_shared_future_move_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
@@ -994,7 +994,7 @@ void test_shared_future_move_ref()
 void test_shared_future_move_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
@@ -1021,7 +1021,7 @@ void test_shared_future_move_void()
 void test_packaged_task_create()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // default constructed packaged_task is not valid
     boost::fibers::packaged_task< int() > t1;
@@ -1037,7 +1037,7 @@ void test_packaged_task_create()
 void test_packaged_task_create_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // default constructed packaged_task is not valid
     boost::fibers::packaged_task< void() > t1;
@@ -1053,7 +1053,7 @@ void test_packaged_task_create_void()
 void test_packaged_task_move()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1);
@@ -1077,7 +1077,7 @@ void test_packaged_task_move()
 void test_packaged_task_move_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1);
@@ -1101,7 +1101,7 @@ void test_packaged_task_move_void()
 void test_packaged_task_swap()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1);
@@ -1122,7 +1122,7 @@ void test_packaged_task_swap()
 void test_packaged_task_swap_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1);
@@ -1143,7 +1143,7 @@ void test_packaged_task_swap_void()
 void test_packaged_task_reset()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1);
@@ -1166,7 +1166,7 @@ void test_packaged_task_reset()
 void test_packaged_task_reset_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1);
@@ -1189,7 +1189,7 @@ void test_packaged_task_reset_void()
 void test_packaged_task_get_future()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1);
@@ -1224,7 +1224,7 @@ void test_packaged_task_get_future()
 void test_packaged_task_get_future_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1);
@@ -1259,7 +1259,7 @@ void test_packaged_task_get_future_void()
 void test_packaged_task_exec()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::packaged_task< int() > t1( fn3);
@@ -1286,7 +1286,7 @@ void test_packaged_task_exec()
 void test_packaged_task_exec_ref()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::packaged_task< int&() > t1( fn7);
@@ -1314,7 +1314,7 @@ void test_packaged_task_exec_ref()
 void test_packaged_task_exec_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::packaged_task< void() > t1( fn4);
@@ -1339,7 +1339,7 @@ void test_packaged_task_exec_void()
 void test_packaged_task_exception()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::packaged_task< int() > t1( fn5);
@@ -1363,7 +1363,7 @@ void test_packaged_task_exception()
 void test_packaged_task_exception_void()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     // promise takes a copyable as return type
     boost::fibers::packaged_task< void() > t1( fn6);
@@ -1385,7 +1385,7 @@ void test_packaged_task_exception_void()
 void test_async_1()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::future< int > f1 = boost::fibers::async( fn3);
     BOOST_CHECK( f1);
@@ -1397,7 +1397,7 @@ void test_async_1()
 void test_async_2()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::future< int > f1 = boost::fibers::async( boost::bind( fn8, 3) );
     BOOST_CHECK( f1);

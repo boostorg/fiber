@@ -120,7 +120,7 @@ int main( int argc, char* argv[])
 
         boost::asio::io_service io_service;
         boost::fibers::asio::io_service ds( io_service);
-        boost::fibers::scheduling_algorithm( & ds);
+        boost::fibers::set_scheduling_algorithm( & ds);
 
         using namespace std; // For atoi.
         boost::fibers::asio::spawn( io_service,

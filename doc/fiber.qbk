@@ -19,10 +19,12 @@
         class fiber;
         bool operator<( fiber const& l, fiber const& r) noexcept;
         void swap( fiber & l, fiber & r) noexcept;
+
         class fiber_group;
-        class scheduling_algorithm( algorithm &);
-        class algorithm;
+
+        struct algorithm;
         class round_robin;
+        algorithm * set_scheduling_algorithm( algorithm * al)
 
         }
 
@@ -44,6 +46,7 @@
 
 [endsect] [/ section Synopsis]
 
+
 [section Tutorial]
 
 Each __fiber__ represents a micro-thread which will be launched and managed
@@ -64,7 +67,7 @@ cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
 Each thread must set the fiber-scheduler before any __fiber__ construction.
 
         boost::fibers::round_robin ds;
-        boost::fibers::scheduling_algorithm( & ds);
+        boost::fibers::set_scheduling_algorithm( & ds);
 
         boost::fibers::fiber f1( some_fn);
 
@@ -136,7 +139,7 @@ programm terminates if the fiber is __joinable__.
 
         {
             boost::fibers::fiber f( some_fn);
-        } // std::terminate() ill be called
+        } // std::terminate() will be called
 
 
 [heading Interruption]
@@ -161,6 +164,21 @@ With __disable_interruption__ a fiber can avoid to be interrupted.
         } // di destructed; interruption state restored
         // interruption enabled
 
+At any point, the interruption state for the current thread can be queried by
+calling __interruption_enabled__.
+Following __interruption_points__ are defined and will throw
+__fiber_interrupted__ if interruption is enabled.
+
+* __join__
+* __barrier_wait__
+* __cond_wait__
+* __cond_wait_for__
+* __cond_wait_until__
+* __barrier_wait__
+* __sleep_for__
+* __sleep_until__
+* __interruption_point__
+
 
 [heading Fiber IDs]
 
@@ -178,6 +196,7 @@ not equal to any instances that refer to an actual fiber. The comparison
 operators on __id__ yield a total order for every non-equal __id__.
 
 [endsect] [/ section Tutorial]
+
 
 [section:fiber Class `fiber`]
 
@@ -240,5 +259,108 @@ operators on __id__ yield a total order for every non-equal __id__.
 
 
 [endsect] [/ section Class fiber]
+
+
+[section:fiber_group Class `fiber_group`]
+
+        #include <boost/fiber/fiber.hpp>
+
+        class fiber_group
+        {
+        public:
+            fiber_group() {}
+
+            ~fiber_group();
+
+            bool is_this_fiber_in();
+
+            bool is_fiber_in( fiber * f);
+
+            template< typename Fn >
+            fiber * create_fiber( Fn fn, attributes attrs = attributes() );
+
+            template< typename Fn, typename StackAllocator >
+            fiber * create_fiber( Fn fn, attributes attrs,
+                                  StackAllocator const& stack_alloc);
+
+            template< typename Fn, typename StackAllocator, typename Allocator >
+            fiber * create_fiber( Fn fn, attributes attrs,
+                                  StackAllocator const& stack_alloc,
+                                  Allocator const& alloc);
+
+            void add_fiber( fiber * f);
+
+            void remove_fiber( fiber * f);
+
+            void join_all();
+
+            void interrupt_all();
+
+            std::size_t size() const;
+        };
+
+[endsect] [/ section Class fiber_group]
+
+
+[section:algorithm Interface `algorithm`]
+
+        #include <boost/fiber/fiber.hpp>
+
+        struct algorithm
+        {
+            virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
+
+            virtual void priority( detail::fiber_base::ptr_t const&, int) = 0;
+
+            virtual void join( detail::fiber_base::ptr_t const&) = 0;
+
+            virtual detail::fiber_base::ptr_t active() = 0;
+
+            virtual bool run() = 0;
+
+            virtual void wait() = 0;
+            virtual bool wait_until( clock_type::time_point const&) = 0;
+
+            template< typename Rep, typename Period >
+            bool wait_for( chrono::duration< Rep, Period > const& timeout_duration);
+
+            virtual void yield() = 0;
+
+            virtual ~algorithm() {}
+        };
+
+[endsect] [/ section Interface algorithm]
+
+
+[section:round_robin Class `round_robin`]
+
+Class __round_robin__ is a concret implementation of __algorithm__ scheduling
+fibers in a round-robin fashion.
+
+[endsect] [/ section Class round_robin]
+
+
+[section:this_fiber Namespace this_fiber]
+
+        namespace boost {
+        namespace this_fiber {
+
+        fibers::fiber::id get_id();
+        void yield();
+        void sleep_until( fibers::clock_type::time_point const& sleep_time);
+        template< typename Rep, typename Period >
+        void sleep_for( chrono::duration< Rep, Period > const& timeout_duration);
+
+        void interruption_point();
+        bool interruption_requested() noexcept;
+        bool interruption_enabled() noexcept;
+        class disable_interruption;
+        class restore_interruption;
+
+        }}
+
+
+[endsect] [/ section Namespace this_fiber]
+
 
 [endsect] [/ section Fiber Management]

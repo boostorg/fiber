@@ -40,7 +40,7 @@ void foo()
 void thread_fn()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     {
         boost::fibers::fiber f( foo);

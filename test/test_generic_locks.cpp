@@ -358,7 +358,7 @@ void try_lock_five()
 void test_lock_two_uncontended()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     lock_two_uncontended();
 }
@@ -366,7 +366,7 @@ void test_lock_two_uncontended()
 void test_lock_five_uncontended()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     lock_five_uncontended();
 }
@@ -374,7 +374,7 @@ void test_lock_five_uncontended()
 void test_lock_five_in_range()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     lock_five_in_range();
 }
@@ -382,7 +382,7 @@ void test_lock_five_in_range()
 void test_lock_ten_in_range()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     lock_ten_in_range();
 }
@@ -390,7 +390,7 @@ void test_lock_ten_in_range()
 void test_try_lock_two_uncontended()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     try_lock_two_uncontended();
 }
@@ -398,7 +398,7 @@ void test_try_lock_two_uncontended()
 void test_try_lock_two_first_locked()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     try_lock_two_first_locked();
 }
@@ -406,7 +406,7 @@ void test_try_lock_two_first_locked()
 void test_try_lock_two_second_locked()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     try_lock_two_second_locked();
 }
@@ -414,7 +414,7 @@ void test_try_lock_two_second_locked()
 void test_try_lock_three()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     try_lock_three();
 }
@@ -422,7 +422,7 @@ void test_try_lock_three()
 void test_try_lock_four()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     try_lock_four();
 }
@@ -430,7 +430,7 @@ void test_try_lock_four()
 void test_try_lock_five()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     try_lock_five();
 }

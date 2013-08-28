@@ -27,7 +27,7 @@ int p2(boost::fibers::unique_future<int>& f)
 void test_then()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     {
         boost::fibers::unique_future<int> f1 = boost::fibers::async(p1);

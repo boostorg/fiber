@@ -19,7 +19,7 @@ void fn( std::string const& str, int n)
 int main()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
 	try
 	{

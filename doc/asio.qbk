@@ -5,7 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:fiber_group Class fiber_group]
+[section:asio Integration into boost.asio]
 
 
 [endsect]

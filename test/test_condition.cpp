@@ -94,7 +94,7 @@ void wait_fn(
 void test_condition_wait_is_a_interruption_point()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     condition_test_data data;
     bool interrupted = false;
@@ -112,7 +112,7 @@ void test_condition_wait_is_a_interruption_point()
 void test_one_waiter_notify_one()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
 	value = 0;
 	boost::fibers::mutex mtx;
@@ -141,7 +141,7 @@ void test_one_waiter_notify_one()
 void test_two_waiter_notify_one()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
 	value = 0;
 	boost::fibers::mutex mtx;
@@ -184,7 +184,7 @@ void test_two_waiter_notify_one()
 void test_two_waiter_notify_all()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
 	value = 0;
 	boost::fibers::mutex mtx;
@@ -383,7 +383,7 @@ void do_test_condition_wait()
 void test_condition_wait()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::fiber( & do_test_condition_wait).join();
     do_test_condition_wait();
@@ -426,7 +426,7 @@ void do_test_condition_wait_until()
 void test_condition_wait_until()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::fiber( & do_test_condition_wait_until).join();
     do_test_condition_wait_until();
@@ -469,7 +469,7 @@ void do_test_condition_wait_until_pred()
 void test_condition_wait_until_pred()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::fiber( & do_test_condition_wait_until_pred).join();
     do_test_condition_wait_until_pred();
@@ -512,7 +512,7 @@ void do_test_condition_wait_for()
 void test_condition_wait_for()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::fiber( & do_test_condition_wait_for).join();
     do_test_condition_wait_for();
@@ -555,7 +555,7 @@ void do_test_condition_wait_for_pred()
 void test_condition_wait_for_pred()
 {
     boost::fibers::round_robin ds;
-    boost::fibers::scheduling_algorithm( & ds);
+    boost::fibers::set_scheduling_algorithm( & ds);
 
     boost::fibers::fiber( & do_test_condition_wait_for_pred).join();
     do_test_condition_wait_for_pred();

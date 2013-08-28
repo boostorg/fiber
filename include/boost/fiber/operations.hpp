@@ -43,7 +43,7 @@ void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 namespace fibers {
 
 inline
-algorithm * scheduling_algorithm( algorithm * al)
+algorithm * set_scheduling_algorithm( algorithm * al)
 { return detail::scheduler::replace( al); }
 
 }}
