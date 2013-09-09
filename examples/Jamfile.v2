@@ -10,7 +10,7 @@
 project boost/fiber/example/cpp03
     : requirements
       <library>../build//boost_fiber
-      <library>/boost/context//boost_context
+      <library>/boost/coroutine//boost_coroutine
       <library>/boost/system//boost_system
       <library>/boost/thread//boost_thread
       <link>static

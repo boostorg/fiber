@@ -20,19 +20,6 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-fiber_base::fiber_base( fiber_context::ctx_fn fn,
-                        stack_context * stack_ctx,
-                        bool preserve_fpu) :
-    fss_data_(),
-    state_( READY),
-    flags_( 0),
-    priority_( 0),
-    caller_(),
-    callee_( fn, stack_ctx),
-    except_(),
-    waiting_()
-{ if ( preserve_fpu) flags_ |= flag_preserve_fpu; }
-
 fiber_base::~fiber_base()
 {
     BOOST_ASSERT( is_terminated() );
@@ -42,21 +29,22 @@ fiber_base::~fiber_base()
 void
 fiber_base::resume()
 {
-    BOOST_ASSERT( is_running() );
+    BOOST_ASSERT( caller_);
+    BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
-    caller_.jump( callee_, 0, preserve_fpu() );
-
+    caller_();
     if ( has_exception() ) rethrow();
 }
 
 void
 fiber_base::suspend()
 {
-    callee_.jump( caller_, 0, preserve_fpu() );
+    BOOST_ASSERT( callee_);
+    BOOST_ASSERT( * callee_);
 
-    BOOST_ASSERT( is_running() );
+    ( * callee_)();
 
-    if ( unwind_requested() ) throw forced_unwind();
+    BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 }
 
 void
@@ -85,14 +73,6 @@ fiber_base::join( ptr_t const& p)
     if ( is_terminated() ) return false;
     waiting_.push_back( p);
     return true;
-}
-
-void
-fiber_base::rethrow() const
-{
-    BOOST_ASSERT( has_exception() );
-
-    rethrow_exception( except_);
 }
 
 void *
@@ -131,6 +111,14 @@ fiber_base::set_fss_data(
             std::make_pair(
                 key,
                 fss_data( data, cleanup_fn) ) );
+}
+
+void
+fiber_base::rethrow() const
+{
+    BOOST_ASSERT( has_exception() );
+
+    rethrow_exception( except_);
 }
 
 }}}

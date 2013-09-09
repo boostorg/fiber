@@ -13,12 +13,16 @@
 #include <vector>
 
 #include <boost/assert.hpp>
+#include <boost/bind.hpp>
 #include <boost/config.hpp>
+#include <boost/coroutine/all.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
+#include <boost/move/move.hpp>
 #include <boost/utility.hpp>
 
+#include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_context.hpp>
 #include <boost/fiber/detail/flags.hpp>
@@ -38,7 +42,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-struct forced_unwind {};
+namespace coro = boost::coroutines;
 
 class BOOST_FIBERS_DECL fiber_base : public notify
 {
@@ -77,18 +81,57 @@ private:
 
     fss_data_t              fss_data_;
 
-protected:
-    state_t                 state_;
-    int                     flags_;
-    int                     priority_;
-    fiber_context           caller_;
-    fiber_context           callee_;
-    exception_ptr           except_;
-    std::vector< ptr_t >    waiting_;
+    // set terminate is only set inside fiber_base::trampoline_()
+    void set_terminated_() BOOST_NOEXCEPT
+    {
+        state_t previous = TERMINATED;
+        std::swap( state_, previous);
+        BOOST_ASSERT( RUNNING == previous);
+    }
 
-    virtual void unwind_stack() = 0;
+    void trampoline_( coro::coroutine< void >::push_type & c)
+    {
+        BOOST_ASSERT( c);
+        BOOST_ASSERT( ! is_terminated() );
+
+        callee_ = & c;
+        set_running();
+        suspend();
+
+        try
+        {
+            BOOST_ASSERT( is_running() );
+            run();
+            BOOST_ASSERT( is_running() );
+        }
+        catch ( coro::detail::forced_unwind const&)
+        {
+            set_terminated_();
+            release();
+            throw;
+        }
+        catch (...)
+        { except_ = current_exception(); }
+
+        set_terminated_();
+        release();
+        suspend();
+
+        BOOST_ASSERT_MSG( false, "fiber already terminated");
+    }
+
+protected:
+    state_t                                 state_;
+    int                                     flags_;
+    int                                     priority_;
+    coro::coroutine< void >::pull_type      caller_;
+    coro::coroutine< void >::push_type  *   callee_;
+    exception_ptr                           except_;
+    std::vector< ptr_t >                    waiting_;
 
     void release();
+
+    virtual void run() = 0;
 
 public:
     class id
@@ -143,9 +186,39 @@ public:
         { return 0 == impl_; }
     };
 
-    fiber_base( fiber_context::ctx_fn fn,
-                stack_context * stack_ctx,
-                bool preserve_fpu);
+    template< typename StackAllocator, typename Allocator >
+    fiber_base( attributes const& attr, StackAllocator const& stack_alloc, Allocator const& alloc) :
+        fss_data_(),
+        state_( READY),
+        flags_( 0),
+        priority_( 0),
+        caller_(),
+        callee_( 0),
+        except_(),
+        waiting_()
+    {
+        BOOST_ASSERT( ! caller_);
+        BOOST_ASSERT( ! callee_);
+
+        typedef typename Allocator::template rebind<
+            coro::coroutine< void >::pull_type
+        >::other    allocator_t;
+
+        caller_ = coro::coroutine< void >::pull_type(
+                boost::bind( & fiber_base::trampoline_, this, _1),
+                coro::attributes(
+                    attr.size,
+                    fpu_preserved == attr.preserve_fpu
+                    ? coro::fpu_preserved
+                    : coro::fpu_not_preserved),
+                stack_alloc,
+                allocator_t( alloc) );
+
+        set_ready(); // fiber is setup and now ready to run
+
+        BOOST_ASSERT( caller_);
+        BOOST_ASSERT( callee_);
+    }
 
     virtual ~fiber_base();
 
@@ -163,15 +236,6 @@ public:
     void suspend();
 
     bool join( ptr_t const&);
-
-    bool force_unwind() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_force_unwind); }
-
-    bool unwind_requested() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_unwind_stack); }
-
-    bool preserve_fpu() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_preserve_fpu); }
 
     bool interruption_enabled() const BOOST_NOEXCEPT
     { return 0 == ( flags_ & flag_interruption_blocked); }
@@ -210,46 +274,8 @@ public:
     bool is_waiting() const BOOST_NOEXCEPT
     { return WAITING == state_; }
 
-    // set terminate is only set inside fiber_object::exec()
-    // it is set after the fiber-function was left == at the end of exec()
-    void set_terminated() BOOST_NOEXCEPT
-    {
-        // other thread could have called set_ready() before
-        // case: - this fiber has joined another fiber running in another thread,
-        //       - other fiber terminated and releases its joining fibers
-        //       - this fiber was interrupted before and therefore resumed
-        //         and throws fiber_interrupted
-        //       - fiber_interrupted was not catched and swallowed
-        //       - other fiber calls set_ready() on this fiber happend before this
-        //         fiber calls set_terminated()
-        //       - this fiber stack gets unwound and set_terminated() is called at the end
-        state_t previous = TERMINATED;
-        std::swap( state_, previous);
-        BOOST_ASSERT( RUNNING == previous);
-        //BOOST_ASSERT( RUNNING == previous || READY == previous);
-    }
-
     void set_ready() BOOST_NOEXCEPT
     {
-#if 0
-    // this fiber calls set_ready(): - only transition from WAITING (wake-up)
-    //                               - or transition from RUNNING (yield) allowed
-    // other fiber calls set_ready(): - only if this fiber was joinig other fiber
-    //                                - if this fiber was not interrupted then this fiber
-    //                                  should in WAITING
-    //                                - if this fiber was interrupted the this fiber might
-    //                                  be in READY, RUNNING or already in
-    //                                  TERMINATED
-    for (;;)
-    {
-        int expected = WAITING;
-        bool result = state_.compare_exchange_strong( expected, READY);
-        if ( result || TERMINATED == expected || READY == expected) return;
-        expected = RUNNING;
-        result = state_.compare_exchange_strong( expected, READY);
-        if ( result || TERMINATED == expected || READY == expected) return;
-    }
-#endif
         state_t previous = READY;
         std::swap( state_, previous);
         BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
@@ -264,26 +290,10 @@ public:
 
     void set_waiting() BOOST_NOEXCEPT
     {
-        // other thread could have called set_ready() before
-        // case: - this fiber has joined another fiber running in another thread,
-        //       - other fiber terminated and releases its joining fibers
-        //       - this fiber was interrupted and therefore resumed and
-        //         throws fiber_interrupted
-        //       - fiber_interrupted was catched and swallowed
-        //       - other fiber calls set_ready() on this fiber happend before
-        //         this fiber calls set_waiting()
-        //       - this fiber might wait on some sync. primitive calling
-        //         set_waiting()
         state_t previous = WAITING;
         std::swap( state_, previous);
         BOOST_ASSERT( RUNNING == previous);
-        //BOOST_ASSERT( RUNNING == previous || READY == previous);
     }
-
-    bool has_exception() const BOOST_NOEXCEPT
-    { return except_; }
-
-    void rethrow() const;
 
     void * get_fss_data( void const* vp) const;
 
@@ -292,6 +302,11 @@ public:
         fss_cleanup_function::ptr_t const& cleanup_fn,
         void * data,
         bool cleanup_existing);
+
+    bool has_exception() const BOOST_NOEXCEPT
+    { return except_; }
+
+    void rethrow() const;
 };
 
 }}}
