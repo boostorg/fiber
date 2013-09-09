@@ -19,7 +19,6 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/fiber_group.hpp>
-#include <boost/fiber/flags.hpp>
 #include <boost/fiber/fss.hpp>
 #include <boost/fiber/future.hpp>
 #include <boost/fiber/interruption.hpp>

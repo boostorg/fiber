@@ -18,8 +18,6 @@
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/flags.hpp>
-#include <boost/fiber/flags.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -34,14 +32,12 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-template< typename Fn, typename StackAllocator, typename Allocator >
+template< typename Fn, typename Allocator >
 class fiber_object : public fiber_base
 {
 public:
     typedef typename Allocator::template rebind<
-        fiber_object<
-            Fn, StackAllocator, Allocator
-        >
+        fiber_object< Fn, Allocator >
     >::other                                            allocator_t;
 
 private:
@@ -61,6 +57,7 @@ private:
 
 public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
+    template< typename StackAllocator >
     fiber_object( Fn && fn, attributes const& attr,
                   StackAllocator const& stack_alloc,
                   allocator_t const& alloc) :
@@ -69,6 +66,7 @@ public:
         alloc_( alloc)
     {}
 #else
+    template< typename StackAllocator >
     fiber_object( Fn fn, attributes const& attr,
                   StackAllocator const& stack_alloc,
                   allocator_t const& alloc) :
@@ -77,6 +75,7 @@ public:
         alloc_( alloc)
     {}
 
+    template< typename StackAllocator >
     fiber_object( BOOST_RV_REF( Fn) fn, attributes const& attr,
                   StackAllocator const& stack_alloc,
                   allocator_t const& alloc) :

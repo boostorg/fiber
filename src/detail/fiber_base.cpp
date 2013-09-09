@@ -20,6 +20,46 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+void
+fiber_base::set_terminated_() BOOST_NOEXCEPT
+{
+    state_t previous = TERMINATED;
+    std::swap( state_, previous);
+    BOOST_ASSERT( RUNNING == previous);
+}
+
+void
+fiber_base::trampoline_( coro::coroutine< void >::push_type & c)
+{
+    BOOST_ASSERT( c);
+    BOOST_ASSERT( ! is_terminated() );
+
+    callee_ = & c;
+    set_running();
+    suspend();
+
+    try
+    {
+        BOOST_ASSERT( is_running() );
+        run();
+        BOOST_ASSERT( is_running() );
+    }
+    catch ( coro::detail::forced_unwind const&)
+    {
+        set_terminated_();
+        release();
+        throw;
+    }
+    catch (...)
+    { except_ = current_exception(); }
+
+    set_terminated_();
+    release();
+    suspend();
+
+    BOOST_ASSERT_MSG( false, "fiber already terminated");
+}
+
 fiber_base::~fiber_base()
 {
     BOOST_ASSERT( is_terminated() );
@@ -73,6 +113,48 @@ fiber_base::join( ptr_t const& p)
     if ( is_terminated() ) return false;
     waiting_.push_back( p);
     return true;
+}
+
+void
+fiber_base::interruption_blocked( bool blck) BOOST_NOEXCEPT
+{
+    if ( blck)
+        flags_ |= flag_interruption_blocked;
+    else
+        flags_ &= ~flag_interruption_blocked;
+}
+
+void
+fiber_base::request_interruption( bool req) BOOST_NOEXCEPT
+{
+    if ( req)
+        flags_ |= flag_interruption_requested;
+    else
+        flags_ &= ~flag_interruption_requested;
+}
+
+void
+fiber_base::set_ready() BOOST_NOEXCEPT
+{
+    state_t previous = READY;
+    std::swap( state_, previous);
+    BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
+}
+
+void
+fiber_base::set_running() BOOST_NOEXCEPT
+{
+    state_t previous = RUNNING;
+    std::swap( state_, previous);
+    BOOST_ASSERT( READY == previous);
+}
+
+void
+fiber_base::set_waiting() BOOST_NOEXCEPT
+{
+    state_t previous = WAITING;
+    std::swap( state_, previous);
+    BOOST_ASSERT( RUNNING == previous);
 }
 
 void *

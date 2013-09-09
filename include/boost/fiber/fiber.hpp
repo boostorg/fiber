@@ -13,7 +13,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/coroutine/stack_allocator.hpp>
 #include <boost/move/move.hpp>
 #include <boost/type_traits/decay.hpp>
 #include <boost/type_traits/is_convertible.hpp>
@@ -24,6 +23,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/fiber_object.hpp>
+#include <boost/fiber/stack_allocator.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -80,7 +80,7 @@ public:
     typedef void ( * fiber_fn)();
 
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
-                    coro::stack_allocator const& stack_alloc = coro::stack_allocator(),
+                    stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc =
                         std::allocator< fiber >(),
                     disable_if<
@@ -90,7 +90,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                fiber_fn, coro::stack_allocator, std::allocator< fiber >
+                fiber_fn, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -111,7 +111,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                fiber_fn, StackAllocator, std::allocator< fiber >
+                fiber_fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -131,7 +131,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                fiber_fn, StackAllocator, Allocator
+                fiber_fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -142,7 +142,7 @@ public:
 #endif
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
-                    coro::stack_allocator const& stack_alloc = coro::stack_allocator(),
+                    stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc =
                          std::allocator< fiber >(),
                     typename disable_if<
@@ -152,7 +152,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, coro::stack_allocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -173,7 +173,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, StackAllocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -193,7 +193,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, StackAllocator, Allocator
+                Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -204,7 +204,7 @@ public:
 #else
     template< typename Fn >
     explicit fiber( Fn fn, attributes const& attr = attributes(),
-                    coro::stack_allocator const& stack_alloc = coro::stack_allocator(),
+                    stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc =
                          std::allocator< fiber >(),
                     typename disable_if<
@@ -214,7 +214,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, coro::stack_allocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -235,7 +235,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, StackAllocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -255,7 +255,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, StackAllocator, Allocator
+                Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -266,7 +266,7 @@ public:
 
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
-                    coro::stack_allocator const& stack_alloc = coro::stack_allocator(),
+                    stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc =
                          std::allocator< fiber >(),
                     typename disable_if<
@@ -276,7 +276,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, coro::stack_allocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -297,7 +297,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, StackAllocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -317,7 +317,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, StackAllocator, Allocator
+                Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(

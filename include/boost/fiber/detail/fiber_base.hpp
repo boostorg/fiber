@@ -24,7 +24,6 @@
 
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_context.hpp>
 #include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/notify.hpp>
@@ -82,43 +81,9 @@ private:
     fss_data_t              fss_data_;
 
     // set terminate is only set inside fiber_base::trampoline_()
-    void set_terminated_() BOOST_NOEXCEPT
-    {
-        state_t previous = TERMINATED;
-        std::swap( state_, previous);
-        BOOST_ASSERT( RUNNING == previous);
-    }
+    void set_terminated_() BOOST_NOEXCEPT;
 
-    void trampoline_( coro::coroutine< void >::push_type & c)
-    {
-        BOOST_ASSERT( c);
-        BOOST_ASSERT( ! is_terminated() );
-
-        callee_ = & c;
-        set_running();
-        suspend();
-
-        try
-        {
-            BOOST_ASSERT( is_running() );
-            run();
-            BOOST_ASSERT( is_running() );
-        }
-        catch ( coro::detail::forced_unwind const&)
-        {
-            set_terminated_();
-            release();
-            throw;
-        }
-        catch (...)
-        { except_ = current_exception(); }
-
-        set_terminated_();
-        release();
-        suspend();
-
-        BOOST_ASSERT_MSG( false, "fiber already terminated");
-    }
+    void trampoline_( coro::coroutine< void >::push_type & c);
 
 protected:
     state_t                                 state_;
@@ -187,7 +152,7 @@ public:
     };
 
     template< typename StackAllocator, typename Allocator >
-    fiber_base( attributes const& attr, StackAllocator const& stack_alloc, Allocator const& alloc) :
+    fiber_base( attributes const& attrs, StackAllocator const& stack_alloc, Allocator const& alloc) :
         fss_data_(),
         state_( READY),
         flags_( 0),
@@ -206,11 +171,7 @@ public:
 
         caller_ = coro::coroutine< void >::pull_type(
                 boost::bind( & fiber_base::trampoline_, this, _1),
-                coro::attributes(
-                    attr.size,
-                    fpu_preserved == attr.preserve_fpu
-                    ? coro::fpu_preserved
-                    : coro::fpu_not_preserved),
+                attrs,
                 stack_alloc,
                 allocator_t( alloc) );
 
@@ -243,24 +204,12 @@ public:
     bool interruption_blocked() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_interruption_blocked); }
 
-    void interruption_blocked( bool blck) BOOST_NOEXCEPT
-    {
-        if ( blck)
-            flags_ |= flag_interruption_blocked;
-        else
-            flags_ &= ~flag_interruption_blocked;
-    }
+    void interruption_blocked( bool blck) BOOST_NOEXCEPT;
 
     bool interruption_requested() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_interruption_requested); }
 
-    void request_interruption( bool req) BOOST_NOEXCEPT
-    {
-        if ( req)
-            flags_ |= flag_interruption_requested;
-        else
-            flags_ &= ~flag_interruption_requested;
-    }
+    void request_interruption( bool req) BOOST_NOEXCEPT;
 
     bool is_terminated() const BOOST_NOEXCEPT
     { return TERMINATED == state_; }
@@ -274,26 +223,11 @@ public:
     bool is_waiting() const BOOST_NOEXCEPT
     { return WAITING == state_; }
 
-    void set_ready() BOOST_NOEXCEPT
-    {
-        state_t previous = READY;
-        std::swap( state_, previous);
-        BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
-    }
+    void set_ready() BOOST_NOEXCEPT;
 
-    void set_running() BOOST_NOEXCEPT
-    {
-        state_t previous = RUNNING;
-        std::swap( state_, previous);
-        BOOST_ASSERT( READY == previous);
-    }
+    void set_running() BOOST_NOEXCEPT;
 
-    void set_waiting() BOOST_NOEXCEPT
-    {
-        state_t previous = WAITING;
-        std::swap( state_, previous);
-        BOOST_ASSERT( RUNNING == previous);
-    }
+    void set_waiting() BOOST_NOEXCEPT;
 
     void * get_fss_data( void const* vp) const;
 
