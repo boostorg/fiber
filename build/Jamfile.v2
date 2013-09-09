@@ -24,23 +24,6 @@ project boost/fiber
     : source-location ../src
     ;
 
-alias allocator_sources
-    : detail/standard_stack_allocator_windows.cpp
-    : <target-os>windows
-    ;
-
-alias allocator_sources
-    : detail/standard_stack_allocator_posix.cpp
-      detail/segmented_stack_allocator.cpp
-    : <segmented-stacks>on
-    ;
-
-alias allocator_sources
-    : detail/standard_stack_allocator_posix.cpp
-    ;
-
-explicit allocator_sources ;
-
 alias yield_sources
     : detail/windows_thread_yield.cpp
     : <target-os>windows
@@ -53,13 +36,11 @@ alias yield_sources
 explicit yield_sources ;
 
 lib boost_fiber
-    : allocator_sources
-      yield_sources
+    : yield_sources
       asio/io_service.cpp
       barrier.cpp
       condition.cpp
       detail/fiber_base.cpp
-      detail/fiber_context.cpp
       detail/scheduler.cpp
       fiber.cpp
       fiber_group.cpp
