@@ -116,7 +116,7 @@ io_service::run()
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
 
-    return io_service_.run_one() > 0;
+    return io_service_.poll_one() > 0;
 }
 
 void

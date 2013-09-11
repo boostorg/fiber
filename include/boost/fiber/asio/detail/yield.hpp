@@ -34,6 +34,7 @@ public:
         * value_ = t;
         fiber_->set_ready();
         boost::fibers::detail::scheduler::instance()->spawn( fiber_);
+        while ( boost::fibers::detail::scheduler::instance()->run() );
     }
 
     void operator()( boost::system::error_code const& ec, T t)
@@ -42,6 +43,7 @@ public:
         * value_ = t;
         fiber_->set_ready();
         boost::fibers::detail::scheduler::instance()->spawn( fiber_);
+        while ( boost::fibers::detail::scheduler::instance()->run() );
     }
 
 //private:
@@ -65,6 +67,7 @@ public:
         * ec_ = boost::system::error_code();
         fiber_->set_ready();
         boost::fibers::detail::scheduler::instance()->spawn( fiber_);
+        while ( boost::fibers::detail::scheduler::instance()->run() );
     }
     
     void operator()( boost::system::error_code const& ec)
@@ -72,6 +75,7 @@ public:
         * ec_ = ec;
         fiber_->set_ready();
         boost::fibers::detail::scheduler::instance()->spawn( fiber_);
+        while ( boost::fibers::detail::scheduler::instance()->run() );
     }
 
 //private:
