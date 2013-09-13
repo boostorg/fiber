@@ -70,6 +70,21 @@ fiber::join()
 }
 
 void
+fiber::detach() BOOST_NOEXCEPT
+{
+    BOOST_ASSERT( impl_);
+
+    if ( ! joinable() )
+    {
+        boost::throw_exception(
+            fiber_resource_error(
+                system::errc::invalid_argument, "boost fiber: fiber not joinable") );
+    }
+
+    impl_.reset();
+}
+
+void
 fiber::interrupt() BOOST_NOEXCEPT
 {
     BOOST_ASSERT( impl_);

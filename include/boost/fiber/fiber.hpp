@@ -361,8 +361,7 @@ public:
 
     void priority( int) BOOST_NOEXCEPT;
 
-    void detach() BOOST_NOEXCEPT
-    { impl_.reset(); }
+    void detach() BOOST_NOEXCEPT;
 
     void join();
 
