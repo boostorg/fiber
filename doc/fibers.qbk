@@ -7,6 +7,7 @@
 
 [library Fiber
     [quickbook 1.5]
+    [version 4.0.0]
     [authors [Kowalke, Oliver]]
     [copyright 2013 Oliver Kowalke]
     [purpose C++ Library for cooperativly schedule and synchronize micro-threads]
@@ -20,7 +21,7 @@
 
 
 [def __boost_chrono__ [*Boost.Chrono]]
-[def __boost_context__ [*Boost.Context]]
+[def __boost_coroutine__ [*Boost.Coroutine]]
 [def __boost_move__ [*Boost.Move]]
 [def __boost_fiber__ [*Boost.Fiber]]
 [def __boost_thread__ [*Boost.Thread]]
@@ -85,7 +86,15 @@
 
 [include overview.qbk]
 [include fiber.qbk]
-[include synchronization.qbk]
+[/
+[section:synchronization Synchronization]
+[include mutexes.qbk]
+[include condition_variables.qbk]
+[include barrier.qbk]
+[include channel.qbk]
+[include future.qbk]
+[endsect]
 [include fls.qbk]
 [include asio.qbk]
+]
 [include acknowledgements.qbk]

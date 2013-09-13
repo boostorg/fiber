@@ -7,7 +7,7 @@
 
 [section:mutex_types Mutex Types]
 
-[section:mutex Class `mutex`]
+[section Class `mutex`]
 
     #include <boost/fiber/mutex.hpp>
 
@@ -15,7 +15,6 @@
     {
     public:
         mutex();
-
         ~mutex();
 
         void lock();
@@ -33,6 +32,102 @@ shall be permitted.
 The fibers blocked in __lock__ are suspended in the scheduler until get
 signaled.
 
-[endsect]
+[endsect] [/ section Class mutex]
+
+
+[section Class `timed_mutex`]
+
+        #include <boost/fiber/timed_mutex.hpp>
+
+        class timed_mutex : private boost::noncopyable
+        {
+        public:
+            timed_mutex();
+            ~timed_mutex();
+
+            void lock();
+            void unlock();
+            bool try_lock();
+
+            bool try_lock_until( clock_type::time_point const& timeout_time);
+            template< typename Rep, typename Period >
+            bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
+
+            typedef unique_lock<timed_mutex> scoped_lock;
+        };
+
+__timed_mutex__ implements the __timed_lockable_concept__ to provide an
+exclusive-ownership mutex. At most one fiber can own the lock on a given
+instance of __timed_mutex__ at any time. Multiple concurrent calls to
+__lock_ref__, __try_lock_ref__, __timed_lock_ref__, __timed_lock_duration_ref__
+and __unlock_ref__ shall be permitted.
+
+[endsect] [/ section Class timed_mutex]
+
+
+[section Class `recursive_mutex`]
+
+        #include <boost/fiber/recursive_mutex.hpp>
+
+        class recursive_mutex : private boost::noncopyable
+        {
+        public:
+            recursive_mutex();
+            ~recursive_mutex();
+
+            void lock();
+            bool try_lock() noexcept;
+            void unlock();
+
+            typedef unique_lock<recursive_mutex> scoped_lock;
+        };
+
+__recursive_mutex__ implements the __lockable_concept__ to provide an
+exclusive-ownership recursive mutex. At most one fiber can own the lock on a
+given instance of __recursive_mutex__ at any time. Multiple concurrent calls to
+__lock_ref__, __try_lock_ref__ and __unlock_ref__ shall be permitted. A fiber
+that already has exclusive ownership of a given __recursive_mutex__ instance can
+call __lock_ref__ or __try_lock_ref__ to acquire an additional level of
+ownership of the mutex. __unlock_ref__ must be called once for each level of
+ownership acquired by a single fiber before ownership can be acquired by
+another fiber.
+
+[endsect] [/ section Class recursive_mutex]
+
+
+[section Class `recursive_timed_mutex`]
+
+        #include <boost/fiber/recursive_timed_mutex.hpp>
+
+        class recursive_timed_mutex : private boost::noncopyable
+        {
+        public:
+            recursive_timed_mutex();
+            ~recursive_timed_mutex();
+
+            void lock();
+            bool try_lock() noexcept;
+            void unlock();
+
+            bool try_lock_until( clock_type::time_point const& timeout_time);
+            template< typename Rep, typename Period >
+            bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
+
+            typedef unique_lock<recursive_timed_mutex> scoped_lock;
+        };
+
+__recursive_timed_mutex__ implements the __timed_lockable_concept__ to provide
+an exclusive-ownership recursive mutex. At most one fiber can own the lock on a
+given instance of __recursive_timed_mutex__ at any time. Multiple concurrent
+calls to __lock_ref__, __try_lock_ref__, __timed_lock_ref__,
+__timed_lock_duration_ref__ and __unlock_ref__ shall be permitted. A fiber that
+already has exclusive ownership of a given __recursive_timed_mutex__ instance
+can call __lock_ref__, __timed_lock_ref__, __timed_lock_duration_ref__ or
+__try_lock_ref__ to acquire an additional level of ownership of the mutex.
+__unlock_ref__ must be called once for each level of ownership acquired by a
+single fiber before ownership can be acquired by another fiber.
+
+[endsect] [/ section Class recursive_timed_mutex]
+
 
 [endsect]
