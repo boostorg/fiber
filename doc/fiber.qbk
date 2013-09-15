@@ -7,9 +7,9 @@
   http://www.boost.org/LICENSE_1_0.txt).
 ]
 
-[section Fiber management]
+[section:fiber_mgmt Fiber management]
 
-[section Synopsis]
+[section:synopsis Synopsis]
 
         #include <boost/fiber/all.hpp>
 
@@ -21,6 +21,7 @@
         void swap( fiber & l, fiber & r) noexcept;
 
         class fiber_group;
+        class attributes;
 
         struct algorithm;
         class round_robin;
@@ -47,7 +48,7 @@
 [endsect] [/ section Synopsis]
 
 
-[section Tutorial]
+[section:tutorial Tutorial]
 
 Each __fiber__ represents a micro-thread which will be launched and managed
 cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
@@ -64,7 +65,7 @@ cooperativly by a scheduler. Objects of type __fiber__ are only moveable.
 
 [heading Launching]
 
-Each thread must set once the fiber-scheduler before any __fiber__ construction.
+[important Each thread must set once the fiber-scheduler before any __fiber__ construction.]
 
         boost::fibers::round_robin ds;
         boost::fibers::set_scheduling_algorithm( & ds);
@@ -146,7 +147,7 @@ programm terminates if the fiber is __joinable__.
 
 A vaild fiber can be interuppted by invoking the __interrupt__ member function.
 When the fiber executes on of the specific __interruption_points__ with
-interruption enabled, then a __fiber_interupted__ exception will be thrown.
+interruption enabled, then a __fiber_interrupted__ exception will be thrown.
 If not caught, the fiber will be terminated and the stack will be unwound, and
 destructors of objects will be called.
 
@@ -291,11 +292,11 @@ operators on __id__ yield a total order for every non-equal __id__.
 [variablelist
 [[Preconditions:] [`Fn` must by copyable or movable.]]
 [[Effects:] [`fn` is copied into internal storage for access by the new fiber.]]
-]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
-[[Throws:] [__fiber_error__ if an error occurs.]]
+[[Throws:] [__fiber_exception__ if an error occurs.]]
 [[Note:] [StackAlloctor is required to allocate a stack for the internal
-coroutine.]
+coroutine.]]
+]
 [endsect]
 
 [section Copy constructor]
@@ -469,7 +470,7 @@ prior to the call.]]
     void swap( fiber & l, fiber & r) noexcept;
 
 [variablelist
-[[Effects:] [[Same as `l.swap( r)`].]]
+[[Effects:] [Same as `l.swap( r)`.]]
 ]
 [endsect]
 
@@ -478,6 +479,9 @@ prior to the call.]]
 
 
 [section:fiber_group Class `fiber_group`]
+
+__fiber_group__ represents for a collection of fibers which can be waited on or interrupted.
+__fiber_group__ is not copyable or movable. 
 
         #include <boost/fiber/fiber_group.hpp>
 
@@ -634,6 +638,88 @@ decreased by one.]]
 
 
 [endsect] [/ section Class fiber_group]
+
+
+[section:attributes Class attributes]
+
+Class `attributes` is used to transfers parameters required to setup a
+fiber's context.
+
+        #include <boost/fiber/attributes.hpp>
+
+        struct attributes
+        {
+            std::size_t     size;
+            flag_unwind_t   do_unwind;
+            bool            preserve_fpu;
+
+            attributes() BOOST_NOEXCEPT :
+                size( ctx::default_stacksize() ),
+                do_unwind( stack_unwind),
+                preserve_fpu( true)
+            {}
+
+            explicit attributes( std::size_t size_) BOOST_NOEXCEPT :
+                size( size_),
+                do_unwind( stack_unwind),
+                preserve_fpu( true)
+            {}
+
+            explicit attributes( flag_unwind_t do_unwind_) BOOST_NOEXCEPT :
+                size( ctx::default_stacksize() ),
+                do_unwind( do_unwind_),
+                preserve_fpu( true)
+            {}
+
+            explicit attributes( bool preserve_fpu_) BOOST_NOEXCEPT :
+                size( ctx::default_stacksize() ),
+                do_unwind( stack_unwind),
+                preserve_fpu( preserve_fpu_)
+            {}
+
+            explicit attributes(
+                    std::size_t size_,
+                    flag_unwind_t do_unwind_) BOOST_NOEXCEPT :
+                size( size_),
+                do_unwind( do_unwind_),
+                preserve_fpu( true)
+            {}
+
+            explicit attributes(
+                    std::size_t size_,
+                    bool preserve_fpu_) BOOST_NOEXCEPT :
+                size( size_),
+                do_unwind( stack_unwind),
+                preserve_fpu( preserve_fpu_)
+            {}
+
+            explicit attributes(
+                    flag_unwind_t do_unwind_,
+                    bool preserve_fpu_) BOOST_NOEXCEPT :
+                size( ctx::default_stacksize() ),
+                do_unwind( do_unwind_),
+                preserve_fpu( preserve_fpu_)
+            {}
+        };
+
+[section Constructor]
+
+        attributes();
+        attributes( std::size_t size);
+        attributes( flag_unwind_t do_unwind);
+        attributes( bool preserve_fpu);
+        attributes( std::size_t size, flag_unwind_t do_unwind);
+        attributes( std::size_t size, bool preserve_fpu);
+        attributes( flag_unwind_t do_unwind, bool preserve_fpu);
+
+[variablelist
+[[Effects:] [Parameter `size` determines the stack size; `do_unwind` will
+controls stack unwinding and `preserve_fpu` preserves FPU registers.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[endsect] [/ section Class attribute]
 
 
 [section:this_fiber Namespace this_fiber]

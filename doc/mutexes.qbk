@@ -24,12 +24,11 @@
         typedef unique_lock< mutex > scoped_lock;
     };
 
-__mutex__ implements the __lockable_concept__ to provide an exclusive-ownership
-mutex. At most one fiber can own the lock on a given instance of __mutex__ at
-any time. Multiple concurrent calls to __lock__, __try_lock__ and __unlock__
-shall be permitted.
+__mutex__ provides an exclusive-ownership mutex. At most one fiber can own the
+lock on a given instance of __mutex__ at any time. Multiple concurrent calls to
+__lock__, __try_lock__ and __unlock__ shall be permitted.
 
-The fibers blocked in __lock__ are suspended in the scheduler until get
+The fibers blocked in __lock__ are suspended in the scheduler until it gets
 signaled.
 
 [endsect] [/ section Class mutex]
@@ -53,14 +52,13 @@ signaled.
             template< typename Rep, typename Period >
             bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
 
-            typedef unique_lock<timed_mutex> scoped_lock;
+            typedef unique_lock< timed_mutex > scoped_lock;
         };
 
-__timed_mutex__ implements the __timed_lockable_concept__ to provide an
-exclusive-ownership mutex. At most one fiber can own the lock on a given
-instance of __timed_mutex__ at any time. Multiple concurrent calls to
-__lock_ref__, __try_lock_ref__, __timed_lock_ref__, __timed_lock_duration_ref__
-and __unlock_ref__ shall be permitted.
+__timed_mutex__ provides an exclusive-ownership mutex. At most one fiber can own
+the lock on a given instance of __timed_mutex__ at any time. Multiple concurrent
+calls to __lock__, __try_lock__, __try_lock_until__, __try_lock_for__ and
+__unlock__ shall be permitted.
 
 [endsect] [/ section Class timed_mutex]
 
@@ -82,15 +80,14 @@ and __unlock_ref__ shall be permitted.
             typedef unique_lock<recursive_mutex> scoped_lock;
         };
 
-__recursive_mutex__ implements the __lockable_concept__ to provide an
-exclusive-ownership recursive mutex. At most one fiber can own the lock on a
-given instance of __recursive_mutex__ at any time. Multiple concurrent calls to
-__lock_ref__, __try_lock_ref__ and __unlock_ref__ shall be permitted. A fiber
-that already has exclusive ownership of a given __recursive_mutex__ instance can
-call __lock_ref__ or __try_lock_ref__ to acquire an additional level of
-ownership of the mutex. __unlock_ref__ must be called once for each level of
-ownership acquired by a single fiber before ownership can be acquired by
-another fiber.
+__recursive_mutex__ provides an exclusive-ownership recursive mutex. At most one
+fiber can own the lock on a given instance of __recursive_mutex__ at any time.
+Multiple concurrent calls to __lock__, __try_lock__ and __unlock__ shall be
+permitted. A fiber that already has exclusive ownership of a given
+__recursive_mutex__ instance can call __lock__ or __try_lock__ to acquire an
+additional level of ownership of the mutex. __unlock__ must be called once for
+each level of ownership acquired by a single fiber before ownership can be
+acquired by another fiber.
 
 [endsect] [/ section Class recursive_mutex]
 
@@ -116,16 +113,16 @@ another fiber.
             typedef unique_lock<recursive_timed_mutex> scoped_lock;
         };
 
-__recursive_timed_mutex__ implements the __timed_lockable_concept__ to provide
-an exclusive-ownership recursive mutex. At most one fiber can own the lock on a
-given instance of __recursive_timed_mutex__ at any time. Multiple concurrent
-calls to __lock_ref__, __try_lock_ref__, __timed_lock_ref__,
-__timed_lock_duration_ref__ and __unlock_ref__ shall be permitted. A fiber that
-already has exclusive ownership of a given __recursive_timed_mutex__ instance
-can call __lock_ref__, __timed_lock_ref__, __timed_lock_duration_ref__ or
-__try_lock_ref__ to acquire an additional level of ownership of the mutex.
-__unlock_ref__ must be called once for each level of ownership acquired by a
-single fiber before ownership can be acquired by another fiber.
+__recursive_timed_mutex__ provides an exclusive-ownership recursive mutex. At
+most one fiber can own the lock on a given instance of
+__recursive_timed_mutex__ at any time. Multiple concurrent calls to __lock__,
+__try_lock__, __try_lock_for__, __try_lock_until__ and __unlock__ shall be
+permitted. A fiber that already has exclusive ownership of a given
+__recursive_timed_mutex__ instance can call __lock__, __try_lock__,
+__try_lock_for__ or __try_lock_until__ to acquire an additional level of
+ownership of the mutex. __unlock__ must be called once for each level of
+ownership acquired by a single fiber before ownership can be acquired by another
+fiber.
 
 [endsect] [/ section Class recursive_timed_mutex]
 

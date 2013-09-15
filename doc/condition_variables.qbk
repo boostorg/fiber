@@ -19,9 +19,9 @@
         class condition_variable_any;
 
 The class `condition_variable` provides a mechanism for one fiber to wait for
-notification `condition_variable`. When the fiber is woken from the wait, then it
-checks to see if the appropriate condition is now true, and continues if so. If
-the condition is not true, then the fiber then calls `wait` again to resume
+notification `condition_variable`. When the fiber is woken from the wait, then
+it checks to see if the appropriate condition is now true, and continues if so.
+If the condition is not true, then the fiber then calls `wait` again to resume
 waiting. In the simplest case, this condition is just a boolean variable:
 
     boost::fibers::condition_variable cond;
@@ -72,10 +72,20 @@ the mutex does not have to be locked across the call to `notify_one`.
 
     #include <boost/fiber/condition.hpp>
 
+    enum cv_status
+    {
+        no_timeout = 1,
+        timeout
+    };
+
     class condition_variable
     {
     public:
+        condition_variable();
         ~condition_variable();
+
+        condition_variable( condition_variable const&) = 0;
+        condition_variable & operator=( condition_variable const&) = 0;
 
         void notify_one();
         void notify_all();
@@ -86,48 +96,74 @@ the mutex does not have to be locked across the call to `notify_one`.
         template< typename LockType, typename Pred >
         void wait( LockType & lk, Pred predicate);
 
-        template< typename LockType, typename TimeDuration > 
-        bool timed_wait( LockType & lk, TimeDuration const& dt),
-
-        template< typename LockType, typename TimeDuration, typename Pred > 
-        bool timed_wait( LockType & lk, TimeDuration const& dt, Pred pred),
-
         template< typename LockType >
-        bool timed_wait( LockType & lk, system_time const& abs_time)
+        cv_status wait_until( LockType & lt, clock_type::time_point const& timeout_time);
 
-        template< typename LockType, typename Pred > 
-        bool timed_wait( LockType & lk, system_time const& abs_time, Pred pred),
+        template< typename LockType, typename Pred >
+        bool wait_until( LockType & lt, clock_type::time_point const& timeout_time, Pred pred);
+
+        template< typename LockType, typename Rep, typename Period >
+        cv_status wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration);
+
+        template< typename LockType, typename Rep, typename Period, typename Pred >
+        bool wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
     };
 
     typedef condition_variable condition_variable_any;
 
-[section:destructor `~condition_variable()`]
+[section:constructor Constructor]
+
+        condition_variable()
+
+[variablelist
+[[Effects:] [Creates the object.]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:destructor Destructor]
+
+        ~condition_variable()
+
 [variablelist
 [[Precondition:] [All fibers waiting on `*this` have been notified by a call to
-`notify_one` or `notify_all` (though the respective calls to `wait` or
-`timed_wait` need not have returned).]]
+`notify_one` or `notify_all` (though the respective calls to `wait`, `wait_for` or
+`wait_until` need not have returned).]]
 [[Effects:] [Destroys the object.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:notify_one `void notify_one()`]
+[section:notify_one Member function `notify_one()`]
+
+        void notify_one();
+
 [variablelist
 [[Effects:] [If any fibers are currently __blocked__ waiting on `*this` in a
-call to `wait` or `timed_wait`, unblocks one of those fibers.]]
+call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:notify_all `void notify_all()`]
+[section:notify_all Member function `notify_all()`]
+
+        void notify_all();
+
 [variablelist
 [[Effects:] [If any fibers are currently __blocked__ waiting on `*this` in a
-call to `wait` or `timed_wait, unblocks all of those fibers.]]
+call to `wait`, `wait_for` or `wait_until`, unblocks all of those fibers.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:wait `void wait( boost::unique_lock< boost::fibers::mutex > & lk)`]
+[section:wait Templated member function `wait()`]
+
+        template< typename LockType >
+        void wait( LockType & lk);
+
+        template< typename LockType, typename Pred >
+        void wait( LockType & lt, Pred pred);
+
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
 fiber is currently waiting on `*this`, or the execution of the `mutex()`
@@ -139,71 +175,74 @@ fiber will unblock when notified by a call to `this->notify_one()` or
 `this->notify_all()`, or spuriously. When the fiber is unblocked (for whatever
 reason), the lock is reacquired by invoking `lk.lock()` before the call to
 `wait` returns. The lock is also reacquired by invoking `lk.lock()` if the
-function exits with an exception.]]
-[[Postcondition:] [`lk` is locked by the current fiber.]]
-[[Throws:] [__fiber_error__ if an error
-occurs. __fiber_interrupted__ if the wait was interrupted by a call to
-__interrupt__ on the __fiber__ object associated with the current fiber of
-execution.]]
-]
-[endsect]
-
-[section:wait_predicate `template< typename Pred > void wait( boost::unique_lock< boost::fibers::mutex > & lk, Pred pred)`]
-[variablelist
-[[Effects:] [As-if ``
+function exits with an exception.
+Member function using `pred` as-if ``
 while ( ! pred())
 {
     wait( lk);
 }
 ``]]
-
-]
-[endsect]
-
-[section:wait_t `template< typename LockType > void wait( LockType & lk)`]
-[variablelist
-[[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
-fiber will unblock when notified by a call to `this->notify_one()` or
-`this->notify_all()`, or spuriously. When the fiber is unblocked (for whatever
-reason), the lock is reacquired by invoking `lk.lock()` before the call to
-`wait` returns. The lock is also reacquired by invoking `lk.lock()` if the
-function exits with an exception.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
-[[Throws:] [__fiber_error__ if an error
+[[Throws:] [__fiber_exception__ if an error
 occurs. __fiber_interrupted__ if the wait was interrupted by a call to
 __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 ]
 [endsect]
 
-[section:wait_predicate_t `template< typename LockType, typename Pred > void wait( LockType & lk, Pred pred)`]
-[variablelist
-[[Effects:] [As-if ``
-while ( ! pred())
-{
-    wait( lock);
-}
-``]]
 
-]
-[endsect]
+[section:wait_until Templated member function `wait_until()`]
 
-[section:timed_wait `bool timed_wait( LockType & lk, boost::system_time const& abs_time)`]
+        template< typename LockType >
+        cv_status wait_until( LockType & lt, clock_type::time_point const& timeout_time);
+
+        template< typename LockType, typename Pred >
+        bool wait_until( LockType & lt, clock_type::time_point const& timeout_time, Pred pred);
+
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
 fiber is currently waiting on `*this`, or the execution of the `mutex()` member
-function on the `lk` objects supplied in the calls to `wait` or `timed_wait`
+function on the `lk` objects supplied in the calls to `wait`, `wait_for` or `wait_until`
 in all the fibers currently waiting on `*this` would return the same value as
 `lk->mutex()` for this call to `wait`.]]
 [[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
 fiber will unblock when notified by a call to `this->notify_one()` or
 `this->notify_all()`, when the time as reported by `boost::get_system_time()`
-would be equal to or later than the specified `abs_time`, or spuriously. When
+would be equal to or later than the specified `timeout_time`, or spuriously. When
 the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.]]
-[[Returns:] [`FALSE` if the call is returning because the time specified by
-`abs_time` was reached, `TRUE` otherwise.]]
+[[Returns:] [`false` if the call is returning because the time specified by
+`timeout_time` was reached, `true` otherwise.]]
+[[Postcondition:] [`lk` is locked by the current fiber.]]
+[[Throws:] []]
+]
+[endsect]
+
+
+[section:wait_for Templated member function `wait_for()`]
+
+        template< typename LockType, typename Rep, typename Period >
+        cv_status wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration);
+
+        template< typename LockType, typename Rep, typename Period, typename Pred >
+        bool wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+
+[variablelist
+[[Precondition:] [`lk` is locked by the current fiber, and either no other
+fiber is currently waiting on `*this`, or the execution of the `mutex()` member
+function on the `lk` objects supplied in the calls to `wait`, `wait_for` or `wait_until`
+in all the fibers currently waiting on `*this` would return the same value as
+`lk->mutex()` for this call to `wait`.]]
+[[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
+fiber will unblock when notified by a call to `this->notify_one()` or
+`this->notify_all()`, when the time as reported by `boost::get_system_time()`
+would be equal to or later than the specified `timeout_time`, or spuriously. When
+the fiber is unblocked (for whatever reason), the lock is reacquired by
+invoking `lk.lock()` before the call to `wait` returns. The lock is also
+reacquired by invoking `lk.lock()` if the function exits with an exception.]]
+[[Returns:] [`false` if the call is returning because the time specified by
+`timeout_time` was reached, `true` otherwise.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
 [[Throws:] []]
 ]

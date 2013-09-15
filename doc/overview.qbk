@@ -40,8 +40,8 @@ Used namespaces are:
 
 [warning This library is ['not] an official Boost library]
 
-__boost_fiber__ depends uppon __boost_chrono__, __boost_coroutine__, __boost_move__ and __boost_thread__.
-Boost version 1.53.0 is required.
+__boost_fiber__ depends uppon __boost_chrono__, __boost_coroutine__ and __boost_move__.
+Boost version 1.55.0 is required.
 
 
 [endsect]
