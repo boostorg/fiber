@@ -1,14 +1,157 @@
 [/
-          Copyright Oliver Kowalke 2013.
- Distributed under the Boost Software License, Version 1.0.
-    (See accompanying file LICENSE_1_0.txt or copy at
-          http://www.boost.org/LICENSE_1_0.txt
+  (C) Copyright 2007-8 Anthony Williams.
+  Distributed under the Boost Software License, Version 1.0.
+  (See accompanying file LICENSE_1_0.txt or copy at
+  http://www.boost.org/LICENSE_1_0.txt).
 ]
 
-[section:fls Fiber local stroage]
+[section:fls Fiber local storage]
+
+[heading Synopsis]
+
+Fiber local storage allows to have a separate instance of a given data item for
+each fiber.
+
+
+[heading Cleanup at fiber exit]
+
+When a fiber exits, the objects associated with each __fsp__ instance are
+destroyed. By default, the object pointed to by a pointer `p` is destroyed by
+invoking `delete p`, but this can be overridden for a specific instance of
+__fsp__ by providing a cleanup routine to the constructor. In this case, the
+object is destroyed by invoking `func(p)` where `func` is the cleanup routine
+supplied to the constructor. The cleanup functions are called in an unspecified
+order. If a cleanup routine sets the value of associated with an instance of
+__fsp__ that has already been cleaned up, that value is added to the cleanup
+list. Cleanup finishes when there are no outstanding instances of __fsp__
+with values.
+
 
 [section:fsp Class fiber_specific_ptr]
 
+        #include <boost/fiber/fss.hpp>
+
+        template< typename T >
+        class fiber_specific_ptr
+        {
+        public:
+            typedef T   element_type;
+
+            fiber_specific_ptr();
+
+            explicit fiber_specific_ptr( void(*fn)(T*) );
+
+            ~fiber_specific_ptr();
+
+            fiber_specific_ptr( fiber_specific_ptr const& other) = delete;
+            fiber_specific_ptr & operator=( fiber_specific_ptr const& other) = delete;
+
+            T * get() const;
+
+            T * operator->() const;
+
+            T & operator*() const;
+
+            T * release();
+
+            void reset( T * t);
+        };
+
+[section:constructor Constructor]
+
+        fiber_specific_ptr();
+
+        explicit fiber_specific_ptr( void(*fn)(T*) );
+
+[variablelist
+[[Requires:] [`delete this->get()` is well-formed; fn(this->get()) does not throw]]
+[[Effects:] [Construct a __fsp__ object for storing a pointer to an object of
+type `T` specific to each fiber. The default `delete`-based cleanup function
+will be used to destroy any fiber-local objects when `reset()` is called, or the
+fiber exits.]]
+[[Throws:] [__fiber_resource_error__ if an error occurs.]]
+]
 [endsect]
+
+[section:destructor Destructor]
+
+        ~fiber_specific_ptr();
+
+[variablelist
+[[Requires:] [All the fiber specific instances associated to this __fsp__
+(except maybe the one associated to this fiber) must be null.]]
+[[Effects:] [Calls `this->reset()` to clean up the associated value for the
+current fiber, and destroys `*this`.]]
+[[Throws:] [Nothing.]]
+[[Remarks:] [The requirement is due to the fact that in order to delete all
+these instances, the implementation should be forced to maintain a list of all
+the fibers having an associated specific ptr, which is against the goal of
+fiber specific data.]]
+]
+[note Care needs to be taken to ensure that any fibers still running after an
+instance of __fsp__ has been destroyed do not call any member functions on that
+instance.]
+[endsect]
+
+[section:get Member function `get()`]
+
+        T* get() const;
+
+[variablelist
+[[Returns:] [The pointer associated with the current fiber.]]
+[[Throws:] [Nothing.]]
+]
+[note The initial value associated with an instance of __fsp__ is `NULL` for
+each fiber.]
+[endsect]
+
+[section:operator_arrow Member function `operator->()`]
+
+        T* operator->() const;
+
+[variablelist
+[[Returns:] [`this->get()`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:operator_star Member function `operator*()`]
+
+        T& operator*() const;
+
+[variablelist
+[[Requires:] [`this->get` is not `NULL`.]]
+[[Returns:] [`*(this->get())`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:release Member function `release()`]
+
+        T* release();
+
+[variablelist
+[[Effects:] [Return `this->get()` and store `NULL` as the pointer associated
+with the current fiber without invoking the cleanup function.]]
+[[Postcondition:] [`this->get()==0`]]
+[[Throws:] [Nothing.]]
+]
+[endsect]
+
+[section:reset Member function `reset()`]
+
+        void reset(T* new_value=0);
+
+[variablelist
+[[Effects:] [If `this->get()!=new_value` and `this->get()` is non-`NULL`,
+invoke `delete this->get()` or `fn(this->get())` as appropriate. Store
+`new_value` as the pointer associated with the current fiber.]]
+[[Postcondition:] [`this->get()==new_value`]]
+[[Throws:] [__fiber_resource_error__ if an error occurs.]]
+]
+[endsect]
+
+
+[endsect] [/ Class fiber_specific_ptr]
 
 [endsect]

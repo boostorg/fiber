@@ -229,6 +229,10 @@ operators on __id__ yield a total order for every non-equal __id__.
 
             ~fiber();
 
+            fiber( fiber const& other) = delete;
+
+            fiber & operator=( fiber const& other) = delete;
+
             fiber( fiber && other) noexcept;
 
             fiber & operator=( fiber && other) noexcept;
@@ -491,6 +495,10 @@ __fiber_group__ is not copyable or movable.
             fiber_group() {}
 
             ~fiber_group();
+
+            fiber_group( fiber_group const& other) = delete;
+
+            fiber_group & operator=( fiber_group const& other) = delete;
 
             bool is_this_fiber_in();
 
@@ -841,10 +849,10 @@ __interruption_requested__ both return `true`.]]
         class disable_interruption
         {
         public:
-            disable_interruption(const disable_interruption&) = delete;
-            disable_interruption& operator=(const disable_interruption&) = delete;
             disable_interruption() noexcept;
             ~disable_interruption() noexcept;
+            disable_interruption(const disable_interruption&) = delete;
+            disable_interruption& operator=(const disable_interruption&) = delete;
         };
 
 [section Constructor]
@@ -885,10 +893,10 @@ value stored in the constructor of `*this`.]]
         class restore_interruption
         {
         public:
-            restore_interruption(const restore_interruption&) = delete;
-            restore_interruption& operator=(const restore_interruption&) = delete;
             explicit restore_interruption(disable_interruption& disabler) noexcept;
             ~restore_interruption() noexcept;
+            restore_interruption(const restore_interruption&) = delete;
+            restore_interruption& operator=(const restore_interruption&) = delete;
         };
 
 [section Constructor]

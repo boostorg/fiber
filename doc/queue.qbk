@@ -41,9 +41,12 @@ synchonize fibers via message passing.
     #include <boost/fiber/unbounded_queue.hpp>
 
     template< typename T >
-    class unbounded_queue : private noncopyable
+    class unbounded_queue
     {
     public:
+        unbounded_queue( unbounded_queue const& other) = delete; 
+        unbounded_queue & operator=( unbounded_queue const& other) = delete; 
+
         bool active() const;
 
         void deactivate();
@@ -57,14 +60,20 @@ synchonize fibers via message passing.
         bool try_take( boost::optional< T > & va);
     };
 
-[section:active `bool active() const`]
+[section:active Member function `active()`]
+
+        bool active() const;
+
 [variablelist
 [[Effects:] [Return `true` if queue is still usable.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:deactivate `void deactivate()`]
+[section:deactivate Member function `deactivate()`]
+
+        void deactivate();
+
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
 `this->deactivate`. Strata blocked in `this->take()` will return.]]
@@ -72,14 +81,20 @@ synchonize fibers via message passing.
 ]
 [endsect]
 
-[section:empty `bool empty()`]
+[section:empty Member function `empty()`]
+
+        bool empty();
+
 [variablelist
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:put `void put( T const& t)`]
+[section:put Member function `put()`]
+
+        void put( T const& t);
+
 [variablelist
 [[Effects:] [Enqueues the value in the queue and wakes up a fiber waiting
 for new data available from the queue.]]
@@ -87,7 +102,10 @@ for new data available from the queue.]]
 ]
 [endsect]
 
-[section:take `bool take( boost::optional< T > & va)`]
+[section:take Member function `take()`]
+
+        bool take( boost::optional< T > & va);
+
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
 queue the fiber gets suspended until new data are enqueued (return value
@@ -97,7 +115,10 @@ function returns `false`.]]
 ]
 [endsect]
 
-[section:try_take `bool try_take( boost::optional< T > & va)`]
+[section:try_take Member function `try_take()`]
+
+        bool try_take( boost::optional< T > & va);
+
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
 queue the function returns `false`. Otherwise it returns `true` and `va`
@@ -114,9 +135,12 @@ contains the dequed value.]]
     #include <boost/fiber/bounded_queue.hpp>
 
     template< typename T >
-    class bounded_queue : private noncopyable
+    class bounded_queue
     {
     public:
+        bounded_queue( bounded_queue const& other) = delete; 
+        bounded_queue & operator=( bounded_queue const& other) = delete; 
+
         bounded_queue( std::size_t wm);
 
         bounded_queue( std::size_t hwm, std::size_t lwm);
@@ -134,31 +158,34 @@ contains the dequed value.]]
         bool try_take( boost::optional< T > & va);
     };
 
-[section:constructor `bounded_queue( std::size_t wm)`]
+[section:constructor Constructor]
+
+        bounded_queue( std::size_t wm);
+        bounded_queue( std::size_t hwm, std::size_t lwm);
+
 [variablelist
 [[Effects:] [Constructs an object of class `bounded_queue` which will contain
-a maximum of `wm` items.]]
+a maximum of `wm` items. The constructor with two arguments constructs an object
+of class `bounded_queue` which will contain a high-watermark of `hwm` and a
+low-watermark of `lwm` items.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:constructor2 `bounded_queue( std::size_t hwm, std::size_t lwm)`]
-[variablelist
-[[Effects:] [Constructs an object of class `bounded_queue` which will contain
-a high-watermark of `hwm`
-and a low-watermark of `lwm` items.]]
-[[Throws:] [Nothing.]]
-]
-[endsect]
+[section:active Member function `active()`]
 
-[section:active `bool active() const`]
+        bool active() const;
+
 [variablelist
 [[Effects:] [Return `true` if queue is still usable.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:deactivate `void deactivate()`]
+[section:deactivate Member function `deactivate()`]
+
+        void deactivate();
+
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
 `this->deactivate`. Strata blocked in `this->take()` will return.]]
@@ -166,14 +193,20 @@ and a low-watermark of `lwm` items.]]
 ]
 [endsect]
 
-[section:empty `bool empty()`]
+[section:empty Member function `empty()`]
+
+        bool empty();
+
 [variablelist
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
 ]
 [endsect]
 
-[section:put `void put( T const& t)`]
+[section:put Member function `put()`]
+
+        void put( T const& t);
+
 [variablelist
 [[Effects:] [Enqueues the value in the queue and wakes up a fiber waiting
 for new data available from the queue. If the watermark has reached the
@@ -183,7 +216,10 @@ dequeued.]]
 ]
 [endsect]
 
-[section:take `bool take( boost::optional< T > & va)`]
+[section:take Member fucntion `take()`]
+
+        bool take( boost::optional< T > & va);
+
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
 queue the fiber gets suspended until new data are enqueued (return value
@@ -193,7 +229,10 @@ function returns `false`.]]
 ]
 [endsect]
 
-[section:try_take `bool try_take( boost::optional< T > & va)`]
+[section:try_take Member function `try_take()`]
+
+        bool try_take( boost::optional< T > & va);
+
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
 queue the function returns `false`. Otherwise it returns `true` and `va`

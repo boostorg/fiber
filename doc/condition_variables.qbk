@@ -84,8 +84,8 @@ the mutex does not have to be locked across the call to `notify_one`.
         condition_variable();
         ~condition_variable();
 
-        condition_variable( condition_variable const&) = 0;
-        condition_variable & operator=( condition_variable const&) = 0;
+        condition_variable( condition_variable const&) = delete;
+        condition_variable & operator=( condition_variable const&) = delete;
 
         void notify_one();
         void notify_all();
@@ -207,11 +207,24 @@ in all the fibers currently waiting on `*this` would return the same value as
 `lk->mutex()` for this call to `wait`.]]
 [[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
 fiber will unblock when notified by a call to `this->notify_one()` or
-`this->notify_all()`, when the time as reported by `boost::get_system_time()`
+`this->notify_all()`, when the time as reported by `clock_type::now()`
 would be equal to or later than the specified `timeout_time`, or spuriously. When
 the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.]]
+Member function using `pred` as-if ``
+while ( ! pred() )
+{
+    if ( cv_status::timeout == wait_until( lt, timeout_time) )
+        return pred();
+}
+return true;
+``]]
+[[Postcondition:] [`lk` is locked by the current fiber.]]
+[[Throws:] [__fiber_exception__ if an error
+occurs. __fiber_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __fiber__ object associated with the current fiber of
+execution.]]
 [[Returns:] [`false` if the call is returning because the time specified by
 `timeout_time` was reached, `true` otherwise.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
@@ -236,11 +249,24 @@ in all the fibers currently waiting on `*this` would return the same value as
 `lk->mutex()` for this call to `wait`.]]
 [[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
 fiber will unblock when notified by a call to `this->notify_one()` or
-`this->notify_all()`, when the time as reported by `boost::get_system_time()`
-would be equal to or later than the specified `timeout_time`, or spuriously. When
+`this->notify_all()`, when the time as reported by `clock_type::now() + timeout_duration()`
+would be equal to or later than the specified time point, or spuriously. When
 the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.]]
+Member function using `pred` as-if ``
+while ( ! pred() )
+{
+    if ( cv_status::timeout == wait_for( lt, timeout_duration) )
+        return pred();
+}
+return true;
+``]]
+[[Postcondition:] [`lk` is locked by the current fiber.]]
+[[Throws:] [__fiber_exception__ if an error
+occurs. __fiber_interrupted__ if the wait was interrupted by a call to
+__interrupt__ on the __fiber__ object associated with the current fiber of
+execution.]]
 [[Returns:] [`false` if the call is returning because the time specified by
 `timeout_time` was reached, `true` otherwise.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]

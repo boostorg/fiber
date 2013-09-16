@@ -9,20 +9,23 @@
 
 [section Class `mutex`]
 
-    #include <boost/fiber/mutex.hpp>
-
-    class mutex : private boost::noncopyable
-    {
-    public:
-        mutex();
-        ~mutex();
-
-        void lock();
-        bool try_lock();
-        void unlock();
-
-        typedef unique_lock< mutex > scoped_lock;
-    };
+        #include <boost/fiber/mutex.hpp>
+        
+        class mutex
+        {
+        public:
+            mutex();
+            ~mutex();
+        
+            mutex( mutex const& other) = delete;
+            mutex & operator=( mutex const& other) = delete;
+        
+            void lock();
+            bool try_lock();
+            void unlock();
+        
+            typedef unique_lock< mutex > scoped_lock;
+        };
 
 __mutex__ provides an exclusive-ownership mutex. At most one fiber can own the
 lock on a given instance of __mutex__ at any time. Multiple concurrent calls to
@@ -43,6 +46,9 @@ signaled.
         public:
             timed_mutex();
             ~timed_mutex();
+
+            timed_mutex( timed_mutex const& other) = delete;
+            timed_mutex & operator=( timed_mutex const& other) = delete;
 
             void lock();
             void unlock();
@@ -73,6 +79,9 @@ __unlock__ shall be permitted.
             recursive_mutex();
             ~recursive_mutex();
 
+            recursive_mutex( recursive_mutex const& other) = delete;
+            recursive_mutex & operator=( recursive_mutex const& other) = delete;
+
             void lock();
             bool try_lock() noexcept;
             void unlock();
@@ -101,6 +110,9 @@ acquired by another fiber.
         public:
             recursive_timed_mutex();
             ~recursive_timed_mutex();
+
+            recursive_timed_mutex( recursive_timed_mutex const& other) = delete;
+            recursive_timed_mutex & operator=( recursive_timed_mutex const& other) = delete;
 
             void lock();
             bool try_lock() noexcept;

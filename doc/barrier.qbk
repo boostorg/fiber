@@ -23,6 +23,10 @@ barrier is reset.
     public:
         barrier( unsigned int initial);
 
+        barrier( barrier const& other) = delete;
+
+        barrier & operator=( barrier const& other) = delete;
+
         bool wait();
     };
 
