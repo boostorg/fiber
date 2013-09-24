@@ -25,6 +25,7 @@
 [def __boost_fiber__ [*Boost.Fiber]]
 [def __boost_thread__ [*Boost.Thread]]
 
+[def __async_result__ ['async-result]]
 [def __blocked__ ['blocked]]
 [def __interruption_points__ ['interruption-points]]
 [def __lockable_concept__ ['lockable concept]]
@@ -72,6 +73,8 @@
 [def __sleep_for__ `this_fiber::sleep_for()`]
 [def __sleep_until__ `this_fiber::sleep_until()`]
 [def __yield__ `this_fiber::yield()`]
+[def __yield_context__ ['boost::asio::yield_context]]
+[def __yield_fiber__ ['boost::fibers::asio::yield_context]]
 
 [def __lock__ `lock()`]
 [def __try_lock_for__ `try_lock_for()`]
