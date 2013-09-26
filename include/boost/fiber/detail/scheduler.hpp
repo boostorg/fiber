@@ -31,6 +31,7 @@ namespace detail {
 
 // thread_local_ptr was contributed by Nat Goodspeed
 #if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+template <typename T>
 class thread_local_ptr : private noncopyable
 {
 private:
@@ -45,26 +46,26 @@ public:
     thread_local_ptr() BOOST_NOEXCEPT
     { BOOST_ASSERT( ! ::pthread_key_create( & key_, 0) ); }
 
-    algorithm * get() const BOOST_NOEXCEPT
-    { return static_cast< algorithm * >( ::pthread_getspecific( key_) ); }
+    T * get() const BOOST_NOEXCEPT
+    { return static_cast< T * >( ::pthread_getspecific( key_) ); }
 
-    thread_local_ptr & operator=( algorithm * ptr) BOOST_NOEXCEPT
+    thread_local_ptr & operator=( T * ptr) BOOST_NOEXCEPT
     {
         ::pthread_setspecific( key_, ptr);
         return * this;
     }
 
-    algorithm & operator*() const BOOST_NOEXCEPT
+    T & operator*() const BOOST_NOEXCEPT
     { return * get(); }
 
-    algorithm * operator->() const BOOST_NOEXCEPT
+    T * operator->() const BOOST_NOEXCEPT
     { return get(); }
 
-    operator algorithm * () const BOOST_NOEXCEPT
+    operator T * () const BOOST_NOEXCEPT
     { return get(); }
 
     operator safe_bool() const BOOST_NOEXCEPT
-    { return get() ? 0 : & dummy::nonnull; }
+    { return get() ? &dummy::nonnull : 0; }
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! get(); }
@@ -76,8 +77,7 @@ public:
     { return ! ( * this == other); }
 };
 
-}
-#endif
+#endif  // __APPLE__ && BOOST_HAS_PTHREADS
 
 class scheduler : private noncopyable
 {
@@ -85,8 +85,8 @@ private:
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
     static __declspec(thread) algorithm     *   instance_;
-#elif defined(BOOST_MAC_PTHREADS)
-    static detail::thread_local_ptr             instance_;
+#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+    static detail::thread_local_ptr<algorithm>  instance_;
 #else
     static __thread algorithm               *   instance_;
 #endif

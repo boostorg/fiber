@@ -18,8 +18,8 @@ namespace detail {
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
 __declspec(thread) algorithm * scheduler::instance_ = 0;
-#elif defined(BOOST_MAC_PTHREADS)
-detail::thread_local_ptr scheduler::instance_ = 0;
+#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+detail::thread_local_ptr<algorithm> scheduler::instance_ = 0;
 #else
 //algorithm * scheduler::instance_ = 0;
 __thread algorithm * scheduler::instance_ = 0;

@@ -59,14 +59,11 @@ fiber::join()
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    try
-    { detail::scheduler::instance()->join( impl_); }
-    catch (...)
-    {
-        impl_.reset();
-        throw;
-    }
-    impl_.reset();
+    ptr_t impl_old;
+    // reset impl_ now, BEFORE calling join(), so it's reset even if join()
+    // throws
+    impl_old.swap(impl_);
+    detail::scheduler::instance()->join(impl_old);
 }
 
 void
