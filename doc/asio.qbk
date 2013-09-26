@@ -23,7 +23,7 @@ __yield_context__ uses internally __boost_coroutine__:
             boost::asio::async_write(socket,boost::asio::buffer(data,n),yield);
         }
 
-Unfortunately __boost_coroutine__/__yield_context__ does not provide primitives
+Unfortunately __boost_coroutine__ (__yield_context__) does not provide primitives
 to synchronize different coroutines (execution contexts).
 
 __boost_fiber__ provides an integration of __fibers__ into __boost_asio__ so
@@ -62,8 +62,7 @@ __yield_fiber__ abstracts the fiber in asio's context.
                 if ( "<fini>" == std::string( data_) ) break;
 
                 // write message asynchronously to subscriber
-                // method suspends this fiber
-                // if the message was written the fiber gets resumed
+                // fiber gets suspended until message was written
                 boost::asio::async_write(
                         socket_,
                         boost::asio::buffer( data_, max_length),
@@ -74,8 +73,8 @@ __yield_fiber__ abstracts the fiber in asio's context.
 
 [heading C10K problem]
 
-The C10K-website [footnote [@http://www.kegel.com/c10k.html 'The C10K problem'
-, Dan Kegel]].
+The C10K-website [footnote [@http://www.kegel.com/c10k.html 'The C10K problem',
+Dan Kegel]].
 from Dan Kegel describes the problem of handling ten thousand clients
 simultaneously and which strategies are possible.
 

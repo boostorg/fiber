@@ -183,18 +183,18 @@ __fiber_interrupted__ if interruption is enabled.
 
 [heading Fiber IDs]
 
-Objects of class __id__ can be used to identify fibers. Each running
-__fiber__ has a unique __id__ obtainable from the corresponding __fiber__
+Objects of class __fiber_id__ can be used to identify fibers. Each running
+__fiber__ has a unique __fiber_id__ obtainable from the corresponding __fiber__
 by calling the __get_id__ member function.
-Objects of class __id__ can be copied, and used as keys in associative
+Objects of class __fiber_id__ can be copied, and used as keys in associative
 containers: the full range of comparison operators is provided.
 They can also be written to an output stream using the stream insertion
 operator, though the output format is unspecified.
 
-Each instance of __id__ either refers to some fiber, or __not_a_fiber__.
+Each instance of __fiber_id__ either refers to some fiber, or __not_a_fiber__.
 Instances that refer to __not_a_fiber__ compare equal to each other, but
 not equal to any instances that refer to an actual fiber. The comparison
-operators on __id__ yield a total order for every non-equal __id__.
+operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
 [endsect] [/ section Tutorial]
 

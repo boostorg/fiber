@@ -211,7 +211,7 @@ fiber will unblock when notified by a call to `this->notify_one()` or
 would be equal to or later than the specified `timeout_time`, or spuriously. When
 the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
-reacquired by invoking `lk.lock()` if the function exits with an exception.]]
+reacquired by invoking `lk.lock()` if the function exits with an exception.
 Member function using `pred` as-if ``
 while ( ! pred() )
 {
@@ -253,7 +253,7 @@ fiber will unblock when notified by a call to `this->notify_one()` or
 would be equal to or later than the specified time point, or spuriously. When
 the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
-reacquired by invoking `lk.lock()` if the function exits with an exception.]]
+reacquired by invoking `lk.lock()` if the function exits with an exception.
 Member function using `pred` as-if ``
 while ( ! pred() )
 {

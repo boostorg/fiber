@@ -21,8 +21,7 @@ running fiber decides explicitly when its yields to allow another fiber to
 run (context switching).
 A context switch between threads costs usally thousends of CPU cycles on x86
 compared to a fiber switch with few hundreds of cycles.
-A fiber can only run on a single thread at any point in time but may be
-migrated between threads.
+A fiber can only run on a single thread at any point in time.
 
 In order to use the classes and functions described here, you can either include
 the specific headers specified by the descriptions of each class or function, or
