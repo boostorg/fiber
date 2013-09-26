@@ -27,14 +27,11 @@ synchonize fibers via message passing.
     }
 
     queue_t queue;
-    boost::fibers::fiber s1(
-        boost::fibers::spawn(
-            boost::bind( send, ref( queue) ) ) );
-    boost::fibers::fiber s2(
-        boost::fibers::spawn(
-            boost::bind( recv, ref( queue) ) ) );
+    boost::fibers::fiber f1( boost::bind( send, ref( queue) ) );
+    boost::fibers::fiber f2( boost::bind( recv, ref( queue) ) );
 
-    boost::fibers::waitfor_all( s1, s2);
+    f1.join();
+    f2.join();
 
 [section:unbounded_queue Template `unbounded_queue`]
 

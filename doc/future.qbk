@@ -56,7 +56,7 @@ exception, that is stored in the future in place of the return value.
 
         boost::fibers::packaged_task<int> pt(calculate_the_answer_to_life_the_universe_and_everything);
         boost::fibers::future<int> fi=pt.get_future();
-        boost::fibers::fiber task(boost::move(pt)); // launch task on a thread
+        boost::fibers::fiber(boost::move(pt)).detach(); // launch task on a fiber
 
         fi.wait(); // wait for it to finish
 
