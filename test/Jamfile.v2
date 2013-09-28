@@ -14,7 +14,6 @@ project boost/fiber/test
       <library>/boost/system//boost_system
       <library>/boost/thread//boost_thread
       <link>static
-      <threading>multi
     ;
 
 rule fiber-test ( source )
