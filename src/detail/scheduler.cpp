@@ -19,7 +19,7 @@ namespace detail {
     (defined(__ICC) && defined(BOOST_WINDOWS))
 __declspec(thread) algorithm * scheduler::instance_ = 0;
 #elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-detail::thread_local_ptr<algorithm> scheduler::instance_ = 0;
+detail::thread_local_ptr<algorithm> scheduler::instance_;
 #else
 //algorithm * scheduler::instance_ = 0;
 __thread algorithm * scheduler::instance_ = 0;
