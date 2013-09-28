@@ -11,6 +11,9 @@ import toolset ;
 
 project boost/fiber
     : requirements
+      <target-os>freebsd:<linkflags>"-lrt"
+      <target-os>linux:<linkflags>"-lrt"
+      <toolset>pgi:<linkflags>"-lrt"
       <library>/boost/coroutine//boost_coroutine
       <library>/boost/chrono//boost_chrono
       <library>/boost/thread//boost_thread
@@ -21,7 +24,7 @@ project boost/fiber
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
       <define>BOOST_FIBERS_SOURCE
     : usage-requirements
-		<link>shared:<define>BOOST_FIBERS_DYN_LINK=1
+      <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
     : source-location ../src
     ;
 

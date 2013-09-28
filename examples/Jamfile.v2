@@ -9,6 +9,10 @@
 
 project boost/fiber/example/cpp03
     : requirements
+      <target-os>freebsd:<linkflags>"-lrt"
+      <target-os>linux:<linkflags>"-lrt -lpthread"
+      <toolset>clang/<target-os>linux:<linkflags>"-lpthread"
+      <toolset>pgi:<linkflags>"-lrt"
       <library>../build//boost_fiber
       <library>/boost/coroutine//boost_coroutine
       <library>/boost/system//boost_system
