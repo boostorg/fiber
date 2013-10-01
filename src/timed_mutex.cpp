@@ -40,39 +40,29 @@ timed_mutex::lock()
     while ( LOCKED == state_)
     {
         detail::notify::ptr_t n( detail::scheduler::instance()->active() );
-        try
+        if ( n)
         {
-            if ( n)
-            {
-                // store this fiber in order to be notified later
-                waiting_.push_back( n);
+            // store this fiber in order to be notified later
+            waiting_.push_back( n);
 
-                // suspend this fiber
-                detail::scheduler::instance()->wait();
-            }
-            else
-            {
-                // notifier for main-fiber
-                detail::main_notifier mn;
-                n = detail::main_notifier::make_pointer( mn);
-
-                // store this fiber in order to be notified later
-                waiting_.push_back( n);
-
-                // wait until main-fiber gets notified
-                while ( ! n->is_ready() )
-                {
-                    // run scheduler
-                    detail::scheduler::instance()->run();
-                }
-            }
+            // suspend this fiber
+            detail::scheduler::instance()->wait();
         }
-        catch (...)
+        else
         {
-            // remove fiber from waiting_
-            waiting_.erase(
-                std::find( waiting_.begin(), waiting_.end(), n) );
-            throw;
+            // notifier for main-fiber
+            detail::main_notifier mn;
+            n = detail::main_notifier::make_pointer( mn);
+
+            // store this fiber in order to be notified later
+            waiting_.push_back( n);
+
+            // wait until main-fiber gets notified
+            while ( ! n->is_ready() )
+            {
+                // run scheduler
+                detail::scheduler::instance()->run();
+            }
         }
     }
     BOOST_ASSERT( ! owner_);

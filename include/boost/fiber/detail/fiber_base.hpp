@@ -198,9 +198,6 @@ public:
 
     bool join( ptr_t const&);
 
-    bool interruption_enabled() const BOOST_NOEXCEPT
-    { return 0 == ( flags_ & flag_interruption_blocked); }
-
     bool interruption_blocked() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_interruption_blocked); }
 

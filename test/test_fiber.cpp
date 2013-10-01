@@ -392,19 +392,19 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
 
-    test->add( BOOST_TEST_CASE( & test_move) );
-    test->add( BOOST_TEST_CASE( & test_id) );
-    test->add( BOOST_TEST_CASE( & test_priority) );
-    test->add( BOOST_TEST_CASE( & test_detach) );
-    test->add( BOOST_TEST_CASE( & test_complete) );
-    test->add( BOOST_TEST_CASE( & test_replace) );
-    test->add( BOOST_TEST_CASE( & test_join_in_thread) );
-    test->add( BOOST_TEST_CASE( & test_join_and_run) );
-    test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
-    test->add( BOOST_TEST_CASE( & test_yield) );
-    test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
-    test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
-    test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_join) );
+     test->add( BOOST_TEST_CASE( & test_move) );
+     test->add( BOOST_TEST_CASE( & test_id) );
+     test->add( BOOST_TEST_CASE( & test_priority) );
+     test->add( BOOST_TEST_CASE( & test_detach) );
+     test->add( BOOST_TEST_CASE( & test_complete) );
+     test->add( BOOST_TEST_CASE( & test_replace) );
+     test->add( BOOST_TEST_CASE( & test_join_in_thread) );
+     test->add( BOOST_TEST_CASE( & test_join_and_run) );
+     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
+     test->add( BOOST_TEST_CASE( & test_yield) );
+     test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
+     test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
+     test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_join) );
 
     return test;
 }

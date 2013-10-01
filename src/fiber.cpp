@@ -24,7 +24,12 @@ namespace fibers {
 
 void
 fiber::start_fiber_()
-{ detail::scheduler::instance()->spawn( impl_); }
+{
+    detail::scheduler::instance()->spawn( impl_);
+    // check if joined fiber was interrupted
+    if ( impl_->has_exception() )
+        impl_->rethrow();
+}
 
 int
 fiber::priority() const BOOST_NOEXCEPT
@@ -59,14 +64,13 @@ fiber::join()
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    try
-    { detail::scheduler::instance()->join( impl_); }
-    catch (...)
-    {
-        impl_.reset();
-        throw;
-    }
-    impl_.reset();
+    detail::scheduler::instance()->join( impl_);
+
+    ptr_t tmp;
+    tmp.swap( impl_);
+    // check if joined fiber was interrupted
+    if ( tmp->has_exception() )
+        tmp->rethrow();
 }
 
 void

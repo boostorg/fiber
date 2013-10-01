@@ -19,7 +19,6 @@
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/interruption.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -53,24 +52,15 @@ round_robin::spawn( detail::fiber_base::ptr_t const& f)
 
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
-    try
-    {
-        // assign new fiber to active fiber
-        active_fiber_ = f;
-        // set active fiber to state_running
-        active_fiber_->set_running();
-        // resume active fiber
-        active_fiber_->resume();
-        // fiber is resumed
+    // assign new fiber to active fiber
+    active_fiber_ = f;
+    // set active fiber to state_running
+    active_fiber_->set_running();
+    // resume active fiber
+    active_fiber_->resume();
+    // fiber is resumed
 
-        BOOST_ASSERT( f == active_fiber_);
-    }
-    catch (...)
-    {
-        // reset active fiber to previous
-        active_fiber_ = tmp;
-        throw;
-    }
+    BOOST_ASSERT( f == active_fiber_);
     // reset active fiber to previous
     active_fiber_ = tmp;
 }
@@ -196,19 +186,12 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 
         BOOST_ASSERT( tmp == active_fiber_);
         BOOST_ASSERT( active_fiber_->is_running() );
-
-        // check if fiber was interrupted
-        this_fiber::interruption_point();
     }
     else
     {
         while ( ! f->is_terminated() )
             run();
     }
-
-    // check if joined fiber has an exception
-    // and rethrow exception
-    if ( f->has_exception() ) f->rethrow();
 
     BOOST_ASSERT( f->is_terminated() );
 }

@@ -6,11 +6,14 @@
 
 #include "boost/fiber/detail/fiber_base.hpp"
 
+#include <exception>
+
 #include <boost/exception_ptr.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
 
 #include "boost/fiber/detail/scheduler.hpp"
+#include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -50,8 +53,10 @@ fiber_base::trampoline_( coro::coroutine< void >::push_type & c)
         release();
         throw;
     }
-    catch (...)
+    catch ( fiber_interrupted const&)
     { except_ = current_exception(); }
+    catch (...)
+    { std::terminate(); }
 
     set_terminated_();
     release();
@@ -73,7 +78,6 @@ fiber_base::resume()
     BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
     caller_();
-    if ( has_exception() ) rethrow();
 }
 
 void
