@@ -66,7 +66,7 @@ public:
 
         // scheduler::run() resumes a ready fiber
         // invoke scheduler::run() until no fiber was resumed
-        while ( boost::fibers::detail::scheduler::instance()->run() );
+        boost::fibers::detail::scheduler::instance()->run();
     }
 
     //private:
@@ -102,7 +102,7 @@ public:
 
         // scheduler::run() resumes a ready fiber
         // invoke scheduler::run() until no fiber was resumed
-        while ( boost::fibers::detail::scheduler::instance()->run() );
+        boost::fibers::detail::scheduler::instance()->run();
     }
 
     //private:
