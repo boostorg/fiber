@@ -33,7 +33,7 @@ synchonize fibers via message passing.
     f1.join();
     f2.join();
 
-[section:unbounded_queue Template `unbounded_queue`]
+[heading Template `unbounded_queue<>`]
 
     #include <boost/fiber/unbounded_queue.hpp>
 
@@ -57,7 +57,7 @@ synchonize fibers via message passing.
         bool try_take( boost::optional< T > & va);
     };
 
-[section:active Member function `active()`]
+[heading Member function `active()`]
 
         bool active() const;
 
@@ -65,9 +65,8 @@ synchonize fibers via message passing.
 [[Effects:] [Return `true` if queue is still usable.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:deactivate Member function `deactivate()`]
+[heading Member function `deactivate()`]
 
         void deactivate();
 
@@ -76,9 +75,8 @@ synchonize fibers via message passing.
 `this->deactivate`. Strata blocked in `this->take()` will return.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:empty Member function `empty()`]
+[heading Member function `empty()`]
 
         bool empty();
 
@@ -86,9 +84,8 @@ synchonize fibers via message passing.
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:put Member function `put()`]
+[heading Member function `put()`]
 
         void put( T const& t);
 
@@ -97,9 +94,8 @@ synchonize fibers via message passing.
 for new data available from the queue.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:take Member function `take()`]
+[heading Member function `take()`]
 
         bool take( boost::optional< T > & va);
 
@@ -110,9 +106,8 @@ queue the fiber gets suspended until new data are enqueued (return value
 function returns `false`.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:try_take Member function `try_take()`]
+[heading Member function `try_take()`]
 
         bool try_take( boost::optional< T > & va);
 
@@ -122,12 +117,9 @@ queue the function returns `false`. Otherwise it returns `true` and `va`
 contains the dequed value.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
-
-[endsect]
 
 
-[section:bounded_queue Template `bounded_queue`]
+[heading Template `bounded_queue<>`]
 
     #include <boost/fiber/bounded_queue.hpp>
 
@@ -155,7 +147,7 @@ contains the dequed value.]]
         bool try_take( boost::optional< T > & va);
     };
 
-[section:constructor Constructor]
+[heading Constructor]
 
         bounded_queue( std::size_t wm);
         bounded_queue( std::size_t hwm, std::size_t lwm);
@@ -167,9 +159,8 @@ of class `bounded_queue` which will contain a high-watermark of `hwm` and a
 low-watermark of `lwm` items.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:active Member function `active()`]
+[heading Member function `active()`]
 
         bool active() const;
 
@@ -177,9 +168,8 @@ low-watermark of `lwm` items.]]
 [[Effects:] [Return `true` if queue is still usable.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:deactivate Member function `deactivate()`]
+[heading Member function `deactivate()`]
 
         void deactivate();
 
@@ -188,9 +178,8 @@ low-watermark of `lwm` items.]]
 `this->deactivate`. Strata blocked in `this->take()` will return.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:empty Member function `empty()`]
+[heading Member function `empty()`]
 
         bool empty();
 
@@ -198,9 +187,8 @@ low-watermark of `lwm` items.]]
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:put Member function `put()`]
+[heading Member function `put()`]
 
         void put( T const& t);
 
@@ -211,9 +199,8 @@ fiber putting the value will be supended until at least one item was
 dequeued.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:take Member fucntion `take()`]
+[heading Member fucntion `take()`]
 
         bool take( boost::optional< T > & va);
 
@@ -224,9 +211,8 @@ queue the fiber gets suspended until new data are enqueued (return value
 function returns `false`.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:try_take Member function `try_take()`]
+[heading Member function `try_take()`]
 
         bool try_take( boost::optional< T > & va);
 
@@ -236,8 +222,5 @@ queue the function returns `false`. Otherwise it returns `true` and `va`
 contains the dequed value.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
-
-[endsect]
 
 [endsect]

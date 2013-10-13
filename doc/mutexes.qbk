@@ -7,7 +7,7 @@
 
 [section:mutex_types Mutex Types]
 
-[section Class `mutex`]
+[heading Class `mutex`]
 
         #include <boost/fiber/mutex.hpp>
         
@@ -34,10 +34,8 @@ __lock__, __try_lock__ and __unlock__ shall be permitted.
 The fibers blocked in __lock__ are suspended in the scheduler until it gets
 signaled.
 
-[endsect] [/ section Class mutex]
 
-
-[section Class `timed_mutex`]
+[heading Class `timed_mutex`]
 
         #include <boost/fiber/timed_mutex.hpp>
 
@@ -66,10 +64,8 @@ the lock on a given instance of __timed_mutex__ at any time. Multiple concurrent
 calls to __lock__, __try_lock__, __try_lock_until__, __try_lock_for__ and
 __unlock__ shall be permitted.
 
-[endsect] [/ section Class timed_mutex]
 
-
-[section Class `recursive_mutex`]
+[heading Class `recursive_mutex`]
 
         #include <boost/fiber/recursive_mutex.hpp>
 
@@ -98,10 +94,8 @@ additional level of ownership of the mutex. __unlock__ must be called once for
 each level of ownership acquired by a single fiber before ownership can be
 acquired by another fiber.
 
-[endsect] [/ section Class recursive_mutex]
 
-
-[section Class `recursive_timed_mutex`]
+[heading Class `recursive_timed_mutex`]
 
         #include <boost/fiber/recursive_timed_mutex.hpp>
 
@@ -135,8 +129,6 @@ __try_lock_for__ or __try_lock_until__ to acquire an additional level of
 ownership of the mutex. __unlock__ must be called once for each level of
 ownership acquired by a single fiber before ownership can be acquired by another
 fiber.
-
-[endsect] [/ section Class recursive_timed_mutex]
 
 
 [endsect]

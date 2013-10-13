@@ -27,7 +27,7 @@ list. Cleanup finishes when there are no outstanding instances of __fsp__
 with values.
 
 
-[section:fsp Class fiber_specific_ptr]
+[heading Class fiber_specific_ptr]
 
         #include <boost/fiber/fss.hpp>
 
@@ -57,7 +57,7 @@ with values.
             void reset( T * t);
         };
 
-[section:constructor Constructor]
+[heading Constructor]
 
         fiber_specific_ptr();
 
@@ -71,9 +71,8 @@ will be used to destroy any fiber-local objects when `reset()` is called, or the
 fiber exits.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
 ]
-[endsect]
 
-[section:destructor Destructor]
+[heading Destructor]
 
         ~fiber_specific_ptr();
 
@@ -91,9 +90,8 @@ fiber specific data.]]
 [note Care needs to be taken to ensure that any fibers still running after an
 instance of __fsp__ has been destroyed do not call any member functions on that
 instance.]
-[endsect]
 
-[section:get Member function `get()`]
+[heading Member function `get()`]
 
         T* get() const;
 
@@ -103,9 +101,8 @@ instance.]
 ]
 [note The initial value associated with an instance of __fsp__ is `NULL` for
 each fiber.]
-[endsect]
 
-[section:operator_arrow Member function `operator->()`]
+[heading Member function `operator->()`]
 
         T* operator->() const;
 
@@ -113,9 +110,8 @@ each fiber.]
 [[Returns:] [`this->get()`]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:operator_star Member function `operator*()`]
+[heading Member function `operator*()`]
 
         T& operator*() const;
 
@@ -124,9 +120,8 @@ each fiber.]
 [[Returns:] [`*(this->get())`]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:release Member function `release()`]
+[heading Member function `release()`]
 
         T* release();
 
@@ -136,9 +131,8 @@ with the current fiber without invoking the cleanup function.]]
 [[Postcondition:] [`this->get()==0`]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:reset Member function `reset()`]
+[heading Member function `reset()`]
 
         void reset(T* new_value=0);
 
@@ -149,9 +143,5 @@ invoke `delete this->get()` or `fn(this->get())` as appropriate. Store
 [[Postcondition:] [`this->get()==new_value`]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
 ]
-[endsect]
-
-
-[endsect] [/ Class fiber_specific_ptr]
 
 [endsect]

@@ -96,7 +96,7 @@
 [include condition_variables.qbk]
 [include barrier.qbk]
 [include queue.qbk]
-[include future.qbk]
+[include futures.qbk]
 [endsect]
 [include fls.qbk]
 [include asio.qbk]

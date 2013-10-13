@@ -68,7 +68,7 @@ waiting fiber or all the waiting fibers respectively.
 Note that the same mutex is locked before the shared data is updated, but that
 the mutex does not have to be locked across the call to `notify_one`.
 
-[section:condition Class `condition`]
+[heading Class `condition`]
 
     #include <boost/fiber/condition.hpp>
 
@@ -111,7 +111,7 @@ the mutex does not have to be locked across the call to `notify_one`.
 
     typedef condition_variable condition_variable_any;
 
-[section:constructor Constructor]
+[heading Constructor]
 
         condition_variable()
 
@@ -119,9 +119,8 @@ the mutex does not have to be locked across the call to `notify_one`.
 [[Effects:] [Creates the object.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:destructor Destructor]
+[heading Destructor]
 
         ~condition_variable()
 
@@ -132,9 +131,8 @@ the mutex does not have to be locked across the call to `notify_one`.
 [[Effects:] [Destroys the object.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:notify_one Member function `notify_one()`]
+[heading Member function `notify_one()`]
 
         void notify_one();
 
@@ -143,9 +141,8 @@ the mutex does not have to be locked across the call to `notify_one`.
 call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:notify_all Member function `notify_all()`]
+[heading Member function `notify_all()`]
 
         void notify_all();
 
@@ -154,9 +151,8 @@ call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 call to `wait`, `wait_for` or `wait_until`, unblocks all of those fibers.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:wait Templated member function `wait()`]
+[heading Templated member function `wait()`]
 
         template< typename LockType >
         void wait( LockType & lk);
@@ -188,10 +184,9 @@ occurs. __fiber_interrupted__ if the wait was interrupted by a call to
 __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 ]
-[endsect]
 
 
-[section:wait_until Templated member function `wait_until()`]
+[heading Templated member function `wait_until()`]
 
         template< typename LockType >
         cv_status wait_until( LockType & lt, clock_type::time_point const& timeout_time);
@@ -230,10 +225,9 @@ execution.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
 [[Throws:] []]
 ]
-[endsect]
 
 
-[section:wait_for Templated member function `wait_for()`]
+[heading Templated member function `wait_for()`]
 
         template< typename LockType, typename Rep, typename Period >
         cv_status wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration);
@@ -272,8 +266,5 @@ execution.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
 [[Throws:] []]
 ]
-[endsect]
-
-[endsect]
 
 [endsect]

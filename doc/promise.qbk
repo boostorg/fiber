@@ -1,0 +1,44 @@
+[/
+          Copyright Oliver Kowalke 2013.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:promise Template `promise<>`]
+
+        template< typename R >
+        class promise
+        {
+        public:
+            promise() :
+
+            template< typename Allocator >
+            promise( boost::allocator_arg_t, Allocator alloc) :
+
+            promise( promise && other) noexcept;
+
+            promise( promise const& other) = delete;
+
+            ~promise()
+
+            promise & operator=( promise && other) noexcept;
+
+            promise & operator=( promise const& other) = delete;
+
+            void swap( promise & other) noexcept;
+
+            operator safe_bool() const noexcept;
+
+            bool operator!() const noexcept;
+
+            future< R > get_future();
+
+            void set_value( R const& value);
+
+            void set_value( R && value);
+
+            void set_exception( exception_ptr p);
+        };
+
+[endsect]
