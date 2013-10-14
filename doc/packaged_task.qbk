@@ -7,6 +7,8 @@
 
 [section:packaged_task Template `packaged_task<>`]
 
+A __packaged_task__ wraps a callable target so that it can be called asynchronously.
+
         template< typename R >
         class packaged_task
         {
@@ -49,7 +51,7 @@
         packaged_task();
 
 [variablelist
-[[Effects:] [Constructs an object of class `packaged_task`.]]
+[[Effects:] [Constructs an object of class `packaged_task` with no shared state.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -62,8 +64,101 @@
         explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn && fn);
 
 [variablelist
-[[Effects:] [Constructs an object of class `packaged_task`.]]
+[[Effects:] [Constructs an object of class `packaged_task` with a shared state
+and stores the callable target `fn` internally.]]
 [[Throws:] [Nothing.]]
 ]
+
+[heading Move constructor]
+
+        packaged_task( packaged_task && other) noexcept;
+
+[variablelist
+[[Effects:] [Creates a packaged_task by moving the shared state from `other`.]]
+[Postcondition:] [`other` contains no valid shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Destructor]
+
+        ~packaged_task();
+
+[variablelist
+[[Effects:] [Destroyes `this` and abandons the shared state if shared state is
+ready; store an ___future_error__ with error condition __broken_promise__
+otherwise.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `operator=()`]
+
+        packaged_task & operator=( packaged_task && other) noexcept;
+
+[variablelist
+[[Effects:] [Transfers the ownership of shared state to `this`.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `swap()`]
+
+        void swap( packaged_task & other) noexcept;
+
+[variablelist
+[[Effects:] [Swaps the shared state between other and `this`.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `operator safe_bool()`]
+
+        operator safe_bool() const noexcept;
+
+[variablelist
+[[Effects:] [Returns `true` if packaged_task an non-empty shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `operator!()`]
+
+        bool operator!() const noexcept;
+
+[variablelist
+[[Effects:] [Returns `true` if packaged_task an empty shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `valid()`]
+
+        bool valid() const noexcept;
+
+[variablelist
+[[Effects:] [Returns `true` if packaged_task contains a shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `get_future()`]
+
+        future< R > get_future();
+
+[variablelist
+[[Effects:] [Returns a __future__ with the same shared state.]]
+[[Throws:] [__future_error__ with __future_already_retrieved__ or __no_state__.]]
+
+[heading Member function `operator()()`]
+
+        void operator()();
+
+[variablelist
+[[Effects:] [Invokes the stored callable target.i Exceptions thrown by the
+callable target are stored in the shared state.]]
+[[Throws:] [__future_error__ with __no_state__.]]
+
+[heading Member function `reset()`]
+
+        void reset();
+
+[variablelist
+[[Effects:] [Resets the shared state and abondons the result of previous
+executions. A new shared state is constructed.]]
+[[Throws:] [__future_error__ with __no_state__.]]
 
 [endsect]
