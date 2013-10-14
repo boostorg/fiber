@@ -291,12 +291,11 @@ After construction is `true == other.valid()`.]]
         shared_future & operator=( shared_future const& other) noexcept;
 
 [variablelist
-[[Effects:] [Transfers the ownership of shared state according to:
-
-        shared_future tmp( other);
-        swap( tmp);
-        return * this;
-
+[[Effects:] [Transfers the ownership of shared state according to: ``
+shared_future tmp( other);
+swap( tmp);
+return * this;
+``
 ]]
 [[Throws:] [Nothing.]]
 ]
