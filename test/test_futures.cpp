@@ -1145,22 +1145,31 @@ void test_packaged_task_reset()
     boost::fibers::round_robin ds;
     boost::fibers::set_scheduling_algorithm( & ds);
 
-    boost::fibers::packaged_task< int() > t1( fn3);
-    BOOST_CHECK( t1);
-    BOOST_CHECK( t1.valid() );
+    {
+        boost::fibers::packaged_task< int() > p( fn3);
+        boost::fibers::future< int > f( p.get_future() );
+        BOOST_CHECK( p);
+        BOOST_CHECK( p.valid() );
 
-    // reset
-    t1.reset();
-    BOOST_CHECK( ! t1);
-    BOOST_CHECK( ! t1.valid() );
+        p();
+        BOOST_CHECK( 3 == f.get() );
 
-    // reset a second time
-    bool thrown = false;
-    try
-    { t1.reset(); }
-    catch ( boost::fibers::packaged_task_uninitialized const&)
-    { thrown = true; }
-    BOOST_CHECK( thrown);
+        // reset
+        p.reset();
+        p();
+        f = p.get_future();
+        BOOST_CHECK( 3 == f.get() );
+    }
+    {
+        boost::fibers::packaged_task< int() > p;
+
+        bool thrown = false;
+        try
+        { p.reset(); }
+        catch ( boost::fibers::packaged_task_uninitialized const&)
+        { thrown = true; }
+        BOOST_CHECK( thrown);
+    }
 }
 
 void test_packaged_task_reset_void()
@@ -1168,22 +1177,31 @@ void test_packaged_task_reset_void()
     boost::fibers::round_robin ds;
     boost::fibers::set_scheduling_algorithm( & ds);
 
-    boost::fibers::packaged_task< void() > t1( fn4);
-    BOOST_CHECK( t1);
-    BOOST_CHECK( t1.valid() );
+    {
+        boost::fibers::packaged_task< void() > p( fn4);
+        boost::fibers::future< void > f( p.get_future() );
+        BOOST_CHECK( p);
+        BOOST_CHECK( p.valid() );
 
-    // reset
-    t1.reset();
-    BOOST_CHECK( ! t1);
-    BOOST_CHECK( ! t1.valid() );
+        p();
+        f.get();
 
-    // reset a second time
-    bool thrown = false;
-    try
-    { t1.reset(); }
-    catch ( boost::fibers::packaged_task_uninitialized const&)
-    { thrown = true; }
-    BOOST_CHECK( thrown);
+        // reset
+        p.reset();
+        p();
+        f = p.get_future();
+        f.get();
+    }
+    {
+        boost::fibers::packaged_task< void() > p;
+
+        bool thrown = false;
+        try
+        { p.reset(); }
+        catch ( boost::fibers::packaged_task_uninitialized const&)
+        { thrown = true; }
+        BOOST_CHECK( thrown);
+    }
 }
 
 void test_packaged_task_get_future()
