@@ -75,7 +75,7 @@ and stores the callable target `fn` internally.]]
 
 [variablelist
 [[Effects:] [Creates a packaged_task by moving the shared state from `other`.]]
-[Postcondition:] [`other` contains no valid shared state.]]
+[[Postcondition:] [`other` contains no valid shared state.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -141,7 +141,8 @@ otherwise.]]
 
 [variablelist
 [[Effects:] [Returns a __future__ with the same shared state.]]
-[[Throws:] [__future_error__ with __future_already_retrieved__ or __no_state__.]]
+[[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
+]
 
 [heading Member function `operator()()`]
 
@@ -151,6 +152,7 @@ otherwise.]]
 [[Effects:] [Invokes the stored callable target.i Exceptions thrown by the
 callable target are stored in the shared state.]]
 [[Throws:] [__future_error__ with __no_state__.]]
+]
 
 [heading Member function `reset()`]
 
@@ -160,5 +162,6 @@ callable target are stored in the shared state.]]
 [[Effects:] [Resets the shared state and abondons the result of previous
 executions. A new shared state is constructed.]]
 [[Throws:] [__future_error__ with __no_state__.]]
+]
 
 [endsect]

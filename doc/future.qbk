@@ -292,9 +292,11 @@ After construction is `true == other.valid()`.]]
 
 [variablelist
 [[Effects:] [Transfers the ownership of shared state according to:
+
         shared_future tmp( other);
         swap( tmp);
         return * this;
+
 ]]
 [[Throws:] [Nothing.]]
 ]

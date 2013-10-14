@@ -69,7 +69,7 @@ asynchrnous by a future object.
 
 [variablelist
 [[Effects:] [Creates a promise by moving the shared state from `other`.]]
-[Postcondition:] [`other` contains no valid shared state.]]
+[[Postcondition:] [`other` contains no valid shared state.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -79,7 +79,7 @@ asynchrnous by a future object.
 
 [variablelist
 [[Effects:] [Destroyes `this` and abandons the shared state if shared state is
-ready; store an ___future_error__ with error condition __broken_promise__
+ready; store an __future_error__ with error condition __broken_promise__
 otherwise.]]
 [[Throws:] [Nothing.]]
 ]
@@ -126,7 +126,8 @@ otherwise.]]
 
 [variablelist
 [[Effects:] [Returns a __future__ with the same shared state.]]
-[[Throws:] [__future_error__ with __future_already_retrieved__ or __no_state__.]]
+[[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
+]
 
 [heading Member function `set_value()`]
 
@@ -135,7 +136,8 @@ otherwise.]]
 
 [variablelist
 [[Effects:] [Store the result in the shared state and marks the state as ready.]]
-[[Throws:] [__future_error__ with __promise_already_satisfied__ or __no_state__.]]
+[[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
+]
 
 [heading Member function `set_exception()`]
 
@@ -143,6 +145,7 @@ otherwise.]]
 
 [variablelist
 [[Effects:] [Store an exception pointer in the shared state and marks the state as ready.]]
-[[Throws:] [__future_error__ with __promise_already_satisfied__ or __no_state__.]]
+[[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
+]
 
-endsect]
+[endsect]
