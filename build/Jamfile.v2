@@ -36,6 +36,7 @@ lib boost_fiber
       condition.cpp
       detail/fiber_base.cpp
       detail/scheduler.cpp
+      detail/spinlock.cpp
       fiber.cpp
       fiber_group.cpp
       future.cpp
