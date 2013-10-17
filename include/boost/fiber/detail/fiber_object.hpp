@@ -11,7 +11,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/fcontext.hpp>
 #include <boost/move/move.hpp>
 #include <boost/ref.hpp>
 
