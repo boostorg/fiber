@@ -26,8 +26,7 @@ namespace detail {
 void
 fiber_base::set_terminated_() BOOST_NOEXCEPT
 {
-    state_t previous = TERMINATED;
-    std::swap( state_, previous);
+    state_t previous = state_.exchange( TERMINATED);
     BOOST_ASSERT( RUNNING == previous);
 }
 
@@ -140,24 +139,21 @@ fiber_base::request_interruption( bool req) BOOST_NOEXCEPT
 void
 fiber_base::set_ready() BOOST_NOEXCEPT
 {
-    state_t previous = READY;
-    std::swap( state_, previous);
+    state_t previous = state_.exchange( READY);
     BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
 }
 
 void
 fiber_base::set_running() BOOST_NOEXCEPT
 {
-    state_t previous = RUNNING;
-    std::swap( state_, previous);
+    state_t previous = state_.exchange( RUNNING);
     BOOST_ASSERT( READY == previous);
 }
 
 void
 fiber_base::set_waiting() BOOST_NOEXCEPT
 {
-    state_t previous = WAITING;
-    std::swap( state_, previous);
+    state_t previous = state_.exchange( WAITING);
     BOOST_ASSERT( RUNNING == previous);
 }
 

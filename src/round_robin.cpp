@@ -16,6 +16,7 @@
 #include <boost/foreach.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/thread/locks.hpp>
+#include <boost/thread/thread.hpp>
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
@@ -101,7 +102,6 @@ round_robin::run()
         rqueue_.pop_front();
 
         if ( f->is_ready() ) break;
-        //else if ( f->is_waiting() ) wqueue_.push_back( schedulable( f) );
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
     while ( true);
@@ -190,7 +190,11 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
     else
     {
         while ( ! f->is_terminated() )
-            run();
+        {
+            // yield this thread if scheduler did not 
+            // resumed some fibers in the previous round
+            if ( ! run() ) this_thread::yield();
+        }
     }
 
     BOOST_ASSERT( f->is_terminated() );

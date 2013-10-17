@@ -14,10 +14,12 @@ project boost/fiber/example/cpp03
       <toolset>clang/<target-os>linux:<linkflags>"-lpthread"
       <toolset>pgi:<linkflags>"-lrt"
       <library>../build//boost_fiber
+      <library>/boost/atomic//boost_atomic
       <library>/boost/coroutine//boost_coroutine
       <library>/boost/system//boost_system
       <library>/boost/thread//boost_thread
       <link>static
+      <threading>multi
 #      <define>BOOST_ASIO_ENABLE_HANDLER_TRACKING
     ;
 

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <boost/assert.hpp>
+#include <boost/atomic.hpp>
 #include <boost/bind.hpp>
 #include <boost/config.hpp>
 #include <boost/coroutine/all.hpp>
@@ -86,12 +87,13 @@ private:
     void trampoline_( coro::coroutine< void >::push_type & c);
 
 protected:
-    state_t                                 state_;
-    int                                     flags_;
-    int                                     priority_;
+    atomic< state_t >                       state_;
+    atomic< int >                           flags_;
+    atomic< int >                           priority_;
     coro::coroutine< void >::pull_type      caller_;
     coro::coroutine< void >::push_type  *   callee_;
     exception_ptr                           except_;
+    // TODO: spinlock protecting waiting_
     std::vector< ptr_t >                    waiting_;
 
     void release();
@@ -199,12 +201,12 @@ public:
     bool join( ptr_t const&);
 
     bool interruption_blocked() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_interruption_blocked); }
+    { return 0 != ( flags_.load() & flag_interruption_blocked); }
 
     void interruption_blocked( bool blck) BOOST_NOEXCEPT;
 
     bool interruption_requested() const BOOST_NOEXCEPT
-    { return 0 != ( flags_ & flag_interruption_requested); }
+    { return 0 != ( flags_.load() & flag_interruption_requested); }
 
     void request_interruption( bool req) BOOST_NOEXCEPT;
 

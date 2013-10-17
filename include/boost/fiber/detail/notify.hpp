@@ -10,6 +10,7 @@
 #include <cstddef>
 
 #include <boost/assert.hpp>
+#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/utility.hpp>
@@ -25,7 +26,6 @@
 # pragma warning(disable:4275)
 # endif
 
-
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -33,7 +33,7 @@ namespace detail {
 class BOOST_FIBERS_DECL notify : private noncopyable
 {
 private:
-    std::size_t     use_count_;
+    atomic< std::size_t >   use_count_;
 
 protected:
     virtual void deallocate_object() = 0;

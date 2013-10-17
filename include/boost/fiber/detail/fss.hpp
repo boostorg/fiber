@@ -11,6 +11,7 @@
 
 #include <cstddef>
 
+#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 
@@ -25,7 +26,7 @@ namespace detail {
 class BOOST_FIBERS_DECL fss_cleanup_function
 {
 private:
-    std::size_t use_count_;
+    atomic< std::size_t >   use_count_;
 
 public:
     typedef intrusive_ptr< fss_cleanup_function >   ptr_t;
