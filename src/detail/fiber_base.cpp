@@ -98,7 +98,9 @@ fiber_base::release()
     std::vector< ptr_t > waiting;
 
     // get all waiting fibers
+    splk_.lock();
     waiting.swap( waiting_);
+    splk_.unlock();
 
     // notify all waiting fibers
     BOOST_FOREACH( fiber_base::ptr_t p, waiting)
@@ -112,7 +114,7 @@ fiber_base::release()
 bool
 fiber_base::join( ptr_t const& p)
 {
-    // protect against concurrent access to waiting_
+    unique_lock< spinlock > lk( splk_);
     if ( is_terminated() ) return false;
     waiting_.push_back( p);
     return true;

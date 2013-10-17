@@ -28,6 +28,7 @@
 #include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -93,7 +94,7 @@ protected:
     coro::coroutine< void >::pull_type      caller_;
     coro::coroutine< void >::push_type  *   callee_;
     exception_ptr                           except_;
-    // TODO: spinlock protecting waiting_
+    spinlock                                splk_;
     std::vector< ptr_t >                    waiting_;
 
     void release();
