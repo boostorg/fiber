@@ -10,6 +10,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber.hpp>
+#include <boost/fiber/interruption.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -32,11 +33,21 @@ void yield()
 
 inline
 void sleep_until( fibers::clock_type::time_point const& sleep_time)
-{ fibers::detail::scheduler::instance()->wait_until( sleep_time); }
+{
+    fibers::detail::scheduler::instance()->wait_until( sleep_time);
+
+    // check if fiber was interrupted
+    interruption_point();
+}
 
 template< typename Rep, typename Period >
 void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
-{ fibers::detail::scheduler::instance()->wait_for( timeout_duration); }
+{
+    fibers::detail::scheduler::instance()->wait_for( timeout_duration);
+
+    // check if fiber was interrupted
+    interruption_point();
+}
 
 }
 
