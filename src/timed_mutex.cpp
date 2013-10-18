@@ -48,7 +48,7 @@ timed_mutex::lock()
             unique_lock< detail::spinlock > lk( splk_);
             // store this fiber in order to be notified later
             waiting_.push_back( n);
-            splk_.unlock();
+            lk.unlock();
 
             // suspend this fiber
             detail::scheduler::instance()->wait();
@@ -62,7 +62,7 @@ timed_mutex::lock()
             unique_lock< detail::spinlock > lk( splk_);
             // store this fiber in order to be notified later
             waiting_.push_back( n);
-            splk_.unlock();
+            lk.unlock();
 
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
@@ -108,7 +108,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
                 unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
-                splk_.unlock();
+                lk.unlock();
 
                 // suspend this fiber until notified or timed-out
                 if ( ! detail::scheduler::instance()->wait_until( timeout_time) ) {
@@ -116,7 +116,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
                     // remove fiber from waiting-list
                     waiting_.erase(
                         std::find( waiting_.begin(), waiting_.end(), n) );
-                    splk_.unlock();
+                    lk.unlock();
                     return false;
                 }
             }
@@ -129,7 +129,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
                 unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
-                splk_.unlock();
+                lk.unlock();
 
                 // wait until main-fiber gets notified
                 while ( ! n->is_ready() )
@@ -140,7 +140,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
                         // remove fiber from waiting-list
                         waiting_.erase(
                             std::find( waiting_.begin(), waiting_.end(), n) );
-                        splk_.unlock();
+                        lk.unlock();
                         return false;
                     }
                     // run scheduler
@@ -154,7 +154,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
             // remove fiber from waiting-list
             waiting_.erase(
                     std::find( waiting_.begin(), waiting_.end(), n) );
-            splk_.unlock();
+            lk.unlock();
             throw;
         }
     }
@@ -182,7 +182,7 @@ timed_mutex::unlock()
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    splk_.unlock();
+    lk.unlock();
 
     owner_ = detail::fiber_base::id();
 	state_ = UNLOCKED;

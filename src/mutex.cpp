@@ -48,7 +48,7 @@ mutex::lock()
             unique_lock< detail::spinlock > lk( splk_);
             // store this fiber in order to be notified later
             waiting_.push_back( n);
-            splk_.unlock();
+            lk.unlock();
 
             // TODO: prevent notification (set_ready()) of fiber before set to waiting-state
             // suspend this fiber
@@ -63,7 +63,7 @@ mutex::lock()
             unique_lock< detail::spinlock > lk( splk_);
             // store this fiber in order to be notified later
             waiting_.push_back( n);
-            splk_.unlock();
+            lk.unlock();
 
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
@@ -106,7 +106,7 @@ mutex::unlock()
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    splk_.unlock();
+    lk.unlock();
 
     owner_ = detail::fiber_base::id();
 	state_ = UNLOCKED;
