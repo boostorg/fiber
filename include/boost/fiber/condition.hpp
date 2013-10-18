@@ -22,6 +22,7 @@
 #include <boost/fiber/detail/main_notifier.hpp>
 #include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
@@ -49,7 +50,8 @@ BOOST_SCOPED_ENUM_DECLARE_END(cv_status)
 class BOOST_FIBERS_DECL condition : private noncopyable
 {
 private:
-    std::deque< detail::notify::ptr_t >    waiting_;
+    detail::spinlock                        splk_;
+    std::deque< detail::notify::ptr_t >     waiting_;
 
 public:
     condition();
@@ -75,8 +77,11 @@ public:
         {
             if ( n)
             {
+                unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
+                lk.unlock();
+
                 lt.unlock();
 
                 // suspend fiber
@@ -91,8 +96,10 @@ public:
                 detail::main_notifier mn;
                 n = detail::main_notifier::make_pointer( mn);
 
+                unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
+                lk.unlock();
 
                 lt.unlock();
                 while ( ! n->is_ready() )
@@ -104,9 +111,10 @@ public:
         }
         catch (...)
         {
+            unique_lock< detail::spinlock > lk( splk_);
             // remove fiber from waiting-list
             waiting_.erase(
-                std::find( waiting_.begin(), waiting_.end(), n) );
+                    std::find( waiting_.begin(), waiting_.end(), n) );
             throw;
         }
 
@@ -124,13 +132,17 @@ public:
         {
             if ( n)
             {
+                unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
+                lk.unlock();
+
                 lt.unlock();
 
                 // suspend fiber
                 if ( ! detail::scheduler::instance()->wait_until( timeout_time) )
                 {
+                    unique_lock< detail::spinlock > lk( splk_);
                     // remove fiber from waiting-list
                     waiting_.erase(
                         std::find( waiting_.begin(), waiting_.end(), n) );
@@ -147,17 +159,21 @@ public:
                 detail::main_notifier mn;
                 n = detail::main_notifier::make_pointer( mn);
 
+                unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
+                lk.unlock();
 
                 lt.unlock();
+
                 while ( ! n->is_ready() )
                 {
                     if ( ! ( clock_type::now() < timeout_time) )
                     {
+                        unique_lock< detail::spinlock > lk( splk_);
                         // remove fiber from waiting-list
                         waiting_.erase(
-                            std::find( waiting_.begin(), waiting_.end(), n) );
+                                std::find( waiting_.begin(), waiting_.end(), n) );
 
                         status = cv_status::timeout;
 
@@ -170,6 +186,7 @@ public:
         }
         catch (...)
         {
+            unique_lock< detail::spinlock > lk( splk_);
             // remove fiber from waiting-list
             waiting_.erase(
                 std::find( waiting_.begin(), waiting_.end(), n) );
