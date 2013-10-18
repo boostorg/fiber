@@ -26,6 +26,7 @@ recursive_mutex::recursive_mutex() :
     owner_(),
     count_( 0),
 	state_( UNLOCKED),
+    splk_(),
     waiting_()
 {}
 
@@ -45,14 +46,19 @@ recursive_mutex::lock()
         return;
     }
 
-    while ( LOCKED == state_)
+    state_t expected = UNLOCKED;
+    while ( ! state_.compare_exchange_strong( expected, LOCKED) )
     {
+        expected = UNLOCKED;
         detail::notify::ptr_t n( detail::scheduler::instance()->active() );
         if ( n)
         {
+            unique_lock< detail::spinlock > lk( splk_);
             // store this fiber in order to be notified later
             waiting_.push_back( n);
+            splk_.unlock();
 
+            // TODO: prevent notification (set_ready()) of fiber before set to waiting-state
             // suspend this fiber
             detail::scheduler::instance()->wait();
         }
@@ -62,8 +68,10 @@ recursive_mutex::lock()
             detail::main_notifier mn;
             n = detail::main_notifier::make_pointer( mn);
 
+            unique_lock< detail::spinlock > lk( splk_);
             // store this fiber in order to be notified later
             waiting_.push_back( n);
+            splk_.unlock();
 
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
@@ -73,10 +81,10 @@ recursive_mutex::lock()
             }
         }
     }
+
     BOOST_ASSERT( ! owner_);
     BOOST_ASSERT( 0 == count_);
 
-    state_ = LOCKED;
     owner_ = this_fiber::get_id();
     ++count_;
 }
@@ -84,24 +92,23 @@ recursive_mutex::lock()
 bool
 recursive_mutex::try_lock()
 {
-    if ( LOCKED == state_)
+    if ( LOCKED == state_ && this_fiber::get_id() == owner_)
     {
-        if ( this_fiber::get_id() == owner_)
-        {
-            ++count_;
-            return true;
-        }
-        else
-        {
-            // let other fiber release the lock
-            detail::scheduler::instance()->yield();
-            return false;
-        }
+        ++count_;
+        return true;
     }
 
-    state_ = LOCKED;
+    state_t expected = UNLOCKED;
+    if ( ! state_.compare_exchange_strong( expected, LOCKED) )
+    {
+        // let other fiber release the lock
+        detail::scheduler::instance()->yield();
+        return false;
+    }
+
     owner_ = this_fiber::get_id();
     ++count_;
+
     return true;
 }
 
@@ -115,13 +122,15 @@ recursive_mutex::unlock()
     {
         detail::notify::ptr_t n;
 
+        unique_lock< detail::spinlock > lk( splk_);
         if ( ! waiting_.empty() ) {
             n.swap( waiting_.front() );
             waiting_.pop_front();
         }
+        splk_.unlock();
 
-        state_ = UNLOCKED;
         owner_ = detail::fiber_base::id();
+        state_ = UNLOCKED;
 
         if ( n)
             n->set_ready();

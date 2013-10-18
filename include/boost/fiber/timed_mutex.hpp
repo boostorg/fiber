@@ -9,6 +9,7 @@
 
 #include <deque>
 
+#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
@@ -16,6 +17,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -39,7 +41,8 @@ private:
     };
 
     detail::fiber_base::id          owner_;
-    volatile state_t                state_;
+    atomic< state_t >               state_;
+    detail::spinlock                splk_;
     std::deque<
         detail::notify::ptr_t
     >                               waiting_;
