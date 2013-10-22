@@ -113,11 +113,12 @@ round_robin::run()
 }
 
 void
-round_robin::wait()
-{ wait_until( clock_type::time_point( (clock_type::duration::max)() ) ); }
+round_robin::wait( unique_lock< detail::spinlock > & lk)
+{ wait_until( clock_type::time_point( (clock_type::duration::max)() ), lk); }
 
 bool
-round_robin::wait_until( clock_type::time_point const& timeout_time)
+round_robin::wait_until( clock_type::time_point const& timeout_time,
+                         unique_lock< detail::spinlock > & lk)
 {
     clock_type::time_point start( clock_type::now() );
 
@@ -126,6 +127,8 @@ round_robin::wait_until( clock_type::time_point const& timeout_time)
 
     // set active fiber to state_waiting
     active_fiber_->set_waiting();
+    // release lock
+    lk.unlock();
     // push active fiber to wqueue_
     wqueue_.push_back( schedulable( active_fiber_, timeout_time) );
     // store active fiber in local var

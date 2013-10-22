@@ -14,10 +14,12 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/thread/lock_types.hpp> 
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -69,8 +71,9 @@ public:
 
     bool run();
 
-    void wait();
-    bool wait_until( clock_type::time_point const&);
+    void wait( unique_lock< detail::spinlock > &);
+    bool wait_until( clock_type::time_point const&,
+                     unique_lock< detail::spinlock > &);
 
     void yield();
 };

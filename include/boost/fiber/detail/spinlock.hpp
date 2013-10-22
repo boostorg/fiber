@@ -26,7 +26,7 @@ private:
 	    UNLOCKED
     };
 
-	atomic< state_t >   state_;
+	atomic< state_t >           state_;
 
 public:
 	spinlock();

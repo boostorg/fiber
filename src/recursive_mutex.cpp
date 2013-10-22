@@ -46,29 +46,38 @@ recursive_mutex::lock()
         return;
     }
 
-    state_t expected = UNLOCKED;
-    while ( ! state_.compare_exchange_strong( expected, LOCKED) )
+    detail::notify::ptr_t n( detail::scheduler::instance()->active() );
+    if ( n)
     {
-        expected = UNLOCKED;
-        detail::notify::ptr_t n( detail::scheduler::instance()->active() );
-        if ( n)
+        for (;;)
         {
             unique_lock< detail::spinlock > lk( splk_);
+
+            state_t expected = UNLOCKED;
+            if ( state_.compare_exchange_strong( expected, LOCKED) )
+                break;
+        
             // store this fiber in order to be notified later
             waiting_.push_back( n);
-            lk.unlock();
 
-            // TODO: prevent notification (set_ready()) of fiber before set to waiting-state
             // suspend this fiber
-            detail::scheduler::instance()->wait();
+            detail::scheduler::instance()->wait( lk);
         }
-        else
-        {
-            // notifier for main-fiber
-            detail::main_notifier mn;
-            n = detail::main_notifier::make_pointer( mn);
+    }
+    else
+    {
+        // notifier for main-fiber
+        detail::main_notifier mn;
+        n = detail::main_notifier::make_pointer( mn);
 
+        for (;;)
+        {
             unique_lock< detail::spinlock > lk( splk_);
+
+            state_t expected = UNLOCKED;
+            if ( state_.compare_exchange_strong( expected, LOCKED) )
+                break;
+
             // store this fiber in order to be notified later
             waiting_.push_back( n);
             lk.unlock();
@@ -127,13 +136,11 @@ recursive_mutex::unlock()
             n.swap( waiting_.front() );
             waiting_.pop_front();
         }
-        lk.unlock();
 
         owner_ = detail::fiber_base::id();
         state_ = UNLOCKED;
 
-        if ( n)
-            n->set_ready();
+        if ( n) n->set_ready();
     }
 }
 

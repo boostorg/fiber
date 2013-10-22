@@ -111,11 +111,12 @@ io_service::run()
 }
 
 void
-io_service::wait()
-{ wait_until( clock_type::time_point( (clock_type::duration::max)() ) ); }
+io_service::wait( unique_lock< detail::spinlock > & lk)
+{ wait_until( clock_type::time_point( (clock_type::duration::max)() ), lk); }
 
 bool
-io_service::wait_until( clock_type::time_point const& timeout_time)
+io_service::wait_until( clock_type::time_point const& timeout_time,
+                        unique_lock< detail::spinlock > & lk)
 {
     clock_type::time_point start( clock_type::now() );
 
@@ -124,6 +125,8 @@ io_service::wait_until( clock_type::time_point const& timeout_time)
 
     // set active_fiber to state_waiting
     active_fiber_->set_waiting();
+    // reset the lock
+    lk.unlock();
     // push active fiber to wqueue_
     wqueue_.push_back(
         schedulable(

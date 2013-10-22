@@ -6,9 +6,12 @@
 #ifndef BOOST_THIS_FIBER_OPERATIONS_H
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
+#include <boost/thread/lock_types.hpp> 
+
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/interruption.hpp>
 
@@ -34,7 +37,9 @@ void yield()
 inline
 void sleep_until( fibers::clock_type::time_point const& sleep_time)
 {
-    fibers::detail::scheduler::instance()->wait_until( sleep_time);
+    fibers::detail::spinlock splk;
+    unique_lock< fibers::detail::spinlock > lk( splk);
+    fibers::detail::scheduler::instance()->wait_until( sleep_time, lk);
 
     // check if fiber was interrupted
     interruption_point();
@@ -43,7 +48,9 @@ void sleep_until( fibers::clock_type::time_point const& sleep_time)
 template< typename Rep, typename Period >
 void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 {
-    fibers::detail::scheduler::instance()->wait_for( timeout_duration);
+    fibers::detail::spinlock splk;
+    unique_lock< fibers::detail::spinlock > lk( splk);
+    fibers::detail::scheduler::instance()->wait_for( timeout_duration, lk);
 
     // check if fiber was interrupted
     interruption_point();

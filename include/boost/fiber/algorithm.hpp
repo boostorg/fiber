@@ -8,10 +8,12 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/thread/lock_types.hpp> 
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,12 +39,13 @@ struct algorithm : private noncopyable
 
     virtual bool run() = 0;
 
-    virtual void wait() = 0;
-    virtual bool wait_until( clock_type::time_point const&) = 0;
-
+    virtual void wait( unique_lock< detail::spinlock > &) = 0;
+    virtual bool wait_until( clock_type::time_point const&,
+                             unique_lock< detail::spinlock > &) = 0;
     template< typename Rep, typename Period >
-    bool wait_for( chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_until( clock_type::now() + timeout_duration); }
+    bool wait_for( chrono::duration< Rep, Period > const& timeout_duration,
+                   unique_lock< detail::spinlock > & lk)
+    { return wait_until( clock_type::now() + timeout_duration, lk); }
 
     virtual void yield() = 0;
 

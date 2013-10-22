@@ -12,6 +12,7 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/config.hpp>
+#include <boost/thread/lock_types.hpp> 
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -75,8 +76,9 @@ public:
 
     bool run();
 
-    void wait();
-    bool wait_until( clock_type::time_point const&);
+    void wait( unique_lock< detail::spinlock > &);
+    bool wait_until( clock_type::time_point const&,
+                     unique_lock< detail::spinlock > &);
 
     void yield();
 };

@@ -37,5 +37,5 @@ test-suite fibers :
   [ fiber-test test_barrier ]
   [ fiber-test test_fss ]
   [ fiber-test test_futures ]
-# [ fiber-test test_then ]
+  [ fiber-test test_mutex_mt ]
 ;

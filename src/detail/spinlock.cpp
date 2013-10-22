@@ -34,6 +34,10 @@ spinlock::lock()
 
 void
 spinlock::unlock()
-{ state_ = UNLOCKED; }
+{
+    BOOST_ASSERT( LOCKED == state_);
+
+    state_ = UNLOCKED;
+}
 
 }}}

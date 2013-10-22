@@ -80,12 +80,11 @@ public:
                 unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
-                lk.unlock();
 
                 lt.unlock();
 
                 // suspend fiber
-                detail::scheduler::instance()->wait();
+                detail::scheduler::instance()->wait( lk);
 
                 // check if fiber was interrupted
                 this_fiber::interruption_point();
@@ -135,12 +134,11 @@ public:
                 unique_lock< detail::spinlock > lk( splk_);
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
-                lk.unlock();
 
                 lt.unlock();
 
                 // suspend fiber
-                if ( ! detail::scheduler::instance()->wait_until( timeout_time) )
+                if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) )
                 {
                     unique_lock< detail::spinlock > lk( splk_);
                     // remove fiber from waiting-list
