@@ -39,8 +39,7 @@ condition::notify_one()
     lk.unlock();
 
     // notify waiting fiber
-    if ( n)
-        n->set_ready();
+    if ( n) n->set_ready();
 }
 
 void
