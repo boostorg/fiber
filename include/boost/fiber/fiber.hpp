@@ -71,7 +71,7 @@ public:
         impl_()
     {}
 
-    fiber( ptr_t imp) BOOST_NOEXCEPT :
+    explicit fiber( ptr_t imp) BOOST_NOEXCEPT :
         impl_( imp)
     {}
 
