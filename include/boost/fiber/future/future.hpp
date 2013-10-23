@@ -941,7 +941,7 @@ public:
     shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {
         //TODO:
-        shared_future tmp( other);
+        shared_future tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
@@ -949,7 +949,7 @@ public:
     shared_future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
     {
         //TODO:
-        shared_future tmp( other);
+        shared_future tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
