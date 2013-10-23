@@ -20,6 +20,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -54,6 +55,7 @@ private:
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
+    detail::spinlock            splk_;
 
 public:
     round_robin() BOOST_NOEXCEPT;
@@ -76,6 +78,9 @@ public:
                      unique_lock< detail::spinlock > &);
 
     void yield();
+
+    fiber steal_from();
+    void migrate_to( fiber const&);
 };
 
 }}

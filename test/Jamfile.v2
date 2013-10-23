@@ -39,4 +39,5 @@ test-suite fibers :
   [ fiber-test test_futures ]
   [ fiber-test test_mutex_mt ]
   [ fiber-test test_condition_mt ]
+  [ fiber-test test_migration ]
 ;

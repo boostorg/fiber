@@ -31,7 +31,8 @@ namespace fibers {
 round_robin::round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
     wqueue_(),
-    rqueue_()
+    rqueue_(),
+    splk_()
 {}
 
 round_robin::~round_robin() BOOST_NOEXCEPT
@@ -86,7 +87,10 @@ round_robin::run()
         if ( f->interruption_requested() )
             f->set_ready();
         if ( f->is_ready() )
+        {
+            unique_lock< detail::spinlock > lk( splk_);
             rqueue_.push_back( f);
+        }
         else wqueue.push_back( s);
     }
     // exchange local with global waiting queue
@@ -97,9 +101,11 @@ round_robin::run()
     detail::fiber_base::ptr_t f;
     do
     {
+        unique_lock< detail::spinlock > lk( splk_);
         if ( rqueue_.empty() ) return false;
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
+        lk.unlock();
 
         if ( f->is_ready() ) break;
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
@@ -137,8 +143,8 @@ round_robin::wait_until( clock_type::time_point const& timeout_time,
     active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+    BOOST_ASSERT( tmp->is_running() );
 
     return clock_type::now() < timeout_time;
 }
@@ -159,8 +165,8 @@ round_robin::yield()
     active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+    BOOST_ASSERT( tmp->is_running() );
 }
 
 void
@@ -187,8 +193,8 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         active_fiber_->suspend();
         // fiber is resumed by f
 
-        BOOST_ASSERT( tmp == active_fiber_);
-        BOOST_ASSERT( active_fiber_->is_running() );
+        BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+        BOOST_ASSERT( tmp->is_running() );
     }
     else
     {
@@ -211,6 +217,30 @@ round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
     // set only priority to fiber
     // round-robin does not respect priorities
     f->priority( prio);
+}
+
+fiber
+round_robin::steal_from()
+{
+    detail::fiber_base::ptr_t f;
+
+    unique_lock< detail::spinlock > lk( splk_);
+    if ( ! rqueue_.empty() )
+    {
+        f.swap( rqueue_.back() );
+        rqueue_.pop_back();
+    }
+    lk.unlock();
+
+    return fiber( f);
+}
+
+void
+round_robin::migrate_to( fiber const& f)
+{
+    BOOST_ASSERT( f);
+
+    spawn( detail::scheduler::extract( f) );
 }
 
 }}

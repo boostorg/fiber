@@ -14,6 +14,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -50,6 +51,9 @@ struct algorithm : private noncopyable
     virtual void yield() = 0;
 
     virtual ~algorithm() {}
+
+    virtual fiber steal_from() = 0;
+    virtual void migrate_to( fiber const&) = 0;
 };
 
 }}
