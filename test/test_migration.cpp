@@ -15,7 +15,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#define MAXCOUNT 1000
+#define MAXCOUNT 100
 
 #include <cstdio>
 #include <sstream>
@@ -50,19 +50,20 @@ boost::fibers::future< int > fibonacci( int n)
     return boost::move( f);
 }
 
-void create_fibers( int n)
+int create_fiber( int n)
 {
-    int res = fibonacci( n).get();
-    fprintf( stderr, "fibonacci(%d) = %d", n, res);
+    return fibonacci( n).get();
 }
 
-void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b, int n)
+void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b)
 {
     boost::fibers::set_scheduling_algorithm( ds);
 
     b->wait();
 
-    boost::fibers::fiber( boost::bind( create_fibers, n) ).join();
+    int result = boost::fibers::async( boost::bind( create_fiber, 10) ).get();
+    BOOST_CHECK( 89 == result);
+    fprintf( stderr, "fibonacci(10) = %d", result);
 
     fini = true;
 }
@@ -94,11 +95,11 @@ void test_migrate_fiber()
         fprintf(stderr, "%d. ", i);
 
         fini = false;
-        int n = 10, count = 0;
+        int count = 0;
 
         boost::fibers::round_robin * ds = new boost::fibers::round_robin();
         boost::barrier b( 2);
-        boost::thread t1( boost::bind( fn_create_fibers, ds, &b, n) );
+        boost::thread t1( boost::bind( fn_create_fibers, ds, &b) );
         boost::thread t2( boost::bind( fn_migrate_fibers, ds, &b, &count) );
 
         t1.join();
