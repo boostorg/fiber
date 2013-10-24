@@ -20,6 +20,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/ws_queue.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -50,12 +51,10 @@ private:
     };
 
     typedef std::deque< schedulable >                   wqueue_t;
-    typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
 
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
-    rqueue_t                    rqueue_;
-    detail::spinlock            splk_;
+    detail::ws_queue            rqueue_;
 
 public:
     round_robin() BOOST_NOEXCEPT;

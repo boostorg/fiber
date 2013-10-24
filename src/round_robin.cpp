@@ -31,8 +31,7 @@ namespace fibers {
 round_robin::round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
     wqueue_(),
-    rqueue_(),
-    splk_()
+    rqueue_()
 {}
 
 round_robin::~round_robin() BOOST_NOEXCEPT
@@ -87,10 +86,7 @@ round_robin::run()
         if ( f->interruption_requested() )
             f->set_ready();
         if ( f->is_ready() )
-        {
-            unique_lock< detail::spinlock > lk( splk_);
-            rqueue_.push_back( f);
-        }
+            rqueue_.push( f);
         else wqueue.push_back( s);
     }
     // exchange local with global waiting queue
@@ -101,12 +97,7 @@ round_robin::run()
     detail::fiber_base::ptr_t f;
     do
     {
-        unique_lock< detail::spinlock > lk( splk_);
-        if ( rqueue_.empty() ) return false;
-        f.swap( rqueue_.front() );
-        rqueue_.pop_front();
-        lk.unlock();
-
+        if ( ! rqueue_.try_pop( f) ) return false;
         if ( f->is_ready() ) break;
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
@@ -223,15 +214,7 @@ fiber
 round_robin::steal_from()
 {
     detail::fiber_base::ptr_t f;
-
-    unique_lock< detail::spinlock > lk( splk_);
-    if ( ! rqueue_.empty() )
-    {
-        f.swap( rqueue_.back() );
-        rqueue_.pop_back();
-    }
-    lk.unlock();
-
+    if ( ! rqueue_.try_pop( f) ) return fiber();
     return fiber( f);
 }
 
