@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/asio/io_service.hpp"
+#include "boost/fiber/asio/round_robin.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -29,13 +29,13 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-io_service::io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT :
-    io_service_( svc),
+round_robin::round_robin( boost::asio::io_service & svc) BOOST_NOEXCEPT :
+    io_svc_( svc),
     active_fiber_(),
     wqueue_()
 {}
 
-io_service::~io_service() BOOST_NOEXCEPT
+round_robin::~round_robin() BOOST_NOEXCEPT
 {
     // fibers will be destroyed (stack-unwinding)
     // if last reference goes out-of-scope
@@ -47,7 +47,7 @@ io_service::~io_service() BOOST_NOEXCEPT
 }
 
 void
-io_service::spawn( detail::fiber_base::ptr_t const& f)
+round_robin::spawn( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -68,18 +68,18 @@ io_service::spawn( detail::fiber_base::ptr_t const& f)
 }
 
 void
-io_service::evaluate_( detail::fiber_base::ptr_t const& f) {
+round_robin::evaluate_( detail::fiber_base::ptr_t const& f) {
     if ( f->is_waiting() )
         wqueue_.push_back(
             schedulable(
                 f,
-                boost::asio::io_service::work( io_service_) ) );
+                boost::asio::io_service::work( io_svc_) ) );
     else if ( f->is_ready() ) spawn( f);
     else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
 }
 
 bool
-io_service::run()
+round_robin::run()
 {
     wqueue_t wqueue;
     // move all fibers witch are ready (state_ready)
@@ -99,23 +99,23 @@ io_service::run()
             f->set_ready();
         if ( f->is_ready() )
         {
-            io_service_.post(
-                boost::bind( & io_service::evaluate_, this, s.f) );
+            io_svc_.post(
+                boost::bind( & round_robin::evaluate_, this, s.f) );
         }
         else wqueue.push_back( s);
     }
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
 
-    return io_service_.poll_one() > 0;
+    return io_svc_.poll_one() > 0;
 }
 
 void
-io_service::wait( unique_lock< detail::spinlock > & lk)
+round_robin::wait( unique_lock< detail::spinlock > & lk)
 { wait_until( clock_type::time_point( (clock_type::duration::max)() ), lk); }
 
 bool
-io_service::wait_until( clock_type::time_point const& timeout_time,
+round_robin::wait_until( clock_type::time_point const& timeout_time,
                         unique_lock< detail::spinlock > & lk)
 {
     clock_type::time_point start( clock_type::now() );
@@ -131,7 +131,7 @@ io_service::wait_until( clock_type::time_point const& timeout_time,
     wqueue_.push_back(
         schedulable(
             active_fiber_, timeout_time,
-            boost::asio::io_service::work( io_service_) ) );
+            boost::asio::io_service::work( io_svc_) ) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend active fiber
@@ -145,7 +145,7 @@ io_service::wait_until( clock_type::time_point const& timeout_time,
 }
 
 void
-io_service::yield()
+round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
@@ -156,7 +156,7 @@ io_service::yield()
     wqueue_.push_back(
         schedulable(
             active_fiber_,
-            boost::asio::io_service::work( io_service_) ) );
+            boost::asio::io_service::work( io_svc_) ) );
     // store active fiber in local var
     detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend acitive fiber
@@ -168,7 +168,7 @@ io_service::yield()
 }
 
 void
-io_service::join( detail::fiber_base::ptr_t const& f)
+round_robin::join( detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != active_fiber_);
@@ -181,7 +181,7 @@ io_service::join( detail::fiber_base::ptr_t const& f)
         wqueue_.push_back(
             schedulable(
                 active_fiber_,
-                boost::asio::io_service::work( io_service_) ) );
+                boost::asio::io_service::work( io_svc_) ) );
         // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
             // f must be already terminated therefore we set
@@ -207,7 +207,7 @@ io_service::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-io_service::priority( detail::fiber_base::ptr_t const& f, int prio)
+round_robin::priority( detail::fiber_base::ptr_t const& f, int prio)
 {
     BOOST_ASSERT( f);
 

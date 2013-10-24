@@ -31,7 +31,7 @@ project boost/fiber
     ;
 
 lib boost_fiber
-    : asio/io_service.cpp
+    : asio/round_robin.cpp
       barrier.cpp
       condition.cpp
       detail/fiber_base.cpp

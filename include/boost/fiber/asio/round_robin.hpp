@@ -1,18 +1,20 @@
 
-//   Copyright Oliver Kowalke, Christopher M. Kohlhoff 2013.
+//   Copyright Christopher M. Kohlhoff, Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_ASIO_IO_SERVICE_HPP
-#define BOOST_FIBERS_ASIO_IO_SERVICE_HPP
+#ifndef BOOST_FIBERS_ASIO_ROUND_ROBIN_HPP
+#define BOOST_FIBERS_ASIO_ROUND_ROBIN_HPP
 
 #include <deque>
+#include <stdexcept>
 #include <utility>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/lock_types.hpp> 
+#include <boost/throw_exception.hpp> 
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -31,7 +33,7 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-class BOOST_FIBERS_DECL io_service : public algorithm
+class BOOST_FIBERS_DECL round_robin : public algorithm
 {
 private:
     struct schedulable
@@ -54,16 +56,16 @@ private:
 
     typedef std::deque< schedulable >                   wqueue_t;
 
-    boost::asio::io_service &   io_service_;
+    boost::asio::io_service &   io_svc_;
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
 
     void evaluate_( detail::fiber_base::ptr_t const&);
 
 public:
-    io_service( boost::asio::io_service & svc) BOOST_NOEXCEPT;
+    round_robin( boost::asio::io_service & svc) BOOST_NOEXCEPT;
 
-    ~io_service() BOOST_NOEXCEPT;
+    ~round_robin() BOOST_NOEXCEPT;
 
     void spawn( detail::fiber_base::ptr_t const&);
 
@@ -81,6 +83,11 @@ public:
                      unique_lock< detail::spinlock > &);
 
     void yield();
+
+    fiber steal_from()
+    { BOOST_THROW_EXCEPTION( std::domain_error("not implemented") ); }
+    void migrate_to( fiber const&)
+    { BOOST_THROW_EXCEPTION( std::domain_error("not implemented") ); }
 };
 
 }}}
@@ -93,4 +100,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_ASIO_IO_SERVICE_HPP
+#endif // BOOST_FIBERS_ASIO_ROUND_ROBIN_HPP

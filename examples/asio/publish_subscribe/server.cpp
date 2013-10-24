@@ -335,7 +335,7 @@ int main( int argc, char* argv[])
     try
     {
         boost::asio::io_service io_service;
-        boost::fibers::asio::io_service ds( io_service);
+        boost::fibers::asio::round_robin ds( io_service);
         boost::fibers::set_scheduling_algorithm( & ds);
 
         registry reg;

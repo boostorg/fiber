@@ -63,7 +63,7 @@ void get_daytime(boost::asio::io_service& io_service, const char* hostname)
 int main( int argc, char* argv[])
 {
     boost::asio::io_service io_service;
-    boost::fibers::asio::io_service ds(io_service);
+    boost::fibers::asio::round_robin ds(io_service);
     boost::fibers::set_scheduling_algorithm( & ds);
     try
     {
