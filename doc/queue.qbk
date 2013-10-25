@@ -201,6 +201,7 @@ that no more values will arrive.]]
 [[Throws:] [Nothing.]]
 [[Note:] [This condition is transient. An `empty()` queue can become
 non-empty.]]
+[[Note:] [Oliver: wouldn't it make sense to have a corresponding `full()` method?]]
 ]
 
 [heading Member function `put()`]
@@ -216,6 +217,7 @@ dequeued.]]
 [[Note:] [Oliver: this signature appears to impose a requirement that T be
 copyable. Would it make sense to support move-only T?]]
 [[Note:] [Oliver: is this an interruption point?]]
+[[Note:] [Oliver: wouldn't it make sense to have a corresponding `try_put()` method?]]
 ]
 
 [heading Member function `take()`]
@@ -226,7 +228,8 @@ copyable. Would it make sense to support move-only T?]]
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
 queue the fiber gets suspended until at least one new item is enqueued (return
 value `true` and va contains dequeued value) or the queue gets deactivated and
-the function returns `false`.]]
+the function returns `false`. Once the number of items remaining in the queue
+drops below `lwm`, any fibers blocked on `put()` may resume.]]
 [[Throws:] [Nothing.]]
 [[Note:] [Oliver: is this an interruption point?]]
 ]
