@@ -7,8 +7,8 @@
 
 [section:promise Template `promise<>`]
 
-A __promise__ provides a mechanism to store a value that can later accessed
-asynchrnous by a future object.
+A __promise__ provides a mechanism to store a value that can later be accessed
+asynchronously by a __future__ object.
 
         template< typename R >
         class promise
@@ -78,9 +78,8 @@ asynchrnous by a future object.
         ~promise();
 
 [variablelist
-[[Effects:] [Destroyes `this` and abandons the shared state if shared state is
-ready; store an __future_error__ with error condition __broken_promise__
-otherwise.]]
+[[Effects:] [Destroys `*this` and abandons the shared state if shared state is
+ready; otherwise stores __future_error__ with error condition __broken_promise__.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -89,7 +88,8 @@ otherwise.]]
         promise & operator=( promise && other) noexcept;
 
 [variablelist
-[[Effects:] [Transfers the ownership of shared state to `this`.]]
+[[Effects:] [Transfers the ownership of shared state to `*this`.]]
+[[Postcondition:] [`other` contains no valid shared state.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -98,7 +98,7 @@ otherwise.]]
         void swap( promise & other) noexcept;
 
 [variablelist
-[[Effects:] [Swaps the shared state between other and `this`.]]
+[[Effects:] [Swaps the shared state between other and `*this`.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -107,7 +107,7 @@ otherwise.]]
         operator safe_bool() const noexcept;
 
 [variablelist
-[[Effects:] [Returns `true` if promise an non-empty shared state.]]
+[[Effects:] [Returns `true` if `*this` contains a non-empty shared state.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -116,7 +116,7 @@ otherwise.]]
         bool operator!() const noexcept;
 
 [variablelist
-[[Effects:] [Returns `true` if promise an empty shared state.]]
+[[Effects:] [Returns `true` if `*this` contains an empty shared state.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -125,7 +125,7 @@ otherwise.]]
         future< R > get_future();
 
 [variablelist
-[[Effects:] [Returns a __future__ with the same shared state.]]
+[[Returns:] [A __future__ with the same shared state.]]
 [[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
 ]
 
