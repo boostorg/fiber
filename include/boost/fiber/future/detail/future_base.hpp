@@ -258,6 +258,9 @@ public:
         return wait_until_( lk, timeout_time);
     }
 
+    void reset()
+    { ready_ = false; }
+
     friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
     { ++p->use_count_; }
 
@@ -446,6 +449,9 @@ public:
         return wait_until_( lk, timeout_time);
     }
 
+    void reset()
+    { ready_ = false; }
+
     friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
     { ++p->use_count_; }
 
@@ -629,6 +635,9 @@ public:
         unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
+
+    void reset()
+    { ready_ = false; }
 
     friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
     { ++p->use_count_; }

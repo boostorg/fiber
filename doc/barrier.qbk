@@ -15,7 +15,7 @@ barrier they must wait until all `n` fibers have arrived. Once the `n`-th
 fiber has reached the barrier, all the waiting fibers can proceed, and the
 barrier is reset.
 
-[section:barrier Class `barrier`]
+[heading Class `barrier`]
 
     #include <boost/fiber/barrier.hpp>
 
@@ -34,7 +34,7 @@ barrier is reset.
 
 Instances of __barrier__ are not copyable or movable.
 
-[section:constructor Constructor]
+[heading Constructor]
 
         barrier( unsigned int initial);
 
@@ -44,9 +44,8 @@ Instances of __barrier__ are not copyable or movable.
 [[Note:] [Oliver: under what conditions does the constructor throw? What makes
 its argument invalid?]]
 ]
-[endsect]
 
-[section:wait Member function `wait()`]
+[heading Member function `wait()`]
 
         bool wait();
 
@@ -59,8 +58,5 @@ the barrier is reset. ]]
 [[Throws:] [__fiber_exception__]]
 [[Note:] [Oliver: is this an interruption point?]]
 ]
-[endsect]
-
-[endsect]
 
 [endsect]

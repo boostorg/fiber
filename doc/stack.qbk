@@ -42,7 +42,7 @@ to `allocate()` results in undefined behaviour.]
 place inside __coro__.]
 
 
-[section:stack_allocator Class ['stack_allocator]]
+[heading Class ['stack_allocator]]
 
 __boost_coroutine__ provides the class __coro_allocator__ which models
 the __stack_allocator_concept__.
@@ -70,31 +70,46 @@ virtual addresses are used.]
             void deallocate( stack_context &);
         }
 
-[heading `static bool is_stack_unbound()`]
+[heading Constructor `static bool is_stack_unbound()`]
+
+            static bool is_stack_unbound();
+
 [variablelist
 [[Returns:] [Returns `true` if the environment defines no limit for the size of a stack.]]
 ]
 
-[heading `static std::size_t maximum_stacksize()`]
+[heading Static member function `static std::size_t maximum_stacksize()`]
+
+            static std::size_t maximum_stacksize();
+
 [variablelist
 [[Preconditions:] [`is_stack_unbound()` returns `false`.]]
 [[Returns:] [Returns the maximum size in bytes of stack defined by the environment.]]
 ]
 
-[heading `static std::size_t default_stacksize()`]
+[heading Static member function `static std::size_t default_stacksize()`]
+
+            static std::size_t default_stacksize();
+
 [variablelist
 [[Returns:] [Returns a default stack size, which may be platform specific. If
 `is_stack_unbound()` returns `true` then the present implementation returns
 the maximum of `64 kB` and `minimum_stacksize()`.]]
 ]
 
-[heading `static std::size_t minimum_stacksize()`]
+[heading Static member function `static std::size_t minimum_stacksize()`]
+
+            static std::size_t minimum_stacksize();
+
 [variablelist
 [[Returns:] [Returns the minimum size in bytes of stack required by the
 environment: Win32 4kB, Win64 8kB, defined by rlimit on POSIX.]]
 ]
 
-[heading `void allocate( stack_context & sctx, std::size_t size)`]
+[heading Member function `void allocate()`]
+
+            void allocate( stack_context &, std::size_t size);
+
 [variablelist
 [[Preconditions:] [`minimum_stacksize() > size` and
 `! is_stack_unbound() && ( maximum_stacksize() < size)`.]]
@@ -106,7 +121,10 @@ on the architecture (stack grows downwards vs. upwards), the stored address is
 the highest/lowest address of the stack.]]
 ]
 
-[heading `void deallocate( stack_context & sctx)`]
+[heading Member function `void deallocate()`]
+
+            void deallocate( stack_context &);
+
 [variablelist
 [[Preconditions:] [`sctx.sp` is valid, `minimum_stacksize() > sctx.size` and
 `! is_stack_unbound() && ( maximum_stacksize() < size)`.]]
@@ -116,10 +134,8 @@ have been set by a previous call to `allocate()` since it was most recently
 passed to `deallocate()` ?]]
 ]
 
-[endsect]
 
-
-[section:stack_context Class ['stack_context]]
+[heading Class ['stack_context]]
 
 __boost_coroutine__ provides the class __stack_context__ which will contain
 the stack pointer and the size of the stack.
@@ -135,22 +151,20 @@ structures.
             // for instance for segmented stacks
         }
 
-[heading `void * sp`]
+[heading Member variable `void * sp`]
 [variablelist
 [[Value:] [Pointer to the beginning of the stack.]]
 [[Note:] [Whether the "beginning" of the stack is its lowest address or its
 highest address is architecture-dependent.]]
 ]
 
-[heading `std::size_t size`]
+[heading Member variable `std::size_t size`]
 [variablelist
 [[Value:] [Actual size of the stack, in bytes.]]
 ]
 
-[endsect]
 
-
-[section:segmented_stack Segmented stacks]
+[heading Segmented stacks]
 
 __boost_fiber__ supports use of a __segmented_stack__, whose size
 grows on demand. The fiber is created with a minimal stack size, which
@@ -160,7 +174,5 @@ Segmented stacks are currently only supported by [*gcc] from version [*4.7]
 onwards. In order to use a __segmented_stack__, __boost_fiber__ must be built
 with [*toolset=gcc segmented-stacks=on] at b2/bjam command-line. Applications
 must be compiled with compiler-flags [*-fsplit-stack -DBOOST_USE_SEGMENTED_STACKS].
-
-[endsect]
 
 [endsect]

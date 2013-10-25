@@ -24,12 +24,7 @@ namespace fibers {
 
 void
 fiber::start_fiber_()
-{
-    detail::scheduler::instance()->spawn( impl_);
-    // check if joined fiber was interrupted
-    if ( impl_->has_exception() )
-        impl_->rethrow();
-}
+{ detail::scheduler::instance()->spawn( impl_); }
 
 int
 fiber::priority() const BOOST_NOEXCEPT

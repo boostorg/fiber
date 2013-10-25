@@ -72,7 +72,7 @@ waiting fiber or all the waiting fibers respectively.
 Note that the same mutex is locked before the shared data is updated, but that
 the mutex does not have to be locked across the call to `notify_one`.
 
-[section:condition_variable Class `condition_variable`]
+[heading Class `condition_variable`]
 
     #include <boost/fiber/condition.hpp>
 
@@ -115,7 +115,7 @@ the mutex does not have to be locked across the call to `notify_one`.
 
     typedef condition_variable condition_variable_any;
 
-[section:constructor Constructor]
+[heading Constructor]
 
         condition_variable()
 
@@ -123,9 +123,8 @@ the mutex does not have to be locked across the call to `notify_one`.
 [[Effects:] [Creates the object.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:destructor Destructor]
+[heading Destructor]
 
         ~condition_variable()
 
@@ -138,9 +137,8 @@ the mutex does not have to be locked across the call to `notify_one`.
 [[Note:][Oliver: what can we expect if one or more of the fibers waiting on
 `*this` have not yet been notified? They go into limbo?]]
 ]
-[endsect]
 
-[section:notify_one Member function `notify_one()`]
+[heading Member function `notify_one()`]
 
         void notify_one();
 
@@ -150,9 +148,8 @@ call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 [[Throws:] [Nothing.]]
 [[Note:] [It is arbitrary which waiting fiber is resumed.]]
 ]
-[endsect]
 
-[section:notify_all Member function `notify_all()`]
+[heading Member function `notify_all()`]
 
         void notify_all();
 
@@ -166,9 +163,8 @@ retry the wait until that state is reached. A fiber waiting on a
 `condition_variable` might well wake up a number of times before the desired
 state is reached.]]
 ]
-[endsect]
 
-[section:wait Templated member function `wait()`]
+[heading Templated member function `wait()`]
 
         template< typename LockType >
         void wait( LockType & lk);
@@ -202,10 +198,9 @@ execution.]]
 [[Note:] [Oliver: What does the Precondition mean? I can provide an
 explanation once I understand it myself, but I do not yet understand it.]]
 ]
-[endsect]
 
 
-[section:wait_until Templated member function `wait_until()`]
+[heading Templated member function `wait_until()`]
 
         template< typename LockType >
         cv_status wait_until( LockType & lt, clock_type::time_point const& timeout_time);
@@ -243,10 +238,9 @@ execution.]]
 `timeout_time` was reached, `true` otherwise.]]
 [[Note:] [Oliver: but that disagrees with the example above?]]
 ]
-[endsect]
 
 
-[section:wait_for Templated member function `wait_for()`]
+[heading Templated member function `wait_for()`]
 
         template< typename LockType, typename Rep, typename Period >
         cv_status wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration);
@@ -284,8 +278,5 @@ execution.]]
 `timeout_time` was reached, `true` otherwise.]]
 [[Note:] [Oliver: but that disagrees with the example above?]]
 ]
-[endsect]
-
-[endsect]
 
 [endsect]

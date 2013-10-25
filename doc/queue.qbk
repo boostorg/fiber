@@ -33,7 +33,7 @@ synchonize fibers via message passing.
     f1.join();
     f2.join();
 
-[section:unbounded_queue Template `unbounded_queue`]
+[heading Template `unbounded_queue<>`]
 
     #include <boost/fiber/unbounded_queue.hpp>
 
@@ -57,7 +57,7 @@ synchonize fibers via message passing.
         bool try_take( boost::optional< T > & va);
     };
 
-[section:active Member function `active()`]
+[heading Member function `active()`]
 
         bool active() const;
 
@@ -66,9 +66,8 @@ synchonize fibers via message passing.
 [[Throws:] [Nothing.]]
 [[Note:] [The queue is usable by default.]]
 ]
-[endsect]
 
-[section:deactivate Member function `deactivate()`]
+[heading Member function `deactivate()`]
 
         void deactivate();
 
@@ -79,9 +78,8 @@ synchonize fibers via message passing.
 [[Note:] [`deactivate()` is like closing a pipe. It informs waiting receivers
 that no more values will arrive.]]
 ]
-[endsect]
 
-[section:empty Member function `empty()`]
+[heading Member function `empty()`]
 
         bool empty();
 
@@ -91,9 +89,8 @@ that no more values will arrive.]]
 [[Note:] [This condition is transient. An `empty()` queue can become
 non-empty.]]
 ]
-[endsect]
 
-[section:put Member function `put()`]
+[heading Member function `put()`]
 
         void put( T const& t);
 
@@ -104,9 +101,8 @@ for new data available from the queue.]]
 [[Note:] [Oliver: this signature appears to impose a requirement that T be
 copyable. Would it make sense to support move-only T?]]
 ]
-[endsect]
 
-[section:take Member function `take()`]
+[heading Member function `take()`]
 
         bool take( boost::optional< T > & va);
 
@@ -118,9 +114,8 @@ the function returns `false`.]]
 [[Throws:] [Nothing.]]
 [[Note:] [Oliver: is this an interruption point?]]
 ]
-[endsect]
 
-[section:try_take Member function `try_take()`]
+[heading Member function `try_take()`]
 
         bool try_take( boost::optional< T > & va);
 
@@ -132,12 +127,9 @@ the queue at this moment, the function returns `false`. Otherwise it returns
 [[Note:] [A return value of `false` does not distinguish between `empty()` and
 `(! active())`.]]
 ]
-[endsect]
-
-[endsect]
 
 
-[section:bounded_queue Template `bounded_queue`]
+[heading Template `bounded_queue<>`]
 
     #include <boost/fiber/bounded_queue.hpp>
 
@@ -165,7 +157,7 @@ the queue at this moment, the function returns `false`. Otherwise it returns
         bool try_take( boost::optional< T > & va);
     };
 
-[section:constructor Constructor]
+[heading Constructor]
 
         bounded_queue( std::size_t wm);
         bounded_queue( std::size_t hwm, std::size_t lwm);
@@ -177,9 +169,8 @@ of class `bounded_queue` which will contain a high-watermark of `hwm` and a
 low-watermark of `lwm` items.]]
 [[Throws:] [Nothing.]]
 ]
-[endsect]
 
-[section:active Member function `active()`]
+[heading Member function `active()`]
 
         bool active() const;
 
@@ -188,9 +179,8 @@ low-watermark of `lwm` items.]]
 [[Throws:] [Nothing.]]
 [[Note:] [The queue is usable by default.]]
 ]
-[endsect]
 
-[section:deactivate Member function `deactivate()`]
+[heading Member function `deactivate()`]
 
         void deactivate();
 
@@ -201,9 +191,8 @@ low-watermark of `lwm` items.]]
 [[Note:] [`deactivate()` is like closing a pipe. It informs waiting receivers
 that no more values will arrive.]]
 ]
-[endsect]
 
-[section:empty Member function `empty()`]
+[heading Member function `empty()`]
 
         bool empty();
 
@@ -213,9 +202,8 @@ that no more values will arrive.]]
 [[Note:] [This condition is transient. An `empty()` queue can become
 non-empty.]]
 ]
-[endsect]
 
-[section:put Member function `put()`]
+[heading Member function `put()`]
 
         void put( T const& t);
 
@@ -229,9 +217,8 @@ dequeued.]]
 copyable. Would it make sense to support move-only T?]]
 [[Note:] [Oliver: is this an interruption point?]]
 ]
-[endsect]
 
-[section:take Member function `take()`]
+[heading Member function `take()`]
 
         bool take( boost::optional< T > & va);
 
@@ -243,9 +230,8 @@ the function returns `false`.]]
 [[Throws:] [Nothing.]]
 [[Note:] [Oliver: is this an interruption point?]]
 ]
-[endsect]
 
-[section:try_take Member function `try_take()`]
+[heading Member function `try_take()`]
 
         bool try_take( boost::optional< T > & va);
 
@@ -257,8 +243,5 @@ the queue at this moment, the function returns `false`. Otherwise it returns
 [[Note:] [A return value of `false` does not distinguish between `empty()` and
 `(! active())`.]]
 ]
-[endsect]
-
-[endsect]
 
 [endsect]

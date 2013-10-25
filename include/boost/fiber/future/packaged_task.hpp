@@ -333,7 +333,8 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 packaged_task_uninitialized() );
-        task_.reset();
+        obtained_ = false;
+        task_->reset();
     }
 };
 
@@ -664,7 +665,8 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 packaged_task_uninitialized() );
-        task_.reset();
+        obtained_ = false;
+        task_->reset();
     }
 };
 

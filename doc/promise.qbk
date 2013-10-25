@@ -1,0 +1,151 @@
+[/
+          Copyright Oliver Kowalke 2013.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:promise Template `promise<>`]
+
+A __promise__ provides a mechanism to store a value that can later accessed
+asynchrnous by a future object.
+
+        template< typename R >
+        class promise
+        {
+        public:
+            promise();
+
+            template< typename Allocator >
+            promise( boost::allocator_arg_t, Allocator alloc);
+
+            promise( promise && other) noexcept;
+
+            promise( promise const& other) = delete;
+
+            ~promise();
+
+            promise & operator=( promise && other) noexcept;
+
+            promise & operator=( promise const& other) = delete;
+
+            void swap( promise & other) noexcept;
+
+            operator safe_bool() const noexcept;
+
+            bool operator!() const noexcept;
+
+            future< R > get_future();
+
+            void set_value( R const& value);
+
+            void set_value( R && value);
+
+            void set_exception( exception_ptr p);
+        };
+
+[heading Default constructor]
+
+        promise();
+
+[variablelist
+[[Effects:] [Creates a promise with an empty shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Constructor]
+
+        template< typename Allocator >
+        promise( boost::allocator_arg_t, Allocator alloc);
+
+[variablelist
+[[Effects:] [Creates a promise with an empty shared state by using `alloc`.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Move constructor]
+
+        promise( promise && other) noexcept;
+
+[variablelist
+[[Effects:] [Creates a promise by moving the shared state from `other`.]]
+[[Postcondition:] [`other` contains no valid shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Destructor]
+
+        ~promise();
+
+[variablelist
+[[Effects:] [Destroyes `this` and abandons the shared state if shared state is
+ready; store an __future_error__ with error condition __broken_promise__
+otherwise.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `operator=()`]
+
+        promise & operator=( promise && other) noexcept;
+
+[variablelist
+[[Effects:] [Transfers the ownership of shared state to `this`.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `swap()`]
+
+        void swap( promise & other) noexcept;
+
+[variablelist
+[[Effects:] [Swaps the shared state between other and `this`.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `operator safe_bool()`]
+
+        operator safe_bool() const noexcept;
+
+[variablelist
+[[Effects:] [Returns `true` if promise an non-empty shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `operator!()`]
+
+        bool operator!() const noexcept;
+
+[variablelist
+[[Effects:] [Returns `true` if promise an empty shared state.]]
+[[Throws:] [Nothing.]]
+]
+
+[heading Member function `get_future()`]
+
+        future< R > get_future();
+
+[variablelist
+[[Effects:] [Returns a __future__ with the same shared state.]]
+[[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
+]
+
+[heading Member function `set_value()`]
+
+        void set_value( R const& value);
+        void set_value( R && value);
+
+[variablelist
+[[Effects:] [Store the result in the shared state and marks the state as ready.]]
+[[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
+]
+
+[heading Member function `set_exception()`]
+
+        void set_exception( exception_ptr);
+
+[variablelist
+[[Effects:] [Store an exception pointer in the shared state and marks the state as ready.]]
+[[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
+]
+
+[endsect]

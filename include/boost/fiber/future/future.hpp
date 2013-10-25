@@ -85,7 +85,7 @@ public:
         return * this;
     }
 #else
-    future( BOOST_RV_REF( future) other) BOOST_NOEXCEPT :
+    future( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT :
         future_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
@@ -93,7 +93,7 @@ public:
         swap( other);
     }
 
-    future & operator=( BOOST_RV_REF( future) other) BOOST_NOEXCEPT
+    future & operator=( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
@@ -233,7 +233,7 @@ public:
         return * this;
     }
 #else
-    future( BOOST_RV_REF( future) other) BOOST_NOEXCEPT :
+    future( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT :
         future_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
@@ -241,7 +241,7 @@ public:
         swap( other);
     }
 
-    future & operator=( BOOST_RV_REF( future) other) BOOST_NOEXCEPT
+    future & operator=( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
@@ -381,7 +381,7 @@ public:
         return * this;
     }
 #else
-    future( BOOST_RV_REF( future) other) BOOST_NOEXCEPT :
+    future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
         future_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
@@ -389,7 +389,7 @@ public:
         swap( other);
     }
 
-    future & operator=( BOOST_RV_REF( future) other) BOOST_NOEXCEPT
+    future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
@@ -582,6 +582,14 @@ public:
         return * this;
     }
 
+    shared_future & operator=( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT
+    {
+        //TODO:
+        shared_future tmp( other);
+        swap( tmp);
+        return * this;
+    }
+
     void swap( shared_future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
@@ -756,6 +764,14 @@ public:
         return * this;
     }
 
+    shared_future & operator=( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT
+    {
+        //TODO:
+        shared_future tmp( other);
+        swap( tmp);
+        return * this;
+    }
+
     void swap( shared_future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
@@ -923,6 +939,14 @@ public:
 #endif
 
     shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
+    {
+        //TODO:
+        shared_future tmp( other);
+        swap( tmp);
+        return * this;
+    }
+
+    shared_future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
     {
         //TODO:
         shared_future tmp( other);
