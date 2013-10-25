@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DEFAULT_SCHEDULER_H
-#define BOOST_FIBERS_DEFAULT_SCHEDULER_H
+#ifndef BOOST_FIBERS_DEFAULT_SCHEDULER_WS_H
+#define BOOST_FIBERS_DEFAULT_SCHEDULER_WS_H
 
 #include <deque>
 
@@ -20,6 +20,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/ws_queue.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -34,7 +35,7 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL round_robin : public algorithm
+class BOOST_FIBERS_DECL round_robin_ws : public algorithm
 {
 private:
     struct schedulable
@@ -50,16 +51,15 @@ private:
     };
 
     typedef std::deque< schedulable >                   wqueue_t;
-    typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
 
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
-    rqueue_t                    rqueue_;
+    detail::ws_queue            rqueue_;
 
 public:
-    round_robin() BOOST_NOEXCEPT;
+    round_robin_ws() BOOST_NOEXCEPT;
 
-    ~round_robin() BOOST_NOEXCEPT;
+    ~round_robin_ws() BOOST_NOEXCEPT;
 
     void spawn( detail::fiber_base::ptr_t const&);
 
@@ -77,6 +77,9 @@ public:
                      unique_lock< detail::spinlock > &);
 
     void yield();
+
+    fiber steal_from();
+    void migrate_to( fiber const&);
 };
 
 }}
@@ -89,4 +92,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DEFAULT_SCHEDULER_H
+#endif // BOOST_FIBERS_DEFAULT_SCHEDULER_WS_H

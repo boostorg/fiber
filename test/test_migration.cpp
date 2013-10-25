@@ -21,7 +21,7 @@
 #include <sstream>
 
 boost::atomic< bool > fini( false);
-boost::fibers::algorithm * other_ds = 0;
+boost::fibers::round_robin_ws * other_ds = 0;
 
 boost::fibers::future< int > fibonacci( int);
 
@@ -55,7 +55,7 @@ int create_fiber( int n)
     return fibonacci( n).get();
 }
 
-void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b)
+void fn_create_fibers( boost::fibers::round_robin_ws * ds, boost::barrier * b)
 {
     boost::fibers::set_scheduling_algorithm( ds);
 
@@ -68,10 +68,10 @@ void fn_create_fibers( boost::fibers::round_robin * ds, boost::barrier * b)
     fini = true;
 }
 
-void fn_migrate_fibers( boost::fibers::round_robin * other_ds, boost::barrier * b, int * count)
+void fn_migrate_fibers( boost::fibers::round_robin_ws * other_ds, boost::barrier * b, int * count)
 {
     BOOST_ASSERT( other_ds);
-    boost::fibers::round_robin ds;
+    boost::fibers::round_robin_ws ds;
     boost::fibers::set_scheduling_algorithm( & ds);
 
     b->wait();
@@ -97,7 +97,7 @@ void test_migrate_fiber()
         fini = false;
         int count = 0;
 
-        boost::fibers::round_robin * ds = new boost::fibers::round_robin();
+        boost::fibers::round_robin_ws * ds = new boost::fibers::round_robin_ws();
         boost::barrier b( 2);
         boost::thread t1( boost::bind( fn_create_fibers, ds, &b) );
         boost::thread t2( boost::bind( fn_migrate_fibers, ds, &b, &count) );

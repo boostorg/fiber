@@ -51,9 +51,6 @@ struct algorithm : private noncopyable
     virtual void yield() = 0;
 
     virtual ~algorithm() {}
-
-    virtual fiber steal_from() = 0;
-    virtual void migrate_to( fiber const&) = 0;
 };
 
 }}

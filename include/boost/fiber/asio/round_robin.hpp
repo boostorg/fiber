@@ -8,13 +8,11 @@
 #define BOOST_FIBERS_ASIO_ROUND_ROBIN_HPP
 
 #include <deque>
-#include <stdexcept>
 #include <utility>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/lock_types.hpp> 
-#include <boost/throw_exception.hpp> 
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -83,11 +81,6 @@ public:
                      unique_lock< detail::spinlock > &);
 
     void yield();
-
-    fiber steal_from()
-    { BOOST_THROW_EXCEPTION( std::domain_error("not implemented") ); }
-    void migrate_to( fiber const&)
-    { BOOST_THROW_EXCEPTION( std::domain_error("not implemented") ); }
 };
 
 }}}
