@@ -7,11 +7,11 @@
 
 [section:asio Asynchronous network I/O (boost.asio)]
 
-In the past the code using asio's ['asynchronous operations] was scattered by
+In the past, code using asio's ['asynchronous operations] was scattered by
 callbacks.
 __boost_asio__ provides with its new ['asynchronous result] feature a new way to
 simplify the code and make it easier to read.
-__yield_context__ uses internally __boost_coroutine__:
+__yield_context__ internally uses __boost_coroutine__:
 
         void echo(boost::asio::ip::tcp::socket& socket,boost::asio::yield_context yield){
             char data[128];
@@ -27,15 +27,14 @@ Unfortunately __boost_coroutine__ (__yield_context__) does not provide primitive
 to synchronize different coroutines (execution contexts).
 
 __boost_fiber__ provides an integration of __fibers__ into __boost_asio__ so
-that ['asynchronous operations] form __boost_asio__ can be used together with
-fibers which could be synchronized by primitives provided by __boost_fiber__.
+that ['asynchronous operations] from __boost_asio__ can be used together with
+fibers, synchronized by primitives provided by __boost_fiber__.
 
-The example section contains an complete publisher-subscriber application
-demonstrating the usage of fibers together with asio's ['asynchronous
-operations].
+The example section contains a complete publish-subscribe application
+demonstrating the use of fibers with asio's ['asynchronous operations].
 __yield_fiber__ abstracts the fiber in asio's context.
 
-        void subscriber::run( boost::fibers::asio::yield_context yield)
+        void subscriber::run( boost::fibers::asio::yield_fiber yield)
         {
             boost::system::error_code ec;
 
@@ -59,6 +58,7 @@ __yield_fiber__ abstracts the fiber in asio's context.
                 cond_.wait( lk);
 
                 // '<fini>' terminates subscriber
+                // Oliver: where is data_ declared?
                 if ( "<fini>" == std::string( data_) ) break;
 
                 // write message asynchronously to subscriber
@@ -74,24 +74,23 @@ __yield_fiber__ abstracts the fiber in asio's context.
 [heading C10K problem]
 
 The C10K-website [footnote [@http://www.kegel.com/c10k.html 'The C10K problem',
-Dan Kegel]].
+Dan Kegel]]
 from Dan Kegel describes the problem of handling ten thousand clients
 simultaneously and which strategies are possible.
 
 __boost_fiber__ and __boost_asio__ support the strategy 'serve many clients with
-each server thread, and use asynchronous I/O' without scattering the code with 
-many callbacks (as it was asios's previous strategy) and overloading the
-operating system with too many threads (at a certain amount of threads the
-kernel scheduler spends too much time for scheduling threads).
+each server thread, and use asynchronous I/O' without scattering the logic across
+many callbacks (as was asio's previous strategy) and overloading the
+operating system with too many threads. (Beyond a certain number of threads, the
+overhead of the kernel scheduler starts to swamp the available cores.)
 
-Because __boost_fiber__ contains synchronization primitives it is easy to
-synchronize different fibers and using asynchronous network I/O at the same
+Because __boost_fiber__ contains synchronization primitives, it is easy to
+synchronize different fibers and use asynchronous network I/O at the same
 time.
 
-__boost_fiber__ provides the same classes and interfaces as __boost_thread__ 
-therefore developers are able to use patterns of multi threaded programming
-(they are familiar with) in their code. For instance the strategy 'serve one
-client with one thread' could be transformed into 'serve one client with one
-fiber'.
+__boost_fiber__ provides the same classes and interfaces as __boost_thread__.
+Therefore developers are able to use patterns familiar from multi-threaded
+programming. For instance the strategy 'serve one client with one thread'
+could be transformed into 'serve one client with one fiber'.
 
 [endsect]

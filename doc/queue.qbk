@@ -64,6 +64,7 @@ synchonize fibers via message passing.
 [variablelist
 [[Effects:] [Return `true` if queue is still usable.]]
 [[Throws:] [Nothing.]]
+[[Note:] [The queue is usable by default.]]
 ]
 [endsect]
 
@@ -73,8 +74,10 @@ synchonize fibers via message passing.
 
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
-`this->deactivate`. Strata blocked in `this->take()` will return.]]
+`this->deactivate`. Fibers blocked in `this->take()` will return.]]
 [[Throws:] [Nothing.]]
+[[Note:] [`deactivate()` is like closing a pipe. It informs waiting receivers
+that no more values will arrive.]]
 ]
 [endsect]
 
@@ -85,6 +88,8 @@ synchonize fibers via message passing.
 [variablelist
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
+[[Note:] [This condition is transient. An `empty()` queue can become
+non-empty.]]
 ]
 [endsect]
 
@@ -96,6 +101,8 @@ synchonize fibers via message passing.
 [[Effects:] [Enqueues the value in the queue and wakes up a fiber waiting
 for new data available from the queue.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Oliver: this signature appears to impose a requirement that T be
+copyable. Would it make sense to support move-only T?]]
 ]
 [endsect]
 
@@ -105,10 +112,11 @@ for new data available from the queue.]]
 
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
-queue the fiber gets suspended until new data are enqueued (return value
-`true` and va contains dequeued value) or the queue gets deactiveted and the
-function returns `false`.]]
+queue the fiber gets suspended until at least one new item is enqueued (return
+value `true` and va contains dequeued value) or the queue gets deactivated and
+the function returns `false`.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Oliver: is this an interruption point?]]
 ]
 [endsect]
 
@@ -117,10 +125,12 @@ function returns `false`.]]
         bool try_take( boost::optional< T > & va);
 
 [variablelist
-[[Effects:] [Dequeues a value from the queue. If no data is available from the
-queue the function returns `false`. Otherwise it returns `true` and `va`
-contains the dequed value.]]
+[[Effects:] [Dequeues a value from the queue. If no data can be retrieved from
+the queue at this moment, the function returns `false`. Otherwise it returns
+`true` and `va` contains the dequeued value.]]
 [[Throws:] [Nothing.]]
+[[Note:] [A return value of `false` does not distinguish between `empty()` and
+`(! active())`.]]
 ]
 [endsect]
 
@@ -176,6 +186,7 @@ low-watermark of `lwm` items.]]
 [variablelist
 [[Effects:] [Return `true` if queue is still usable.]]
 [[Throws:] [Nothing.]]
+[[Note:] [The queue is usable by default.]]
 ]
 [endsect]
 
@@ -185,8 +196,10 @@ low-watermark of `lwm` items.]]
 
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
-`this->deactivate`. Strata blocked in `this->take()` will return.]]
+`this->deactivate`. Fibers blocked in `this->take()` will return.]]
 [[Throws:] [Nothing.]]
+[[Note:] [`deactivate()` is like closing a pipe. It informs waiting receivers
+that no more values will arrive.]]
 ]
 [endsect]
 
@@ -197,6 +210,8 @@ low-watermark of `lwm` items.]]
 [variablelist
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
+[[Note:] [This condition is transient. An `empty()` queue can become
+non-empty.]]
 ]
 [endsect]
 
@@ -206,23 +221,27 @@ low-watermark of `lwm` items.]]
 
 [variablelist
 [[Effects:] [Enqueues the value in the queue and wakes up a fiber waiting
-for new data available from the queue. If the watermark has reached the
-fiber putting the value will be supended until at least one item was
+for new data available from the queue. When the high water mark is reached, the
+fiber putting the value will be supended until at least one item is
 dequeued.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Oliver: this signature appears to impose a requirement that T be
+copyable. Would it make sense to support move-only T?]]
+[[Note:] [Oliver: is this an interruption point?]]
 ]
 [endsect]
 
-[section:take Member fucntion `take()`]
+[section:take Member function `take()`]
 
         bool take( boost::optional< T > & va);
 
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If no data is available from the
-queue the fiber gets suspended until new data are enqueued (return value
-`true` and va contains dequeued value) or the queue gets deactiveted and the
-function returns `false`.]]
+queue the fiber gets suspended until at least one new item is enqueued (return
+value `true` and va contains dequeued value) or the queue gets deactivated and
+the function returns `false`.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Oliver: is this an interruption point?]]
 ]
 [endsect]
 
@@ -231,10 +250,12 @@ function returns `false`.]]
         bool try_take( boost::optional< T > & va);
 
 [variablelist
-[[Effects:] [Dequeues a value from the queue. If no data is available from the
-queue the function returns `false`. Otherwise it returns `true` and `va`
-contains the dequed value.]]
+[[Effects:] [Dequeues a value from the queue. If no data can be retrieved from
+the queue at this moment, the function returns `false`. Otherwise it returns
+`true` and `va` contains the dequeued value.]]
 [[Throws:] [Nothing.]]
+[[Note:] [A return value of `false` does not distinguish between `empty()` and
+`(! active())`.]]
 ]
 [endsect]
 
