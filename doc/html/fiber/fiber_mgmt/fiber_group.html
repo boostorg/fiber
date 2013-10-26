@@ -1,0 +1,371 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Class fiber_group</title>
+<link rel="stylesheet" href="../../../../../../doc/src/boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="up" href="../fiber_mgmt.html" title="Fiber management">
+<link rel="prev" href="fiber.html" title="Class fiber">
+<link rel="next" href="attributes.html" title="Class attributes">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="fiber.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="attributes.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section fiber_fiber_mgmt_fiber_group">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="fiber.fiber_mgmt.fiber_group"></a><a class="link" href="fiber_group.html" title="Class fiber_group">Class <code class="computeroutput"><span class="identifier">fiber_group</span></code></a>
+</h3></div></div></div>
+<p>
+        <code class="computeroutput"><span class="identifier">fiber_group</span></code> represents a
+        collection of fibers which can be collectively waited on or interrupted.
+        <code class="computeroutput"><span class="identifier">fiber_group</span></code> is neither copyable
+        nor movable.
+      </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fiber_group</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">class</span> <span class="identifier">fiber_group</span>
+<span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">fiber_group</span><span class="special">()</span> <span class="special">{}</span>
+
+    <span class="special">~</span><span class="identifier">fiber_group</span><span class="special">();</span>
+
+    <span class="identifier">fiber_group</span><span class="special">(</span> <span class="identifier">fiber_group</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+    <span class="identifier">fiber_group</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber_group</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+    <span class="keyword">bool</span> <span class="identifier">is_this_fiber_in</span><span class="special">();</span>
+
+    <span class="keyword">bool</span> <span class="identifier">is_fiber_in</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
+    <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">create_fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="identifier">attrs</span> <span class="special">=</span> <span class="identifier">attributes</span><span class="special">()</span> <span class="special">);</span>
+
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span> <span class="special">&gt;</span>
+    <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">create_fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="identifier">attrs</span><span class="special">,</span>
+                          <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">);</span>
+
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
+    <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">create_fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="identifier">attrs</span><span class="special">,</span>
+                          <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">,</span>
+                          <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">);</span>
+
+    <span class="keyword">void</span> <span class="identifier">add_fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+
+    <span class="keyword">void</span> <span class="identifier">remove_fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+
+    <span class="keyword">void</span> <span class="identifier">join_all</span><span class="special">();</span>
+
+    <span class="keyword">void</span> <span class="identifier">interrupt_all</span><span class="special">();</span>
+
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h0"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.constructor"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.constructor">Constructor</a>
+      </h5>
+<pre class="programlisting"><span class="identifier">fiber_group</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Create a new fiber group with no fibers.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h1"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.destructor"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.destructor">Destructor</a>
+      </h5>
+<pre class="programlisting"><span class="special">~</span><span class="identifier">fiber_group</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Destroy <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              and <code class="computeroutput"><span class="keyword">delete</span></code> all <code class="computeroutput"><span class="identifier">fiber</span></code> objects in the group.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: you don't <code class="computeroutput"><span class="keyword">delete</span></code>
+              a <code class="computeroutput"><span class="identifier">fiber</span></code> object, you
+              <code class="computeroutput"><span class="keyword">delete</span></code> a <code class="computeroutput"><span class="identifier">fiber</span><span class="special">*</span></code>.
+              Maybe something like: "Destroy <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> and all <code class="computeroutput"><span class="identifier">fiber</span></code>
+              objects in the group." ?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h2"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__create_fiber__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__create_fiber__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">create_fiber</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
+<span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">create_fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="identifier">attrs</span> <span class="special">=</span> <span class="identifier">attributes</span><span class="special">()</span> <span class="special">);</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span> <span class="special">&gt;</span>
+<span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">create_fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="identifier">attrs</span><span class="special">,</span>
+                      <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">);</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
+<span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">create_fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="identifier">attrs</span><span class="special">,</span>
+                      <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">,</span>
+                      <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Create a new <code class="computeroutput"><span class="identifier">fiber</span></code>
+              object as-if by <code class="computeroutput"><span class="keyword">new</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">fn</span><span class="special">)</span></code> and add it to the group.
+            </p></dd>
+<dt><span class="term">Postcondition:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">size</span><span class="special">()</span></code>
+              is increased by one, the new fiber is running.
+            </p></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              A pointer to the new <code class="computeroutput"><span class="identifier">fiber</span></code>
+              object.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h3"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__add_fiber__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__add_fiber__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">add_fiber</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">add_fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The expression <code class="computeroutput"><span class="keyword">delete</span> <span class="identifier">f</span></code> is well-formed and will not result
+              in undefined behaviour and <code class="computeroutput"><span class="identifier">is_fiber_in</span><span class="special">(</span><span class="identifier">f</span><span class="special">)</span> <span class="special">==</span> <span class="keyword">false</span></code>.
+            </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Take ownership of the <code class="computeroutput"><span class="identifier">fiber</span></code>
+              object pointed to by <code class="computeroutput"><span class="identifier">f</span></code>
+              and add it to the group.
+            </p></dd>
+<dt><span class="term">Postcondition:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">size</span><span class="special">()</span></code>
+              is increased by one.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: What does "take ownership" mean here? Does it mean
+              that fiber_group will eventually delete the fiber*, or does it mean
+              that *f has become not-a-fiber? Why not <code class="computeroutput"><span class="identifier">add_fiber</span><span class="special">(</span><span class="identifier">fiber</span><span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span></code>, moving a <code class="computeroutput"><span class="identifier">fiber</span></code>
+              into the group?
+            </p></dd>
+</dl>
+</div>
+<p>
+        Oliver: I'm bothered by this scenario:
+      </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_group</span> <span class="identifier">fg</span><span class="special">;</span>
+<span class="special">{</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f</span><span class="special">(</span><span class="identifier">somefunc</span><span class="special">);</span>
+    <span class="identifier">fg</span><span class="special">.</span><span class="identifier">add_fiber</span><span class="special">(&amp;</span><span class="identifier">f</span><span class="special">);</span>
+<span class="special">}</span> <span class="comment">// std::terminate()!</span>
+</pre>
+<p>
+        Apparently we would need something more like:
+      </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_group</span> <span class="identifier">fg</span><span class="special">;</span>
+<span class="special">{</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f</span><span class="special">(</span><span class="identifier">somefunc</span><span class="special">);</span>
+    <span class="identifier">fg</span><span class="special">.</span><span class="identifier">add_fiber</span><span class="special">(&amp;</span><span class="identifier">f</span><span class="special">);</span>
+    <span class="identifier">f</span><span class="special">.</span><span class="identifier">detach</span><span class="special">();</span>
+<span class="special">}</span> <span class="comment">// okay?</span>
+</pre>
+<p>
+        But that doesn't seem very intuitive. I would rather see:
+      </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_group</span> <span class="identifier">fg</span><span class="special">;</span>
+<span class="special">{</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f</span><span class="special">(</span><span class="identifier">somefunc</span><span class="special">);</span>
+    <span class="identifier">fg</span><span class="special">.</span><span class="identifier">add_fiber</span><span class="special">(</span><span class="identifier">f</span><span class="special">);</span>
+    <span class="comment">// f is now not-a-fiber</span>
+<span class="special">}</span> <span class="comment">// okay</span>
+</pre>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h4"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__remove_fiber__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__remove_fiber__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">remove_fiber</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">remove_fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              If <code class="computeroutput"><span class="identifier">f</span></code> is a member of
+              the group, remove it without calling <code class="computeroutput"><span class="keyword">delete</span></code>.
+            </p></dd>
+<dt><span class="term">Postcondition:</span></dt>
+<dd><p>
+              If <code class="computeroutput"><span class="identifier">f</span></code> was a member of
+              the group, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">size</span><span class="special">()</span></code>
+              is decreased by one.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: is this why create_fiber() returns fiber*, and add_fiber()
+              accepts fiber*: so that the caller can retain a "handle"
+              to a fiber in the group, and possibly later remove it? It still feels
+              very C++89.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h5"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__join_all__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__join_all__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">join_all</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">join_all</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Requires:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">is_this_fiber_in</span><span class="special">()</span>
+              <span class="special">==</span> <span class="keyword">false</span></code>.
+            </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Call <code class="computeroutput"><span class="identifier">join</span><span class="special">()</span></code>
+              on each <code class="computeroutput"><span class="identifier">fiber</span></code> object
+              in the group.
+            </p></dd>
+<dt><span class="term">Postcondition:</span></dt>
+<dd><p>
+              Every fiber in the group has terminated.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Since <code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">join</span><span class="special">()</span></code>
+              is one of the predefined <span class="emphasis"><em>interruption-points</em></span>,
+              <code class="computeroutput"><span class="identifier">join_all</span><span class="special">()</span></code>
+              is also an interruption point.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: What's the distinction between "Requires" and "Precondition"?
+              What happens if is_this_fiber_in() returns true? Exception? Undefined
+              behavior?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h6"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__is_this_fiber_in__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__is_this_fiber_in__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">is_this_fiber_in</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_this_fiber_in</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              true if there is a fiber <code class="computeroutput"><span class="identifier">f</span></code>
+              in the group such that <code class="computeroutput"><span class="identifier">f</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h7"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__is_fiber_in__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__is_fiber_in__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">is_fiber_in</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_fiber_in</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              true if there is a fiber <code class="computeroutput"><span class="identifier">fx</span></code>
+              in the group such that <code class="computeroutput"><span class="identifier">fx</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">get_id</span><span class="special">()</span></code>.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h8"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__interrupt_all__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__interrupt_all__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">interrupt_all</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">interrupt_all</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Call <code class="computeroutput"><span class="identifier">interrupt</span><span class="special">()</span></code>
+              on each <code class="computeroutput"><span class="identifier">fiber</span></code> object
+              in the group.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.fiber_mgmt.fiber_group.h9"></a>
+        <span><a name="fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__size__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber_group.html#fiber.fiber_mgmt.fiber_group.member_function__code__phrase_role__identifier__size__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">size</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">size</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              The number of fibers in the group.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+</dl>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2013 Oliver Kowalke<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="fiber.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="attributes.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

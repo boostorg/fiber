@@ -1,5 +1,6 @@
 [/
   (C) Copyright 2007-8 Anthony Williams.
+  (C) Copyright 2013 Oliver Kowalke.
   Distributed under the Boost Software License, Version 1.0.
   (See accompanying file LICENSE_1_0.txt or copy at
   http://www.boost.org/LICENSE_1_0.txt).
@@ -40,6 +41,8 @@ Instances of __barrier__ are not copyable or movable.
 [variablelist
 [[Effects:] [Construct a barrier for `initial` fibers.]]
 [[Throws:] [__invalid_argument__]]
+[[Note:] [Oliver: under what conditions does the constructor throw? What makes
+its argument invalid?]]
 ]
 
 [heading Member function `wait()`]
@@ -53,6 +56,7 @@ the barrier is reset. ]]
 [[Returns:] [`true` for exactly one fiber from each batch of waiting fibers,
 `false` otherwise.]]
 [[Throws:] [__fiber_exception__]]
+[[Note:] [Oliver: is this an interruption point?]]
 ]
 
 [endsect]

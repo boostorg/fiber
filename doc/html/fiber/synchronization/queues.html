@@ -1,0 +1,494 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Queues</title>
+<link rel="stylesheet" href="../../../../../../doc/src/boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="up" href="../synchronization.html" title="Synchronization">
+<link rel="prev" href="barriers.html" title="Barriers">
+<link rel="next" href="futures.html" title="Futures">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="barriers.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../synchronization.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="futures.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section fiber_synchronization_queues">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="fiber.synchronization.queues"></a><a class="link" href="queues.html" title="Queues">Queues</a>
+</h3></div></div></div>
+<p>
+        <span class="bold"><strong>Boost.Fiber</strong></span> provides a bounded and a unbounded
+        queue suitable to synchonize fibers via message passing.
+      </p>
+<pre class="programlisting"><span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="keyword">int</span> <span class="special">&gt;</span> <span class="identifier">queue_t</span><span class="special">;</span>
+
+<span class="keyword">void</span> <span class="identifier">send</span><span class="special">(</span> <span class="identifier">queue_t</span> <span class="special">&amp;</span> <span class="identifier">queue</span><span class="special">)</span>
+<span class="special">{</span>
+    <span class="keyword">for</span> <span class="special">(</span> <span class="keyword">int</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="number">5</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span>
+        <span class="identifier">queue</span><span class="special">.</span><span class="identifier">put</span><span class="special">(</span> <span class="identifier">i</span><span class="special">);</span>
+    <span class="identifier">queue</span><span class="special">.</span><span class="identifier">deactivate</span><span class="special">();</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span> <span class="identifier">recv</span><span class="special">(</span> <span class="identifier">queue_t</span> <span class="special">&amp;</span> <span class="identifier">queue</span><span class="special">)</span>
+<span class="special">{</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="keyword">int</span> <span class="special">&gt;</span> <span class="identifier">value</span><span class="special">;</span>
+    <span class="keyword">while</span> <span class="special">(</span> <span class="identifier">queue</span><span class="special">.</span><span class="identifier">take</span><span class="special">(</span> <span class="identifier">value</span><span class="special">)</span> <span class="special">)</span>
+    <span class="special">{</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"received "</span> <span class="special">&lt;&lt;</span> <span class="special">*</span> <span class="identifier">value</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">}</span>
+
+<span class="identifier">queue_t</span> <span class="identifier">queue</span><span class="special">;</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f1</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span> <span class="identifier">send</span><span class="special">,</span> <span class="identifier">ref</span><span class="special">(</span> <span class="identifier">queue</span><span class="special">)</span> <span class="special">)</span> <span class="special">);</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f2</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span> <span class="identifier">recv</span><span class="special">,</span> <span class="identifier">ref</span><span class="special">(</span> <span class="identifier">queue</span><span class="special">)</span> <span class="special">)</span> <span class="special">);</span>
+
+<span class="identifier">f1</span><span class="special">.</span><span class="identifier">join</span><span class="special">();</span>
+<span class="identifier">f2</span><span class="special">.</span><span class="identifier">join</span><span class="special">();</span>
+</pre>
+<h5>
+<a name="fiber.synchronization.queues.h0"></a>
+        <span><a name="fiber.synchronization.queues.template__code__phrase_role__identifier__unbounded_queue__phrase__phrase_role__special___lt__gt___phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.template__code__phrase_role__identifier__unbounded_queue__phrase__phrase_role__special___lt__gt___phrase___code_">Template
+        <code class="computeroutput"><span class="identifier">unbounded_queue</span><span class="special">&lt;&gt;</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">unbounded_queue</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">unbounded_queue</span>
+<span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">unbounded_queue</span><span class="special">(</span> <span class="identifier">unbounded_queue</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">unbounded_queue</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">unbounded_queue</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+    <span class="keyword">bool</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+
+    <span class="keyword">void</span> <span class="identifier">deactivate</span><span class="special">();</span>
+
+    <span class="keyword">bool</span> <span class="identifier">empty</span><span class="special">();</span>
+
+    <span class="keyword">void</span> <span class="identifier">put</span><span class="special">(</span> <span class="identifier">T</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+
+    <span class="keyword">bool</span> <span class="identifier">take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+
+    <span class="keyword">bool</span> <span class="identifier">try_take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="fiber.synchronization.queues.h1"></a>
+        <span><a name="fiber.synchronization.queues.member_function__code__phrase_role__identifier__active__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function__code__phrase_role__identifier__active__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">active</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Return <code class="computeroutput"><span class="keyword">true</span></code> if queue is
+              still usable.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              The queue is usable by default.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h2"></a>
+        <span><a name="fiber.synchronization.queues.member_function__code__phrase_role__identifier__deactivate__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function__code__phrase_role__identifier__deactivate__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">deactivate</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">deactivate</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Deactivates the queue. No values can be put after calling <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">deactivate</span></code>. Fibers blocked in <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">take</span><span class="special">()</span></code>
+              will return.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">deactivate</span><span class="special">()</span></code>
+              is like closing a pipe. It informs waiting receivers that no more values
+              will arrive.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h3"></a>
+        <span><a name="fiber.synchronization.queues.member_function__code__phrase_role__identifier__empty__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function__code__phrase_role__identifier__empty__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">empty</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Returns <code class="computeroutput"><span class="keyword">true</span></code> if the queue
+              currently contains no data.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              This condition is transient. An <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code> queue can become non-empty.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h4"></a>
+        <span><a name="fiber.synchronization.queues.member_function__code__phrase_role__identifier__put__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function__code__phrase_role__identifier__put__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">put</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">put</span><span class="special">(</span> <span class="identifier">T</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Enqueues the value in the queue and wakes up a fiber waiting for new
+              data available from the queue.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: this signature appears to impose a requirement that T be copyable.
+              Would it make sense to support move-only T?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h5"></a>
+        <span><a name="fiber.synchronization.queues.member_function__code__phrase_role__identifier__take__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function__code__phrase_role__identifier__take__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">take</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Dequeues a value from the queue. If no data is available from the queue
+              the fiber gets suspended until at least one new item is enqueued (return
+              value <code class="computeroutput"><span class="keyword">true</span></code> and va contains
+              dequeued value) or the queue gets deactivated and the function returns
+              <code class="computeroutput"><span class="keyword">false</span></code>.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: is this an interruption point?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h6"></a>
+        <span><a name="fiber.synchronization.queues.member_function__code__phrase_role__identifier__try_take__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function__code__phrase_role__identifier__try_take__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="identifier">try_take</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Dequeues a value from the queue. If no data can be retrieved from the
+              queue at this moment, the function returns <code class="computeroutput"><span class="keyword">false</span></code>.
+              Otherwise it returns <code class="computeroutput"><span class="keyword">true</span></code>
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains the
+              dequeued value.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              A return value of <code class="computeroutput"><span class="keyword">false</span></code>
+              does not distinguish between <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code> and <code class="computeroutput"><span class="special">(!</span>
+              <span class="identifier">active</span><span class="special">())</span></code>.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h7"></a>
+        <span><a name="fiber.synchronization.queues.template__code__phrase_role__identifier__bounded_queue__phrase__phrase_role__special___lt__gt___phrase___code_"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.template__code__phrase_role__identifier__bounded_queue__phrase__phrase_role__special___lt__gt___phrase___code_">Template
+        <code class="computeroutput"><span class="identifier">bounded_queue</span><span class="special">&lt;&gt;</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">bounded_queue</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">bounded_queue</span>
+<span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">bounded_queue</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">bounded_queue</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">bounded_queue</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+    <span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">);</span>
+
+    <span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">);</span>
+
+    <span class="keyword">bool</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+
+    <span class="keyword">void</span> <span class="identifier">deactivate</span><span class="special">();</span>
+
+    <span class="keyword">bool</span> <span class="identifier">empty</span><span class="special">();</span>
+
+    <span class="keyword">void</span> <span class="identifier">put</span><span class="special">(</span> <span class="identifier">T</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+
+    <span class="keyword">bool</span> <span class="identifier">take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+
+    <span class="keyword">bool</span> <span class="identifier">try_take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="fiber.synchronization.queues.h8"></a>
+        <span><a name="fiber.synchronization.queues.constructor"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.constructor">Constructor</a>
+      </h5>
+<pre class="programlisting"><span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">);</span>
+<span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Constructs an object of class <code class="computeroutput"><span class="identifier">bounded_queue</span></code>
+              which will contain a maximum of <code class="computeroutput"><span class="identifier">wm</span></code>
+              items. The constructor with two arguments constructs an object of class
+              <code class="computeroutput"><span class="identifier">bounded_queue</span></code> which
+              will contain a high-watermark of <code class="computeroutput"><span class="identifier">hwm</span></code>
+              and a low-watermark of <code class="computeroutput"><span class="identifier">lwm</span></code>
+              items.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h9"></a>
+        <span><a name="fiber.synchronization.queues.member_function_code_phrase_rol0"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function_code_phrase_rol0">Member
+        function <code class="computeroutput"><span class="identifier">active</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Return <code class="computeroutput"><span class="keyword">true</span></code> if queue is
+              still usable.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              The queue is usable by default.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h10"></a>
+        <span><a name="fiber.synchronization.queues.member_function_code_phrase_rol1"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function_code_phrase_rol1">Member
+        function <code class="computeroutput"><span class="identifier">deactivate</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">deactivate</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Deactivates the queue. No values can be put after calling <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">deactivate</span></code>. Fibers blocked in <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">take</span><span class="special">()</span></code>
+              will return.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">deactivate</span><span class="special">()</span></code>
+              is like closing a pipe. It informs waiting receivers that no more values
+              will arrive.
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h11"></a>
+        <span><a name="fiber.synchronization.queues.member_function_code_phrase_rol2"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function_code_phrase_rol2">Member
+        function <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">empty</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Returns <code class="computeroutput"><span class="keyword">true</span></code> if the queue
+              currently contains no data.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              This condition is transient. An <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code> queue can become non-empty.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: wouldn't it make sense to have a corresponding <code class="computeroutput"><span class="identifier">full</span><span class="special">()</span></code>
+              method?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h12"></a>
+        <span><a name="fiber.synchronization.queues.member_function_code_phrase_rol3"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function_code_phrase_rol3">Member
+        function <code class="computeroutput"><span class="identifier">put</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">put</span><span class="special">(</span> <span class="identifier">T</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Enqueues the value in the queue and wakes up a fiber waiting for new
+              data available from the queue. When the high water mark is reached,
+              the fiber putting the value will be supended until at least one item
+              is dequeued.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: this signature appears to impose a requirement that T be copyable.
+              Would it make sense to support move-only T?
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: is this an interruption point?
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: wouldn't it make sense to have a corresponding <code class="computeroutput"><span class="identifier">try_put</span><span class="special">()</span></code>
+              method?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h13"></a>
+        <span><a name="fiber.synchronization.queues.member_function_code_phrase_rol4"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function_code_phrase_rol4">Member
+        function <code class="computeroutput"><span class="identifier">take</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Dequeues a value from the queue. If no data is available from the queue
+              the fiber gets suspended until at least one new item is enqueued (return
+              value <code class="computeroutput"><span class="keyword">true</span></code> and va contains
+              dequeued value) or the queue gets deactivated and the function returns
+              <code class="computeroutput"><span class="keyword">false</span></code>. Once the number
+              of items remaining in the queue drops below <code class="computeroutput"><span class="identifier">lwm</span></code>,
+              any fibers blocked on <code class="computeroutput"><span class="identifier">put</span><span class="special">()</span></code> may resume.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Oliver: is this an interruption point?
+            </p></dd>
+</dl>
+</div>
+<h5>
+<a name="fiber.synchronization.queues.h14"></a>
+        <span><a name="fiber.synchronization.queues.member_function_code_phrase_rol5"></a></span><a class="link" href="queues.html#fiber.synchronization.queues.member_function_code_phrase_rol5">Member
+        function <code class="computeroutput"><span class="identifier">try_take</span><span class="special">()</span></code></a>
+      </h5>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_take</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Dequeues a value from the queue. If no data can be retrieved from the
+              queue at this moment, the function returns <code class="computeroutput"><span class="keyword">false</span></code>.
+              Otherwise it returns <code class="computeroutput"><span class="keyword">true</span></code>
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains the
+              dequeued value.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              A return value of <code class="computeroutput"><span class="keyword">false</span></code>
+              does not distinguish between <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code> and <code class="computeroutput"><span class="special">(!</span>
+              <span class="identifier">active</span><span class="special">())</span></code>.
+            </p></dd>
+</dl>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2013 Oliver Kowalke<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="barriers.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../synchronization.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="futures.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

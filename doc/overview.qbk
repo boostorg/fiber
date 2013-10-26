@@ -8,19 +8,21 @@
 [section:overview Overview]
 
 __boost_fiber__  provides a framework for micro-/userland-threads (fibers)
-scheduled cooperativly.
-The API contains classes and functions to manage and synchronize fibers similiar to
+scheduled cooperatively.
+The API contains classes and functions to manage and synchronize fibers similiarly to
 __boost_thread__.
 
-A fiber is able to store the current execution state, including all registers
+Each fiber has its own stack.
+
+A fiber can save the current execution state, including all registers
 and CPU flags, the instruction pointer, and the stack pointer and later restore
 this state.
 The idea is to have multiple execution paths running on a single thread using a
-sort of cooperative scheduling (threads are preemptively scheduled) - the
-running fiber decides explicitly when its yields to allow another fiber to
+sort of cooperative scheduling (versus threads, which are preemptively scheduled). The
+running fiber decides explicitly when it should yield to allow another fiber to
 run (context switching).
-A context switch between threads costs usally thousends of CPU cycles on x86
-compared to a fiber switch with few hundreds of cycles.
+A context switch between threads usually costs thousands of CPU cycles on x86,
+compared to a fiber switch with a few hundred cycles.
 A fiber can only run on a single thread at any point in time.
 
 In order to use the classes and functions described here, you can either include
@@ -31,16 +33,67 @@ include the master library header:
 
 which includes all the other headers in turn.
 
-Used namespaces are:
+The namespaces used are:
 
     namespace boost::fibers
     namespace boost::this_fiber
 
+[heading Fibers and Threads]
+
+Control is cooperatively passed between fibers launched on a given thread. At
+a given moment, on a given thread, at most one fiber is running.
+
+Spawning additional fibers on a given thread does not increase your program's
+utilization of hardware cores.
+
+On the other hand, a fiber may safely access any resource exclusively owned by
+its parent thread without explicitly needing to defend that resource against
+concurrent access by other fibers on the same thread. You are already
+guaranteed that no other fiber on that thread is concurrently touching that
+resource. This can be particularly important when introducing concurrency in
+legacy code. You can safely spawn fibers running old code, using asynchronous
+I/O to interleave execution.
+
+In effect, fibers provide a natural way to organize concurrent code based on
+asynchronous I/O. Instead of chaining together completion handlers, code
+running on a fiber can make what looks like a normal blocking function call.
+That call can cheaply suspend the calling fiber, allowing other fibers on the
+same thread to run. When the operation has completed, the suspended fiber
+resumes, without having to explicitly save or restore its state. Its local
+stack variables persist across the call.
+
+A fiber launched on a particular thread will always run on that thread. A
+fiber can count on thread-local storage; however that storage will be shared
+among all fibers running on the same thread.
+
+For fiber-local storage, please see __fsp__.
+
+[heading Blocking]
+
+Normally, when this documentation states that a particular fiber ['blocks], it
+means that it yields control, allowing other fibers on the same thread to run.
+The synchronization mechanisms provided by __boost_fiber__ have this behavior.
+
+A fiber may, of course, use normal thread synchronization mechanisms; however
+a fiber that invokes any of these mechanisms will block its entire thread,
+preventing any other fiber from running on that thread in the meantime. For
+instance, when a fiber wants to wait for a value from another fiber in the
+same thread, using `std::future` would be unfortunate: `std::future::get()` would
+block the whole thread, preventing the other fiber from delivering its value.
+Use __future__ instead.
+
+Similarly, a fiber that invokes a normal blocking I/O operation will block its
+entire thread. Fiber authors are encouraged to consistently use asynchronous
+I/O. __boost_asio__ explicitly supports fibers; other asynchronous I/O
+operations can straightforwardly be adapted for __boost_fiber__.
+
+Synchronization between a fiber running on one thread and a fiber running on a
+different thread is an advanced topic.
 
 [warning This library is ['not] an official Boost library]
 
-__boost_fiber__ depends uppon __boost_chrono__, __boost_coroutine__ and __boost_move__.
-Boost version 1.55.0 is required.
+__boost_fiber__ depends upon __boost_chrono__, __boost_coroutine__ and __boost_move__.
+Boost version 1.55.0 or greater is required.
 
 
 [endsect]
