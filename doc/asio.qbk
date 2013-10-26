@@ -58,7 +58,9 @@ __yield_fiber__ abstracts the fiber in asio's context.
                 cond_.wait( lk);
 
                 // '<fini>' terminates subscriber
-                // Oliver: where is data_ declared?
+                // data_ is a private member of subscriber and
+                // gets filled by the publisher
+                // notification of available data via condition_var cond_
                 if ( "<fini>" == std::string( data_) ) break;
 
                 // write message asynchronously to subscriber

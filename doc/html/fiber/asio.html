@@ -83,7 +83,9 @@
         <span class="identifier">cond_</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
 
         <span class="comment">// '&lt;fini&gt;' terminates subscriber</span>
-        <span class="comment">// Oliver: where is data_ declared?</span>
+        <span class="comment">// data_ is a private member of subscriber and</span>
+        <span class="comment">// gets filled by the publisher</span>
+        <span class="comment">// notification of available data via condition_var cond_</span>
         <span class="keyword">if</span> <span class="special">(</span> <span class="string">"&lt;fini&gt;"</span> <span class="special">==</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span> <span class="identifier">data_</span><span class="special">)</span> <span class="special">)</span> <span class="keyword">break</span><span class="special">;</span>
 
         <span class="comment">// write message asynchronously to subscriber</span>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/10/26 08:16:09 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/10/26 08:30:32 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -6609,7 +6609,9 @@
 </phrase>        <phrase role="identifier">cond_</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">);</phrase>
 
         <phrase role="comment">// '&lt;fini&gt;' terminates subscriber
-</phrase>        <phrase role="comment">// Oliver: where is data_ declared?
+</phrase>        <phrase role="comment">// data_ is a private member of subscriber and
+</phrase>        <phrase role="comment">// gets filled by the publisher
+</phrase>        <phrase role="comment">// notification of available data via condition_var cond_
 </phrase>        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="string">&quot;&lt;fini&gt;&quot;</phrase> <phrase role="special">==</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase><phrase role="special">(</phrase> <phrase role="identifier">data_</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
 
         <phrase role="comment">// write message asynchronously to subscriber
