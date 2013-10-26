@@ -26,7 +26,7 @@ boost::atomic_int consumer_count(0);
 
 boost::lockfree::queue< int > queue( 128);
 
-const int iterations = 100000;
+const int iterations = 500000;
 const int producer_thread_count = 4;
 const int consumer_thread_count = 4;
 

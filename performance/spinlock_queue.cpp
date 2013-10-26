@@ -7,6 +7,7 @@
 #define BOOST_PP_LIMIT_MAG  10
 
 #include <cstdio>
+#include <deque>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -14,19 +15,83 @@
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
 #include <boost/bind.hpp>
-#include <boost/lockfree/queue.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/lockfree/queue.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
+#include <boost/utility.hpp>
 
 #include "zeit.hpp"
+
+class spinlock : private boost::noncopyable
+{
+private:
+    enum state_t {
+	    LOCKED = 0,
+	    UNLOCKED
+    };
+
+    boost::atomic< state_t >           state_;
+
+public:
+    spinlock() :
+        state_( UNLOCKED)
+    {}
+
+    void lock()
+    {
+        while ( LOCKED == state_.exchange( LOCKED) )
+        {
+            // busy-wait
+            boost::this_thread::yield();
+        }
+    }
+
+    void unlock()
+    {
+        BOOST_ASSERT( LOCKED == state_);
+
+        state_ = UNLOCKED;
+    }
+};
+
+template< typename T >
+class spinlock_queue
+{
+private:
+    typedef std::deque< T >     queue_t;
+
+    spinlock     splk_;
+    queue_t      queue_;
+
+public:
+    spinlock_queue() :
+        splk_(),
+        queue_()
+    {}
+
+    void push( T const& t)
+    {
+        boost::unique_lock< spinlock > lk( splk_);
+        queue_.push_back( t);
+    }
+
+    bool pop( T & t)
+    {
+        boost::unique_lock< spinlock > lk( splk_);
+        if ( queue_.empty() ) return false;
+        std::swap( t, queue_.front() );
+        queue_.pop_front();
+        return true;
+    }
+};
 
 boost::atomic_int producer_count(0);
 boost::atomic_int consumer_count(0);
 
-boost::lockfree::queue< int > queue( 128);
+spinlock_queue< int > queue;
 
-const int iterations = 100000;
+const int iterations = 500000;
 const int producer_thread_count = 4;
 const int consumer_thread_count = 4;
 

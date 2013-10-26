@@ -28,3 +28,7 @@ project boost/context/performance
 exe lockfree_queue
    : lockfree_queue.cpp
    ;
+
+exe spinlock_queue
+   : spinlock_queue.cpp
+   ;
