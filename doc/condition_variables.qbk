@@ -33,8 +33,7 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     void wait_for_data_to_process()
     {
-        // Oliver: how about a boost::fibers::mutex::scoped_lock?
-        boost::unique_lock< boost::fibers::mutex > lk( mtx);
+        boost::fibers::mutex::scoped_lock lk( mtx);
         while ( ! data_ready)
         {
             cond.wait( lk);
@@ -48,8 +47,6 @@ When the fiber is awakened, the mutex will be locked again before the call to
 `wait` returns. This allows other fibers to acquire the mutex in order to
 update the shared data, and ensures that the data associated with the condition
 is correctly synchronized.
-
-Oliver: is it important to state "atomically" in the paragraph above?
 
 In the meantime, another fiber sets the condition to `true`, and then calls
 either `notify_one` or `notify_all` on the condition variable to wake one
@@ -134,8 +131,6 @@ the mutex does not have to be locked across the call to `notify_one`.
 `wait_until` need not have returned).]]
 [[Effects:] [Destroys the object.]]
 [[Throws:] [Nothing.]]
-[[Note:][Oliver: what can we expect if one or more of the fibers waiting on
-`*this` have not yet been notified? They go into limbo?]]
 ]
 
 [heading Member function `notify_one()`]
@@ -195,8 +190,6 @@ while ( ! pred())
 occurs. __fiber_interrupted__ if the wait was interrupted by a call to
 __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
-[[Note:] [Oliver: What does the Precondition mean? I can provide an
-explanation once I understand it myself, but I do not yet understand it.]]
 ]
 
 
@@ -211,14 +204,14 @@ explanation once I understand it myself, but I do not yet understand it.]]
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
 fiber is currently waiting on `*this`, or the execution of the `mutex()` member
-function on the `lk` objects supplied in the calls to `wait`, `wait_for` or `wait_until`
-in all the fibers currently waiting on `*this` would return the same value as
-`lk->mutex()` for this call to `wait`.]]
+function on the `lk` objects supplied in the calls to `wait`, `wait_for` or
+`wait_until` in all the fibers currently waiting on `*this` would return the
+same value as `lk->mutex()` for this call to `wait`.]]
 [[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
 fiber will unblock when notified by a call to `this->notify_one()` or
 `this->notify_all()`, when the time as reported by `clock_type::now()`
-would be equal to or later than the specified `timeout_time`, or spuriously. When
-the fiber is unblocked (for whatever reason), the lock is reacquired by
+would be equal to or later than the specified `timeout_time`, or spuriously.
+When the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.
 Member function using `pred` as-if ``
@@ -235,8 +228,7 @@ occurs. __fiber_interrupted__ if the wait was interrupted by a call to
 __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 [[Returns:] [`false` if the call is returning because the time specified by
-`timeout_time` was reached, `true` otherwise.]]
-[[Note:] [Oliver: but that disagrees with the example above?]]
+`timeout_time` was reached and the predcate returns `false`, `true` otherwise.]]
 ]
 
 
@@ -275,8 +267,7 @@ occurs. __fiber_interrupted__ if the wait was interrupted by a call to
 __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 [[Returns:] [`false` if the call is returning because the time specified by
-`timeout_time` was reached, `true` otherwise.]]
-[[Note:] [Oliver: but that disagrees with the example above?]]
+`timeout_time` was reached and the predcate returns `false`, `true` otherwise.]]
 ]
 
 [endsect]

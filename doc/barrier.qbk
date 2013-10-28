@@ -40,9 +40,7 @@ Instances of __barrier__ are not copyable or movable.
 
 [variablelist
 [[Effects:] [Construct a barrier for `initial` fibers.]]
-[[Throws:] [__invalid_argument__]]
-[[Note:] [Oliver: under what conditions does the constructor throw? What makes
-its argument invalid?]]
+[[Throws:] [__invalid_argument__ if `initial` is zero]]
 ]
 
 [heading Member function `wait()`]
@@ -56,7 +54,7 @@ the barrier is reset. ]]
 [[Returns:] [`true` for exactly one fiber from each batch of waiting fibers,
 `false` otherwise.]]
 [[Throws:] [__fiber_exception__]]
-[[Note:] [Oliver: is this an interruption point?]]
+[[Note:] [interruption point]]
 ]
 
 [endsect]

@@ -123,15 +123,13 @@ the highest/lowest address of the stack.]]
 
 [heading Member function `void deallocate()`]
 
-            void deallocate( stack_context &);
+            void deallocate( stack_context & sctx);
 
 [variablelist
 [[Preconditions:] [`sctx.sp` is valid, `minimum_stacksize() > sctx.size` and
 `! is_stack_unbound() && ( maximum_stacksize() < size)`.]]
 [[Effects:] [Deallocates the stack space.]]
-[[Note:][Oliver: wouldn't it be simpler to say something like: `sctx` must
-have been set by a previous call to `allocate()` since it was most recently
-passed to `deallocate()` ?]]
+[[Note:][`sctx` must have been set by a previous call to `allocate()`.]]
 ]
 
 

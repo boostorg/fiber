@@ -32,10 +32,6 @@ __mutex__ provides an exclusive-ownership mutex. At most one fiber can own the
 lock on a given instance of __mutex__ at any time. Multiple concurrent calls to
 __lock__, __try_lock__ and __unlock__ shall be permitted.
 
-[important Oliver: what do we mean by "multiple concurrent calls" in a fiber
-context? I realize you're adapting __boost_thread__ documentation, but with
-fibers "concurrent calls" is a peculiar notion.]
-
 Any fiber blocked in __lock__ is suspended in the scheduler until the owning
 fiber releases the lock by calling __unlock__.
 
@@ -69,7 +65,6 @@ the lock on a given instance of __timed_mutex__ at any time. Multiple concurrent
 calls to __lock__, __try_lock__, __try_lock_until__, __try_lock_for__ and
 __unlock__ shall be permitted.
 
-[important Oliver: same remark about "concurrent calls."]
 
 [heading Class `recursive_mutex`]
 
@@ -100,7 +95,6 @@ additional level of ownership of the mutex. __unlock__ must be called once for
 each level of ownership acquired by a single fiber before ownership can be
 acquired by another fiber.
 
-[important Oliver: same remark about "concurrent calls."]
 
 [heading Class `recursive_timed_mutex`]
 
@@ -137,6 +131,5 @@ ownership of the mutex. __unlock__ must be called once for each level of
 ownership acquired by a single fiber before ownership can be acquired by another
 fiber.
 
-[important Oliver: same remark about "concurrent calls."]
 
 [endsect]

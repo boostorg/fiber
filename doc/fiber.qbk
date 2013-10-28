@@ -194,7 +194,6 @@ __interruption_enabled__.
 * __sleep_until__
 * __interruption_point__
 
-[important Oliver: why isn't yield() an interruption point?]
 
 [heading Fiber IDs]
 
@@ -542,10 +541,7 @@ __fiber_group__ is neither copyable nor movable.
         ~fiber_group();
 
 [variablelist
-[[Effects:] [Destroy `*this` and `delete` all __fiber__ objects in the group.]]
-[[Note:][Oliver: you don't `delete` a __fiber__ object, you `delete` a
-`fiber*`. Maybe something like: "Destroy `*this` and all __fiber__ objects in
-the group." ?]]
+[[Effects:] [Destroy `*this` and all __fiber__ objects in the group.]]
 ]
 
 [heading Member function `create_fiber()`]
@@ -576,40 +572,10 @@ to the group.]]
 [variablelist
 [[Precondition:] [The expression `delete f` is well-formed and will not result
 in undefined behaviour and `is_fiber_in(f) == false`.]]
-[[Effects:] [Take ownership of the __fiber__ object pointed to by `f` and add it
-to the group.]]
+[[Effects:] [Add __fiber__ object pointed to by `f` to the group.]]
 [[Postcondition:] [`this->size()` is increased by one.]]
-[[Note:][Oliver: What does "take ownership" mean here? Does it mean that
-fiber_group will eventually delete the fiber*, or does it mean that *f has
-become not-a-fiber? Why not `add_fiber(fiber&& f)`, moving a __fiber__ into
-the group?]]
 ]
 
-Oliver: I'm bothered by this scenario:
-
-    boost::fibers::fiber_group fg;
-    {
-        boost::fibers::fiber f(somefunc);
-        fg.add_fiber(&f);
-    } // std::terminate()!
-
-Apparently we would need something more like:
-
-    boost::fibers::fiber_group fg;
-    {
-        boost::fibers::fiber f(somefunc);
-        fg.add_fiber(&f);
-        f.detach();
-    } // okay?
-
-But that doesn't seem very intuitive. I would rather see:
-
-    boost::fibers::fiber_group fg;
-    {
-        boost::fibers::fiber f(somefunc);
-        fg.add_fiber(f);
-        // f is now not-a-fiber
-    } // okay
 
 [heading Member function `remove_fiber()`]
 
@@ -620,9 +586,6 @@ But that doesn't seem very intuitive. I would rather see:
 `delete`.]]
 [[Postcondition:] [If `f` was a member of the group, `this->size()` is
 decreased by one.]]
-[[Note:][Oliver: is this why create_fiber() returns fiber*, and add_fiber()
-accepts fiber*: so that the caller can retain a "handle" to a fiber in the
-group, and possibly later remove it? It still feels very C++89.]]
 ]
 
 [heading Member function `join_all()`]
@@ -635,8 +598,6 @@ group, and possibly later remove it? It still feels very C++89.]]
 [[Postcondition:] [Every fiber in the group has terminated.]]
 [[Note:] [Since __join__ is one of the predefined __interruption_points__,
 `join_all()` is also an interruption point.]]
-[[Note:][Oliver: What's the distinction between "Requires" and "Precondition"?
-What happens if is_this_fiber_in() returns true? Exception? Undefined behavior?]]
 ]
 
 [heading Member function `is_this_fiber_in()`]
@@ -683,91 +644,25 @@ What happens if is_this_fiber_in() returns true? Exception? Undefined behavior?]
 Class `attributes` is used to transfer parameters required to set up a
 fiber's context.
 
-[important Oliver: definition of flag_unwind_t?]
-
         #include <boost/fiber/attributes.hpp>
 
         struct attributes
         {
-            std::size_t     size;
-            flag_unwind_t   do_unwind;
-            bool            preserve_fpu;
+            std::size_t                 size;
 
-            attributes() BOOST_NOEXCEPT :
-                size( ctx::default_stacksize() ),
-                do_unwind( stack_unwind),
-                preserve_fpu( true)
-            {}
+            attributes() BOOST_NOEXCEPT;
 
-            explicit attributes( std::size_t size_) BOOST_NOEXCEPT :
-                size( size_),
-                do_unwind( stack_unwind),
-                preserve_fpu( true)
-            {}
-
-            explicit attributes( flag_unwind_t do_unwind_) BOOST_NOEXCEPT :
-                size( ctx::default_stacksize() ),
-                do_unwind( do_unwind_),
-                preserve_fpu( true)
-            {}
-
-            explicit attributes( bool preserve_fpu_) BOOST_NOEXCEPT :
-                size( ctx::default_stacksize() ),
-                do_unwind( stack_unwind),
-                preserve_fpu( preserve_fpu_)
-            {}
-
-            explicit attributes(
-                    std::size_t size_,
-                    flag_unwind_t do_unwind_) BOOST_NOEXCEPT :
-                size( size_),
-                do_unwind( do_unwind_),
-                preserve_fpu( true)
-            {}
-
-            explicit attributes(
-                    std::size_t size_,
-                    bool preserve_fpu_) BOOST_NOEXCEPT :
-                size( size_),
-                do_unwind( stack_unwind),
-                preserve_fpu( preserve_fpu_)
-            {}
-
-            explicit attributes(
-                    flag_unwind_t do_unwind_,
-                    bool preserve_fpu_) BOOST_NOEXCEPT :
-                size( ctx::default_stacksize() ),
-                do_unwind( do_unwind_),
-                preserve_fpu( preserve_fpu_)
-            {}
-
-            explicit attributes(
-                    std::size_t size_,
-                    flag_unwind_t do_unwind_,
-                    bool preserve_fpu_) BOOST_NOEXCEPT :
-                size( size_),
-                do_unwind( do_unwind_),
-                preserve_fpu( preserve_fpu_)
-            {}
+            explicit attributes( std::size_t size_) BOOST_NOEXCEPT;
         };
 
 [heading Constructor]
 
         attributes();
         attributes( std::size_t size);
-        attributes( flag_unwind_t do_unwind);
-        attributes( bool preserve_fpu);
-        attributes( std::size_t size, flag_unwind_t do_unwind);
-        attributes( std::size_t size, bool preserve_fpu);
-        attributes( flag_unwind_t do_unwind, bool preserve_fpu);
-        attributes( std::size_t size, flag_unwind_t do_unwind, bool preserve_fpu);
 
 [variablelist
-[[Effects:] [Parameter `size` determines the stack size; `do_unwind` will
-controls stack unwinding and `preserve_fpu` preserves FPU registers.]]
+[[Effects:] [Parameter `size` determines the stack size.]]
 [[Throws:] [Nothing.]]
-[[Note:][Oliver: need to say something about the meaning of controlling stack
-unwinding, even if the words are merely copied from [*Boost.Context].]]
 ]
 
 [endsect] [/ section Class attributes]

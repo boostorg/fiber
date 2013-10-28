@@ -20,12 +20,7 @@ destroyed. By default, the object pointed to by a pointer `p` is destroyed by
 invoking `delete p`, but this can be overridden for a specific instance of
 __fsp__ by providing a cleanup routine `func` to the constructor. In this case, the
 object is destroyed by invoking `func(p)`. The cleanup functions are called in an unspecified
-order. If a cleanup routine sets the value of associated with an instance of
-__fsp__ that has already been cleaned up, that value is added to the cleanup
-list. Cleanup finishes when there are no outstanding instances of __fsp__
-with values.
-
-[important Oliver: what do the last two sentences above mean?]
+order.
 
 [heading Class fiber_specific_ptr]
 
@@ -39,7 +34,6 @@ with values.
 
             fiber_specific_ptr();
 
-            // Oliver: I'm surprised this doesn't accept a boost::function<void(T*)>.
             explicit fiber_specific_ptr( void(*fn)(T*) );
 
             ~fiber_specific_ptr();
