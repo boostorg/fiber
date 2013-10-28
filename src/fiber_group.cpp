@@ -20,7 +20,7 @@ namespace fibers {
 fiber_group::~fiber_group()
 {
     BOOST_FOREACH( fiber * f, fibers_)
-        delete f;
+    { delete f; }
 }
 
 bool
@@ -30,7 +30,7 @@ fiber_group::is_this_fiber_in()
 
     mutex::scoped_lock lk( mtx_);
     BOOST_FOREACH( fiber * f, fibers_)
-        if ( f->get_id() == id) return true;
+    { if ( f->get_id() == id) return true; }
 
     return false;
 }
@@ -44,7 +44,7 @@ fiber_group::is_fiber_in( fiber * f)
 
     mutex::scoped_lock lk( mtx_);
     BOOST_FOREACH( fiber * f, fibers_)
-        if ( f->get_id() == id) return true;
+    { if ( f->get_id() == id) return true; }
 
     return false;
 }
@@ -68,8 +68,7 @@ fiber_group::remove_fiber( fiber * f)
     mutex::scoped_lock lk( mtx_);
     std::vector< fiber * >::iterator i(
         std::find( fibers_.begin(), fibers_.end(), f) );
-    if ( fibers_.end() != i)
-        fibers_.erase( i);
+    if ( fibers_.end() != i) fibers_.erase( i);
 }
 
 void
@@ -79,7 +78,7 @@ fiber_group::join_all()
 
     mutex::scoped_lock lk( mtx_);
     BOOST_FOREACH( fiber * f, fibers_)
-        if ( f->joinable() ) f->join();
+    { if ( f->joinable() ) f->join(); }
 }
 
 void
@@ -87,7 +86,7 @@ fiber_group::interrupt_all()
 {
     mutex::scoped_lock lk( mtx_);
     BOOST_FOREACH( fiber * f, fibers_)
-        f->interrupt();
+    { f->interrupt(); }
 }
 
 std::size_t
