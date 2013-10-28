@@ -68,7 +68,7 @@ return value can be computed asynchronously.
 [[Effects:] [Constructs an object of class `packaged_task` with a shared state
 and stores the callable target `fn` internally.]]
 [[Throws:] [Nothing.]]
-[[Note:] [The signature of `Fn` should have a return type convertible to `R`.]
+[[Note:] [The signature of `Fn` should have a return type convertible to `R`.]]
 ]
 
 [heading Move constructor]
