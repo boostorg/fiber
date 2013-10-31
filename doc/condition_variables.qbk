@@ -1,5 +1,6 @@
 [/
   (C) Copyright 2007-8 Anthony Williams.
+  (C) Copyright 2013 Oliver Kowalke.
   Distributed under the Boost Software License, Version 1.0.
   (See accompanying file LICENSE_1_0.txt or copy at
   http://www.boost.org/LICENSE_1_0.txt).
@@ -19,9 +20,9 @@
         class condition_variable_any;
 
 The class `condition_variable` provides a mechanism for one fiber to wait for
-notification `condition_variable`. When the fiber is woken from the wait, then
+notification on `condition_variable`. When the fiber awakens from the wait, then
 it checks to see if the appropriate condition is now true, and continues if so.
-If the condition is not true, then the fiber then calls `wait` again to resume
+If the condition is not true, then the fiber calls `wait` again to resume
 waiting. In the simplest case, this condition is just a boolean variable:
 
     boost::fibers::condition_variable cond;
@@ -32,6 +33,7 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     void wait_for_data_to_process()
     {
+        // Oliver: how about a boost::fibers::mutex::scoped_lock?
         boost::unique_lock< boost::fibers::mutex > lk( mtx);
         while ( ! data_ready)
         {
@@ -42,12 +44,14 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
 Notice that the `lk` is passed to `wait`: `wait` will atomically add the fiber
 to the set of fibers waiting on the condition variable, and unlock the mutex.
-When the fiber is woken, the mutex will be locked again before the call to
+When the fiber is awakened, the mutex will be locked again before the call to
 `wait` returns. This allows other fibers to acquire the mutex in order to
 update the shared data, and ensures that the data associated with the condition
 is correctly synchronized.
 
-In the mean time, another fiber sets the condition to `true`, and then calls
+Oliver: is it important to state "atomically" in the paragraph above?
+
+In the meantime, another fiber sets the condition to `true`, and then calls
 either `notify_one` or `notify_all` on the condition variable to wake one
 waiting fiber or all the waiting fibers respectively.
 
@@ -68,7 +72,7 @@ waiting fiber or all the waiting fibers respectively.
 Note that the same mutex is locked before the shared data is updated, but that
 the mutex does not have to be locked across the call to `notify_one`.
 
-[heading Class `condition`]
+[heading Class `condition_variable`]
 
     #include <boost/fiber/condition.hpp>
 
@@ -130,6 +134,8 @@ the mutex does not have to be locked across the call to `notify_one`.
 `wait_until` need not have returned).]]
 [[Effects:] [Destroys the object.]]
 [[Throws:] [Nothing.]]
+[[Note:][Oliver: what can we expect if one or more of the fibers waiting on
+`*this` have not yet been notified? They go into limbo?]]
 ]
 
 [heading Member function `notify_one()`]
@@ -140,6 +146,7 @@ the mutex does not have to be locked across the call to `notify_one`.
 [[Effects:] [If any fibers are currently __blocked__ waiting on `*this` in a
 call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 [[Throws:] [Nothing.]]
+[[Note:] [It is arbitrary which waiting fiber is resumed.]]
 ]
 
 [heading Member function `notify_all()`]
@@ -150,6 +157,11 @@ call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 [[Effects:] [If any fibers are currently __blocked__ waiting on `*this` in a
 call to `wait`, `wait_for` or `wait_until`, unblocks all of those fibers.]]
 [[Throws:] [Nothing.]]
+[[Note:] [This is why a waiting fiber must ['also] check for the desired
+program state using a mechanism external to the `condition_variable`, and
+retry the wait until that state is reached. A fiber waiting on a
+`condition_variable` might well wake up a number of times before the desired
+state is reached.]]
 ]
 
 [heading Templated member function `wait()`]
@@ -183,6 +195,8 @@ while ( ! pred())
 occurs. __fiber_interrupted__ if the wait was interrupted by a call to
 __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
+[[Note:] [Oliver: What does the Precondition mean? I can provide an
+explanation once I understand it myself, but I do not yet understand it.]]
 ]
 
 
@@ -222,8 +236,7 @@ __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 [[Returns:] [`false` if the call is returning because the time specified by
 `timeout_time` was reached, `true` otherwise.]]
-[[Postcondition:] [`lk` is locked by the current fiber.]]
-[[Throws:] []]
+[[Note:] [Oliver: but that disagrees with the example above?]]
 ]
 
 
@@ -263,8 +276,7 @@ __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 [[Returns:] [`false` if the call is returning because the time specified by
 `timeout_time` was reached, `true` otherwise.]]
-[[Postcondition:] [`lk` is locked by the current fiber.]]
-[[Throws:] []]
+[[Note:] [Oliver: but that disagrees with the example above?]]
 ]
 
 [endsect]

@@ -1,5 +1,6 @@
 [/
   (C) Copyright 2007-8 Anthony Williams.
+  (C) Copyright 2013 Oliver Kowalke.
   Distributed under the Boost Software License, Version 1.0.
   (See accompanying file LICENSE_1_0.txt or copy at
   http://www.boost.org/LICENSE_1_0.txt).
@@ -9,23 +10,22 @@
 
 [heading Synopsis]
 
-Fiber local storage allows to have a separate instance of a given data item for
+Fiber local storage allows a separate instance of a given data item for
 each fiber.
-
 
 [heading Cleanup at fiber exit]
 
 When a fiber exits, the objects associated with each __fsp__ instance are
 destroyed. By default, the object pointed to by a pointer `p` is destroyed by
 invoking `delete p`, but this can be overridden for a specific instance of
-__fsp__ by providing a cleanup routine to the constructor. In this case, the
-object is destroyed by invoking `func(p)` where `func` is the cleanup routine
-supplied to the constructor. The cleanup functions are called in an unspecified
+__fsp__ by providing a cleanup routine `func` to the constructor. In this case, the
+object is destroyed by invoking `func(p)`. The cleanup functions are called in an unspecified
 order. If a cleanup routine sets the value of associated with an instance of
 __fsp__ that has already been cleaned up, that value is added to the cleanup
 list. Cleanup finishes when there are no outstanding instances of __fsp__
 with values.
 
+[important Oliver: what do the last two sentences above mean?]
 
 [heading Class fiber_specific_ptr]
 
@@ -39,6 +39,7 @@ with values.
 
             fiber_specific_ptr();
 
+            // Oliver: I'm surprised this doesn't accept a boost::function<void(T*)>.
             explicit fiber_specific_ptr( void(*fn)(T*) );
 
             ~fiber_specific_ptr();
@@ -66,9 +67,10 @@ with values.
 [variablelist
 [[Requires:] [`delete this->get()` is well-formed; fn(this->get()) does not throw]]
 [[Effects:] [Construct a __fsp__ object for storing a pointer to an object of
-type `T` specific to each fiber. The default `delete`-based cleanup function
-will be used to destroy any fiber-local objects when `reset()` is called, or the
-fiber exits.]]
+type `T` specific to each fiber. When `reset()` is called, or the
+fiber exits, __fsp__ calls `fn(this->get())`. If the no-arguments constructor
+is used, the default `delete`-based cleanup function
+will be used to destroy the fiber-local objects.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
 ]
 
@@ -85,7 +87,8 @@ current fiber, and destroys `*this`.]]
 [[Remarks:] [The requirement is due to the fact that in order to delete all
 these instances, the implementation should be forced to maintain a list of all
 the fibers having an associated specific ptr, which is against the goal of
-fiber specific data.]]
+fiber specific data. In general, a __fsp__ should outlive the fibers that use
+it.]]
 ]
 [note Care needs to be taken to ensure that any fibers still running after an
 instance of __fsp__ has been destroyed do not call any member functions on that
