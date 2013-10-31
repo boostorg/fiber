@@ -71,11 +71,9 @@ cooperatively by a scheduler. Objects of type __fiber__ are only moveable.
         boost::fibers::fiber f1( some_fn);
 
 [important Oliver: I think there should be a reference section on `algorithm`,
-`round_robin` and `set_scheduling_algorithm`. It need not say much at this
-point -- although since right now the only provided `algorithm` is
-`round_robin`, it would be great if you would explain how to provide a custom
-`algorithm`. I've added a note to the `fiber::priority()` method explaining
-that `round_robin` disregards `priority()`.]
+`round_robin` and `set_scheduling_algorithm`. It should at least explain the
+distinction between `round_robin` and `round_robin_ws`! Going further, it
+would be great if you would explain how to provide a custom `algorithm`.]
 
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
@@ -574,8 +572,27 @@ to the group.]]
 in undefined behaviour and `is_fiber_in(f) == false`.]]
 [[Effects:] [Add __fiber__ object pointed to by `f` to the group.]]
 [[Postcondition:] [`this->size()` is increased by one.]]
+[[Note:] [Unless the same `f` is later passed to `remove_fiber()`, `*this`
+becomes responsible for the lifespan of `*f`. When the `fiber_group` is
+destroyed, `*f` will also be destroyed.]]
 ]
 
+The Precondition implies that `f` must point to a heap __fiber__ object. This
+is erroneous:
+
+    boost::fibers::fiber_group fg;
+    {
+        boost::fibers::fiber f(somefunc);
+        fg.add_fiber(&f);
+    } // WRONG!
+
+Instead, use the following:
+
+    boost::fibers::fiber_group fg;
+    {
+        boost::fibers::fiber* f = new boost::fibers::fiber(somefunc);
+        fg.add_fiber(f);
+    } // okay, fg is now responsible for *f
 
 [heading Member function `remove_fiber()`]
 

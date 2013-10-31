@@ -19,12 +19,12 @@
 ]
 
 
-[def __boost_asio__ [*Boost.Asio]]
-[def __boost_chrono__ [*Boost.Chrono]]
-[def __boost_coroutine__ [*Boost.Coroutine]]
-[def __boost_move__ [*Boost.Move]]
+[def __boost_asio__ [@boost:/libs/asio/index.html Boost.Asio]]
+[def __boost_chrono__ [@boost:/libs/chrono/index.html Boost.Chrono]]
+[def __boost_coroutine__ [@boost:/libs/coroutine/index.html Boost.Coroutine]]
+[def __boost_move__ [@boost:/libs/move/index.html Boost.Move]]
 [def __boost_fiber__ [*Boost.Fiber]]
-[def __boost_thread__ [*Boost.Thread]]
+[def __boost_thread__ [@boost:/libs/thread/index.html Boost.Thread]]
 
 [def __async_result__ ['async-result]]
 [def __blocked__ ['blocked]]
