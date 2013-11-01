@@ -15,15 +15,17 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
-    (defined(__ICC) && defined(BOOST_WINDOWS))
-__declspec(thread) algorithm * scheduler::instance_ = 0;
-#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-detail::thread_local_ptr<algorithm> scheduler::instance_;
-#else
-//algorithm * scheduler::instance_ = 0;
-__thread algorithm * scheduler::instance_ = 0;
-#endif
+static void cleanup_function( algorithm *) {}
+
+thread_specific_ptr< algorithm > scheduler::instance_( cleanup_function);
+
+algorithm *
+scheduler::replace( algorithm * other) BOOST_NOEXCEPT
+{
+    algorithm * old = instance_.release();
+    instance_.reset( other);
+    return old;
+}
 
 }}}
 

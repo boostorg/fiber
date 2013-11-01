@@ -6,11 +6,8 @@
 #ifndef BOOST_FIBERS_DETAIL_SCHEDULER_H
 #define BOOST_FIBERS_DETAIL_SCHEDULER_H
 
-#if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-#include <pthread.h>                // pthread_key_create, pthread_[gs]etspecific
-#endif
-
 #include <boost/config.hpp>
+#include <boost/thread/tss.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/algorithm.hpp>
@@ -29,83 +26,20 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-// thread_local_ptr was contributed by Nat Goodspeed
-#if defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-template <typename T>
-class thread_local_ptr : private noncopyable
-{
-private:
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
-
-    ::pthread_key_t     key_;
-
-public:
-    thread_local_ptr() BOOST_NOEXCEPT
-    { BOOST_ASSERT( ! ::pthread_key_create( & key_, 0) ); }
-
-    T * get() const BOOST_NOEXCEPT
-    { return static_cast< T * >( ::pthread_getspecific( key_) ); }
-
-    thread_local_ptr & operator=( T * ptr) BOOST_NOEXCEPT
-    {
-        ::pthread_setspecific( key_, ptr);
-        return * this;
-    }
-
-    T & operator*() const BOOST_NOEXCEPT
-    { return * get(); }
-
-    T * operator->() const BOOST_NOEXCEPT
-    { return get(); }
-
-    operator T * () const BOOST_NOEXCEPT
-    { return get(); }
-
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return get() ? &dummy::nonnull : 0; }
-
-    bool operator!() const BOOST_NOEXCEPT
-    { return ! get(); }
-
-    bool operator==( thread_local_ptr const& other) BOOST_NOEXCEPT
-    { return this->get() == other.get(); }
-
-    bool operator!=( thread_local_ptr const& other) BOOST_NOEXCEPT
-    { return ! ( * this == other); }
-};
-
-#endif  // __APPLE__ && BOOST_HAS_PTHREADS
-
 class scheduler : private noncopyable
 {
 private:
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
-    (defined(__ICC) && defined(BOOST_WINDOWS))
-    static __declspec(thread) algorithm     *   instance_;
-#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-    static detail::thread_local_ptr<algorithm>  instance_;
-#else
-    static __thread algorithm               *   instance_;
-#endif
+    static thread_specific_ptr< algorithm >  instance_;
 
 public:
     template< typename F >
-    static fiber_base::ptr_t extract( F const& f) {
-        return f.impl_;
-    }
+    static fiber_base::ptr_t extract( F const& f)
+    { return f.impl_; }
 
     static algorithm * instance() BOOST_NOEXCEPT
-	{ return instance_; }
+    { return instance_.get(); }
 
-    static algorithm * replace( algorithm * other) BOOST_NOEXCEPT
-	{
-		algorithm * old = instance_;
-		instance_ = other;
-		return old;
-	}
+    static algorithm * replace( algorithm * other) BOOST_NOEXCEPT;
 };
 
 }}}
