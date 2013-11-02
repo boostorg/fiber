@@ -361,6 +361,10 @@ public:
 
     void priority( int) BOOST_NOEXCEPT;
 
+    bool thread_affinity() const BOOST_NOEXCEPT;
+
+    void thread_affinity( bool) BOOST_NOEXCEPT;
+
     void detach() BOOST_NOEXCEPT;
 
     void join();

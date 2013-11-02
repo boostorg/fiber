@@ -259,8 +259,10 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
             id get_id() const noexcept;
 
             int priority() const noexcept;
-
             void priority( int) noexcept;
+
+            bool thread_affinity() const noexcept;
+            void thread_affinity( bool) noexcept;
 
             void detach() noexcept;
 
@@ -431,6 +433,26 @@ interruption enabled.]]
 
 [variablelist
 [[Effects:] [If `*this` refers to a fiber of execution, return its priority.]]
+[[Throws:] [Nothing]]
+]
+
+[heading Member function `thread_affinity( bool)`]
+
+        void thread_affinity( bool) noexcept;
+
+[variablelist
+[[Effects:] [If `*this` refers to a fiber of execution, set its thread affinity.]]
+[[Throws:] [Nothing]]
+[[Note:] [A value of `false` prevents migrating the fiber to another scheduler
+running in a different thread.]]
+]
+
+[heading Member function `thread_affinity()`]
+
+        bool thread_affinity() const noexcept;
+
+[variablelist
+[[Effects:] [If `*this` refers to a fiber of execution, return its thread affinity.]]
 [[Throws:] [Nothing]]
 ]
 
