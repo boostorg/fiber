@@ -10,6 +10,8 @@
 #include <boost/config.hpp>
 #include <boost/detail/scoped_enum_emulation.hpp>
 
+#include <boost/fiber/detail/config.hpp>
+
 namespace boost {
 namespace fibers {
 

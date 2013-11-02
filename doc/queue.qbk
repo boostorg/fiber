@@ -15,15 +15,14 @@ synchonize fibers via message passing.
     void send( queue_t & queue)
     {
         for ( int i = 0; i < 5; ++i)
-            queue.put( i);
-        queue.deactivate();
+            queue.push( i);
+        queue.close();
     }
 
     void recv( queue_t & queue)
     {
-        boost::optional< int > value;
-        while ( queue.take( value) )
-        { std::cout << "received " << * value << std::endl; }
+        while ( ! queue.is_closed() )
+        { std::cout << "received " << queue.value_pop() << std::endl; }
     }
 
     queue_t queue;
@@ -33,6 +32,44 @@ synchonize fibers via message passing.
     f1.join();
     f2.join();
 
+[heading Enumeration `queue_op_status`]
+
+Queue-operations return the state of the queue.
+
+        enum class queue_op_status
+        {
+            success,
+            empty,
+            full,
+            closed,
+            timeout
+        };
+
+[heading `success`]
+[variablelist
+[[Effects:] [Operation was successfull.]]
+]
+
+[heading `empty`]
+[variablelist
+[[Effects:] [Queue is empty, operation failed.]]
+]
+
+[heading `full`]
+[variablelist
+[[Effects:] [Queue is full, operation failed.]]
+]
+
+[heading `closed`]
+[variablelist
+[[Effects:] [Queue is closed, operation failed.]]
+]
+
+[heading `timeout`]
+[variablelist
+[[Effects:] [The operation did not become ready before timout has passed.]]
+]
+
 [heading Template `unbounded_queue<>`]
 
     #include <boost/fiber/unbounded_queue.hpp>
@@ -41,58 +78,65 @@ synchonize fibers via message passing.
     class unbounded_queue
     {
     public:
-        unbounded_queue( unbounded_queue const& other) = delete; 
-        unbounded_queue & operator=( unbounded_queue const& other) = delete; 
+        typedef T   value_type;
 
-        bool active() const;
+        unbounded_queue( unbounded_queue const& other) = delete;
+        unbounded_queue & operator=( unbounded_queue const& other) = delete;
 
-        void deactivate();
+        bool is_closed() const;
+        void close();
 
-        bool empty();
+        bool is_empty();
 
-        void put( T const& t);
+        void push( value_type const& va);
+        void push( value_types &&) va);
 
-        bool take( boost::optional< T > & va);
-
-        bool try_take( boost::optional< T > & va);
+        value_type value_pop();
+        template< typename Rep, typename Period >
+        queue_op_status wait_pop( value_type & va,
+                                  chrono::duration< Rep, Period > const& timeout_duration)
+        queue_op_status wait_pop( value_type & va,
+                                  clock_type::time_point const& timeout_time)
+        queue_op_status try_pop( value_type & va);
     };
 
-[heading Member function `active()`]
+[heading Member function `is_closed()`]
 
-        bool active() const;
+        bool is_closed() const;
 
 [variablelist
-[[Effects:] [Return `true` if queue is still usable.]]
+[[Effects:] [Return `true` if queue was closed.]]
 [[Throws:] [Nothing.]]
-[[Note:] [The queue is usable by default.]]
+[[Note:] [The queue is not closed by default.]]
 ]
 
-[heading Member function `deactivate()`]
+[heading Member function `closed()`]
 
-        void deactivate();
+        void closed();
 
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
-`this->deactivate`. Fibers blocked in `this->take()` will return.]]
+`this->close`. Fibers blocked in `this->value_pop()` will return.]]
 [[Throws:] [Nothing.]]
-[[Note:] [`deactivate()` is like closing a pipe. It informs waiting receivers
+[[Note:] [`close()` is like closing a pipe. It informs waiting receivers
 that no more values will arrive.]]
 ]
 
-[heading Member function `empty()`]
+[heading Member function `is_empty()`]
 
-        bool empty();
+        bool is_empty();
 
 [variablelist
 [[Effects:] [Returns `true` if the queue currently contains no data.]]
 [[Throws:] [Nothing.]]
-[[Note:] [This condition is transient. An `empty()` queue can become
+[[Note:] [This condition is transient. An `is_empty()` queue can become
 non-empty.]]
 ]
 
-[heading Member function `put()`]
+[heading Member function `push()`]
 
-        void put( T const& t);
+        void push( value_type const& va);
+        void push( value_type && va);
 
 [variablelist
 [[Effects:] [Enqueues the value in the queue and wakes up a fiber waiting
@@ -135,6 +179,8 @@ the queue at this moment, the function returns `false`. Otherwise it returns
     class bounded_queue
     {
     public:
+        typedef T   value_type;
+
         bounded_queue( bounded_queue const& other) = delete; 
         bounded_queue & operator=( bounded_queue const& other) = delete; 
 
@@ -142,17 +188,34 @@ the queue at this moment, the function returns `false`. Otherwise it returns
 
         bounded_queue( std::size_t hwm, std::size_t lwm);
 
-        bool active() const;
+        bool is_closed() const;
+        void close();
 
-        void deactivate();
+        bool is_empty();
+        bool is_full();
 
-        bool empty();
+        void push( T const& t);
+        void push( T && t);
+        template< typename Rep, typename Period >
+        queue_op_status wait_push( value_type const& va,
+                                   chrono::duration< Rep, Period > const& timeout_duration);
+        template< typename Rep, typename Period >
+        queue_op_status wait_push( value_type && va,
+                                   chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status wait_push( value_type const& va,
+                                   clock_type::time_point const& timeout_time);
+        queue_op_status wait_push( value_type && va,
+                                   clock_type::time_point const& timeout_time);
+        queue_op_status try_push( value_type const& va);
+        queue_op_status try_push( value_type && va);
 
-        void put( T const& t);
-
-        bool take( boost::optional< T > & va);
-
-        bool try_take( boost::optional< T > & va);
+        value_type value_pop();
+        template< typename Rep, typename Period >
+        queue_op_status wait_pop( value_type & va,
+                                  chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status wait_pop( value_type & va,
+                                  clock_type::time_point const& timeout_time);
+        queue_op_status try_pop( value_type & va);
     };
 
 [heading Constructor]

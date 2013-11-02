@@ -17,24 +17,24 @@ void ping( fifo_t & recv_buf, fifo_t & send_buf)
 {
     boost::fibers::fiber::id id( boost::this_fiber::get_id() );
 
-	boost::optional< std::string > value;
+	send_buf.push("ping");
 
-	send_buf.put("ping");
-	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "fiber " <<  id << ": ping received: " << * value << std::endl;
-	value.reset();
+	std::string value = recv_buf.value_pop();
+	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
+	value.clear();
 
-	send_buf.put("ping");
-	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "fiber " <<  id << ": ping received: " << * value << std::endl;
-	value.reset();
+	send_buf.push("ping");
 
-	send_buf.put("ping");
-	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "fiber " <<  id << ": ping received: " << * value << std::endl;
-	value.reset();
+	value = recv_buf.value_pop();
+	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
+	value.clear();
 
-	send_buf.deactivate();
+	send_buf.push("ping");
+
+	value = recv_buf.value_pop();
+	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
+
+	send_buf.close();
 }
 
 inline
@@ -42,24 +42,24 @@ void pong( fifo_t & recv_buf, fifo_t & send_buf)
 {
     boost::fibers::fiber::id id( boost::this_fiber::get_id() );
 
-	boost::optional< std::string > value;
+	std::string value = recv_buf.value_pop();
+	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
+	value.clear();
 
-	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "fiber " <<  id << ": pong received: " << * value << std::endl;
-	value.reset();
-	send_buf.put("pong");
+	send_buf.push("pong");
 
-	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "fiber " <<  id << ": pong received: " << * value << std::endl;
-	value.reset();
-	send_buf.put("pong");
+	value = recv_buf.value_pop();
+	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
+	value.clear();
 
-	BOOST_ASSERT( recv_buf.take( value) );
-	std::cout << "fiber " <<  id << ": pong received: " << * value << std::endl;
-	value.reset();
-	send_buf.put("pong");
+	send_buf.push("pong");
 
-	send_buf.deactivate();
+	value = recv_buf.value_pop();
+	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
+
+	send_buf.push("pong");
+
+	send_buf.close();
 }
 
 int main()

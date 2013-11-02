@@ -144,7 +144,7 @@ public:
                     // remove fiber from waiting-list
                     waiting_.erase(
                         std::find( waiting_.begin(), waiting_.end(), n) );
-                
+
                     status = cv_status::timeout;
                 }
 
