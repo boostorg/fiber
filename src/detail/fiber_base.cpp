@@ -139,6 +139,15 @@ fiber_base::request_interruption( bool req) BOOST_NOEXCEPT
 }
 
 void
+fiber_base::thread_affinity( bool req) BOOST_NOEXCEPT
+{
+    if ( req)
+        flags_ |= flag_thread_affinity;
+    else
+        flags_ &= ~flag_thread_affinity;
+}
+
+void
 fiber_base::set_ready() BOOST_NOEXCEPT
 {
     state_t previous = state_.exchange( READY);

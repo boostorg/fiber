@@ -695,6 +695,8 @@ fiber's context.
         void sleep_until( fibers::clock_type::time_point const& sleep_time);
         template< typename Rep, typename Period >
         void sleep_for( chrono::duration< Rep, Period > const& timeout_duration);
+        bool thread_affinity();
+        void thread_affinity( bool req)
 
         void interruption_point();
         bool interruption_requested() noexcept;
@@ -752,10 +754,23 @@ there are no guarantees about how soon after that it might resume.]]
 
         #include <boost/fiber/operations.hpp>
 
-        void yield() noexcept;
+        void yield();
 
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
+]
+[[Throws:] [Nothing.]]
+
+[heading Non-member function `thread_affinity()`]
+
+        #include <boost/fiber/operations.hpp>
+
+        bool thread_affinity();
+        void thread_affinity( bool req);
+
+[variablelist
+[[Effects:] [Affects the abiblity to select a fiber for migraton to another
+scheduler (running in another thread). Default is `false` (migration allowed).]]
 [[Throws:] [Nothing.]]
 ]
 

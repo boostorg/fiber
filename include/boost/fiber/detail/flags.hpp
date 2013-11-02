@@ -22,7 +22,8 @@ namespace detail {
 enum flag_t
 {
     flag_interruption_blocked   = 1 << 0,
-    flag_interruption_requested = 1 << 1
+    flag_interruption_requested = 1 << 1,
+    flag_thread_affinity = 1 << 2
 };
 
 }}}

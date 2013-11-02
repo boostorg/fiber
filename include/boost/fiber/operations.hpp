@@ -56,6 +56,14 @@ void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
     interruption_point();
 }
 
+inline
+bool thread_affinity()
+{ return fibers::detail::scheduler::instance()->active()->thread_affinity(); }
+
+inline
+void thread_affinity( bool req)
+{ fibers::detail::scheduler::instance()->active()->thread_affinity( req); }
+
 }
 
 namespace fibers {

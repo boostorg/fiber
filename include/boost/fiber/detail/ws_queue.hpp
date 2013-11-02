@@ -47,10 +47,17 @@ public:
     bool try_pop( fiber_base::ptr_t & f)
     {
         unique_lock< spinlock > lk( splk_);
-        if ( queue_.empty() ) return false;
-        f.swap( queue_.front() );
-        queue_.pop_front();
-        return true;
+        queue_t::iterator e = queue_.end();
+        for ( queue_t::iterator i = queue_.begin(); i != e; ++i)
+        {
+            if ( ! ( * i)->thread_affinity() )
+            {
+                f.swap( * i);
+                queue_.erase( i);
+                return true;
+            }
+        }
+        return false;
     }
 };
 

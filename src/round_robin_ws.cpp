@@ -214,8 +214,8 @@ fiber
 round_robin_ws::steal_from()
 {
     detail::fiber_base::ptr_t f;
-    if ( ! rqueue_.try_pop( f) ) return fiber();
-    return fiber( f);
+    if ( rqueue_.try_pop( f) ) return fiber( f);
+    return fiber();
 }
 
 void

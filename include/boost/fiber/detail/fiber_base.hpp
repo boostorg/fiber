@@ -211,6 +211,11 @@ public:
 
     void request_interruption( bool req) BOOST_NOEXCEPT;
 
+    bool thread_affinity() const BOOST_NOEXCEPT
+    { return 0 != ( flags_.load() & flag_thread_affinity); }
+
+    void thread_affinity( bool req) BOOST_NOEXCEPT;
+
     bool is_terminated() const BOOST_NOEXCEPT
     { return TERMINATED == state_; }
 
