@@ -363,7 +363,7 @@ public:
 
         while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
-        if ( is_closed_() )
+        if ( is_closed_() && is_empty_() )
             BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
         BOOST_ASSERT( ! is_empty_() );
 
@@ -406,7 +406,7 @@ public:
                 return queue_op_status::timeout;
         }
 
-        if ( is_closed_() ) return queue_op_status::closed;
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         BOOST_ASSERT( ! is_empty_() );
 
         try
@@ -435,7 +435,7 @@ public:
     {
         mutex::scoped_lock lk( head_mtx_);
 
-        if ( is_closed_() ) return queue_op_status::closed;
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         if ( is_empty_() ) return queue_op_status::empty;
 
         va = boost::move( head_->va);
@@ -658,7 +658,7 @@ public:
 
         while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
-        if ( is_closed_() )
+        if ( is_closed_() && is_empty_() )
             BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
         BOOST_ASSERT( ! is_empty_() );
 
@@ -701,7 +701,7 @@ public:
                 return queue_op_status::timeout;
         }
 
-        if ( is_closed_() ) return queue_op_status::closed;
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         BOOST_ASSERT( ! is_empty_() );
 
         try
@@ -730,7 +730,7 @@ public:
     {
         mutex::scoped_lock lk( head_mtx_);
 
-        if ( is_closed_() ) return queue_op_status::closed;
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         if ( is_empty_() ) return queue_op_status::empty;
 
         std::swap( va, head_->va);

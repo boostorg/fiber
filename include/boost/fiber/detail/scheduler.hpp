@@ -36,8 +36,7 @@ public:
     static fiber_base::ptr_t extract( F const& f)
     { return f.impl_; }
 
-    static algorithm * instance() BOOST_NOEXCEPT
-    { return instance_.get(); }
+    static algorithm * instance() BOOST_NOEXCEPT;
 
     static algorithm * replace( algorithm * other) BOOST_NOEXCEPT;
 };
