@@ -32,11 +32,11 @@ struct algorithm : private noncopyable
 {
     virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual void priority( detail::fiber_base::ptr_t const&, int) = 0;
+    virtual void priority( detail::fiber_base::ptr_t const&, int) BOOST_NOEXCEPT = 0;
 
     virtual void join( detail::fiber_base::ptr_t const&) = 0;
 
-    virtual detail::fiber_base::ptr_t active() = 0;
+    virtual detail::fiber_base::ptr_t active() BOOST_NOEXCEPT = 0;
 
     virtual bool run() = 0;
 

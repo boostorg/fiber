@@ -23,7 +23,7 @@ namespace boost {
 namespace this_fiber {
 
 inline
-fibers::fiber::id get_id()
+fibers::fiber::id get_id() BOOST_NOEXCEPT
 {
     return fibers::detail::scheduler::instance()->active()
         ? fibers::detail::scheduler::instance()->active()->get_id()
@@ -57,11 +57,11 @@ void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 }
 
 inline
-bool thread_affinity()
+bool thread_affinity() BOOST_NOEXCEPT
 { return fibers::detail::scheduler::instance()->active()->thread_affinity(); }
 
 inline
-void thread_affinity( bool req)
+void thread_affinity( bool req) BOOST_NOEXCEPT
 { fibers::detail::scheduler::instance()->active()->thread_affinity( req); }
 
 }

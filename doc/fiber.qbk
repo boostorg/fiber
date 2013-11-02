@@ -690,13 +690,13 @@ fiber's context.
         namespace boost {
         namespace this_fiber {
 
-        fibers::fiber::id get_id();
+        fibers::fiber::id get_id() noexcept;
         void yield();
         void sleep_until( fibers::clock_type::time_point const& sleep_time);
         template< typename Rep, typename Period >
         void sleep_for( chrono::duration< Rep, Period > const& timeout_duration);
-        bool thread_affinity();
-        void thread_affinity( bool req)
+        bool thread_affinity() noexcept;
+        void thread_affinity( bool req) noexcept;
 
         void interruption_point();
         bool interruption_requested() noexcept;
@@ -715,7 +715,7 @@ fiber's context.
 [variablelist
 [[Returns:] [An instance of __fiber_id__ that represents the currently
 executing fiber.]]
-[[Throws:] [__fiber_resource_error__ if an error occurs.]]
+[[Throws:] [Nothing.]]
 ]
 
 [heading Non-member function `sleep_until()`]
@@ -759,19 +759,20 @@ there are no guarantees about how soon after that it might resume.]]
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
 ]
-[[Throws:] [Nothing.]]
+[[Throws:] [__fiber_resource_error__ if an error occurs.]]
 
 [heading Non-member function `thread_affinity()`]
 
         #include <boost/fiber/operations.hpp>
 
-        bool thread_affinity();
-        void thread_affinity( bool req);
+        bool thread_affinity() noexcept;
+        void thread_affinity( bool req) noexcept;
 
 [variablelist
 [[Effects:] [Affects the abiblity to select a fiber for migraton to another
-scheduler (running in another thread). Default is `false` (migration allowed).]]
+scheduler (running in another thread).]]
 [[Throws:] [Nothing.]]
+[[Note:][Thread affinity is disabled by default.]]
 ]
 
 [heading Non-member function `interruption_point()`]

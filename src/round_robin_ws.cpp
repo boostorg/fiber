@@ -201,7 +201,7 @@ round_robin_ws::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-round_robin_ws::priority( detail::fiber_base::ptr_t const& f, int prio)
+round_robin_ws::priority( detail::fiber_base::ptr_t const& f, int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( f);
 
