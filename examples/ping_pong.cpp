@@ -33,8 +33,6 @@ void ping( fifo_t & recv_buf, fifo_t & send_buf)
 
 	value = recv_buf.value_pop();
 	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
-
-	send_buf.close();
 }
 
 inline
@@ -58,8 +56,6 @@ void pong( fifo_t & recv_buf, fifo_t & send_buf)
 	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
 
 	send_buf.push("pong");
-
-	send_buf.close();
 }
 
 int main()
