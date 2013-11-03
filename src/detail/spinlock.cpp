@@ -22,13 +22,24 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    while ( LOCKED == state_.exchange( LOCKED) )
+    for (;;)
     {
-        // busy-wait
-        if ( scheduler::instance()->active() )
-            scheduler::instance()->yield();
-        else
-            this_thread::yield();
+        // access to CPU's cache
+        // first access to state_ -> cache miss
+        // sucessive acccess to state_ > cache hit
+        while ( LOCKED == state_)
+        {
+            // busy-wait
+            if ( scheduler::instance()->active() )
+                scheduler::instance()->yield();
+            else
+                this_thread::yield();
+        }
+        // state_ was released by other
+        // cached copies are invalidated -> cache miss
+        // test-and-set over the bus 
+        if ( UNLOCKED == state_.exchange( LOCKED) )
+            return;
     }
 }
 
