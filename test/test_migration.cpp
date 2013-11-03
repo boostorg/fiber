@@ -78,6 +78,13 @@ void fn_migrate_fibers( boost::fibers::round_robin_ws * other_ds, boost::barrier
 
     while ( ! fini)
     {
+        // To guarantee progress, we must ensure that
+        // threads that have work to do are not unreasonably delayed by (thief) threads
+        // which are idle except for task-stealing. 
+        // This call yields the thief ’s processor to another thread, allowing
+        // descheduled threads to regain a processor and make progress. 
+        boost::this_thread::yield();
+
         boost::fibers::fiber f( other_ds->steal_from() );
         if ( f)
         {
