@@ -20,13 +20,6 @@ static void cleanup_function( algorithm *) {}
 thread_specific_ptr< algorithm > scheduler::instance_( cleanup_function);
 
 algorithm *
-scheduler::instance() BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( instance_.get() );
-    return instance_.get();
-}
-
-algorithm *
 scheduler::replace( algorithm * other) BOOST_NOEXCEPT
 {
     algorithm * old = instance_.release();
