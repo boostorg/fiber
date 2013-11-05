@@ -9,7 +9,6 @@
 
 #include <deque>
 
-#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
@@ -40,9 +39,9 @@ private:
         UNLOCKED
     };
 
-    detail::fiber_base::id          owner_;
-    atomic< state_t >               state_;
     detail::spinlock                splk_;
+    state_t                         state_;
+    detail::fiber_base::id          owner_;
     std::deque<
         detail::notify::ptr_t
     >                               waiting_;

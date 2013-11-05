@@ -31,7 +31,8 @@ namespace fibers {
 round_robin_ws::round_robin_ws() BOOST_NOEXCEPT :
     active_fiber_(),
     wqueue_(),
-    rqueue_()
+    rqueue_(),
+    mn_()
 {}
 
 round_robin_ws::~round_robin_ws() BOOST_NOEXCEPT

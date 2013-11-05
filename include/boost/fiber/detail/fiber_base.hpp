@@ -8,7 +8,6 @@
 #define BOOST_FIBERS_DETAIL_FIBER_BASE_H
 
 #include <cstddef>
-#include <iostream>
 #include <map>
 #include <vector>
 
@@ -102,58 +101,6 @@ protected:
     virtual void run() = 0;
 
 public:
-    class id
-    {
-    private:
-        friend class fiber_base;
-
-        fiber_base const*   impl_;
-
-    public:
-        explicit id( fiber_base const* impl) BOOST_NOEXCEPT :
-            impl_( impl)
-        {}
-
-    public:
-        id() BOOST_NOEXCEPT :
-            impl_()
-        {}
-
-        bool operator==( id const& other) const BOOST_NOEXCEPT
-        { return impl_ == other.impl_; }
-
-        bool operator!=( id const& other) const BOOST_NOEXCEPT
-        { return impl_ != other.impl_; }
-        
-        bool operator<( id const& other) const BOOST_NOEXCEPT
-        { return impl_ < other.impl_; }
-        
-        bool operator>( id const& other) const BOOST_NOEXCEPT
-        { return other.impl_ < impl_; }
-        
-        bool operator<=( id const& other) const BOOST_NOEXCEPT
-        { return ! ( * this > other); }
-        
-        bool operator>=( id const& other) const BOOST_NOEXCEPT
-        { return ! ( * this < other); }
-
-        template< typename charT, class traitsT >
-        friend std::basic_ostream< charT, traitsT > &
-        operator<<( std::basic_ostream< charT, traitsT > & os, id const& other)
-        {
-            if ( 0 != other.impl_)
-                return os << other.impl_;
-            else
-                return os << "{not-valid}";
-        }
-
-        operator bool() const BOOST_NOEXCEPT
-        { return 0 != impl_; }
-
-        bool operator!() const BOOST_NOEXCEPT
-        { return 0 == impl_; }
-    };
-
     template< typename StackAllocator, typename Allocator >
     fiber_base( attributes const& attrs, StackAllocator const& stack_alloc, Allocator const& alloc) :
         fss_data_(),
@@ -187,7 +134,7 @@ public:
     virtual ~fiber_base();
 
     id get_id() const BOOST_NOEXCEPT
-    { return id( this); }
+    { return id( const_cast< fiber_base * >( this) ); }
 
     int priority() const BOOST_NOEXCEPT
     { return priority_; }

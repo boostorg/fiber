@@ -12,6 +12,8 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/main_notifier.hpp>
+#include <boost/fiber/detail/notify.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -29,9 +31,13 @@ namespace detail {
 class scheduler : private noncopyable
 {
 private:
-    static thread_specific_ptr< algorithm >  instance_;
+    static thread_specific_ptr< algorithm > instance_;
 
 public:
+    typedef main_notifier   local_context;
+
+    static notify::ptr_t make_notification( main_notifier &);
+
     template< typename F >
     static fiber_base::ptr_t extract( F const& f)
     { return f.impl_; }

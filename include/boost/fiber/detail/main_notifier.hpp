@@ -6,6 +6,7 @@
 #ifndef BOOST_FIBERS_DETAIL_MAIN_NOTIFIER_H
 #define BOOST_FIBERS_DETAIL_MAIN_NOTIFIER_H
 
+#include <boost/atomic.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -19,7 +20,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class main_notifier : public detail::notify
+class main_notifier : public notify
 {
 public:
     static ptr_t make_pointer( main_notifier & n) {
@@ -33,14 +34,7 @@ public:
     {}
 
     bool is_ready() const BOOST_NOEXCEPT
-    {
-        if ( ready_)
-        {
-            ready_ = false;
-            return true;
-        }
-        return false;
-    }
+    { return ready_; }
 
     void set_ready() BOOST_NOEXCEPT
     { ready_ = true; }
@@ -48,8 +42,14 @@ public:
     void deallocate_object()
     {}
 
+    id get_id() const BOOST_NOEXCEPT
+    { return id( const_cast< main_notifier * >( this) ); }
+
 private:
-    mutable bool    ready_;
+    atomic< bool >  ready_;
+
+    main_notifier( main_notifier const&);
+    main_notifier & operator=( main_notifier const&);
 };
 
 }}}

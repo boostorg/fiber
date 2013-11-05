@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_DETAIL_NOTIFY_H
 
 #include <cstddef>
+#include <iostream>
 
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
@@ -41,6 +42,55 @@ protected:
 public:
     typedef intrusive_ptr< notify >     ptr_t;
 
+    class id
+    {
+    private:
+        notify::ptr_t  impl_;
+
+    public:
+        id() BOOST_NOEXCEPT :
+            impl_()
+        {}
+
+        explicit id( notify::ptr_t impl) BOOST_NOEXCEPT :
+            impl_( impl)
+        {}
+
+        bool operator==( id const& other) const BOOST_NOEXCEPT
+        { return impl_ == other.impl_; }
+
+        bool operator!=( id const& other) const BOOST_NOEXCEPT
+        { return impl_ != other.impl_; }
+        
+        bool operator<( id const& other) const BOOST_NOEXCEPT
+        { return impl_ < other.impl_; }
+        
+        bool operator>( id const& other) const BOOST_NOEXCEPT
+        { return other.impl_ < impl_; }
+        
+        bool operator<=( id const& other) const BOOST_NOEXCEPT
+        { return ! ( * this > other); }
+        
+        bool operator>=( id const& other) const BOOST_NOEXCEPT
+        { return ! ( * this < other); }
+
+        template< typename charT, class traitsT >
+        friend std::basic_ostream< charT, traitsT > &
+        operator<<( std::basic_ostream< charT, traitsT > & os, id const& other)
+        {
+            if ( 0 != other.impl_)
+                return os << other.impl_;
+            else
+                return os << "{not-valid}";
+        }
+
+        operator bool() const BOOST_NOEXCEPT
+        { return 0 != impl_; }
+
+        bool operator!() const BOOST_NOEXCEPT
+        { return 0 == impl_; }
+    };
+
     notify() :
         use_count_( 0)
     {}
@@ -50,6 +100,8 @@ public:
     virtual bool is_ready() const BOOST_NOEXCEPT = 0;
 
     virtual void set_ready() BOOST_NOEXCEPT = 0;
+
+    virtual id get_id() const BOOST_NOEXCEPT = 0;
 
     friend inline void intrusive_ptr_add_ref( notify * p) BOOST_NOEXCEPT
     { ++p->use_count_; }

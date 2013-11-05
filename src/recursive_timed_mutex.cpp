@@ -10,7 +10,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/detail/main_notifier.hpp"
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
@@ -23,10 +22,10 @@ namespace boost {
 namespace fibers {
 
 recursive_timed_mutex::recursive_timed_mutex() :
+    splk_(),
+	state_( UNLOCKED),
     owner_(),
     count_( 0),
-	state_( UNLOCKED),
-    splk_(),
     waiting_()
 {}
 
@@ -40,12 +39,6 @@ recursive_timed_mutex::~recursive_timed_mutex()
 void
 recursive_timed_mutex::lock()
 {
-    if ( LOCKED == state_ && this_fiber::get_id() == owner_)
-    {
-        ++count_;
-        return;
-    }
-
     detail::notify::ptr_t n( detail::scheduler::instance()->active() );
     if ( n)
     {
@@ -53,9 +46,19 @@ recursive_timed_mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            state_t expected = UNLOCKED;
-            if ( state_.compare_exchange_strong( expected, LOCKED) )
-                break;
+            if ( UNLOCKED == state_)
+            {
+                state_ = LOCKED;
+                BOOST_ASSERT( ! owner_);
+                owner_ = this_fiber::get_id();
+                ++count_;
+                return;
+            }
+            else if ( this_fiber::get_id() == owner_)
+            {
+                ++count_;
+                return;
+            }
 
             // store this fiber in order to be notified later
             waiting_.push_back( n);
@@ -66,17 +69,27 @@ recursive_timed_mutex::lock()
     }
     else
     {
-        // notifier for main-fiber
-        detail::main_notifier mn;
-        n = detail::main_notifier::make_pointer( mn);
+        // local notification for main-fiber
+        detail::scheduler::local_context ctx;
+        n = detail::scheduler::make_notification( ctx);
 
         for (;;)
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            state_t expected = UNLOCKED;
-            if ( state_.compare_exchange_strong( expected, LOCKED) )
-                break;
+            if ( UNLOCKED == state_)
+            {
+                state_ = LOCKED;
+                BOOST_ASSERT( ! owner_);
+                owner_ = this_fiber::get_id();
+                ++count_;
+                return;
+            }
+            else if ( this_fiber::get_id() == owner_)
+            {
+                ++count_;
+                return;
+            }
 
             // store this fiber in order to be notified later
             waiting_.push_back( n);
@@ -90,46 +103,38 @@ recursive_timed_mutex::lock()
             }
         }
     }
-
-    BOOST_ASSERT( ! owner_);
-    BOOST_ASSERT( 0 == count_);
-
-    owner_ = this_fiber::get_id();
-    ++count_;
 }
 
 bool
 recursive_timed_mutex::try_lock()
 {
-    if ( LOCKED == state_ && this_fiber::get_id() == owner_)
+    unique_lock< detail::spinlock > lk( splk_);
+
+    if ( UNLOCKED == state_)
+    {
+        state_ = LOCKED;
+        BOOST_ASSERT( ! owner_);
+        owner_ = this_fiber::get_id();
+        ++count_;
+        return true;
+    }
+    else if ( this_fiber::get_id() == owner_)
     {
         ++count_;
         return true;
     }
-
-    state_t expected = UNLOCKED;
-    if ( ! state_.compare_exchange_strong( expected, LOCKED) )
+    else
     {
+        lk.unlock();
         // let other fiber release the lock
         detail::scheduler::instance()->yield();
         return false;
     }
-
-    owner_ = this_fiber::get_id();
-    ++count_;
-
-    return true;
 }
 
 bool
 recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
 {
-    if ( LOCKED == state_ && this_fiber::get_id() == owner_)
-    {
-        ++count_;
-        return true;
-    }
-
     detail::notify::ptr_t n( detail::scheduler::instance()->active() );
     if ( n)
     {
@@ -140,15 +145,26 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
             if ( clock_type::now() > timeout_time)
                 return false;
 
-            state_t expected = UNLOCKED;
-            if ( state_.compare_exchange_strong( expected, LOCKED) )
-                break;
-
+            if ( UNLOCKED == state_)
+            {
+                state_ = LOCKED;
+                BOOST_ASSERT( ! owner_);
+                owner_ = this_fiber::get_id();
+                ++count_;
+                return true;
+            }
+            else if ( this_fiber::get_id() == owner_)
+            {
+                ++count_;
+                return true;
+            }
+        
             // store this fiber in order to be notified later
             waiting_.push_back( n);
 
             // suspend this fiber until notified or timed-out
-            if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
+            if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) )
+            {
                 lk.lock();
                 // remove fiber from waiting-list
                 waiting_.erase(
@@ -160,9 +176,9 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
     }
     else
     {
-        // notifier for main-fiber
-        detail::main_notifier mn;
-        n = detail::main_notifier::make_pointer( mn);
+        // local notification for main-fiber
+        detail::scheduler::local_context ctx;
+        n = detail::scheduler::make_notification( ctx);
 
         for (;;)
         {
@@ -171,9 +187,19 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
             if ( clock_type::now() > timeout_time)
                 return false;
 
-            state_t expected = UNLOCKED;
-            if ( state_.compare_exchange_strong( expected, LOCKED) )
-                break;
+            if ( UNLOCKED == state_)
+            {
+                state_ = LOCKED;
+                BOOST_ASSERT( ! owner_);
+                owner_ = this_fiber::get_id();
+                ++count_;
+                return true;
+            }
+            else if ( this_fiber::get_id() == owner_)
+            {
+                ++count_;
+                return true;
+            }
 
             // store this fiber in order to be notified later
             waiting_.push_back( n);
@@ -196,14 +222,6 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
             }
         }
     }
-
-    BOOST_ASSERT( ! owner_);
-    BOOST_ASSERT( 0 == count_);
-
-    owner_ = this_fiber::get_id();
-    ++count_;
-
-    return true;
 }
 
 void
@@ -211,20 +229,20 @@ recursive_timed_mutex::unlock()
 {
     BOOST_ASSERT( LOCKED == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
+
+    detail::notify::ptr_t n;
+    unique_lock< detail::spinlock > lk( splk_);
     
     if ( 0 == --count_)
     {
-        detail::notify::ptr_t n;
-
-        unique_lock< detail::spinlock > lk( splk_);
-        if ( ! waiting_.empty() ) {
+        if ( ! waiting_.empty() )
+        {
             n.swap( waiting_.front() );
             waiting_.pop_front();
         }
-
         owner_ = detail::fiber_base::id();
         state_ = UNLOCKED;
-
+        lk.unlock();
         if ( n) n->set_ready();
     }
 }

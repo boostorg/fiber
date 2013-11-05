@@ -19,6 +19,13 @@ static void cleanup_function( algorithm *) {}
 
 thread_specific_ptr< algorithm > scheduler::instance_( cleanup_function);
 
+notify::ptr_t
+scheduler::make_notification( main_notifier & n) {
+    notify::ptr_t p( & n);
+    intrusive_ptr_add_ref( p.get() );
+    return p;
+}
+
 algorithm *
 scheduler::replace( algorithm * other) BOOST_NOEXCEPT
 {

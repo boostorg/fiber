@@ -50,6 +50,8 @@ struct algorithm : private noncopyable
 
     virtual void yield() = 0;
 
+    virtual detail::fiber_base::id get_main_id() = 0;
+
     virtual ~algorithm() {}
 };
 

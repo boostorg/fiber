@@ -19,6 +19,7 @@
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/main_notifier.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -55,6 +56,7 @@ private:
     detail::fiber_base::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
+    detail::main_notifier       mn_;
 
 public:
     round_robin() BOOST_NOEXCEPT;
@@ -77,6 +79,9 @@ public:
                      unique_lock< detail::spinlock > &);
 
     void yield();
+
+    detail::fiber_base::id get_main_id()
+    { return detail::fiber_base::id( detail::main_notifier::make_pointer( mn_) ); }
 };
 
 }}

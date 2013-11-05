@@ -10,7 +10,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/detail/main_notifier.hpp"
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
@@ -23,9 +22,9 @@ namespace boost {
 namespace fibers {
 
 mutex::mutex() :
-    owner_(),
-	state_( UNLOCKED),
     splk_(),
+	state_( UNLOCKED),
+    owner_(),
     waiting_()
 {}
 
@@ -45,9 +44,13 @@ mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            state_t expected = UNLOCKED;
-            if ( state_.compare_exchange_strong( expected, LOCKED) )
-                break;
+            if ( UNLOCKED == state_)
+            {
+                state_ = LOCKED;
+                BOOST_ASSERT( ! owner_);
+                owner_ = this_fiber::get_id();
+                return;
+            }
 
             // store this fiber in order to be notified later
             waiting_.push_back( n);
@@ -58,17 +61,21 @@ mutex::lock()
     }
     else
     {
-        // notifier for main-fiber
-        detail::main_notifier mn;
-        n = detail::main_notifier::make_pointer( mn);
+        // local notification for main-fiber
+        detail::scheduler::local_context ctx;
+        n = detail::scheduler::make_notification( ctx);
 
         for (;;)
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            state_t expected = UNLOCKED;
-            if ( state_.compare_exchange_strong( expected, LOCKED) )
-                break;
+            if ( UNLOCKED == state_)
+            {
+                state_ = LOCKED;
+                BOOST_ASSERT( ! owner_);
+                owner_ = this_fiber::get_id();
+                return;
+            }
 
             // store this fiber in order to be notified later
             waiting_.push_back( n);
@@ -82,25 +89,27 @@ mutex::lock()
             }
         }
     }
-
-    BOOST_ASSERT( ! owner_);
-
-    owner_ = this_fiber::get_id();
 }
 
 bool
 mutex::try_lock()
 {
-    state_t expected = UNLOCKED;
-    if ( ! state_.compare_exchange_strong( expected, LOCKED) ) {
+    unique_lock< detail::spinlock > lk( splk_);
+
+    if ( UNLOCKED == state_)
+    {
+        state_ = LOCKED;
+        BOOST_ASSERT( ! owner_);
+        owner_ = this_fiber::get_id();
+        return true;
+    }
+    else
+    {
+        lk.unlock();
         // let other fiber release the lock
         detail::scheduler::instance()->yield();
         return false;
     }
-
-    owner_ = this_fiber::get_id();
-
-    return true;
 }
 
 void
@@ -111,14 +120,14 @@ mutex::unlock()
 
     detail::notify::ptr_t n;
     unique_lock< detail::spinlock > lk( splk_);
-    if ( ! waiting_.empty() ) {
+    if ( ! waiting_.empty() )
+    {
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-
     owner_ = detail::fiber_base::id();
 	state_ = UNLOCKED;
-
+    lk.unlock();
     if ( n) n->set_ready();
 }
 
