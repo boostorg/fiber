@@ -450,7 +450,8 @@ interruption enabled.]]
 algorithms, such as `round_robin_ws'. Many schedulers ignore this fiber
 attribute. With a scheduler that might potentially migrate a fiber from its
 initial thread to another, the value `true` prevents migration: the fiber
-will always run on its current thread.]]
+will always run on its current thread. The default is `false`: normally, with
+an applicable scheduler, a fiber is allowed to migrate across threads.]]
 ]
 
 [heading Member function `thread_affinity()`]
@@ -798,10 +799,10 @@ there are no guarantees about how soon after that it might resume.]]
         void thread_affinity( bool req) noexcept;
 
 [variablelist
-[[Effects:] [Affects the abiblity to select a fiber for migraton to another
-scheduler (running in another thread).]]
+[[Effects:] [Set or report `fiber::thread_affinity()` for the currently
+running fiber.]]
 [[Throws:] [Nothing.]]
-[[Note:][Thread affinity is disabled by default.]]
+[[Note:] [`fiber::thread_affinity()` is `false` by default.]]
 ]
 
 [heading Non-member function `interruption_point()`]
