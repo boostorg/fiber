@@ -248,7 +248,7 @@ with two arguments constructs an object of class `bounded_queue` with a
 high-watermark of `hwm` and a low-watermark of `lwm` items. The constructor
 with one argument effectively sets both `hwm` and `lwm` to the same value
 `wm`.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`invalid_argument` if `lwm > hwm`.]]
 [[Notes:] [Once the number of values in the queue reaches `hwm`, any call to
 `push()` or `wait_push()` will block until the number of values in the queue
 has dropped below `lwm`. That is, if `lwm < hwm`, the queue can be in a state
