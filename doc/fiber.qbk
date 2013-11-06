@@ -447,7 +447,7 @@ interruption enabled.]]
 [[Effects:] [Set thread affinity for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 [[Note:] ["Thread affinity" is only meaningful for certain scheduler
-algorithms, such as `round_robin_ws'. Many schedulers ignore this fiber
+algorithms, such as `round_robin_ws`. Many schedulers ignore this fiber
 attribute. With a scheduler that might potentially migrate a fiber from its
 initial thread to another, the value `true` prevents migration: the fiber
 will always run on its current thread. The default is `false`: normally, with
