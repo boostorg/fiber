@@ -349,7 +349,7 @@ value of `other.get_id()` prior to the assignment.]]
 the fiber is still joinable. See __detach__.]]
 ]
 
-[heading Member function `joinable()`]
+[heading Member function joinable]
 
         bool joinable() const noexcept;
 
@@ -805,7 +805,7 @@ running fiber.]]
 [[Note:] [`fiber::thread_affinity()` is `false` by default.]]
 ]
 
-[heading Non-member function `interruption_point()`]
+[heading Non-member function interruption_point]
 
         #include <boost/fiber/interruption.hpp>
 void interruption_point();
@@ -841,7 +841,7 @@ __interruption_requested__ both return `true`.]]
 [[Note:][Interruption is enabled by default.]]
 ]
 
-[heading Class `disable_interruption`]
+[heading Class disable_interruption]
 
         #include <boost/fiber/interruption.hpp>
 

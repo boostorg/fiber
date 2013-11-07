@@ -15,7 +15,7 @@ barrier they must wait until all `n` fibers have arrived. Once the `n`-th
 fiber has reached the barrier, all the waiting fibers can proceed, and the
 barrier is reset.
 
-[heading Class `barrier`]
+[heading Class barrier]
 
     #include <boost/fiber/barrier.hpp>
 
