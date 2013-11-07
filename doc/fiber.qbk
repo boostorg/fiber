@@ -438,6 +438,7 @@ interruption enabled.]]
 [[Throws:] [Nothing]]
 ]
 
+[#fiber_thread_affinity]
 [heading Member function `thread_affinity( bool)`]
 
         void thread_affinity( bool) noexcept;
@@ -799,7 +800,7 @@ there are no guarantees about how soon after that it might resume.]]
         void thread_affinity( bool req) noexcept;
 
 [variablelist
-[[Effects:] [Set or report `fiber::thread_affinity()` for the currently
+[[Effects:] [Set or report [link fiber_thread_affinity `fiber::thread_affinity()`] for the currently
 running fiber.]]
 [[Throws:] [Nothing.]]
 [[Note:] [`fiber::thread_affinity()` is `false` by default.]]
