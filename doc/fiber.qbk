@@ -349,7 +349,7 @@ value of `other.get_id()` prior to the assignment.]]
 the fiber is still joinable. See __detach__.]]
 ]
 
-[heading Member function `joinable()`]
+[heading Member function joinable]
 
         bool joinable() const noexcept;
 
@@ -420,7 +420,8 @@ interruption enabled.]]
         void priority( int) noexcept;
 
 [variablelist
-[[Effects:] [If `*this` refers to a fiber of execution, set its priority.]]
+[[Preconditions:] [`*this` refers to a fiber of execution.]]
+[[Effects:] [set priority for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 [[Note:] [The meaning of particular `int` values is determined by the specific
 `algorithm` passed to `set_scheduling_algorithm()`. `round_robin` ignores
@@ -432,19 +433,26 @@ interruption enabled.]]
         int priority() const noexcept;
 
 [variablelist
-[[Effects:] [If `*this` refers to a fiber of execution, return its priority.]]
+[[Preconditions:] [`*this` refers to a fiber of execution.]]
+[[Returns:] [priority for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 ]
 
+[#fiber_thread_affinity]
 [heading Member function `thread_affinity( bool)`]
 
         void thread_affinity( bool) noexcept;
 
 [variablelist
-[[Effects:] [If `*this` refers to a fiber of execution, set its thread affinity.]]
+[[Preconditions:] [`*this` refers to a fiber of execution.]]
+[[Effects:] [Set thread affinity for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
-[[Note:] [A value of `false` prevents migrating the fiber to another scheduler
-running in a different thread.]]
+[[Note:] ["Thread affinity" is only meaningful for certain scheduler
+algorithms, such as `round_robin_ws`. Many schedulers ignore this fiber
+attribute. With a scheduler that might potentially migrate a fiber from its
+initial thread to another, the value `true` prevents migration: the fiber
+will always run on its current thread. The default is `false`: normally, with
+an applicable scheduler, a fiber is allowed to migrate across threads.]]
 ]
 
 [heading Member function `thread_affinity()`]
@@ -452,7 +460,8 @@ running in a different thread.]]
         bool thread_affinity() const noexcept;
 
 [variablelist
-[[Effects:] [If `*this` refers to a fiber of execution, return its thread affinity.]]
+[[Preconditions:] [`*this` refers to a fiber of execution.]]
+[[Returns:] [thread affinity for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 ]
 
@@ -791,13 +800,13 @@ there are no guarantees about how soon after that it might resume.]]
         void thread_affinity( bool req) noexcept;
 
 [variablelist
-[[Effects:] [Affects the abiblity to select a fiber for migraton to another
-scheduler (running in another thread).]]
+[[Effects:] [Set or report [link fiber_thread_affinity `fiber::thread_affinity()`] for the currently
+running fiber.]]
 [[Throws:] [Nothing.]]
-[[Note:][Thread affinity is disabled by default.]]
+[[Note:] [`fiber::thread_affinity()` is `false` by default.]]
 ]
 
-[heading Non-member function `interruption_point()`]
+[heading Non-member function interruption_point]
 
         #include <boost/fiber/interruption.hpp>
 void interruption_point();
@@ -833,7 +842,7 @@ __interruption_requested__ both return `true`.]]
 [[Note:][Interruption is enabled by default.]]
 ]
 
-[heading Class `disable_interruption`]
+[heading Class disable_interruption]
 
         #include <boost/fiber/interruption.hpp>
 
