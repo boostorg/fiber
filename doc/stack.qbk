@@ -11,7 +11,7 @@ A __fiber__ uses internally a __coro__ which manages a set of registers and a st
 The memory used by the stack is allocated/deallocated via a __stack_allocator__
 which is required to model a __stack_allocator_concept__.
 
-
+[#stack_allocator_concept]
 [heading __stack_allocator_concept__]
 A __stack_allocator__ must satisfy the __stack_allocator_concept__ requirements
 shown in the following table, in which `a` is an object of a
@@ -42,7 +42,7 @@ to `allocate()` results in undefined behaviour.]
 place inside __coro__.]
 
 
-[heading Class ['stack_allocator]]
+[class_heading stack_allocator]
 
 __boost_coroutine__ provides the class __coro_allocator__ which models
 the __stack_allocator_concept__.
@@ -70,7 +70,7 @@ virtual addresses are used.]
             void deallocate( stack_context &);
         }
 
-[heading Constructor `static bool is_stack_unbound()`]
+[static_member_heading stack_allocator..is_stack_unbound]
 
             static bool is_stack_unbound();
 
@@ -78,7 +78,7 @@ virtual addresses are used.]
 [[Returns:] [Returns `true` if the environment defines no limit for the size of a stack.]]
 ]
 
-[heading Static member function `static std::size_t maximum_stacksize()`]
+[static_member_heading stack_allocator..maximum_stacksize]
 
             static std::size_t maximum_stacksize();
 
@@ -87,7 +87,7 @@ virtual addresses are used.]
 [[Returns:] [Returns the maximum size in bytes of stack defined by the environment.]]
 ]
 
-[heading Static member function `static std::size_t default_stacksize()`]
+[static_member_heading stack_allocator..default_stacksize]
 
             static std::size_t default_stacksize();
 
@@ -97,7 +97,7 @@ virtual addresses are used.]
 the maximum of `64 kB` and `minimum_stacksize()`.]]
 ]
 
-[heading Static member function `static std::size_t minimum_stacksize()`]
+[static_member_heading stack_allocator..minimum_stacksize]
 
             static std::size_t minimum_stacksize();
 
@@ -106,7 +106,7 @@ the maximum of `64 kB` and `minimum_stacksize()`.]]
 environment: Win32 4kB, Win64 8kB, defined by rlimit on POSIX.]]
 ]
 
-[heading Member function `void allocate()`]
+[member_heading stack_allocator..allocate]
 
             void allocate( stack_context &, std::size_t size);
 
@@ -121,7 +121,7 @@ on the architecture (stack grows downwards vs. upwards), the stored address is
 the highest/lowest address of the stack.]]
 ]
 
-[heading Member function `void deallocate()`]
+[member_heading stack_allocator..deallocate]
 
             void deallocate( stack_context & sctx);
 
@@ -133,7 +133,7 @@ the highest/lowest address of the stack.]]
 ]
 
 
-[heading Class ['stack_context]]
+[class_heading stack_context]
 
 __boost_coroutine__ provides the class __stack_context__ which will contain
 the stack pointer and the size of the stack.
@@ -149,6 +149,7 @@ structures.
             // for instance for segmented stacks
         }
 
+[#stack_context_sp]
 [heading Member variable `void * sp`]
 [variablelist
 [[Value:] [Pointer to the beginning of the stack.]]
@@ -156,6 +157,7 @@ structures.
 highest address is architecture-dependent.]]
 ]
 
+[#stack_context_size]
 [heading Member variable `std::size_t size`]
 [variablelist
 [[Value:] [Actual size of the stack, in bytes.]]

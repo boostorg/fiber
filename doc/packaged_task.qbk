@@ -5,6 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[#class_packaged_task]
 [section:packaged_task Template `packaged_task<>`]
 
 A __packaged_task__ wraps a callable target that returns a value so that the
@@ -91,7 +92,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator=()`]
+[operator_heading packaged_task..operator_assign..operator=]
 
         packaged_task & operator=( packaged_task && other) noexcept;
 
@@ -101,7 +102,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `swap()`]
+[member_heading packaged_task..swap]
 
         void swap( packaged_task & other) noexcept;
 
@@ -110,7 +111,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator safe_bool()`]
+[member_heading packaged_task..operator safe_bool]
 
         operator safe_bool() const noexcept;
 
@@ -119,7 +120,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator!()`]
+[operator_heading packaged_task..operator_not..operator!]
 
         bool operator!() const noexcept;
 
@@ -128,7 +129,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `valid()`]
+[member_heading packaged_task..valid]
 
         bool valid() const noexcept;
 
@@ -137,7 +138,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `get_future()`]
+[member_heading packaged_task..get_future]
 
         future< R > get_future();
 
@@ -146,7 +147,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
 ]
 
-[heading Member function `operator()()`]
+[operator_heading packaged_task..operator_apply..operator()]
 
         void operator()();
 
@@ -157,7 +158,7 @@ by `fn` is stored in the shared state.]]
 [[Throws:] [__future_error__ with __no_state__.]]
 ]
 
-[heading Member function `reset()`]
+[member_heading packaged_task..reset]
 
         void reset();
 

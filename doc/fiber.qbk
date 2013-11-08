@@ -154,6 +154,7 @@ method.
         } // okay, program continues
 
 
+[#interruption]
 [heading Interruption]
 
 A valid fiber can be interrupted by invoking its __interrupt__ member function.
@@ -187,12 +188,11 @@ __interruption_enabled__.
 * __cond_wait__
 * __cond_wait_for__
 * __cond_wait_until__
-* __barrier_wait__
 * __sleep_for__
 * __sleep_until__
 * __interruption_point__
 
-
+[#class_fiber_id]
 [heading Fiber IDs]
 
 Objects of class __fiber_id__ can be used to identify fibers. Each running
@@ -209,7 +209,7 @@ not equal to any instances that refer to an actual fiber. The comparison
 operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
 
-
+[#class_fiber]
 [section:fiber Class `fiber`]
 
         #include <boost/fiber/fiber.hpp>
@@ -349,7 +349,7 @@ value of `other.get_id()` prior to the assignment.]]
 the fiber is still joinable. See __detach__.]]
 ]
 
-[heading Member function joinable]
+[member_heading fiber..joinable]
 
         bool joinable() const noexcept;
 
@@ -359,7 +359,7 @@ may not have completed; otherwise `false`.]]
 [[Throws:] [Nothing]]
 ]
 
-[heading Member function `join()`]
+[member_heading fiber..join]
 
         void join();
 
@@ -377,7 +377,7 @@ fiber has completed. `*this` no longer refers to any fiber of execution.]]
 [[Notes:] [`join()` is one of the predefined __interruption_points__.]]
 ]
 
-[heading Member function `detach()`]
+[member_heading fiber..detach]
 
         void detach();
 
@@ -391,7 +391,7 @@ associated __fiber__ object.]]
 [*invalid_argument]: if the fiber is not joinable.]]
 ]
 
-[heading Member function `get_id()`]
+[member_heading fiber..get_id]
 
         fiber::id get_id() const noexcept;
 
@@ -400,9 +400,10 @@ associated __fiber__ object.]]
 __fiber_id__ that represents that fiber. Otherwise returns a
 default-constructed __fiber_id__.]]
 [[Throws:] [Nothing]]
+[[See also:] [[ns_function_link this_fiber..get_id]]]
 ]
 
-[heading Member function `interrupt()`]
+[member_heading fiber..interrupt]
 
         void interrupt();
 
@@ -428,7 +429,7 @@ interruption enabled.]]
 `fiber::priority()`.]]
 ]
 
-[heading Member function `priority()`]
+[member_heading fiber..priority]
 
         int priority() const noexcept;
 
@@ -453,6 +454,7 @@ attribute. With a scheduler that might potentially migrate a fiber from its
 initial thread to another, the value `true` prevents migration: the fiber
 will always run on its current thread. The default is `false`: normally, with
 an applicable scheduler, a fiber is allowed to migrate across threads.]]
+[[See also:] [[ns_function_link this_fiber..thread_affinity]]]
 ]
 
 [heading Member function `thread_affinity()`]
@@ -463,9 +465,10 @@ an applicable scheduler, a fiber is allowed to migrate across threads.]]
 [[Preconditions:] [`*this` refers to a fiber of execution.]]
 [[Returns:] [thread affinity for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
+[[See also:] [[ns_function_link this_fiber..thread_affinity]]]
 ]
 
-[heading Member function `operator safe_bool()`]
+[member_heading fiber..operator safe_bool]
 
         operator safe_bool() const noexcept;
 
@@ -475,7 +478,7 @@ otherwise. In effect, this is synonymous with __joinable__.]]
 [[Throws:] [Nothing]]
 ]
 
-[heading Member function `operator!()`]
+[operator_heading fiber..operator_not..operator!]
 
         bool operator!() const noexcept;
 
@@ -485,7 +488,7 @@ otherwise.]]
 [[Throws:] [Nothing]]
 ]
 
-[heading Member function `swap()`]
+[member_heading fiber..swap]
 
         void swap( fiber & other) noexcept;
 
@@ -499,7 +502,7 @@ prior to the call.]]
 [[Throws:] [Nothing]]
 ]
 
-[heading Non-member function `swap()`]
+[function_heading swap]
 
     void swap( fiber & l, fiber & r) noexcept;
 
@@ -510,7 +513,7 @@ prior to the call.]]
 
 [endsect] [/ section Class fiber]
 
-
+[#class_fiber_group]
 [section:fiber_group Class `fiber_group`]
 
 __fiber_group__ represents a collection of fibers which can be collectively
@@ -573,7 +576,7 @@ __fiber_group__ is neither copyable nor movable.
 [[Effects:] [Destroy `*this` and all __fiber__ objects in the group.]]
 ]
 
-[heading Member function `create_fiber()`]
+[member_heading fiber_group..create_fiber]
 
         template< typename Fn >
         fiber * create_fiber( Fn fn, attributes attrs = attributes() );
@@ -594,7 +597,7 @@ to the group.]]
 [[Returns:] [A pointer to the new __fiber__ object.]]
 ]
 
-[heading Member function `add_fiber()`]
+[member_heading fiber_group..add_fiber]
 
         void add_fiber( fiber * f);
 
@@ -625,7 +628,7 @@ Instead, use the following:
         fg.add_fiber(f);
     } // okay, fg is now responsible for *f
 
-[heading Member function `remove_fiber()`]
+[member_heading fiber_group..remove_fiber]
 
         void remove_fiber( fiber * f);
 
@@ -636,7 +639,7 @@ Instead, use the following:
 decreased by one.]]
 ]
 
-[heading Member function `join_all()`]
+[member_heading fiber_group..join_all]
 
         void join_all();
 
@@ -648,7 +651,7 @@ decreased by one.]]
 `join_all()` is also an interruption point.]]
 ]
 
-[heading Member function `is_this_fiber_in()`]
+[member_heading fiber_group..is_this_fiber_in]
 
         bool is_this_fiber_in();
 
@@ -657,7 +660,7 @@ decreased by one.]]
 `f.get_id() == this_fiber::get_id()`.]]
 ]
 
-[heading Member function `is_fiber_in()`]
+[member_heading fiber_group..is_fiber_in]
 
         bool is_fiber_in( fiber * f);
 
@@ -666,7 +669,7 @@ decreased by one.]]
 `fx.get_id() == f->get_id()`.]]
 ]
 
-[heading Member function `interrupt_all()`]
+[member_heading fiber_group..interrupt_all]
 
         void interrupt_all();
 
@@ -674,7 +677,7 @@ decreased by one.]]
 [[Effects:] [Call `interrupt()` on each __fiber__ object in the group.]]
 ]
 
-[heading Member function `size()`]
+[member_heading fiber_group..size]
 
         int size();
 
@@ -686,7 +689,7 @@ decreased by one.]]
 
 [endsect] [/ section Class fiber_group]
 
-
+[#class_attributes]
 [section:attributes Class attributes]
 
 Class `attributes` is used to transfer parameters required to set up a
@@ -737,7 +740,7 @@ fiber's context.
 
         }}
 
-[heading Non-member function `get_id()`]
+[ns_function_heading this_fiber..get_id]
 
         #include <boost/fiber/operations.hpp>
 
@@ -749,7 +752,7 @@ executing fiber.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Non-member function `sleep_until()`]
+[ns_function_heading this_fiber..sleep_until]
 
         #include <boost/fiber/operations.hpp>
 
@@ -764,7 +767,7 @@ executing fiber.]]
 guarantees about how soon after `abs_time` it might resume.]]
 ]
 
-[heading Non-member function `sleep_for()`]
+[ns_function_heading this_fiber..sleep_for]
 
         #include <boost/fiber/operations.hpp>
 
@@ -781,7 +784,7 @@ exceptions. __fiber_interrupted__ if the current fiber is interrupted.]]
 there are no guarantees about how soon after that it might resume.]]
 ]
 
-[heading Non-member function `yield()`]
+[ns_function_heading this_fiber..yield]
 
         #include <boost/fiber/operations.hpp>
 
@@ -792,7 +795,7 @@ there are no guarantees about how soon after that it might resume.]]
 ]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
 
-[heading Non-member function `thread_affinity()`]
+[ns_function_heading this_fiber..thread_affinity]
 
         #include <boost/fiber/operations.hpp>
 
@@ -800,13 +803,13 @@ there are no guarantees about how soon after that it might resume.]]
         void thread_affinity( bool req) noexcept;
 
 [variablelist
-[[Effects:] [Set or report [link fiber_thread_affinity `fiber::thread_affinity()`] for the currently
+[[Effects:] [Set or report [member_link fiber..thread_affinity] for the currently
 running fiber.]]
 [[Throws:] [Nothing.]]
-[[Note:] [`fiber::thread_affinity()` is `false` by default.]]
+[[Note:] [[member_link fiber..thread_affinity] is `false` by default.]]
 ]
 
-[heading Non-member function interruption_point]
+[ns_function_heading this_fiber..interruption_point]
 
         #include <boost/fiber/interruption.hpp>
 void interruption_point();
@@ -817,7 +820,7 @@ void interruption_point();
 __interruption_requested__ both return `true`.]]
 ]
 
-[heading Non-member function `interruption_requested()`]
+[ns_function_heading this_fiber..interruption_requested]
 
         #include <boost/fiber/interruption.hpp>
 
@@ -829,7 +832,7 @@ __interruption_requested__ both return `true`.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Non-member function `interruption_enabled()`]
+[ns_function_heading this_fiber..interruption_enabled]
 
         #include <boost/fiber/interruption.hpp>
 
@@ -842,7 +845,7 @@ __interruption_requested__ both return `true`.]]
 [[Note:][Interruption is enabled by default.]]
 ]
 
-[heading Class disable_interruption]
+[class_heading disable_interruption]
 
         #include <boost/fiber/interruption.hpp>
 
@@ -882,7 +885,7 @@ value stored by the constructor of `*this`.]]
 ]
 
 
-[heading Class `restore_interruption`]
+[class_heading restore_interruption]
 
         #include <boost/fiber/interruption.hpp>
 

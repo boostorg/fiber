@@ -78,7 +78,7 @@ in __boost_thread__.) However, `boost::fiber::condition_variable` and
 form of lock. `boost::fiber::condition_variable_any` has no need to further
 optimize as described for `boost::thread::condition_variable`.
 
-[heading Class `condition_variable`]
+[class_heading condition_variable]
 
     #include <boost/fiber/condition.hpp>
 
@@ -142,7 +142,7 @@ optimize as described for `boost::thread::condition_variable`.
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `notify_one()`]
+[member_heading condition_variable..notify_one]
 
         void notify_one();
 
@@ -153,7 +153,7 @@ call to `wait`, `wait_for` or `wait_until`, unblocks one of those fibers.]]
 [[Note:] [It is arbitrary which waiting fiber is resumed.]]
 ]
 
-[heading Member function `notify_all()`]
+[member_heading condition_variable..notify_all]
 
         void notify_all();
 
@@ -168,7 +168,7 @@ retry the wait until that state is reached. A fiber waiting on a
 state is reached.]]
 ]
 
-[heading Templated member function `wait()`]
+[template_member_heading condition_variable..wait]
 
         template< typename LockType >
         void wait( LockType & lk);
@@ -214,8 +214,7 @@ objects. It would be like a road intersection with traffic lights disconnected
 from one another: sooner or later a collision will result.]]
 ]
 
-
-[heading Templated member function `wait_until()`]
+[template_member_heading condition_variable..wait_until]
 
         template< typename LockType >
         cv_status wait_until( LockType & lk, clock_type::time_point const& timeout_time);
@@ -259,8 +258,7 @@ predicate returns `false`, `true` otherwise.]]
 [[Note:] [See [*Note] for `wait()`.]]
 ]
 
-
-[heading Templated member function `wait_for()`]
+[template_member_heading condition_variable..wait_for]
 
         template< typename LockType, typename Rep, typename Period >
         cv_status wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration);

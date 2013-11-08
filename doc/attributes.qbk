@@ -31,7 +31,7 @@ fibers's context.
             explicit attributes( flag_unwind_t do_unwind_, flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT;
         };
 
-[heading `attributes()`]
+[member_heading attributes..attributes]
 [variablelist
 [[Effects:] [Default constructor using `ctx::default_stacksize()`, does unwind
 the stack after fiber/generator is complete and preserves FPU registers.]]
