@@ -33,6 +33,7 @@ synchonize fibers via message passing.
     f1.join();
     f2.join();
 
+[#class_queue_op_status]
 [heading Enumeration `queue_op_status`]
 
 Queue operations return the state of the queue.
@@ -71,7 +72,7 @@ Queue operations return the state of the queue.
 [[Effects:] [The operation did not become ready before specified timeout elapsed.]]
 ]
 
-[heading Template `unbounded_queue<>`]
+[template_heading unbounded_queue]
 
     #include <boost/fiber/unbounded_queue.hpp>
 
@@ -101,7 +102,7 @@ Queue operations return the state of the queue.
         queue_op_status try_pop( value_type & va);
     };
 
-[heading Member function `is_closed()`]
+[member_heading unbounded_queue..is_closed]
 
         bool is_closed() const;
 
@@ -111,7 +112,7 @@ Queue operations return the state of the queue.
 [[Note:] [The queue is not closed by default.]]
 ]
 
-[heading Member function `close()`]
+[member_heading unbounded_queue..close]
 
         void close();
 
@@ -124,7 +125,7 @@ will return `closed`.]]
 that no more values will arrive.]]
 ]
 
-[heading Member function `is_empty()`]
+[member_heading unbounded_queue..is_empty]
 
         bool is_empty();
 
@@ -135,7 +136,7 @@ that no more values will arrive.]]
 non-empty.]]
 ]
 
-[heading Member function `push()`]
+[member_heading unbounded_queue..push]
 
         void push( value_type const& va);
         void push( value_type && va);
@@ -146,7 +147,7 @@ non-empty.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `value_pop()`]
+[member_heading unbounded_queue..value_pop]
 
         queue_op_status value_pop( value_type & va);
 
@@ -158,7 +159,7 @@ fiber gets suspended until at least one new item is `push()`ed (return value
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[heading Member function `wait_pop()`]
+[member_heading unbounded_queue..wait_pop]
 
         template< typename Rep, typename Period >
         queue_op_status wait_pop( value_type & va,
@@ -178,7 +179,7 @@ the queue gets `close()`d (return value `closed`), or the time as reported by
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[heading Member function `try_pop()`]
+[member_heading unbounded_queue..try_pop]
 
         queue_op_status try_pop( value_type & va);
 
@@ -190,7 +191,7 @@ dequeued value.]]
 ]
 
 
-[heading Template `bounded_queue<>`]
+[template_heading bounded_queue]
 
     #include <boost/fiber/bounded_queue.hpp>
 
@@ -256,7 +257,7 @@ in which `push()` or `wait_push()` calls will block (`is_full()` returns
 `true`) even though the number of values in the queue is less than `hwm`.]]
 ]
 
-[heading Member function `is_closed()`]
+[member_heading bounded_queue..is_closed]
 
         bool is_closed() const;
 
@@ -266,7 +267,7 @@ in which `push()` or `wait_push()` calls will block (`is_full()` returns
 [[Note:] [The queue is not closed by default.]]
 ]
 
-[heading Member function `close()`]
+[member_heading bounded_queue..close]
 
         void close();
 
@@ -279,7 +280,7 @@ will return `closed`.]]
 that no more values will arrive.]]
 ]
 
-[heading Member function `is_empty()`]
+[member_heading bounded_queue..is_empty]
 
         bool is_empty();
 
@@ -290,7 +291,7 @@ that no more values will arrive.]]
 non-empty.]]
 ]
 
-[heading Member function `is_full()`]
+[member_heading bounded_queue..is_full]
 
         bool is_full();
 
@@ -303,7 +304,7 @@ the number of values drops below `lwm`.]]
 [[Note:] [This condition is transient.]]
 ]
 
-[heading Member function `push()`]
+[member_heading bounded_queue..push]
 
         queue_op_status push( value_type const& va);
         queue_op_status push( value_type && va);
@@ -318,7 +319,7 @@ the fiber gets suspended until the number of values in the queue drops below
 [[Throws:] [__fiber_interrupted_]]
 ]
 
-[heading Member function `wait_push()`]
+[member_heading bounded_queue..wait_push]
 
         template< typename Rep, typename Period >
         queue_op_status wait_push( value_type const& va,
@@ -344,7 +345,7 @@ or computed) `clock_type::time_point` (return value `timeout`).]]
 [[Throws:] [__fiber_interrupted_]]
 ]
 
-[heading Member function `try_push()`]
+[member_heading bounded_queue..try_push]
 
         queue_op_status try_push( value_type const& va);
         queue_op_status try_push( value_type && va);
@@ -356,7 +357,7 @@ blocked on `this->value_pop()` or `this->wait_pop()` and returns `success`.]]
 [[Throws:] [__fiber_interrupted_]]
 ]
 
-[heading Member function `value_pop()`]
+[member_heading bounded_queue..value_pop]
 
         queue_op_status value_pop( value_type & va);
 
@@ -369,7 +370,7 @@ drops below `lwm`, any fibers blocked on `push()` or `wait_push()` may resume.]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[heading Member function `wait_pop()`]
+[member_heading bounded_queue..wait_pop]
 
         template< typename Rep, typename Period >
         queue_op_status wait_pop( value_type & va,
@@ -389,7 +390,7 @@ the queue gets `close()`d (return value `closed`), or the time as reported by
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[heading Member function `try_pop()`]
+[member_heading bounded_queue..try_pop]
 
         queue_op_status try_pop( value_type & va);
 

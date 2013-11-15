@@ -15,7 +15,7 @@ barrier they must wait until all `n` fibers have arrived. Once the `n`-th
 fiber has reached the barrier, all the waiting fibers can proceed, and the
 barrier is reset.
 
-[heading Class barrier]
+[class_heading barrier]
 
     #include <boost/fiber/barrier.hpp>
 
@@ -43,7 +43,7 @@ Instances of __barrier__ are not copyable or movable.
 [[Throws:] [__invalid_argument__ if `initial` is zero]]
 ]
 
-[heading Member function `wait()`]
+[member_heading barrier..wait]
 
         bool wait();
 

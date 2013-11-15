@@ -68,6 +68,7 @@ among all fibers running on the same thread.
 
 For fiber-local storage, please see __fsp__.
 
+[#blocking]
 [heading Blocking]
 
 Normally, when this documentation states that a particular fiber ['blocks], it

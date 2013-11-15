@@ -9,6 +9,7 @@
 
 A future provides a mechanism to access the result of an asynchronous operation.
 
+[#class_future_status]
 [heading Enumeration `future_status`]
 
 Timed wait-operations (__wait_for__ and __wait_until__) return the state of the future.
@@ -36,7 +37,7 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 ]
 
 
-[heading Template `future<>`]
+[template_heading future]
 
 A __future__ contains a shared state which is not shared with any other future.
 
@@ -105,7 +106,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator=()`]
+[operator_heading future..operator_assign..operator=]
 
         future & operator=( future && other) noexcept;
 
@@ -115,7 +116,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `swap()`]
+[member_heading future..swap]
 
         void swap( future & other) noexcept;
 
@@ -124,7 +125,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator safe_bool()`]
+[member_heading future..operator safe_bool]
 
         operator safe_bool() const noexcept;
 
@@ -133,7 +134,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator!()`]
+[operator_heading future..operator_not..operator!]
 
         bool operator!() const noexcept;
 
@@ -142,7 +143,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `valid()`]
+[member_heading future..valid]
 
         bool valid() const noexcept;
 
@@ -151,7 +152,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `share()`]
+[member_heading future..share]
 
         shared_future< R > share();
 
@@ -160,7 +161,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Member function `get()`]
+[member_heading future..get]
 
         R get();
 
@@ -171,7 +172,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Member function `wait()`]
+[member_heading future..wait]
 
         void wait();
 
@@ -180,7 +181,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Templated member function `wait_for()`]
+[template_member_heading future..wait_for]
 
         template< class Rep, class Period >
         future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
@@ -191,7 +192,7 @@ After construction is `false == other.valid()`]]
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Member function `wait_until()`]
+[member_heading future..wait_until]
 
         future_status wait_until( clock_type::time_point const& timeout_time) const;
 
@@ -202,7 +203,7 @@ After construction is `false == other.valid()`]]
 ]
 
 
-[heading Template `shared_future<>`]
+[template_heading shared_future]
 
 A __shared_future__ contains a shared state which might be shared with other futures.
 
@@ -284,7 +285,7 @@ After construction is `true == other.valid()`.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator=()`]
+[operator_heading shared_future..operator_assign..operator=]
 
         shared_future & operator=( future && other) noexcept;
         shared_future & operator=( shared_future && other) noexcept;
@@ -300,7 +301,7 @@ return * this;
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `swap()`]
+[member_heading shared_future..swap]
 
         void swap( shared_future & other) noexcept;
 
@@ -309,7 +310,7 @@ return * this;
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator safe_bool()`]
+[member_heading shared_future..operator safe_bool]
 
         operator safe_bool() const noexcept;
 
@@ -318,7 +319,7 @@ return * this;
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator!()`]
+[operator_heading shared_future..operator_not..operator!]
 
         bool operator!() const noexcept;
 
@@ -327,7 +328,7 @@ return * this;
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `valid()`]
+[member_heading shared_future..valid]
 
         bool valid() const noexcept;
 
@@ -336,7 +337,7 @@ return * this;
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `get()`]
+[member_heading shared_future..get]
 
         R get();
 
@@ -347,7 +348,7 @@ return * this;
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Member function `wait()`]
+[member_heading shared_future..wait]
 
         void wait();
 
@@ -356,7 +357,7 @@ return * this;
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Templated member function `wait_for()`]
+[template_member_heading shared_future..wait_for]
 
         template< class Rep, class Period >
         future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
@@ -367,7 +368,7 @@ return * this;
 [[Throws:] [__future_error__ with error condtion __no_state__.]]
 ]
 
-[heading Member function `wait_until()`]
+[member_heading shared_future..wait_until]
 
         future_status wait_until( clock_type::time_point const& timeout_time) const;
 

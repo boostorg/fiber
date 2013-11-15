@@ -22,7 +22,7 @@ __fsp__ by providing a cleanup routine `func` to the constructor. In this case, 
 object is destroyed by invoking `func(p)`. The cleanup functions are called in an unspecified
 order.
 
-[heading Class fiber_specific_ptr]
+[class_heading fiber_specific_ptr]
 
         #include <boost/fiber/fss.hpp>
 
@@ -88,7 +88,7 @@ it.]]
 instance of __fsp__ has been destroyed do not call any member functions on that
 instance.]
 
-[heading Member function `get()`]
+[member_heading fiber_specific_ptr..get]
 
         T* get() const;
 
@@ -99,7 +99,7 @@ instance.]
 [note The initial value associated with an instance of __fsp__ is `NULL` for
 each fiber.]
 
-[heading Member function `operator->()`]
+[operator_heading fiber_specific_ptr..operator_arrow..operator->]
 
         T* operator->() const;
 
@@ -108,7 +108,7 @@ each fiber.]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator*()`]
+[operator_heading fiber_specific_ptr..operator_star..operator*]
 
         T& operator*() const;
 
@@ -118,7 +118,7 @@ each fiber.]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `release()`]
+[member_heading fiber_specific_ptr..release]
 
         T* release();
 
@@ -129,7 +129,7 @@ with the current fiber without invoking the cleanup function.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `reset()`]
+[member_heading fiber_specific_ptr..reset]
 
         void reset(T* new_value=0);
 

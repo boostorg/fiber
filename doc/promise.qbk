@@ -5,6 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[#class_promise]
 [section:promise Template `promise<>`]
 
 A __promise__ provides a mechanism to store a value that can later be accessed
@@ -83,7 +84,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator=()`]
+[operator_heading promise..operator_assign..operator=]
 
         promise & operator=( promise && other) noexcept;
 
@@ -93,7 +94,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `swap()`]
+[member_heading promise..swap]
 
         void swap( promise & other) noexcept;
 
@@ -102,7 +103,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator safe_bool()`]
+[member_heading promise..operator safe_bool]
 
         operator safe_bool() const noexcept;
 
@@ -111,7 +112,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `operator!()`]
+[operator_heading promise..operator_not..operator!]
 
         bool operator!() const noexcept;
 
@@ -120,7 +121,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[heading Member function `get_future()`]
+[member_heading promise..get_future]
 
         future< R > get_future();
 
@@ -129,7 +130,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
 ]
 
-[heading Member function `set_value()`]
+[member_heading promise..set_value]
 
         void set_value( R const& value);
         void set_value( R && value);
@@ -139,7 +140,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
 ]
 
-[heading Member function `set_exception()`]
+[member_heading promise..set_exception]
 
         void set_exception( exception_ptr);
 
