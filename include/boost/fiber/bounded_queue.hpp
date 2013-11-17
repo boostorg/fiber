@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -91,8 +92,8 @@ private:
         CLOSED
     };
 
-    state_t                     state_;
-    std::size_t                 count_;
+    atomic< state_t >           state_;
+    atomic< std::size_t >       count_;
     typename node_type::ptr     head_;
     mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
@@ -119,7 +120,7 @@ private:
     { return head_ == get_tail_(); }
 
     bool is_full_() const
-    { return size_() >= hwm_; }
+    { return count_ >= hwm_; }
 
     typename node_type::ptr get_tail_() const
     {
@@ -177,9 +178,6 @@ public:
     std::size_t lower_bound() const
     { return lwm_; }
 
-    bool is_closed() const
-    { return is_closed_(); }
-
     void close()
     {
         mutex::scoped_lock head_lk( head_mtx_);
@@ -187,20 +185,21 @@ public:
         close_();
     }
 
+    bool is_closed() const
+    { return is_closed_(); }
+
     bool is_empty() const
     { return is_empty_(); }
 
     bool is_full() const
     { return is_full_(); }
 
-    void push( value_type const& va)
+    queue_op_status push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
 
@@ -208,18 +207,17 @@ public:
         tail_->next = new_node;
         tail_ = new_node;
         ++count_;
-
         not_empty_cond_.notify_one();
+
+        return queue_op_status::success;
     }
 
-    void push( BOOST_RV_REF( value_type) va)
+    queue_op_status push( BOOST_RV_REF( value_type) va)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
 
@@ -227,29 +225,28 @@ public:
         tail_->next = new_node;
         tail_ = new_node;
         ++count_;
-
         not_empty_cond_.notify_one();
+
+        return queue_op_status::success;
     }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_push( value_type const& va,
-               chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_push( va, clock_type::now() + timeout_duration); }
+    queue_op_status push_wait_for( value_type const& va,
+                                   chrono::duration< Rep, Period > const& timeout_duration)
+    { return push_wait_until( va, clock_type::now() + timeout_duration); }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_push( BOOST_RV_REF( value_type) va,
-               chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_push( boost::move( va), clock_type::now() + timeout_duration); }
+    queue_op_status push_wait_for( BOOST_RV_REF( value_type) va,
+                                   chrono::duration< Rep, Period > const& timeout_duration)
+    { return push_wait_until( boost::move( va), clock_type::now() + timeout_duration); }
 
-    queue_op_status wait_push( value_type const& va,
-                               clock_type::time_point const& timeout_time)
+    queue_op_status push_wait_until( value_type const& va,
+                                     clock_type::time_point const& timeout_time)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
         {
@@ -274,15 +271,13 @@ public:
         }
     }
 
-    queue_op_status wait_push( BOOST_RV_REF( value_type) va,
-                               clock_type::time_point const& timeout_time)
+    queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
+                                     clock_type::time_point const& timeout_time)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
         {
@@ -310,7 +305,6 @@ public:
     queue_op_status try_push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( head_mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
@@ -335,7 +329,6 @@ public:
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( head_mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
@@ -357,19 +350,18 @@ public:
         }
     }
 
-    value_type value_pop()
+    queue_op_status pop( value_type & va)
     {
         mutex::scoped_lock lk( head_mtx_);
 
         while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
-        if ( is_closed_() && is_empty_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         BOOST_ASSERT( ! is_empty_() );
 
         try
         {
-            value_type va = boost::move( head_->va);
+            va = boost::move( head_->va);
             pop_head_();
             if ( size_() <= lwm_)
             {
@@ -380,7 +372,7 @@ public:
                     // for submiting an action object
                     not_full_cond_.notify_all();
             }
-            return va;
+            return queue_op_status::success;
         }
         catch (...)
         {
@@ -390,12 +382,12 @@ public:
     }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_pop( value_type & va,
-                              chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_pop( va, clock_type::now() + timeout_duration); }
+    queue_op_status pop_wait_for( value_type & va,
+                                  chrono::duration< Rep, Period > const& timeout_duration)
+    { return pop_wait_until( va, clock_type::now() + timeout_duration); }
 
-    queue_op_status wait_pop( value_type & va,
-                              clock_type::time_point const& timeout_time)
+    queue_op_status pop_wait_until( value_type & va,
+                                    clock_type::time_point const& timeout_time)
     {
         mutex::scoped_lock lk( head_mtx_);
 
@@ -468,8 +460,8 @@ private:
         CLOSED
     };
 
-    state_t                     state_;
-    std::size_t                 count_;
+    atomic< state_t >           state_;
+    atomic< std::size_t >       count_;
     typename node_type::ptr     head_;
     mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
@@ -496,7 +488,7 @@ private:
     { return head_ == get_tail_(); }
 
     bool is_full_() const
-    { return size_() >= hwm_; }
+    { return count_ >= hwm_; }
 
     typename node_type::ptr get_tail_() const
     {
@@ -554,15 +546,15 @@ public:
     std::size_t lower_bound() const
     { return lwm_; }
 
-    bool is_closed() const
-    { return is_closed_(); }
-
     void close()
     {
         mutex::scoped_lock head_lk( head_mtx_);
         mutex::scoped_lock tail_lk( tail_mtx_);
         close_();
     }
+
+    bool is_closed() const
+    { return is_closed_(); }
 
     bool is_empty() const
     { return is_empty_(); }
@@ -573,11 +565,9 @@ public:
     void push( value_type va)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
 
@@ -585,24 +575,23 @@ public:
         tail_->next = new_node;
         tail_ = new_node;
         ++count_;
-
         not_empty_cond_.notify_one();
+
+        return queue_op_status::success;
     }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_push( value_type va,
-               chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_push( va, clock_type::now() + timeout_duration); }
+    queue_op_status push_wait_for( value_type va,
+                                   chrono::duration< Rep, Period > const& timeout_duration)
+    { return push_wait_until( va, clock_type::now() + timeout_duration); }
 
-    queue_op_status wait_push( value_type va,
-                               clock_type::time_point const& timeout_time)
+    queue_op_status push_wait_until( value_type va,
+                                     clock_type::time_point const& timeout_time)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
         {
@@ -630,7 +619,6 @@ public:
     queue_op_status try_push( value_type va)
     {
         typename node_type::ptr new_node( new node_type() );
-
         mutex::scoped_lock lk( head_mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
@@ -652,19 +640,18 @@ public:
         }
     }
 
-    value_type value_pop()
+    queue_op_status pop( value_type va)
     {
         mutex::scoped_lock lk( head_mtx_);
 
         while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
-        if ( is_closed_() && is_empty_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         BOOST_ASSERT( ! is_empty_() );
 
         try
         {
-            value_type va = head_->va;
+            std::swap( va, head_->va);
             pop_head_();
             if ( size_() <= lwm_)
             {
@@ -675,7 +662,7 @@ public:
                     // for submiting an action object
                     not_full_cond_.notify_all();
             }
-            return va;
+            return queue_op_status::success;
         }
         catch (...)
         {
@@ -685,12 +672,12 @@ public:
     }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_pop( value_type va,
-                              chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_pop( va, clock_type::now() + timeout_duration); }
+    queue_op_status pop_ait_for( value_type va,
+                                 chrono::duration< Rep, Period > const& timeout_duration)
+    { return pop_wait_until( va, clock_type::now() + timeout_duration); }
 
-    queue_op_status wait_pop( value_type va,
-                              clock_type::time_point const& timeout_time)
+    queue_op_status pop_wait_until( value_type va,
+                                    clock_type::time_point const& timeout_time)
     {
         mutex::scoped_lock lk( head_mtx_);
 

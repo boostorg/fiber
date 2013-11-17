@@ -19,19 +19,20 @@ void ping( fifo_t & recv_buf, fifo_t & send_buf)
 
 	send_buf.push("ping");
 
-	std::string value = recv_buf.value_pop();
+	std::string value;
+    recv_buf.pop( value);
 	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
 	value.clear();
 
 	send_buf.push("ping");
 
-	value = recv_buf.value_pop();
+    recv_buf.pop( value);
 	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
 	value.clear();
 
 	send_buf.push("ping");
 
-	value = recv_buf.value_pop();
+    recv_buf.pop( value);
 	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
 
     send_buf.close();
@@ -42,19 +43,20 @@ void pong( fifo_t & recv_buf, fifo_t & send_buf)
 {
     boost::fibers::fiber::id id( boost::this_fiber::get_id() );
 
-	std::string value = recv_buf.value_pop();
+	std::string value;
+    recv_buf.pop( value);
 	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
 	value.clear();
 
 	send_buf.push("pong");
 
-	value = recv_buf.value_pop();
+    recv_buf.pop( value);
 	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
 	value.clear();
 
 	send_buf.push("pong");
 
-	value = recv_buf.value_pop();
+    recv_buf.pop( value);
 	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
 
 	send_buf.push("pong");

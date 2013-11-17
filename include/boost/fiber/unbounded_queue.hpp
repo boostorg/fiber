@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include <boost/atomic.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -90,7 +91,7 @@ private:
         CLOSED
     };
 
-    state                       state_;
+    atomic< state >             state_;
     typename node_type::ptr     head_;
     mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
@@ -98,7 +99,7 @@ private:
     condition                   not_empty_cond_;
 
     bool is_closed_() const
-    { return OPEN != state_; }
+    { return CLOSED == state_; }
 
     void close_()
     {
@@ -134,69 +135,58 @@ public:
     {}
 
     void close()
-    {
-        mutex::scoped_lock lk( head_mtx_);
-        close_();
-    }
+    { close_(); }
 
     bool is_closed() const
     { return is_closed_(); }
 
     bool is_empty() const
-    {
-        mutex::scoped_lock lk( head_mtx_);
-        return is_empty_();
-    }
+    { return is_empty_(); }
 
-    void push( value_type const& va)
+    queue_op_status push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type() );
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         tail_->va = va;
         tail_->next = new_node;
         tail_ = new_node;
-
-        lk.unlock();
-
         not_empty_cond_.notify_one();
+
+        return queue_op_status::success;
     }
 
-    void push( BOOST_RV_REF( value_type) va)
+    queue_op_status push( BOOST_RV_REF( value_type) va)
     {
         typename node_type::ptr new_node( new node_type() );
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         tail_->va = boost::move( va);
         tail_->next = new_node;
         tail_ = new_node;
-
-        lk.unlock();
-
         not_empty_cond_.notify_one();
+
+        return queue_op_status::success;
     }
 
-    value_type value_pop()
+    queue_op_status pop( value_type & va)
     {
         mutex::scoped_lock lk( head_mtx_);
 
         while ( ! is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
-        if ( is_closed_() && is_empty_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         BOOST_ASSERT( ! is_empty_() );
 
         try
         {
-            value_type va = boost::move( head_->va);
+            va = boost::move( head_->va);
             pop_head_();
-            return va;
+            return queue_op_status::success;
         }
         catch (...)
         {
@@ -206,12 +196,12 @@ public:
     }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_pop( value_type & va,
-                               chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_pop( va, clock_type::now() + timeout_duration); }
+    queue_op_status pop_wait_for( value_type & va,
+                                  chrono::duration< Rep, Period > const& timeout_duration)
+    { return pop_wait_until( va, clock_type::now() + timeout_duration); }
 
-    queue_op_status wait_pop( value_type & va,
-                              clock_type::time_point const& timeout_time)
+    queue_op_status pop_wait_until( value_type & va,
+                                    clock_type::time_point const& timeout_time)
     {
         mutex::scoped_lock lk( head_mtx_);
 
@@ -266,7 +256,7 @@ private:
         CLOSED
     };
 
-    state                       state_;
+    atomic< state >             state_;
     typename node_type::ptr     head_;
     mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
@@ -310,10 +300,7 @@ public:
     {}
 
     void close()
-    {
-        mutex::scoped_lock lk( head_mtx_);
-        close_();
-    }
+    { close_(); }
 
     bool is_closed() const
     { return is_closed_(); }
@@ -324,38 +311,37 @@ public:
         return is_empty_();
     }
 
-    void push( value_type va)
+    queue_op_status push( value_type va)
     {
         typename node_type::ptr new_node( new node_type() );
         mutex::scoped_lock lk( tail_mtx_);
 
-        if ( is_closed_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() ) return queue_op_status::closed;
 
         tail_->va = va;
         tail_->next = new_node;
         tail_ = new_node;
 
         lk.unlock();
-
         not_empty_cond_.notify_one();
+
+        return queue_op_status::success;
     }
 
-    value_type value_pop()
+    queue_op_status pop( value_type va)
     {
         mutex::scoped_lock lk( head_mtx_);
 
         while ( ! is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
-        if ( is_closed_() && is_empty_() )
-            BOOST_THROW_EXCEPTION( std::runtime_error("queue is closed") );
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         BOOST_ASSERT( ! is_empty_() );
 
         try
         {
-            value_type va = head_->va;
+            std::swap( va, head_->va);
             pop_head_();
-            return va;
+            return queue_op_status::success;
         }
         catch (...)
         {
@@ -365,11 +351,11 @@ public:
     }
 
     template< typename Rep, typename Period >
-    queue_op_status wait_pop( value_type va,
+    queue_op_status pop_wait_for( value_type va,
                               chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_pop( va, clock_type::now() + timeout_duration); }
+    { return pop_wait_until( va, clock_type::now() + timeout_duration); }
 
-    queue_op_status wait_pop( value_type va, clock_type::time_point const& timeout_time)
+    queue_op_status pop_wait_until( value_type va, clock_type::time_point const& timeout_time)
     {
         mutex::scoped_lock lk( head_mtx_);
 
