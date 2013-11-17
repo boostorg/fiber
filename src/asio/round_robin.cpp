@@ -32,7 +32,8 @@ namespace asio {
 round_robin::round_robin( boost::asio::io_service & svc) BOOST_NOEXCEPT :
     io_svc_( svc),
     active_fiber_(),
-    wqueue_()
+    wqueue_(),
+    mn_()
 {}
 
 round_robin::~round_robin() BOOST_NOEXCEPT
@@ -107,7 +108,7 @@ round_robin::run()
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
 
-    return io_svc_.poll_one() > 0;
+    return 0 < io_svc_.poll_one();
 }
 
 void
@@ -138,8 +139,8 @@ round_robin::wait_until( clock_type::time_point const& timeout_time,
     active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+    BOOST_ASSERT( tmp->is_running() );
 
     return clock_type::now() < timeout_time;
 }
@@ -163,8 +164,8 @@ round_robin::yield()
     active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == active_fiber_);
-    BOOST_ASSERT( active_fiber_->is_running() );
+    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+    BOOST_ASSERT( tmp->is_running() );
 }
 
 void
@@ -194,8 +195,8 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
         active_fiber_->suspend();
         // fiber is resumed by f
 
-        BOOST_ASSERT( tmp == active_fiber_);
-        BOOST_ASSERT( active_fiber_->is_running() );
+        BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+        BOOST_ASSERT( tmp->is_running() );
     }
     else
     {
