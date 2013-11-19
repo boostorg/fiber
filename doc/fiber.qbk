@@ -343,10 +343,11 @@ value of `other.get_id()` prior to the assignment.]]
         ~fiber();
 
 [variablelist
-[[Effects:] [If the fiber is joinable, calls std::terminate. Destroys `*this`.]]
+[[Effects:] [If the fiber is __joinable__, calls std::terminate. Destroys
+`*this`.]]
 [[Throws:] [Nothing.]]
 [[Note:] [The programmer must ensure that the destructor is never executed while
-the fiber is still joinable. See __detach__.]]
+the fiber is still __joinable__. See __detach__.]]
 ]
 
 [member_heading fiber..joinable]
@@ -357,6 +358,7 @@ the fiber is still joinable. See __detach__.]]
 [[Returns:] [`true` if `*this` refers to a fiber of execution, which may or
 may not have completed; otherwise `false`.]]
 [[Throws:] [Nothing]]
+[[See also:] [[member_link fiber..operator safe_bool]]]
 ]
 
 [member_heading fiber..join]
@@ -364,7 +366,7 @@ may not have completed; otherwise `false`.]]
         void join();
 
 [variablelist
-[[Preconditions:] [the fiber is joinable.]]
+[[Preconditions:] [the fiber is __joinable__.]]
 [[Effects:] [If `*this` refers to a fiber of execution, waits for that fiber to
 complete.]]
 [[Postconditions:] [If `*this` refers to a fiber of execution on entry, that
@@ -373,7 +375,7 @@ fiber has completed. `*this` no longer refers to any fiber of execution.]]
 `system_error`]]
 [[Error Conditions:] [
 [*resource_deadlock_would_occur]: if `this->get_id() == boost::this_fiber::get_id()`.
-[*invalid_argument]: if the fiber is not joinable.]]
+[*invalid_argument]: if the fiber is not __joinable__.]]
 [[Notes:] [`join()` is one of the predefined __interruption_points__.]]
 ]
 
@@ -382,13 +384,13 @@ fiber has completed. `*this` no longer refers to any fiber of execution.]]
         void detach();
 
 [variablelist
-[[Preconditions:] [the fiber is joinable.]]
+[[Preconditions:] [the fiber is __joinable__.]]
 [[Effects:] [The fiber of execution becomes detached, and no longer has an
 associated __fiber__ object.]]
 [[Postconditions:] [`*this` no longer refers to any fiber of execution.]]
 [[Throws:] [`system_error`]]
 [[Error Conditions:] [
-[*invalid_argument]: if the fiber is not joinable.]]
+[*invalid_argument]: if the fiber is not __joinable__.]]
 ]
 
 [member_heading fiber..get_id]
@@ -473,9 +475,11 @@ an applicable scheduler, a fiber is allowed to migrate across threads.]]
         operator safe_bool() const noexcept;
 
 [variablelist
-[[Returns:] [`true` if `*this` refers to a fiber of execution, `false`
-otherwise. In effect, this is synonymous with __joinable__.]]
+[[Returns:] [`true` if `*this` refers to a fiber of execution which has not
+yet terminated, `false` otherwise. Compare to __joinable__, which does not
+distinguish whether the referenced fiber of execution is still running.]]
 [[Throws:] [Nothing]]
+[[See also:] [__joinable__]]
 ]
 
 [operator_heading fiber..operator_not..operator!]
@@ -483,9 +487,10 @@ otherwise. In effect, this is synonymous with __joinable__.]]
         bool operator!() const noexcept;
 
 [variablelist
-[[Returns:] [`true` if `*this` does not refer to a fiber of execution, `false`
-otherwise.]]
+[[Returns:] [`true` if `*this` does not refer to a fiber of execution or if
+its fiber of execution has terminated, `false` otherwise.]]
 [[Throws:] [Nothing]]
+[[See also:] [[member_link fiber..operator safe_bool], __joinable__]]
 ]
 
 [member_heading fiber..swap]
