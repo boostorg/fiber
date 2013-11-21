@@ -22,7 +22,7 @@ synchonize fibers via message passing.
     void recv( queue_t & queue)
     {
         int i;
-        while ( queue.value_pop(i) == boost::fibers::queue_op_status::success )
+        while ( boost::fibers::queue_op_status::success == queue.pop(i) )
         { std::cout << "received " << i << std::endl; }
     }
 
@@ -93,12 +93,12 @@ Queue operations return the state of the queue.
         void push( value_type const& va);
         void push( value_type && va);
 
-        queue_op_status value_pop( value_type & va);
+        queue_op_status pop( value_type & va);
         template< typename Rep, typename Period >
-        queue_op_status wait_pop( value_type & va,
-                                  chrono::duration< Rep, Period > const& timeout_duration);
-        queue_op_status wait_pop( value_type & va,
-                                  clock_type::time_point const& timeout_time);
+        queue_op_status pop_wait_for( value_type & va,
+                                      chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status pop_wait_until( value_type & va,
+                                        clock_type::time_point const& timeout_time);
         queue_op_status try_pop( value_type & va);
     };
 
@@ -118,8 +118,8 @@ Queue operations return the state of the queue.
 
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
-`this->close()`. Fibers blocked in `this->value_pop()` or `this->wait_pop()`
-will return `closed`.]]
+`this->close()`. Fibers blocked in `this->pop()`, `this->pop_wait_for()`
+or `this->pop_wait_until()` will return `closed`.]]
 [[Throws:] [Nothing.]]
 [[Note:] [`close()` is like closing a pipe. It informs waiting consumers
 that no more values will arrive.]]
@@ -143,13 +143,13 @@ non-empty.]]
 
 [variablelist
 [[Effects:] [Enqueues the value in the queue and wakes up a fiber blocked on
-`this->value_pop()` or `this->wait_pop()`.]]
+`this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()`.]]
 [[Throws:] [Nothing.]]
 ]
 
-[member_heading unbounded_queue..value_pop]
+[member_heading unbounded_queue..pop]
 
-        queue_op_status value_pop( value_type & va);
+        queue_op_status pop( value_type & va);
 
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If the queue `is_empty()`, the
@@ -159,16 +159,14 @@ fiber gets suspended until at least one new item is `push()`ed (return value
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[member_heading unbounded_queue..wait_pop]
+[member_heading unbounded_queue..pop_wait_for]
 
         template< typename Rep, typename Period >
-        queue_op_status wait_pop( value_type & va,
-                                  chrono::duration< Rep, Period > const& timeout_duration)
-        queue_op_status wait_pop( value_type & va,
-                                  clock_type::time_point const& timeout_time)
+        queue_op_status pop_wait_for( value_type & va,
+                                      chrono::duration< Rep, Period > const& timeout_duration)
 
 [variablelist
-[[Effects:] [First the overload accepting `chrono::duration` internally
+[[Effects:] [Accepts `chrono::duration` internally
 computes a `clock_type::time_point` as `(clock_type::now() +
 timeout_duration)`. If `(! this->is_empty())`, immediately dequeues a value
 from the queue. Otherwise the fiber gets suspended until at least one new item
@@ -176,6 +174,21 @@ is `push()`ed (return value `success` and `va` contains dequeued value), or
 the queue gets `close()`d (return value `closed`), or the time as reported by
 `clock_type::now()` reaches the (passed or computed) `clock_type::time_point`
 (return value `timeout`).]]
+[[Throws:] [__fiber_interrupted__]]
+]
+
+[member_heading unbounded_queue..pop_wait_until]
+
+        queue_op_status pop_wait_until( value_type & va,
+                                        clock_type::time_point const& timeout_time)
+
+[variablelist
+[[Effects:] [Accepts a `clock_type::time_point`. If `(! this->is_empty())`,
+immediately dequeues a value from the queue. Otherwise the fiber gets suspended
+until at least one new item is `push()`ed (return value `success` and `va`
+contains dequeued value), or the queue gets `close()`d (return value `closed`),
+or the time as reported by `clock_type::now()` reaches the (passed or computed)
+`clock_type::time_point` (return value `timeout`).]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 
@@ -216,24 +229,24 @@ dequeued value.]]
         queue_op_status push( value_type const& va);
         queue_op_status push( value_type && va);
         template< typename Rep, typename Period >
-        queue_op_status wait_push( value_type const& va,
-                                   chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status push_wait_for( value_type const& va,
+                                       chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Rep, typename Period >
-        queue_op_status wait_push( value_type && va,
-                                   chrono::duration< Rep, Period > const& timeout_duration);
-        queue_op_status wait_push( value_type const& va,
-                                   clock_type::time_point const& timeout_time);
-        queue_op_status wait_push( value_type && va,
-                                   clock_type::time_point const& timeout_time);
+        queue_op_status push_wait_for( value_type && va,
+                                       chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status push_wait_until( value_type const& va,
+                                         clock_type::time_point const& timeout_time);
+        queue_op_status push_wait_until( value_type && va,
+                                         clock_type::time_point const& timeout_time);
         queue_op_status try_push( value_type const& va);
         queue_op_status try_push( value_type && va);
 
-        queue_op_status value_pop( value_type & va);
+        queue_op_status pop( value_type & va);
         template< typename Rep, typename Period >
-        queue_op_status wait_pop( value_type & va,
-                                  chrono::duration< Rep, Period > const& timeout_duration);
-        queue_op_status wait_pop( value_type & va,
-                                  clock_type::time_point const& timeout_time);
+        queue_op_status pop_wait_for( value_type & va,
+                                      chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status pop_wait_until( value_type & va,
+                                        clock_type::time_point const& timeout_time);
         queue_op_status try_pop( value_type & va);
     };
 
@@ -251,10 +264,11 @@ with one argument effectively sets both `hwm` and `lwm` to the same value
 `wm`.]]
 [[Throws:] [`invalid_argument` if `lwm > hwm`.]]
 [[Notes:] [Once the number of values in the queue reaches `hwm`, any call to
-`push()` or `wait_push()` will block until the number of values in the queue
-has dropped below `lwm`. That is, if `lwm < hwm`, the queue can be in a state
-in which `push()` or `wait_push()` calls will block (`is_full()` returns
-`true`) even though the number of values in the queue is less than `hwm`.]]
+`push()`, `push_wait_for()` or `push_wait_until()` will block until the number
+of values in the queue has dropped below `lwm`. That is, if `lwm < hwm`, the
+queue can be in a state in which `push()`, `push_wait_for()` or `push_wait_until()`
+calls will block (`is_full()` returns `true`) even though the number of values
+in the queue is less than `hwm`.]]
 ]
 
 [member_heading bounded_queue..is_closed]
@@ -273,8 +287,8 @@ in which `push()` or `wait_push()` calls will block (`is_full()` returns
 
 [variablelist
 [[Effects:] [Deactivates the queue. No values can be put after calling
-`this->close()`. Fibers blocked in `this->value_pop()` or `this->wait_pop()`
-will return `closed`.]]
+`this->close()`. Fibers blocked in `this->pop()`, `this->pop_wait_for()` or
+`this->pop_wait_until()` will return `closed`.]]
 [[Throws:] [Nothing.]]
 [[Note:] [`close()` is like closing a pipe. It informs waiting consumers
 that no more values will arrive.]]
@@ -312,36 +326,50 @@ the number of values drops below `lwm`.]]
 [variablelist
 [[Effects:] [If `this->is_closed()`, returns `closed`. If `(!
 this->is_full())`, enqueues the value in the queue, wakes up a fiber blocked
-on `this->value_pop()` or `this->wait_pop()` and returns `success`. Otherwise
-the fiber gets suspended until the number of values in the queue drops below
-`lwm` (return value `success`), or the queue is `close()`d (return value
-`closed`).]]
+on `this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()` and returns
+`success`. Otherwise the fiber gets suspended until the number of values in the
+queue drops below `lwm` (return value `success`), or the queue is `close()`d
+(return value `closed`).]]
 [[Throws:] [__fiber_interrupted_]]
 ]
 
-[member_heading bounded_queue..wait_push]
+[member_heading bounded_queue..push_wait_for]
 
         template< typename Rep, typename Period >
-        queue_op_status wait_push( value_type const& va,
-                                   chrono::duration< Rep, Period > const& timeout_duration);
+        queue_op_status push_wait_for( value_type const& va,
+                                       chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Rep, typename Period >
-        queue_op_status wait_push( value_type && va,
-                                   chrono::duration< Rep, Period > const& timeout_duration);
-        queue_op_status wait_push( value_type const& va,
-                                   clock_type::time_point const& timeout_time);
-        queue_op_status wait_push( value_type && va,
-                                   clock_type::time_point const& timeout_time);
+        queue_op_status push_wait_for( value_type && va,
+                                       chrono::duration< Rep, Period > const& timeout_duration);
 
 [variablelist
-[[Effects:] [First the overload accepting `chrono::duration` internally
+[[Effects:] [Accepts `chrono::duration` internally
 computes a `clock_type::time_point` as `(clock_type::now() +
 timeout_duration)`. If `this->is_closed()`, returns `closed`. If `(!
 this->is_full())`, enqueues the value in the queue, wakes up a fiber blocked
-on `this->value_pop()` or `this->wait_pop()` and returns `success`. Otherwise
-the fiber gets suspended until the number of values in the queue drops below
-`lwm` (return value `success`), the queue is `close()`d (return value
-`closed`), or the time as reported by `clock_type::now()` reaches the (passed
-or computed) `clock_type::time_point` (return value `timeout`).]]
+on `this->pop()` `this->pop_wait_for()` or `this->pop_wait_until()` and returns
+`success`. Otherwise the fiber gets suspended until the number of values in the
+queue drops below `lwm` (return value `success`), the queue is `close()`d
+(return value `closed`), or the time as reported by `clock_type::now()` reaches
+the (passed or computed) `clock_type::time_point` (return value `timeout`).]]
+[[Throws:] [__fiber_interrupted_]]
+]
+
+[member_heading bounded_queue..push_wait_until]
+
+        queue_op_status push_wait_until( value_type const& va,
+                                         clock_type::time_point const& timeout_time);
+        queue_op_status push_wait_until( value_type && va,
+                                         clock_type::time_point const& timeout_time);
+
+[variablelist
+[[Effects:] [Accepts a `clock_type::time_point`. If `this->is_closed()`, returns
+`closed`. If `(! this->is_full())`, enqueues the value in the queue, wakes up a
+fiber blocked on `this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()`
+and returns `success`. Otherwise the fiber gets suspended until the number of
+values in the queue drops below `lwm` (return value `success`), the queue is
+`close()`d (return value `closed`), or the time as reported by `clock_type::now()`
+reaches the (passed or computed) `clock_type::time_point` (return value `timeout`).]]
 [[Throws:] [__fiber_interrupted_]]
 ]
 
@@ -353,30 +381,30 @@ or computed) `clock_type::time_point` (return value `timeout`).]]
 [variablelist
 [[Effects:] [If `this->is_full()`, returns `full`. If `this->is_closed()`,
 returns `closed`. Otherwise enqueues the value in the queue, wakes up a fiber
-blocked on `this->value_pop()` or `this->wait_pop()` and returns `success`.]]
+blocked on `this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()` and
+returns `success`.]]
 [[Throws:] [__fiber_interrupted_]]
 ]
 
-[member_heading bounded_queue..value_pop]
+[member_heading bounded_queue..pop]
 
-        queue_op_status value_pop( value_type & va);
+        queue_op_status pop( value_type & va);
 
 [variablelist
 [[Effects:] [Dequeues a value from the queue. If the queue `is_empty()`, the
 fiber gets suspended until at least one new item is `push()`ed (return value
 `success` and `va` contains dequeued value) or the queue gets `close()`d
 (return value `closed`). Once the number of items remaining in the queue
-drops below `lwm`, any fibers blocked on `push()` or `wait_push()` may resume.]]
+drops below `lwm`, any fibers blocked on `push()`, `push_wait_for()` or
+`push_wait_until()` may resume.]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[member_heading bounded_queue..wait_pop]
+[member_heading bounded_queue..pop_wait_for]
 
         template< typename Rep, typename Period >
-        queue_op_status wait_pop( value_type & va,
-                                  chrono::duration< Rep, Period > const& timeout_duration)
-        queue_op_status wait_pop( value_type & va,
-                                  clock_type::time_point const& timeout_time)
+        queue_op_status pop_wait_for( value_type & va,
+                                      chrono::duration< Rep, Period > const& timeout_duration)
 
 [variablelist
 [[Effects:] [First the overload accepting `chrono::duration` internally
@@ -387,6 +415,21 @@ is `push()`ed (return value `success` and `va` contains dequeued value), or
 the queue gets `close()`d (return value `closed`), or the time as reported by
 `clock_type::now()` reaches the (passed or computed) `clock_type::time_point`
 (return value `timeout`).]]
+[[Throws:] [__fiber_interrupted__]]
+]
+
+[member_heading bounded_queue..pop_wait_until]
+
+        queue_op_status pop_wait_until( value_type & va,
+                                        clock_type::time_point const& timeout_time)
+
+[variablelist
+[[Effects:] [Accepts a `clock_type::time_point`. If `(! this->is_empty())`,
+immediately dequeues a value from the queue. Otherwise the fiber gets suspended
+until at least one new item is `push()`ed (return value `success` and `va`
+contains dequeued value), or the queue gets `close()`d (return value `closed`),
+or the time as reported by `clock_type::now()` reaches the (passed or computed)
+`clock_type::time_point` (return value `timeout`).]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 

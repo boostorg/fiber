@@ -903,9 +903,6 @@ value stored by the constructor of `*this`.]]
             restore_interruption& operator=(const restore_interruption&) = delete;
         };
 
-[important Oliver: would like to see a plausible usage example; I don't yet
-understand the purpose of restore_interruption]
-
 [heading Constructor]
 
         explicit restore_interruption(disable_interruption& disabler) noexcept;
@@ -932,6 +929,20 @@ constructed.]]
 `false`.]]
 [[Throws:] [Nothing.]]
 ]
+
+        void foo()
+        {
+            // interruption is enabled
+            {
+                boost::this_fiber::disable_interruption di;
+                // interruption is disabled
+                {
+                    boost::this_fiber::restore_interruption ri( di);
+                    // interruption now enabled
+                } // ri destroyed, interruption disable again
+            } // di destructed, interruption state restored
+            // interruption now enabled
+        }
 
 [endsect] [/ section Namespace this_fiber]
 
