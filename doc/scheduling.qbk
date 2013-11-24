@@ -1,0 +1,188 @@
+[/
+          Copyright Oliver Kowalke 2013.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:scheduling Scheduling]
+
+Fibers are managed by a scheduler which coordinates the sequence of fibers running
+or waiting.
+Each thread has its own scheduler, e.g. each thread must register a scheduler before
+fibers can be used.
+
+        void thread_fn()
+        {
+            my_fiber_scheduler mfs;
+            boost::fibers::set_scheduling_algorithm( & mfs);
+            ...
+        }
+
+A fiber-scheduler must implement interface __algo__. __boost_fiber__ contains two
+schedulers - `round_robin` and `round_robin_ws`.
+
+
+[class_heading algorithm]
+
+        #include <boost/fiber/algorithm.hpp>
+
+        struct algorithm
+        {
+            virtual ~algorithm() {}
+
+            algorithm( algorithm const&) = delete;
+            algorithm & operator=( algorithm const&) = delete;
+
+            virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
+
+            virtual void priority( detail::fiber_base::ptr_t const&, int) noexcept = 0;
+
+            virtual void join( detail::fiber_base::ptr_t const&) = 0;
+
+            virtual detail::fiber_base::ptr_t active() noexcept = 0;
+
+            virtual bool run() = 0;
+
+            virtual void wait( unique_lock< detail::spinlock > &) = 0;
+            virtual bool wait_until( clock_type::time_point const&,
+                                     unique_lock< detail::spinlock > &) = 0;
+            template< typename Rep, typename Period >
+            bool wait_for( chrono::duration< Rep, Period > const&,
+                           unique_lock< detail::spinlock > &);
+
+            virtual void yield() = 0;
+
+            virtual detail::fiber_base::id get_main_id() = 0;
+        };
+
+        algorithm * set_scheduling_algorithm( algorithm *);
+
+[member_heading algorithm..spawn]
+
+        virtual void spawn( detail::fiber_base::ptr_t const& f) = 0;
+
+[variablelist
+[[Returns:] [Spawns fiber `f`, e.g. `f` will be entered the first time or
+or resumed where it was suspended before.]]
+]
+
+[member_heading algorithm..priority]
+
+        virtual void priority( detail::fiber_base::ptr_t const& f, int p) noexcept = 0;
+
+[variablelist
+[[Returns:] [Sets the priority `p` for fiber `f`]]
+[[Throws:] [Nothing]]
+]
+
+[member_heading algorithm..join]
+
+        virtual void join( detail::fiber_base::ptr_t const& f) = 0;
+
+[variablelist
+[[Returns:] [The current execution context gets suspended until fiber `f` terminates.]]
+]
+
+[member_heading algorithm..active]
+
+        virtual detail::fiber_base::ptr_t active() noexcept = 0;
+
+[variablelist
+[[Returns:] [Returns the active fiber or a null-pointer otherwise.]]
+]
+
+[member_heading algorithm..run]
+
+        virtual bool run() = 0;
+
+[variablelist
+[[Returns:] [Returns `true` if one fiber was ready and successfully executed, `false`
+otherwise.]]
+]
+
+[member_heading algorithm..wait]
+
+        virtual void wait( unique_lock< detail::spinlock > & lk) = 0;
+
+[variablelist
+[[Precondition:] [`lk` is locked by the current fiberi. It locks the spinlock
+protecting the internal state of a mutex or condition_variable.]]
+[[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
+[[Postcondition:] [`lk` is unlocked.]]
+]
+
+[member_heading algorithm..wait_until]
+
+        virtual bool wait_until( clock_type::time_point const& timeout_time,
+                                 unique_lock< detail::spinlock > & lk) = 0;
+
+[variablelist
+[[Precondition:] [`lk` is locked by the current fiberi. It locks the spinlock
+protecting the internal state of a mutex or condition_variable.]]
+[[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
+[[Returns:] [Returns `true` if fiber was resumed before time-point
+`timeout_time` was elapsed, `false` otherwise.]]
+[[Postcondition:] [`lk` is unlocked.]]
+]
+
+[member_heading algorithm..wait_for]
+
+        template< typename Rep, typename Period >
+        bool wait_for( chrono::duration< Rep, Period > const& timeout_duration,
+                       unique_lock< detail::spinlock > & lk)
+
+[variablelist
+[[Precondition:] [`lk` is locked by the current fiberi. It locks the spinlock
+protecting the internal state of a mutex or condition_variable.]]
+[[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
+[[Returns:] [Returns `true` if fiber was resumed before time-duration
+`timeout_duration` has passed, `false` otherwise.]]
+[[Postcondition:] [`lk` is unlocked.]]
+]
+
+[member_heading algorithm..yield]
+
+        virtual void yield() = 0;
+
+[variablelist
+[[Effects:] [Suspends active fiber while immediately set to ready-state.]]
+otherwise.]]
+]
+
+[member_heading algorithm..get_main_id]
+
+        virtual detail::fiber_base::id get_main_id() = 0;
+
+[variablelist
+[[Returns:] [Returns a `fiber_base::id` associated to the thread the scheduler
+is running while no fiber is active.]]
+]
+
+
+[class_heading round_robin]
+
+This class implements __algo__ and schedules fibers in round-robin fashion.
+
+[class_heading round_robin_ws]
+
+`round_robin_ws` is intended to be used for migrating fibers between threads (different
+schedulers). For this purpose the class has two additional functions - `steal_from()` and
+`migrate_to()`.
+This functionality can be used to implement work-stealing/-sharing in a threadpool .
+
+        // steal a fiber from a scheduler `other_ds` running in another thread
+        boost::fibers::fiber f( other_ds->steal_from() );
+
+        // check if stealing was successful
+        if ( f)
+        {
+            // migrate stolen fiber to scheduler running in this thread
+            ds.migrate_to( f);
+
+            // detach fiber
+            f.detach();
+        }
+
+
+[endsect]

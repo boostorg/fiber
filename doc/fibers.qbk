@@ -122,6 +122,7 @@
 [def __already_retrieved__ `future_errc::future_already_retrieved`]
 [def __already_satisfied__ `future_errc::future_already_satisfied`]
 
+[def __algo__ `algorithm`]
 [def __async__ `async()`]
 [def __barrier_wait__ [member_link barrier..wait]]
 [def __cond_wait__ [member_link condition_variable..wait]]
@@ -152,6 +153,7 @@
 
 [include overview.qbk]
 [include fiber.qbk]
+[include scheduling.qbk]
 [include stack.qbk]
 [section:synchronization Synchronization]
 [include mutexes.qbk]

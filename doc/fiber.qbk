@@ -70,11 +70,6 @@ cooperatively by a scheduler. Objects of type __fiber__ are only moveable.
 
         boost::fibers::fiber f1( some_fn);
 
-[important Oliver: I think there should be a reference section on `algorithm`,
-`round_robin` and `set_scheduling_algorithm`. It should at least explain the
-distinction between `round_robin` and `round_robin_ws`! Going further, it
-would be great if you would explain how to provide a custom `algorithm`.]
-
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
 If the object must not (or cannot) be copied, then ['boost::ref] can be used to
