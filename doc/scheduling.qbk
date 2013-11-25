@@ -147,7 +147,6 @@ protecting the internal state of a mutex or condition_variable.]]
 
 [variablelist
 [[Effects:] [Suspends active fiber while immediately set to ready-state.]]
-otherwise.]]
 ]
 
 [member_heading algorithm..get_main_id]
