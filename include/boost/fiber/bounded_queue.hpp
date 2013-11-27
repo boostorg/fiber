@@ -672,7 +672,7 @@ public:
     }
 
     template< typename Rep, typename Period >
-    queue_op_status pop_ait_for( value_type va,
+    queue_op_status pop_wait_for( value_type va,
                                  chrono::duration< Rep, Period > const& timeout_duration)
     { return pop_wait_until( va, clock_type::now() + timeout_duration); }
 
