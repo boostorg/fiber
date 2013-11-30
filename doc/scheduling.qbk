@@ -63,8 +63,8 @@ schedulers - `round_robin` and `round_robin_ws`.
         virtual void spawn( detail::fiber_base::ptr_t const& f) = 0;
 
 [variablelist
-[[Returns:] [Spawns fiber `f`, e.g. `f` will be entered the first time or
-or resumed where it was suspended before.]]
+[[Effects:] [Spawns fiber `f`, e.g. `f` will be entered the first time
+or resumed where it was suspended before. Suspends the current fiber.]]
 ]
 
 [member_heading algorithm..priority]
@@ -72,7 +72,8 @@ or resumed where it was suspended before.]]
         virtual void priority( detail::fiber_base::ptr_t const& f, int p) noexcept = 0;
 
 [variablelist
-[[Returns:] [Sets the priority `p` for fiber `f`]]
+[[Effects:] [Sets priority `p` for fiber `f`. Interpretation of "priority"
+is entirely up to the subclass.]]
 [[Throws:] [Nothing]]
 ]
 
@@ -81,7 +82,7 @@ or resumed where it was suspended before.]]
         virtual void join( detail::fiber_base::ptr_t const& f) = 0;
 
 [variablelist
-[[Returns:] [The current execution context gets suspended until fiber `f` terminates.]]
+[[Effects:] [Suspends the current fiber until fiber `f` terminates.]]
 ]
 
 [member_heading algorithm..active]
@@ -89,7 +90,8 @@ or resumed where it was suspended before.]]
         virtual detail::fiber_base::ptr_t active() noexcept = 0;
 
 [variablelist
-[[Returns:] [Returns the active fiber or a null-pointer otherwise.]]
+[[Returns:] [Returns the active fiber, or a null-pointer if the current
+execution context is not a fiber managed by this __algo__ instance.]]
 ]
 
 [member_heading algorithm..run]
@@ -97,6 +99,8 @@ or resumed where it was suspended before.]]
         virtual bool run() = 0;
 
 [variablelist
+[[Effects:] [Selects one fiber in ready state and runs it until it suspends.
+The choice of fiber is up to the subclass instance.]]
 [[Returns:] [Returns `true` if one fiber was ready and successfully executed, `false`
 otherwise.]]
 ]
@@ -106,7 +110,7 @@ otherwise.]]
         virtual void wait( unique_lock< detail::spinlock > & lk) = 0;
 
 [variablelist
-[[Precondition:] [`lk` is locked by the current fiberi. It locks the spinlock
+[[Precondition:] [`lk` is locked by the current fiber. It locks the spinlock
 protecting the internal state of a mutex or condition_variable.]]
 [[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
 [[Postcondition:] [`lk` is unlocked.]]
@@ -118,11 +122,11 @@ protecting the internal state of a mutex or condition_variable.]]
                                  unique_lock< detail::spinlock > & lk) = 0;
 
 [variablelist
-[[Precondition:] [`lk` is locked by the current fiberi. It locks the spinlock
+[[Precondition:] [`lk` is locked by the current fiber. It locks the spinlock
 protecting the internal state of a mutex or condition_variable.]]
 [[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
 [[Returns:] [Returns `true` if fiber was resumed before time-point
-`timeout_time` was elapsed, `false` otherwise.]]
+`timeout_time` was reached, `false` otherwise.]]
 [[Postcondition:] [`lk` is unlocked.]]
 ]
 
@@ -133,7 +137,7 @@ protecting the internal state of a mutex or condition_variable.]]
                        unique_lock< detail::spinlock > & lk)
 
 [variablelist
-[[Precondition:] [`lk` is locked by the current fiberi. It locks the spinlock
+[[Precondition:] [`lk` is locked by the current fiber. It locks the spinlock
 protecting the internal state of a mutex or condition_variable.]]
 [[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
 [[Returns:] [Returns `true` if fiber was resumed before time-duration
@@ -146,7 +150,8 @@ protecting the internal state of a mutex or condition_variable.]]
         virtual void yield() = 0;
 
 [variablelist
-[[Effects:] [Suspends active fiber while immediately set to ready-state.]]
+[[Effects:] [Suspends active fiber without waiting; that is, the current fiber
+is immediately set to ready-state.]]
 ]
 
 [member_heading algorithm..get_main_id]
@@ -154,8 +159,8 @@ protecting the internal state of a mutex or condition_variable.]]
         virtual detail::fiber_base::id get_main_id() = 0;
 
 [variablelist
-[[Returns:] [Returns a `fiber_base::id` associated to the thread the scheduler
-is running while no fiber is active.]]
+[[Returns:] [Returns a `fiber_base::id` associated to the thread on which the
+scheduler is running while no fiber is active.]]
 ]
 
 
@@ -168,7 +173,7 @@ This class implements __algo__ and schedules fibers in round-robin fashion.
 `round_robin_ws` is intended to be used for migrating fibers between threads (different
 schedulers). For this purpose the class has two additional functions - `steal_from()` and
 `migrate_to()`.
-This functionality can be used to implement work-stealing/-sharing in a threadpool .
+This functionality can be used to implement work-stealing/-sharing in a threadpool.
 
         // steal a fiber from a scheduler `other_ds` running in another thread
         boost::fibers::fiber f( other_ds->steal_from() );
