@@ -80,9 +80,6 @@ void fss()
 
 void test_fss()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( fss).join();
 }
 
@@ -123,9 +120,6 @@ void fss_with_custom_cleanup()
 
 void test_fss_with_custom_cleanup()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( fss_with_custom_cleanup).join();
 }
 
@@ -205,17 +199,11 @@ void do_test_fss_does_no_cleanup_with_null_cleanup_function()
 
 void test_fss_does_no_cleanup_after_release()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( do_test_fss_does_no_cleanup_after_release).join();
 }
 
 void test_fss_does_no_cleanup_with_null_cleanup_function()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( do_test_fss_does_no_cleanup_with_null_cleanup_function).join();
 }
 
@@ -239,9 +227,6 @@ void fss_does_not_call_cleanup_after_ptr_destroyed()
 
 void test_fss_does_not_call_cleanup_after_ptr_destroyed()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( fss_does_not_call_cleanup_after_ptr_destroyed).join();
 }
 
@@ -260,9 +245,6 @@ void fss_cleanup_not_called_for_null_pointer()
 
 void test_fss_cleanup_not_called_for_null_pointer()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( fss_cleanup_not_called_for_null_pointer).join();
 }
 
@@ -282,9 +264,6 @@ void fss_at_the_same_adress()
 
 void test_fss_at_the_same_adress()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( fss_at_the_same_adress).join();
 }
 

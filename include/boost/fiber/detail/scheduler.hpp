@@ -36,16 +36,15 @@ private:
 public:
     typedef main_notifier   local_context;
 
-    static notify::ptr_t make_notification( main_notifier &);
+    static notify::ptr_t make_notification( main_notifier &) BOOST_NOEXCEPT;
 
     template< typename F >
-    static fiber_base::ptr_t extract( F const& f)
+    static fiber_base::ptr_t extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_; }
 
-    static algorithm * instance() BOOST_NOEXCEPT
-    { return instance_.get(); }
+    static algorithm * instance();
 
-    static algorithm * replace( algorithm * other) BOOST_NOEXCEPT;
+    static algorithm * replace( algorithm * other);
 };
 
 }}}

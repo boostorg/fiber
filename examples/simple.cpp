@@ -19,9 +19,6 @@ void fn( std::string const& str, int n)
 
 int main()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     try
     {
         boost::fibers::fiber f1( boost::bind( fn, "abc", 5) );

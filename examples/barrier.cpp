@@ -70,9 +70,6 @@ void fn2( boost::fibers::barrier & b)
 
 int main()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
 	try
 	{
 		boost::fibers::barrier fb( 2);

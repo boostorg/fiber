@@ -42,9 +42,6 @@ void fn2( boost::fibers::fiber & f)
 
 int main()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     try
     {
         boost::fibers::fiber f1( fn1);

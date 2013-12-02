@@ -71,6 +71,7 @@ void fn_create_fibers( boost::fibers::round_robin_ws * ds, boost::barrier * b)
 void fn_migrate_fibers( boost::fibers::round_robin_ws * other_ds, boost::barrier * b, int * count)
 {
     BOOST_ASSERT( other_ds);
+
     boost::fibers::round_robin_ws ds;
     boost::fibers::set_scheduling_algorithm( & ds);
 

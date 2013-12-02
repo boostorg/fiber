@@ -63,13 +63,6 @@ cooperatively by a scheduler. Objects of type __fiber__ are only moveable.
 
 [heading Launching]
 
-[important Each thread must first set the fiber-scheduler before any __fiber__ construction.]
-
-        boost::fibers::round_robin ds;
-        boost::fibers::set_scheduling_algorithm( & ds);
-
-        boost::fibers::fiber f1( some_fn);
-
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
 If the object must not (or cannot) be copied, then ['boost::ref] can be used to
@@ -422,8 +415,8 @@ interruption enabled.]]
 [[Effects:] [set priority for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 [[Note:] [The meaning of particular `int` values is determined by the specific
-`algorithm` passed to `set_scheduling_algorithm()`. `round_robin` ignores
-`fiber::priority()`.]]
+`algorithm` passed to `set_scheduling_algorithm()`. `round_robin` and `round_robin_ws`
+ignore `fiber::priority()`.]]
 ]
 
 [member_heading fiber..priority]

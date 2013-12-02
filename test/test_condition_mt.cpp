@@ -57,9 +57,6 @@ void wait_fn(
 
 void fn1( boost::barrier & b, boost::fibers::mutex & mtx, boost::fibers::condition & cond)
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber(
             boost::bind(
                 wait_fn,
@@ -70,9 +67,6 @@ void fn1( boost::barrier & b, boost::fibers::mutex & mtx, boost::fibers::conditi
 
 void fn2( boost::barrier & b, boost::fibers::condition & cond)
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
 	boost::fibers::fiber(
             boost::bind(
                 notify_one_fn,
@@ -82,9 +76,6 @@ void fn2( boost::barrier & b, boost::fibers::condition & cond)
 
 void fn3( boost::barrier & b, boost::fibers::condition & cond)
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
 	boost::fibers::fiber(
             boost::bind(
                 notify_all_fn,
@@ -94,9 +85,6 @@ void fn3( boost::barrier & b, boost::fibers::condition & cond)
 
 void test_one_waiter_notify_one()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::barrier b( 2);
 
 	value = 0;
@@ -118,9 +106,6 @@ void test_one_waiter_notify_one()
 
 void test_two_waiter_notify_all()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::barrier b( 3);
 
 	value = 0;

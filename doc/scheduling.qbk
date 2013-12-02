@@ -7,10 +7,13 @@
 
 [section:scheduling Scheduling]
 
-Fibers are managed by a scheduler which coordinates the sequence of fibers running
-or waiting.
-Each thread has its own scheduler, e.g. each thread must register a scheduler before
-fibers can be used.
+Fibers are managed by a scheduler which coordinates the sequence of fibers
+running or waiting.
+Each thread is required to have its own scheduler. __boost_fiber__ allocates for
+each thread a scheduler (round_robin) per default (on the freestore).
+If preallocating a scheduler per default is not needed,
+`BOOST_FIBERS_DONT_USE_DEFAULT_SCHEDULER` has to be passed as compiler flag and
+a user-defined scheduler must be set for each thread at start.
 
         void thread_fn()
         {

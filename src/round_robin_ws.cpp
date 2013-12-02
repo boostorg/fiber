@@ -42,8 +42,6 @@ round_robin_ws::~round_robin_ws() BOOST_NOEXCEPT
     // therefore destructing wqueue_ && rqueue_
     // will destroy the fibers in this scheduler
     // if not referenced on other places
-    if ( detail::scheduler::instance() == this)
-        detail::scheduler::replace( 0);
 }
 
 void

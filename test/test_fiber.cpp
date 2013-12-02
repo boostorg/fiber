@@ -145,9 +145,6 @@ void interruption_point_join( boost::fibers::fiber & f)
 
 void test_move()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     {
         boost::fibers::fiber s1;
         BOOST_CHECK( ! s1);
@@ -184,9 +181,6 @@ void test_move()
 
 void test_priority()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber f( f1);
     BOOST_CHECK_EQUAL( 0, f.priority() );
     f.priority( 7);
@@ -196,9 +190,6 @@ void test_priority()
 
 void test_id()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber s1;
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( ! s1);
@@ -225,9 +216,6 @@ void test_id()
 
 void test_detach()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     {
         boost::fibers::fiber s1( f1);
         BOOST_CHECK( ! s1);
@@ -249,9 +237,6 @@ void test_replace()
 {
     boost::fibers::round_robin ds;
     boost::fibers::set_scheduling_algorithm( & ds);
-
-    boost::fibers::set_scheduling_algorithm(
-        new boost::fibers::round_robin() );
     boost::fibers::fiber s1( f1);
     BOOST_CHECK( ! s1);
     boost::fibers::fiber s2( f2);
@@ -263,9 +248,6 @@ void test_replace()
 
 void test_complete()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber s1( f1);
     BOOST_CHECK( ! s1);
     boost::fibers::fiber s2( f2);
@@ -277,9 +259,6 @@ void test_complete()
 
 void test_join_in_thread()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber s( f2);
     BOOST_CHECK( s);
     BOOST_CHECK( s.joinable() );
@@ -290,9 +269,6 @@ void test_join_in_thread()
 
 void test_join_and_run()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber s( f2);
     BOOST_CHECK( s);
     BOOST_CHECK( s.joinable() );
@@ -303,9 +279,6 @@ void test_join_and_run()
 
 void test_join_in_fiber()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     // spawn fiber s
     // s spawns an new fiber s' in its fiber-fn
     // s' yields in its fiber-fn
@@ -318,9 +291,6 @@ void test_join_in_fiber()
 
 void test_yield()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
@@ -336,9 +306,6 @@ void test_yield()
 
 void test_fiber_interrupts_at_interruption_point()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::mutex m;
     bool failed=false;
     bool interrupted = false;
@@ -356,9 +323,6 @@ void test_fiber_interrupts_at_interruption_point()
 
 void test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::mutex m;
     bool failed=true;
     boost::unique_lock<boost::fibers::mutex> lk(m);
@@ -371,9 +335,6 @@ void test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point()
 
 void test_fiber_interrupts_at_join()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     int i = 0;
     bool failed = false;
     boost::fibers::fiber f1( boost::bind( f7, boost::ref( i), boost::ref( failed) ) );
@@ -397,7 +358,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
      test->add( BOOST_TEST_CASE( & test_priority) );
      test->add( BOOST_TEST_CASE( & test_detach) );
      test->add( BOOST_TEST_CASE( & test_complete) );
-     test->add( BOOST_TEST_CASE( & test_replace) );
      test->add( BOOST_TEST_CASE( & test_join_in_thread) );
      test->add( BOOST_TEST_CASE( & test_join_and_run) );
      test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
@@ -405,6 +365,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
      test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
      test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
      test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_join) );
+     test->add( BOOST_TEST_CASE( & test_replace) );
 
     return test;
 }

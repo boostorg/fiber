@@ -49,26 +49,17 @@ void f( boost::barrier & b, Mtx & m)
 template< typename Mtx >
 void fn1( boost::barrier & b, Mtx & m)
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( boost::bind( g< Mtx >, boost::ref( b), boost::ref( m) ) ).join();
 }
 
 template< typename Mtx >
 void fn2( boost::barrier & b, Mtx & m)
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( boost::bind( f< Mtx >, boost::ref( b), boost::ref( m) ) ).join();
 }
 
 void test_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     for ( int i = 0; i < 50; ++i)
     {
         boost::fibers::mutex mtx;
@@ -88,9 +79,6 @@ void test_mutex()
 
 void test_recursive_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     for ( int i = 0; i < 50; ++i)
     {
         boost::fibers::recursive_mutex mtx;
@@ -110,9 +98,6 @@ void test_recursive_mutex()
 
 void test_recursive_timed_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     for ( int i = 0; i < 50; ++i)
     {
         boost::fibers::recursive_timed_mutex mtx;
@@ -132,9 +117,6 @@ void test_recursive_timed_mutex()
 
 void test_timed_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     for ( int i = 0; i < 50; ++i)
     {
         boost::fibers::timed_mutex mtx;

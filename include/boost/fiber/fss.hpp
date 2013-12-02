@@ -62,8 +62,7 @@ public:
 
     ~fiber_specific_ptr()
     {
-        if ( detail::scheduler::instance() &&
-             detail::scheduler::instance()->active() )
+        if ( detail::scheduler::instance()->active() )
             detail::scheduler::instance()->active()->set_fss_data(
                 this, cleanup_fn_, 0, true);
     }

@@ -26,9 +26,6 @@ void condition_test_fiber(condition_test_data* data)
 
 int main()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     condition_test_data data;
     boost::fibers::fiber f(boost::bind(&condition_test_fiber, &data));
 

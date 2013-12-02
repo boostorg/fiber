@@ -181,89 +181,56 @@ void swap()
 
 void test_lock()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     lock();
 }
 
 void test_defer_lock()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     defer_lock();
 }
 
 void test_adopt_lock()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     adopt_lock();
 }
 
 void test_try_lock()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     try_lock();
 }
 
 void test_lock_twice()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     lock_twice();
 }
 
 void test_try_lock_twice()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     try_lock_twice();
 }
 
 void test_unlock_twice()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     unlock_twice();
 }
 
 void test_default_ctor()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     default_ctor();
 }
 
 void test_lock_concept()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     lock_concept();
 }
 
 void test_try_lock_concept()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     try_lock_concept();
 }
 
 void test_swap()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     swap();
 }
 

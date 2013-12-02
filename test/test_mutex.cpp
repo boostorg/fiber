@@ -309,9 +309,6 @@ void do_test_mutex()
 
 void test_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( & do_test_mutex).join();
 }
 
@@ -342,9 +339,6 @@ void do_test_recursive_mutex()
 
 void test_recursive_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( do_test_recursive_mutex).join();
 }
 
@@ -410,9 +404,6 @@ void do_test_timed_mutex()
 
 void test_timed_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( & do_test_timed_mutex).join();
 }
 
@@ -479,9 +470,6 @@ void do_test_recursive_timed_mutex()
 
 void test_recursive_timed_mutex()
 {
-    boost::fibers::round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     boost::fibers::fiber( & do_test_recursive_timed_mutex).join();
 }
 
