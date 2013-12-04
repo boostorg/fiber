@@ -9,11 +9,12 @@
 
 Fibers are managed by a scheduler which coordinates the sequence of fibers
 running or waiting.
-Each thread is required to have its own scheduler. __boost_fiber__ allocates for
-each thread a scheduler (round_robin) per default (on the freestore).
-If preallocating a scheduler per default is not needed,
-`BOOST_FIBERS_DONT_USE_DEFAULT_SCHEDULER` has to be passed as compiler flag and
-a user-defined scheduler must be set for each thread at start.
+Each thread is required to have its own scheduler. By default, __boost_fiber__
+allocates for each thread a scheduler ([class_link round_robin]) (on the
+heap).
+To prevent the library from heap-allocating a default scheduler for a given
+thread, that thread must call [function_link set_scheduling_algorithm] before
+any other __boost_fiber__ entry point.
 
         void thread_fn()
         {
@@ -22,8 +23,8 @@ a user-defined scheduler must be set for each thread at start.
             ...
         }
 
-A fiber-scheduler must implement interface __algo__. __boost_fiber__ contains two
-schedulers - `round_robin` and `round_robin_ws`.
+A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides two
+schedulers: [class_link round_robin] and [class_link round_robin_ws].
 
 
 [class_heading algorithm]

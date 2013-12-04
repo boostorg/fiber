@@ -415,8 +415,8 @@ interruption enabled.]]
 [[Effects:] [set priority for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 [[Note:] [The meaning of particular `int` values is determined by the specific
-`algorithm` passed to `set_scheduling_algorithm()`. `round_robin` and `round_robin_ws`
-ignore `fiber::priority()`.]]
+__algo__ passed to [function_link set_scheduling_algorithm]. [class_link
+round_robin] and [class_link round_robin_ws] ignore `fiber::priority()`.]]
 ]
 
 [member_heading fiber..priority]
@@ -439,9 +439,9 @@ ignore `fiber::priority()`.]]
 [[Effects:] [Set thread affinity for the fiber referenced by `*this`.]]
 [[Throws:] [Nothing]]
 [[Note:] ["Thread affinity" is only meaningful for certain scheduler
-algorithms, such as `round_robin_ws`. Many schedulers ignore this fiber
-attribute. With a scheduler that might potentially migrate a fiber from its
-initial thread to another, the value `true` prevents migration: the fiber
+algorithms, such as [class_link round_robin_ws]. Many schedulers ignore this
+fiber attribute. With a scheduler that might potentially migrate a fiber from
+its initial thread to another, the value `true` prevents migration: the fiber
 will always run on its current thread. The default is `false`: normally, with
 an applicable scheduler, a fiber is allowed to migrate across threads.]]
 [[See also:] [[ns_function_link this_fiber..thread_affinity]]]
@@ -501,6 +501,24 @@ prior to the call.]]
 
 [variablelist
 [[Effects:] [Same as `l.swap( r)`.]]
+]
+
+[function_heading set_scheduling_algorithm]
+
+    algorithm* set_scheduling_algorithm( algorithm* scheduler );
+
+[variablelist
+[[Effects:] [Directs __boost_fiber__ to use `scheduler`, which must be a
+concrete subclass of __algo__, as the scheduling algorithm for all fibers in
+the current thread.]]
+[[Returns:] [Previous __algo__ instance set for the current thread, 0 if this
+is the first __boost_fiber__ entry point called by the current thread.]]
+[[Note:] [If you want a given thread to use a non-default scheduling
+algorithm, make that thread call `set_scheduling_algorithm()` before any other
+__boost_fiber__ entry point. If no scheduler has been set for the current
+thread by the time __boost_fiber__ needs to use it, the library will
+heap-allocate a default [class_link round_robin] instance for this thread.]]
+[[Throws:] [Nothing]]
 ]
 
 
