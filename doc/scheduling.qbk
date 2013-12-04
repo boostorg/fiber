@@ -26,6 +26,9 @@ any other __boost_fiber__ entry point.
 A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides two
 schedulers: [class_link round_robin] and [class_link round_robin_ws].
 
+You are explicitly permitted to code your own __algo__ subclass, and to pass
+it to [function_link set_scheduling_algorithm].
+
 
 [class_heading algorithm]
 
@@ -94,8 +97,14 @@ is entirely up to the subclass.]]
         virtual detail::fiber_base::ptr_t active() noexcept = 0;
 
 [variablelist
-[[Returns:] [Returns the active fiber, or a null-pointer if the current
+[[Returns:] [The active fiber, or a null-pointer if the current
 execution context is not a fiber managed by this __algo__ instance.]]
+[[Note:] [While the initial context for a given thread is conceptually also a
+fiber, it has no associated `detail::fiber_base` instance. This is when
+`active()` returns null. Higher-level __boost_fiber__ operations treat a
+thread's initial context as equivalent to an explicitly-launched fiber, but
+this method operates below that level of abstraction.]]
+[[See also:] [[member_link algorithm..get_main_id]]]
 ]
 
 [member_heading algorithm..run]
@@ -163,8 +172,14 @@ is immediately set to ready-state.]]
         virtual detail::fiber_base::id get_main_id() = 0;
 
 [variablelist
-[[Returns:] [Returns a `fiber_base::id` associated to the thread on which the
-scheduler is running while no fiber is active.]]
+[[Returns:] [A `fiber_base::id` associated with the initial context of the
+thread on which the scheduler is running.]]
+[[Note:] [While the initial context for a given thread is conceptually also a
+fiber, it has no associated `detail::fiber_base` instance. Higher-level
+__boost_fiber__ operations treat a thread's initial context as equivalent to
+an explicitly-launched fiber, but this method operates below that level of
+abstraction.]]
+[[See also:] [[member_link algorithm..active]]]
 ]
 
 
