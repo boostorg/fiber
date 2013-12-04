@@ -25,7 +25,7 @@
 
         struct algorithm;
         class round_robin;
-        algorithm * set_scheduling_algorithm( algorithm * al)
+        void set_scheduling_algorithm( algorithm * al)
 
         }
 
@@ -505,7 +505,7 @@ prior to the call.]]
 
 [function_heading set_scheduling_algorithm]
 
-    algorithm* set_scheduling_algorithm( algorithm* scheduler );
+    void set_scheduling_algorithm( algorithm* scheduler );
 
 [variablelist
 [[Effects:] [Directs __boost_fiber__ to use `scheduler`, which must be a
@@ -518,6 +518,12 @@ algorithm, make that thread call `set_scheduling_algorithm()` before any other
 __boost_fiber__ entry point. If no scheduler has been set for the current
 thread by the time __boost_fiber__ needs to use it, the library will
 heap-allocate a default [class_link round_robin] instance for this thread.]]
+[[Note:] [`set_scheduling_algorithm()` does ['not] take ownership of the
+passed `algorithm*`: __boost_fiber__ does not claim responsibility for the
+lifespan of the referenced `scheduler` object. The caller must eventually
+destroy the passed `scheduler`, just as it must allocate it in the first
+place. (Storing the pointer in a `boost::thread_specific_ptr` is one way to
+ensure that the instance is destroyed on thread termination.)]]
 [[Throws:] [Nothing]]
 ]
 

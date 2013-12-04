@@ -63,7 +63,7 @@ it to [function_link set_scheduling_algorithm].
             virtual detail::fiber_base::id get_main_id() = 0;
         };
 
-        algorithm * set_scheduling_algorithm( algorithm *);
+        void set_scheduling_algorithm( algorithm *);
 
 [member_heading algorithm..spawn]
 
