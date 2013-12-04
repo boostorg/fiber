@@ -69,8 +69,8 @@ void thread_affinity( bool req) BOOST_NOEXCEPT
 namespace fibers {
 
 inline
-algorithm * set_scheduling_algorithm( algorithm * al)
-{ return detail::scheduler::replace( al); }
+void set_scheduling_algorithm( algorithm * al)
+{ detail::scheduler::replace( al); }
 
 }}
 

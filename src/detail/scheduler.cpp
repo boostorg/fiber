@@ -17,9 +17,11 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-static void cleanup_function( algorithm *) {}
+static void deleter_fn( algorithm * algo) { delete algo; }
+static void null_deleter_fn( algorithm *) {}
 
-thread_specific_ptr< algorithm > scheduler::instance_( cleanup_function);
+thread_specific_ptr< algorithm > scheduler::default_algo_( deleter_fn);
+thread_specific_ptr< algorithm > scheduler::instance_( null_deleter_fn);
 
 notify::ptr_t
 scheduler::make_notification( main_notifier & n) BOOST_NOEXCEPT {
@@ -31,27 +33,20 @@ scheduler::make_notification( main_notifier & n) BOOST_NOEXCEPT {
 algorithm *
 scheduler::instance()
 {
-#if ! defined(BOOST_FIBERS_DONT_USE_DEFAULT_SCHEDULER)
-    if ( ! instance_.get() ) instance_.reset( new round_robin() );
-#else
-    BOOST_ASSERT( instance_.get() );
-#endif
+    if ( ! instance_.get() )
+    {
+        default_algo_.reset( new round_robin() );
+        instance_.reset( default_algo_.get() );
+    }
     return instance_.get();
 }
 
-algorithm *
+void
 scheduler::replace( algorithm * other)
 {
-    algorithm * old = instance_.release();
+    BOOST_ASSERT( other);
+
     instance_.reset( other);
-#if ! defined(BOOST_FIBERS_DONT_USE_DEFAULT_SCHEDULER)
-    if ( dynamic_cast< round_robin * >( old) )
-    {
-        delete old;
-        old = 0;
-    }
-#endif
-    return old;
 }
 
 }}}

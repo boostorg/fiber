@@ -31,6 +31,7 @@ namespace detail {
 class scheduler : private noncopyable
 {
 private:
+    static thread_specific_ptr< algorithm > default_algo_;
     static thread_specific_ptr< algorithm > instance_;
 
 public:
@@ -44,7 +45,7 @@ public:
 
     static algorithm * instance();
 
-    static algorithm * replace( algorithm * other);
+    static void replace( algorithm * other);
 };
 
 }}}
