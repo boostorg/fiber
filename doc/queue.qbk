@@ -330,7 +330,7 @@ on `this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()` and returns
 `success`. Otherwise the fiber gets suspended until the number of values in the
 queue drops below `lwm` (return value `success`), or the queue is `close()`d
 (return value `closed`).]]
-[[Throws:] [__fiber_interrupted_]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading bounded_queue..push_wait_for]
@@ -352,7 +352,7 @@ on `this->pop()` `this->pop_wait_for()` or `this->pop_wait_until()` and returns
 queue drops below `lwm` (return value `success`), the queue is `close()`d
 (return value `closed`), or the time as reported by `clock_type::now()` reaches
 the computed `clock_type::time_point` (return value `timeout`).]]
-[[Throws:] [__fiber_interrupted_]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading bounded_queue..push_wait_until]
@@ -370,7 +370,7 @@ and returns `success`. Otherwise the fiber gets suspended until the number of
 values in the queue drops below `lwm` (return value `success`), the queue is
 `close()`d (return value `closed`), or the time as reported by `clock_type::now()`
 reaches the passed `clock_type::time_point` (return value `timeout`).]]
-[[Throws:] [__fiber_interrupted_]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading bounded_queue..try_push]
@@ -383,7 +383,7 @@ reaches the passed `clock_type::time_point` (return value `timeout`).]]
 returns `closed`. Otherwise enqueues the value in the queue, wakes up a fiber
 blocked on `this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()` and
 returns `success`.]]
-[[Throws:] [__fiber_interrupted_]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading bounded_queue..pop]

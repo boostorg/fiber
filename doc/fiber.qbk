@@ -809,8 +809,8 @@ there are no guarantees about how soon after that it might resume.]]
 
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
-]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
+]
 
 [ns_function_heading this_fiber..thread_affinity]
 

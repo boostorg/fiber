@@ -10,8 +10,8 @@
 Fibers are managed by a scheduler which coordinates the sequence of fibers
 running or waiting.
 Each thread is required to have its own scheduler. By default, __boost_fiber__
-allocates for each thread a scheduler ([class_link round_robin]) (on the
-heap).
+allocates for each thread a scheduler ([class_link round_robin]) on the
+heap.
 To prevent the library from heap-allocating a default scheduler for a given
 thread, that thread must call [function_link set_scheduling_algorithm] before
 any other __boost_fiber__ entry point.
@@ -194,14 +194,17 @@ schedulers). For this purpose the class has two additional functions - `steal_fr
 `migrate_to()`.
 This functionality can be used to implement work-stealing/-sharing in a threadpool.
 
-        // steal a fiber from a scheduler `other_ds` running in another thread
-        boost::fibers::fiber f( other_ds->steal_from() );
+        boost::fibers::round_robin_ws rr;
+        boost::fibers::set_scheduling_algorithm( & rr);
+
+        // steal a fiber from a scheduler `other_rr` running in another thread
+        boost::fibers::fiber f( other_rr->steal_from() );
 
         // check if stealing was successful
         if ( f)
         {
             // migrate stolen fiber to scheduler running in this thread
-            ds.migrate_to( f);
+            rr.migrate_to( f);
 
             // detach fiber
             f.detach();

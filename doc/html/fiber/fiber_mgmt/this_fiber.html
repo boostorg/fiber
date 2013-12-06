@@ -7,7 +7,7 @@
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../fiber_mgmt.html" title="Fiber management">
 <link rel="prev" href="attributes.html" title="Class attributes">
-<link rel="next" href="../stack.html" title="Stack allocation">
+<link rel="next" href="../scheduling.html" title="Scheduling">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,58 +20,69 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="attributes.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../stack.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="attributes.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../scheduling.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
-<div class="section fiber_fiber_mgmt_this_fiber">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="fiber.fiber_mgmt.this_fiber"></a><a class="link" href="this_fiber.html" title="Namespace this_fiber">Namespace this_fiber</a>
 </h3></div></div></div>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">this_fiber</span> <span class="special">{</span>
 
-<span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">();</span>
+<span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">();</span>
 <span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">sleep_time</span><span class="special">);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span> <span class="identifier">req</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
 <span class="keyword">void</span> <span class="identifier">interruption_point</span><span class="special">();</span>
-<span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-<span class="keyword">bool</span> <span class="identifier">interruption_enabled</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="identifier">interruption_enabled</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">disable_interruption</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">restore_interruption</span><span class="special">;</span>
 
 <span class="special">}}</span>
 </pre>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h0"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__get_id__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__get_id__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">get_id</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_get_id_bridgehead"></a>
+  <span><a name="this_fiber_get_id"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_get_id">Non-member
+        function <code class="computeroutput">this_fiber::get_id()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-              An instance of <code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code>
-              that represents the currently executing fiber.
+              An instance of <a class="link" href="../fiber_mgmt.html#class_fiber_id"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code></a> that
+              represents the currently executing fiber.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_resource_error</span></code>
-              if an error occurs.
+              Nothing.
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h1"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__sleep_until__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__sleep_until__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">sleep_until</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_sleep_until_bridgehead"></a>
+  <span><a name="this_fiber_sleep_until"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_sleep_until">Non-member
+        function <code class="computeroutput">this_fiber::sleep_until()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">clock_type</span> <span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">);</span>
@@ -91,7 +102,7 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">sleep_until</span><span class="special">()</span></code>
-              is one of the predefined <span class="emphasis"><em>interruption-points</em></span>.
+              is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -101,11 +112,16 @@
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h2"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__sleep_for__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__sleep_for__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">sleep_for</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_sleep_for_bridgehead"></a>
+  <span><a name="this_fiber_sleep_for"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_sleep_for">Non-member
+        function <code class="computeroutput">this_fiber::sleep_for()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">class</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
@@ -127,7 +143,7 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">sleep_for</span><span class="special">()</span></code>
-              is one of the predefined <span class="emphasis"><em>interruption-points</em></span>.
+              is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -137,14 +153,19 @@
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h3"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__yield__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__yield__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_yield_bridgehead"></a>
+  <span><a name="this_fiber_yield"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_yield">Non-member function
+        <code class="computeroutput">this_fiber::yield()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">void</span> <span class="identifier">yield</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">yield</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -155,15 +176,55 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">fiber_resource_error</span></code>
+              if an error occurs.
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h4"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__interruption_point__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__interruption_point__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">interruption_point</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_thread_affinity_bridgehead"></a>
+  <span><a name="this_fiber_thread_affinity"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_thread_affinity">Non-member
+        function <code class="computeroutput">this_fiber::thread_affinity()</code></a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span> <span class="identifier">req</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Set or report <a class="link" href="fiber.html#fiber_thread_affinity"> <code class="computeroutput">fiber::thread_affinity()</code></a> for the
+              currently running fiber.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              <a class="link" href="fiber.html#fiber_thread_affinity"> <code class="computeroutput">fiber::thread_affinity()</code></a> is <code class="computeroutput"><span class="keyword">false</span></code>
+              by default.
+            </p></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="this_fiber_interruption_point_bridgehead"></a>
+  <span><a name="this_fiber_interruption_point"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_interruption_point">Non-member
+        function <code class="computeroutput">this_fiber::interruption_point()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 </pre>
 <p>
@@ -179,20 +240,25 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code> if
-              <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code>
-              and <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_requested</span><span class="special">()</span></code>
-              both return <code class="computeroutput"><span class="keyword">true</span></code>.
+              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> and
+              <a class="link" href="this_fiber.html#this_fiber_interruption_requested"> <code class="computeroutput">this_fiber::interruption_requested()</code></a> both
+              return <code class="computeroutput"><span class="keyword">true</span></code>.
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h5"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__interruption_requested__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__interruption_requested__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">interruption_requested</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_interruption_requested_bridgehead"></a>
+  <span><a name="this_fiber_interruption_requested"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_interruption_requested">Non-member
+        function <code class="computeroutput">this_fiber::interruption_requested()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -209,14 +275,19 @@
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h6"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__interruption_enabled__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.non_member_function__code__phrase_role__identifier__interruption_enabled__phrase__phrase_role__special______phrase___code_">Non-member
-        function <code class="computeroutput"><span class="identifier">interruption_enabled</span><span class="special">()</span></code></a>
-      </h5>
+<a name="this_fiber_interruption_enabled_bridgehead"></a>
+  <span><a name="this_fiber_interruption_enabled"></a></span>
+  <a class="link" href="this_fiber.html#this_fiber_interruption_enabled">Non-member
+        function <code class="computeroutput">this_fiber::interruption_enabled()</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">bool</span> <span class="identifier">interruption_enabled</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="identifier">interruption_enabled</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -237,41 +308,46 @@
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h7"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.class__code__phrase_role__identifier__disable_interruption__phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.class__code__phrase_role__identifier__disable_interruption__phrase___code_">Class
-        <code class="computeroutput"><span class="identifier">disable_interruption</span></code></a>
-      </h5>
+<a name="class_disable_interruption_bridgehead"></a>
+  <span><a name="class_disable_interruption"></a></span>
+  <a class="link" href="this_fiber.html#class_disable_interruption">Class
+        <code class="computeroutput">disable_interruption</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">class</span> <span class="identifier">disable_interruption</span>
 <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">disable_interruption</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
-    <span class="special">~</span><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+    <span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="special">~</span><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="identifier">disable_interruption</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">disable_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
     <span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">disable_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h8"></a>
+<a name="fiber.fiber_mgmt.this_fiber.h0"></a>
         <span><a name="fiber.fiber_mgmt.this_fiber.constructor"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.constructor">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Stores the current state of <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code> and disables interruption for the
-              current fiber.
+              Stores the current state of <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> and
+              disables interruption for the current fiber.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code>
-              returns <code class="computeroutput"><span class="keyword">false</span></code> for the
-              current fiber.
+              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> returns
+              <code class="computeroutput"><span class="keyword">false</span></code> for the current
+              fiber.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -280,10 +356,10 @@
 </dl>
 </div>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h9"></a>
+<a name="fiber.fiber_mgmt.this_fiber.h1"></a>
         <span><a name="fiber.fiber_mgmt.this_fiber.destructor"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.destructor">Destructor</a>
       </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="special">~</span><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -294,14 +370,13 @@
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Restores the state of <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code> for the current fiber to the state
-              saved at construction of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+              Restores the state of <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
+              the current fiber to the state saved at construction of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code>
-              for the current fiber returns the value stored by the constructor of
-              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
+              the current fiber returns the value stored by the constructor of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -309,37 +384,32 @@
             </p></dd>
 </dl>
 </div>
+<p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h10"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.class__code__phrase_role__identifier__restore_interruption__phrase___code_"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.class__code__phrase_role__identifier__restore_interruption__phrase___code_">Class
-        <code class="computeroutput"><span class="identifier">restore_interruption</span></code></a>
-      </h5>
+<a name="class_restore_interruption_bridgehead"></a>
+  <span><a name="class_restore_interruption"></a></span>
+  <a class="link" href="this_fiber.html#class_restore_interruption">Class
+        <code class="computeroutput">restore_interruption</code></a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">class</span> <span class="identifier">restore_interruption</span>
 <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="keyword">explicit</span> <span class="identifier">restore_interruption</span><span class="special">(</span><span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="identifier">disabler</span><span class="special">)</span> <span class="identifier">noexcept</span><span class="special">;</span>
-    <span class="special">~</span><span class="identifier">restore_interruption</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+    <span class="keyword">explicit</span> <span class="identifier">restore_interruption</span><span class="special">(</span><span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="identifier">disabler</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="special">~</span><span class="identifier">restore_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="identifier">restore_interruption</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">restore_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
     <span class="identifier">restore_interruption</span><span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">restore_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
-<div class="important"><table border="0" summary="Important">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../../../../../doc/src/images/important.png"></td>
-<th align="left">Important</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          Oliver: would like to see a plausible usage example; I don't yet understand
-          the purpose of restore_interruption
-        </p></td></tr>
-</table></div>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h11"></a>
+<a name="fiber.fiber_mgmt.this_fiber.h2"></a>
         <span><a name="fiber.fiber_mgmt.this_fiber.constructor0"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.constructor0">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">restore_interruption</span><span class="special">(</span><span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="identifier">disabler</span><span class="special">)</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">restore_interruption</span><span class="special">(</span><span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="identifier">disabler</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -351,14 +421,13 @@
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Restores the current state of <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code> for the current fiber to that saved
-              in <code class="computeroutput"><span class="identifier">disabler</span></code>.
+              Restores the current state of <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
+              the current fiber to that saved in <code class="computeroutput"><span class="identifier">disabler</span></code>.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code>
-              for the current fiber returns the value stored in the constructor of
-              <code class="computeroutput"><span class="identifier">disabler</span></code>.
+              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
+              the current fiber returns the value stored in the constructor of <code class="computeroutput"><span class="identifier">disabler</span></code>.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -367,10 +436,10 @@
 </dl>
 </div>
 <h5>
-<a name="fiber.fiber_mgmt.this_fiber.h12"></a>
+<a name="fiber.fiber_mgmt.this_fiber.h3"></a>
         <span><a name="fiber.fiber_mgmt.this_fiber.destructor0"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.destructor0">Destructor</a>
       </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">restore_interruption</span><span class="special">()</span> <span class="identifier">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="special">~</span><span class="identifier">restore_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -385,8 +454,8 @@
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_enabled</span><span class="special">()</span></code>
-              for the current fiber returns <code class="computeroutput"><span class="keyword">false</span></code>.
+              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
+              the current fiber returns <code class="computeroutput"><span class="keyword">false</span></code>.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -394,6 +463,20 @@
             </p></dd>
 </dl>
 </div>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">foo</span><span class="special">()</span>
+<span class="special">{</span>
+    <span class="comment">// interruption is enabled</span>
+    <span class="special">{</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">disable_interruption</span> <span class="identifier">di</span><span class="special">;</span>
+        <span class="comment">// interruption is disabled</span>
+        <span class="special">{</span>
+            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">restore_interruption</span> <span class="identifier">ri</span><span class="special">(</span> <span class="identifier">di</span><span class="special">);</span>
+            <span class="comment">// interruption now enabled</span>
+        <span class="special">}</span> <span class="comment">// ri destroyed, interruption disable again</span>
+    <span class="special">}</span> <span class="comment">// di destructed, interruption state restored</span>
+    <span class="comment">// interruption now enabled</span>
+<span class="special">}</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -405,7 +488,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="attributes.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../stack.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="attributes.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../scheduling.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

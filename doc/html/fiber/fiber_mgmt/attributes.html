@@ -22,87 +22,24 @@
 <div class="spirit-nav">
 <a accesskey="p" href="fiber_group.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="this_fiber.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
-<div class="section fiber_fiber_mgmt_attributes">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="fiber.fiber_mgmt.attributes"></a><a class="link" href="attributes.html" title="Class attributes">Class attributes</a>
+<a name="fiber.fiber_mgmt.attributes"></a><a name="class_attributes"></a><a class="link" href="attributes.html" title="Class attributes">Class
+      attributes</a>
 </h3></div></div></div>
 <p>
         Class <code class="computeroutput"><span class="identifier">attributes</span></code> is used
         to transfer parameters required to set up a fiber's context.
       </p>
-<div class="important"><table border="0" summary="Important">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../../../../../doc/src/images/important.png"></td>
-<th align="left">Important</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          Oliver: definition of flag_unwind_t?
-        </p></td></tr>
-</table></div>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">attributes</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">struct</span> <span class="identifier">attributes</span>
 <span class="special">{</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span>     <span class="identifier">size</span><span class="special">;</span>
-    <span class="identifier">flag_unwind_t</span>   <span class="identifier">do_unwind</span><span class="special">;</span>
-    <span class="keyword">bool</span>            <span class="identifier">preserve_fpu</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span>                 <span class="identifier">size</span><span class="special">;</span>
 
-    <span class="identifier">attributes</span><span class="special">()</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">::</span><span class="identifier">default_stacksize</span><span class="special">()</span> <span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">stack_unwind</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="keyword">true</span><span class="special">)</span>
-    <span class="special">{}</span>
+    <span class="identifier">attributes</span><span class="special">()</span> <span class="identifier">BOOST_NOEXCEPT</span><span class="special">;</span>
 
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">size_</span><span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">stack_unwind</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="keyword">true</span><span class="special">)</span>
-    <span class="special">{}</span>
-
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">::</span><span class="identifier">default_stacksize</span><span class="special">()</span> <span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">do_unwind_</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="keyword">true</span><span class="special">)</span>
-    <span class="special">{}</span>
-
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span> <span class="keyword">bool</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">::</span><span class="identifier">default_stacksize</span><span class="special">()</span> <span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">stack_unwind</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span>
-    <span class="special">{}</span>
-
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span>
-            <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size_</span><span class="special">,</span>
-            <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">size_</span><span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">do_unwind_</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="keyword">true</span><span class="special">)</span>
-    <span class="special">{}</span>
-
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span>
-            <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size_</span><span class="special">,</span>
-            <span class="keyword">bool</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">size_</span><span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">stack_unwind</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span>
-    <span class="special">{}</span>
-
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span>
-            <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind_</span><span class="special">,</span>
-            <span class="keyword">bool</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">::</span><span class="identifier">default_stacksize</span><span class="special">()</span> <span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">do_unwind_</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span>
-    <span class="special">{}</span>
-
-    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span>
-            <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size_</span><span class="special">,</span>
-            <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind_</span><span class="special">,</span>
-            <span class="keyword">bool</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span> <span class="special">:</span>
-        <span class="identifier">size</span><span class="special">(</span> <span class="identifier">size_</span><span class="special">),</span>
-        <span class="identifier">do_unwind</span><span class="special">(</span> <span class="identifier">do_unwind_</span><span class="special">),</span>
-        <span class="identifier">preserve_fpu</span><span class="special">(</span> <span class="identifier">preserve_fpu_</span><span class="special">)</span>
-    <span class="special">{}</span>
+    <span class="keyword">explicit</span> <span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size_</span><span class="special">)</span> <span class="identifier">BOOST_NOEXCEPT</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
 <h5>
@@ -111,12 +48,6 @@
       </h5>
 <pre class="programlisting"><span class="identifier">attributes</span><span class="special">();</span>
 <span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">);</span>
-<span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind</span><span class="special">);</span>
-<span class="identifier">attributes</span><span class="special">(</span> <span class="keyword">bool</span> <span class="identifier">preserve_fpu</span><span class="special">);</span>
-<span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">,</span> <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind</span><span class="special">);</span>
-<span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">preserve_fpu</span><span class="special">);</span>
-<span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">preserve_fpu</span><span class="special">);</span>
-<span class="identifier">attributes</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">,</span> <span class="identifier">flag_unwind_t</span> <span class="identifier">do_unwind</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">preserve_fpu</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -124,18 +55,11 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Parameter <code class="computeroutput"><span class="identifier">size</span></code> determines
-              the stack size; <code class="computeroutput"><span class="identifier">do_unwind</span></code>
-              will controls stack unwinding and <code class="computeroutput"><span class="identifier">preserve_fpu</span></code>
-              preserves FPU registers.
+              the stack size.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               Nothing.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              Oliver: need to say something about the meaning of controlling stack
-              unwinding, even if the words are merely copied from <span class="bold"><strong>Boost.Context</strong></span>.
             </p></dd>
 </dl>
 </div>

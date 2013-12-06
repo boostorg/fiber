@@ -22,16 +22,16 @@
 <div class="spirit-nav">
 <a accesskey="p" href="fls.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
-<div class="section fiber_asio">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="fiber.asio"></a><a class="link" href="asio.html" title="Asynchronous network I/O (boost.asio)">Asynchronous network I/O (boost.asio)</a>
 </h2></div></div></div>
 <p>
       In the past, code using asio's <span class="emphasis"><em>asynchronous operations</em></span>
-      was scattered by callbacks. <span class="bold"><strong>Boost.Asio</strong></span> provides
-      with its new <span class="emphasis"><em>asynchronous result</em></span> feature a new way to
-      simplify the code and make it easier to read. <span class="emphasis"><em>boost::asio::yield_context</em></span>
-      internally uses <span class="bold"><strong>Boost.Coroutine</strong></span>:
+      was scattered by callbacks. <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      provides with its new <span class="emphasis"><em>asynchronous result</em></span> feature a new
+      way to simplify the code and make it easier to read. <span class="emphasis"><em>boost::asio::yield_context</em></span>
+      internally uses <a href="../../../../../libs/coroutine/index.html" target="_top">Boost.Coroutine</a>:
     </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">echo</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">ip</span><span class="special">::</span><span class="identifier">tcp</span><span class="special">::</span><span class="identifier">socket</span><span class="special">&amp;</span> <span class="identifier">socket</span><span class="special">,</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_context</span> <span class="identifier">yield</span><span class="special">){</span>
     <span class="keyword">char</span> <span class="identifier">data</span><span class="special">[</span><span class="number">128</span><span class="special">];</span>
@@ -44,13 +44,13 @@
 <span class="special">}</span>
 </pre>
 <p>
-      Unfortunately <span class="bold"><strong>Boost.Coroutine</strong></span> (<span class="emphasis"><em>boost::asio::yield_context</em></span>)
-      does not provide primitives to synchronize different coroutines (execution
-      contexts).
+      Unfortunately <a href="../../../../../libs/coroutine/index.html" target="_top">Boost.Coroutine</a>
+      (<span class="emphasis"><em>boost::asio::yield_context</em></span>) does not provide primitives
+      to synchronize different coroutines (execution contexts).
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides an integration of <code class="computeroutput"><span class="identifier">fibers</span></code> into <span class="bold"><strong>Boost.Asio</strong></span>
-      so that <span class="emphasis"><em>asynchronous operations</em></span> from <span class="bold"><strong>Boost.Asio</strong></span>
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides an integration of <code class="computeroutput"><span class="identifier">fibers</span></code> into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      so that <span class="emphasis"><em>asynchronous operations</em></span> from <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
       can be used together with fibers, synchronized by primitives provided by <span class="bold"><strong>Boost.Fiber</strong></span>.
     </p>
 <p>
@@ -108,7 +108,7 @@
       simultaneously and which strategies are possible.
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> and <span class="bold"><strong>Boost.Asio</strong></span>
+      <span class="bold"><strong>Boost.Fiber</strong></span> and <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
       support the strategy 'serve many clients with each server thread, and use asynchronous
       I/O' without scattering the logic across many callbacks (as was asio's previous
       strategy) and overloading the operating system with too many threads. (Beyond
@@ -122,10 +122,10 @@
     </p>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> provides the same classes and
-      interfaces as <span class="bold"><strong>Boost.Thread</strong></span>. Therefore developers
-      are able to use patterns familiar from multi-threaded programming. For instance
-      the strategy 'serve one client with one thread' could be transformed into 'serve
-      one client with one fiber'.
+      interfaces as <a href="../../../../../libs/thread/index.html" target="_top">Boost.Thread</a>.
+      Therefore developers are able to use patterns familiar from multi-threaded
+      programming. For instance the strategy 'serve one client with one thread' could
+      be transformed into 'serve one client with one fiber'.
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">

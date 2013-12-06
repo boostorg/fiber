@@ -22,7 +22,7 @@
 <div class="spirit-nav">
 <a accesskey="p" href="synchronization/futures/packaged_task.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="asio.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
-<div class="section fiber_fls">
+<div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="fiber.fls"></a><a class="link" href="fls.html" title="Fiber local storage">Fiber local storage</a>
 </h2></div></div></div>
@@ -40,31 +40,23 @@
       at fiber exit</a>
     </h4>
 <p>
-      When a fiber exits, the objects associated with each <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-      instance are destroyed. By default, the object pointed to by a pointer <code class="computeroutput"><span class="identifier">p</span></code> is destroyed by invoking <code class="computeroutput"><span class="keyword">delete</span> <span class="identifier">p</span></code>,
-      but this can be overridden for a specific instance of <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-      by providing a cleanup routine <code class="computeroutput"><span class="identifier">func</span></code>
+      When a fiber exits, the objects associated with each <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> instance
+      are destroyed. By default, the object pointed to by a pointer <code class="computeroutput"><span class="identifier">p</span></code> is destroyed by invoking <code class="computeroutput"><span class="keyword">delete</span> <span class="identifier">p</span></code>,
+      but this can be overridden for a specific instance of <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> by
+      providing a cleanup routine <code class="computeroutput"><span class="identifier">func</span></code>
       to the constructor. In this case, the object is destroyed by invoking <code class="computeroutput"><span class="identifier">func</span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>. The cleanup functions are called in an unspecified
-      order. If a cleanup routine sets the value of associated with an instance of
-      <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code> that
-      has already been cleaned up, that value is added to the cleanup list. Cleanup
-      finishes when there are no outstanding instances of <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-      with values.
+      order.
     </p>
-<div class="important"><table border="0" summary="Important">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../../../../doc/src/images/important.png"></td>
-<th align="left">Important</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-        Oliver: what do the last two sentences above mean?
-      </p></td></tr>
-</table></div>
-<h4>
-<a name="fiber.fls.h2"></a>
-      <span><a name="fiber.fls.class_fiber_specific_ptr"></a></span><a class="link" href="fls.html#fiber.fls.class_fiber_specific_ptr">Class
-      fiber_specific_ptr</a>
-    </h4>
+<p>
+      </p>
+<h5>
+<a name="class_fiber_specific_ptr_bridgehead"></a>
+  <span><a name="class_fiber_specific_ptr"></a></span>
+  <a class="link" href="fls.html#class_fiber_specific_ptr">Class
+      <code class="computeroutput">fiber_specific_ptr</code></a>
+</h5>
+<p>
+    </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fss</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
@@ -75,7 +67,6 @@
 
     <span class="identifier">fiber_specific_ptr</span><span class="special">();</span>
 
-    <span class="comment">// Oliver: I'm surprised this doesn't accept a boost::function&lt;void(T*)&gt;.</span>
     <span class="keyword">explicit</span> <span class="identifier">fiber_specific_ptr</span><span class="special">(</span> <span class="keyword">void</span><span class="special">(*</span><span class="identifier">fn</span><span class="special">)(</span><span class="identifier">T</span><span class="special">*)</span> <span class="special">);</span>
 
     <span class="special">~</span><span class="identifier">fiber_specific_ptr</span><span class="special">();</span>
@@ -95,7 +86,7 @@
 <span class="special">};</span>
 </pre>
 <h4>
-<a name="fiber.fls.h3"></a>
+<a name="fiber.fls.h2"></a>
       <span><a name="fiber.fls.constructor"></a></span><a class="link" href="fls.html#fiber.fls.constructor">Constructor</a>
     </h4>
 <pre class="programlisting"><span class="identifier">fiber_specific_ptr</span><span class="special">();</span>
@@ -112,9 +103,10 @@
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Construct a <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-            object for storing a pointer to an object of type <code class="computeroutput"><span class="identifier">T</span></code>
-            specific to each fiber. When <code class="computeroutput"><span class="identifier">reset</span><span class="special">()</span></code> is called, or the fiber exits, <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code> calls <code class="computeroutput"><span class="identifier">fn</span><span class="special">(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">())</span></code>.
+            Construct a <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> object for storing
+            a pointer to an object of type <code class="computeroutput"><span class="identifier">T</span></code>
+            specific to each fiber. When <code class="computeroutput"><span class="identifier">reset</span><span class="special">()</span></code> is called, or the fiber exits, <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> calls
+            <code class="computeroutput"><span class="identifier">fn</span><span class="special">(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">())</span></code>.
             If the no-arguments constructor is used, the default <code class="computeroutput"><span class="keyword">delete</span></code>-based
             cleanup function will be used to destroy the fiber-local objects.
           </p></dd>
@@ -126,7 +118,7 @@
 </dl>
 </div>
 <h4>
-<a name="fiber.fls.h4"></a>
+<a name="fiber.fls.h3"></a>
       <span><a name="fiber.fls.destructor"></a></span><a class="link" href="fls.html#fiber.fls.destructor">Destructor</a>
     </h4>
 <pre class="programlisting"><span class="special">~</span><span class="identifier">fiber_specific_ptr</span><span class="special">();</span>
@@ -136,8 +128,9 @@
 <dl>
 <dt><span class="term">Requires:</span></dt>
 <dd><p>
-            All the fiber specific instances associated to this <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-            (except maybe the one associated to this fiber) must be null.
+            All the fiber specific instances associated to this <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>
+(except
+            maybe the one associated to this fiber) must be null.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -154,8 +147,8 @@
             The requirement is due to the fact that in order to delete all these
             instances, the implementation should be forced to maintain a list of
             all the fibers having an associated specific ptr, which is against the
-            goal of fiber specific data. In general, a <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-            should outlive the fibers that use it.
+            goal of fiber specific data. In general, a <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> should
+            outlive the fibers that use it.
           </p></dd>
 </dl>
 </div>
@@ -166,15 +159,20 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         Care needs to be taken to ensure that any fibers still running after an instance
-        of <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-        has been destroyed do not call any member functions on that instance.
+        of <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> has been destroyed do not call
+        any member functions on that instance.
       </p></td></tr>
 </table></div>
-<h4>
-<a name="fiber.fls.h5"></a>
-      <span><a name="fiber.fls.member_function__code__phrase_role__identifier__get__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fls.html#fiber.fls.member_function__code__phrase_role__identifier__get__phrase__phrase_role__special______phrase___code_">Member
-      function <code class="computeroutput"><span class="identifier">get</span><span class="special">()</span></code></a>
-    </h4>
+<p>
+      </p>
+<h5>
+<a name="fiber_specific_ptr_get_bridgehead"></a>
+  <span><a name="fiber_specific_ptr_get"></a></span>
+  <a class="link" href="fls.html#fiber_specific_ptr_get">Member
+      function <code class="computeroutput">get</code>()</a>
+</h5>
+<p>
+    </p>
 <pre class="programlisting"><span class="identifier">T</span><span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
@@ -196,15 +194,20 @@
 <th align="left">Note</th>
 </tr>
 <tr><td align="left" valign="top"><p>
-        The initial value associated with an instance of <code class="computeroutput"><span class="identifier">fiber_specific_pointer</span></code>
-        is <code class="computeroutput"><span class="identifier">NULL</span></code> for each fiber.
+        The initial value associated with an instance of <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> is
+        <code class="computeroutput"><span class="identifier">NULL</span></code> for each fiber.
       </p></td></tr>
 </table></div>
-<h4>
-<a name="fiber.fls.h6"></a>
-      <span><a name="fiber.fls.member_function__code__phrase_role__keyword__operator__phrase__phrase_role__special____gt_____phrase___code_"></a></span><a class="link" href="fls.html#fiber.fls.member_function__code__phrase_role__keyword__operator__phrase__phrase_role__special____gt_____phrase___code_">Member
-      function <code class="computeroutput"><span class="keyword">operator</span><span class="special">-&gt;()</span></code></a>
-    </h4>
+<p>
+      </p>
+<h5>
+<a name="fiber_specific_ptr_operator_arrow_bridgehead"></a>
+  <span><a name="fiber_specific_ptr_operator_arrow"></a></span>
+  <a class="link" href="fls.html#fiber_specific_ptr_operator_arrow">Member
+      function <code class="computeroutput">operator-&gt;</code>()</a>
+</h5>
+<p>
+    </p>
 <pre class="programlisting"><span class="identifier">T</span><span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
@@ -220,11 +223,16 @@
           </p></dd>
 </dl>
 </div>
-<h4>
-<a name="fiber.fls.h7"></a>
-      <span><a name="fiber.fls.member_function__code__phrase_role__keyword__operator__phrase__phrase_role__special_______phrase___code_"></a></span><a class="link" href="fls.html#fiber.fls.member_function__code__phrase_role__keyword__operator__phrase__phrase_role__special_______phrase___code_">Member
-      function <code class="computeroutput"><span class="keyword">operator</span><span class="special">*()</span></code></a>
-    </h4>
+<p>
+      </p>
+<h5>
+<a name="fiber_specific_ptr_operator_star_bridgehead"></a>
+  <span><a name="fiber_specific_ptr_operator_star"></a></span>
+  <a class="link" href="fls.html#fiber_specific_ptr_operator_star">Member
+      function <code class="computeroutput">operator*</code>()</a>
+</h5>
+<p>
+    </p>
 <pre class="programlisting"><span class="identifier">T</span><span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
@@ -244,11 +252,16 @@
           </p></dd>
 </dl>
 </div>
-<h4>
-<a name="fiber.fls.h8"></a>
-      <span><a name="fiber.fls.member_function__code__phrase_role__identifier__release__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fls.html#fiber.fls.member_function__code__phrase_role__identifier__release__phrase__phrase_role__special______phrase___code_">Member
-      function <code class="computeroutput"><span class="identifier">release</span><span class="special">()</span></code></a>
-    </h4>
+<p>
+      </p>
+<h5>
+<a name="fiber_specific_ptr_release_bridgehead"></a>
+  <span><a name="fiber_specific_ptr_release"></a></span>
+  <a class="link" href="fls.html#fiber_specific_ptr_release">Member
+      function <code class="computeroutput">release</code>()</a>
+</h5>
+<p>
+    </p>
 <pre class="programlisting"><span class="identifier">T</span><span class="special">*</span> <span class="identifier">release</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
@@ -271,11 +284,16 @@
           </p></dd>
 </dl>
 </div>
-<h4>
-<a name="fiber.fls.h9"></a>
-      <span><a name="fiber.fls.member_function__code__phrase_role__identifier__reset__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fls.html#fiber.fls.member_function__code__phrase_role__identifier__reset__phrase__phrase_role__special______phrase___code_">Member
-      function <code class="computeroutput"><span class="identifier">reset</span><span class="special">()</span></code></a>
-    </h4>
+<p>
+      </p>
+<h5>
+<a name="fiber_specific_ptr_reset_bridgehead"></a>
+  <span><a name="fiber_specific_ptr_reset"></a></span>
+  <a class="link" href="fls.html#fiber_specific_ptr_reset">Member
+      function <code class="computeroutput">reset</code>()</a>
+</h5>
+<p>
+    </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span><span class="identifier">T</span><span class="special">*</span> <span class="identifier">new_value</span><span class="special">=</span><span class="number">0</span><span class="special">);</span>
 </pre>
 <div class="variablelist">

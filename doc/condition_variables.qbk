@@ -236,12 +236,14 @@ When the fiber is unblocked (for whatever reason), the lock is reacquired by
 invoking `lk.lock()` before the call to `wait` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
+
 while ( ! pred() )
 {
     if ( cv_status::timeout == wait_until( lk, timeout_time) )
         return pred();
 }
 return true;
+
 `` That is, even if `wait_until()` times out, it can still return `true` if
 `pred()` returns `true` at that time.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
@@ -280,12 +282,14 @@ unblocked (for whatever reason), the lock is reacquired by invoking
 `lk.lock()` before the call to `wait` returns. The lock is also reacquired by
 invoking `lk.lock()` if the function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
+
 while ( ! pred() )
 {
     if ( cv_status::timeout == wait_for( lk, timeout_duration) )
         return pred();
 }
 return true;
+
 `` That is, even if `wait_for()` times out, it can still return `true` if
 `pred()` returns `true` at that time.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
