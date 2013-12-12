@@ -31,8 +31,8 @@
           A <a class="link" href="packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a> wraps a callable target that
           returns a value so that the return value can be computed asynchronously.
         </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">packaged_task</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">class</span> <span class="identifier">R</span><span class="special">,</span> <span class="keyword">class</span> <span class="special">...</span><span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">R</span><span class="special">(</span><span class="identifier">Args</span><span class="special">...)</span> <span class="special">&gt;</span>
 <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">packaged_task</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
