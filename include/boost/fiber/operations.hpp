@@ -42,24 +42,25 @@ void yield()
 inline
 void sleep_until( fibers::clock_type::time_point const& sleep_time)
 {
-    fibers::detail::spinlock splk;
-    unique_lock< fibers::detail::spinlock > lk( splk);
-    fibers::detail::scheduler::instance()->wait_until( sleep_time, lk);
+    if ( fibers::detail::scheduler::instance()->active() )
+    {
+        fibers::detail::spinlock splk;
+        unique_lock< fibers::detail::spinlock > lk( splk);
+        fibers::detail::scheduler::instance()->wait_until( sleep_time, lk);
 
-    // check if fiber was interrupted
-    interruption_point();
+        // check if fiber was interrupted
+        interruption_point();
+    }
+    else
+    {
+        while ( fibers::clock_type::now() <= sleep_time)
+            fibers::detail::scheduler::instance()->run();
+    }
 }
 
 template< typename Rep, typename Period >
 void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
-{
-    fibers::detail::spinlock splk;
-    unique_lock< fibers::detail::spinlock > lk( splk);
-    fibers::detail::scheduler::instance()->wait_for( timeout_duration, lk);
-
-    // check if fiber was interrupted
-    interruption_point();
-}
+{ sleep_until( fibers::clock_type::now() + timeout_duration); }
 
 inline
 bool thread_affinity() BOOST_NOEXCEPT
