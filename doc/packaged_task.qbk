@@ -11,8 +11,8 @@
 A __packaged_task__ wraps a callable target that returns a value so that the
 return value can be computed asynchronously.
 
-        template< class R, class ...Args >
-        class packaged_task< R(Args...) >
+        template< class R >
+        class packaged_task< R() >
         {
         public:
             packaged_task() noexcept;

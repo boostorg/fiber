@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/12/12 19:18:23 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/12/15 07:31:24 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -6780,8 +6780,8 @@ are
           A <link linkend="class_packaged_task"> <code>packaged_task&lt;&gt;</code></link> wraps a callable target that
           returns a value so that the return value can be computed asynchronously.
         </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">R</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">...</phrase><phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">class</phrase> <phrase role="identifier">packaged_task</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase><phrase role="special">(</phrase><phrase role="identifier">Args</phrase><phrase role="special">...)</phrase> <phrase role="special">&gt;</phrase>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">packaged_task</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase><phrase role="special">()</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">packaged_task</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
