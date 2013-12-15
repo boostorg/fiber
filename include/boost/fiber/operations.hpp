@@ -7,6 +7,7 @@
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
 #include <boost/thread/lock_types.hpp> 
+#include <boost/thread/thread.hpp> 
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -34,9 +35,12 @@ inline
 void yield()
 {
     if ( fibers::detail::scheduler::instance()->active() )
-        fibers::detail::scheduler::instance()->yield();
+    { fibers::detail::scheduler::instance()->yield(); }
     else
-        fibers::detail::scheduler::instance()->run();
+    {
+        if ( ! fibers::detail::scheduler::instance()->run() )
+            this_thread::yield();
+    }
 }
 
 inline
@@ -54,7 +58,8 @@ void sleep_until( fibers::clock_type::time_point const& sleep_time)
     else
     {
         while ( fibers::clock_type::now() <= sleep_time)
-            fibers::detail::scheduler::instance()->run();
+            if ( ! fibers::detail::scheduler::instance()->run() )
+                this_thread::yield();
     }
 }
 

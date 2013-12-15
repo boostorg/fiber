@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include <boost/assert.hpp>
+#include <boost/thread/thread.hpp>
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
@@ -97,10 +98,9 @@ recursive_mutex::lock()
 
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
-            {
                 // run scheduler
-                detail::scheduler::instance()->run();
-            }
+                if ( ! detail::scheduler::instance()->run() )
+                    this_thread::yield();
         }
     }
 }
@@ -127,7 +127,7 @@ recursive_mutex::try_lock()
     {
         lk.unlock();
         // let other fiber release the lock
-        detail::scheduler::instance()->yield();
+        this_fiber::yield();
         return false;
     }
 }
