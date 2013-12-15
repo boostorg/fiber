@@ -32,7 +32,12 @@ fibers::fiber::id get_id() BOOST_NOEXCEPT
 
 inline
 void yield()
-{ fibers::detail::scheduler::instance()->yield(); }
+{
+    if ( fibers::detail::scheduler::instance()->active() )
+        fibers::detail::scheduler::instance()->yield();
+    else
+        fibers::detail::scheduler::instance()->run();
+}
 
 inline
 void sleep_until( fibers::clock_type::time_point const& sleep_time)
