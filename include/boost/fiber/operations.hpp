@@ -64,11 +64,18 @@ void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 
 inline
 bool thread_affinity() BOOST_NOEXCEPT
-{ return fibers::detail::scheduler::instance()->active()->thread_affinity(); }
+{
+    return fibers::detail::scheduler::instance()->active()
+        ? fibers::detail::scheduler::instance()->active()->thread_affinity()
+        : true;
+}
 
 inline
 void thread_affinity( bool req) BOOST_NOEXCEPT
-{ fibers::detail::scheduler::instance()->active()->thread_affinity( req); }
+{
+    if ( fibers::detail::scheduler::instance()->active() )
+        fibers::detail::scheduler::instance()->active()->thread_affinity( req);
+}
 
 }
 
