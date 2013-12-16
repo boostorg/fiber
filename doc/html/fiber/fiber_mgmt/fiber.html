@@ -240,7 +240,11 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               The programmer must ensure that the destructor is never executed while
-              the fiber is still <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. See <a class="link" href="fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a>.
+              the fiber is still <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. Even if you know
+              (by calling <a class="link" href="fiber.html#fiber_operator%20safe_bool"> <code class="computeroutput">fiber::operator safe_bool()</code></a>) that
+              the fiber has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
+              <a class="link" href="fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a> before destroying the <code class="computeroutput"><span class="identifier">fiber</span></code>
+              object.
             </p></dd>
 </dl>
 </div>

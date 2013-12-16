@@ -335,7 +335,9 @@ value of `other.get_id()` prior to the assignment.]]
 `*this`.]]
 [[Throws:] [Nothing.]]
 [[Note:] [The programmer must ensure that the destructor is never executed while
-the fiber is still __joinable__. See __detach__.]]
+the fiber is still __joinable__. Even if you know (by calling
+[member_link fiber..operator safe_bool]) that the fiber has completed, you must
+still call either __join__ or  __detach__ before destroying the `fiber` object.]]
 ]
 
 [member_heading fiber..joinable]

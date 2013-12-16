@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/12/15 07:31:24 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/12/16 16:31:58 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -680,7 +680,11 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               The programmer must ensure that the destructor is never executed while
-              the fiber is still <link linkend="fiber_joinable"> <code>fiber::joinable()</code></link>. See <link linkend="fiber_detach"> <code>fiber::detach()</code></link>.
+              the fiber is still <link linkend="fiber_joinable"> <code>fiber::joinable()</code></link>. Even if you know
+              (by calling <link linkend="fiber_operator safe_bool"> <code>fiber::operator safe_bool()</code></link>) that
+              the fiber has completed, you must still call either <link linkend="fiber_join"> <code>fiber::join()</code></link> or
+              <link linkend="fiber_detach"> <code>fiber::detach()</code></link> before destroying the <code><phrase role="identifier">fiber</phrase></code>
+              object.
             </para>
           </listitem>
         </varlistentry>
