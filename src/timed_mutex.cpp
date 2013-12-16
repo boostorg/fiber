@@ -9,7 +9,6 @@
 #include <algorithm>
 
 #include <boost/assert.hpp>
-#include <boost/thread/thread.hpp>
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
@@ -85,8 +84,7 @@ timed_mutex::lock()
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
                 // run scheduler
-                if ( ! detail::scheduler::instance()->run() )
-                    this_thread::yield();
+                detail::scheduler::instance()->run();
         }
     }
 }
@@ -186,8 +184,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
                     return false;
                 }
                 // run scheduler
-                if ( ! detail::scheduler::instance()->run() )
-                    this_thread::yield();
+                detail::scheduler::instance()->run();
             }
         }
     }

@@ -96,7 +96,11 @@ round_robin_ws::run()
     detail::fiber_base::ptr_t f;
     do
     {
-        if ( ! rqueue_.try_pop( f) ) return false;
+        if ( ! rqueue_.try_pop( f) )
+        {
+            this_thread::yield();
+            return false;
+        }
         if ( f->is_ready() ) break;
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }

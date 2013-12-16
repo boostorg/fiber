@@ -16,7 +16,6 @@
 #include <boost/config.hpp>
 #include <boost/detail/scoped_enum_emulation.hpp>
 #include <boost/thread/locks.hpp>
-#include <boost/thread/thread.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -104,8 +103,7 @@ public:
                 lt.unlock();
                 while ( ! n->is_ready() )
                     // run scheduler
-                    if ( ! detail::scheduler::instance()->run() )
-                        this_thread::yield();
+                    detail::scheduler::instance()->run();
             }
         }
         catch (...)
@@ -178,8 +176,7 @@ public:
                         break;
                     }
                     // run scheduler
-                    if ( ! detail::scheduler::instance()->run() )
-                        this_thread::yield();
+                    detail::scheduler::instance()->run();
                 }
             }
         }

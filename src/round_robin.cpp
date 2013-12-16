@@ -96,7 +96,11 @@ round_robin::run()
     detail::fiber_base::ptr_t f;
     do
     {
-        if ( rqueue_.empty() ) return false;
+        if ( rqueue_.empty() )
+        {
+            this_thread::yield();
+            return false;
+        }
         f.swap( rqueue_.front() );
         rqueue_.pop_front();
         if ( f->is_ready() ) break;
