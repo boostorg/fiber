@@ -77,30 +77,44 @@ public:
         {
             if ( n)
             {
+                // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
-                // store this fiber in order to be notified later
+
+                // store this fiber in waiting-queue
+                // in order notify (resume) this fiber later
                 waiting_.push_back( n);
 
+                // unlock external
                 lt.unlock();
 
-                // suspend fiber
+                // suspend this fiber
+                // locked spinlock will be released if this fiber
+                // was stored inside schedulers's waiting-queue
                 detail::scheduler::instance()->wait( lk);
 
+                // this fiber was notified and resumed
                 // check if fiber was interrupted
                 this_fiber::interruption_point();
             }
             else
             {
                 // notifier for main-fiber
-                detail::main_notifier mn;
-                n = detail::main_notifier::make_pointer( mn);
+                n = detail::scheduler::instance()->get_main_notifier();
 
+                // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
-                // store this fiber in order to be notified later
+
+                // store this main-notifier in waiting-queue
+                // in order to be notified later
                 waiting_.push_back( n);
+
+                // unlock external
+                lt.unlock();
+
+                // release spinlock
                 lk.unlock();
 
-                lt.unlock();
+                // loop until main-notifier gets notified
                 while ( ! n->is_ready() )
                     // run scheduler
                     detail::scheduler::instance()->run();
@@ -129,15 +143,23 @@ public:
         {
             if ( n)
             {
+                // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
-                // store this fiber in order to be notified later
+
+                // store this fiber in waiting-queue
+                // in order notify (resume) this fiber later
                 waiting_.push_back( n);
 
+                // unlock external
                 lt.unlock();
 
-                // suspend fiber
+                // suspend this fiber
+                // locked spinlock will be released if this fiber
+                // was stored inside schedulers's waiting-queue
                 if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) )
                 {
+                    // this fiber was not notified before timeout
+                    // lock spinlock again
                     unique_lock< detail::spinlock > lk( splk_);
                     // remove fiber from waiting-list
                     waiting_.erase(
@@ -152,20 +174,28 @@ public:
             else
             {
                 // notifier for main-fiber
-                detail::main_notifier mn;
-                n = detail::main_notifier::make_pointer( mn);
+                n = detail::scheduler::instance()->get_main_notifier();
 
+                // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
+
                 // store this fiber in order to be notified later
                 waiting_.push_back( n);
-                lk.unlock();
 
+                // unlock external
                 lt.unlock();
 
+                // release spinlock
+                lk.unlock();
+
+                // loop until main-notifier gets notified
                 while ( ! n->is_ready() )
                 {
+                    // check timepoint
                     if ( ! ( clock_type::now() < timeout_time) )
                     {
+                        // timeout happend before notified
+                        // lock spinlock
                         unique_lock< detail::spinlock > lk( splk_);
                         // remove fiber from waiting-list
                         waiting_.erase(

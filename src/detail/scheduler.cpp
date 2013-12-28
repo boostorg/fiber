@@ -23,13 +23,6 @@ static void null_deleter_fn( algorithm *) {}
 thread_specific_ptr< algorithm > scheduler::default_algo_( deleter_fn);
 thread_specific_ptr< algorithm > scheduler::instance_( null_deleter_fn);
 
-notify::ptr_t
-scheduler::make_notification( main_notifier & n) BOOST_NOEXCEPT {
-    notify::ptr_t p( & n);
-    intrusive_ptr_add_ref( p.get() );
-    return p;
-}
-
 algorithm *
 scheduler::instance()
 {

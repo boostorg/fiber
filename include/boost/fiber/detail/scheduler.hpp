@@ -12,7 +12,6 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/main_notifier.hpp>
 #include <boost/fiber/detail/notify.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -35,10 +34,6 @@ private:
     static thread_specific_ptr< algorithm > instance_;
 
 public:
-    typedef main_notifier   local_context;
-
-    static notify::ptr_t make_notification( main_notifier &) BOOST_NOEXCEPT;
-
     template< typename F >
     static fiber_base::ptr_t extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_; }

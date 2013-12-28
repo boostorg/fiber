@@ -20,6 +20,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/main_notifier.hpp>
+#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -82,6 +83,9 @@ public:
 
     detail::fiber_base::id get_main_id()
     { return detail::fiber_base::id( detail::main_notifier::make_pointer( mn_) ); }
+
+    detail::notify::ptr_t get_main_notifier()
+    { return detail::notify::ptr_t( new detail::main_notifier() ); }
 };
 
 }}

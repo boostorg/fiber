@@ -13,6 +13,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -51,6 +52,7 @@ struct algorithm : private noncopyable
     virtual void yield() = 0;
 
     virtual detail::fiber_base::id get_main_id() = 0;
+    virtual detail::notify::ptr_t get_main_notifier() = 0;
 
     virtual ~algorithm() {}
 };

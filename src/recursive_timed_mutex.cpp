@@ -70,8 +70,7 @@ recursive_timed_mutex::lock()
     else
     {
         // local notification for main-fiber
-        detail::scheduler::local_context ctx;
-        n = detail::scheduler::make_notification( ctx);
+        n = detail::scheduler::instance()->get_main_notifier();
 
         for (;;)
         {
@@ -175,8 +174,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
     else
     {
         // local notification for main-fiber
-        detail::scheduler::local_context ctx;
-        n = detail::scheduler::make_notification( ctx);
+        n = detail::scheduler::instance()->get_main_notifier();
 
         for (;;)
         {
@@ -228,8 +226,8 @@ recursive_timed_mutex::unlock()
     BOOST_ASSERT( LOCKED == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-    detail::notify::ptr_t n;
     unique_lock< detail::spinlock > lk( splk_);
+    detail::notify::ptr_t n;
     
     if ( 0 == --count_)
     {
