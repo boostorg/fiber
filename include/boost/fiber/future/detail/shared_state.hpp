@@ -276,7 +276,7 @@ template< typename R >
 class shared_state< R & > : public noncopyable
 {
 private:
-    std::size_t             use_count_;
+    atomic< std::size_t >   use_count_;
     mutable mutex           mtx_;
     mutable condition       waiters_;
     bool                    ready_;
@@ -467,7 +467,7 @@ template<>
 class shared_state< void > : public noncopyable
 {
 private:
-    std::size_t             use_count_;
+    atomic< std::size_t >   use_count_;
     mutable mutex           mtx_;
     mutable condition       waiters_;
     bool                    ready_;
