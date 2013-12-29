@@ -16,8 +16,8 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/future/detail/future_base.hpp>
-#include <boost/fiber/future/detail/future_object.hpp>
+#include <boost/fiber/future/detail/shared_state.hpp>
+#include <boost/fiber/future/detail/shared_state_object.hpp>
 #include <boost/fiber/future/future.hpp>
 
 namespace boost {
@@ -27,7 +27,7 @@ template< typename R >
 class promise : private noncopyable
 {
 private:
-    typedef typename detail::future_base< R >::ptr_t   ptr_t;
+    typedef typename detail::shared_state< R >::ptr_t   ptr_t;
 
     struct dummy
     { void nonnull() {} };
@@ -47,7 +47,7 @@ public:
         // TODO: constructs the promise with an empty shared state
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
-        typedef detail::future_object<
+        typedef detail::shared_state_object<
             R, std::allocator< promise< R > >
         >                                               object_t;
         std::allocator< promise< R > > alloc;
@@ -65,7 +65,7 @@ public:
         // TODO: constructs the promise with an empty shared state
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
-        typedef detail::future_object< R, Allocator >  object_t;
+        typedef detail::shared_state_object< R, Allocator >  object_t;
         typename object_t::allocator_t a( alloc);
         future_ = ptr_t(
             // placement new
@@ -208,7 +208,7 @@ template< typename R >
 class promise< R & > : private noncopyable
 {
 private:
-    typedef typename detail::future_base< R & >::ptr_t   ptr_t;
+    typedef typename detail::shared_state< R & >::ptr_t   ptr_t;
 
     struct dummy
     { void nonnull() {} };
@@ -228,7 +228,7 @@ public:
         // TODO: constructs the promise with an empty shared state
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
-        typedef detail::future_object<
+        typedef detail::shared_state_object<
             R &, std::allocator< promise< R & > >
         >                                               object_t;
         std::allocator< promise< R > > alloc;
@@ -246,7 +246,7 @@ public:
         // TODO: constructs the promise with an empty shared state
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
-        typedef detail::future_object< R &, Allocator >  object_t;
+        typedef detail::shared_state_object< R &, Allocator >  object_t;
         typename object_t::allocator_t a( alloc);
         future_ = ptr_t(
             // placement new
@@ -361,7 +361,7 @@ template<>
 class promise< void > : private noncopyable
 {
 private:
-    typedef detail::future_base< void >::ptr_t   ptr_t;
+    typedef detail::shared_state< void >::ptr_t   ptr_t;
 
     struct dummy
     { void nonnull() {} };
@@ -381,7 +381,7 @@ public:
         // TODO: constructs the promise with an empty shared state
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
-        typedef detail::future_object<
+        typedef detail::shared_state_object<
             void, std::allocator< promise< void > >
         >                                               object_t;
         std::allocator< promise< void > > alloc;
@@ -399,7 +399,7 @@ public:
         // TODO: constructs the promise with an empty shared state
         //       the shared state is allocated using alloc
         //       alloc must meet the requirements of Allocator
-        typedef detail::future_object< void, Allocator >  object_t;
+        typedef detail::shared_state_object< void, Allocator >  object_t;
 #if BOOST_MSVC
         object_t::allocator_t a( alloc);
 #else

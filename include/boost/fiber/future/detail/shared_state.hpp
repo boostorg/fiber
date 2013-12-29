@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_FUTURE_BASE_H
-#define BOOST_FIBERS_DETAIL_FUTURE_BASE_H
+#ifndef BOOST_FIBERS_DETAIL_SHARED_STATE_H
+#define BOOST_FIBERS_DETAIL_SHARED_STATE_H
 
 #include <cstddef>
 
@@ -33,7 +33,7 @@ namespace fibers {
 namespace detail {
 
 template< typename R >
-class future_base : public noncopyable
+class shared_state : public noncopyable
 {
 private:
     std::size_t             use_count_;
@@ -154,14 +154,14 @@ protected:
     virtual void deallocate_future() = 0;
 
 public:
-    typedef intrusive_ptr< future_base >    ptr_t;
+    typedef intrusive_ptr< shared_state >    ptr_t;
 
-    future_base() :
+    shared_state() :
         use_count_( 0), mtx_(), ready_( false),
         value_(), except_()
     {}
 
-    virtual ~future_base() {}
+    virtual ~shared_state() {}
 
     void owner_destroyed()
     {
@@ -261,10 +261,10 @@ public:
     void reset()
     { ready_ = false; }
 
-    friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
+    friend inline void intrusive_ptr_add_ref( shared_state * p) BOOST_NOEXCEPT
     { ++p->use_count_; }
 
-    friend inline void intrusive_ptr_release( future_base * p)
+    friend inline void intrusive_ptr_release( shared_state * p)
     {
         if ( 0 == --p->use_count_)
            p->deallocate_future();
@@ -272,7 +272,7 @@ public:
 };
 
 template< typename R >
-class future_base< R & > : public noncopyable
+class shared_state< R & > : public noncopyable
 {
 private:
     std::size_t             use_count_;
@@ -369,14 +369,14 @@ protected:
     virtual void deallocate_future() = 0;
 
 public:
-    typedef intrusive_ptr< future_base >    ptr_t;
+    typedef intrusive_ptr< shared_state >    ptr_t;
 
-    future_base() :
+    shared_state() :
         use_count_( 0), mtx_(), ready_( false),
         value_( 0), except_()
     {}
 
-    virtual ~future_base() {}
+    virtual ~shared_state() {}
 
     void owner_destroyed()
     {
@@ -452,10 +452,10 @@ public:
     void reset()
     { ready_ = false; }
 
-    friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
+    friend inline void intrusive_ptr_add_ref( shared_state * p) BOOST_NOEXCEPT
     { ++p->use_count_; }
 
-    friend inline void intrusive_ptr_release( future_base * p)
+    friend inline void intrusive_ptr_release( shared_state * p)
     {
         if ( 0 == --p->use_count_)
            p->deallocate_future();
@@ -463,7 +463,7 @@ public:
 };
 
 template<>
-class future_base< void > : public noncopyable
+class shared_state< void > : public noncopyable
 {
 private:
     std::size_t             use_count_;
@@ -557,13 +557,13 @@ protected:
     virtual void deallocate_future() = 0;
 
 public:
-    typedef intrusive_ptr< future_base >    ptr_t;
+    typedef intrusive_ptr< shared_state >    ptr_t;
 
-    future_base() :
+    shared_state() :
         use_count_( 0), mtx_(), ready_( false), except_()
     {}
 
-    virtual ~future_base() {}
+    virtual ~shared_state() {}
 
     void owner_destroyed()
     {
@@ -639,10 +639,10 @@ public:
     void reset()
     { ready_ = false; }
 
-    friend inline void intrusive_ptr_add_ref( future_base * p) BOOST_NOEXCEPT
+    friend inline void intrusive_ptr_add_ref( shared_state * p) BOOST_NOEXCEPT
     { ++p->use_count_; }
 
-    friend inline void intrusive_ptr_release( future_base * p)
+    friend inline void intrusive_ptr_release( shared_state * p)
     {
         if ( 0 == --p->use_count_)
            p->deallocate_future();
@@ -655,4 +655,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_FUTURE_BASE_H
+#endif // BOOST_FIBERS_DETAIL_SHARED_STATE_H

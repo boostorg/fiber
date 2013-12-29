@@ -15,7 +15,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/future/detail/future_base.hpp>
+#include <boost/fiber/future/detail/shared_state.hpp>
 #include <boost/fiber/future/future_status.hpp>
 
 namespace boost {
@@ -34,7 +34,7 @@ template< typename R >
 class future : private noncopyable
 {
 private:
-    typedef typename detail::future_base< R >::ptr_t   ptr_t;
+    typedef typename detail::shared_state< R >::ptr_t   ptr_t;
 
     friend class packaged_task< R() >;
     friend class promise< R >;
@@ -45,17 +45,17 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    ptr_t           future_;
+    ptr_t           state_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
 
     future( ptr_t const& p) :
-        future_( p)
+        state_( p)
     {}
 
 public:
     future() BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with no shared state
         //      after construction, valid() == false
@@ -68,7 +68,7 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
     future( future && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -86,7 +86,7 @@ public:
     }
 #else
     future( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -107,7 +107,7 @@ public:
     void swap( future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -122,7 +122,7 @@ public:
         //      this is the case only for futures returned by
         //      promise::get_future(), packaged_task::get_future()
         //      or async() until the first time get()or share() is called
-        return 0 != future_.get();
+        return 0 != state_.get();
     }
 
     shared_future< R > share();
@@ -142,7 +142,7 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         ptr_t tmp;
-        tmp.swap( future_);
+        tmp.swap( state_);
         return tmp->get();
     }
 
@@ -153,7 +153,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        future_->wait();
+        state_->wait();
     }
 
     template< class Rep, class Period >
@@ -164,7 +164,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_for( timeout_duration);
+        return state_->wait_for( timeout_duration);
     }
 
     future_status wait_until( clock_type::time_point const& timeout_time) const
@@ -174,7 +174,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_until( timeout_time);
+        return state_->wait_until( timeout_time);
     }
 };
 
@@ -182,7 +182,7 @@ template< typename R >
 class future< R & > : private noncopyable
 {
 private:
-    typedef typename detail::future_base< R & >::ptr_t   ptr_t;
+    typedef typename detail::shared_state< R & >::ptr_t   ptr_t;
 
     friend class packaged_task< R&() >;
     friend class promise< R & >;
@@ -193,17 +193,17 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    ptr_t           future_;
+    ptr_t           state_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
 
     future( ptr_t const& p) :
-        future_( p)
+        state_( p)
     {}
 
 public:
     future() BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with no shared state
         //      after construction, valid() == false
@@ -216,7 +216,7 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
     future( future && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -234,7 +234,7 @@ public:
     }
 #else
     future( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -255,7 +255,7 @@ public:
     void swap( future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -270,7 +270,7 @@ public:
         //      this is the case only for futures returned by
         //      promise::get_future(), packaged_task::get_future()
         //      or async() until the first time get()or share() is called
-        return 0 != future_.get();
+        return 0 != state_.get();
     }
 
     shared_future< R & > share();
@@ -290,7 +290,7 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         ptr_t tmp;
-        tmp.swap( future_);
+        tmp.swap( state_);
         return tmp->get();
     }
 
@@ -301,7 +301,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        future_->wait();
+        state_->wait();
     }
 
     template< class Rep, class Period >
@@ -312,7 +312,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_for( timeout_duration);
+        return state_->wait_for( timeout_duration);
     }
 
     future_status wait_until( clock_type::time_point const& timeout_time) const
@@ -322,7 +322,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_until( timeout_time);
+        return state_->wait_until( timeout_time);
     }
 };
 
@@ -330,7 +330,7 @@ template<>
 class future< void > : private noncopyable
 {
 private:
-    typedef detail::future_base< void >::ptr_t   ptr_t;
+    typedef detail::shared_state< void >::ptr_t   ptr_t;
 
     friend class packaged_task< void() >;
     friend class promise< void >;
@@ -341,17 +341,17 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    ptr_t           future_;
+    ptr_t           state_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
 
     future( ptr_t const& p) :
-        future_( p)
+        state_( p)
     {}
 
 public:
     future() BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with no shared state
         //      after construction, valid() == false
@@ -364,7 +364,7 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
     future( future && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -382,7 +382,7 @@ public:
     }
 #else
     future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -403,7 +403,7 @@ public:
     void swap( future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -418,7 +418,7 @@ public:
         //      this is the case only for futures returned by
         //      promise::get_future(), packaged_task::get_future()
         //      or async() until the first time get()or share() is called
-        return 0 != future_.get();
+        return 0 != state_.get();
     }
 
     shared_future< void > share();
@@ -438,7 +438,7 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         ptr_t tmp;
-        tmp.swap( future_);
+        tmp.swap( state_);
         tmp->get();
     }
 
@@ -449,7 +449,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        future_->wait();
+        state_->wait();
     }
 
     template< class Rep, class Period >
@@ -460,7 +460,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_for( timeout_duration);
+        return state_->wait_for( timeout_duration);
     }
 
     future_status wait_until( clock_type::time_point const& timeout_time) const
@@ -470,7 +470,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_until( timeout_time);
+        return state_->wait_until( timeout_time);
     }
 };
 
@@ -484,7 +484,7 @@ template< typename R >
 class shared_future
 {
 private:
-    typedef typename detail::future_base< R >::ptr_t   ptr_t;
+    typedef typename detail::shared_state< R >::ptr_t   ptr_t;
 
     friend class future< R >;
 
@@ -493,15 +493,15 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    ptr_t           future_;
+    ptr_t           state_;
 
     explicit shared_future( ptr_t const& p) :
-        future_( p)
+        state_( p)
     {}
 
 public:
     shared_future() BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with no shared state
         //      after construction, valid() == false
@@ -514,7 +514,7 @@ public:
     }
 
     shared_future( shared_future const& other) :
-        future_( other.future_)
+        state_( other.state_)
     {
         //TODO: constructs a shared future that refers to the same shared state,
         //      as other, if there's any
@@ -522,15 +522,15 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
     shared_future( future< R > && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     shared_future( shared_future && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -548,15 +548,15 @@ public:
     }
 #else
     shared_future( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -593,7 +593,7 @@ public:
     void swap( shared_future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -608,7 +608,7 @@ public:
         //      this is the case only for shared_futures returned by
         //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
-        return 0 != future_.get();
+        return 0 != state_.get();
     }
 
     R get()
@@ -626,7 +626,7 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         ptr_t tmp;
-        tmp.swap( future_);
+        tmp.swap( state_);
         return tmp->get();
     }
 
@@ -637,7 +637,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        future_->wait();
+        state_->wait();
     }
 
     template< class Rep, class Period >
@@ -648,7 +648,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_for( timeout_duration);
+        return state_->wait_for( timeout_duration);
     }
 
     future_status wait_until( clock_type::time_point const& timeout_time) const
@@ -658,7 +658,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_until( timeout_time);
+        return state_->wait_until( timeout_time);
     }
 };
 
@@ -666,7 +666,7 @@ template< typename R >
 class shared_future< R & >
 {
 private:
-    typedef typename detail::future_base< R & >::ptr_t   ptr_t;
+    typedef typename detail::shared_state< R & >::ptr_t   ptr_t;
 
     friend class future< R & >;
 
@@ -675,15 +675,15 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    ptr_t           future_;
+    ptr_t           state_;
 
     explicit shared_future( ptr_t const& p) :
-        future_( p)
+        state_( p)
     {}
 
 public:
     shared_future() BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with no shared state
         //      after construction, valid() == false
@@ -696,7 +696,7 @@ public:
     }
 
     shared_future( shared_future const& other) :
-        future_( other.future_)
+        state_( other.state_)
     {
         //TODO: constructs a shared future that refers to the same shared state,
         //      as other, if there's any
@@ -704,15 +704,15 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
     shared_future( future< R & > && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     shared_future( shared_future && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -730,15 +730,15 @@ public:
     }
 #else
     shared_future( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -775,7 +775,7 @@ public:
     void swap( shared_future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -790,7 +790,7 @@ public:
         //      this is the case only for shared_futures returned by
         //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
-        return 0 != future_.get();
+        return 0 != state_.get();
     }
 
     R & get()
@@ -808,7 +808,7 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         ptr_t tmp;
-        tmp.swap( future_);
+        tmp.swap( state_);
         return tmp->get();
     }
 
@@ -819,7 +819,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        future_->wait();
+        state_->wait();
     }
 
     template< class Rep, class Period >
@@ -830,7 +830,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_for( timeout_duration);
+        return state_->wait_for( timeout_duration);
     }
 
     future_status wait_until( clock_type::time_point const& timeout_time) const
@@ -840,7 +840,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_until( timeout_time);
+        return state_->wait_until( timeout_time);
     }
 };
 
@@ -848,7 +848,7 @@ template<>
 class shared_future< void >
 {
 private:
-    typedef detail::future_base< void >::ptr_t   ptr_t;
+    typedef detail::shared_state< void >::ptr_t   ptr_t;
 
     friend class future< void >;
 
@@ -857,15 +857,15 @@ private:
 
     typedef void ( dummy::*safe_bool)();
 
-    ptr_t           future_;
+    ptr_t           state_;
 
     shared_future( ptr_t const& p) :
-        future_( p)
+        state_( p)
     {}
 
 public:
     shared_future() BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with no shared state
         //      after construction, valid() == false
@@ -878,7 +878,7 @@ public:
     }
 
     shared_future( shared_future const& other) :
-        future_( other.future_)
+        state_( other.state_)
     {
         //TODO: constructs a shared future that refers to the same shared state,
         //      as other, if there's any
@@ -886,15 +886,15 @@ public:
 
 #ifndef BOOST_NO_RVALUE_REFERENCES
     shared_future( future< void > && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     shared_future( shared_future && other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -912,15 +912,15 @@ public:
     }
 #else
     shared_future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
-        future_()
+        state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
         //      after construction, other.valid() == false
@@ -957,13 +957,13 @@ public:
     void swap( future< void > & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     void swap( shared_future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
-        future_.swap( other.future_);
+        state_.swap( other.state_);
     }
 
     operator safe_bool() const BOOST_NOEXCEPT
@@ -978,7 +978,7 @@ public:
         //      this is the case only for shared_futures returned by
         //      promise::get_shared_future(), packaged_task::get_shared_future()
         //      or async() until the first time get()or share() is called
-        return 0 != future_.get();
+        return 0 != state_.get();
     }
 
     void get()
@@ -996,7 +996,7 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         ptr_t tmp;
-        tmp.swap( future_);
+        tmp.swap( state_);
         tmp->get();
     }
 
@@ -1007,7 +1007,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        future_->wait();
+        state_->wait();
     }
 
     template< class Rep, class Period >
@@ -1018,7 +1018,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_for( timeout_duration);
+        return state_->wait_for( timeout_duration);
     }
 
     future_status wait_until( clock_type::time_point const& timeout_time) const
@@ -1028,7 +1028,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        return future_->wait_until( timeout_time);
+        return state_->wait_until( timeout_time);
     }
 };
 

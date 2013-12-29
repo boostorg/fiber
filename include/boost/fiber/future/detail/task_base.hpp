@@ -15,7 +15,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/future/detail/future_base.hpp>
+#include <boost/fiber/future/detail/shared_state.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -26,7 +26,7 @@ namespace fibers {
 namespace detail {
 
 template< typename R >
-struct task_base : public future_base< R >
+struct task_base : public shared_state< R >
 {
     typedef intrusive_ptr< task_base >  ptr_t;
 
@@ -41,4 +41,4 @@ struct task_base : public future_base< R >
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_future_base_H
+#endif // BOOST_FIBERS_DETAIL_shared_state_H
