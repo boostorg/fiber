@@ -7,7 +7,7 @@
 
 [section:attributes Attributes]
 
-Class `attributes` is used to transfers parameters required to setup a
+Class `attributes` is used to transfer parameters required to setup a
 fibers's context.
 
         struct attributes
@@ -56,7 +56,7 @@ and FPU registers are preserved.]]
 
 [heading `attributes( flag_fpu_t preserve_fpu)`]
 [variablelist
-[[Effects:] [Argument `preserve_fpu` determines if FPU register have to be
+[[Effects:] [Argument `preserve_fpu` determines if FPU registers have to be
 preserved if a `context` switches. The default stacksize is used for the
 inner `context` and the stack will be unwound after termination.]]
 [[Throws:] [Nothing.]]

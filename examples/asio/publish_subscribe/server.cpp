@@ -87,7 +87,7 @@ private:
         if ( channels_.end() == channels_.find( channel) )
             throw std::runtime_error("channel does not exist");
         channels_.find( channel)->second->subscribe( s);
-        std::cout << "new subscribtion to channel '" << channel << "'" << std::endl;
+        std::cout << "new subscription to channel '" << channel << "'" << std::endl;
     }
 
     void unsubscribe_( std::string const& channel, boost::shared_ptr< subscriber_session > s)
