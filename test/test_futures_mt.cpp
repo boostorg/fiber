@@ -40,7 +40,8 @@ void test_async()
 {
     int i = 3;
     boost::fibers::future< int > f = async( i);
-    BOOST_CHECK_EQUAL( i, f.get() );
+    int result = f.get();
+    BOOST_CHECK_EQUAL( i, result);
 }
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
@@ -48,7 +49,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     boost::unit_test_framework::test_suite* test =
         BOOST_TEST_SUITE("Boost.Fiber: futures-mt test suite");
 
-    for ( int i = 0; i < 5000; ++i)
+    for ( int i = 0; i < 50; ++i)
     { test->add(BOOST_TEST_CASE(test_async)); }
 
     return test;
