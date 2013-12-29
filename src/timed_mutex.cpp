@@ -53,6 +53,7 @@ timed_mutex::lock()
             }
 
             // store this fiber in order to be notified later
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
             waiting_.push_back( n);
 
             // suspend this fiber
@@ -61,11 +62,11 @@ timed_mutex::lock()
     }
     else
     {
-        // local notification for main-fiber
-        n = detail::scheduler::instance()->get_main_notifier();
-
         for (;;)
         {
+            // local notification for main-fiber
+            n = detail::scheduler::instance()->get_main_notifier();
+
             unique_lock< detail::spinlock > lk( splk_);
 
             if ( UNLOCKED == state_)
@@ -77,6 +78,7 @@ timed_mutex::lock()
             }
 
             // store this fiber in order to be notified later
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
             waiting_.push_back( n);
             lk.unlock();
 
@@ -131,6 +133,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
             }
 
             // store this fiber in order to be notified later
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
             waiting_.push_back( n);
 
             // suspend this fiber until notified or timed-out
@@ -147,11 +150,11 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
     }
     else
     {
-        // local notification for main-fiber
-        n = detail::scheduler::instance()->get_main_notifier();
-
         for (;;)
         {
+            // local notification for main-fiber
+            n = detail::scheduler::instance()->get_main_notifier();
+
             unique_lock< detail::spinlock > lk( splk_);
 
             if ( clock_type::now() > timeout_time)
@@ -166,6 +169,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
             }
 
             // store this fiber in order to be notified later
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
             waiting_.push_back( n);
             lk.unlock();
 

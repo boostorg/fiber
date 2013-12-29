@@ -4,13 +4,13 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_FUTURE_OBJECT_H
-#define BOOST_FIBERS_DETAIL_FUTURE_OBJECT_H
+#ifndef BOOST_FIBERS_DETAIL_SHARED_STATE_OBJECT_H
+#define BOOST_FIBERS_DETAIL_SHARED_STATE_OBJECT_H
 
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/future/detail/future_base.hpp>
+#include <boost/fiber/future/detail/shared_state.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -21,15 +21,15 @@ namespace fibers {
 namespace detail {
 
 template< typename R, typename Allocator >
-class future_object : public future_base< R >
+class shared_state_object : public shared_state< R >
 {
 public:
     typedef typename Allocator::template rebind<
-        future_object< R, Allocator >
+        shared_state_object< R, Allocator >
     >::other                                      allocator_t;
 
-    future_object( allocator_t const& alloc) :
-        future_base< R >(), alloc_( alloc)
+    shared_state_object( allocator_t const& alloc) :
+        shared_state< R >(), alloc_( alloc)
     {}
 
 protected:
@@ -39,7 +39,7 @@ protected:
 private:
     allocator_t             alloc_;
 
-    static void destroy_( allocator_t & alloc, future_object * p)
+    static void destroy_( allocator_t & alloc, shared_state_object * p)
     {
         alloc.destroy( p);
         alloc.deallocate( p, 1);
@@ -52,4 +52,4 @@ private:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_FUTURE_BASE_H
+#endif // BOOST_FIBERS_DETAIL_SHARED_STATE_OBJECT_H

@@ -16,22 +16,24 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 
+boost::fibers::packaged_task< int() > pt;
+
 int fn( int i)
 { return i; }
 
-void exec( boost::shared_ptr< boost::fibers::packaged_task< int() > > pt)
+void exec()
 {
-    boost::fibers::fiber f( boost::move( * pt) );
-    f.join();
+    boost::fibers::round_robin rr;
+    boost::fibers::set_scheduling_algorithm( & rr);
+    boost::fibers::fiber( boost::move( pt) ).join();
 }
 
 boost::fibers::future< int > async( int i)
 {
-    boost::shared_ptr< boost::fibers::packaged_task< int() > > pt(
-        new boost::fibers::packaged_task< int() >(
-            boost::bind( fn, i) ) ); 
-    boost::fibers::future< int > f( pt->get_future() );
-    boost::thread( boost::bind( exec, pt) ).detach();
+    boost::fibers::packaged_task< int() > tmp( boost::bind( fn, i) );
+    boost::fibers::future< int > f( tmp.get_future() );
+    pt = boost::move( tmp);
+    boost::thread( boost::bind( exec) ).detach();
     return boost::move( f);
 }
 

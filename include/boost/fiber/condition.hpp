@@ -80,6 +80,7 @@ public:
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
 
+                BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
                 // store this fiber in waiting-queue
                 // in order notify (resume) this fiber later
                 waiting_.push_back( n);
@@ -104,6 +105,7 @@ public:
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
 
+                BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
                 // store this main-notifier in waiting-queue
                 // in order to be notified later
                 waiting_.push_back( n);

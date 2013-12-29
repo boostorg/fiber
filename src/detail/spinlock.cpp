@@ -22,6 +22,7 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
+    bool is_fiber = 0 != scheduler::instance()->active().get();
     for (;;)
     {
         // access to CPU's cache
@@ -30,7 +31,7 @@ spinlock::lock()
         while ( LOCKED == state_)
         {
             // busy-wait
-            if ( scheduler::instance()->active() )
+            if ( is_fiber)
                 scheduler::instance()->yield();
             else
                 this_thread::yield();
