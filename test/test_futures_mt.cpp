@@ -16,24 +16,23 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 
-boost::fibers::packaged_task< int() > pt;
+typedef boost::shared_ptr< boost::fibers::packaged_task< int() > >  packaged_task_t;
 
 int fn( int i)
 { return i; }
 
-void exec()
+void exec( packaged_task_t pt)
 {
-    boost::fibers::round_robin rr;
-    boost::fibers::set_scheduling_algorithm( & rr);
-    boost::fibers::fiber( boost::move( pt) ).join();
+    boost::fibers::fiber( boost::move( * pt) ).join();
 }
 
 boost::fibers::future< int > async( int i)
 {
-    boost::fibers::packaged_task< int() > tmp( boost::bind( fn, i) );
-    boost::fibers::future< int > f( tmp.get_future() );
-    pt = boost::move( tmp);
-    boost::thread( boost::bind( exec) ).detach();
+    packaged_task_t pt(
+        new boost::fibers::packaged_task< int() >(
+            boost::bind( fn, i) ) );
+    boost::fibers::future< int > f( pt->get_future() );
+    boost::thread( boost::bind( exec, pt) ).detach();
     return boost::move( f);
 }
 
@@ -41,13 +40,7 @@ void test_async()
 {
     int i = 3;
     boost::fibers::future< int > f = async( i);
-    BOOST_CHECK( f);
-    BOOST_CHECK( f.valid() );
-
     BOOST_CHECK_EQUAL( i, f.get() );
-
-    BOOST_CHECK( ! f);
-    BOOST_CHECK( ! f.valid() );
 }
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
@@ -55,7 +48,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     boost::unit_test_framework::test_suite* test =
         BOOST_TEST_SUITE("Boost.Fiber: futures-mt test suite");
 
-    for ( int i = 0; i < 50; ++i)
+    for ( int i = 0; i < 5000; ++i)
     { test->add(BOOST_TEST_CASE(test_async)); }
 
     return test;
