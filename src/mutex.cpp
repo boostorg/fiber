@@ -53,6 +53,7 @@ mutex::lock()
             }
 
             // store this fiber in order to be notified later
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
             waiting_.push_back( n);
 
             // suspend this fiber
@@ -61,11 +62,11 @@ mutex::lock()
     }
     else
     {
-        // local notification for main-fiber
-        n = detail::scheduler::instance()->get_main_notifier();
-
         for (;;)
         {
+            // local notification for main-fiber
+            n = detail::scheduler::instance()->get_main_notifier();
+
             unique_lock< detail::spinlock > lk( splk_);
 
             if ( UNLOCKED == state_)
@@ -77,6 +78,7 @@ mutex::lock()
             }
 
             // store this fiber in order to be notified later
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
             waiting_.push_back( n);
             lk.unlock();
 
