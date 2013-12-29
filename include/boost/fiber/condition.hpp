@@ -96,6 +96,9 @@ public:
                 // this fiber was notified and resumed
                 // check if fiber was interrupted
                 this_fiber::interruption_point();
+
+                // lock external again before returning
+                lt.lock();
             }
             else
             {
@@ -120,6 +123,9 @@ public:
                 while ( ! n->is_ready() )
                     // run scheduler
                     detail::scheduler::instance()->run();
+
+                // lock external again before returning
+                lt.lock();
             }
         }
         catch (...)
@@ -130,9 +136,6 @@ public:
                     std::find( waiting_.begin(), waiting_.end(), n) );
             throw;
         }
-
-        // lock external again before returning
-        lt.lock();
     }
 
     template< typename LockType >
@@ -172,6 +175,9 @@ public:
 
                 // check if fiber was interrupted
                 this_fiber::interruption_point();
+
+                // lock external again before returning
+                lt.lock();
             }
             else
             {
@@ -210,6 +216,9 @@ public:
                     // run scheduler
                     detail::scheduler::instance()->run();
                 }
+
+                // lock external again before returning
+                lt.lock();
             }
         }
         catch (...)
@@ -220,9 +229,6 @@ public:
                 std::find( waiting_.begin(), waiting_.end(), n) );
             throw;
         }
-
-        // lock external again before returning
-        lt.lock();
 
         return status;
     }
