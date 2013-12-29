@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
   {
     if (argc != 3)
     {
-      std::cerr << "Usage: subscriper <host> <channel>\n";
+      std::cerr << "Usage: subscriber <host> <channel>\n";
       return 1;
     }
 

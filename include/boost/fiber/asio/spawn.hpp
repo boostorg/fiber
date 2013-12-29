@@ -151,7 +151,7 @@ typedef basic_yield_context<
  * This function is used to launch a new fiber.
  *
  * @param handler A handler to be called when the fiber exits. More
- * importantly, the handler provides an execution context (via the the handler
+ * importantly, the handler provides an execution context (via the handler
  * invocation hook) for the fiber. The handler must have the signature:
  * @code void handler(); @endcode
  *

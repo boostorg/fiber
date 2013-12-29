@@ -13,4 +13,4 @@ run (context switching).
 A context switch between threads costs usally thousends of CPU cycles on x86 compared to a fiber switch 
 with less than 100 cycles. A fiber can only run on a single thread at any point in time.
 
-Buiding: Detailed instructions can be found at https://svn.boost.org/trac/boost/wiki/TryModBoost.
+Building: Detailed instructions can be found at https://svn.boost.org/trac/boost/wiki/TryModBoost.
