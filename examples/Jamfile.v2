@@ -1,4 +1,4 @@
-# Boost.Tasklet Library Examples Jamfile
+# Boost.Fiber Library Examples Jamfile
 
 #          Copyright Oliver Kowalke 2013.
 # Distributed under the Boost Software License, Version 1.0.
@@ -7,7 +7,7 @@
 
 # For more information, see http://www.boost.org/
 
-project boost/fiber/example/cpp03
+project boost/fiber/example
     : requirements
       <target-os>freebsd:<linkflags>"-lrt"
       <target-os>linux:<linkflags>"-lrt -lpthread"
