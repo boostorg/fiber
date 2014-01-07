@@ -1,4 +1,3 @@
-
 //          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -41,4 +40,4 @@ struct task_base : public shared_state< R >
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_shared_state_H
+#endif // BOOST_FIBERS_DETAIL_TASK_BASE_H
