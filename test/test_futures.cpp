@@ -720,7 +720,7 @@ void test_future_share()
 
     // get
     BOOST_CHECK( 7 == sf1.get() );
-    BOOST_CHECK( ! sf1.valid() );
+    BOOST_CHECK( sf1.valid() );
 }
 
 void test_future_share_ref()
@@ -744,7 +744,7 @@ void test_future_share_ref()
     // get
     int & j = sf1.get();
     BOOST_CHECK( &i == &j);
-    BOOST_CHECK( ! sf1.valid() );
+    BOOST_CHECK( sf1.valid() );
 }
 
 void test_future_share_void()
@@ -766,7 +766,7 @@ void test_future_share_void()
 
     // get
     sf1.get();
-    BOOST_CHECK( ! sf1.valid() );
+    BOOST_CHECK( sf1.valid() );
 }
 
 void test_future_wait()

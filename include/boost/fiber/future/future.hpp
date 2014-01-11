@@ -611,7 +611,7 @@ public:
         return 0 != state_.get();
     }
 
-    R get()
+    R const& get() const
     {
         //TODO: the get method waits until the shared_future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -625,9 +625,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        ptr_t tmp;
-        tmp.swap( state_);
-        return tmp->get();
+        return state_->get();
     }
 
     void wait() const
@@ -793,7 +791,7 @@ public:
         return 0 != state_.get();
     }
 
-    R & get()
+    R & get() const
     {
         //TODO: the get method waits until the shared_future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -807,9 +805,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        ptr_t tmp;
-        tmp.swap( state_);
-        return tmp->get();
+        return state_->get();
     }
 
     void wait() const
@@ -981,7 +977,7 @@ public:
         return 0 != state_.get();
     }
 
-    void get()
+    void get() const
     {
         //TODO: the get method waits until the shared_future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -995,9 +991,7 @@ public:
         if ( ! valid() )
             boost::throw_exception(
                 future_uninitialized() );
-        ptr_t tmp;
-        tmp.swap( state_);
-        tmp->get();
+        state_->get();
     }
 
     void wait() const
