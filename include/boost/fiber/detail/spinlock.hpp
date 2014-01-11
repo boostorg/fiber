@@ -22,18 +22,18 @@ class BOOST_FIBERS_DECL spinlock : private noncopyable
 {
 private:
     enum state_t {
-	    LOCKED = 0,
-	    UNLOCKED
+        LOCKED = 0,
+        UNLOCKED
     };
 
-	atomic< state_t >           state_;
+    atomic< state_t >           state_;
 
 public:
-	spinlock();
+    spinlock();
 
-	void lock();
+    void lock();
 
-	void unlock();
+    void unlock();
 };
 
 }}}
