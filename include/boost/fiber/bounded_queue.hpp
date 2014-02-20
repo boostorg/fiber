@@ -562,7 +562,7 @@ public:
     bool is_full() const
     { return is_full_(); }
 
-    void push( value_type va)
+    queue_op_status push( value_type va)
     {
         typename node_type::ptr new_node( new node_type() );
         mutex::scoped_lock lk( tail_mtx_);
