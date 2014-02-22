@@ -18,4 +18,5 @@ fiber/synchronization/futures/promise.html
 fiber/synchronization/futures/packaged_task.html
 fiber/fls.html
 fiber/asio.html
+fiber/performance.html
 fiber/acknowledgements.html

@@ -1,0 +1,24 @@
+[/
+          Copyright Oliver Kowalke 2009.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:performance Performance]
+
+Performance measurements were taken using `boost::chrono::highresolution_clock`,
+with overhead corrections.
+The code was compiled using the build options,
+'variant = release cxxflags = -DBOOST_DISABLE_ASSERTS optimization = speed'.
+
+The numbers in the table are the number of ns, based upon an
+average computed over 1000 iterations.
+
+[table Perfomance of coroutine switch
+    [[thread] [qthread] [tbb] [fiber]]
+    [[37114 ns] [577 ns] [309 ns] [37981 ns]]
+]
+
+
+[endsect]

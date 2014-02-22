@@ -164,4 +164,5 @@
 [endsect]
 [include fls.qbk]
 [include asio.qbk]
+[include performance.qbk]
 [include acknowledgements.qbk]

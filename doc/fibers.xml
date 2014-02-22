@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2013/12/28 09:18:21 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2014/02/22 19:01:43 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -5498,7 +5498,7 @@ are
             <term>Effects:</term>
             <listitem>
               <para>
-                The shared state did not become ready before timout has passed.
+                The shared state did not become ready before timeout has passed.
               </para>
             </listitem>
           </varlistentry>
@@ -5814,7 +5814,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -5861,7 +5861,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -5890,7 +5890,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -5931,7 +5931,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -5971,7 +5971,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -6326,7 +6326,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -6356,7 +6356,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -6397,7 +6397,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -6437,7 +6437,7 @@ are
             <listitem>
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
-                error condtion <code><phrase role="identifier">future_errc</phrase><phrase
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
                 role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
               </para>
             </listitem>
@@ -7725,6 +7725,73 @@ are
       programming. For instance the strategy 'serve one client with one thread' could
       be transformed into 'serve one client with one fiber'.
     </para>
+  </section>
+  <section id="fiber.performance">
+    <title><link linkend="fiber.performance">Performance</link></title>
+    <para>
+      Performance measurements were taken using <code><phrase role="identifier">boost</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">highresolution_clock</phrase></code>,
+      with overhead corrections. The code was compiled using the build options, 'variant
+      = release cxxflags = -DBOOST_DISABLE_ASSERTS optimization = speed'.
+    </para>
+    <para>
+      The numbers in the table are the number of ns, based upon an average computed
+      over 1000 iterations.
+    </para>
+    <table frame="all" id="fiber.performance.perfomance_of_coroutine_switch">
+      <title>Perfomance of coroutine switch</title>
+      <tgroup cols="4">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                qthread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                tbb
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                37114 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                577 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                309 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                37981 ns
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
   </section>
   <section id="fiber.acknowledgements">
     <title><link linkend="fiber.acknowledgements">Acknowledgments</link></title>
