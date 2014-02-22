@@ -17,7 +17,7 @@ average computed over 1000 iterations.
 
 [table Perfomance of coroutine switch
     [[thread] [qthread] [tbb] [fiber]]
-    [[37114 ns] [577 ns] [309 ns] [37981 ns]]
+    [[37114 ns] [577 ns] [309 ns] [1145 ns]]
 ]
 
 
