@@ -31,12 +31,12 @@ fiber_base::set_terminated_() BOOST_NOEXCEPT
 }
 
 void
-fiber_base::trampoline_( coro::coroutine< void >::push_type & c)
+fiber_base::trampoline_( coro::symmetric_coroutine< void >::yield_type & yield)
 {
-    BOOST_ASSERT( c);
+    BOOST_ASSERT( yield);
     BOOST_ASSERT( ! is_terminated() );
 
-    callee_ = & c;
+    callee_ = & yield;
     set_running();
     suspend();
 
