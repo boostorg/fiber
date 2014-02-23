@@ -14,9 +14,6 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
-#include <boost/type_traits/decay.hpp>
-#include <boost/type_traits/is_convertible.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/attributes.hpp>
@@ -80,13 +77,7 @@ public:
     typedef void ( * fiber_fn)();
 
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc =
-                        std::allocator< fiber >(),
-                    disable_if<
-                        is_same< decay< fiber_fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    stack_allocator const& stack_alloc = stack_allocator() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -102,12 +93,7 @@ public:
     template< typename StackAllocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc =
-                        std::allocator< fiber >(),
-                    typename disable_if<
-                        is_same< typename decay< fiber_fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -123,11 +109,7 @@ public:
     template< typename StackAllocator, typename Allocator >
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    Allocator const& alloc,
-                    typename disable_if<
-                        is_same< typename decay< fiber_fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    Allocator const& alloc) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -143,12 +125,7 @@ public:
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc =
-                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_same< typename decay< Fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -164,12 +141,7 @@ public:
     template< typename Fn, typename StackAllocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc =
-                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_same< typename decay< Fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -185,11 +157,7 @@ public:
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    Allocator const& alloc,
-                    typename disable_if<
-                        is_same< typename decay< Fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    Allocator const& alloc) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -205,12 +173,7 @@ public:
     template< typename Fn >
     explicit fiber( Fn fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc =
-                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -226,12 +189,7 @@ public:
     template< typename Fn, typename StackAllocator >
     explicit fiber( Fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc =
-                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -247,11 +205,7 @@ public:
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( Fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    Allocator const& alloc,
-                    typename disable_if<
-                        is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                        dummy *
-                    >::type = 0) :
+                    Allocator const& alloc) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -267,12 +221,7 @@ public:
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc =
-                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_same< typename decay< Fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -288,12 +237,7 @@ public:
     template< typename Fn, typename StackAllocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc =
-                         std::allocator< fiber >(),
-                    typename disable_if<
-                        is_same< typename decay< Fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
@@ -309,11 +253,7 @@ public:
     template< typename Fn, typename StackAllocator, typename Allocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
-                    Allocator const& alloc,
-                    typename disable_if<
-                        is_same< typename decay< Fn >::type, fiber >,
-                        dummy *
-                    >::type = 0) :
+                    Allocator const& alloc) :
         impl_()
     {
         typedef detail::fiber_object<
