@@ -15,6 +15,7 @@
 #include <boost/config.hpp>
 #include <boost/move/move.hpp>
 #include <boost/utility.hpp>
+#include <boost/utility/explicit_operator_bool.hpp>
 
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -49,11 +50,6 @@ private:
 
     typedef detail::fiber_base    base_t;
     typedef base_t::ptr_t         ptr_t;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     ptr_t       impl_;
 
@@ -282,8 +278,7 @@ public:
         return * this;
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return impl_ && ! impl_->is_terminated() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! impl_ || impl_->is_terminated(); }
