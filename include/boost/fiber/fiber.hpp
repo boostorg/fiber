@@ -77,7 +77,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                fiber_fn, std::allocator< fiber >
+                fiber_fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -93,7 +93,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                fiber_fn, std::allocator< fiber >
+                fiber_fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -109,7 +109,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                fiber_fn, Allocator
+                fiber_fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -125,7 +125,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, std::allocator< fiber >
+                Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -141,7 +141,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, std::allocator< fiber >
+                Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -157,7 +157,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, Allocator
+                Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -173,7 +173,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, std::allocator< fiber >
+                Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -189,7 +189,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, std::allocator< fiber >
+                Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -205,7 +205,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, Allocator
+                Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -221,7 +221,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, std::allocator< fiber >
+                Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -237,7 +237,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, std::allocator< fiber >
+                Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
@@ -253,7 +253,7 @@ public:
         impl_()
     {
         typedef detail::fiber_object<
-                Fn, Allocator
+                Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(

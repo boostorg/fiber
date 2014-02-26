@@ -23,71 +23,19 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-void
-fiber_base::set_terminated_() BOOST_NOEXCEPT
-{
-    state_t previous = state_.exchange( TERMINATED);
-    BOOST_ASSERT( RUNNING == previous);
-}
-
-void
-fiber_base::trampoline_( coro::symmetric_coroutine< void >::yield_type & yield)
-{
-    BOOST_ASSERT( yield);
-    BOOST_ASSERT( ! is_terminated() );
-
-    callee_ = & yield;
-    set_running();
-    suspend();
-
-    try
-    {
-        BOOST_ASSERT( is_running() );
-        run();
-        BOOST_ASSERT( is_running() );
-    }
-    catch ( coro::detail::forced_unwind const&)
-    {
-        set_terminated_();
-        release();
-        throw;
-    }
-    catch ( fiber_interrupted const&)
-    { except_ = current_exception(); }
-    catch (...)
-    { std::terminate(); }
-
-    set_terminated_();
-    release();
-    suspend();
-
-    BOOST_ASSERT_MSG( false, "fiber already terminated");
-}
+fiber_base::fiber_base() :
+    fss_data_(),
+    state_( READY),
+    flags_( 0),
+    priority_( 0),
+    except_(),
+    waiting_()
+{}
 
 fiber_base::~fiber_base()
 {
     BOOST_ASSERT( is_terminated() );
     BOOST_ASSERT( waiting_.empty() );
-}
-
-void
-fiber_base::resume()
-{
-    BOOST_ASSERT( caller_);
-    BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
-
-    caller_();
-}
-
-void
-fiber_base::suspend()
-{
-    BOOST_ASSERT( callee_);
-    BOOST_ASSERT( * callee_);
-
-    ( * callee_)();
-
-    BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 }
 
 void
@@ -145,6 +93,13 @@ fiber_base::thread_affinity( bool req) BOOST_NOEXCEPT
         flags_ |= flag_thread_affinity;
     else
         flags_ &= ~flag_thread_affinity;
+}
+
+void
+fiber_base::set_terminated() BOOST_NOEXCEPT
+{
+    state_t previous = state_.exchange( TERMINATED);
+    BOOST_ASSERT( RUNNING == previous);
 }
 
 void

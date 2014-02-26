@@ -13,9 +13,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
-#include <boost/bind.hpp>
 #include <boost/config.hpp>
-#include <boost/coroutine/all.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -41,8 +39,6 @@
 namespace boost {
 namespace fibers {
 namespace detail {
-
-namespace coro = boost::coroutines;
 
 class BOOST_FIBERS_DECL fiber_base : public notify
 {
@@ -81,50 +77,18 @@ private:
 
     fss_data_t              fss_data_;
 
-    // set terminate is only set inside fiber_base::trampoline_()
-    void set_terminated_() BOOST_NOEXCEPT;
-
-    void trampoline_( coro::symmetric_coroutine< void >::yield_type &);
-
 protected:
-    atomic< state_t >                                   state_;
-    atomic< int >                                       flags_;
-    atomic< int >                                       priority_;
-    coro::symmetric_coroutine< void >::yield_type   *   callee_;
-    coro::symmetric_coroutine< void >::call_type        caller_;
-    exception_ptr                                       except_;
-    spinlock                                            splk_;
-    std::vector< ptr_t >                                waiting_;
+    atomic< state_t >       state_;
+    atomic< int >           flags_;
+    atomic< int >           priority_;
+    exception_ptr           except_;
+    spinlock                splk_;
+    std::vector< ptr_t >    waiting_;
 
     void release();
 
-    virtual void run() = 0;
-
 public:
-    template< typename StackAllocator, typename Allocator >
-    fiber_base( attributes const& attrs, StackAllocator const& stack_alloc, Allocator const&) :
-        fss_data_(),
-        state_( READY),
-        flags_( 0),
-        priority_( 0),
-        callee_( 0),
-        caller_(
-            boost::bind( & fiber_base::trampoline_, this, _1),
-            attrs,
-            stack_alloc),
-        except_(),
-        waiting_()
-    {
-        BOOST_ASSERT( caller_);
-        BOOST_ASSERT( 0 == callee_);
-
-        caller_(); // jump to trampoline
-
-        BOOST_ASSERT( 0 != callee_);
-        BOOST_ASSERT( * callee_);
-
-        set_ready(); // fiber is setup and now ready to run
-    }
+    fiber_base();
 
     virtual ~fiber_base();
 
@@ -136,10 +100,6 @@ public:
 
     void priority( int prio) BOOST_NOEXCEPT
     { priority_ = prio; }
-
-    void resume();
-
-    void suspend();
 
     bool join( ptr_t const&);
 
@@ -170,6 +130,8 @@ public:
     bool is_waiting() const BOOST_NOEXCEPT
     { return WAITING == state_; }
 
+    void set_terminated() BOOST_NOEXCEPT;
+
     void set_ready() BOOST_NOEXCEPT;
 
     void set_running() BOOST_NOEXCEPT;
@@ -188,6 +150,10 @@ public:
     { return except_; }
 
     void rethrow() const;
+
+    virtual void resume() = 0;
+
+    virtual void suspend() = 0;
 };
 
 }}}
