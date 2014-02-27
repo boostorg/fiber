@@ -104,7 +104,7 @@ private:
         mark_ready_and_notify_();
     }
 
-    R get_( unique_lock< mutex > & lk)
+    R const& get_( unique_lock< mutex > & lk)
     {
         //TODO: the get method waits until the future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -219,7 +219,7 @@ public:
         set_exception_( except);
     }
 
-    R get()
+    R const& get()
     {
         //TODO: the get method waits until the future has a valid result and
         //      (depending on which template is used) retrieves it

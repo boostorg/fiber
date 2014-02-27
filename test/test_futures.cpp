@@ -705,7 +705,8 @@ void test_future_share()
 {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
-    p1.set_value( 7);
+    int i = 7;
+    p1.set_value( i);
 
     boost::fibers::future< int > f1 = p1.get_future();
     BOOST_CHECK( f1);
@@ -719,7 +720,8 @@ void test_future_share()
     BOOST_CHECK( ! f1.valid() );
 
     // get
-    BOOST_CHECK( 7 == sf1.get() );
+    int j = sf1.get();
+    BOOST_CHECK_EQUAL( i, j);
     BOOST_CHECK( sf1.valid() );
 }
 
