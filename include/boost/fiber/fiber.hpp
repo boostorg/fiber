@@ -73,7 +73,8 @@ public:
     typedef void ( * fiber_fn)();
 
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator() ) :
+                    stack_allocator const& stack_alloc = stack_allocator(),
+                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
         typedef detail::fiber_object<
