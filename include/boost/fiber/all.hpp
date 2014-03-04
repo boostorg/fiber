@@ -27,7 +27,6 @@
 #include <boost/fiber/recursive_mutex.hpp>
 #include <boost/fiber/recursive_timed_mutex.hpp>
 #include <boost/fiber/round_robin.hpp>
-#include <boost/fiber/round_robin_ws.hpp>
 #include <boost/fiber/timed_mutex.hpp>
 #include <boost/fiber/unbounded_queue.hpp>
 

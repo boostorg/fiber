@@ -9,19 +9,17 @@
 #include <string>
 
 #include <boost/atomic.hpp>
-#include <boost/test/unit_test.hpp>
+#include <boost/assert.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
+#include "workstealing_round_robin.hpp"
 
 #define MAXCOUNT 100
 
-#include <cstdio>
-#include <sstream>
-
 boost::atomic< bool > fini( false);
-boost::fibers::round_robin_ws * other_ds = 0;
+workstealing_round_robin * other_ds = 0;
 
 boost::fibers::future< int > fibonacci( int);
 
@@ -55,24 +53,24 @@ int create_fiber( int n)
     return fibonacci( n).get();
 }
 
-void fn_create_fibers( boost::fibers::round_robin_ws * ds, boost::barrier * b)
+void fn_create_fibers( workstealing_round_robin * ds, boost::barrier * b)
 {
     boost::fibers::set_scheduling_algorithm( ds);
 
     b->wait();
 
     int result = boost::fibers::async( boost::bind( create_fiber, 10) ).get();
-    BOOST_CHECK( 89 == result);
+    BOOST_ASSERT( 89 == result);
     fprintf( stderr, "fibonacci(10) = %d", result);
 
     fini = true;
 }
 
-void fn_migrate_fibers( boost::fibers::round_robin_ws * other_ds, boost::barrier * b, int * count)
+void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b, int * count)
 {
     BOOST_ASSERT( other_ds);
 
-    boost::fibers::round_robin_ws ds;
+    workstealing_round_robin ds;
     boost::fibers::set_scheduling_algorithm( & ds);
 
     b->wait();
@@ -105,7 +103,7 @@ void test_migrate_fiber()
         fini = false;
         int count = 0;
 
-        boost::fibers::round_robin_ws * ds = new boost::fibers::round_robin_ws();
+        workstealing_round_robin * ds = new workstealing_round_robin();
         boost::barrier b( 2);
         boost::thread t1( boost::bind( fn_create_fibers, ds, &b) );
         boost::thread t2( boost::bind( fn_migrate_fibers, ds, &b, &count) );
@@ -118,12 +116,33 @@ void test_migrate_fiber()
     }
 }
 
-boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
+int main()
 {
-    boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Fiber: migration test suite");
+    try
+    {
+        for ( int i = 0; i < MAXCOUNT; ++i) {
+            fprintf(stderr, "%d. ", i);
 
-    test->add( BOOST_TEST_CASE( & test_migrate_fiber) );
+            fini = false;
+            int count = 0;
 
-    return test;
+            workstealing_round_robin * ds = new workstealing_round_robin();
+            boost::barrier b( 2);
+            boost::thread t1( boost::bind( fn_create_fibers, ds, &b) );
+            boost::thread t2( boost::bind( fn_migrate_fibers, ds, &b, &count) );
+
+            t1.join();
+            t2.join();
+
+            fprintf(stderr, ", %d fibers stolen\n", count);
+            delete ds;
+        }
+
+        return EXIT_SUCCESS;
+    }
+    catch ( std::exception const& e)
+    { std::cerr << "exception: " << e.what() << std::endl; }
+    catch (...)
+    { std::cerr << "unhandled exception" << std::endl; }
+    return EXIT_FAILURE;
 }

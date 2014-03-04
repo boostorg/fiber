@@ -7,12 +7,15 @@
 
 # For more information, see http://www.boost.org/
 
+import common ;
+import feature ;
+import indirect ;
+import modules ;
+import os ;
+import toolset ;
+
 project boost/fiber/example
     : requirements
-      <target-os>freebsd:<linkflags>"-lrt"
-      <target-os>linux:<linkflags>"-lrt -lpthread"
-      <toolset>clang/<target-os>linux:<linkflags>"-lpthread"
-      <toolset>pgi:<linkflags>"-lrt"
       <library>../build//boost_fiber
       <library>/boost/atomic//boost_atomic
       <library>/boost/coroutine//boost_coroutine
@@ -35,6 +38,10 @@ exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp ;
+exe migrate_fibers
+    : migrate_fibers.cpp
+      workstealing_round_robin.cpp
+    ;
 
 #exe asio/daytime_client : asio/daytime_client.cpp ;
 #exe asio/daytime_client2 : asio/daytime_client2.cpp ;

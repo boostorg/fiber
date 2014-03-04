@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/round_robin_ws.hpp"
+#include "workstealing_round_robin.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -18,40 +18,39 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/thread.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
-#include "boost/fiber/exceptions.hpp"
+#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-namespace boost {
-namespace fibers {
-
-round_robin_ws::round_robin_ws() BOOST_NOEXCEPT :
+workstealing_round_robin::workstealing_round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
     wqueue_(),
     rqueue_(),
     mn_()
 {}
 
-round_robin_ws::~round_robin_ws() BOOST_NOEXCEPT
+workstealing_round_robin::~workstealing_round_robin() BOOST_NOEXCEPT
 {
     // fibers will be destroyed (stack-unwinding)
     // if last reference goes out-of-scope
     // therefore destructing wqueue_ && rqueue_
     // will destroy the fibers in this scheduler
     // if not referenced on other places
+    while ( ! wqueue_.empty() && ! rqueue_.empty() )
+        run();
 }
 
 void
-round_robin_ws::spawn( detail::fiber_base::ptr_t const& f)
+workstealing_round_robin::spawn( boost::fibers::detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
     // store active fiber in local var
-    detail::fiber_base::ptr_t tmp = active_fiber_;
+    boost::fibers::detail::fiber_base::ptr_t tmp = active_fiber_;
     // assign new fiber to active fiber
     active_fiber_ = f;
     // set active fiber to state_running
@@ -66,20 +65,20 @@ round_robin_ws::spawn( detail::fiber_base::ptr_t const& f)
 }
 
 bool
-round_robin_ws::run()
+workstealing_round_robin::run()
 {
     wqueue_t wqueue;
     // move all fibers witch are ready (state_ready)
     // from waiting-queue to the runnable-queue
     BOOST_FOREACH( schedulable const& s, wqueue_)
     {
-        detail::fiber_base::ptr_t f( s.f);
+        boost::fibers::detail::fiber_base::ptr_t f( s.f);
 
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
 
         // set fiber to state_ready if dead-line was reached
-        if ( s.tp <= clock_type::now() )
+        if ( s.tp <= boost::fibers::clock_type::now() )
             f->set_ready();
         // set fiber to state_ready if interruption was requested
         if ( f->interruption_requested() )
@@ -93,12 +92,12 @@ round_robin_ws::run()
 
     // pop new fiber from ready-queue which is not complete
     // (example: fiber in ready-queue could be canceled by active-fiber)
-    detail::fiber_base::ptr_t f;
+    boost::fibers::detail::fiber_base::ptr_t f;
     do
     {
         if ( ! rqueue_.try_pop( f) )
         {
-            this_thread::yield();
+            boost::this_thread::yield();
             return false;
         }
         if ( f->is_ready() ) break;
@@ -113,14 +112,14 @@ round_robin_ws::run()
 }
 
 void
-round_robin_ws::wait( unique_lock< detail::spinlock > & lk)
-{ wait_until( clock_type::time_point( (clock_type::duration::max)() ), lk); }
+workstealing_round_robin::wait( boost::unique_lock< boost::fibers::detail::spinlock > & lk)
+{ wait_until( boost::fibers::clock_type::time_point( (boost::fibers::clock_type::duration::max)() ), lk); }
 
 bool
-round_robin_ws::wait_until( clock_type::time_point const& timeout_time,
-                         unique_lock< detail::spinlock > & lk)
+workstealing_round_robin::wait_until( boost::fibers::clock_type::time_point const& timeout_time,
+                                      boost::unique_lock< boost::fibers::detail::spinlock > & lk)
 {
-    clock_type::time_point start( clock_type::now() );
+    boost::fibers::clock_type::time_point start( boost::fibers::clock_type::now() );
 
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
@@ -132,19 +131,19 @@ round_robin_ws::wait_until( clock_type::time_point const& timeout_time,
     // push active fiber to wqueue_
     wqueue_.push_back( schedulable( active_fiber_, timeout_time) );
     // store active fiber in local var
-    detail::fiber_base::ptr_t tmp = active_fiber_;
+    boost::fibers::detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend active fiber
     active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+    BOOST_ASSERT( tmp == boost::fibers::detail::scheduler::instance()->active() );
     BOOST_ASSERT( tmp->is_running() );
 
-    return clock_type::now() < timeout_time;
+    return boost::fibers::clock_type::now() < timeout_time;
 }
 
 void
-round_robin_ws::yield()
+workstealing_round_robin::yield()
 {
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
@@ -154,17 +153,17 @@ round_robin_ws::yield()
     // push active fiber to wqueue_
     wqueue_.push_back( schedulable( active_fiber_) );
     // store active fiber in local var
-    detail::fiber_base::ptr_t tmp = active_fiber_;
+    boost::fibers::detail::fiber_base::ptr_t tmp = active_fiber_;
     // suspend acitive fiber
     active_fiber_->suspend();
     // fiber is resumed
 
-    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+    BOOST_ASSERT( tmp == boost::fibers::detail::scheduler::instance()->active() );
     BOOST_ASSERT( tmp->is_running() );
 }
 
 void
-round_robin_ws::join( detail::fiber_base::ptr_t const& f)
+workstealing_round_robin::join( boost::fibers::detail::fiber_base::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != active_fiber_);
@@ -182,12 +181,12 @@ round_robin_ws::join( detail::fiber_base::ptr_t const& f)
             // FIXME: better state_running and no suspend
             active_fiber_->set_ready();
         // store active fiber in local var
-        detail::fiber_base::ptr_t tmp = active_fiber_;
+        boost::fibers::detail::fiber_base::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
         active_fiber_->suspend();
         // fiber is resumed by f
 
-        BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
+        BOOST_ASSERT( tmp == boost::fibers::detail::scheduler::instance()->active() );
         BOOST_ASSERT( tmp->is_running() );
     }
     else
@@ -196,7 +195,7 @@ round_robin_ws::join( detail::fiber_base::ptr_t const& f)
         {
             // yield this thread if scheduler did not 
             // resumed some fibers in the previous round
-            if ( ! run() ) this_thread::yield();
+            if ( ! run() ) boost::this_thread::yield();
         }
     }
 
@@ -204,7 +203,7 @@ round_robin_ws::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-round_robin_ws::priority( detail::fiber_base::ptr_t const& f, int prio) BOOST_NOEXCEPT
+workstealing_round_robin::priority( boost::fibers::detail::fiber_base::ptr_t const& f, int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( f);
 
@@ -213,23 +212,21 @@ round_robin_ws::priority( detail::fiber_base::ptr_t const& f, int prio) BOOST_NO
     f->priority( prio);
 }
 
-fiber
-round_robin_ws::steal_from()
+boost::fibers::fiber
+workstealing_round_robin::steal_from()
 {
-    detail::fiber_base::ptr_t f;
-    if ( rqueue_.try_pop( f) ) return fiber( f);
-    return fiber();
+    boost::fibers::detail::fiber_base::ptr_t f;
+    if ( rqueue_.try_pop( f) ) return boost::fibers::fiber( f);
+    return boost::fibers::fiber();
 }
 
 void
-round_robin_ws::migrate_to( fiber const& f)
+workstealing_round_robin::migrate_to( boost::fibers::fiber const& f)
 {
     BOOST_ASSERT( f);
 
-    spawn( detail::scheduler::extract( f) );
+    spawn( boost::fibers::detail::scheduler::extract( f) );
 }
-
-}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

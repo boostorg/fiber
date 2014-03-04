@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_WS_QUEUE_H
-#define BOOST_FIBERS_DETAIL_WS_QUEUE_H
+#ifndef WS_QUEUE_H
+#define WS_QUEUE_H
 
 #include <deque>
 
@@ -20,16 +20,12 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-namespace boost {
-namespace fibers {
-namespace detail {
-
 class ws_queue
 {
 private:
-    typedef std::deque< fiber_base::ptr_t >     queue_t;
+    typedef std::deque< boost::fibers::detail::fiber_base::ptr_t >     queue_t;
 
-    spinlock    splk_;
+    boost::fibers::detail::spinlock    splk_;
     queue_t     queue_;
 
 public:
@@ -38,15 +34,15 @@ public:
         queue_()
     {}
 
-    void push( fiber_base::ptr_t const& f)
+    void push( boost::fibers::detail::fiber_base::ptr_t const& f)
     {
-        unique_lock< spinlock > lk( splk_);
+        boost::unique_lock< boost::fibers::detail::spinlock > lk( splk_);
         queue_.push_back( f);
     }
 
-    bool try_pop( fiber_base::ptr_t & f)
+    bool try_pop( boost::fibers::detail::fiber_base::ptr_t & f)
     {
-        unique_lock< spinlock > lk( splk_);
+        boost::unique_lock< boost::fibers::detail::spinlock > lk( splk_);
         queue_t::iterator e = queue_.end();
         for ( queue_t::iterator i = queue_.begin(); i != e; ++i)
         {
@@ -61,10 +57,8 @@ public:
     }
 };
 
-}}}
-
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif //  BOOST_FIBERS_DETAIL_WS_QUEUE_H
+#endif //  WS_QUEUE_H
