@@ -60,7 +60,7 @@ void fn2( boost::barrier & b, Mtx & m)
 
 void test_mutex()
 {
-    for ( int i = 0; i < 50; ++i)
+    for ( int i = 0; i < 10; ++i)
     {
         boost::fibers::mutex mtx;
         mtx.lock();
@@ -79,7 +79,7 @@ void test_mutex()
 
 void test_recursive_mutex()
 {
-    for ( int i = 0; i < 50; ++i)
+    for ( int i = 0; i < 10; ++i)
     {
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
@@ -98,7 +98,7 @@ void test_recursive_mutex()
 
 void test_recursive_timed_mutex()
 {
-    for ( int i = 0; i < 50; ++i)
+    for ( int i = 0; i < 10; ++i)
     {
         boost::fibers::recursive_timed_mutex mtx;
         mtx.lock();
@@ -117,7 +117,7 @@ void test_recursive_timed_mutex()
 
 void test_timed_mutex()
 {
-    for ( int i = 0; i < 50; ++i)
+    for ( int i = 0; i < 10; ++i)
     {
         boost::fibers::timed_mutex mtx;
         mtx.lock();
