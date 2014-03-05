@@ -18,9 +18,9 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/detail/main_notifier.hpp>
-#include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -40,10 +40,10 @@ class workstealing_round_robin : public boost::fibers::algorithm
 private:
     struct schedulable
     {
-        boost::fibers::detail::fiber_base::ptr_t   f;
+        boost::fibers::detail::worker_fiber::ptr_t   f;
         boost::fibers::clock_type::time_point      tp;
 
-        schedulable( boost::fibers::detail::fiber_base::ptr_t const& f_,
+        schedulable( boost::fibers::detail::worker_fiber::ptr_t const& f_,
                      boost::fibers::clock_type::time_point const& tp_ =
                         (boost::fibers::clock_type::time_point::max)() ) :
             f( f_), tp( tp_)
@@ -52,7 +52,7 @@ private:
 
     typedef std::deque< schedulable >                   wqueue_t;
 
-    boost::fibers::detail::fiber_base::ptr_t   active_fiber_;
+    boost::fibers::detail::worker_fiber::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
     ws_queue            rqueue_;
     boost::fibers::detail::main_notifier       mn_;
@@ -62,13 +62,13 @@ public:
 
     ~workstealing_round_robin() BOOST_NOEXCEPT;
 
-    void spawn( boost::fibers::detail::fiber_base::ptr_t const&);
+    void spawn( boost::fibers::detail::worker_fiber::ptr_t const&);
 
-    void priority( boost::fibers::detail::fiber_base::ptr_t const&, int) BOOST_NOEXCEPT;
+    void priority( boost::fibers::detail::worker_fiber::ptr_t const&, int) BOOST_NOEXCEPT;
 
-    void join( boost::fibers::detail::fiber_base::ptr_t const&);
+    void join( boost::fibers::detail::worker_fiber::ptr_t const&);
 
-    boost::fibers::detail::fiber_base::ptr_t active() BOOST_NOEXCEPT
+    boost::fibers::detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
     bool run();
@@ -79,11 +79,11 @@ public:
 
     void yield();
 
-    boost::fibers::detail::fiber_base::id get_main_id()
-    { return boost::fibers::detail::fiber_base::id( boost::fibers::detail::main_notifier::make_pointer( mn_) ); }
+    boost::fibers::detail::worker_fiber::id get_main_id()
+    { return boost::fibers::detail::worker_fiber::id( boost::fibers::detail::main_notifier::make_pointer( mn_) ); }
 
-    boost::fibers::detail::notify::ptr_t get_main_notifier()
-    { return boost::fibers::detail::notify::ptr_t( new boost::fibers::detail::main_notifier() ); }
+    boost::fibers::detail::fiber_base::ptr_t get_main_notifier()
+    { return boost::fibers::detail::fiber_base::ptr_t( new boost::fibers::detail::main_notifier() ); }
 
     boost::fibers::fiber steal_from();
     void migrate_to( boost::fibers::fiber const&);

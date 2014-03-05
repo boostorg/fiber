@@ -50,13 +50,13 @@ restore_interruption::~restore_interruption() BOOST_NOEXCEPT
 
 bool interruption_enabled() BOOST_NOEXCEPT 
 { 
-    fibers::detail::fiber_base::ptr_t f( fibers::detail::scheduler::instance()->active() );
+    fibers::detail::worker_fiber::ptr_t f( fibers::detail::scheduler::instance()->active() );
     return f && ! f->interruption_blocked(); 
 } 
  
 bool interruption_requested() BOOST_NOEXCEPT 
 { 
-    fibers::detail::fiber_base::ptr_t f( fibers::detail::scheduler::instance()->active() );
+    fibers::detail::worker_fiber::ptr_t f( fibers::detail::scheduler::instance()->active() );
     if ( ! f) return false; 
     return f->interruption_requested(); 
 }

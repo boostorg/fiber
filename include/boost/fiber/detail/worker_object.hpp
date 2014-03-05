@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_FIBER_OBJECT_H
-#define BOOST_FIBERS_DETAIL_FIBER_OBJECT_H
+#ifndef BOOST_FIBERS_DETAIL_WORKER_OBJECT_H
+#define BOOST_FIBERS_DETAIL_WORKER_OBJECT_H
 
 #include <cstddef>
 
@@ -19,7 +19,7 @@
 
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -38,15 +38,15 @@ namespace detail {
 namespace coro = boost::coroutines;
 
 template< typename Fn, typename StackAllocator, typename Allocator >
-class fiber_object : public fiber_base
+class worker_object : public worker_fiber
 {
 public:
     typedef typename Allocator::template rebind<
-        fiber_object< Fn, StackAllocator, Allocator >
+        worker_object< Fn, StackAllocator, Allocator >
     >::other                                allocator_t;
 
 private:
-    typedef fiber_base                      base_t;
+    typedef worker_fiber                      base_t;
     typedef coro::symmetric_coroutine<
         void, StackAllocator
     >                                       coro_t;
@@ -56,14 +56,14 @@ private:
     typename coro_t::call_type      caller_;
     allocator_t                     alloc_;
 
-    static void destroy_( allocator_t & alloc, fiber_object * p)
+    static void destroy_( allocator_t & alloc, worker_object * p)
     {
         alloc.destroy( p);
         alloc.deallocate( p, 1);
     }
 
-    fiber_object( fiber_object &);
-    fiber_object & operator=( fiber_object const&);
+    worker_object( worker_object &);
+    worker_object & operator=( worker_object const&);
 
     void trampoline_( typename coro_t::yield_type & yield)
     {
@@ -100,14 +100,14 @@ private:
 
 public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
-    fiber_object( Fn && fn, attributes const& attrs,
+    worker_object( Fn && fn, attributes const& attrs,
                   StackAllocator const& stack_alloc,
                   allocator_t const& alloc) :
         base_t(),
         fn_( forward< Fn >( fn) ),
         callee_( 0),
         caller_(
-            boost::bind( & fiber_object::trampoline_, this, _1),
+            boost::bind( & worker_object::trampoline_, this, _1),
             attrs,
             stack_alloc),
         alloc_( alloc)
@@ -123,14 +123,14 @@ public:
         set_ready(); // fiber is setup and now ready to run
     }
 #else
-    fiber_object( Fn fn, attributes const& attrs,
+    worker_object( Fn fn, attributes const& attrs,
                   StackAllocator const& stack_alloc,
                   allocator_t const& alloc) :
         base_t(),
         fn_( fn),
         callee_( 0),
         caller_(
-            boost::bind( & fiber_object::trampoline_, this, _1),
+            boost::bind( & worker_object::trampoline_, this, _1),
             attrs,
             stack_alloc),
         alloc_( alloc)
@@ -146,14 +146,14 @@ public:
         set_ready(); // fiber is setup and now ready to run
     }
 
-    fiber_object( BOOST_RV_REF( Fn) fn, attributes const& attrs,
+    worker_object( BOOST_RV_REF( Fn) fn, attributes const& attrs,
                   StackAllocator const& stack_alloc,
                   allocator_t const& alloc) :
         base_t(),
         fn_( fn),
         callee_( 0),
         caller_(
-            boost::bind( & fiber_object::trampoline_, this, _1),
+            boost::bind( & worker_object::trampoline_, this, _1),
             attrs,
             stack_alloc),
         alloc_( alloc)
@@ -202,4 +202,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_FIBER_OBJECT_H
+#endif // BOOST_FIBERS_DETAIL_WORKER_OBJECT_H

@@ -64,7 +64,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base::ptr_t    fiber_;
+    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
@@ -98,7 +98,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base::ptr_t    fiber_;
+    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
 };
@@ -244,7 +244,7 @@ struct spawn_data : private noncopyable
         function_( BOOST_ASIO_MOVE_CAST( Function)( function) )
     {}
 
-    boost::fibers::detail::fiber_base::ptr_t    fiber_;
+    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
     Handler                                     handler_;
     bool                                        call_handler_;
     Function                                    function_;

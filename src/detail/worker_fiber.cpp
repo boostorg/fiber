@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/detail/fiber_base.hpp"
+#include "boost/fiber/detail/worker_fiber.hpp"
 
 #include <exception>
 
@@ -23,7 +23,8 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-fiber_base::fiber_base() :
+worker_fiber::worker_fiber() :
+    fiber_base(),
     fss_data_(),
     state_( READY),
     flags_( 0),
@@ -32,14 +33,14 @@ fiber_base::fiber_base() :
     waiting_()
 {}
 
-fiber_base::~fiber_base()
+worker_fiber::~worker_fiber()
 {
     BOOST_ASSERT( is_terminated() );
     BOOST_ASSERT( waiting_.empty() );
 }
 
 void
-fiber_base::release()
+worker_fiber::release()
 {
     BOOST_ASSERT( is_terminated() );
 
@@ -51,7 +52,7 @@ fiber_base::release()
     splk_.unlock();
 
     // notify all waiting fibers
-    BOOST_FOREACH( fiber_base::ptr_t p, waiting)
+    BOOST_FOREACH( worker_fiber::ptr_t p, waiting)
     { p->set_ready(); }
 
     // release all fiber-specific-pointers
@@ -60,7 +61,7 @@ fiber_base::release()
 }
 
 bool
-fiber_base::join( ptr_t const& p)
+worker_fiber::join( ptr_t const& p)
 {
     unique_lock< spinlock > lk( splk_);
     if ( is_terminated() ) return false;
@@ -69,7 +70,7 @@ fiber_base::join( ptr_t const& p)
 }
 
 void
-fiber_base::interruption_blocked( bool blck) BOOST_NOEXCEPT
+worker_fiber::interruption_blocked( bool blck) BOOST_NOEXCEPT
 {
     if ( blck)
         flags_ |= flag_interruption_blocked;
@@ -78,7 +79,7 @@ fiber_base::interruption_blocked( bool blck) BOOST_NOEXCEPT
 }
 
 void
-fiber_base::request_interruption( bool req) BOOST_NOEXCEPT
+worker_fiber::request_interruption( bool req) BOOST_NOEXCEPT
 {
     if ( req)
         flags_ |= flag_interruption_requested;
@@ -87,7 +88,7 @@ fiber_base::request_interruption( bool req) BOOST_NOEXCEPT
 }
 
 void
-fiber_base::thread_affinity( bool req) BOOST_NOEXCEPT
+worker_fiber::thread_affinity( bool req) BOOST_NOEXCEPT
 {
     if ( req)
         flags_ |= flag_thread_affinity;
@@ -96,35 +97,35 @@ fiber_base::thread_affinity( bool req) BOOST_NOEXCEPT
 }
 
 void
-fiber_base::set_terminated() BOOST_NOEXCEPT
+worker_fiber::set_terminated() BOOST_NOEXCEPT
 {
     state_t previous = state_.exchange( TERMINATED);
     BOOST_ASSERT( RUNNING == previous);
 }
 
 void
-fiber_base::set_ready() BOOST_NOEXCEPT
+worker_fiber::set_ready() BOOST_NOEXCEPT
 {
     state_t previous = state_.exchange( READY);
     BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
 }
 
 void
-fiber_base::set_running() BOOST_NOEXCEPT
+worker_fiber::set_running() BOOST_NOEXCEPT
 {
     state_t previous = state_.exchange( RUNNING);
     BOOST_ASSERT( READY == previous);
 }
 
 void
-fiber_base::set_waiting() BOOST_NOEXCEPT
+worker_fiber::set_waiting() BOOST_NOEXCEPT
 {
     state_t previous = state_.exchange( WAITING);
     BOOST_ASSERT( RUNNING == previous);
 }
 
 void *
-fiber_base::get_fss_data( void const* vp) const
+worker_fiber::get_fss_data( void const* vp) const
 {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::const_iterator i( fss_data_.find( key) );
@@ -133,7 +134,7 @@ fiber_base::get_fss_data( void const* vp) const
 }
 
 void
-fiber_base::set_fss_data(
+worker_fiber::set_fss_data(
     void const* vp,
     fss_cleanup_function::ptr_t const& cleanup_fn,
     void * data, bool cleanup_existing)
@@ -162,7 +163,7 @@ fiber_base::set_fss_data(
 }
 
 void
-fiber_base::rethrow() const
+worker_fiber::rethrow() const
 {
     BOOST_ASSERT( has_exception() );
 

@@ -3,14 +3,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_MAIN_NOTIFIER_H
-#define BOOST_FIBERS_DETAIL_MAIN_NOTIFIER_H
+#ifndef BOOST_FIBERS_DETAIL_MAIN_FIBER_H
+#define BOOST_FIBERS_DETAIL_MAIN_FIBER_H
 
 #include <boost/atomic.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -20,16 +20,17 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class main_notifier : public notify
+class main_fiber : public fiber_base
 {
 public:
-    static ptr_t make_pointer( main_notifier & n) {
+    static ptr_t make_pointer( main_fiber & n) {
         ptr_t p( & n);
         intrusive_ptr_add_ref( p.get() );
         return p;
     }
 
-    main_notifier() :
+    main_fiber() :
+        fiber_base(),
         ready_( false)
     {}
 
@@ -43,13 +44,13 @@ public:
     {}
 
     id get_id() const BOOST_NOEXCEPT
-    { return id( const_cast< main_notifier * >( this) ); }
+    { return id( const_cast< main_fiber * >( this) ); }
 
 private:
     atomic< bool >  ready_;
 
-    main_notifier( main_notifier const&);
-    main_notifier & operator=( main_notifier const&);
+    main_fiber( main_fiber const&);
+    main_fiber & operator=( main_fiber const&);
 };
 
 }}}
@@ -58,4 +59,4 @@ private:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_MAIN_NOTIFIER_H
+#endif // BOOST_FIBERS_DETAIL_MAIN_FIBER_H

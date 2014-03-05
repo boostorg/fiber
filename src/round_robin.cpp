@@ -47,13 +47,13 @@ round_robin::~round_robin() BOOST_NOEXCEPT
 }
 
 void
-round_robin::spawn( detail::fiber_base::ptr_t const& f)
+round_robin::spawn( detail::worker_fiber::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
     // store active fiber in local var
-    detail::fiber_base::ptr_t tmp = active_fiber_;
+    detail::worker_fiber::ptr_t tmp = active_fiber_;
     // assign new fiber to active fiber
     active_fiber_ = f;
     // set active fiber to state_running
@@ -75,7 +75,7 @@ round_robin::run()
     // from waiting-queue to the runnable-queue
     BOOST_FOREACH( schedulable const& s, wqueue_)
     {
-        detail::fiber_base::ptr_t f( s.f);
+        detail::worker_fiber::ptr_t f( s.f);
 
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
@@ -95,7 +95,7 @@ round_robin::run()
 
     // pop new fiber from ready-queue which is not complete
     // (example: fiber in ready-queue could be canceled by active-fiber)
-    detail::fiber_base::ptr_t f;
+    detail::worker_fiber::ptr_t f;
     do
     {
         if ( rqueue_.empty() )
@@ -136,7 +136,7 @@ round_robin::wait_until( clock_type::time_point const& timeout_time,
     // push active fiber to wqueue_
     wqueue_.push_back( schedulable( active_fiber_, timeout_time) );
     // store active fiber in local var
-    detail::fiber_base::ptr_t tmp = active_fiber_;
+    detail::worker_fiber::ptr_t tmp = active_fiber_;
     // suspend active fiber
     active_fiber_->suspend();
     // fiber is resumed
@@ -158,7 +158,7 @@ round_robin::yield()
     // push active fiber to wqueue_
     wqueue_.push_back( schedulable( active_fiber_) );
     // store active fiber in local var
-    detail::fiber_base::ptr_t tmp = active_fiber_;
+    detail::worker_fiber::ptr_t tmp = active_fiber_;
     // suspend acitive fiber
     active_fiber_->suspend();
     // fiber is resumed
@@ -168,7 +168,7 @@ round_robin::yield()
 }
 
 void
-round_robin::join( detail::fiber_base::ptr_t const& f)
+round_robin::join( detail::worker_fiber::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != active_fiber_);
@@ -186,7 +186,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
             // FIXME: better state_running and no suspend
             active_fiber_->set_ready();
         // store active fiber in local var
-        detail::fiber_base::ptr_t tmp = active_fiber_;
+        detail::worker_fiber::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
         active_fiber_->suspend();
         // fiber is resumed by f
@@ -208,7 +208,7 @@ round_robin::join( detail::fiber_base::ptr_t const& f)
 }
 
 void
-round_robin::priority( detail::fiber_base::ptr_t const& f, int prio) BOOST_NOEXCEPT
+round_robin::priority( detail::worker_fiber::ptr_t const& f, int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( f);
 

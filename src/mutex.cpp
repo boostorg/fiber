@@ -37,7 +37,7 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    detail::notify::ptr_t n( detail::scheduler::instance()->active() );
+    detail::fiber_base::ptr_t n( detail::scheduler::instance()->active() );
     if ( n)
     {
         for (;;)
@@ -65,7 +65,7 @@ mutex::lock()
         for (;;)
         {
             // local notification for main-fiber
-            n = detail::scheduler::instance()->get_main_notifier();
+            n = detail::scheduler::instance()->get_main_fiber();
 
             unique_lock< detail::spinlock > lk( splk_);
 
@@ -118,13 +118,13 @@ mutex::unlock()
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     unique_lock< detail::spinlock > lk( splk_);
-    detail::notify::ptr_t n;
+    detail::fiber_base::ptr_t n;
     if ( ! waiting_.empty() )
     {
         n.swap( waiting_.front() );
         waiting_.pop_front();
     }
-    owner_ = detail::fiber_base::id();
+    owner_ = detail::worker_fiber::id();
 	state_ = UNLOCKED;
     lk.unlock();
     if ( n) n->set_ready();

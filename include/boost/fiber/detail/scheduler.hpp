@@ -12,7 +12,7 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -35,7 +35,7 @@ private:
 
 public:
     template< typename F >
-    static fiber_base::ptr_t extract( F const& f) BOOST_NOEXCEPT
+    static worker_fiber::ptr_t extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_; }
 
     static algorithm * instance();

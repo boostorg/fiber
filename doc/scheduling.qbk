@@ -41,13 +41,13 @@ it to [function_link set_scheduling_algorithm].
             algorithm( algorithm const&) = delete;
             algorithm & operator=( algorithm const&) = delete;
 
-            virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
+            virtual void spawn( detail::worker_fiber::ptr_t const&) = 0;
 
-            virtual void priority( detail::fiber_base::ptr_t const&, int) noexcept = 0;
+            virtual void priority( detail::worker_fiber::ptr_t const&, int) noexcept = 0;
 
-            virtual void join( detail::fiber_base::ptr_t const&) = 0;
+            virtual void join( detail::worker_fiber::ptr_t const&) = 0;
 
-            virtual detail::fiber_base::ptr_t active() noexcept = 0;
+            virtual detail::worker_fiber::ptr_t active() noexcept = 0;
 
             virtual bool run() = 0;
 
@@ -60,15 +60,15 @@ it to [function_link set_scheduling_algorithm].
 
             virtual void yield() = 0;
 
-            virtual detail::fiber_base::id get_main_id() = 0;
-            virtual detail::notify::ptr_t get_main_notifier() = 0;
+            virtual detail::worker_fiber::id get_main_id() = 0;
+            virtual detail::fiber_base::ptr_t get_main_fiber() = 0;
         };
 
         void set_scheduling_algorithm( algorithm *);
 
 [member_heading algorithm..spawn]
 
-        virtual void spawn( detail::fiber_base::ptr_t const& f) = 0;
+        virtual void spawn( detail::worker_fiber::ptr_t const& f) = 0;
 
 [variablelist
 [[Effects:] [Spawns fiber `f`, e.g. `f` will be entered the first time
@@ -77,7 +77,7 @@ or resumed where it was suspended before. Suspends the current fiber.]]
 
 [member_heading algorithm..priority]
 
-        virtual void priority( detail::fiber_base::ptr_t const& f, int p) noexcept = 0;
+        virtual void priority( detail::worker_fiber::ptr_t const& f, int p) noexcept = 0;
 
 [variablelist
 [[Effects:] [Sets priority `p` for fiber `f`. Interpretation of "priority"
@@ -87,7 +87,7 @@ is entirely up to the subclass.]]
 
 [member_heading algorithm..join]
 
-        virtual void join( detail::fiber_base::ptr_t const& f) = 0;
+        virtual void join( detail::worker_fiber::ptr_t const& f) = 0;
 
 [variablelist
 [[Effects:] [Suspends the current fiber until fiber `f` terminates.]]
@@ -95,13 +95,13 @@ is entirely up to the subclass.]]
 
 [member_heading algorithm..active]
 
-        virtual detail::fiber_base::ptr_t active() noexcept = 0;
+        virtual detail::worker_fiber::ptr_t active() noexcept = 0;
 
 [variablelist
 [[Returns:] [The active fiber, or a null-pointer if the current
 execution context is not a fiber managed by this __algo__ instance.]]
 [[Note:] [While the initial context for a given thread is conceptually also a
-fiber, it has no associated `detail::fiber_base` instance. This is when
+fiber, it has no associated `detail::worker_fiber` instance. This is when
 `active()` returns null. Higher-level __boost_fiber__ operations treat a
 thread's initial context as equivalent to an explicitly-launched fiber, but
 this method operates below that level of abstraction.]]
@@ -170,31 +170,31 @@ is immediately set to ready-state.]]
 
 [member_heading algorithm..get_main_id]
 
-        virtual detail::fiber_base::id get_main_id() = 0;
+        virtual detail::worker_fiber::id get_main_id() = 0;
 
 [variablelist
-[[Returns:] [A `fiber_base::id` associated with the initial context of the
+[[Returns:] [A `worker_fiber::id` associated with the initial context of the
 thread on which the scheduler is running.]]
 [[Note:] [While the initial context for a given thread is conceptually also a
-fiber, it has no associated `detail::fiber_base` instance. Higher-level
+fiber, it has no associated `detail::worker_fiber` instance. Higher-level
 __boost_fiber__ operations treat a thread's initial context as equivalent to
 an explicitly-launched fiber, but this method operates below that level of
 abstraction.]]
 [[See also:] [[member_link algorithm..active]]]
 ]
 
-[member_heading algorithm..get_main_notifier]
+[member_heading algorithm..get_main_fiber]
 
-        virtual detail::notify::ptr_t get_main_notifier() = 0;
+        virtual detail::fiber_base::ptr_t get_main_fiber() = 0;
 
 [variablelist
-[[Returns:] [A `notify::ptr_t` associated with the initial context of the
+[[Returns:] [A `fiber_base::ptr_t` associated with the initial context of the
 thread on which the scheduler is running.]]
 [[Note:] [While the initial context for a given thread is conceptually also a
-fiber, it has no associated `detail::fiber_base` instance. Higher-level
+fiber, it has no associated `detail::worker_fiber` instance. Higher-level
 __boost_fiber__ operations treat a thread's initial context as equivalent to
 an explicitly-launched fiber, but this method operates below that level of
-abstraction. The `notify::ptr_t` is used in condition_variable and mutex
+abstraction. The `fiber_base::ptr_t` is used in condition_variable and mutex
 to signal threads initial context.]]
 [[See also:] [[member_link algorithm..active]]]
 ]

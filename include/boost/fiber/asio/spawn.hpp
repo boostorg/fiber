@@ -20,7 +20,7 @@
 #include <boost/move/move.hpp>
 
 #include <boost/fiber/attributes.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -59,7 +59,7 @@ public:
    * function.
    */
   basic_yield_context(
-          boost::fibers::detail::fiber_base::ptr_t const& fib,
+          boost::fibers::detail::worker_fiber::ptr_t const& fib,
           Handler& handler) :
       fiber_( fib),
       handler_( handler),
@@ -95,7 +95,7 @@ public:
 #if defined(GENERATING_DOCUMENTATION)
 private:
 #endif // defined(GENERATING_DOCUMENTATION)
-  boost::fibers::detail::fiber_base::ptr_t   fiber_;
+  boost::fibers::detail::worker_fiber::ptr_t   fiber_;
   Handler                                &   handler_;
   boost::system::error_code              *   ec_;
 };

@@ -2371,13 +2371,13 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="identifier">algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">algorithm</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">operator</phrase><phrase role="special">=(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">spawn</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">spawn</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">run</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
@@ -2390,8 +2390,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_main_id</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">get_main_notifier</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_main_id</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">get_main_fiber</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">*);</phrase>
@@ -2402,7 +2402,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
   <link linkend="algorithm_spawn">Member function <code>spawn</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">spawn</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">spawn</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2425,7 +2425,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <code>priority</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">p</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">p</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2454,7 +2454,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
   <link linkend="algorithm_join">Member function <code>join</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2475,7 +2475,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <code>active</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2494,7 +2494,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <para>
             While the initial context for a given thread is conceptually also a fiber,
             it has no associated <code><phrase role="identifier">detail</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">fiber_base</phrase></code>
+            role="special">::</phrase><phrase role="identifier">worker_fiber</phrase></code>
             instance. This is when <code><phrase role="identifier">active</phrase><phrase
             role="special">()</phrase></code> returns null. Higher-level <emphasis
             role="bold">Boost.Fiber</emphasis> operations treat a thread's initial
@@ -2705,7 +2705,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>get_main_id</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_main_id</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_main_id</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2713,7 +2713,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <term>Returns:</term>
         <listitem>
           <para>
-            A <code><phrase role="identifier">fiber_base</phrase><phrase role="special">::</phrase><phrase
+            A <code><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase
             role="identifier">id</phrase></code> associated with the initial context
             of the thread on which the scheduler is running.
           </para>
@@ -2725,7 +2725,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <para>
             While the initial context for a given thread is conceptually also a fiber,
             it has no associated <code><phrase role="identifier">detail</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">fiber_base</phrase></code>
+            role="special">::</phrase><phrase role="identifier">worker_fiber</phrase></code>
             instance. Higher-level <emphasis role="bold">Boost.Fiber</emphasis> operations
             treat a thread's initial context as equivalent to an explicitly-launched
             fiber, but this method operates below that level of abstraction.
@@ -2742,13 +2742,13 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="algorithm_get_main_notifier_bridgehead">
-  <phrase id="algorithm_get_main_notifier"/>
-  <link linkend="algorithm_get_main_notifier">Member
-      function <code>get_main_notifier</code>()</link>
+      <bridgehead renderas="sect4" id="algorithm_get_main_fiber_bridgehead">
+  <phrase id="algorithm_get_main_fiber"/>
+  <link linkend="algorithm_get_main_fiber">Member
+      function <code>get_main_fiber</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">get_main_notifier</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">get_main_fiber</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2768,7 +2768,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <para>
             While the initial context for a given thread is conceptually also a fiber,
             it has no associated <code><phrase role="identifier">detail</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">fiber_base</phrase></code>
+            role="special">::</phrase><phrase role="identifier">worker_fiber</phrase></code>
             instance. Higher-level <emphasis role="bold">Boost.Fiber</emphasis> operations
             treat a thread's initial context as equivalent to an explicitly-launched
             fiber, but this method operates below that level of abstraction. The

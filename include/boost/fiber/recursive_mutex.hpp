@@ -17,8 +17,8 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -44,10 +44,10 @@ private:
 
     detail::spinlock                splk_;
     state_t                         state_;
-    detail::fiber_base::id          owner_;
+    detail::worker_fiber::id          owner_;
     std::size_t                     count_;
     std::deque<
-        detail::notify::ptr_t
+        detail::fiber_base::ptr_t
     >                               waiting_;
 
 public:

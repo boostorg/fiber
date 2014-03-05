@@ -18,9 +18,9 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/detail/main_fiber.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/main_notifier.hpp>
-#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -41,10 +41,10 @@ class BOOST_FIBERS_DECL round_robin : public algorithm
 private:
     struct schedulable
     {
-        detail::fiber_base::ptr_t   f;
+        detail::worker_fiber::ptr_t   f;
         clock_type::time_point      tp;
 
-        schedulable( detail::fiber_base::ptr_t const& f_,
+        schedulable( detail::worker_fiber::ptr_t const& f_,
                      clock_type::time_point const& tp_ =
                         (clock_type::time_point::max)() ) :
             f( f_), tp( tp_)
@@ -52,25 +52,25 @@ private:
     };
 
     typedef std::deque< schedulable >                   wqueue_t;
-    typedef std::deque< detail::fiber_base::ptr_t >     rqueue_t;
+    typedef std::deque< detail::worker_fiber::ptr_t >     rqueue_t;
 
-    detail::fiber_base::ptr_t   active_fiber_;
+    detail::worker_fiber::ptr_t   active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
-    detail::main_notifier       mn_;
+    detail::main_fiber       mn_;
 
 public:
     round_robin() BOOST_NOEXCEPT;
 
     ~round_robin() BOOST_NOEXCEPT;
 
-    void spawn( detail::fiber_base::ptr_t const&);
+    void spawn( detail::worker_fiber::ptr_t const&);
 
-    void priority( detail::fiber_base::ptr_t const&, int) BOOST_NOEXCEPT;
+    void priority( detail::worker_fiber::ptr_t const&, int) BOOST_NOEXCEPT;
 
-    void join( detail::fiber_base::ptr_t const&);
+    void join( detail::worker_fiber::ptr_t const&);
 
-    detail::fiber_base::ptr_t active() BOOST_NOEXCEPT
+    detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
     bool run();
@@ -82,10 +82,10 @@ public:
     void yield();
 
     detail::fiber_base::id get_main_id()
-    { return detail::fiber_base::id( detail::main_notifier::make_pointer( mn_) ); }
+    { return detail::worker_fiber::id( detail::main_fiber::make_pointer( mn_) ); }
 
-    detail::notify::ptr_t get_main_notifier()
-    { return detail::notify::ptr_t( new detail::main_notifier() ); }
+    detail::fiber_base::ptr_t get_main_fiber()
+    { return detail::fiber_base::ptr_t( new detail::main_fiber() ); }
 };
 
 }}

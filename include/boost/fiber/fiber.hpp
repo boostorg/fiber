@@ -19,8 +19,8 @@
 
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/fiber_object.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/detail/worker_object.hpp>
 #include <boost/fiber/stack_allocator.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -48,7 +48,7 @@ class BOOST_FIBERS_DECL fiber : private noncopyable
 private:
     friend class detail::scheduler;
 
-    typedef detail::fiber_base    base_t;
+    typedef detail::worker_fiber    base_t;
     typedef base_t::ptr_t         ptr_t;
 
     ptr_t       impl_;
@@ -58,7 +58,7 @@ private:
     void start_fiber_();
 
 public:
-    typedef detail::fiber_base::id        id;
+    typedef detail::worker_fiber::id        id;
 
     fiber() BOOST_NOEXCEPT :
         impl_()
@@ -77,7 +77,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 fiber_fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
@@ -93,7 +93,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 fiber_fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -109,7 +109,7 @@ public:
                     Allocator const& alloc) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 fiber_fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -125,7 +125,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -141,7 +141,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -157,7 +157,7 @@ public:
                     Allocator const& alloc) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -173,7 +173,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -189,7 +189,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -205,7 +205,7 @@ public:
                     Allocator const& alloc) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -221,7 +221,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, stack_allocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -237,7 +237,7 @@ public:
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, StackAllocator, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
@@ -253,7 +253,7 @@ public:
                     Allocator const& alloc) :
         impl_()
     {
-        typedef detail::fiber_object<
+        typedef detail::worker_object<
                 Fn, StackAllocator, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);

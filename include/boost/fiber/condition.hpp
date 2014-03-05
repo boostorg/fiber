@@ -19,8 +19,8 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/main_notifier.hpp>
-#include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/main_fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -51,7 +51,7 @@ class BOOST_FIBERS_DECL condition : private noncopyable
 {
 private:
     detail::spinlock                        splk_;
-    std::deque< detail::notify::ptr_t >     waiting_;
+    std::deque< detail::fiber_base::ptr_t >     waiting_;
 
 public:
     condition();
@@ -72,7 +72,7 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        detail::notify::ptr_t n( detail::scheduler::instance()->active() );
+        detail::fiber_base::ptr_t n( detail::scheduler::instance()->active() );
         try
         {
             if ( n)
@@ -103,7 +103,7 @@ public:
             else
             {
                 // notifier for main-fiber
-                n = detail::scheduler::instance()->get_main_notifier();
+                n = detail::scheduler::instance()->get_main_fiber();
 
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
@@ -143,7 +143,7 @@ public:
     {
         cv_status status = cv_status::no_timeout;
 
-        detail::notify::ptr_t n( detail::scheduler::instance()->active() );
+        detail::fiber_base::ptr_t n( detail::scheduler::instance()->active() );
         try
         {
             if ( n)
@@ -182,7 +182,7 @@ public:
             else
             {
                 // notifier for main-fiber
-                n = detail::scheduler::instance()->get_main_notifier();
+                n = detail::scheduler::instance()->get_main_fiber();
 
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);

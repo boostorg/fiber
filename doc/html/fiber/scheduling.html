@@ -67,13 +67,13 @@
     <span class="identifier">algorithm</span><span class="special">(</span> <span class="identifier">algorithm</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
     <span class="identifier">algorithm</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">algorithm</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">spawn</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">spawn</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">priority</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;,</span> <span class="keyword">int</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">priority</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;,</span> <span class="keyword">int</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">join</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">join</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
     <span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="identifier">run</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
@@ -86,8 +86,8 @@
 
     <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_main_id</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-    <span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">notify</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">get_main_notifier</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_main_id</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">notify</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">get_main_fiber</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 <span class="special">};</span>
 
 <span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">algorithm</span> <span class="special">*);</span>
@@ -101,7 +101,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">spawn</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">spawn</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -125,7 +125,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">priority</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">priority</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -151,7 +151,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">join</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">join</span><span class="special">(</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -173,7 +173,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">active</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -186,7 +186,7 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
             While the initial context for a given thread is conceptually also a fiber,
-            it has no associated <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span></code>
+            it has no associated <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span></code>
             instance. This is when <code class="computeroutput"><span class="identifier">active</span><span class="special">()</span></code> returns null. Higher-level <span class="bold"><strong>Boost.Fiber</strong></span> operations treat a thread's initial
             context as equivalent to an explicitly-launched fiber, but this method
             operates below that level of abstraction.
@@ -362,20 +362,20 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_main_id</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_main_id</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            A <code class="computeroutput"><span class="identifier">fiber_base</span><span class="special">::</span><span class="identifier">id</span></code> associated with the initial context
+            A <code class="computeroutput"><span class="identifier">worker_fiber</span><span class="special">::</span><span class="identifier">id</span></code> associated with the initial context
             of the thread on which the scheduler is running.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
             While the initial context for a given thread is conceptually also a fiber,
-            it has no associated <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span></code>
+            it has no associated <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span></code>
             instance. Higher-level <span class="bold"><strong>Boost.Fiber</strong></span> operations
             treat a thread's initial context as equivalent to an explicitly-launched
             fiber, but this method operates below that level of abstraction.
@@ -389,14 +389,14 @@
 <p>
       </p>
 <h5>
-<a name="algorithm_get_main_notifier_bridgehead"></a>
-  <span><a name="algorithm_get_main_notifier"></a></span>
-  <a class="link" href="scheduling.html#algorithm_get_main_notifier">Member
-      function <code class="computeroutput">get_main_notifier</code>()</a>
+<a name="algorithm_get_main_fiber_bridgehead"></a>
+  <span><a name="algorithm_get_main_fiber"></a></span>
+  <a class="link" href="scheduling.html#algorithm_get_main_fiber">Member
+      function <code class="computeroutput">get_main_fiber</code>()</a>
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">notify</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">get_main_notifier</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">notify</span><span class="special">::</span><span class="identifier">ptr_t</span> <span class="identifier">get_main_fiber</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -409,7 +409,7 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
             While the initial context for a given thread is conceptually also a fiber,
-            it has no associated <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">fiber_base</span></code>
+            it has no associated <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">worker_fiber</span></code>
             instance. Higher-level <span class="bold"><strong>Boost.Fiber</strong></span> operations
             treat a thread's initial context as equivalent to an explicitly-launched
             fiber, but this method operates below that level of abstraction. The

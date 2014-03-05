@@ -12,8 +12,8 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/notify.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -31,13 +31,13 @@ namespace fibers {
 
 struct algorithm : private noncopyable
 {
-    virtual void spawn( detail::fiber_base::ptr_t const&) = 0;
+    virtual void spawn( detail::worker_fiber::ptr_t const&) = 0;
 
-    virtual void priority( detail::fiber_base::ptr_t const&, int) BOOST_NOEXCEPT = 0;
+    virtual void priority( detail::worker_fiber::ptr_t const&, int) BOOST_NOEXCEPT = 0;
 
-    virtual void join( detail::fiber_base::ptr_t const&) = 0;
+    virtual void join( detail::worker_fiber::ptr_t const&) = 0;
 
-    virtual detail::fiber_base::ptr_t active() BOOST_NOEXCEPT = 0;
+    virtual detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT = 0;
 
     virtual bool run() = 0;
 
@@ -52,7 +52,7 @@ struct algorithm : private noncopyable
     virtual void yield() = 0;
 
     virtual detail::fiber_base::id get_main_id() = 0;
-    virtual detail::notify::ptr_t get_main_notifier() = 0;
+    virtual detail::fiber_base::ptr_t get_main_fiber() = 0;
 
     virtual ~algorithm() {}
 };

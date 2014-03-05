@@ -47,7 +47,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base::ptr_t    fiber_;
+    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
 };
@@ -79,7 +79,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base::ptr_t  fiber_;
+    boost::fibers::detail::worker_fiber::ptr_t  fiber_;
     boost::system::error_code             *   ec_;
 };
 
