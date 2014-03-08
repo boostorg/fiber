@@ -19,9 +19,10 @@ project boost/fiber/performance/thread
       <library>/boost/coroutine//boost_coroutine
       <library>/boost/thread//boost_thread
       <library>/boost/program_options//boost_program_options
-      <linkflags>"-lrt" 
       <link>static
+      <optimization>speed
       <threading>multi
+      <variant>release
     ;
 
 alias sources

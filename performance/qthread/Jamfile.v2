@@ -18,10 +18,11 @@ project boost/fiber/performance/qthread
       <library>/boost/chrono//boost_chrono
       <library>/boost/coroutine//boost_coroutine
       <library>/boost/program_options//boost_program_options
-      <linkflags>"-lrt" 
       <linkflags>"-lqthread" 
       <link>static
+      <optimization>speed
       <threading>multi
+      <variant>release
     ;
 
 alias sources
