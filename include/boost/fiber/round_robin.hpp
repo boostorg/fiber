@@ -75,8 +75,7 @@ private:
     detail::worker_fiber::ptr_t active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
-    detail::main_fiber          mn_;
-    detail::main_fiber::ptr_t   main_fiber_;
+    detail::main_fiber       mn_;
 
 public:
     round_robin() BOOST_NOEXCEPT;
@@ -100,8 +99,11 @@ public:
 
     void yield();
 
+    detail::fiber_base::id get_main_id()
+    { return detail::worker_fiber::id( detail::main_fiber::make_pointer( mn_) ); }
+
     detail::fiber_base::ptr_t get_main_fiber()
-    { return main_fiber_; }
+    { return detail::fiber_base::ptr_t( new detail::main_fiber() ); }
 };
 
 }}

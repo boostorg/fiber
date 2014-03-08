@@ -27,7 +27,7 @@ fibers::fiber::id get_id() BOOST_NOEXCEPT
 {
     return fibers::detail::scheduler::instance()->active()
         ? fibers::detail::scheduler::instance()->active()->get_id()
-        : fibers::fiber::id( fibers::detail::scheduler::instance()->get_main_fiber()->get_id() );
+        : fibers::fiber::id( fibers::detail::scheduler::instance()->get_main_id() );
 }
 
 inline
