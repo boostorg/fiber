@@ -32,7 +32,8 @@ round_robin::round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
     wqueue_(),
     rqueue_(),
-    mn_()
+    mn_(),
+    main_fiber_( detail::main_fiber::make_pointer( mn_) )
 {}
 
 round_robin::~round_robin() BOOST_NOEXCEPT
