@@ -48,7 +48,7 @@ round_robin::~round_robin() BOOST_NOEXCEPT
 }
 
 void
-round_robin::resume_fiber_( detail::worker_fiber::ptr_t const& f)
+round_robin::spawn( detail::worker_fiber::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -66,16 +66,6 @@ round_robin::resume_fiber_( detail::worker_fiber::ptr_t const& f)
     BOOST_ASSERT( f == active_fiber_);
     // reset active fiber to previous
     active_fiber_ = tmp;
-}
-
-void
-round_robin::spawn( detail::worker_fiber::ptr_t const& f)
-{
-    BOOST_ASSERT( f);
-    BOOST_ASSERT( f->is_ready() );
-
-    // push active fiber to ready-queue
-    rqueue_.push_back( f);
 }
 
 bool
@@ -120,7 +110,7 @@ round_robin::run()
     while ( true);
 
     // resume fiber
-    resume_fiber_( f);
+    spawn( f);
 
     return true;
 }

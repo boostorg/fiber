@@ -78,8 +78,6 @@ private:
     detail::main_fiber          mn_;
     detail::main_fiber::ptr_t   main_fiber_;
 
-    void resume_fiber_( detail::worker_fiber::ptr_t const&);
-
 public:
     round_robin() BOOST_NOEXCEPT;
 
