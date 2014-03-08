@@ -48,7 +48,7 @@ round_robin::~round_robin() BOOST_NOEXCEPT
 }
 
 void
-round_robin::spawn( detail::worker_fiber::ptr_t const& f)
+round_robin::resume_fiber_( detail::worker_fiber::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -68,31 +68,39 @@ round_robin::spawn( detail::worker_fiber::ptr_t const& f)
     active_fiber_ = tmp;
 }
 
+void
+round_robin::spawn( detail::worker_fiber::ptr_t const& f)
+{
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( f->is_ready() );
+
+    // push active fiber to ready-queue
+    rqueue_.push_back( f);
+}
+
 bool
 round_robin::run()
 {
     wqueue_t wqueue;
     // move all fibers witch are ready (state_ready)
     // from waiting-queue to the runnable-queue
-    BOOST_FOREACH( schedulable const& s, wqueue_)
+    for ( wqueue_t::iterator it = wqueue_.begin(), end = wqueue_.end(); it != end; ++it )
     {
-        detail::worker_fiber::ptr_t f( s.f);
+        detail::worker_fiber::ptr_t f( it->f);
 
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
 
         // set fiber to state_ready if dead-line was reached
-        if ( s.tp <= clock_type::now() )
-            f->set_ready();
         // set fiber to state_ready if interruption was requested
-        if ( f->interruption_requested() )
+        if ( it->tp <= clock_type::now() || f->interruption_requested() )
             f->set_ready();
         if ( f->is_ready() )
             rqueue_.push_back( f);
-        else wqueue.push_back( s);
+        else wqueue.push( * it);
     }
     // exchange local with global waiting queue
-    wqueue_.swap( wqueue);
+    std::swap( wqueue_, wqueue);
 
     // pop new fiber from ready-queue which is not complete
     // (example: fiber in ready-queue could be canceled by active-fiber)
@@ -112,7 +120,7 @@ round_robin::run()
     while ( true);
 
     // resume fiber
-    spawn( f);
+    resume_fiber_( f);
 
     return true;
 }
@@ -133,15 +141,10 @@ round_robin::wait_until( clock_type::time_point const& timeout_time,
     // release lock
     lk.unlock();
     // push active fiber to wqueue_
-    wqueue_.push_back( schedulable( active_fiber_, timeout_time) );
-    // store active fiber in local var
-    detail::worker_fiber::ptr_t tmp = active_fiber_;
+    wqueue_.push( schedulable( active_fiber_, timeout_time) );
     // suspend active fiber
     active_fiber_->suspend();
     // fiber is resumed
-
-    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
-    BOOST_ASSERT( tmp->is_running() );
 
     return clock_type::now() < timeout_time;
 }
@@ -155,15 +158,10 @@ round_robin::yield()
     // set active fiber to state_waiting
     active_fiber_->set_ready();
     // push active fiber to wqueue_
-    wqueue_.push_back( schedulable( active_fiber_) );
-    // store active fiber in local var
-    detail::worker_fiber::ptr_t tmp = active_fiber_;
+    wqueue_.push( schedulable( active_fiber_) );
     // suspend acitive fiber
     active_fiber_->suspend();
     // fiber is resumed
-
-    BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
-    BOOST_ASSERT( tmp->is_running() );
 }
 
 void
@@ -177,21 +175,16 @@ round_robin::join( detail::worker_fiber::ptr_t const& f)
         // set active fiber to state_waiting
         active_fiber_->set_waiting();
         // push active fiber to wqueue_
-        wqueue_.push_back( schedulable( active_fiber_) );
+        wqueue_.push( schedulable( active_fiber_) );
         // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
             // f must be already terminated therefore we set
             // active fiber to state_ready
             // FIXME: better state_running and no suspend
             active_fiber_->set_ready();
-        // store active fiber in local var
-        detail::worker_fiber::ptr_t tmp = active_fiber_;
         // suspend fiber until f terminates
         active_fiber_->suspend();
         // fiber is resumed by f
-
-        BOOST_ASSERT( tmp == detail::scheduler::instance()->active() );
-        BOOST_ASSERT( tmp->is_running() );
     }
     else
     {

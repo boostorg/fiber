@@ -6,7 +6,10 @@
 #ifndef BOOST_FIBERS_DEFAULT_SCHEDULER_H
 #define BOOST_FIBERS_DEFAULT_SCHEDULER_H
 
+#include <algorithm>
 #include <deque>
+#include <queue>
+#include <vector>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -41,24 +44,41 @@ class BOOST_FIBERS_DECL round_robin : public algorithm
 private:
     struct schedulable
     {
-        detail::worker_fiber::ptr_t   f;
-        clock_type::time_point      tp;
+        detail::worker_fiber::ptr_t     f;
+        clock_type::time_point          tp;
 
         schedulable( detail::worker_fiber::ptr_t const& f_,
                      clock_type::time_point const& tp_ =
                         (clock_type::time_point::max)() ) :
             f( f_), tp( tp_)
         { BOOST_ASSERT( f); }
+
+        bool operator>( schedulable const& other) const {
+            return tp > other.tp;
+        }
     };
 
-    typedef std::deque< schedulable >                   wqueue_t;
+    class wqueue_t : public std::priority_queue<
+        schedulable,
+        std::vector< schedulable >,
+        std::greater< schedulable > 
+    > {
+    public:
+        typedef std::vector< schedulable >::iterator    iterator;
+        iterator begin() { return c.begin(); }
+        iterator end() { return c.end(); }
+    };
+
+    //typedef std::deque< schedulable >                   wqueue_t;
     typedef std::deque< detail::worker_fiber::ptr_t >     rqueue_t;
 
-    detail::worker_fiber::ptr_t   active_fiber_;
+    detail::worker_fiber::ptr_t active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
     detail::main_fiber          mn_;
     detail::main_fiber::ptr_t   main_fiber_;
+
+    void resume_fiber_( detail::worker_fiber::ptr_t const&);
 
 public:
     round_robin() BOOST_NOEXCEPT;
