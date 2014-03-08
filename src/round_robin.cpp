@@ -125,8 +125,6 @@ bool
 round_robin::wait_until( clock_type::time_point const& timeout_time,
                          unique_lock< detail::spinlock > & lk)
 {
-    clock_type::time_point start( clock_type::now() );
-
     BOOST_ASSERT( active_fiber_);
     BOOST_ASSERT( active_fiber_->is_running() );
 
