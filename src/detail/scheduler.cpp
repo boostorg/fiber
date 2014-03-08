@@ -7,8 +7,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/round_robin.hpp"
-
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -20,19 +18,20 @@ namespace detail {
 static void deleter_fn( algorithm * algo) { delete algo; }
 static void null_deleter_fn( algorithm *) {}
 
-thread_specific_ptr< algorithm > scheduler::default_algo_( deleter_fn);
-thread_specific_ptr< algorithm > scheduler::instance_( null_deleter_fn);
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
+    (defined(__ICC) && defined(BOOST_WINDOWS))
+template< typename T >
+__declspec(thread) T * thread_local_ptr< T >::t_ = 0;
+#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+template< typename T >
+detail::thread_local_ptr< T > thread_local_ptr< T >::t_;
+#else
+template< typename T >
+__thread T * thread_local_ptr< T >::t_ = 0;
+#endif
 
-algorithm *
-scheduler::instance()
-{
-    if ( ! instance_.get() )
-    {
-        default_algo_.reset( new round_robin() );
-        instance_.reset( default_algo_.get() );
-    }
-    return instance_.get();
-}
+thread_local_ptr< algorithm > scheduler::default_algo_( deleter_fn);
+thread_local_ptr< algorithm > scheduler::instance_( null_deleter_fn);
 
 void
 scheduler::replace( algorithm * other)
