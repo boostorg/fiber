@@ -99,9 +99,6 @@ public:
 
     void yield();
 
-    detail::fiber_base::id get_main_id()
-    { return detail::worker_fiber::id( detail::main_fiber::make_pointer( mn_) ); }
-
     detail::fiber_base::ptr_t get_main_fiber()
     { return detail::fiber_base::ptr_t( new detail::main_fiber() ); }
 };
