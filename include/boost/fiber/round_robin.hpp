@@ -77,6 +77,10 @@ private:
     rqueue_t                    rqueue_;
     detail::main_fiber       mn_;
 
+    detail::worker_fiber::ptr_t pick_next_();
+
+    void resume_( detail::worker_fiber::ptr_t const&);
+
 public:
     round_robin() BOOST_NOEXCEPT;
 
@@ -91,7 +95,7 @@ public:
     detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
-    bool run();
+    void run();
 
     void wait( unique_lock< detail::spinlock > &);
     bool wait_until( clock_type::time_point const&,

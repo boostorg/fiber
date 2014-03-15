@@ -14,7 +14,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/coroutine/standard_stack_allocator.hpp>
+#include <boost/coroutine/stack_allocator.hpp>
 #include <boost/coroutine/stack_context.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
@@ -33,7 +33,7 @@ public:
         stack_ctx_()
     {
         boost::coroutines::standard_stack_allocator allocator;
-        allocator.allocate( stack_ctx_, default_stacksize() ); 
+        allocator.allocate( stack_ctx_, boost::coroutines::stack_allocator::traits_type::default_size() ); 
     }
 
     void allocate( boost::coroutines::stack_context & ctx, std::size_t size)
@@ -45,15 +45,6 @@ public:
     void deallocate( boost::coroutines::stack_context & ctx)
     {
     }
-
-    static std::size_t maximum_stacksize()
-    { return boost::coroutines::standard_stack_allocator::maximum_stacksize(); }
-
-    static std::size_t default_stacksize()
-    { return boost::coroutines::standard_stack_allocator::default_stacksize(); }
-
-    static std::size_t minimum_stacksize()
-    { return boost::coroutines::standard_stack_allocator::minimum_stacksize(); }
 };
 
 #ifdef BOOST_HAS_ABI_HEADERS

@@ -15,6 +15,7 @@
 #include <boost/atomic.hpp>
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/coroutine/symmetric_coroutine.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/move/move.hpp>
@@ -26,6 +27,7 @@
 #include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -39,6 +41,8 @@
 namespace boost {
 namespace fibers {
 namespace detail {
+
+namespace coro = boost::coroutines;
 
 class BOOST_FIBERS_DECL worker_fiber : public fiber_base
 {
@@ -74,21 +78,30 @@ private:
     };
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
+    typedef coro::symmetric_coroutine<
+        void
+    >                                          coro_t;
 
     fss_data_t              fss_data_;
 
+    void trampoline_( coro_t::yield_type &);
+
 protected:
-    atomic< state_t >       state_;
-    atomic< int >           flags_;
-    atomic< int >           priority_;
-    exception_ptr           except_;
-    spinlock                splk_;
-    std::vector< ptr_t >    waiting_;
+    coro_t::yield_type      *   callee_;
+    coro_t::call_type           caller_;
+    atomic< state_t >           state_;
+    atomic< int >               flags_;
+    atomic< int >               priority_;
+    exception_ptr               except_;
+    spinlock                    splk_;
+    std::vector< ptr_t >        waiting_;
 
     void release();
 
+    virtual void run() = 0;
+
 public:
-    worker_fiber();
+    worker_fiber( attributes const&);
 
     virtual ~worker_fiber();
 
@@ -130,13 +143,29 @@ public:
     bool is_waiting() const BOOST_NOEXCEPT
     { return WAITING == state_; }
 
-    void set_terminated() BOOST_NOEXCEPT;
+    void set_terminated() BOOST_NOEXCEPT
+    {
+        state_t previous = state_.exchange( TERMINATED);
+        BOOST_ASSERT( RUNNING == previous);
+    }
 
-    void set_ready() BOOST_NOEXCEPT;
+    void set_ready() BOOST_NOEXCEPT
+    {
+        state_t previous = state_.exchange( READY);
+        BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
+    }
 
-    void set_running() BOOST_NOEXCEPT;
+    void set_running() BOOST_NOEXCEPT
+    {
+        state_t previous = state_.exchange( RUNNING);
+        BOOST_ASSERT( READY == previous);
+    }
 
-    void set_waiting() BOOST_NOEXCEPT;
+    void set_waiting() BOOST_NOEXCEPT
+    {
+        state_t previous = state_.exchange( WAITING);
+        BOOST_ASSERT( RUNNING == previous);
+    }
 
     void * get_fss_data( void const* vp) const;
 
@@ -151,9 +180,36 @@ public:
 
     void rethrow() const;
 
-    virtual void resume() = 0;
+    void resume( worker_fiber * f)
+    {
+        if ( 0 == f)
+        {
+            BOOST_ASSERT( caller_);
+            BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
-    virtual void suspend() = 0;
+            // called from main-fiber
+            caller_();
+        }
+        else
+        {
+            // caller from worker-fiber f
+            BOOST_ASSERT( caller_);
+            BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
+            BOOST_ASSERT( f->callee_);
+
+            ( * f->callee_)( caller_);
+        }
+    }
+
+    void suspend()
+    {
+        BOOST_ASSERT( callee_);
+        BOOST_ASSERT( * callee_);
+
+        ( * callee_)();
+
+        BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
+    }
 };
 
 }}}

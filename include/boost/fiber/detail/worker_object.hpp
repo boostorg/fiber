@@ -12,7 +12,6 @@
 #include <boost/assert.hpp>
 #include <boost/bind.hpp>
 #include <boost/config.hpp>
-#include <boost/coroutine/all.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/move/move.hpp>
 #include <boost/ref.hpp>
@@ -35,81 +34,19 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-namespace coro = boost::coroutines;
-
-template< typename Fn, typename StackAllocator, typename Allocator >
+template< typename Fn, typename Allocator >
 class worker_object : public worker_fiber
 {
 public:
     typedef typename Allocator::template rebind<
-        worker_object< Fn, StackAllocator, Allocator >
-    >::other                                allocator_t;
+        worker_object< Fn, Allocator >
+    >::other                            allocator_t;
 
-private:
-    typedef worker_fiber                      base_t;
-    typedef coro::symmetric_coroutine<
-        void, StackAllocator
-    >                                       coro_t;
-
-    Fn                              fn_;
-    typename coro_t::yield_type *   callee_;
-    typename coro_t::call_type      caller_;
-    allocator_t                     alloc_;
-
-    static void destroy_( allocator_t & alloc, worker_object * p)
-    {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
-    }
-
-    worker_object( worker_object &);
-    worker_object & operator=( worker_object const&);
-
-    void trampoline_( typename coro_t::yield_type & yield)
-    {
-        BOOST_ASSERT( yield);
-        BOOST_ASSERT( ! is_terminated() );
-
-        callee_ = & yield;
-        set_running();
-        suspend();
-
-        try
-        {
-            BOOST_ASSERT( is_running() );
-            fn_();
-            BOOST_ASSERT( is_running() );
-        }
-        catch ( coro::detail::forced_unwind const&)
-        {
-            set_terminated();
-            release();
-            throw;
-        }
-        catch ( fiber_interrupted const&)
-        { except_ = current_exception(); }
-        catch (...)
-        { std::terminate(); }
-
-        set_terminated();
-        release();
-        suspend();
-
-        BOOST_ASSERT_MSG( false, "fiber already terminated");
-    }
-
-public:
 #ifndef BOOST_NO_RVALUE_REFERENCES
     worker_object( Fn && fn, attributes const& attrs,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
-        base_t(),
+                   allocator_t const& alloc) :
+        base_t( attrs),
         fn_( forward< Fn >( fn) ),
-        callee_( 0),
-        caller_(
-            boost::bind( & worker_object::trampoline_, this, _1),
-            attrs,
-            stack_alloc),
         alloc_( alloc)
     {
         BOOST_ASSERT( caller_);
@@ -124,15 +61,9 @@ public:
     }
 #else
     worker_object( Fn fn, attributes const& attrs,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
-        base_t(),
+                   allocator_t const& alloc) :
+        base_t( attrs),
         fn_( fn),
-        callee_( 0),
-        caller_(
-            boost::bind( & worker_object::trampoline_, this, _1),
-            attrs,
-            stack_alloc),
         alloc_( alloc)
     {
         BOOST_ASSERT( caller_);
@@ -147,15 +78,9 @@ public:
     }
 
     worker_object( BOOST_RV_REF( Fn) fn, attributes const& attrs,
-                  StackAllocator const& stack_alloc,
-                  allocator_t const& alloc) :
-        base_t(),
+                   allocator_t const& alloc) :
+        base_t( attrs),
         fn_( fn),
-        callee_( 0),
-        caller_(
-            boost::bind( & worker_object::trampoline_, this, _1),
-            attrs,
-            stack_alloc),
         alloc_( alloc)
     {
         BOOST_ASSERT( caller_);
@@ -173,23 +98,23 @@ public:
     void deallocate_object()
     { destroy_( alloc_, this); }
 
-    void resume()
-    {
-        BOOST_ASSERT( caller_);
-        BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
+private:
+    typedef worker_fiber                base_t;
 
-        caller_();
+    Fn              fn_;
+    allocator_t     alloc_;
+
+    static void destroy_( allocator_t & alloc, worker_object * p)
+    {
+        alloc.destroy( p);
+        alloc.deallocate( p, 1);
     }
 
-    void suspend()
-    {
-        BOOST_ASSERT( callee_);
-        BOOST_ASSERT( * callee_);
+    worker_object( worker_object &);
+    worker_object & operator=( worker_object const&);
 
-        ( * callee_)();
-
-        BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
-    }
+    void run()
+    { fn_(); }
 };
 
 }}}

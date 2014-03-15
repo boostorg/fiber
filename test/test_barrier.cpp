@@ -57,14 +57,10 @@ void test_barrier()
     boost::fibers::fiber s1(
             boost::bind(
                 fn1, boost::ref( b) ) );
-    BOOST_CHECK( s1);
-    BOOST_CHECK_EQUAL( 1, value1);
 
     boost::fibers::fiber s2(
             boost::bind(
                 fn2, boost::ref( b) ) );
-    BOOST_CHECK( s2);
-    BOOST_CHECK_EQUAL( 1, value2);
 
     s1.join();
     s2.join();

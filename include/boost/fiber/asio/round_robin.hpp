@@ -79,7 +79,7 @@ public:
     detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
-    bool run();
+    void run();
 
     void wait( unique_lock< detail::spinlock > &);
     bool wait_until( clock_type::time_point const&,

@@ -13,7 +13,7 @@
 #include <boost/thread/locks.hpp>
 
 #include "boost/fiber/detail/scheduler.hpp"
-#include <boost/fiber/exceptions.hpp>
+#include "boost/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -23,9 +23,47 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-worker_fiber::worker_fiber() :
+void
+worker_fiber::trampoline_( coro_t::yield_type & yield)
+{
+    BOOST_ASSERT( yield);
+    BOOST_ASSERT( ! is_terminated() );
+
+    callee_ = & yield;
+    set_running();
+    suspend();
+
+    try
+    {
+        BOOST_ASSERT( is_running() );
+        run();
+        BOOST_ASSERT( is_running() );
+    }
+    catch ( coro::detail::forced_unwind const&)
+    {
+        set_terminated();
+        release();
+        throw;
+    }
+    catch ( fiber_interrupted const&)
+    { except_ = current_exception(); }
+    catch (...)
+    { std::terminate(); }
+
+    set_terminated();
+    release();
+    suspend();
+
+    BOOST_ASSERT_MSG( false, "fiber already terminated");
+}
+
+worker_fiber::worker_fiber( attributes const& attrs) :
     fiber_base(),
     fss_data_(),
+    callee_( 0),
+    caller_(
+        boost::bind( & worker_fiber::trampoline_, this, _1),
+        attrs),
     state_( READY),
     flags_( 0),
     priority_( 0),
@@ -94,34 +132,6 @@ worker_fiber::thread_affinity( bool req) BOOST_NOEXCEPT
         flags_ |= flag_thread_affinity;
     else
         flags_ &= ~flag_thread_affinity;
-}
-
-void
-worker_fiber::set_terminated() BOOST_NOEXCEPT
-{
-    state_t previous = state_.exchange( TERMINATED);
-    BOOST_ASSERT( RUNNING == previous);
-}
-
-void
-worker_fiber::set_ready() BOOST_NOEXCEPT
-{
-    state_t previous = state_.exchange( READY);
-    BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
-}
-
-void
-worker_fiber::set_running() BOOST_NOEXCEPT
-{
-    state_t previous = state_.exchange( RUNNING);
-    BOOST_ASSERT( READY == previous);
-}
-
-void
-worker_fiber::set_waiting() BOOST_NOEXCEPT
-{
-    state_t previous = state_.exchange( WAITING);
-    BOOST_ASSERT( RUNNING == previous);
 }
 
 void *

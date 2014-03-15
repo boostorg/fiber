@@ -218,7 +218,7 @@ void test_detach()
 {
     {
         boost::fibers::fiber s1( f1);
-        BOOST_CHECK( ! s1);
+        BOOST_CHECK( s1);
         s1.detach();
         BOOST_CHECK( ! s1);
         BOOST_CHECK( ! s1.joinable() );
@@ -238,7 +238,7 @@ void test_replace()
     boost::fibers::round_robin ds;
     boost::fibers::set_scheduling_algorithm( & ds);
     boost::fibers::fiber s1( f1);
-    BOOST_CHECK( ! s1);
+    BOOST_CHECK( s1);
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
 
@@ -249,7 +249,7 @@ void test_replace()
 void test_complete()
 {
     boost::fibers::fiber s1( f1);
-    BOOST_CHECK( ! s1);
+    BOOST_CHECK( s1);
     boost::fibers::fiber s2( f2);
     BOOST_CHECK( s2);
 
@@ -338,10 +338,8 @@ void test_fiber_interrupts_at_join()
     int i = 0;
     bool failed = false;
     boost::fibers::fiber f1( boost::bind( f7, boost::ref( i), boost::ref( failed) ) );
-    BOOST_CHECK_EQUAL( 1, i);
     boost::fibers::fiber f2( boost::bind( interruption_point_join, boost::ref( f1) ) );
     f1.interrupt();
-    BOOST_CHECK_EQUAL( 1, i);
     f2.join();
     BOOST_CHECK_EQUAL( 1, i);
     BOOST_CHECK( failed);

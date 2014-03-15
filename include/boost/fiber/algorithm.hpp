@@ -39,7 +39,7 @@ struct algorithm : private noncopyable
 
     virtual detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT = 0;
 
-    virtual bool run() = 0;
+    virtual void run() = 0;
 
     virtual void wait( unique_lock< detail::spinlock > &) = 0;
     virtual bool wait_until( clock_type::time_point const&,
