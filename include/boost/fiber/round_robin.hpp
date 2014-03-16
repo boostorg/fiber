@@ -77,6 +77,8 @@ private:
     rqueue_t                    rqueue_;
     detail::main_fiber       mn_;
 
+    void resume_( detail::worker_fiber::ptr_t const&);
+
 public:
     round_robin() BOOST_NOEXCEPT;
 

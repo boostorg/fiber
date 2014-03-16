@@ -28,26 +28,8 @@
 namespace boost {
 namespace fibers {
 
-round_robin::round_robin() BOOST_NOEXCEPT :
-    active_fiber_(),
-    wqueue_(),
-    rqueue_(),
-    mn_()
-{}
-
-round_robin::~round_robin() BOOST_NOEXCEPT
-{
-    // fibers will be destroyed (stack-unwinding)
-    // if last reference goes out-of-scope
-    // therefore destructing wqueue_ && rqueue_
-    // will destroy the fibers in this scheduler
-    // if not referenced on other places
-    while ( ! wqueue_.empty() && ! rqueue_.empty() )
-        run();
-}
-
 void
-round_robin::spawn( detail::worker_fiber::ptr_t const& f)
+round_robin::resume_( detail::worker_fiber::ptr_t const& f)
 {
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -66,6 +48,27 @@ round_robin::spawn( detail::worker_fiber::ptr_t const& f)
     // reset active fiber to previous
     active_fiber_ = tmp;
 }
+
+round_robin::round_robin() BOOST_NOEXCEPT :
+    active_fiber_(),
+    wqueue_(),
+    rqueue_(),
+    mn_()
+{}
+
+round_robin::~round_robin() BOOST_NOEXCEPT
+{
+    // fibers will be destroyed (stack-unwinding)
+    // if last reference goes out-of-scope
+    // therefore destructing wqueue_ && rqueue_
+    // will destroy the fibers in this scheduler
+    // if not referenced on other places
+    while ( ! wqueue_.empty() && ! rqueue_.empty() )
+        run();
+}
+void
+round_robin::spawn( detail::worker_fiber::ptr_t const& f)
+{ rqueue_.push_back( f); }
 
 bool
 round_robin::run()
@@ -109,7 +112,7 @@ round_robin::run()
     while ( true);
 
     // resume fiber
-    spawn( f);
+    resume_( f);
 
     return true;
 }
