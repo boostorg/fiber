@@ -28,6 +28,18 @@
 namespace boost {
 namespace fibers {
 
+bool fetch_ready( detail::worker_fiber::ptr_t & f)
+{
+    BOOST_ASSERT( ! f->is_running() );
+    BOOST_ASSERT( ! f->is_terminated() );
+
+    // set fiber to state_ready if dead-line was reached
+    // set fiber to state_ready if interruption was requested
+    if ( f->time_point() <= clock_type::now() || f->interruption_requested() )
+        f->set_ready();
+    return f->is_ready();
+}
+
 detail::worker_fiber::ptr_t
 round_robin::pick_next_()
 {
@@ -99,25 +111,7 @@ round_robin::run()
     {
         // move all fibers witch are ready (state_ready)
         // from waiting-queue to the runnable-queue
-        wqueue_t wqueue;
-        for ( wqueue_t::iterator it = wqueue_.begin(), end = wqueue_.end(); it != end; ++it )
-        {
-            detail::worker_fiber::ptr_t f( it->f);
-
-            BOOST_ASSERT( ! f->is_running() );
-            BOOST_ASSERT( ! f->is_terminated() );
-
-            // set fiber to state_ready if dead-line was reached
-            // set fiber to state_ready if interruption was requested
-            if ( it->tp <= clock_type::now() || f->interruption_requested() )
-                f->set_ready();
-            if ( f->is_ready() )
-                rqueue_.push_back( f);
-            else wqueue.push( * it);
-        }
-
-        // exchange local with global waiting queue
-        std::swap( wqueue_, wqueue);
+        wqueue_.move_to( rqueue_, fetch_ready);
 
         // pop new fiber from ready-queue which is not complete
         // (example: fiber in ready-queue could be canceled by active-fiber)
@@ -155,7 +149,8 @@ round_robin::wait_until( clock_type::time_point const& timeout_time,
     // release lock
     lk.unlock();
     // push active fiber to wqueue_
-    wqueue_.push( schedulable( active_fiber_, timeout_time) );
+    active_fiber_->time_point( timeout_time);
+    wqueue_.push( active_fiber_);
     // run next fiber
     run();
 
@@ -171,7 +166,7 @@ round_robin::yield()
     // set active fiber to state_waiting
     active_fiber_->set_ready();
     // push active fiber to wqueue_
-    wqueue_.push( schedulable( active_fiber_) );
+    wqueue_.push( active_fiber_);
     // run next fiber
     run();
 }
@@ -187,7 +182,7 @@ round_robin::join( detail::worker_fiber::ptr_t const& f)
         // set active fiber to state_waiting
         active_fiber_->set_waiting();
         // push active fiber to wqueue_
-        wqueue_.push( schedulable( active_fiber_) );
+        wqueue_.push( active_fiber_);
         // add active fiber to joinig-list of f
         if ( ! f->join( active_fiber_) )
             // f must be already terminated therefore we set

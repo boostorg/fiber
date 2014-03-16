@@ -60,6 +60,8 @@ worker_fiber::trampoline_( coro_t::yield_type & yield)
 worker_fiber::worker_fiber( attributes const& attrs) :
     fiber_base(),
     fss_data_(),
+    nxt_(),
+    tp_( (clock_type::time_point::max)() ),
     callee_( 0),
     caller_(
         boost::bind( & worker_fiber::trampoline_, this, _1),
