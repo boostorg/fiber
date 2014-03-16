@@ -73,7 +73,7 @@ private:
 #endif
 
     typedef detail::fifo                                  wqueue_t;
-    typedef std::deque< detail::worker_fiber::ptr_t >     rqueue_t;
+    typedef detail::fifo                                  rqueue_t;
 
     detail::worker_fiber::ptr_t active_fiber_;
     wqueue_t                    wqueue_;

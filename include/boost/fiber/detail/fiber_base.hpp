@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_DETAIL_FIBER_BASE_H
 #define BOOST_FIBERS_DETAIL_FIBER_BASE_H
 
+//#include <atomic>
 #include <cstddef>
 #include <iostream>
 
@@ -35,7 +36,8 @@ class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
 private:
     atomic< std::size_t >   use_count_;
-//  std::size_t     use_count_;
+//    std::atomic< std::size_t >   use_count_;
+//    std::size_t     use_count_;
 
 protected:
     virtual void deallocate_object() = 0;

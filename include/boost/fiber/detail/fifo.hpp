@@ -144,7 +144,7 @@ public:
                     prev->next( nxt); 
                 }
                 f->next_reset();
-                queue.push_back( f);
+                queue.push( f);
             }
             else
                 prev = f;

@@ -80,7 +80,7 @@ round_robin::~round_robin() BOOST_NOEXCEPT
 }
 void
 round_robin::spawn( detail::worker_fiber::ptr_t const& f)
-{ rqueue_.push_back( f); }
+{ rqueue_.push( f); }
 
 bool
 round_robin::run()
@@ -99,8 +99,7 @@ round_robin::run()
             this_thread::yield();
             return false;
         }
-        f.swap( rqueue_.front() );
-        rqueue_.pop_front();
+        f = rqueue_.pop();
         if ( f->is_ready() ) break;
         else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
