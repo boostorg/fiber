@@ -70,12 +70,12 @@ private:
     };
 
     //typedef std::deque< schedulable >                   wqueue_t;
-    typedef std::deque< detail::worker_fiber::ptr_t >     rqueue_t;
+    typedef std::deque< detail::worker_fiber::ptr_t >   rqueue_t;
 
     detail::worker_fiber::ptr_t active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
-    detail::main_fiber       mn_;
+    detail::main_fiber          mn_;
 
     detail::worker_fiber::ptr_t pick_next_();
 
