@@ -21,10 +21,11 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/detail/main_fiber.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/fifo.hpp>
+#include <boost/fiber/detail/main_fiber.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -42,6 +43,7 @@ namespace fibers {
 class BOOST_FIBERS_DECL round_robin : public algorithm
 {
 private:
+#if 0
     struct schedulable
     {
         detail::worker_fiber::ptr_t     f;
@@ -68,8 +70,9 @@ private:
         iterator begin() { return c.begin(); }
         iterator end() { return c.end(); }
     };
+#endif
 
-    //typedef std::deque< schedulable >                   wqueue_t;
+    typedef detail::fifo                                  wqueue_t;
     typedef std::deque< detail::worker_fiber::ptr_t >     rqueue_t;
 
     detail::worker_fiber::ptr_t active_fiber_;

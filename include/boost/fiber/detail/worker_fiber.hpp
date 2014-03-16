@@ -76,6 +76,8 @@ private:
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
     fss_data_t              fss_data_;
+    ptr_t                   nxt_;
+    clock_type::time_point  tp_;
 
 protected:
     atomic< state_t >       state_;
@@ -154,6 +156,24 @@ public:
     virtual void resume() = 0;
 
     virtual void suspend() = 0;
+
+    ptr_t const& next() const
+    { return nxt_; }
+
+    void next( ptr_t const& nxt)
+    { nxt_ = nxt; }
+
+    void next_reset()
+    { nxt_.reset(); }
+
+    clock_type::time_point const& time_point() const
+    { return tp_; }
+
+    void time_point( clock_type::time_point const& tp)
+    { tp_ = tp; }
+
+    void time_point_reset()
+    { tp_ = (clock_type::time_point::max)(); }
 };
 
 }}}

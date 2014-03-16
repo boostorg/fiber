@@ -26,6 +26,8 @@ namespace detail {
 worker_fiber::worker_fiber() :
     fiber_base(),
     fss_data_(),
+    nxt_(),
+    tp_( (clock_type::time_point::max)() ),
     state_( READY),
     flags_( 0),
     priority_( 0),

@@ -35,6 +35,7 @@ class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
 private:
     atomic< std::size_t >   use_count_;
+//  std::size_t     use_count_;
 
 protected:
     virtual void deallocate_object() = 0;
