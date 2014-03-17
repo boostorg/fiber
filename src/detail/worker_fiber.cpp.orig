@@ -62,10 +62,13 @@ worker_fiber::worker_fiber( attributes const& attrs) :
     fss_data_(),
     nxt_(),
     tp_( (clock_type::time_point::max)() ),
+<<<<<<< HEAD
+=======
     callee_( 0),
     caller_(
         boost::bind( & worker_fiber::trampoline_, this, _1),
         attrs),
+>>>>>>> feature/yield
     state_( READY),
     flags_( 0),
     priority_( 0),

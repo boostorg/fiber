@@ -29,6 +29,8 @@ namespace boost {
 namespace fibers {
 
 bool fetch_ready( detail::worker_fiber::ptr_t & f)
+<<<<<<< HEAD
+=======
 {
     BOOST_ASSERT( ! f->is_running() );
     BOOST_ASSERT( ! f->is_terminated() );
@@ -45,7 +47,10 @@ round_robin::pick_next_()
 {
     detail::worker_fiber::ptr_t victim;
     if ( ! rqueue_.empty() )
-        victim = rqueue_.pop();
+    {
+        victim.swap( rqueue_.front() );
+        rqueue_.pop_front();
+    }
     return victim;
 }
 
@@ -74,6 +79,37 @@ round_robin::resume_( detail::worker_fiber::ptr_t const& f)
 }
 
 round_robin::round_robin() BOOST_NOEXCEPT :
+    active_fiber_( 0),
+    wqueue_(),
+    rqueue_(),
+    mn_()
+{}
+
+round_robin::~round_robin() BOOST_NOEXCEPT
+>>>>>>> feature/yield
+{
+    BOOST_ASSERT( ! f->is_running() );
+    BOOST_ASSERT( ! f->is_terminated() );
+
+    // set fiber to state_ready if dead-line was reached
+    // set fiber to state_ready if interruption was requested
+    if ( f->time_point() <= clock_type::now() || f->interruption_requested() )
+        f->set_ready();
+    return f->is_ready();
+}
+
+void
+round_robin::resume_( detail::worker_fiber::ptr_t const& f)
+{
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( f->is_ready() );
+
+    rqueue_.push_back( f);
+    //resume_( f);
+}
+
+<<<<<<< HEAD
+round_robin::round_robin() BOOST_NOEXCEPT :
     active_fiber_(),
     wqueue_(),
     rqueue_(),
@@ -90,11 +126,24 @@ round_robin::~round_robin() BOOST_NOEXCEPT
     while ( ! wqueue_.empty() && ! rqueue_.empty() )
         run();
 }
-
 void
 round_robin::spawn( detail::worker_fiber::ptr_t const& f)
 { rqueue_.push( f); }
 
+bool
+round_robin::run()
+{
+    // move all fibers witch are ready (state_ready)
+    // from waiting-queue to the runnable-queue
+    wqueue_.move_to( rqueue_, fetch_ready);
+
+    // pop new fiber from ready-queue which is not complete
+    // (example: fiber in ready-queue could be canceled by active-fiber)
+    detail::worker_fiber::ptr_t f;
+    do
+    {
+        if ( rqueue_.empty() )
+=======
 void
 round_robin::run()
 {
@@ -108,6 +157,7 @@ round_robin::run()
         // (example: fiber in ready-queue could be canceled by active-fiber)
         detail::worker_fiber::ptr_t f = pick_next_();
         if ( f)
+>>>>>>> feature/yield
         {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             resume_( f); 
@@ -121,7 +171,20 @@ round_robin::run()
                 this_thread::yield();
             return;
         }
+<<<<<<< HEAD
+        f = rqueue_.pop();
+        if ( f->is_ready() ) break;
+        else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
     }
+    while ( true);
+
+    // resume fiber
+    resume_( f);
+
+    return true;
+=======
+    }
+>>>>>>> feature/yield
 }
 
 void
@@ -142,8 +205,14 @@ round_robin::wait_until( clock_type::time_point const& timeout_time,
     // push active fiber to wqueue_
     active_fiber_->time_point( timeout_time);
     wqueue_.push( active_fiber_);
+<<<<<<< HEAD
+    // suspend active fiber
+    active_fiber_->suspend();
+    // fiber is resumed
+=======
     // run next fiber
     run();
+>>>>>>> feature/yield
 
     return clock_type::now() < timeout_time;
 }
@@ -158,8 +227,14 @@ round_robin::yield()
     active_fiber_->set_ready();
     // push active fiber to wqueue_
     wqueue_.push( active_fiber_);
+<<<<<<< HEAD
+    // suspend acitive fiber
+    active_fiber_->suspend();
+    // fiber is resumed
+=======
     // run next fiber
     run();
+>>>>>>> feature/yield
 }
 
 void

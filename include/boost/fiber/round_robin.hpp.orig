@@ -43,8 +43,42 @@ namespace fibers {
 class BOOST_FIBERS_DECL round_robin : public algorithm
 {
 private:
-    typedef detail::fifo        wqueue_t;
-    typedef detail::fifo        rqueue_t;
+#if 0
+    struct schedulable
+    {
+        detail::worker_fiber::ptr_t     f;
+        clock_type::time_point          tp;
+
+        schedulable( detail::worker_fiber::ptr_t const& f_,
+                     clock_type::time_point const& tp_ =
+                        (clock_type::time_point::max)() ) :
+            f( f_), tp( tp_)
+        { BOOST_ASSERT( f); }
+
+        bool operator>( schedulable const& other) const {
+            return tp > other.tp;
+        }
+    };
+
+    class wqueue_t : public std::priority_queue<
+        schedulable,
+        std::vector< schedulable >,
+        std::greater< schedulable > 
+    > {
+    public:
+        typedef std::vector< schedulable >::iterator    iterator;
+        iterator begin() { return c.begin(); }
+        iterator end() { return c.end(); }
+    };
+#endif
+
+<<<<<<< HEAD
+    typedef detail::fifo                                  wqueue_t;
+    typedef detail::fifo                                  rqueue_t;
+=======
+    typedef detail::fifo                                wqueue_t;
+    typedef std::deque< detail::worker_fiber::ptr_t >   rqueue_t;
+>>>>>>> feature/yield
 
     detail::worker_fiber::ptr_t active_fiber_;
     wqueue_t                    wqueue_;
@@ -52,6 +86,8 @@ private:
     detail::main_fiber          mn_;
 
     detail::worker_fiber::ptr_t pick_next_();
+
+    void resume_( detail::worker_fiber::ptr_t const&);
 
     void resume_( detail::worker_fiber::ptr_t const&);
 

@@ -259,8 +259,6 @@ struct test_exclusive
                 boost::bind( & fn2< mutex_type >, boost::ref( mtx) ) );
         BOOST_ASSERT( f1);
         BOOST_ASSERT( f2);
-        BOOST_CHECK_EQUAL( 1, value1);
-        BOOST_CHECK_EQUAL( 1, value2);
 
         f1.join();
         f2.join();

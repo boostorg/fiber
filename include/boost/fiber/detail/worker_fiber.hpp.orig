@@ -85,8 +85,11 @@ private:
     fss_data_t              fss_data_;
     ptr_t                   nxt_;
     clock_type::time_point  tp_;
+<<<<<<< HEAD
+=======
 
     void trampoline_( coro_t::yield_type &);
+>>>>>>> feature/yield
 
 protected:
     coro_t::yield_type      *   callee_;
@@ -228,6 +231,26 @@ public:
     void time_point( clock_type::time_point const& tp)
     { tp_ = tp; }
 
+<<<<<<< HEAD
+    virtual void suspend() = 0;
+
+    ptr_t const& next() const
+    { return nxt_; }
+
+    void next( ptr_t const& nxt)
+    { nxt_ = nxt; }
+
+    void next_reset()
+    { nxt_.reset(); }
+
+    clock_type::time_point const& time_point() const
+    { return tp_; }
+
+    void time_point( clock_type::time_point const& tp)
+    { tp_ = tp; }
+
+=======
+>>>>>>> feature/yield
     void time_point_reset()
     { tp_ = (clock_type::time_point::max)(); }
 };

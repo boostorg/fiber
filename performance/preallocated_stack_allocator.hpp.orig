@@ -33,7 +33,13 @@ public:
         stack_ctx_()
     {
         boost::coroutines::standard_stack_allocator allocator;
+<<<<<<< HEAD
+        allocator.allocate(
+            stack_ctx_,
+            boost::coroutines::stack_allocator::traits_type::default_size() ); 
+=======
         allocator.allocate( stack_ctx_, boost::coroutines::stack_allocator::traits_type::default_size() ); 
+>>>>>>> feature/yield
     }
 
     void allocate( boost::coroutines::stack_context & ctx, std::size_t size)

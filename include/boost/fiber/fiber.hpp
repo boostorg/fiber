@@ -78,12 +78,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                fiber_fn, stack_allocator, std::allocator< fiber >
+                fiber_fn, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a) );
         start_fiber_();
     }
 
@@ -94,12 +94,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                fiber_fn, StackAllocator, std::allocator< fiber >
+                fiber_fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a) );
         start_fiber_();
     }
 
@@ -110,12 +110,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                fiber_fn, StackAllocator, Allocator
+                fiber_fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a) );
         start_fiber_();
     }
 #endif
@@ -126,12 +126,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, stack_allocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a) );
         start_fiber_();
     }
 
@@ -142,12 +142,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, StackAllocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a) );
         start_fiber_();
     }
 
@@ -158,12 +158,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, StackAllocator, Allocator
+                Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a) );
         start_fiber_();
     }
 #else
@@ -174,12 +174,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, stack_allocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
         start_fiber_();
     }
 
@@ -190,12 +190,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, StackAllocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
         start_fiber_();
     }
 
@@ -206,12 +206,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, StackAllocator, Allocator
+                Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
         start_fiber_();
     }
 
@@ -222,12 +222,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, stack_allocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
         start_fiber_();
     }
 
@@ -238,12 +238,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, StackAllocator, std::allocator< fiber >
+                Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
         start_fiber_();
     }
 
@@ -254,12 +254,12 @@ public:
         impl_()
     {
         typedef detail::worker_object<
-                Fn, StackAllocator, Allocator
+                Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
         impl_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, stack_alloc, a) );
+            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
         start_fiber_();
     }
 #endif

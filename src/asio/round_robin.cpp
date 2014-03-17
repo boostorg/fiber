@@ -58,7 +58,7 @@ round_robin::spawn( detail::worker_fiber::ptr_t const& f)
     // set active fiber to state_running
     active_fiber_->set_running();
     // resume active fiber
-    active_fiber_->resume();
+    active_fiber_->resume( 0);
     // fiber is resumed
 
     BOOST_ASSERT( f == active_fiber_);
@@ -77,7 +77,7 @@ round_robin::evaluate_( detail::worker_fiber::ptr_t const& f) {
     else BOOST_ASSERT_MSG( false, "fiber with invalid state in ready-queue");
 }
 
-bool
+void
 round_robin::run()
 {
     wqueue_t wqueue;
@@ -106,7 +106,7 @@ round_robin::run()
     // exchange local with global waiting queue
     wqueue_.swap( wqueue);
 
-    return 0 < io_svc_.poll_one();
+    io_svc_.poll_one();
 }
 
 void
