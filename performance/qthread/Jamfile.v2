@@ -57,7 +57,7 @@ alias sources
 
 explicit sources ;
 
-exe test_qthread
+exe overhead_empty
    : sources
-     test_qthread.cpp
+     overhead_empty.cpp
    ;

@@ -57,7 +57,17 @@ alias sources
 
 explicit sources ;
 
-exe test_thread
+exe overhead_empty
    : sources
-     test_thread.cpp
+     overhead_empty.cpp
+   ;
+
+exe overhead_yield
+   : sources
+     overhead_yield.cpp
+   ;
+
+exe overhead_future
+   : sources
+     overhead_future.cpp
    ;
