@@ -16,7 +16,7 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/notify.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/round_robin.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
