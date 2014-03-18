@@ -77,8 +77,8 @@ fiber::join()
 
     detail::scheduler::instance()->join( impl_);
 
-    ptr_t tmp;
-    tmp.swap( impl_);
+    ptr_t tmp( 0);
+    std::swap( tmp, impl_);
     // check if joined fiber was interrupted
     if ( tmp->has_exception() )
         tmp->rethrow();
