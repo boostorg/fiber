@@ -60,7 +60,7 @@ worker_fiber::trampoline_( coro_t::yield_type & yield)
 worker_fiber::worker_fiber( attributes const& attrs) :
     fiber_base(),
     fss_data_(),
-    nxt_(),
+    nxt_( 0),
     tp_( (clock_type::time_point::max)() ),
     callee_( 0),
     caller_(
@@ -84,7 +84,7 @@ worker_fiber::release()
 {
     BOOST_ASSERT( is_terminated() );
 
-    std::vector< ptr_t > waiting;
+    std::vector< worker_fiber * > waiting;
 
     // get all waiting fibers
     splk_.lock();
@@ -92,7 +92,7 @@ worker_fiber::release()
     splk_.unlock();
 
     // notify all waiting fibers
-    BOOST_FOREACH( worker_fiber::ptr_t p, waiting)
+    BOOST_FOREACH( worker_fiber * p, waiting)
     { p->set_ready(); }
 
     // release all fiber-specific-pointers
@@ -101,7 +101,7 @@ worker_fiber::release()
 }
 
 bool
-worker_fiber::join( ptr_t const& p)
+worker_fiber::join( worker_fiber * p)
 {
     unique_lock< spinlock > lk( splk_);
     if ( is_terminated() ) return false;
@@ -172,14 +172,6 @@ worker_fiber::set_fss_data(
             std::make_pair(
                 key,
                 fss_data( data, cleanup_fn) ) );
-}
-
-void
-worker_fiber::rethrow() const
-{
-    BOOST_ASSERT( has_exception() );
-
-    rethrow_exception( except_);
 }
 
 }}}

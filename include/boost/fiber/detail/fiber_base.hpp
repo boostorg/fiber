@@ -14,7 +14,6 @@
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
 #include <boost/config.hpp>
-#include <boost/intrusive_ptr.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -34,28 +33,18 @@ namespace detail {
 
 class BOOST_FIBERS_DECL fiber_base : private noncopyable
 {
-private:
-    atomic< std::size_t >   use_count_;
-//    std::atomic< std::size_t >   use_count_;
-//    std::size_t     use_count_;
-
-protected:
-    virtual void deallocate_object() = 0;
-
 public:
-    typedef intrusive_ptr< fiber_base >     ptr_t;
-
     class id
     {
     private:
-        fiber_base::ptr_t  impl_;
+        fiber_base  *   impl_;
 
     public:
         id() BOOST_NOEXCEPT :
-            impl_()
+            impl_( 0)
         {}
 
-        explicit id( fiber_base::ptr_t impl) BOOST_NOEXCEPT :
+        explicit id( fiber_base * impl) BOOST_NOEXCEPT :
             impl_( impl)
         {}
 
@@ -94,8 +83,7 @@ public:
         { return 0 == impl_; }
     };
 
-    fiber_base() :
-        use_count_( 0)
+    fiber_base()
     {}
 
     virtual ~fiber_base() {};
@@ -105,12 +93,6 @@ public:
     virtual void set_ready() BOOST_NOEXCEPT = 0;
 
     virtual id get_id() const BOOST_NOEXCEPT = 0;
-
-    friend inline void intrusive_ptr_add_ref( fiber_base * p) BOOST_NOEXCEPT
-    { ++p->use_count_; }
-
-    friend inline void intrusive_ptr_release( fiber_base * p)
-    { if ( --p->use_count_ == 0) p->deallocate_object(); }
 };
 
 }}}

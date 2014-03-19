@@ -46,9 +46,6 @@ namespace coro = boost::coroutines;
 
 class BOOST_FIBERS_DECL worker_fiber : public fiber_base
 {
-public:
-    typedef intrusive_ptr< worker_fiber >     ptr_t;
-
 private:
     enum state_t
     {
@@ -83,20 +80,20 @@ private:
     >                                          coro_t;
 
     fss_data_t              fss_data_;
-    ptr_t                   nxt_;
+    worker_fiber        *   nxt_;
     clock_type::time_point  tp_;
 
     void trampoline_( coro_t::yield_type &);
 
 protected:
-    coro_t::yield_type      *   callee_;
-    coro_t::call_type           caller_;
-    atomic< state_t >           state_;
-    atomic< int >               flags_;
-    atomic< int >               priority_;
-    exception_ptr               except_;
-    spinlock                    splk_;
-    std::vector< ptr_t >        waiting_;
+    coro_t::yield_type          *   callee_;
+    coro_t::call_type               caller_;
+    atomic< state_t >               state_;
+    atomic< int >                   flags_;
+    atomic< int >                   priority_;
+    exception_ptr                   except_;
+    spinlock                        splk_;
+    std::vector< worker_fiber * >   waiting_;
 
     void release();
 
@@ -116,7 +113,13 @@ public:
     void priority( int prio) BOOST_NOEXCEPT
     { priority_ = prio; }
 
-    bool join( ptr_t const&);
+    bool join( worker_fiber *);
+
+    bool detached() const BOOST_NOEXCEPT
+    { return 0 != ( flags_.load() & flag_detached); }
+
+    void detach() BOOST_NOEXCEPT
+    { flags_ |= flag_detached; }
 
     bool interruption_blocked() const BOOST_NOEXCEPT
     { return 0 != ( flags_.load() & flag_interruption_blocked); }
@@ -177,10 +180,8 @@ public:
         void * data,
         bool cleanup_existing);
 
-    bool has_exception() const BOOST_NOEXCEPT
+    exception_ptr exception() const BOOST_NOEXCEPT
     { return except_; }
-
-    void rethrow() const;
 
     void resume( worker_fiber * f)
     {
@@ -213,14 +214,14 @@ public:
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
 
-    ptr_t const& next() const
+    worker_fiber * next() const
     { return nxt_; }
 
-    void next( ptr_t const& nxt)
+    void next( worker_fiber * nxt)
     { nxt_ = nxt; }
 
     void next_reset()
-    { nxt_.reset(); }
+    { nxt_ = 0; }
 
     clock_type::time_point const& time_point() const
     { return tp_; }
@@ -230,6 +231,8 @@ public:
 
     void time_point_reset()
     { tp_ = (clock_type::time_point::max)(); }
+
+    virtual void deallocate() = 0;
 };
 
 }}}

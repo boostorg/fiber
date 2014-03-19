@@ -51,7 +51,7 @@ class BOOST_FIBERS_DECL condition : private noncopyable
 {
 private:
     detail::spinlock                        splk_;
-    std::deque< detail::fiber_base::ptr_t >     waiting_;
+    std::deque< detail::fiber_base * >      waiting_;
 
 public:
     condition();
@@ -72,7 +72,7 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        detail::fiber_base::ptr_t n( detail::scheduler::instance()->active() );
+        detail::fiber_base * n( detail::scheduler::instance()->active() );
         try
         {
             if ( n)
@@ -143,7 +143,7 @@ public:
     {
         cv_status status = cv_status::no_timeout;
 
-        detail::fiber_base::ptr_t n( detail::scheduler::instance()->active() );
+        detail::fiber_base * n( detail::scheduler::instance()->active() );
         try
         {
             if ( n)

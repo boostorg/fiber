@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_FIBER_H
 #define BOOST_FIBERS_FIBER_H
 
+#include <algorithm>
 #include <cstddef>
 #include <exception>
 #include <memory>
@@ -49,9 +50,8 @@ private:
     friend class detail::scheduler;
 
     typedef detail::worker_fiber    base_t;
-    typedef base_t::ptr_t         ptr_t;
 
-    ptr_t       impl_;
+    detail::worker_fiber    *   impl_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
 
@@ -61,10 +61,10 @@ public:
     typedef detail::worker_fiber::id        id;
 
     fiber() BOOST_NOEXCEPT :
-        impl_()
+        impl_( 0)
     {}
 
-    explicit fiber( ptr_t imp) BOOST_NOEXCEPT :
+    explicit fiber( detail::worker_fiber * imp) BOOST_NOEXCEPT :
         impl_( imp)
     {}
 
@@ -75,15 +75,13 @@ public:
     explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 fiber_fn, std::allocator< fiber >
             >                               object_t;
         object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a);
         start_fiber_();
     }
 
@@ -91,15 +89,13 @@ public:
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 fiber_fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a);
         start_fiber_();
     }
 
@@ -107,15 +103,13 @@ public:
     explicit fiber( fiber_fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     Allocator const& alloc) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 fiber_fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a);
         start_fiber_();
     }
 #endif
@@ -123,15 +117,13 @@ public:
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a);
         start_fiber_();
     }
 
@@ -139,15 +131,13 @@ public:
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a);
         start_fiber_();
     }
 
@@ -155,15 +145,13 @@ public:
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     Allocator const& alloc) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a);
         start_fiber_();
     }
 #else
@@ -171,15 +159,13 @@ public:
     explicit fiber( Fn fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 
@@ -187,15 +173,13 @@ public:
     explicit fiber( Fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 
@@ -203,15 +187,13 @@ public:
     explicit fiber( Fn fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     Allocator const& alloc) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 
@@ -219,15 +201,13 @@ public:
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator(),
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 
@@ -235,15 +215,13 @@ public:
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, std::allocator< fiber >
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 
@@ -251,24 +229,29 @@ public:
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
                     StackAllocator const& stack_alloc,
                     Allocator const& alloc) :
-        impl_()
+        impl_( 0)
     {
         typedef detail::worker_object<
                 Fn, Allocator
             >                               object_t;
         typename object_t::allocator_t a( alloc);
-        impl_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, attr, a) );
+        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 #endif
 
     ~fiber()
-    { if ( joinable() ) std::terminate(); }
+    {
+        if ( joinable() ) std::terminate();
+        if ( 0 != impl_)
+        {
+            impl_->deallocate();
+            impl_ = 0;
+        }
+    }
 
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
-        impl_()
+        impl_( 0)
     { swap( other); }
 
     fiber & operator=( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT
@@ -285,10 +268,10 @@ public:
     { return ! impl_ || impl_->is_terminated(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
-    { impl_.swap( other.impl_); }
+    { std::swap( impl_, other.impl_); }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return 0 != impl_.get() /* && ! impl_->is_terminated() */; }
+    { return 0 != impl_ /* && ! impl_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
     { return impl_ ? impl_->get_id() : id(); }

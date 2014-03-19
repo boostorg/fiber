@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_DETAIL_FIFO_H
 #define BOOST_FIBERS_DETAIL_FIFO_H
 
+#include <algorithm>
 #include <cstddef>
 
 #include <boost/assert.hpp>
@@ -28,27 +29,25 @@ namespace detail {
 class fifo : private noncopyable
 {
 public:
-    typedef worker_fiber::ptr_t   ptr_t;
-
     fifo() BOOST_NOEXCEPT :
-        head_(),
-        tail_()
+        head_( 0),
+        tail_( 0)
     {}
 
     bool empty() const BOOST_NOEXCEPT
-    { return 0 == head_.get(); }
+    { return 0 == head_; }
 
     std::size_t size() const BOOST_NOEXCEPT
     {
         std::size_t counter = 0; 
-        for ( ptr_t x = head_; x; x = x->next() )
+        for ( worker_fiber * x = head_; x; x = x->next() )
             ++counter;
         return counter;
     }
 
-    void push( ptr_t const& item) BOOST_NOEXCEPT
+    void push( worker_fiber * item) BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( item);
+        BOOST_ASSERT( 0 != item);
 
         if ( empty() )
         {
@@ -59,23 +58,23 @@ public:
         tail_ = tail_->next();
     }
 
-    ptr_t head() const BOOST_NOEXCEPT
+    worker_fiber * head() const BOOST_NOEXCEPT
     { return head_; }
 
-    void top( ptr_t const& item) BOOST_NOEXCEPT
+    void top( worker_fiber * item) BOOST_NOEXCEPT
     { head_ = item; }
 
-    ptr_t tail() const BOOST_NOEXCEPT
+    worker_fiber * tail() const BOOST_NOEXCEPT
     { return tail_; }
 
-    void tail( ptr_t const& item) BOOST_NOEXCEPT
+    void tail( worker_fiber * item) BOOST_NOEXCEPT
     { tail_ = item; }
 
-    ptr_t pop() BOOST_NOEXCEPT
+    worker_fiber * pop() BOOST_NOEXCEPT
     {
         BOOST_ASSERT( ! empty() );
 
-        ptr_t item = head_;
+        worker_fiber * item = head_;
         head_ = head_->next();
         if ( ! head_)
             tail_ = head_;
@@ -84,16 +83,16 @@ public:
         return item;
     }
 
-    ptr_t find( ptr_t const& item) BOOST_NOEXCEPT
+    worker_fiber * find( worker_fiber * item) BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( item);
+        BOOST_ASSERT( 0 != item);
 
-        for ( ptr_t x = head_; x; x = x->next() )
+        for ( worker_fiber * x = head_; x; x = x->next() )
             if ( item == x) return x;
-        return ptr_t();
+        return 0;
     }
 
-    void erase( ptr_t const& item) BOOST_NOEXCEPT
+    void erase( worker_fiber * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( item);
         BOOST_ASSERT( ! empty() );
@@ -103,9 +102,9 @@ public:
             pop();
             return;
         }
-        for ( ptr_t x = head_; x; x = x->next() )
+        for ( worker_fiber * x = head_; x; x = x->next() )
         {
-            ptr_t nxt = x->next();
+            worker_fiber * nxt = x->next();
             if ( ! nxt) return;
             if ( item == nxt)
             {
@@ -120,9 +119,9 @@ public:
     template< typename Queue, typename Fn >
     void move_to( Queue & queue, Fn fn)
     {
-        for ( ptr_t f = head_, prev = head_; f; )
+        for ( worker_fiber * f = head_, * prev = head_; f; )
         {
-            ptr_t nxt = f->next();
+            worker_fiber * nxt = f->next();
             if ( fn( f) )
             {
                 if ( f == head_)
@@ -154,13 +153,13 @@ public:
 
     void swap( fifo & other)
     {
-        head_.swap( other.head_);
-        tail_.swap( other.tail_);
+        std::swap( head_, other.head_);
+        std::swap( tail_, other.tail_);
     }
 
 private:
-    ptr_t   head_;
-    ptr_t   tail_;
+    worker_fiber    *  head_;
+    worker_fiber    *  tail_;
 };
 
 }}}

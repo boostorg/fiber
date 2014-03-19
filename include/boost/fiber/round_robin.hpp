@@ -46,27 +46,27 @@ private:
     typedef detail::fifo        wqueue_t;
     typedef detail::fifo        rqueue_t;
 
-    detail::worker_fiber::ptr_t active_fiber_;
+    detail::worker_fiber    *   active_fiber_;
     wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
     detail::main_fiber          mn_;
 
-    detail::worker_fiber::ptr_t pick_next_();
+    detail::worker_fiber * pick_next_();
 
-    void resume_( detail::worker_fiber::ptr_t const&);
+    void resume_( detail::worker_fiber *);
 
 public:
     round_robin() BOOST_NOEXCEPT;
 
     ~round_robin() BOOST_NOEXCEPT;
 
-    void spawn( detail::worker_fiber::ptr_t const&);
+    void spawn( detail::worker_fiber *);
 
-    void priority( detail::worker_fiber::ptr_t const&, int) BOOST_NOEXCEPT;
+    void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
 
-    void join( detail::worker_fiber::ptr_t const&);
+    void join( detail::worker_fiber *);
 
-    detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT
+    detail::worker_fiber * active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
     void run();
@@ -77,8 +77,11 @@ public:
 
     void yield();
 
-    detail::fiber_base::ptr_t get_main_fiber()
-    { return detail::fiber_base::ptr_t( new detail::main_fiber() ); }
+    // FIXME: must be removed
+    // allocate main_fiber on stack of mutext, condition, etc.
+    // and pass address of main_fiber to wait-container
+    detail::fiber_base * get_main_fiber()
+    { return new detail::main_fiber(); }
 };
 
 }}

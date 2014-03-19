@@ -25,7 +25,7 @@ namespace this_fiber {
 inline
 fibers::fiber::id get_id() BOOST_NOEXCEPT
 {
-    return fibers::detail::scheduler::instance()->active()
+    return 0 != fibers::detail::scheduler::instance()->active()
         ? fibers::detail::scheduler::instance()->active()->get_id()
         : fibers::fiber::id();
 }
@@ -33,7 +33,7 @@ fibers::fiber::id get_id() BOOST_NOEXCEPT
 inline
 void yield()
 {
-    if ( fibers::detail::scheduler::instance()->active() )
+    if ( 0 != fibers::detail::scheduler::instance()->active() )
         fibers::detail::scheduler::instance()->yield();
     else
         fibers::detail::scheduler::instance()->run();
@@ -42,7 +42,7 @@ void yield()
 inline
 void sleep_until( fibers::clock_type::time_point const& sleep_time)
 {
-    if ( fibers::detail::scheduler::instance()->active() )
+    if ( 0 != fibers::detail::scheduler::instance()->active() )
     {
         fibers::detail::spinlock splk;
         unique_lock< fibers::detail::spinlock > lk( splk);
@@ -65,7 +65,7 @@ void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 inline
 bool thread_affinity() BOOST_NOEXCEPT
 {
-    return fibers::detail::scheduler::instance()->active()
+    return 0 != fibers::detail::scheduler::instance()->active()
         ? fibers::detail::scheduler::instance()->active()->thread_affinity()
         : true;
 }
@@ -73,7 +73,7 @@ bool thread_affinity() BOOST_NOEXCEPT
 inline
 void thread_affinity( bool req) BOOST_NOEXCEPT
 {
-    if ( fibers::detail::scheduler::instance()->active() )
+    if ( 0 != fibers::detail::scheduler::instance()->active() )
         fibers::detail::scheduler::instance()->active()->thread_affinity( req);
 }
 

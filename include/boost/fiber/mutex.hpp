@@ -39,12 +39,10 @@ private:
         UNLOCKED
     };
 
-    detail::spinlock                splk_;
-    state_t                         state_;
-    detail::worker_fiber::id          owner_;
-    std::deque<
-        detail::fiber_base::ptr_t
-    >                               waiting_;
+    detail::spinlock                    splk_;
+    state_t                             state_;
+    detail::worker_fiber::id            owner_;
+    std::deque< detail::fiber_base * >  waiting_;
 
 public:
     typedef unique_lock< mutex >    scoped_lock;
