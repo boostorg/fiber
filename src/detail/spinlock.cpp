@@ -22,7 +22,7 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    bool is_fiber = 0 != scheduler::instance()->active().get();
+    bool is_fiber = 0 != scheduler::instance()->active();
     for (;;)
     {
         // access to CPU's cache

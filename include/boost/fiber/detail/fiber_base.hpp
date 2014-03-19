@@ -44,7 +44,7 @@ public:
             impl_( 0)
         {}
 
-        explicit id( fiber_base::ptr_t impl) BOOST_NOEXCEPT :
+        explicit id( fiber_base * impl) BOOST_NOEXCEPT :
             impl_( impl)
         {}
 
@@ -83,7 +83,7 @@ public:
         { return 0 == impl_; }
     };
 
-    fiber_base() :
+    fiber_base()
     {}
 
     virtual ~fiber_base() {};
@@ -93,8 +93,6 @@ public:
     virtual void set_ready() BOOST_NOEXCEPT = 0;
 
     virtual id get_id() const BOOST_NOEXCEPT = 0;
-
-    virtual void deallocate_object() = 0;
 };
 
 }}}

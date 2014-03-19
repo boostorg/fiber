@@ -79,7 +79,7 @@ private:
 
 public:
     template< typename F >
-    static fiber_base::ptr_t extract( F const& f) BOOST_NOEXCEPT
+    static fiber_base * extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_; }
 
     static algorithm * instance()

@@ -115,6 +115,12 @@ public:
 
     bool join( worker_fiber *);
 
+    bool detached() const BOOST_NOEXCEPT
+    { return 0 != ( flags_.load() & flag_detached); }
+
+    void detach() BOOST_NOEXCEPT
+    { flags_ |= flag_detached; }
+
     bool interruption_blocked() const BOOST_NOEXCEPT
     { return 0 != ( flags_.load() & flag_interruption_blocked); }
 
@@ -174,10 +180,8 @@ public:
         void * data,
         bool cleanup_existing);
 
-    bool has_exception() const BOOST_NOEXCEPT
+    exception_ptr exception() const BOOST_NOEXCEPT
     { return except_; }
-
-    void rethrow() const;
 
     void resume( worker_fiber * f)
     {
@@ -210,10 +214,10 @@ public:
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
 
-    ptr_t const& next() const
+    worker_fiber * next() const
     { return nxt_; }
 
-    void next( ptr_t const& nxt)
+    void next( worker_fiber * nxt)
     { nxt_ = nxt; }
 
     void next_reset()
@@ -227,6 +231,8 @@ public:
 
     void time_point_reset()
     { tp_ = (clock_type::time_point::max)(); }
+
+    virtual void deallocate() = 0;
 };
 
 }}}

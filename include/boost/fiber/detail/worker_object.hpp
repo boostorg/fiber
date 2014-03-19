@@ -95,7 +95,7 @@ public:
     }
 #endif
 
-    void deallocate_object()
+    void deallocate()
     { destroy_( alloc_, this); }
 
 private:

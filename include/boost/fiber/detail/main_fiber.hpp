@@ -23,10 +23,8 @@ namespace detail {
 class main_fiber : public fiber_base
 {
 public:
-    static ptr_t make_pointer( main_fiber & n) {
-        ptr_t p( & n);
-        intrusive_ptr_add_ref( p.get() );
-        return p;
+    static main_fiber * make_pointer( main_fiber & n) {
+        return & n;
     }
 
     main_fiber() :
@@ -39,9 +37,6 @@ public:
 
     void set_ready() BOOST_NOEXCEPT
     { ready_ = true; }
-
-    void deallocate_object()
-    {}
 
     id get_id() const BOOST_NOEXCEPT
     { return id( const_cast< main_fiber * >( this) ); }

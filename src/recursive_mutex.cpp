@@ -39,8 +39,8 @@ recursive_mutex::~recursive_mutex()
 void
 recursive_mutex::lock()
 {
-    detail::fiber_base::ptr_t n( detail::scheduler::instance()->active() );
-    if ( n)
+    detail::fiber_base * n( detail::scheduler::instance()->active() );
+    if ( 0 != n)
     {
         for (;;)
         {
@@ -138,13 +138,13 @@ recursive_mutex::unlock()
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     unique_lock< detail::spinlock > lk( splk_);
-    detail::fiber_base::ptr_t n;
+    detail::fiber_base * n = 0;
     
     if ( 0 == --count_)
     {
         if ( ! waiting_.empty() )
         {
-            n.swap( waiting_.front() );
+            n = waiting_.front();
             waiting_.pop_front();
         }
         owner_ = detail::worker_fiber::id();

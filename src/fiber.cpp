@@ -77,11 +77,13 @@ fiber::join()
 
     detail::scheduler::instance()->join( impl_);
 
-    ptr_t tmp( 0);
+    detail::worker_fiber * tmp = 0;
     std::swap( tmp, impl_);
     // check if joined fiber was interrupted
-    if ( tmp->has_exception() )
-        tmp->rethrow();
+    exception_ptr except( tmp->exception() );
+    tmp->deallocate();
+    if ( except)
+        rethrow_exception( except);
 }
 
 void
@@ -96,7 +98,8 @@ fiber::detach() BOOST_NOEXCEPT
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    impl_.reset();
+    impl_->detach();
+    impl_ = 0;
 }
 
 void

@@ -31,13 +31,13 @@ namespace fibers {
 
 struct algorithm : private noncopyable
 {
-    virtual void spawn( detail::worker_fiber::ptr_t const&) = 0;
+    virtual void spawn( detail::worker_fiber *) = 0;
 
-    virtual void priority( detail::worker_fiber::ptr_t const&, int) BOOST_NOEXCEPT = 0;
+    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT = 0;
 
-    virtual void join( detail::worker_fiber::ptr_t const&) = 0;
+    virtual void join( detail::worker_fiber *) = 0;
 
-    virtual detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT = 0;
+    virtual detail::worker_fiber * active() BOOST_NOEXCEPT = 0;
 
     virtual void run() = 0;
 
@@ -51,7 +51,7 @@ struct algorithm : private noncopyable
 
     virtual void yield() = 0;
 
-    virtual detail::fiber_base::ptr_t get_main_fiber() = 0;
+    virtual detail::fiber_base * get_main_fiber() = 0;
 
     virtual ~algorithm() {}
 };

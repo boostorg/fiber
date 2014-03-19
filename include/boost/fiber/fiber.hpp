@@ -50,9 +50,8 @@ private:
     friend class detail::scheduler;
 
     typedef detail::worker_fiber    base_t;
-    typedef base_t              *   ptr_t;
 
-    ptr_t       impl_;
+    detail::worker_fiber    *   impl_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
 
@@ -65,7 +64,7 @@ public:
         impl_( 0)
     {}
 
-    explicit fiber( ptr_t imp) BOOST_NOEXCEPT :
+    explicit fiber( detail::worker_fiber * imp) BOOST_NOEXCEPT :
         impl_( imp)
     {}
 
@@ -244,8 +243,11 @@ public:
     ~fiber()
     {
         if ( joinable() ) std::terminate();
-        impl_->deallocate_object();
-        impl_ = 0;
+        if ( 0 != impl_)
+        {
+            impl_->deallocate();
+            impl_ = 0;
+        }
     }
 
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :

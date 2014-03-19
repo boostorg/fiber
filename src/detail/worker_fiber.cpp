@@ -174,14 +174,6 @@ worker_fiber::set_fss_data(
                 fss_data( data, cleanup_fn) ) );
 }
 
-void
-worker_fiber::rethrow() const
-{
-    BOOST_ASSERT( has_exception() );
-
-    rethrow_exception( except_);
-}
-
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
