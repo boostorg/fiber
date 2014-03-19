@@ -37,7 +37,6 @@ lib boost_fiber
       detail/scheduler.cpp
       detail/spinlock.cpp
       fiber.cpp
-      fiber_group.cpp
       future.cpp
       interruption.cpp
       mutex.cpp

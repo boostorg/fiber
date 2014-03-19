@@ -55,19 +55,18 @@ void fss()
 {
     fss_instances = 0;
     fss_total = 0;
-    boost::fibers::fiber_group fibers;
-    try
-    {
-        for (int i=0; i<5; ++i)
-            fibers.create_fiber( fss_fiber);
-        fibers.join_all();
-    }
-    catch(...)
-    {
-        fibers.interrupt_all();
-        fibers.join_all();
-        throw;
-    }
+
+    boost::fibers::fiber f1( fss_fiber);
+    boost::fibers::fiber f2( fss_fiber);
+    boost::fibers::fiber f3( fss_fiber);
+    boost::fibers::fiber f4( fss_fiber);
+    boost::fibers::fiber f5( fss_fiber);
+    f1.join();
+    f2.join();
+    f3.join();
+    f4.join();
+    f5.join();
+
     std::cout
         << "fss_instances = " << fss_instances
         << "; fss_total = " << fss_total
