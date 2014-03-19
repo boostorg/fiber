@@ -61,8 +61,3 @@ exe overhead_empty
    : sources
      overhead_empty.cpp
    ;
-
-exe overhead_enqueue
-   : sources
-     overhead_enqueue.cpp
-   ;
