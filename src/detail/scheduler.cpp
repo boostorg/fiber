@@ -15,8 +15,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-static void deleter_fn( algorithm * algo) { delete algo; }
-static void null_deleter_fn( algorithm *) {}
+static void deleter_fn( fiber_manager * mgr) { delete mgr; }
 
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
@@ -30,15 +29,14 @@ template< typename T >
 __thread T * thread_local_ptr< T >::t_ = 0;
 #endif
 
-thread_local_ptr< algorithm > scheduler::default_algo_( deleter_fn);
-thread_local_ptr< algorithm > scheduler::instance_( null_deleter_fn);
+thread_local_ptr< fiber_manager > scheduler::instance_( deleter_fn);
 
 void
-scheduler::replace( algorithm * other)
+scheduler::replace( sched_algorithm * other)
 {
     BOOST_ASSERT( other);
 
-    instance_.reset( other);
+    instance()->set_sched_algo( other);
 }
 
 }}}

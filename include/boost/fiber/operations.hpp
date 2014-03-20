@@ -8,7 +8,6 @@
 
 #include <boost/thread/lock_types.hpp> 
 
-#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
@@ -82,8 +81,12 @@ void thread_affinity( bool req) BOOST_NOEXCEPT
 namespace fibers {
 
 inline
-void set_scheduling_algorithm( algorithm * al)
+void set_scheduling_algorithm( sched_algorithm * al)
 { detail::scheduler::replace( al); }
+
+inline
+void migrate( fiber const& f)
+{ fibers::detail::scheduler::instance()->spawn( detail::scheduler::extract( f ) ); }
 
 }}
 

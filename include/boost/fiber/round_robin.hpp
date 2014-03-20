@@ -3,30 +3,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DEFAULT_SCHEDULER_H
-#define BOOST_FIBERS_DEFAULT_SCHEDULER_H
+#ifndef BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
+#define BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
 
-#include <algorithm>
-#include <deque>
-#include <queue>
-#include <vector>
-
-#include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/thread/lock_types.hpp> 
 
-#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/fifo.hpp>
-#include <boost/fiber/detail/main_fiber.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -40,48 +25,19 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL round_robin : public algorithm
+class BOOST_FIBERS_DECL round_robin : public sched_algorithm
 {
 private:
-    typedef detail::fifo        wqueue_t;
     typedef detail::fifo        rqueue_t;
 
-    detail::worker_fiber    *   active_fiber_;
-    wqueue_t                    wqueue_;
     rqueue_t                    rqueue_;
-    detail::main_fiber          mn_;
-
-    detail::worker_fiber * pick_next_();
-
-    void resume_( detail::worker_fiber *);
 
 public:
-    round_robin() BOOST_NOEXCEPT;
+    virtual void awakened( detail::worker_fiber *);
 
-    ~round_robin() BOOST_NOEXCEPT;
+    virtual detail::worker_fiber * pick_next();
 
-    void spawn( detail::worker_fiber *);
-
-    void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
-
-    void join( detail::worker_fiber *);
-
-    detail::worker_fiber * active() BOOST_NOEXCEPT
-    { return active_fiber_; }
-
-    void run();
-
-    void wait( unique_lock< detail::spinlock > &);
-    bool wait_until( clock_type::time_point const&,
-                     unique_lock< detail::spinlock > &);
-
-    void yield();
-
-    // FIXME: must be removed
-    // allocate main_fiber on stack of mutext, condition, etc.
-    // and pass address of main_fiber to wait-container
-    detail::fiber_base * get_main_fiber()
-    { return new detail::main_fiber(); }
+    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
 };
 
 }}
@@ -94,4 +50,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DEFAULT_SCHEDULER_H
+#endif // BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H

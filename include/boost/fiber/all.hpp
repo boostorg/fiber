@@ -7,7 +7,6 @@
 #ifndef BOOST_FIBERS_H
 #define BOOST_FIBERS_H
 
-#include <boost/fiber/algorithm.hpp>
 //#include <boost/fiber/asio/round_robin.hpp>
 //#include <boost/fiber/asio/spawn.hpp>
 //#include <boost/fiber/asio/use_future.hpp>

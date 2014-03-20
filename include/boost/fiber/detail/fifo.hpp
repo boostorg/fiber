@@ -116,9 +116,11 @@ public:
         }
     }
 
-    template< typename Queue, typename Fn >
-    void move_to( Queue & queue, Fn fn)
+    template< typename SchedAlgo, typename Fn >
+    void move_to( SchedAlgo * sched_algo, Fn fn)
     {
+        BOOST_ASSERT( sched_algo);
+
         for ( worker_fiber * f = head_, * prev = head_; f; )
         {
             worker_fiber * nxt = f->next();
@@ -143,7 +145,7 @@ public:
                     prev->next( nxt); 
                 }
                 f->next_reset();
-                queue.push( f);
+                sched_algo->awakened( f);
             }
             else
                 prev = f;

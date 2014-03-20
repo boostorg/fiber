@@ -14,10 +14,9 @@
 #include <boost/utility.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
 
-#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/round_robin.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -74,25 +73,21 @@ public:
 class scheduler : private noncopyable
 {
 private:
-    static thread_local_ptr< algorithm > default_algo_;
-    static thread_local_ptr< algorithm > instance_;
+    static thread_local_ptr< fiber_manager > instance_;
 
 public:
     template< typename F >
-    static fiber_base * extract( F const& f) BOOST_NOEXCEPT
+    static worker_fiber * extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_; }
 
-    static algorithm * instance()
+    static fiber_manager * instance()
     {
         if ( ! instance_.get() )
-        {
-            default_algo_.reset( new round_robin() );
-            instance_.reset( default_algo_.get() );
-        }
+            instance_.reset( new fiber_manager() );
         return instance_.get();
     }
 
-    static void replace( algorithm * other);
+    static void replace( sched_algorithm * other);
 };
 
 }}}
