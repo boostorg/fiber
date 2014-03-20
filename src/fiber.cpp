@@ -24,7 +24,10 @@ namespace fibers {
 
 void
 fiber::start_fiber_()
-{ detail::scheduler::instance()->spawn( impl_); }
+{
+    impl_->set_ready();
+    detail::scheduler::instance()->spawn( impl_);
+}
 
 int
 fiber::priority() const BOOST_NOEXCEPT
@@ -80,7 +83,7 @@ fiber::join()
     detail::worker_fiber * tmp = 0;
     std::swap( tmp, impl_);
     // check if joined fiber was interrupted
-    exception_ptr except( tmp->exception() );
+    exception_ptr except( tmp->get_exception() );
     tmp->deallocate();
     if ( except)
         rethrow_exception( except);

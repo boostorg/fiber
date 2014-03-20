@@ -23,55 +23,21 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-void
-worker_fiber::trampoline_( coro_t::yield_type & yield)
-{
-    BOOST_ASSERT( yield);
-    BOOST_ASSERT( ! is_terminated() );
+void * worker_fiber::null_ptr = 0;
 
-    callee_ = & yield;
-    set_running();
-    suspend();
-
-    try
-    {
-        BOOST_ASSERT( is_running() );
-        run();
-        BOOST_ASSERT( is_running() );
-    }
-    catch ( coro::detail::forced_unwind const&)
-    {
-        set_terminated();
-        release();
-        throw;
-    }
-    catch ( fiber_interrupted const&)
-    { except_ = current_exception(); }
-    catch (...)
-    { std::terminate(); }
-
-    set_terminated();
-    release();
-    suspend();
-
-    BOOST_ASSERT_MSG( false, "fiber already terminated");
-}
-
-worker_fiber::worker_fiber( attributes const& attrs) :
+worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     fiber_base(),
     fss_data_(),
     nxt_( 0),
     tp_( (clock_type::time_point::max)() ),
-    callee_( 0),
-    caller_(
-        boost::bind( & worker_fiber::trampoline_, this, _1),
-        attrs),
+    callee_( callee),
+    caller_(),
     state_( READY),
     flags_( 0),
     priority_( 0),
     except_(),
     waiting_()
-{}
+{ BOOST_ASSERT( callee_); }
 
 worker_fiber::~worker_fiber()
 {
