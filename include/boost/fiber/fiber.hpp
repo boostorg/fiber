@@ -14,14 +14,16 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/coroutine/symmetric_coroutine.hpp>
 #include <boost/move/move.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
 
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/setup.hpp>
+#include <boost/fiber/detail/trampoline.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/detail/worker_object.hpp>
 #include <boost/fiber/stack_allocator.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -50,6 +52,7 @@ private:
     friend class detail::scheduler;
 
     typedef detail::worker_fiber    base_t;
+    typedef base_t::coro_t          coro_t;
 
     detail::worker_fiber    *   impl_;
 
@@ -64,178 +67,110 @@ public:
         impl_( 0)
     {}
 
-    explicit fiber( detail::worker_fiber * imp) BOOST_NOEXCEPT :
-        impl_( imp)
-    {}
-
 #ifndef BOOST_NO_RVALUE_REFERENCES
 #ifdef BOOST_MSVC
     typedef void ( * fiber_fn)();
 
-    explicit fiber( fiber_fn fn, attributes const& attr = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( fiber_fn fn, attributes const& attrs = attributes(),
+                    stack_allocator const& stack_alloc = stack_allocator() ) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                fiber_fn, std::allocator< fiber >
-            >                               object_t;
-        object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a);
+        typename coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
+        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
+
         start_fiber_();
     }
 
     template< typename StackAllocator >
-    explicit fiber( fiber_fn fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( fiber_fn fn, attributes const& attrs,
+                    StackAllocator const& stack_alloc) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                fiber_fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a);
-        start_fiber_();
-    }
+        typename coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
+        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
 
-    template< typename StackAllocator, typename Allocator >
-    explicit fiber( fiber_fn fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    Allocator const& alloc) :
-        impl_( 0)
-    {
-        typedef detail::worker_object<
-                fiber_fn, Allocator
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( forward< fiber_fn >( fn), attr, a);
         start_fiber_();
     }
 #endif
     template< typename Fn >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
+                    stack_allocator const& stack_alloc = stack_allocator() ) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                Fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a);
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
+
         start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs,
+                    StackAllocator const& stack_alloc) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                Fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a);
-        start_fiber_();
-    }
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
 
-    template< typename Fn, typename StackAllocator, typename Allocator >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    Allocator const& alloc) :
-        impl_( 0)
-    {
-        typedef detail::worker_object<
-                Fn, Allocator
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), attr, a);
         start_fiber_();
     }
 #else
     template< typename Fn >
-    explicit fiber( Fn fn, attributes const& attr = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( Fn fn, attributes const& attrs = attributes(),
+                    stack_allocator const& stack_alloc = stack_allocator() ) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                Fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( fn, & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
+
         start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator >
-    explicit fiber( Fn fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( Fn fn, attributes const& attrs,
+                    StackAllocator const& stack_alloc) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                Fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
-        start_fiber_();
-    }
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( fn, & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
 
-    template< typename Fn, typename StackAllocator, typename Allocator >
-    explicit fiber( Fn fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    Allocator const& alloc) :
-        impl_( 0)
-    {
-        typedef detail::worker_object<
-                Fn, Allocator
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 
     template< typename Fn >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator(),
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
+                    stack_allocator const& stack_alloc = stack_allocator() ) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                Fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( fn, & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
+
         start_fiber_();
     }
 
     template< typename Fn, typename StackAllocator >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    std::allocator< fiber > const& alloc = std::allocator< fiber >() ) :
+    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs,
+                    StackAllocator const& stack_alloc) :
         impl_( 0)
     {
-        typedef detail::worker_object<
-                Fn, std::allocator< fiber >
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
-        start_fiber_();
-    }
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( fn, & coro);
+        impl_ = s.allocate();
+        BOOST_ASSERT( 0 != impl_);
 
-    template< typename Fn, typename StackAllocator, typename Allocator >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attr,
-                    StackAllocator const& stack_alloc,
-                    Allocator const& alloc) :
-        impl_( 0)
-    {
-        typedef detail::worker_object<
-                Fn, Allocator
-            >                               object_t;
-        typename object_t::allocator_t a( alloc);
-        impl_ = ::new( a.allocate( 1) ) object_t( fn, attr, a);
         start_fiber_();
     }
 #endif
@@ -274,7 +209,7 @@ public:
     { return 0 != impl_ /* && ! impl_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
-    { return impl_ ? impl_->get_id() : id(); }
+    { return 0 != impl_ ? impl_->get_id() : id(); }
 
     int priority() const BOOST_NOEXCEPT;
 

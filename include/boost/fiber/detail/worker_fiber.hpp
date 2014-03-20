@@ -46,7 +46,15 @@ namespace coro = boost::coroutines;
 
 class BOOST_FIBERS_DECL worker_fiber : public fiber_base
 {
+public:
+    typedef coro::symmetric_coroutine<
+        void *
+    >                                          coro_t;
+
 private:
+    template< typename Fn >
+    friend struct setup;
+
     enum state_t
     {
         READY = 0,
@@ -75,17 +83,12 @@ private:
     };
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
-    typedef coro::symmetric_coroutine<
-        void
-    >                                          coro_t;
 
-    fss_data_t              fss_data_;
-    worker_fiber        *   nxt_;
-    clock_type::time_point  tp_;
+    static void * null_ptr;
 
-    void trampoline_( coro_t::yield_type &);
-
-protected:
+    fss_data_t                      fss_data_;
+    worker_fiber                *   nxt_;
+    clock_type::time_point          tp_;
     coro_t::yield_type          *   callee_;
     coro_t::call_type               caller_;
     atomic< state_t >               state_;
@@ -95,14 +98,10 @@ protected:
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
 
-    void release();
-
-    virtual void run() = 0;
-
 public:
-    worker_fiber( attributes const&);
+    worker_fiber( coro_t::yield_type *);
 
-    virtual ~worker_fiber();
+    ~worker_fiber();
 
     id get_id() const BOOST_NOEXCEPT
     { return id( const_cast< worker_fiber * >( this) ); }
@@ -180,8 +179,11 @@ public:
         void * data,
         bool cleanup_existing);
 
-    exception_ptr exception() const BOOST_NOEXCEPT
+    exception_ptr get_exception() const BOOST_NOEXCEPT
     { return except_; }
+
+    void set_exception( exception_ptr except) BOOST_NOEXCEPT
+    { except_ = except; }
 
     void resume( worker_fiber * f)
     {
@@ -191,7 +193,7 @@ public:
             BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
             // called from main-fiber
-            caller_();
+            caller_( null_ptr);
         }
         else
         {
@@ -200,7 +202,7 @@ public:
             BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
             BOOST_ASSERT( f->callee_);
 
-            ( * f->callee_)( caller_);
+            ( * f->callee_)( caller_, null_ptr);
         }
     }
 
@@ -232,7 +234,14 @@ public:
     void time_point_reset()
     { tp_ = (clock_type::time_point::max)(); }
 
-    virtual void deallocate() = 0;
+    void deallocate()
+    {
+        //this->~worker_fiber();
+        callee_ = 0;
+        coro_t::call_type tmp( move( caller_) );
+    }
+
+    void release();
 };
 
 }}}
