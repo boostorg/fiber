@@ -58,6 +58,14 @@ struct fiber_manager : private noncopyable
     void priority( detail::worker_fiber * f, int prio) BOOST_NOEXCEPT
     { sched_algo_->priority( f, prio); }
 
+    template< typename Rep, typename Period >
+    void wait_interval( chrono::duration< Rep, Period > const& wait_interval) const BOOST_NOEXCEPT
+    { wait_interval_ = wait_interval; }
+
+    template< typename Rep, typename Period >
+    chrono::duration< Rep, Period > wait_interval() const BOOST_NOEXCEPT
+    { return wait_interval_; }
+
     void join( detail::worker_fiber *);
 
     detail::worker_fiber * active() BOOST_NOEXCEPT
@@ -80,7 +88,7 @@ private:
 
     scoped_ptr< sched_algorithm >   def_algo_;
     sched_algorithm             *   sched_algo_;
-
+    clock_type::duration            wait_interval_;
     detail::worker_fiber        *   active_fiber_;
     wqueue_t                        wqueue_;
 

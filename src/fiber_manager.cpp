@@ -72,12 +72,12 @@ clock_type::time_point
 fiber_manager::next_wakeup_()
 {
     if ( wqueue_.empty() )
-        return clock_type::now() + chrono::milliseconds( 10);
+        return clock_type::now() + wait_interval_;
     else
     {
         clock_type::time_point wakeup( wqueue_.top()->time_point() );
         if ( (clock_type::time_point::max)() == wakeup)
-            return clock_type::now() + chrono::milliseconds( 10);
+            return clock_type::now() + wait_interval_;
         return wakeup;
     }
 }
@@ -85,6 +85,7 @@ fiber_manager::next_wakeup_()
 fiber_manager::fiber_manager() BOOST_NOEXCEPT :
     def_algo_( new round_robin() ),
     sched_algo_( def_algo_.get() ),
+    wait_interval_( chrono::milliseconds( 10) ),
     active_fiber_( 0),
     wqueue_()
 {}

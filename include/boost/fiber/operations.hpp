@@ -84,6 +84,14 @@ inline
 void set_scheduling_algorithm( sched_algorithm * al)
 { detail::scheduler::replace( al); }
 
+template< typename Rep, typename Period >
+void set_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
+{ detail::scheduler::instance()->wait_interval( wait_interval); }
+
+template< typename Rep, typename Period >
+chrono::duration< Rep, Period > get_wait_interval() BOOST_NOEXCEPT
+{ return detail::scheduler::instance()->wait_interval< Rep, Period >(); }
+
 inline
 void migrate( fiber const& f)
 { fibers::detail::scheduler::instance()->spawn( detail::scheduler::extract( f ) ); }
