@@ -62,11 +62,12 @@ timed_mutex::lock()
     }
     else
     {
+        // notification for main-fiber
+        detail::main_fiber mf;
+        n = & mf;
+
         for (;;)
         {
-            // local notification for main-fiber
-            n = detail::scheduler::instance()->get_main_fiber();
-
             unique_lock< detail::spinlock > lk( splk_);
 
             if ( UNLOCKED == state_)
@@ -150,11 +151,12 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
     }
     else
     {
+        // notification for main-fiber
+        detail::main_fiber mf;
+        n = & mf;
+
         for (;;)
         {
-            // local notification for main-fiber
-            n = detail::scheduler::instance()->get_main_fiber();
-
             unique_lock< detail::spinlock > lk( splk_);
 
             if ( clock_type::now() > timeout_time)

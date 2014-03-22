@@ -85,7 +85,6 @@ fiber_manager::next_wakeup_()
 fiber_manager::fiber_manager() BOOST_NOEXCEPT :
     def_algo_( new round_robin() ),
     sched_algo_( def_algo_.get() ),
-    main_fiber_(),
     active_fiber_( 0),
     wqueue_()
 {}

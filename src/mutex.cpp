@@ -62,11 +62,12 @@ mutex::lock()
     }
     else
     {
+        // notification for main-fiber
+        detail::main_fiber mf;
+        n = & mf;
+
         for (;;)
         {
-            // local notification for main-fiber
-            n = detail::scheduler::instance()->get_main_fiber();
-
             unique_lock< detail::spinlock > lk( splk_);
 
             if ( UNLOCKED == state_)

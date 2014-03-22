@@ -102,8 +102,9 @@ public:
             }
             else
             {
-                // notifier for main-fiber
-                n = detail::scheduler::instance()->get_main_fiber();
+                // notification for main-fiber
+                detail::main_fiber mf;
+                n = & mf;
 
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
@@ -181,8 +182,9 @@ public:
             }
             else
             {
-                // notifier for main-fiber
-                n = detail::scheduler::instance()->get_main_fiber();
+                // notification for main-fiber
+                detail::main_fiber mf;
+                n = & mf;
 
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);

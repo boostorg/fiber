@@ -75,19 +75,12 @@ struct fiber_manager : private noncopyable
 
     void yield();
 
-    // FIXME: must be removed
-    // allocate main_fiber on stack of mutext, condition, etc.
-    // and pass address of main_fiber to wait-container
-    detail::fiber_base * get_main_fiber()
-    { return new detail::main_fiber(); }
-
 private:
     typedef detail::waiting_queue   wqueue_t;
 
     scoped_ptr< sched_algorithm >   def_algo_;
     sched_algorithm             *   sched_algo_;
 
-    detail::main_fiber              main_fiber_;
     detail::worker_fiber        *   active_fiber_;
     wqueue_t                        wqueue_;
 
