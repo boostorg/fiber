@@ -236,7 +236,6 @@ public:
 
     void deallocate()
     {
-        //this->~worker_fiber();
         callee_ = 0;
         coro_t::call_type tmp( move( caller_) );
     }

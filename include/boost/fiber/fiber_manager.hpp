@@ -13,9 +13,9 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/main_fiber.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/waiting_queue.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/fiber.hpp>
 
@@ -74,15 +74,6 @@ struct fiber_manager : private noncopyable
     { return wait_until( clock_type::now() + timeout_duration, lk); }
 
     void yield();
-#if 0
-    clock_type::time_point next_wakeup()
-    {
-        if ( wqueue_.empty() )
-            return (clock_type::time_point::max)();
-        else
-            return wqueue_.top().tp;
-    }
-#endif
 
     // FIXME: must be removed
     // allocate main_fiber on stack of mutext, condition, etc.
@@ -91,7 +82,7 @@ struct fiber_manager : private noncopyable
     { return new detail::main_fiber(); }
 
 private:
-    typedef detail::fifo        wqueue_t;
+    typedef detail::waiting_queue   wqueue_t;
 
     scoped_ptr< sched_algorithm >   def_algo_;
     sched_algorithm             *   sched_algo_;
@@ -101,6 +92,8 @@ private:
     wqueue_t                        wqueue_;
 
     void resume_( detail:: worker_fiber *);
+
+    clock_type::time_point next_wakeup_();
 };
 
 }}
