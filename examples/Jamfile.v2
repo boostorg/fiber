@@ -43,13 +43,13 @@ exe simple : simple.cpp ;
 #      workstealing_round_robin.cpp
 #    ;
 
-#exe asio/daytime_client : asio/daytime_client.cpp ;
-#exe asio/daytime_client2 : asio/daytime_client2.cpp ;
-#exe asio/echo_client : asio/echo_client.cpp ;
-#exe asio/echo_client2 : asio/echo_client2.cpp ;
-#exe asio/echo_server : asio/echo_server.cpp ;
-#exe asio/echo_server2 : asio/echo_server2.cpp ;
+exe asio/daytime_client : asio/daytime_client.cpp ;
+exe asio/daytime_client2 : asio/daytime_client2.cpp ;
+exe asio/echo_client : asio/echo_client.cpp ;
+exe asio/echo_client2 : asio/echo_client2.cpp ;
+exe asio/echo_server : asio/echo_server.cpp ;
+exe asio/echo_server2 : asio/echo_server2.cpp ;
 
-#exe asio/publish_subscribe/server : asio/publish_subscribe/server.cpp ;
-#exe asio/publish_subscribe/publisher : asio/publish_subscribe/publisher.cpp ;
-#exe asio/publish_subscribe/subscriber : asio/publish_subscribe/subscriber.cpp ;
+exe asio/publish_subscribe/server : asio/publish_subscribe/server.cpp ;
+exe asio/publish_subscribe/publisher : asio/publish_subscribe/publisher.cpp ;
+exe asio/publish_subscribe/subscriber : asio/publish_subscribe/subscriber.cpp ;

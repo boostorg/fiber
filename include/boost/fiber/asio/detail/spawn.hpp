@@ -50,8 +50,6 @@ public:
         * ec_ = boost::system::error_code();
         * value_ = value;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
     void operator()( boost::system::error_code ec, T value)
@@ -59,12 +57,10 @@ public:
         * ec_ = ec;
         * value_ = value;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
 //private:
-    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
+    boost::fibers::detail::fiber_base       *   fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
@@ -85,20 +81,16 @@ public:
     {
         * ec_ = boost::system::error_code();
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
     void operator()( boost::system::error_code ec)
     {
         * ec_ = ec;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
 //private:
-    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
+    boost::fibers::detail::fiber_base       *   fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
 };
@@ -191,8 +183,9 @@ public:
 
     type get()
     {
-        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
-        boost::fibers::detail::scheduler::instance()->active()->suspend();
+        fibers::detail::spinlock splk;
+        unique_lock< fibers::detail::spinlock > lk( splk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
         return value_;
     }
@@ -218,8 +211,9 @@ public:
 
     void get()
     {
-        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
-        boost::fibers::detail::scheduler::instance()->active()->suspend();
+        fibers::detail::spinlock splk;
+        unique_lock< fibers::detail::spinlock > lk( splk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
     }
 
@@ -237,14 +231,16 @@ namespace detail {
 template< typename Handler, typename Function >
 struct spawn_data : private noncopyable
 {
-    spawn_data( BOOST_ASIO_MOVE_ARG( Handler) handler,
+    spawn_data( boost::asio::io_service& io_svc, BOOST_ASIO_MOVE_ARG( Handler) handler,
             bool call_handler, BOOST_ASIO_MOVE_ARG( Function) function) :
+        io_svc_(io_svc),
         handler_( BOOST_ASIO_MOVE_CAST( Handler)( handler) ),
         call_handler_( call_handler),
         function_( BOOST_ASIO_MOVE_CAST( Function)( function) )
     {}
 
-    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
+    boost::asio::io_service&                    io_svc_;
+    boost::fibers::detail::fiber_base*          fiber_;
     Handler                                     handler_;
     bool                                        call_handler_;
     Function                                    function_;
@@ -256,10 +252,11 @@ struct fiber_entry_point
   void operator()()
   {
     shared_ptr< spawn_data< Handler, Function > > data( data_);
-    boost::fibers::detail::scheduler::instance()->active()->set_waiting();
-    boost::fibers::detail::scheduler::instance()->active()->suspend();
+    data->fiber_ = boost::fibers::detail::scheduler::instance()->active();
     const basic_yield_context< Handler > yield(
         data->fiber_, data->handler_);
+
+    boost::asio::io_service::work w(data->io_svc_);
     ( data->function_)( yield);
     if ( data->call_handler_)
       ( data->handler_)();
@@ -275,11 +272,7 @@ struct spawn_helper
   {
     fiber_entry_point< Handler, Function > entry_point = { data_ };
     boost::fibers::fiber fiber( entry_point, attributes_);
-    data_->fiber_ = boost::fibers::detail::scheduler::extract( fiber);
     fiber.detach();
-    data_->fiber_->set_ready();
-    boost::fibers::detail::scheduler::instance()->spawn( data_->fiber_);
-    boost::fibers::detail::scheduler::instance()->run();
   }
 
   shared_ptr< spawn_data< Handler, Function > > data_;
@@ -291,13 +284,15 @@ inline void default_spawn_handler() {}
 } // namespace detail
 
 template< typename Handler, typename Function >
-void spawn( BOOST_ASIO_MOVE_ARG( Handler) handler,
+void spawn( boost::asio::io_service& io_service,
+    BOOST_ASIO_MOVE_ARG( Handler) handler,
     BOOST_ASIO_MOVE_ARG( Function) function,
     boost::fibers::attributes const& attributes)
 {
     detail::spawn_helper< Handler, Function > helper;
     helper.data_.reset(
         new detail::spawn_data< Handler, Function >(
+            io_service,
             BOOST_ASIO_MOVE_CAST( Handler)( handler), true,
             BOOST_ASIO_MOVE_CAST( Function)( function) ) );
     helper.attributes_ = attributes;
@@ -327,6 +322,7 @@ void spawn( boost::asio::io_service::strand strand,
     boost::fibers::attributes const& attributes)
 {
     boost::fibers::asio::spawn(
+        strand.get_io_service(),
         strand.wrap( & detail::default_spawn_handler),
         BOOST_ASIO_MOVE_CAST( Function)( function),
         attributes);

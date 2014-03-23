@@ -7,6 +7,8 @@
 
 #include <boost/assert.hpp>
 
+#include "boost/fiber/asio/manager.hpp"
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -38,6 +40,10 @@ scheduler::replace( sched_algorithm * other)
 
     instance()->set_sched_algo( other);
 }
+
+void
+scheduler::register_io_svc( boost::asio::io_service & io_svc)
+{ instance_.reset( new asio::manager( io_svc) ); }
 
 }}}
 

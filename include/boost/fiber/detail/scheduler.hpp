@@ -10,6 +10,7 @@
 #include <pthread.h>  // pthread_key_create, pthread_[gs]etspecific
 #endif
 
+#include <boost/asio.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
@@ -87,7 +88,9 @@ public:
         return instance_.get();
     }
 
-    static void replace( sched_algorithm * other);
+    static void replace( sched_algorithm *);
+
+    static void register_io_svc( boost::asio::io_service &);
 };
 
 }}}

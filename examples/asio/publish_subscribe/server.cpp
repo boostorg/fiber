@@ -389,8 +389,7 @@ int main( int argc, char* argv[])
         // create io_service for async. I/O
         boost::asio::io_service io_service;
         // install special fiber-scheduler dealing with asio's io_serivce
-        boost::fibers::asio::round_robin ds( io_service);
-        boost::fibers::set_scheduling_algorithm( & ds);
+        boost::fibers::set_io_service( io_service);
 
         // registry for channels and its subscription
         registry reg;
