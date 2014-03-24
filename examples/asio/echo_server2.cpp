@@ -20,6 +20,10 @@
 
 #include <boost/fiber/all.hpp>
 
+#include "loop.hpp"
+#include "spawn.hpp"
+#include "yield.hpp"
+
 using boost::asio::ip::tcp;
 
 const int max_length = 1024;
@@ -119,15 +123,15 @@ int main( int argc, char* argv[])
         }
 
         boost::asio::io_service io_service;
-        boost::fibers::asio::round_robin ds( io_service);
-        boost::fibers::set_scheduling_algorithm( & ds);
 
         using namespace std; // For atoi.
         boost::fibers::asio::spawn( io_service,
             boost::bind( do_accept,
                 boost::ref( io_service), atoi( argv[1]), _1) );
 
-        io_service.run();
+        boost::fibers::fiber f(
+            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
+        f.join();
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }

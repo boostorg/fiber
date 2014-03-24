@@ -33,8 +33,6 @@ public:
         * ec_ = boost::system::error_code();
         * value_ = t;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
     void operator()( boost::system::error_code const& ec, T t)
@@ -42,12 +40,10 @@ public:
         * ec_ = ec;
         * value_ = t;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
 //private:
-    boost::fibers::detail::worker_fiber::ptr_t    fiber_;
+    boost::fibers::detail::fiber_base       *   fiber_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
 };
@@ -66,20 +62,16 @@ public:
     {
         * ec_ = boost::system::error_code();
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
     
     void operator()( boost::system::error_code const& ec)
     {
         * ec_ = ec;
         fiber_->set_ready();
-        boost::fibers::detail::scheduler::instance()->spawn( fiber_);
-        boost::fibers::detail::scheduler::instance()->run();
     }
 
 //private:
-    boost::fibers::detail::worker_fiber::ptr_t  fiber_;
+    boost::fibers::detail::fiber_base     *   fiber_;
     boost::system::error_code             *   ec_;
 };
 
@@ -106,8 +98,9 @@ public:
     
     type get()
     {
-        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
-        boost::fibers::detail::scheduler::instance()->active()->suspend();
+        fibers::detail::spinlock splk;
+        unique_lock< fibers::detail::spinlock > lk( splk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
         return value_;
@@ -133,8 +126,9 @@ public:
 
     void get()
     {
-        boost::fibers::detail::scheduler::instance()->active()->set_waiting();
-        boost::fibers::detail::scheduler::instance()->active()->suspend();
+        fibers::detail::spinlock splk;
+        unique_lock< fibers::detail::spinlock > lk( splk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
     }

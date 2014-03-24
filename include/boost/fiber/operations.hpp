@@ -6,6 +6,7 @@
 #ifndef BOOST_THIS_FIBER_OPERATIONS_H
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
+#include <boost/asio.hpp> 
 #include <boost/thread/lock_types.hpp> 
 
 #include <boost/fiber/detail/config.hpp>

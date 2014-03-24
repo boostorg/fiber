@@ -69,7 +69,7 @@ fiber_manager::resume_( detail::worker_fiber * f)
 }
 
 clock_type::time_point
-fiber_manager::next_wakeup_()
+fiber_manager::next_wakeup()
 {
     if ( wqueue_.empty() )
         return clock_type::now() + wait_interval_;
@@ -85,9 +85,9 @@ fiber_manager::next_wakeup_()
 fiber_manager::fiber_manager() BOOST_NOEXCEPT :
     def_algo_( new round_robin() ),
     sched_algo_( def_algo_.get() ),
+    wqueue_(),
     wait_interval_( chrono::milliseconds( 10) ),
-    active_fiber_( 0),
-    wqueue_()
+    active_fiber_( 0)
 {}
 
 fiber_manager::~fiber_manager() BOOST_NOEXCEPT
@@ -133,20 +133,13 @@ fiber_manager::run()
         }
         else
         {
-#if 0
-            if ( active_fiber_)
-                active_fiber_->suspend();
-            else
-                this_thread::yield();
-            return;
-#endif
             if ( active_fiber_)
                 active_fiber_->suspend();
             else
             {
                 // no fibers ready to run; the thread should sleep
                 // until earliest fiber is scheduled to run
-                clock_type::time_point wakeup( next_wakeup_() );
+                clock_type::time_point wakeup( next_wakeup() );
                 this_thread::sleep_until( wakeup);
             }
             return;
@@ -188,8 +181,8 @@ fiber_manager::yield()
 
     // set active fiber to state_waiting
     active_fiber_->set_ready();
-    // push active fiber to wqueue_
-    wqueue_.push( active_fiber_);
+    // push active fiber to scheduler-algo
+    sched_algo_->awakened( active_fiber_);
     // run next fiber
     run();
 }

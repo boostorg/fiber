@@ -71,7 +71,7 @@ struct fiber_manager : private noncopyable
     detail::worker_fiber * active() BOOST_NOEXCEPT
     { return active_fiber_; }
 
-    void run();
+    virtual void run();
 
     void wait( unique_lock< detail::spinlock > &);
     bool wait_until( clock_type::time_point const&,
@@ -83,18 +83,20 @@ struct fiber_manager : private noncopyable
 
     void yield();
 
-private:
+    clock_type::time_point next_wakeup();
+
+protected:
     typedef detail::waiting_queue   wqueue_t;
 
     scoped_ptr< sched_algorithm >   def_algo_;
     sched_algorithm             *   sched_algo_;
-    clock_type::duration            wait_interval_;
-    detail::worker_fiber        *   active_fiber_;
     wqueue_t                        wqueue_;
 
     void resume_( detail:: worker_fiber *);
 
-    clock_type::time_point next_wakeup_();
+private:
+    clock_type::duration            wait_interval_;
+    detail::worker_fiber        *   active_fiber_;
 };
 
 }}

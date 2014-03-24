@@ -18,6 +18,10 @@
 
 #include <boost/fiber/all.hpp>
 
+#include "loop.hpp"
+#include "spawn.hpp"
+#include "yield.hpp"
+
 using boost::asio::ip::tcp;
 
 const int max_length = 1024;
@@ -62,9 +66,11 @@ void server( boost::asio::io_service & io_service, unsigned short port)
     {
         socket_ptr socket( new tcp::socket( io_service) );
         boost::system::error_code ec;
+        std::cout << "wait for accept" << std::endl;
         a.async_accept(
                 * socket,
                 boost::fibers::asio::yield[ec]);
+        std::cout << "accepted" << std::endl;
         if ( ! ec) {
             boost::fibers::fiber(
                     boost::bind( session, socket) ).detach();
@@ -83,14 +89,14 @@ int main( int argc, char* argv[])
         }
 
         boost::asio::io_service io_service;
-        boost::fibers::asio::round_robin ds( io_service);
-        boost::fibers::set_scheduling_algorithm( & ds);
 
         using namespace std; // For atoi.
-        boost::fibers::fiber fiber(
-            boost::bind( server, boost::ref( io_service), atoi( argv[1]) ) );
-        io_service.run();
-        fiber.join();
+        boost::fibers::fiber(
+            boost::bind( server, boost::ref( io_service), atoi( argv[1]) ) ).detach();
+        
+        boost::fibers::fiber f(
+            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
+        f.join();
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }

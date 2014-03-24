@@ -7,10 +7,6 @@
 #ifndef BOOST_FIBERS_H
 #define BOOST_FIBERS_H
 
-//#include <boost/fiber/asio/round_robin.hpp>
-//#include <boost/fiber/asio/spawn.hpp>
-//#include <boost/fiber/asio/use_future.hpp>
-//#include <boost/fiber/asio/yield.hpp>
 #include <boost/fiber/attributes.hpp>
 #include <boost/fiber/barrier.hpp>
 #include <boost/fiber/bounded_queue.hpp>

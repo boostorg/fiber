@@ -83,6 +83,6 @@ BOOST_CONSTEXPR_OR_CONST use_future_t<> use_future;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#include <boost/fiber/asio/detail/use_future.hpp>
+#include "detail/use_future.hpp"
 
 #endif // BOOST_FIBERS_ASIO_USE_FUTURE_HPP

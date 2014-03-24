@@ -52,7 +52,7 @@ public:
     void operator()( T t)
     {
         promise_->set_value( t);
-        boost::fibers::detail::scheduler::instance()->run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     void operator()( boost::system::error_code const& ec, T t)
@@ -66,7 +66,7 @@ public:
 
         // scheduler::run() resumes a ready fiber
         // invoke scheduler::run() until no fiber was resumed
-        boost::fibers::detail::scheduler::instance()->run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     //private:
@@ -88,7 +88,7 @@ public:
     void operator()()
     {
         promise_->set_value();
-        boost::fibers::detail::scheduler::instance()->run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     void operator()( boost::system::error_code const& ec)
@@ -102,7 +102,7 @@ public:
 
         // scheduler::run() resumes a ready fiber
         // invoke scheduler::run() until no fiber was resumed
-        boost::fibers::detail::scheduler::instance()->run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     //private:

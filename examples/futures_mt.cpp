@@ -38,7 +38,7 @@ boost::fibers::future< int > async( int i)
 
 int main( int argc, char * argv[])
 {
-    for ( int i = 0; i < 5000; ++i)
+    for ( int i = 0; i < 5; ++i)
     {
         int n = 3;
         boost::fibers::future< int > f = async( n);
