@@ -89,8 +89,6 @@ public:
     }
 
     static void replace( sched_algorithm *);
-
-    static void register_io_svc( boost::asio::io_service &);
 };
 
 }}}

@@ -51,6 +51,6 @@ BOOST_CONSTEXPR_OR_CONST yield_t yield;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#include <boost/fiber/asio/detail/yield.hpp>
+#include "detail/yield.hpp"
 
 #endif // BOOST_FIBERS_ASIO_YIELD_HPP

@@ -234,6 +234,6 @@ void spawn( boost::asio::io_service & io_service,
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#include <boost/fiber/asio/detail/spawn.hpp>
+#include "detail/spawn.hpp"
 
 #endif // BOOST_FIBERS_ASIO_SPAWN_HPP

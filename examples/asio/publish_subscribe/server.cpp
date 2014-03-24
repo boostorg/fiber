@@ -23,6 +23,10 @@
 
 #include <boost/fiber/all.hpp>
 
+#include "../loop.hpp"
+#include "../spawn.hpp"
+#include "../yield.hpp"
+
 using boost::asio::ip::tcp;
 
 const int max_length = 1024;
@@ -388,8 +392,6 @@ int main( int argc, char* argv[])
     {
         // create io_service for async. I/O
         boost::asio::io_service io_service;
-        // install special fiber-scheduler dealing with asio's io_serivce
-        boost::fibers::set_io_service( io_service);
 
         // registry for channels and its subscription
         registry reg;
@@ -404,7 +406,9 @@ int main( int argc, char* argv[])
             boost::bind( accept_subscriber,
                 boost::ref( io_service), 9998, boost::ref( reg), _1) );
                 
-        io_service.run();
+        boost::fibers::fiber f(
+            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
+        f.join();
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }

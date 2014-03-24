@@ -85,10 +85,6 @@ inline
 void set_scheduling_algorithm( sched_algorithm * al)
 { detail::scheduler::replace( al); }
 
-inline
-void set_io_service( boost::asio::io_service & io_svc)
-{ detail::scheduler::register_io_svc( io_svc); }
-
 template< typename Rep, typename Period >
 void set_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
 { detail::scheduler::instance()->wait_interval( wait_interval); }

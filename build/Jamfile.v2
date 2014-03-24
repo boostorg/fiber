@@ -31,8 +31,7 @@ project boost/fiber
     ;
 
 lib boost_fiber
-    : asio/manager.cpp
-      barrier.cpp
+    : barrier.cpp
       condition.cpp
       detail/worker_fiber.cpp
       detail/scheduler.cpp

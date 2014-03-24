@@ -83,6 +83,8 @@ struct fiber_manager : private noncopyable
 
     void yield();
 
+    clock_type::time_point next_wakeup();
+
 protected:
     typedef detail::waiting_queue   wqueue_t;
 
@@ -95,8 +97,6 @@ protected:
 private:
     clock_type::duration            wait_interval_;
     detail::worker_fiber        *   active_fiber_;
-
-    clock_type::time_point next_wakeup_();
 };
 
 }}
