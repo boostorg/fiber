@@ -12,7 +12,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/intrusive_ptr.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>

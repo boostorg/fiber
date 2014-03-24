@@ -3,28 +3,17 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef WORKSTEALING_ROND_ROBIN_H
-#define WORKSTEALING_ROND_ROBIN_H
+#ifndef WORKSTEALING_ROUND_ROBIN_H
+#define WORKSTEALING_ROUND_ROBIN_H
 
-#include <deque>
-
-#include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/thread/lock_types.hpp> 
 
-#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/detail/main_notifier.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 
-#include "ws_queue.hpp"
+#include "workstealing_queue.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -35,58 +24,21 @@
 # pragma warning(disable:4251 4275)
 # endif
 
-class workstealing_round_robin : public boost::fibers::algorithm
+class workstealing_round_robin : public boost::fibers::sched_algorithm
 {
 private:
-    struct schedulable
-    {
-        boost::fibers::detail::worker_fiber::ptr_t   f;
-        boost::fibers::clock_type::time_point      tp;
+    typedef workstealing_queue  rqueue_t;
 
-        schedulable( boost::fibers::detail::worker_fiber::ptr_t const& f_,
-                     boost::fibers::clock_type::time_point const& tp_ =
-                        (boost::fibers::clock_type::time_point::max)() ) :
-            f( f_), tp( tp_)
-        { BOOST_ASSERT( f); }
-    };
-
-    typedef std::deque< schedulable >                   wqueue_t;
-
-    boost::fibers::detail::worker_fiber::ptr_t   active_fiber_;
-    wqueue_t                    wqueue_;
-    ws_queue            rqueue_;
-    boost::fibers::detail::main_notifier       mn_;
+    rqueue_t                    rqueue_;
 
 public:
-    workstealing_round_robin() BOOST_NOEXCEPT;
+    virtual void awakened( boost::fibers::detail::worker_fiber *);
 
-    ~workstealing_round_robin() BOOST_NOEXCEPT;
+    virtual boost::fibers::detail::worker_fiber * pick_next();
 
-    void spawn( boost::fibers::detail::worker_fiber::ptr_t const&);
+    virtual void priority( boost::fibers::detail::worker_fiber *, int) BOOST_NOEXCEPT;
 
-    void priority( boost::fibers::detail::worker_fiber::ptr_t const&, int) BOOST_NOEXCEPT;
-
-    void join( boost::fibers::detail::worker_fiber::ptr_t const&);
-
-    boost::fibers::detail::worker_fiber::ptr_t active() BOOST_NOEXCEPT
-    { return active_fiber_; }
-
-    bool run();
-
-    void wait( boost::unique_lock< boost::fibers::detail::spinlock > &);
-    bool wait_until( boost::fibers::clock_type::time_point const&,
-                     boost::unique_lock< boost::fibers::detail::spinlock > &);
-
-    void yield();
-
-    boost::fibers::detail::worker_fiber::id get_main_id()
-    { return boost::fibers::detail::worker_fiber::id( boost::fibers::detail::main_notifier::make_pointer( mn_) ); }
-
-    boost::fibers::detail::fiber_base::ptr_t get_main_notifier()
-    { return boost::fibers::detail::fiber_base::ptr_t( new boost::fibers::detail::main_notifier() ); }
-
-    boost::fibers::fiber steal_from();
-    void migrate_to( boost::fibers::fiber const&);
+    boost::fibers::fiber steal();
 };
 
 # if defined(BOOST_MSVC)
@@ -97,4 +49,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // WORKSTEALING_ROND_ROBIN_H
+#endif // WORKSTEALING_ROUND_ROBIN_H

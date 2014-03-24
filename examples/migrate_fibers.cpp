@@ -70,9 +70,6 @@ void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b,
 {
     BOOST_ASSERT( other_ds);
 
-    workstealing_round_robin ds;
-    boost::fibers::set_scheduling_algorithm( & ds);
-
     b->wait();
 
     while ( ! fini)
@@ -88,31 +85,9 @@ void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b,
         if ( f)
         {
             ++( * count);
-            ds.migrate_to( f);
+            boost::this_fiber::migrate( f);
             f.detach();
         }
-        while ( boost::fibers::detail::scheduler::instance()->run() );
-    }
-}
-
-void test_migrate_fiber()
-{
-    for ( int i = 0; i < MAXCOUNT; ++i) {
-        fprintf(stderr, "%d. ", i);
-
-        fini = false;
-        int count = 0;
-
-        workstealing_round_robin * ds = new workstealing_round_robin();
-        boost::barrier b( 2);
-        boost::thread t1( boost::bind( fn_create_fibers, ds, &b) );
-        boost::thread t2( boost::bind( fn_migrate_fibers, ds, &b, &count) );
-
-        t1.join();
-        t2.join();
-
-        fprintf(stderr, ", %d fibers stolen\n", count);
-        delete ds;
     }
 }
 
