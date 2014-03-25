@@ -20,7 +20,7 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-class workstealing_queue : private noncopyable
+class workstealing_queue : private boost::noncopyable
 {
 private:
     boost::fibers::detail::spinlock         splk_;
@@ -46,24 +46,25 @@ private:
 
     boost::fibers::detail::worker_fiber * pop_() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! empty_() );
-
         boost::fibers::detail::worker_fiber * item = head_;
-        head_ = head_->next();
-        if ( 0 == head_) tail_ = 0;
-        item->next_reset();
+        if ( ! empty_() )
+        {
+            head_ = head_->next();
+            if ( 0 == head_) tail_ = 0;
+            item->next_reset();
+        }
         return item;
     }
 
-    bool steal_( boost::fibers::detail::worker_fiber::ptr_t * f)
+    boost::fibers::detail::worker_fiber * steal_()
     {
-        boost::fibers::detail::worker_fiber * x = head_, * prev = 0;
-        while ( 0 != x)
+        boost::fibers::detail::worker_fiber * f = head_, * prev = 0;
+        while ( 0 != f)
         {
-            boost::fibers::detail::worker_fiber * nxt = x->next();
-            if ( ! x->thread_affinity() )
+            boost::fibers::detail::worker_fiber * nxt = f->next();
+            if ( ! f->thread_affinity() )
             {
-                if ( x == head_)
+                if ( f == head_)
                 {
                     BOOST_ASSERT( 0 == prev);
 
@@ -80,15 +81,14 @@ private:
 
                     prev->next( nxt); 
                 }
-                x->next_reset();
-                std::swap( f, x);
-                return true;
+                f->next_reset();
+                return f;
             }
             else
-                prev = x;
-            x = nxt;
+                prev = f;
+            f = nxt;
         }
-        return false;
+        return 0;
     }
 
 public:
@@ -107,15 +107,14 @@ public:
 
     boost::fibers::detail::worker_fiber * pop() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( f);
         boost::unique_lock< boost::fibers::detail::spinlock > lk( splk_);
         return pop_();
     }
 
-    bool steal( boost::fibers::detail::worker_fiber::ptr_t * f)
+    boost::fibers::detail::worker_fiber * steal()
     {
         boost::unique_lock< boost::fibers::detail::spinlock > lk( splk_);
-        return steal_( f);
+        return steal_();
     }
 };
 

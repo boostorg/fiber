@@ -236,8 +236,10 @@ public:
 
     void deallocate()
     {
+#if 0
         callee_ = 0;
         coro_t::call_type tmp( move( caller_) );
+#endif
     }
 
     void release();

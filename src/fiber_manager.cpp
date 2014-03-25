@@ -219,6 +219,16 @@ fiber_manager::join( detail::worker_fiber * f)
     BOOST_ASSERT( f->is_terminated() );
 }
 
+void
+fiber_manager::migrate( detail::worker_fiber * f)
+{
+    BOOST_ASSERT( f);
+    BOOST_ASSERT( f->is_ready() );
+
+    spawn( f);
+    run();
+}
+
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS

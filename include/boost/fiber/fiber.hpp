@@ -67,6 +67,10 @@ public:
         impl_( 0)
     {}
 
+    explicit fiber( detail::worker_fiber * impl) BOOST_NOEXCEPT :
+        impl_( impl)
+    {}
+
 #ifndef BOOST_NO_RVALUE_REFERENCES
 #ifdef BOOST_MSVC
     typedef void ( * fiber_fn)();

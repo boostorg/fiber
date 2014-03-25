@@ -18,12 +18,7 @@ workstealing_round_robin::awakened( boost::fibers::detail::worker_fiber * f)
 
 boost::fibers::detail::worker_fiber *
 workstealing_round_robin::pick_next()
-{
-    boost::fibers::detail::worker_fiber * victim = 0;
-    if ( ! rqueue_.empty() )
-        victim = rqueue_.pop();
-    return victim;
-}
+{ return rqueue_.pop(); }
 
 void
 workstealing_round_robin::priority( boost::fibers::detail::worker_fiber * f, int prio) BOOST_NOEXCEPT
@@ -37,11 +32,7 @@ workstealing_round_robin::priority( boost::fibers::detail::worker_fiber * f, int
 
 boost::fibers::fiber
 workstealing_round_robin::steal() BOOST_NOEXCEPT
-{
-    boost::fibers::detail::worker_fiber * f = 0;
-    if ( rqueue_.steal( f) ) return boost::fibers::fiber( f);
-    else return boost::fibers::fiber();
-}
+{ return boost::fibers::fiber( rqueue_.steal() ); }
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

@@ -95,7 +95,7 @@ chrono::duration< Rep, Period > get_wait_interval() BOOST_NOEXCEPT
 
 inline
 void migrate( fiber const& f)
-{ fibers::detail::scheduler::instance()->spawn( detail::scheduler::extract( f ) ); }
+{ fibers::detail::scheduler::instance()->migrate( detail::scheduler::extract( f ) ); }
 
 }}
 

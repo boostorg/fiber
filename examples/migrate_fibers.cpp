@@ -16,10 +16,9 @@
 #include <boost/fiber/all.hpp>
 #include "workstealing_round_robin.hpp"
 
-#define MAXCOUNT 100
+#define MAXCOUNT 10
 
 boost::atomic< bool > fini( false);
-workstealing_round_robin * other_ds = 0;
 
 boost::fibers::future< int > fibonacci( int);
 
@@ -59,9 +58,10 @@ void fn_create_fibers( workstealing_round_robin * ds, boost::barrier * b)
 
     b->wait();
 
-    int result = boost::fibers::async( boost::bind( create_fiber, 10) ).get();
+    int n = 10;
+    int result = boost::fibers::async( boost::bind( create_fiber, n) ).get();
     BOOST_ASSERT( 89 == result);
-    fprintf( stderr, "fibonacci(10) = %d", result);
+    fprintf( stderr, "fibonacci(%d) = %d", n, result);
 
     fini = true;
 }
@@ -81,13 +81,15 @@ void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b,
         // descheduled threads to regain a processor and make progress. 
         boost::this_thread::yield();
 
-        boost::fibers::fiber f( other_ds->steal_from() );
+        boost::fibers::fiber f( other_ds->steal() );
         if ( f)
         {
             ++( * count);
-            boost::this_fiber::migrate( f);
+            boost::fibers::migrate( f);
             f.detach();
         }
+        
+        boost::this_fiber::yield();
     }
 }
 
