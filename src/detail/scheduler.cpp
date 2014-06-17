@@ -36,7 +36,7 @@ scheduler::replace( sched_algorithm * other)
 {
     BOOST_ASSERT( other);
 
-    instance()->set_sched_algo( other);
+    fm_set_sched_algo( instance(), other);
 }
 
 }}}

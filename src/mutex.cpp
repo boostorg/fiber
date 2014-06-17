@@ -37,7 +37,7 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    detail::fiber_base * n( detail::scheduler::instance()->active() );
+    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
     if ( 0 != n)
     {
         for (;;)
@@ -57,7 +57,7 @@ mutex::lock()
             waiting_.push_back( n);
 
             // suspend this fiber
-            detail::scheduler::instance()->wait( lk);
+            fm_wait( detail::scheduler::instance(), lk);
         }
     }
     else
@@ -86,7 +86,7 @@ mutex::lock()
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
                 // run scheduler
-                detail::scheduler::instance()->run();
+                fm_run( detail::scheduler::instance() );
         }
     }
 }

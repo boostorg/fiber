@@ -22,7 +22,7 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    bool is_fiber = 0 != scheduler::instance()->active();
+    bool is_fiber = 0 != fm_active( scheduler::instance() );
     for (;;)
     {
         // access to CPU's cache
@@ -32,8 +32,8 @@ spinlock::lock()
         {
             // busy-wait
             if ( is_fiber)
-                scheduler::instance()->yield();
-            else
+                fm_yield( scheduler::instance() );
+           else
                 this_thread::yield();
         }
         // state_ was released by other
@@ -42,18 +42,6 @@ spinlock::lock()
         if ( UNLOCKED == state_.exchange( LOCKED) )
             return;
     }
-#if 0
-    state_t expected = UNLOCKED;
-    while ( ! state_.compare_exchange_strong( expected, LOCKED) )
-    {
-        // busy-wait
-        if ( is_fiber)
-            scheduler::instance()->yield();
-        else
-            this_thread::yield();
-        expected = UNLOCKED; 
-    }
-#endif
 }
 
 void

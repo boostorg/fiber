@@ -45,9 +45,9 @@ bool fetch_ready( detail::worker_fiber * f)
 fiber_manager::fiber_manager() BOOST_NOEXCEPT :
     def_algo_( new round_robin() ),
     sched_algo_( def_algo_.get() ),
-    fm->wqueue_(),
+    wqueue_(),
     wait_interval_( chrono::milliseconds( 10) ),
-    fm->active_fiber_( 0)
+    active_fiber_( 0)
 {}
 
 fiber_manager::~fiber_manager() BOOST_NOEXCEPT
@@ -96,12 +96,12 @@ clock_type::time_point fm_next_wakeup( fiber_manager * fm)
     BOOST_ASSERT( fm);
 
     if ( fm->wqueue_.empty() )
-        return clock_type::now() + wait_interval_;
+        return clock_type::now() + fm->wait_interval_;
     else
     {
         clock_type::time_point wakeup( fm->wqueue_.top()->time_point() );
         if ( (clock_type::time_point::max)() == wakeup)
-            return clock_type::now() + wait_interval_;
+            return clock_type::now() + fm->wait_interval_;
         return wakeup;
     }
 }
@@ -142,7 +142,7 @@ void fm_run( fiber_manager * fm)
             {
                 // no fibers ready to run; the thread should sleep
                 // until earliest fiber is scheduled to run
-                clock_type::time_point fm_wakeup( fm, next_wakeup() );
+                clock_type::time_point wakeup( fm_next_wakeup( fm) );
                 this_thread::sleep_until( wakeup);
             }
             return;
@@ -154,7 +154,7 @@ void fm_wait( fiber_manager * fm, unique_lock< detail::spinlock > & lk)
 {
     BOOST_ASSERT( fm);
 
-    wait_until( fm, clock_type::time_point( (clock_type::duration::max)() ), lk);
+    fm_wait_until( fm, clock_type::time_point( (clock_type::duration::max)() ), lk);
 }
 
 bool fm_wait_until( fiber_manager * fm,

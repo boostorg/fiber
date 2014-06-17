@@ -26,7 +26,7 @@ void
 fiber::start_fiber_()
 {
     impl_->set_ready();
-    detail::scheduler::instance()->spawn( impl_);
+    fm_spawn( detail::scheduler::instance(), impl_);
 }
 
 int
@@ -42,7 +42,7 @@ fiber::priority( int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( impl_);
 
-    detail::scheduler::instance()->priority( impl_, prio);
+    fm_priority( detail::scheduler::instance(), impl_, prio);
 }
 
 bool
@@ -78,7 +78,7 @@ fiber::join()
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    detail::scheduler::instance()->join( impl_);
+    fm_join( detail::scheduler::instance(), impl_);
 
     detail::worker_fiber * tmp = 0;
     std::swap( tmp, impl_);

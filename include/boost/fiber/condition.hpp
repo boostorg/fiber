@@ -72,7 +72,7 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        detail::fiber_base * n( detail::scheduler::instance()->active() );
+        detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
         try
         {
             if ( n)
@@ -91,7 +91,7 @@ public:
                 // suspend this fiber
                 // locked spinlock will be released if this fiber
                 // was stored inside schedulers's waiting-queue
-                detail::scheduler::instance()->wait( lk);
+                fm_wait( detail::scheduler::instance(), lk);
 
                 // this fiber was notified and resumed
                 // check if fiber was interrupted
@@ -123,7 +123,7 @@ public:
                 // loop until main-notifier gets notified
                 while ( ! n->is_ready() )
                     // run scheduler
-                    detail::scheduler::instance()->run();
+                    fm_run( detail::scheduler::instance() );
 
                 // lock external again before returning
                 lt.lock();
@@ -144,7 +144,7 @@ public:
     {
         cv_status status = cv_status::no_timeout;
 
-        detail::fiber_base * n( detail::scheduler::instance()->active() );
+        detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
         try
         {
             if ( n)
@@ -162,7 +162,7 @@ public:
                 // suspend this fiber
                 // locked spinlock will be released if this fiber
                 // was stored inside schedulers's waiting-queue
-                if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) )
+                if ( ! fm_wait_until( detail::scheduler::instance(), timeout_time, lk) )
                 {
                     // this fiber was not notified before timeout
                     // lock spinlock again
@@ -216,7 +216,7 @@ public:
                         break;
                     }
                     // run scheduler
-                    detail::scheduler::instance()->run();
+                    fm_run( detail::scheduler::instance() );
                 }
 
                 // lock external again before returning

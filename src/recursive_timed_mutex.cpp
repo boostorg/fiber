@@ -39,7 +39,7 @@ recursive_timed_mutex::~recursive_timed_mutex()
 void
 recursive_timed_mutex::lock()
 {
-    detail::fiber_base * n( detail::scheduler::instance()->active() );
+    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
     if ( 0 != n)
     {
         for (;;)
@@ -65,7 +65,7 @@ recursive_timed_mutex::lock()
             waiting_.push_back( n);
 
             // suspend this fiber
-            detail::scheduler::instance()->wait( lk);
+            fm_wait( detail::scheduler::instance(), lk);
         }
     }
     else
@@ -100,7 +100,7 @@ recursive_timed_mutex::lock()
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
                 // run scheduler
-                detail::scheduler::instance()->run();
+                fm_run( detail::scheduler::instance() );
         }
     }
 }
@@ -135,7 +135,7 @@ recursive_timed_mutex::try_lock()
 bool
 recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
 {
-    detail::fiber_base * n( detail::scheduler::instance()->active() );
+    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
     if ( n)
     {
         for (;;)
@@ -164,7 +164,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
             waiting_.push_back( n);
 
             // suspend this fiber until notified or timed-out
-            if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) )
+            if ( ! fm_wait_until( detail::scheduler::instance(), timeout_time, lk) )
             {
                 lk.lock();
                 // remove fiber from waiting-list
@@ -220,7 +220,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
                     return false;
                 }
                 // run scheduler
-                detail::scheduler::instance()->run();
+                fm_run( detail::scheduler::instance() );
             }
         }
     }
