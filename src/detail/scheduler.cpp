@@ -20,16 +20,16 @@ static void deleter_fn( fiber_manager * mgr) { delete mgr; }
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
 template< typename T >
-__declspec(thread) T * thread_local_ptr< T >::t_ = 0;
+volatile __declspec(thread) T * thread_local_ptr< T >::t_ = 0;
 #elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
 template< typename T >
-detail::thread_local_ptr< T > thread_local_ptr< T >::t_;
+volatile detail::thread_local_ptr< T > thread_local_ptr< T >::t_;
 #else
 template< typename T >
-__thread T * thread_local_ptr< T >::t_ = 0;
+volatile __thread T * thread_local_ptr< T >::t_ = 0;
 #endif
 
-thread_local_ptr< fiber_manager > scheduler::instance_( deleter_fn);
+volatile thread_local_ptr< fiber_manager > scheduler::instance_( deleter_fn);
 
 void
 scheduler::replace( sched_algorithm * other)

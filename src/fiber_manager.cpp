@@ -64,7 +64,7 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
         fm_run( this);
 }
 
-void fm_resume_( fiber_manager * fm, detail::worker_fiber * f)
+void fm_resume_( volatile fiber_manager * fm, detail::worker_fiber * f)
 {
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);
@@ -91,7 +91,7 @@ void fm_resume_( fiber_manager * fm, detail::worker_fiber * f)
     }
 }
 
-clock_type::time_point fm_next_wakeup( fiber_manager * fm)
+clock_type::time_point fm_next_wakeup( volatile fiber_manager * fm)
 {
     BOOST_ASSERT( fm);
 
@@ -106,7 +106,7 @@ clock_type::time_point fm_next_wakeup( fiber_manager * fm)
     }
 }
 
-void fm_spawn( fiber_manager * fm, detail::worker_fiber * f)
+void fm_spawn( volatile fiber_manager * fm, detail::worker_fiber * f)
 {
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);
@@ -115,7 +115,7 @@ void fm_spawn( fiber_manager * fm, detail::worker_fiber * f)
     fm->sched_algo_->awakened( f);
 }
 
-void fm_run( fiber_manager * fm)
+void fm_run( volatile fiber_manager * fm)
 {
     BOOST_ASSERT( fm);
 
@@ -150,14 +150,14 @@ void fm_run( fiber_manager * fm)
     }
 }
 
-void fm_wait( fiber_manager * fm, unique_lock< detail::spinlock > & lk)
+void fm_wait( volatile fiber_manager * fm, unique_lock< detail::spinlock > & lk)
 {
     BOOST_ASSERT( fm);
 
     fm_wait_until( fm, clock_type::time_point( (clock_type::duration::max)() ), lk);
 }
 
-bool fm_wait_until( fiber_manager * fm,
+bool fm_wait_until( volatile fiber_manager * fm,
                     clock_type::time_point const& timeout_time,
                     unique_lock< detail::spinlock > & lk)
 {
@@ -181,7 +181,7 @@ bool fm_wait_until( fiber_manager * fm,
     return clock_type::now() < timeout_time;
 }
 
-void fm_yield( fiber_manager * fm)
+void fm_yield( volatile fiber_manager * fm)
 {
     BOOST_ASSERT( fm);
     BOOST_ASSERT( fm->active_fiber_);
@@ -195,7 +195,7 @@ void fm_yield( fiber_manager * fm)
     fm_run( fm);
 }
 
-void fm_join( fiber_manager * fm, detail::worker_fiber * f)
+void fm_join( volatile fiber_manager * fm, detail::worker_fiber * f)
 {
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);
@@ -227,7 +227,7 @@ void fm_join( fiber_manager * fm, detail::worker_fiber * f)
     BOOST_ASSERT( f->is_terminated() );
 }
 
-void fm_migrate( fiber_manager * fm, detail::worker_fiber * f)
+void fm_migrate( volatile fiber_manager * fm, detail::worker_fiber * f)
 {
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);

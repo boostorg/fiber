@@ -40,13 +40,13 @@ private:
 
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
-    static __declspec(thread) T         *   t_;
+    static volatile __declspec(thread) T         *   t_;
 #elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-    static detail::thread_local_ptr< T >    t_;
+    static volatile detail::thread_local_ptr< T >    t_;
 #else
-    static __thread T                   *   t_;
+    static volatile __thread T                   *   t_;
 #endif
-    cleanup_function                        cf_;
+    cleanup_function                                 cf_;
 
 public:
     thread_local_ptr( cleanup_function cf) BOOST_NOEXCEPT :
@@ -55,7 +55,7 @@ public:
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
-    T * get() const BOOST_NOEXCEPT
+    volatile T * get() const BOOST_NOEXCEPT volatile
     { return t_; }
 
     bool operator!() const BOOST_NOEXCEPT
@@ -67,21 +67,21 @@ public:
     bool operator!=( thread_local_ptr const& other) BOOST_NOEXCEPT
     { return ! ( * this == other); }
 
-    void reset( T * t) BOOST_NOEXCEPT
+    void reset( T * t) BOOST_NOEXCEPT volatile
     { t_ = t; }
 };
 
 class scheduler : private noncopyable
 {
 private:
-    static thread_local_ptr< fiber_manager > instance_;
+    static volatile thread_local_ptr< fiber_manager > instance_;
 
 public:
     template< typename F >
     static worker_fiber * extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_; }
 
-    static fiber_manager * instance()
+    static volatile fiber_manager * instance()
     {
         if ( ! instance_.get() )
             instance_.reset( new fiber_manager() );
