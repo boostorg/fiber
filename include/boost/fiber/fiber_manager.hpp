@@ -52,82 +52,48 @@ struct fiber_manager : private noncopyable
 
     scoped_ptr< sched_algorithm >   def_algo_;
     sched_algorithm             *   sched_algo_;
-    volatile wqueue_t                        wqueue_;
+    wqueue_t                        wqueue_;
 
     clock_type::duration            wait_interval_;
     detail::worker_fiber        *   active_fiber_;
 };
 
-void fm_resume_( volatile fiber_manager *, detail:: worker_fiber *);
+void fm_resume_( detail::worker_fiber *);
 
-inline
-void fm_set_sched_algo( volatile fiber_manager * fm, sched_algorithm * algo)
-{
-    BOOST_ASSERT( fm);
-    
-    fm->sched_algo_ = algo;
-    //fm->def_algo_.reset();
-}
+void fm_set_sched_algo( sched_algorithm *);
 
-void fm_spawn( volatile fiber_manager *, detail::worker_fiber *);
+void fm_spawn( detail::worker_fiber *);
 
-inline
-void fm_priority( volatile fiber_manager * fm, detail::worker_fiber * f,
-                  int prio) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( fm);
-    
-    fm->sched_algo_->priority( f, prio);
-}
+void fm_priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
 
+void fm_wait_interval( clock_type::duration const&) BOOST_NOEXCEPT;
 template< typename Rep, typename Period >
-void fm_wait_interval( volatile fiber_manager * fm,
-                       chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( fm);
-    
-    fm->wait_interval_ = wait_interval;
-}
+void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
+{ fm_wait_interval( wait_interval); }
 
-template< typename Rep, typename Period >
-chrono::duration< Rep, Period > fm_wait_interval( volatile fiber_manager * fm) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( fm);
-    
-    return fm->wait_interval_;
-}
+clock_type::duration fm_wait_interval() BOOST_NOEXCEPT;
 
-void fm_join( volatile fiber_manager *, detail::worker_fiber *);
+void fm_join( detail::worker_fiber *);
 
-inline
-detail::worker_fiber * fm_active( volatile fiber_manager * fm) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( fm);
-    
-    return fm->active_fiber_;
-}
+detail::worker_fiber * fm_active() BOOST_NOEXCEPT;
 
-void fm_run( volatile fiber_manager *);
+void fm_run();
 
-void fm_wait( volatile fiber_manager *, unique_lock< detail::spinlock > &);
-bool fm_wait_until( volatile fiber_manager *,
-                    clock_type::time_point const&,
+void fm_wait( unique_lock< detail::spinlock > &);
+bool fm_wait_until( clock_type::time_point const&,
                     unique_lock< detail::spinlock > &);
 template< typename Rep, typename Period >
-bool fm_wait_for( volatile fiber_manager * fm,
-                  chrono::duration< Rep, Period > const& timeout_duration,
+bool fm_wait_for( chrono::duration< Rep, Period > const& timeout_duration,
                   unique_lock< detail::spinlock > & lk)
 {
-    BOOST_ASSERT( fm);
-    
-    return wait_until( fm, clock_type::now() + timeout_duration, lk);
+    return wait_until( clock_type::now() + timeout_duration, lk);
 }
 
-void fm_yield( volatile fiber_manager *);
+void fm_yield();
 
-clock_type::time_point fm_next_wakeup( volatile fiber_manager *);
+clock_type::time_point fm_next_wakeup();
 
-void fm_migrate( volatile fiber_manager *, detail::worker_fiber *);
+void fm_migrate( detail::worker_fiber *);
 
 }}
 

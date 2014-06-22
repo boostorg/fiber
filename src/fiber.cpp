@@ -11,7 +11,6 @@
 #include <boost/scope_exit.hpp>
 #include <boost/system/error_code.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -26,7 +25,7 @@ void
 fiber::start_fiber_()
 {
     impl_->set_ready();
-    fm_spawn( detail::scheduler::instance(), impl_);
+    fm_spawn( impl_);
 }
 
 int
@@ -42,7 +41,7 @@ fiber::priority( int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( impl_);
 
-    fm_priority( detail::scheduler::instance(), impl_, prio);
+    fm_priority( impl_, prio);
 }
 
 bool
@@ -78,7 +77,7 @@ fiber::join()
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    fm_join( detail::scheduler::instance(), impl_);
+    fm_join( impl_);
 
     detail::worker_fiber * tmp = 0;
     std::swap( tmp, impl_);

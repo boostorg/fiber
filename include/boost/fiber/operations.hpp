@@ -25,28 +25,28 @@ namespace this_fiber {
 inline
 fibers::fiber::id get_id() BOOST_NOEXCEPT
 {
-    return 0 != fibers::fm_active( fibers::detail::scheduler::instance() )
-        ? fibers::fm_active( fibers::detail::scheduler::instance() )->get_id()
+    return 0 != fibers::fm_active()
+        ? fibers::fm_active()->get_id()
         : fibers::fiber::id();
 }
 
 inline
 void yield()
 {
-    if ( 0 != fibers::fm_active( fibers::detail::scheduler::instance() ) )
-        fibers::fm_yield( fibers::detail::scheduler::instance() );
+    if ( 0 != fibers::fm_active() )
+        fibers::fm_yield();
     else
-        fibers::fm_run( fibers::detail::scheduler::instance() );
+        fibers::fm_run();
 }
 
 inline
 void sleep_until( fibers::clock_type::time_point const& sleep_time)
 {
-    if ( 0 != fibers::fm_active( fibers::detail::scheduler::instance() ) )
+    if ( 0 != fibers::fm_active() )
     {
         fibers::detail::spinlock splk;
         unique_lock< fibers::detail::spinlock > lk( splk);
-        fibers::fm_wait_until( fibers::detail::scheduler::instance(), sleep_time, lk);
+        fibers::fm_wait_until( sleep_time, lk);
 
         // check if fiber was interrupted
         interruption_point();
@@ -54,7 +54,7 @@ void sleep_until( fibers::clock_type::time_point const& sleep_time)
     else
     {
         while ( fibers::clock_type::now() <= sleep_time)
-            fibers::fm_run( fibers::detail::scheduler::instance() );
+            fibers::fm_run();
     }
 }
 
@@ -65,16 +65,16 @@ void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 inline
 bool thread_affinity() BOOST_NOEXCEPT
 {
-    return 0 != fibers::fm_active( fibers::detail::scheduler::instance() )
-        ? fibers::fm_active( fibers::detail::scheduler::instance() )->thread_affinity()
+    return 0 != fibers::fm_active()
+        ? fibers::fm_active()->thread_affinity()
         : true;
 }
 
 inline
 void thread_affinity( bool req) BOOST_NOEXCEPT
 {
-    if ( 0 != fibers::fm_active( fibers::detail::scheduler::instance() ) )
-        fibers::fm_active( fibers::detail::scheduler::instance() )->thread_affinity( req);
+    if ( 0 != fibers::fm_active() )
+        fibers::fm_active()->thread_affinity( req);
 }
 
 }
@@ -87,15 +87,15 @@ void set_scheduling_algorithm( sched_algorithm * al)
 
 template< typename Rep, typename Period >
 void set_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
-{ fm_wait_interval( fibers::detail::scheduler::instance(), wait_interval); }
+{ fm_wait_interval( wait_interval); }
 
 template< typename Rep, typename Period >
 chrono::duration< Rep, Period > get_wait_interval() BOOST_NOEXCEPT
-{ return fm_wait_interval< Rep, Period >( fibers::detail::scheduler::instance() ); }
+{ return fm_wait_interval< Rep, Period >(); }
 
 inline
 void migrate( fiber const& f)
-{ fm_migrate( fibers::detail::scheduler::instance(), detail::scheduler::extract( f ) ); }
+{ fm_migrate( detail::scheduler::extract( f ) ); }
 
 }}
 

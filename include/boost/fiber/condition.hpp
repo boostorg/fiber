@@ -21,7 +21,6 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/main_fiber.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/interruption.hpp>
@@ -72,7 +71,7 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+        detail::fiber_base * n( fm_active() );
         try
         {
             if ( n)
@@ -91,7 +90,7 @@ public:
                 // suspend this fiber
                 // locked spinlock will be released if this fiber
                 // was stored inside schedulers's waiting-queue
-                fm_wait( detail::scheduler::instance(), lk);
+                fm_wait( lk);
 
                 // this fiber was notified and resumed
                 // check if fiber was interrupted
@@ -123,7 +122,7 @@ public:
                 // loop until main-notifier gets notified
                 while ( ! n->is_ready() )
                     // run scheduler
-                    fm_run( detail::scheduler::instance() );
+                    fm_run();
 
                 // lock external again before returning
                 lt.lock();
@@ -144,7 +143,7 @@ public:
     {
         cv_status status = cv_status::no_timeout;
 
-        detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+        detail::fiber_base * n( fm_active() );
         try
         {
             if ( n)
@@ -162,7 +161,7 @@ public:
                 // suspend this fiber
                 // locked spinlock will be released if this fiber
                 // was stored inside schedulers's waiting-queue
-                if ( ! fm_wait_until( detail::scheduler::instance(), timeout_time, lk) )
+                if ( ! fm_wait_until( timeout_time, lk) )
                 {
                     // this fiber was not notified before timeout
                     // lock spinlock again
@@ -216,7 +215,7 @@ public:
                         break;
                     }
                     // run scheduler
-                    fm_run( detail::scheduler::instance() );
+                    fm_run();
                 }
 
                 // lock external again before returning

@@ -10,7 +10,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -39,7 +38,7 @@ recursive_timed_mutex::~recursive_timed_mutex()
 void
 recursive_timed_mutex::lock()
 {
-    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+    detail::fiber_base * n( fm_active() );
     if ( 0 != n)
     {
         for (;;)
@@ -65,7 +64,7 @@ recursive_timed_mutex::lock()
             waiting_.push_back( n);
 
             // suspend this fiber
-            fm_wait( detail::scheduler::instance(), lk);
+            fm_wait( lk);
         }
     }
     else
@@ -100,7 +99,7 @@ recursive_timed_mutex::lock()
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
                 // run scheduler
-                fm_run( detail::scheduler::instance() );
+                fm_run();
         }
     }
 }
@@ -135,7 +134,7 @@ recursive_timed_mutex::try_lock()
 bool
 recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
 {
-    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+    detail::fiber_base * n( fm_active() );
     if ( n)
     {
         for (;;)
@@ -164,7 +163,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
             waiting_.push_back( n);
 
             // suspend this fiber until notified or timed-out
-            if ( ! fm_wait_until( detail::scheduler::instance(), timeout_time, lk) )
+            if ( ! fm_wait_until( timeout_time, lk) )
             {
                 lk.lock();
                 // remove fiber from waiting-list
@@ -220,7 +219,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
                     return false;
                 }
                 // run scheduler
-                fm_run( detail::scheduler::instance() );
+                fm_run();
             }
         }
     }

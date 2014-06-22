@@ -8,8 +8,6 @@
 
 #include <boost/foreach.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
-
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif

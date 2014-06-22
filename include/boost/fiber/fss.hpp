@@ -16,7 +16,6 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/fss.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -62,16 +61,16 @@ public:
 
     ~fiber_specific_ptr()
     {
-        if ( fm_active( detail::scheduler::instance() ) )
-            fm_active( detail::scheduler::instance() )->set_fss_data(
+        if ( fm_active() )
+            fm_active()->set_fss_data(
                 this, cleanup_fn_, 0, true);
     }
 
     T * get() const
     {
-        BOOST_ASSERT( fm_active( detail::scheduler::instance() ) );
+        BOOST_ASSERT( fm_active() );
 
-        void * vp( fm_active( detail::scheduler::instance() )->get_fss_data( this) );
+        void * vp( fm_active()->get_fss_data( this) );
         return static_cast< T * >( vp);
     }
 
@@ -84,7 +83,7 @@ public:
     T * release()
     {
         T * tmp = get();
-        fm_active( detail::scheduler::instance() )->set_fss_data(
+        fm_active()->set_fss_data(
             this, cleanup_fn_, 0, false);
         return tmp;
     }
@@ -93,7 +92,7 @@ public:
     {
         T * c = get();
         if ( c != t)
-            fm_active( detail::scheduler::instance() )->set_fss_data(
+            fm_active()->set_fss_data(
                 this, cleanup_fn_, t, true);
     }
 };

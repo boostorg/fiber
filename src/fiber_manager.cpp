@@ -61,11 +61,13 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
     //fm->active_fiber_->set_terminated();
 
     while ( ! wqueue_.empty() )
-        fm_run( this);
+        fm_run();
 }
 
-void fm_resume_( volatile fiber_manager * fm, detail::worker_fiber * f)
+void fm_resume_( detail::worker_fiber * f)
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -83,16 +85,34 @@ void fm_resume_( volatile fiber_manager * fm, detail::worker_fiber * f)
     {
         // resume active-fiber == start or yield to
         fm->active_fiber_->resume( tmp);
+        // get instance of fiber_manager
+        // because fiber might be migrated
+        // to another thread
+        fm = detail::scheduler::instance();
         if ( fm->active_fiber_->detached() &&
              fm->active_fiber_->is_terminated() )
             fm->active_fiber_->deallocate();
         // reset active fiber to previous
         fm->active_fiber_ = tmp;
+        if ( 0 != fm->active_fiber_ && ! fm->active_fiber_->is_running() )
+            fm->active_fiber_->set_running();
     }
 }
 
-clock_type::time_point fm_next_wakeup( volatile fiber_manager * fm)
+void fm_set_sched_algo( sched_algorithm * algo)
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( fm);
+    
+    fm->sched_algo_ = algo;
+    fm->def_algo_.reset();
+}
+
+clock_type::time_point fm_next_wakeup()
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
 
     if ( fm->wqueue_.empty() )
@@ -106,8 +126,10 @@ clock_type::time_point fm_next_wakeup( volatile fiber_manager * fm)
     }
 }
 
-void fm_spawn( volatile fiber_manager * fm, detail::worker_fiber * f)
+void fm_spawn( detail::worker_fiber * f)
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
@@ -115,8 +137,38 @@ void fm_spawn( volatile fiber_manager * fm, detail::worker_fiber * f)
     fm->sched_algo_->awakened( f);
 }
 
-void fm_run( volatile fiber_manager * fm)
+void fm_priority( detail::worker_fiber * f,
+                  int prio) BOOST_NOEXCEPT
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( fm);
+
+    fm->sched_algo_->priority( f, prio);
+}
+
+void fm_wait_interval( clock_type::duration const& wait_interval) BOOST_NOEXCEPT
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( fm);
+
+    fm->wait_interval_ = wait_interval;
+}
+
+clock_type::duration fm_wait_interval() BOOST_NOEXCEPT
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( fm);
+
+    return fm->wait_interval_;
+}
+
+void fm_run()
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
 
     for (;;)
@@ -131,7 +183,7 @@ void fm_run( volatile fiber_manager * fm)
         if ( f)
         {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
-            fm_resume_( fm, f);
+            fm_resume_( f);
             return;
         }
         else
@@ -142,7 +194,7 @@ void fm_run( volatile fiber_manager * fm)
             {
                 // no fibers ready to run; the thread should sleep
                 // until earliest fiber is scheduled to run
-                clock_type::time_point wakeup( fm_next_wakeup( fm) );
+                clock_type::time_point wakeup( fm_next_wakeup() );
                 this_thread::sleep_until( wakeup);
             }
             return;
@@ -150,17 +202,16 @@ void fm_run( volatile fiber_manager * fm)
     }
 }
 
-void fm_wait( volatile fiber_manager * fm, unique_lock< detail::spinlock > & lk)
+void fm_wait( unique_lock< detail::spinlock > & lk)
 {
-    BOOST_ASSERT( fm);
-
-    fm_wait_until( fm, clock_type::time_point( (clock_type::duration::max)() ), lk);
+    fm_wait_until( clock_type::time_point( (clock_type::duration::max)() ), lk);
 }
 
-bool fm_wait_until( volatile fiber_manager * fm,
-                    clock_type::time_point const& timeout_time,
+bool fm_wait_until( clock_type::time_point const& timeout_time,
                     unique_lock< detail::spinlock > & lk)
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
 
     clock_type::time_point start( clock_type::now() );
@@ -176,13 +227,15 @@ bool fm_wait_until( volatile fiber_manager * fm,
     fm->active_fiber_->time_point( timeout_time);
     fm->wqueue_.push( fm->active_fiber_);
     // run next fiber
-    fm_run( fm);
+    fm_run();
 
     return clock_type::now() < timeout_time;
 }
 
-void fm_yield( volatile fiber_manager * fm)
+void fm_yield()
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
     BOOST_ASSERT( fm->active_fiber_);
     BOOST_ASSERT( fm->active_fiber_->is_running() );
@@ -192,11 +245,13 @@ void fm_yield( volatile fiber_manager * fm)
     // push active fiber to scheduler-algo
     fm->sched_algo_->awakened( fm->active_fiber_);
     // run next fiber
-    fm_run( fm);
+    fm_run();
 }
 
-void fm_join( volatile fiber_manager * fm, detail::worker_fiber * f)
+void fm_join( detail::worker_fiber * f)
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
     BOOST_ASSERT( f);
     BOOST_ASSERT( f != fm->active_fiber_);
@@ -214,27 +269,35 @@ void fm_join( volatile fiber_manager * fm, detail::worker_fiber * f)
             // FIXME: better state_running and no suspend
             fm->active_fiber_->set_ready();
         // run next fiber
-        fm_run( fm);
+        fm_run();
     }
     else
     {
         while ( ! f->is_terminated() )
             // yield this thread if scheduler did not 
             // resumed some fibers in the previous round
-            fm_run( fm);
+            fm_run();
     }
 
     BOOST_ASSERT( f->is_terminated() );
 }
 
-void fm_migrate( volatile fiber_manager * fm, detail::worker_fiber * f)
+detail::worker_fiber * fm_active() BOOST_NOEXCEPT
 {
+    fiber_manager * fm = detail::scheduler::instance();
+
     BOOST_ASSERT( fm);
+
+    return fm->active_fiber_;
+}
+
+void fm_migrate( detail::worker_fiber * f)
+{
     BOOST_ASSERT( f);
     BOOST_ASSERT( f->is_ready() );
 
-    fm_spawn( fm, f);
-    fm_run( fm);
+    fm_spawn( f);
+    fm_run();
 }
 
 }}

@@ -10,7 +10,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -37,7 +36,7 @@ mutex::~mutex()
 void
 mutex::lock()
 {
-    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+    detail::fiber_base * n( fm_active() );
     if ( 0 != n)
     {
         for (;;)
@@ -57,7 +56,7 @@ mutex::lock()
             waiting_.push_back( n);
 
             // suspend this fiber
-            fm_wait( detail::scheduler::instance(), lk);
+            fm_wait( lk);
         }
     }
     else
@@ -86,7 +85,7 @@ mutex::lock()
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
                 // run scheduler
-                fm_run( detail::scheduler::instance() );
+                fm_run();
         }
     }
 }

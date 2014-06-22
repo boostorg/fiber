@@ -11,7 +11,7 @@
 #include <boost/throw_exception.hpp>
 
 #include "boost/fiber/detail/interrupt_flags.hpp"
-#include "boost/fiber/detail/scheduler.hpp"
+#include "boost/fiber/fiber_manager.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -23,40 +23,40 @@ namespace boost {
 namespace this_fiber {
 
 disable_interruption::disable_interruption() BOOST_NOEXCEPT :
-    set_( ( fm_active( fibers::detail::scheduler::instance() )->interruption_blocked() ) )
+    set_( ( fibers::fm_active()->interruption_blocked() ) )
 {
     if ( ! set_)
-        fm_active( fibers::detail::scheduler::instance() )->interruption_blocked( true);
+        fibers::fm_active()->interruption_blocked( true);
 }
 
 disable_interruption::~disable_interruption() BOOST_NOEXCEPT
 {
     if ( ! set_)
-        fm_active( fibers::detail::scheduler::instance() )->interruption_blocked( false);
+        fibers::fm_active()->interruption_blocked( false);
 }
 
 restore_interruption::restore_interruption( disable_interruption & disabler) BOOST_NOEXCEPT :
     disabler_( disabler)
 {
     if ( ! disabler_.set_)
-        fm_active( fibers::detail::scheduler::instance() )->interruption_blocked( false);
+        fibers::fm_active()->interruption_blocked( false);
 }
 
 restore_interruption::~restore_interruption() BOOST_NOEXCEPT
 {
     if ( ! disabler_.set_)
-        fm_active( fibers::detail::scheduler::instance() )->interruption_blocked( true);
+        fibers::fm_active()->interruption_blocked( true);
 }
 
 bool interruption_enabled() BOOST_NOEXCEPT 
 { 
-    fibers::detail::worker_fiber * f = fm_active( fibers::detail::scheduler::instance() );
+    fibers::detail::worker_fiber * f = fibers::fm_active();
     return 0 != f && ! f->interruption_blocked(); 
 } 
  
 bool interruption_requested() BOOST_NOEXCEPT 
 { 
-    fibers::detail::worker_fiber * f = fm_active( fibers::detail::scheduler::instance() );
+    fibers::detail::worker_fiber * f = fibers::fm_active();
     if ( 0 == f) return false; 
     return f->interruption_requested(); 
 }
@@ -65,7 +65,7 @@ void interruption_point()
 {
     if ( interruption_requested() && interruption_enabled() )
     {
-        fm_active( fibers::detail::scheduler::instance() )->request_interruption( false);
+        fibers::fm_active()->request_interruption( false);
         boost::throw_exception( fibers::fiber_interrupted() );
     }
 }

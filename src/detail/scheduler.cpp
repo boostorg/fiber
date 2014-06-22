@@ -7,6 +7,8 @@
 
 #include <boost/assert.hpp>
 
+#include <boost/fiber/fiber_manager.hpp>
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -17,26 +19,14 @@ namespace detail {
 
 static void deleter_fn( fiber_manager * mgr) { delete mgr; }
 
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
-    (defined(__ICC) && defined(BOOST_WINDOWS))
-template< typename T >
-volatile __declspec(thread) T * thread_local_ptr< T >::t_ = 0;
-#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-template< typename T >
-volatile detail::thread_local_ptr< T > thread_local_ptr< T >::t_;
-#else
-template< typename T >
-volatile __thread T * thread_local_ptr< T >::t_ = 0;
-#endif
-
-volatile thread_local_ptr< fiber_manager > scheduler::instance_( deleter_fn);
+thread_specific_ptr< fiber_manager > scheduler::instance_( deleter_fn);
 
 void
 scheduler::replace( sched_algorithm * other)
 {
     BOOST_ASSERT( other);
 
-    fm_set_sched_algo( instance(), other);
+    fm_set_sched_algo( other);
 }
 
 }}}

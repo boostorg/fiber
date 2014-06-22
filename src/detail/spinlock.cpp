@@ -9,7 +9,7 @@
 #include <boost/assert.hpp>
 #include <boost/thread/thread.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 
 namespace boost {
 namespace fibers {
@@ -22,7 +22,6 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    bool is_fiber = 0 != fm_active( scheduler::instance() );
     for (;;)
     {
         // access to CPU's cache
@@ -31,8 +30,8 @@ spinlock::lock()
         while ( LOCKED == state_)
         {
             // busy-wait
-            if ( is_fiber)
-                fm_yield( scheduler::instance() );
+            if ( 0 != fm_active() )
+                fm_yield();
            else
                 this_thread::yield();
         }

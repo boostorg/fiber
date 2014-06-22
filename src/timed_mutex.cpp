@@ -10,7 +10,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -37,7 +36,7 @@ timed_mutex::~timed_mutex()
 void
 timed_mutex::lock()
 {
-    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+    detail::fiber_base * n( fm_active() );
     if ( n)
     {
         for (;;)
@@ -57,7 +56,7 @@ timed_mutex::lock()
             waiting_.push_back( n);
 
             // suspend this fiber
-            fm_wait( detail::scheduler::instance(), lk);
+            fm_wait( lk);
         }
     }
     else
@@ -86,7 +85,7 @@ timed_mutex::lock()
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
                 // run scheduler
-                fm_run( detail::scheduler::instance() );
+                fm_run();
         }
     }
 }
@@ -115,7 +114,7 @@ timed_mutex::try_lock()
 bool
 timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
 {
-    detail::fiber_base * n( fm_active( detail::scheduler::instance() ) );
+    detail::fiber_base * n( fm_active() );
     if ( n)
     {
         for (;;)
@@ -138,7 +137,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
             waiting_.push_back( n);
 
             // suspend this fiber until notified or timed-out
-            if ( ! fm_wait_until( detail::scheduler::instance(), timeout_time, lk) )
+            if ( ! fm_wait_until( timeout_time, lk) )
             {
                 lk.lock();
                 // remove fiber from waiting-list
@@ -188,7 +187,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
                     return false;
                 }
                 // run scheduler
-                fm_run( detail::scheduler::instance() );
+                fm_run();
             }
         }
     }
