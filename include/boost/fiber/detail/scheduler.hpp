@@ -13,7 +13,6 @@
 #include <boost/asio.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
-#include <boost/thread.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -41,25 +40,16 @@ private:
 
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
-    __declspec(thread) T         *   t_;
+    static __declspec(thread) T         *   t_;
 #elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-    // TODO: fixme
-    detail::thread_local_ptr< T >    t_;
+    static detail::thread_local_ptr< T >    t_;
 #else
-    T                   *   t_;
+    static __thread T                   *   t_;
 #endif
-    cleanup_function                 cf_;
+    cleanup_function                        cf_;
 
 public:
     thread_local_ptr( cleanup_function cf) BOOST_NOEXCEPT :
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
-    (defined(__ICC) && defined(BOOST_WINDOWS))
-        t_( 0),
-#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-        t_(),
-#else
-        t_( 0),
-#endif
         cf_( cf)
     {}
 
@@ -81,10 +71,22 @@ public:
     { t_ = t; }
 };
 
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
+    (defined(__ICC) && defined(BOOST_WINDOWS))
+template< typename T >
+__declspec(thread) T * thread_local_ptr< T >::t_ = 0;
+#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
+template< typename T >
+detail::thread_local_ptr< T > thread_local_ptr< T >::t_;
+#else
+template< typename T >
+__thread T * thread_local_ptr< T >::t_ = 0;
+#endif
+
 class scheduler : private noncopyable
 {
 private:
-    static thread_specific_ptr< fiber_manager > instance_;
+    static thread_local_ptr< fiber_manager > instance_;
 
 public:
     template< typename F >

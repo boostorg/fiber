@@ -19,7 +19,7 @@ namespace detail {
 
 static void deleter_fn( fiber_manager * mgr) { delete mgr; }
 
-thread_specific_ptr< fiber_manager > scheduler::instance_( deleter_fn);
+thread_local_ptr< fiber_manager > scheduler::instance_( deleter_fn);
 
 void
 scheduler::replace( sched_algorithm * other)
