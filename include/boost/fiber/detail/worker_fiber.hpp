@@ -97,6 +97,7 @@ private:
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
+    atomic< bool >                  migrated_;
 
 public:
     worker_fiber( coro_t::yield_type *);
@@ -216,16 +217,16 @@ public:
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
 
-    worker_fiber * next() const
+    worker_fiber * next() const BOOST_NOEXCEPT
     { return nxt_; }
 
-    void next( worker_fiber * nxt)
+    void next( worker_fiber * nxt) BOOST_NOEXCEPT
     { nxt_ = nxt; }
 
-    void next_reset()
+    void next_reset() BOOST_NOEXCEPT
     { nxt_ = 0; }
 
-    clock_type::time_point const& time_point() const
+    clock_type::time_point const& time_point() const BOOST_NOEXCEPT
     { return tp_; }
 
     void time_point( clock_type::time_point const& tp)
@@ -241,6 +242,12 @@ public:
     }
 
     void release();
+
+    bool migrated() const BOOST_NOEXCEPT
+    { return migrated_; }
+
+    void migrate( bool m) BOOST_NOEXCEPT
+    { migrated_ = m; }
 };
 
 }}}
