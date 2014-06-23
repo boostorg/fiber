@@ -6,14 +6,15 @@
 #ifndef WORKSTEALING_ROUND_ROBIN_H
 #define WORKSTEALING_ROUND_ROBIN_H
 
+#include <deque>
+
 #include <boost/config.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/fiber_manager.hpp>
-
-#include "workstealing_queue.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -27,8 +28,9 @@
 class workstealing_round_robin : public boost::fibers::sched_algorithm
 {
 private:
-    typedef workstealing_queue  rqueue_t;
+    typedef std::deque< boost::fibers::detail::worker_fiber * >  rqueue_t;
 
+    boost::mutex                mtx_;
     rqueue_t                    rqueue_;
 
 public:
