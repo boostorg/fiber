@@ -97,7 +97,6 @@ private:
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
-    atomic< bool >                  migrated_;
 
 public:
     worker_fiber( coro_t::yield_type *);
@@ -242,12 +241,6 @@ public:
     }
 
     void release();
-
-    bool migrated() const BOOST_NOEXCEPT
-    { return migrated_; }
-
-    void migrate( bool m) BOOST_NOEXCEPT
-    { migrated_ = m; }
 };
 
 }}}
