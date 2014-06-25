@@ -187,19 +187,17 @@ public:
 
     void resume( worker_fiber * f)
     {
+        BOOST_ASSERT( caller_);
+        BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
+
         if ( 0 == f)
         {
-            BOOST_ASSERT( caller_);
-            BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
-
             // called from main-fiber
             caller_( null_ptr);
         }
         else
         {
             // caller from worker-fiber f
-            BOOST_ASSERT( caller_);
-            BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
             BOOST_ASSERT( f->callee_);
 
             ( * f->callee_)( caller_, null_ptr);
