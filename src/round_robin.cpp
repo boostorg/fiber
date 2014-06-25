@@ -17,7 +17,11 @@ namespace fibers {
 
 void
 round_robin::awakened( detail::worker_fiber * f)
-{ rqueue_.push( f); }
+{
+    BOOST_ASSERT( 0 != f);
+
+    rqueue_.push( f);
+}
 
 detail::worker_fiber *
 round_robin::pick_next()
