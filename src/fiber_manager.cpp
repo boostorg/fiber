@@ -67,33 +67,28 @@ void fm_resume_( detail::worker_fiber * f)
 
     BOOST_ASSERT( 0 != fm);
     BOOST_ASSERT( 0 != f);
+    BOOST_ASSERT( f != fm->active_fiber_);
     BOOST_ASSERT( f->is_ready() );
 
     // fiber to state_running
     f->set_running();
-    // check if active-fiber calls itself
-    // this might happend if fiber calls yield() and no
-    // other fiber is in the ready-queue
-    if ( f != fm->active_fiber_)
-    {
-        // store active-fiber in local var
-        detail::worker_fiber * tmp = fm->active_fiber_;
-        // assign new fiber to active-fiber
-        fm->active_fiber_ = f;
-        // resume active-fiber == start or yield to
-        fm->active_fiber_->resume( tmp);
-        // if fiber was migrated to another thread
-        // the fiber-manger pointer, allocated on the stack,
-        // is invalid
-        fm = detail::scheduler::instance();
-        // if active-fiber is detached and has terminated
-        // the fiber has to be destructed/deallocated
-        if ( 0 != fm->active_fiber_ &&
-             fm->active_fiber_->detached() &&
-             fm->active_fiber_->is_terminated() )
-            fm->active_fiber_->deallocate();
-        fm->active_fiber_ = tmp;
-    }
+    // store active-fiber in local var
+    detail::worker_fiber * tmp = fm->active_fiber_;
+    // assign new fiber to active-fiber
+    fm->active_fiber_ = f;
+    // resume active-fiber == start or yield to
+    fm->active_fiber_->resume( tmp);
+    // if fiber was migrated to another thread
+    // the fiber-manger pointer, allocated on the stack,
+    // is invalid
+    fm = detail::scheduler::instance();
+    // if active-fiber is detached and has terminated
+    // the fiber has to be destructed/deallocated
+    if ( 0 != fm->active_fiber_ &&
+         fm->active_fiber_->detached() &&
+         fm->active_fiber_->is_terminated() )
+        fm->active_fiber_->deallocate();
+    fm->active_fiber_ = tmp;
 }
 
 void fm_set_sched_algo( sched_algorithm * algo)
@@ -116,6 +111,7 @@ clock_type::time_point fm_next_wakeup()
         return clock_type::now() + fm->wait_interval_;
     else
     {
+        //FIXME: search for the closest time_point to now() in waiting-queue
         clock_type::time_point wakeup( fm->wqueue_.top()->time_point() );
         if ( (clock_type::time_point::max)() == wakeup)
             return clock_type::now() + fm->wait_interval_;
@@ -130,6 +126,7 @@ void fm_spawn( detail::worker_fiber * f)
     BOOST_ASSERT( 0 != fm);
     BOOST_ASSERT( 0 != f);
     BOOST_ASSERT( f->is_ready() );
+    BOOST_ASSERT( f != fm->active_fiber_);
 
     fm->sched_algo_->awakened( f);
 }
@@ -188,8 +185,8 @@ void fm_run()
         {
             // no fibers ready to run; the thread should sleep
             // until earliest fiber is scheduled to run
-//           clock_type::time_point wakeup( fm_next_wakeup() );
-//           this_thread::sleep_until( wakeup);
+            clock_type::time_point wakeup( fm_next_wakeup() );
+            this_thread::sleep_until( wakeup);
         }
     }
 }
@@ -205,11 +202,10 @@ bool fm_wait_until( clock_type::time_point const& timeout_time,
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( 0 != fm);
+    BOOST_ASSERT( 0 != fm->active_fiber_);
+    BOOST_ASSERT( fm->active_fiber_->is_running() );
 
     clock_type::time_point start( clock_type::now() );
-
-    BOOST_ASSERT( fm->active_fiber_);
-    BOOST_ASSERT( fm->active_fiber_->is_running() );
 
     // set active-fiber to state_waiting
     fm->active_fiber_->set_waiting();
@@ -218,8 +214,8 @@ bool fm_wait_until( clock_type::time_point const& timeout_time,
     // push active-fiber to fm->wqueue_
     fm->active_fiber_->time_point( timeout_time);
     fm->wqueue_.push( fm->active_fiber_);
-    // run next fiber
-    fm_run();
+    // suspend active-fiber
+    fm->active_fiber_->suspend();
 
     return clock_type::now() < timeout_time;
 }
@@ -234,10 +230,10 @@ void fm_yield()
 
     // set active-fiber to state_waiting
     fm->active_fiber_->set_ready();
-    // push active-fiber to scheduler-algo
-    fm->sched_algo_->awakened( fm->active_fiber_);
-    // run next fiber
-    fm_run();
+    // push active-fiber to fm->wqueue_
+    fm->wqueue_.push( fm->active_fiber_);
+    // suspend active-fiber
+    fm->active_fiber_->suspend();
 }
 
 void fm_join( detail::worker_fiber * f)
@@ -260,8 +256,8 @@ void fm_join( detail::worker_fiber * f)
             // active-fiber to state_ready
             // FIXME: better state_running and no suspend
             fm->active_fiber_->set_ready();
-        // run next fiber
-        fm_run();
+        // suspend active-fiber
+        fm->active_fiber_->suspend();
     }
     else
     {
