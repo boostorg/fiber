@@ -85,9 +85,8 @@ void fm_resume_( detail::worker_fiber * f)
     // if active-fiber is detached and has terminated
     // the fiber has to be destructed/deallocated
     if ( 0 != fm->active_fiber_ &&
-         fm->active_fiber_->detached() &&
          fm->active_fiber_->is_terminated() )
-        fm->active_fiber_->deallocate();
+        intrusive_ptr_release( fm->active_fiber_);
     fm->active_fiber_ = tmp;
 }
 

@@ -15,6 +15,7 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/coroutine/symmetric_coroutine.hpp>
+#include <boost/intrusive_ptr.hpp>
 #include <boost/move/move.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
@@ -51,20 +52,21 @@ class BOOST_FIBERS_DECL fiber : private noncopyable
 private:
     friend class detail::scheduler;
 
-    typedef detail::worker_fiber    base_t;
-    typedef base_t::coro_t          coro_t;
+    typedef detail::worker_fiber        base_t;
+    typedef base_t::coro_t              coro_t;
+    typedef intrusive_ptr< base_t >     ptr_t;
 
-    detail::worker_fiber    *   impl_;
+    ptr_t                               impl_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
 
     void start_fiber_();
 
 public:
-    typedef detail::worker_fiber::id        id;
+    typedef detail::worker_fiber::id    id;
 
     fiber() BOOST_NOEXCEPT :
-        impl_( 0)
+        impl_()
     {}
 
     explicit fiber( detail::worker_fiber * impl) BOOST_NOEXCEPT :
@@ -77,12 +79,12 @@ public:
 
     explicit fiber( fiber_fn fn, attributes const& attrs = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator() ) :
-        impl_( 0)
+        impl_()
     {
         coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
         detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -90,12 +92,12 @@ public:
     template< typename StackAllocator >
     explicit fiber( fiber_fn fn, attributes const& attrs,
                     StackAllocator const& stack_alloc) :
-        impl_( 0)
+        impl_()
     {
         coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
         detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -103,12 +105,12 @@ public:
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator() ) :
-        impl_( 0)
+        impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
         detail::setup< Fn > s( forward< Fn >( fn), & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -116,12 +118,12 @@ public:
     template< typename Fn, typename StackAllocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs,
                     StackAllocator const& stack_alloc) :
-        impl_( 0)
+        impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
         detail::setup< Fn > s( forward< Fn >( fn), & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -129,12 +131,12 @@ public:
     template< typename Fn >
     explicit fiber( Fn fn, attributes const& attrs = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator() ) :
-        impl_( 0)
+        impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
         detail::setup< Fn > s( fn, & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -142,12 +144,12 @@ public:
     template< typename Fn, typename StackAllocator >
     explicit fiber( Fn fn, attributes const& attrs,
                     StackAllocator const& stack_alloc) :
-        impl_( 0)
+        impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
         detail::setup< Fn > s( fn, & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -155,12 +157,12 @@ public:
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator() ) :
-        impl_( 0)
+        impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
         detail::setup< Fn > s( fn, & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
@@ -168,29 +170,22 @@ public:
     template< typename Fn, typename StackAllocator >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs,
                     StackAllocator const& stack_alloc) :
-        impl_( 0)
+        impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
         detail::setup< Fn > s( fn, & coro);
-        impl_ = s.allocate();
-        BOOST_ASSERT( 0 != impl_);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
 #endif
 
     ~fiber()
-    {
-        if ( joinable() ) std::terminate();
-        if ( 0 != impl_)
-        {
-            impl_->deallocate();
-            impl_ = 0;
-        }
-    }
+    { if ( joinable() ) std::terminate(); }
 
     fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
-        impl_( 0)
+        impl_()
     { swap( other); }
 
     fiber & operator=( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT
@@ -207,13 +202,13 @@ public:
     { return ! impl_ || impl_->is_terminated(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
-    { std::swap( impl_, other.impl_); }
+    { impl_.swap( other.impl_); }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return 0 != impl_ /* && ! impl_->is_terminated() */; }
+    { return impl_ /* && ! impl_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
-    { return 0 != impl_ ? impl_->get_id() : id(); }
+    { return impl_ ? impl_->get_id() : id(); }
 
     int priority() const BOOST_NOEXCEPT;
 

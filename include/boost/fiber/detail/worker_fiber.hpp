@@ -86,6 +86,7 @@ private:
 
     static void * null_ptr;
 
+    atomic< std::size_t >           use_count_;
     fss_data_t                      fss_data_;
     worker_fiber                *   nxt_;
     clock_type::time_point          tp_;
@@ -113,12 +114,6 @@ public:
     { priority_ = prio; }
 
     bool join( worker_fiber *);
-
-    bool detached() const BOOST_NOEXCEPT
-    { return 0 != ( flags_.load() & flag_detached); }
-
-    void detach() BOOST_NOEXCEPT
-    { flags_ |= flag_detached; }
 
     bool interruption_blocked() const BOOST_NOEXCEPT
     { return 0 != ( flags_.load() & flag_interruption_blocked); }
@@ -232,13 +227,28 @@ public:
     void time_point_reset()
     { tp_ = (clock_type::time_point::max)(); }
 
+    void release();
+
     void deallocate()
     {
         callee_ = 0;
+        // destroyes coroutine and deallocates stack
         coro_t::call_type tmp( move( caller_) );
     }
 
-    void release();
+    friend void intrusive_ptr_add_ref( worker_fiber * f)
+    { ++f->use_count_; }
+
+    friend void intrusive_ptr_release( worker_fiber * f)
+    {
+        BOOST_ASSERT( 0 != f);
+
+        if ( 0 == --f->use_count_)
+        {
+            BOOST_ASSERT( f->is_terminated() );
+            f->deallocate();
+        }
+    }
 };
 
 }}}

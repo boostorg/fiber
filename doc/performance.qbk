@@ -17,17 +17,17 @@ average computed over 1000 iterations.
 
 [table Overhead of creating and joining
     [[thread] [qthread] [fiber] [tbb]]
-    [[32114 ns] [572 ns] [500 ns] [444 ns]]
+    [[32114 ns] [572 ns] [580 ns] [444 ns]]
 ]
 
 [table Overhead of yield
     [[thread] [fiber]]
-    [[33114 ns] [690 ns]]
+    [[33114 ns] [830 ns]]
 ]
 
 [table Overhead of waiting on a future
     [[thread] [fiber]]
-    [[32.3 \u00b5s] [2.2 \u00b5s]]
+    [[32.3 \u00b5s] [2.7 \u00b5s]]
 ]
 
 

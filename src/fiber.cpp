@@ -25,7 +25,7 @@ void
 fiber::start_fiber_()
 {
     impl_->set_ready();
-    fm_spawn( impl_);
+    fm_spawn( impl_.get() );
 }
 
 int
@@ -41,7 +41,7 @@ fiber::priority( int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( impl_);
 
-    fm_priority( impl_, prio);
+    fm_priority( impl_.get(), prio);
 }
 
 bool
@@ -77,15 +77,16 @@ fiber::join()
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    fm_join( impl_);
+    fm_join( impl_.get() );
 
-    detail::worker_fiber * tmp = 0;
-    std::swap( tmp, impl_);
     // check if joined fiber was interrupted
-    exception_ptr except( tmp->get_exception() );
-    tmp->deallocate();
-    if ( except)
-        rethrow_exception( except);
+    exception_ptr except( impl_->get_exception() );
+
+    ptr_t tmp;
+    std::swap( tmp, impl_);
+
+    // re-throw excpetion
+    if ( except) rethrow_exception( except);
 }
 
 void
@@ -100,8 +101,8 @@ fiber::detach() BOOST_NOEXCEPT
                 system::errc::invalid_argument, "boost fiber: fiber not joinable") );
     }
 
-    impl_->detach();
-    impl_ = 0;
+    ptr_t tmp;
+    std::swap( tmp, impl_);
 }
 
 void
