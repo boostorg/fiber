@@ -57,7 +57,7 @@ alias sources
 
 explicit sources ;
 
-exe overhead_empty
+exe overhead_join
    : sources
-     overhead_empty.cpp
+     overhead_join.cpp
    ;
