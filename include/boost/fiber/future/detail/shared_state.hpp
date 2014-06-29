@@ -117,6 +117,12 @@ private:
         return value_.get();
     }
 
+    exception_ptr get_exception_ptr_( unique_lock< mutex > & lk)
+    {
+        wait_( lk);
+        return except_;
+    }
+
     void wait_( unique_lock< mutex > & lk) const
     {
         //TODO: blocks until the result becomes available
@@ -234,6 +240,12 @@ public:
         return get_( lk);
     }
 
+    exception_ptr get_exception_ptr()
+    {
+        unique_lock< mutex > lk( mtx_);
+        return get_exception_ptr_( lk);
+    }
+
     void wait() const
     {
         //TODO: blocks until the result becomes available
@@ -332,6 +344,12 @@ private:
         return * value_;
     }
 
+    exception_ptr get_exception_ptr_( unique_lock< mutex > & lk)
+    {
+        wait_( lk);
+        return except_;
+    }
+
     void wait_( unique_lock< mutex > & lk) const
     {
         //TODO: blocks until the result becomes available
@@ -423,6 +441,12 @@ public:
         //      future_error with an error condition of future_errc::no_state
         unique_lock< mutex > lk( mtx_);
         return get_( lk);
+    }
+
+    exception_ptr get_exception_ptr()
+    {
+        unique_lock< mutex > lk( mtx_);
+        return get_exception_ptr_( lk);
     }
 
     void wait() const
@@ -520,6 +544,12 @@ private:
             rethrow_exception( except_);
     }
 
+    exception_ptr get_exception_ptr_( unique_lock< mutex > & lk)
+    {
+        wait_( lk);
+        return except_;
+    }
+
     void wait_( unique_lock< mutex > & lk) const
     {
         //TODO: blocks until the result becomes available
@@ -610,6 +640,12 @@ public:
         //      future_error with an error condition of future_errc::no_state
         unique_lock< mutex > lk( mtx_);
         get_( lk);
+    }
+
+    exception_ptr get_exception_ptr()
+    {
+        unique_lock< mutex > lk( mtx_);
+        return get_exception_ptr_( lk);
     }
 
     void wait() const

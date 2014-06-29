@@ -623,6 +623,7 @@ void test_future_get()
     BOOST_CHECK( f1.valid() );
 
     // get
+    BOOST_CHECK( ! f1.get_exception_ptr() );
     BOOST_CHECK( 7 == f1.get() );
     BOOST_CHECK( ! f1.valid() );
 
@@ -654,6 +655,7 @@ void test_future_get_ref()
     BOOST_CHECK( f1.valid() );
 
     // get
+    BOOST_CHECK( ! f1.get_exception_ptr() );
     int & j = f1.get();
     BOOST_CHECK( &i == &j);
     BOOST_CHECK( ! f1.valid() );
@@ -684,6 +686,7 @@ void test_future_get_void()
     BOOST_CHECK( f1.valid() );
 
     // get
+    BOOST_CHECK( ! f1.get_exception_ptr() );
     f1.get();
     BOOST_CHECK( ! f1.valid() );
 
@@ -720,6 +723,7 @@ void test_future_share()
     BOOST_CHECK( ! f1.valid() );
 
     // get
+    BOOST_CHECK( ! sf1.get_exception_ptr() );
     int j = sf1.get();
     BOOST_CHECK_EQUAL( i, j);
     BOOST_CHECK( sf1.valid() );
@@ -744,6 +748,7 @@ void test_future_share_ref()
     BOOST_CHECK( ! f1.valid() );
 
     // get
+    BOOST_CHECK( ! sf1.get_exception_ptr() );
     int & j = sf1.get();
     BOOST_CHECK( &i == &j);
     BOOST_CHECK( sf1.valid() );
@@ -767,6 +772,7 @@ void test_future_share_void()
     BOOST_CHECK( ! f1.valid() );
 
     // get
+    BOOST_CHECK( ! sf1.get_exception_ptr() );
     sf1.get();
     BOOST_CHECK( sf1.valid() );
 }
@@ -1213,6 +1219,22 @@ void test_packaged_task_exception()
     BOOST_CHECK( thrown);
 
     //TODO: packaged_task returns a moveable-only as return type
+    
+    boost::fibers::packaged_task< int() > t2( fn5);
+    BOOST_CHECK( t2);
+    boost::fibers::future< int > f2 = t2.get_future();
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+
+    // exec
+    t2();
+    BOOST_CHECK( f2.get_exception_ptr() );
+    thrown = false;
+    try
+    { boost::rethrow_exception( f2.get_exception_ptr() ); }
+    catch ( my_exception const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
 }
 
 void test_packaged_task_exception_void()
@@ -1229,6 +1251,22 @@ void test_packaged_task_exception_void()
     bool thrown = false;
     try
     { f1.get(); }
+    catch ( my_exception const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+    
+    boost::fibers::packaged_task< void() > t2( fn6);
+    BOOST_CHECK( t2);
+    boost::fibers::future< void > f2 = t2.get_future();
+    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.valid() );
+
+    // exec
+    t2();
+    BOOST_CHECK( f2.get_exception_ptr() );
+    thrown = false;
+    try
+    { boost::rethrow_exception( f2.get_exception_ptr() ); }
     catch ( my_exception const&)
     { thrown = true; }
     BOOST_CHECK( thrown);

@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_FUTURE_HPP
 
 #include <boost/config.hpp>
+#include <boost/exception_ptr.hpp>
 #include <boost/move/move.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
@@ -144,6 +145,14 @@ public:
         ptr_t tmp;
         tmp.swap( state_);
         return tmp->get();
+    }
+
+    exception_ptr get_exception_ptr()
+    {
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return state_->get_exception_ptr();
     }
 
     void wait() const
@@ -294,6 +303,14 @@ public:
         return tmp->get();
     }
 
+    exception_ptr get_exception_ptr()
+    {
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return state_->get_exception_ptr();
+    }
+
     void wait() const
     {
         //TODO: blocks until the result becomes available
@@ -440,6 +457,14 @@ public:
         ptr_t tmp;
         tmp.swap( state_);
         tmp->get();
+    }
+
+    exception_ptr get_exception_ptr()
+    {
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return state_->get_exception_ptr();
     }
 
     void wait() const
@@ -628,6 +653,14 @@ public:
         return state_->get();
     }
 
+    exception_ptr get_exception_ptr()
+    {
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return state_->get_exception_ptr();
+    }
+
     void wait() const
     {
         //TODO: blocks until the result becomes available
@@ -806,6 +839,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->get();
+    }
+
+    exception_ptr get_exception_ptr()
+    {
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return state_->get_exception_ptr();
     }
 
     void wait() const
@@ -992,6 +1033,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         state_->get();
+    }
+
+    exception_ptr get_exception_ptr()
+    {
+        if ( ! valid() )
+            boost::throw_exception(
+                future_uninitialized() );
+        return state_->get_exception_ptr();
     }
 
     void wait() const
