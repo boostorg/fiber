@@ -86,7 +86,7 @@ void wait_fn(
 	boost::fibers::mutex & mtx,
 	boost::fibers::condition & cond)
 {
-	boost::fibers::mutex::scoped_lock lk( mtx);
+	boost::unique_lock< boost::fibers::mutex > lk( mtx);
 	cond.wait( lk);
 	++value;
 }

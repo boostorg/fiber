@@ -116,35 +116,35 @@ public:
     // add a channel to registry
     void register_channel( std::string const& channel)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        boost::unique_lock< boost::fibers::mutex > lk( mtx_);
         register_channel_( channel);
     }
 
     // remove a channel from registry
     void unregister_channel( std::string const& channel)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        boost::unique_lock< boost::fibers::mutex > lk( mtx_);
         unregister_channel_( channel);
     }
 
     // subscribe to a channel
     void subscribe( std::string const& channel, boost::shared_ptr< subscriber_session > s)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        boost::unique_lock< boost::fibers::mutex > lk( mtx_);
         subscribe_( channel, s);
     }
 
     // unsubscribe from a channel
     void unsubscribe( std::string const& channel, boost::shared_ptr< subscriber_session > s)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        boost::unique_lock< boost::fibers::mutex > lk( mtx_);
         unsubscribe_( channel, s);
     }
 
     // publish a message to all subscribers registerd to the channel
     void publish( std::string const& channel, std::string const& msg)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        boost::unique_lock< boost::fibers::mutex > lk( mtx_);
         publish_( channel, msg);
     }
 };
@@ -192,7 +192,7 @@ public:
                 // the fiber will be suspended until the condtion
                 // becomes true and the fiber is resumed
                 // published message is stored in buffer 'data_'
-                boost::fibers::mutex::scoped_lock lk( mtx_);
+                boost::unique_lock< boost::fibers::mutex > lk( mtx_);
                 cond_.wait( lk);
                 
                 // message '<fini>' terminates subscription
@@ -221,7 +221,7 @@ public:
     // called from publisher_session (running in other fiber)
     void publish( std::string const& msg)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        boost::unique_lock< boost::fibers::mutex > lk( mtx_);
         std::memset(data_, '\0', sizeof( data_));
         std::memcpy(data_, msg.c_str(), msg.size());
         cond_.notify_one();

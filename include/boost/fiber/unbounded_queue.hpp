@@ -18,6 +18,7 @@
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/move/move.hpp>
+#include <boost/thread/locks.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/utility.hpp>
 
@@ -112,7 +113,7 @@ private:
 
     typename node_type::ptr get_tail_() const
     {
-        mutex::scoped_lock lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( tail_mtx_);
         typename node_type::ptr tmp = tail_;
         return tmp;
     }
@@ -146,7 +147,7 @@ public:
     queue_op_status push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type() );
-        mutex::scoped_lock lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( tail_mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
@@ -161,7 +162,7 @@ public:
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
         typename node_type::ptr new_node( new node_type() );
-        mutex::scoped_lock lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( tail_mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
@@ -175,7 +176,7 @@ public:
 
     queue_op_status pop( value_type & va)
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
 
         while ( ! is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
@@ -203,7 +204,7 @@ public:
     queue_op_status pop_wait_until( value_type & va,
                                     clock_type::time_point const& timeout_time)
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
 
         while ( ! is_closed_() && is_empty_() )
         {
@@ -230,7 +231,7 @@ public:
 
     queue_op_status try_pop( value_type & va)
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
 
         if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         if ( is_empty_() ) return queue_op_status::empty;
@@ -277,7 +278,7 @@ private:
 
     typename node_type::ptr get_tail_() const
     {
-        mutex::scoped_lock lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( tail_mtx_);
         typename node_type::ptr tmp = tail_;
         return tmp;
     }
@@ -307,14 +308,14 @@ public:
 
     bool is_empty() const
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
         return is_empty_();
     }
 
     queue_op_status push( value_type va)
     {
         typename node_type::ptr new_node( new node_type() );
-        mutex::scoped_lock lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( tail_mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
@@ -330,7 +331,7 @@ public:
 
     queue_op_status pop( value_type va)
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
 
         while ( ! is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
@@ -357,7 +358,7 @@ public:
 
     queue_op_status pop_wait_until( value_type va, clock_type::time_point const& timeout_time)
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
 
         while ( ! is_closed_() && is_empty_() )
         {
@@ -384,7 +385,7 @@ public:
 
     queue_op_status try_pop( value_type va)
     {
-        mutex::scoped_lock lk( head_mtx_);
+        boost::unique_lock< mutex > lk( head_mtx_);
 
         if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         if ( is_empty_() ) return queue_op_status::empty;

@@ -7,6 +7,7 @@
 #include "boost/fiber/barrier.hpp"
 
 #include <boost/exception/all.hpp>
+#include <boost/thread/locks.hpp>
 
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/operations.hpp"
@@ -35,7 +36,7 @@ barrier::barrier( std::size_t initial) :
 bool
 barrier::wait()
 {
-	mutex::scoped_lock lk( mtx_);
+	boost::unique_lock< mutex > lk( mtx_);
 	bool cycle( cycle_);
 	if ( 0 == --current_)
 	{

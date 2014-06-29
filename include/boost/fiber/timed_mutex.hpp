@@ -10,7 +10,6 @@
 #include <deque>
 
 #include <boost/config.hpp>
-#include <boost/thread/locks.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -45,8 +44,6 @@ private:
     std::deque< detail::fiber_base * >  waiting_;
 
 public:
-    typedef unique_lock< timed_mutex >    scoped_lock;
-
     timed_mutex();
 
     ~timed_mutex();

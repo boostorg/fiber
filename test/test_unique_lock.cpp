@@ -132,7 +132,7 @@ void lock_concept()
 {
     boost::fibers::mutex mtx1, mtx2, mtx3;
 
-    boost::fibers::mutex::scoped_lock lk1( mtx1, boost::defer_lock),
+    boost::unique_lock< boost::fibers::mutex > lk1( mtx1, boost::defer_lock),
         lk2( mtx2, boost::defer_lock),
         lk3( mtx3, boost::defer_lock);
 

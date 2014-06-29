@@ -32,7 +32,7 @@ template< typename M >
 void fn1( M & mtx)
 {
     typedef M mutex_type;
-	typename mutex_type::scoped_lock lk( mtx);
+	typename boost::unique_lock< mutex_type > lk( mtx);
 	++value1;
 	for ( int i = 0; i < 3; ++i)
 		boost::this_fiber::yield();
@@ -43,7 +43,7 @@ void fn2( M & mtx)
 {
     typedef M mutex_type;
 	++value2;
-	typename mutex_type::scoped_lock lk( mtx);
+	typename boost::unique_lock< mutex_type > lk( mtx);
 	++value2;
 }
 
@@ -217,7 +217,7 @@ template< typename M >
 struct test_lock
 {
     typedef M mutex_type;
-    typedef typename M::scoped_lock lock_type;
+    typedef typename boost::unique_lock< M > lock_type;
 
     void operator()()
     {
@@ -243,7 +243,7 @@ template< typename M >
 struct test_exclusive
 {
     typedef M mutex_type;
-    typedef typename M::scoped_lock lock_type;
+    typedef typename boost::unique_lock< M > lock_type;
 
     void operator()()
     {
@@ -271,7 +271,7 @@ template< typename M >
 struct test_recursive_lock
 {
     typedef M mutex_type;
-    typedef typename M::scoped_lock lock_type;
+    typedef typename boost::unique_lock< M > lock_type;
 
     void operator()()
     {
