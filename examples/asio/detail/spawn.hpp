@@ -185,7 +185,7 @@ public:
     {
         fibers::detail::spinlock splk;
         unique_lock< fibers::detail::spinlock > lk( splk);
-        boost::fibers::detail::scheduler::instance()->wait(lk);
+        boost::fibers::fm_wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
         return value_;
     }
@@ -213,7 +213,7 @@ public:
     {
         fibers::detail::spinlock splk;
         unique_lock< fibers::detail::spinlock > lk( splk);
-        boost::fibers::detail::scheduler::instance()->wait(lk);
+        boost::fibers::fm_wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
     }
 
@@ -252,7 +252,7 @@ struct fiber_entry_point
   void operator()()
   {
     shared_ptr< spawn_data< Handler, Function > > data( data_);
-    data->fiber_ = boost::fibers::detail::scheduler::instance()->active();
+    data->fiber_ = boost::fibers::fm_active();
     const basic_yield_context< Handler > yield(
         data->fiber_, data->handler_);
 
