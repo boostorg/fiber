@@ -62,6 +62,11 @@ exe overhead_join
      overhead_join.cpp
    ;
 
+exe overhead_join_multiple
+   : sources
+     overhead_join_multiple.cpp
+   ;
+
 exe overhead_detach
    : sources
      overhead_detach.cpp
