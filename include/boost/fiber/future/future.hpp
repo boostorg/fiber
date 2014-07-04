@@ -12,6 +12,7 @@
 #include <boost/move/move.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/utility/explicit_operator_bool.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -40,11 +41,6 @@ private:
     friend class packaged_task< R() >;
     friend class promise< R >;
     friend class shared_future< R >;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     ptr_t           state_;
 
@@ -111,8 +107,7 @@ public:
         state_.swap( other.state_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
@@ -197,11 +192,6 @@ private:
     friend class promise< R & >;
     friend class shared_future< R & >;
 
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
-
     ptr_t           state_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
@@ -267,8 +257,7 @@ public:
         state_.swap( other.state_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
@@ -353,11 +342,6 @@ private:
     friend class promise< void >;
     friend class shared_future< void >;
 
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
-
     ptr_t           state_;
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
@@ -423,8 +407,7 @@ public:
         state_.swap( other.state_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
@@ -512,11 +495,6 @@ private:
     typedef typename detail::shared_state< R >::ptr_t   ptr_t;
 
     friend class future< R >;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     ptr_t           state_;
 
@@ -621,8 +599,7 @@ public:
         state_.swap( other.state_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
@@ -700,11 +677,6 @@ private:
     typedef typename detail::shared_state< R & >::ptr_t   ptr_t;
 
     friend class future< R & >;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     ptr_t           state_;
 
@@ -809,8 +781,7 @@ public:
         state_.swap( other.state_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
@@ -888,11 +859,6 @@ private:
     typedef detail::shared_state< void >::ptr_t   ptr_t;
 
     friend class future< void >;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     ptr_t           state_;
 
@@ -1003,8 +969,7 @@ public:
         state_.swap( other.state_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }

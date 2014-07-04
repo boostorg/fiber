@@ -13,6 +13,7 @@
 #include <boost/move/move.hpp>
 #include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 #include <boost/throw_exception.hpp>
+#include <boost/utility/explicit_operator_bool.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/exceptions.hpp>
@@ -28,11 +29,6 @@ class promise : private noncopyable
 {
 private:
     typedef typename detail::shared_state< R >::ptr_t   ptr_t;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     bool            obtained_;
     ptr_t           future_;
@@ -128,8 +124,7 @@ public:
         future_.swap( other.future_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return 0 != future_.get() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return 0 == future_.get(); }
@@ -209,11 +204,6 @@ class promise< R & > : private noncopyable
 {
 private:
     typedef typename detail::shared_state< R & >::ptr_t   ptr_t;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     bool            obtained_;
     ptr_t           future_;
@@ -309,8 +299,7 @@ public:
         future_.swap( other.future_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return 0 != future_.get() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return 0 == future_.get(); }
@@ -362,11 +351,6 @@ class promise< void > : private noncopyable
 {
 private:
     typedef detail::shared_state< void >::ptr_t   ptr_t;
-
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
 
     bool            obtained_;
     ptr_t           future_;
@@ -466,8 +450,7 @@ public:
         future_.swap( other.future_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return 0 != future_.get() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return 0 == future_.get(); }

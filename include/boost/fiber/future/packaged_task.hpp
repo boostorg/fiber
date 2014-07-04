@@ -16,6 +16,7 @@
 #include <boost/type_traits/decay.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/utility/explicit_operator_bool.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/exceptions.hpp>
@@ -35,10 +36,7 @@ class packaged_task< R() > : private noncopyable
 private:
     typedef typename detail::task_base< R >::ptr_t   ptr_t;
 
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
+    struct dummy {};
 
     bool            obtained_;
     ptr_t           task_;
@@ -285,8 +283,7 @@ public:
         task_.swap( other.task_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
@@ -344,10 +341,7 @@ class packaged_task< void() > : private noncopyable
 private:
     typedef detail::task_base< void >::ptr_t   ptr_t;
 
-    struct dummy
-    { void nonnull() {} };
-
-    typedef void ( dummy::*safe_bool)();
+    struct dummy {};
 
     bool            obtained_;
     ptr_t           task_;
@@ -617,8 +611,7 @@ public:
         task_.swap( other.task_);
     }
 
-    operator safe_bool() const BOOST_NOEXCEPT
-    { return valid() ? & dummy::nonnull : 0; }
+    BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
