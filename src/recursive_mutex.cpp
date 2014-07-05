@@ -20,6 +20,26 @@
 namespace boost {
 namespace fibers {
 
+bool
+recursive_mutex::lock_if_unlocked_()
+{
+    if ( UNLOCKED == state_)
+    {
+        state_ = LOCKED;
+        BOOST_ASSERT( ! owner_);
+        owner_ = this_fiber::get_id();
+        ++count_;
+        return true;
+    }
+    else if ( this_fiber::get_id() == owner_)
+    {
+        ++count_;
+        return true;
+    }
+
+    return false;
+}
+
 recursive_mutex::recursive_mutex() :
     splk_(),
 	state_( UNLOCKED),
@@ -45,19 +65,7 @@ recursive_mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                ++count_;
-                return;
-            }
-            else if ( this_fiber::get_id() == owner_)
-            {
-                ++count_;
-                return;
-            }
+            if ( lock_if_unlocked_() ) return;
         
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -77,19 +85,7 @@ recursive_mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                ++count_;
-                return;
-            }
-            else if ( this_fiber::get_id() == owner_)
-            {
-                ++count_;
-                return;
-            }
+            if ( lock_if_unlocked_() ) return;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -109,26 +105,12 @@ recursive_mutex::try_lock()
 {
     unique_lock< detail::spinlock > lk( splk_);
 
-    if ( UNLOCKED == state_)
-    {
-        state_ = LOCKED;
-        BOOST_ASSERT( ! owner_);
-        owner_ = this_fiber::get_id();
-        ++count_;
-        return true;
-    }
-    else if ( this_fiber::get_id() == owner_)
-    {
-        ++count_;
-        return true;
-    }
-    else
-    {
-        lk.unlock();
-        // let other fiber release the lock
-        this_fiber::yield();
-        return false;
-    }
+    if ( lock_if_unlocked_() ) return true;
+
+    lk.unlock();
+    // let other fiber release the lock
+    this_fiber::yield();
+    return false;
 }
 
 void

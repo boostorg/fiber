@@ -20,6 +20,17 @@
 namespace boost {
 namespace fibers {
 
+bool
+timed_mutex::lock_if_unlocked_()
+{
+    if ( UNLOCKED != state_) return false;
+    
+    state_ = LOCKED;
+    BOOST_ASSERT( ! owner_);
+    owner_ = this_fiber::get_id();
+    return true;
+}
+
 timed_mutex::timed_mutex() :
     splk_(),
 	state_( UNLOCKED),
@@ -43,13 +54,7 @@ timed_mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return;
-            }
+            if ( lock_if_unlocked_() ) return;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -69,13 +74,7 @@ timed_mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return;
-            }
+            if ( lock_if_unlocked_() ) return;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -95,20 +94,12 @@ timed_mutex::try_lock()
 {
     unique_lock< detail::spinlock > lk( splk_);
 
-    if ( UNLOCKED == state_)
-    {
-        state_ = LOCKED;
-        BOOST_ASSERT( ! owner_);
-        owner_ = this_fiber::get_id();
-        return true;
-    }
-    else
-    {
-        lk.unlock();
-        // let other fiber release the lock
-        this_fiber::yield();
-        return false;
-    }
+    if ( lock_if_unlocked_() ) return true;
+
+    lk.unlock();
+    // let other fiber release the lock
+    this_fiber::yield();
+    return false;
 }
 
 bool
@@ -124,13 +115,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
             if ( clock_type::now() > timeout_time)
                 return false;
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return true;
-            }
+            if ( lock_if_unlocked_() ) return true;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -161,13 +146,7 @@ timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
             if ( clock_type::now() > timeout_time)
                 return false;
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return true;
-            }
+            if ( lock_if_unlocked_() ) return true;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );

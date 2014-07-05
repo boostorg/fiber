@@ -47,6 +47,8 @@ private:
     std::size_t                         count_;
     std::deque< detail::fiber_base * >  waiting_;
 
+    bool lock_if_unlocked_();
+
 public:
     recursive_timed_mutex();
 

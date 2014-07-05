@@ -20,6 +20,17 @@
 namespace boost {
 namespace fibers {
 
+bool
+mutex::lock_if_unlocked_()
+{
+    if ( UNLOCKED != state_) return false;
+    
+    state_ = LOCKED;
+    BOOST_ASSERT( ! owner_);
+    owner_ = this_fiber::get_id();
+    return true;
+}
+
 mutex::mutex() :
     splk_(),
 	state_( UNLOCKED),
@@ -43,13 +54,7 @@ mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return;
-            }
+            if ( lock_if_unlocked_() ) return;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -69,13 +74,7 @@ mutex::lock()
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return;
-            }
+            if ( lock_if_unlocked_() ) return;
 
             // store this fiber in order to be notified later
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
@@ -95,20 +94,12 @@ mutex::try_lock()
 {
     unique_lock< detail::spinlock > lk( splk_);
 
-    if ( UNLOCKED == state_)
-    {
-        state_ = LOCKED;
-        BOOST_ASSERT( ! owner_);
-        owner_ = this_fiber::get_id();
-        return true;
-    }
-    else
-    {
-        lk.unlock();
-        // let other fiber release the lock
-        this_fiber::yield();
-        return false;
-    }
+    if ( lock_if_unlocked_() ) return true;
+
+    lk.unlock();
+    // let other fiber release the lock
+    this_fiber::yield();
+    return false;
 }
 
 void
