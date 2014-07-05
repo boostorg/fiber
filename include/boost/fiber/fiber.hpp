@@ -199,16 +199,16 @@ public:
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
     bool operator!() const BOOST_NOEXCEPT
-    { return ! impl_ || impl_->is_terminated(); }
+    { return 0 == impl_ || impl_->is_terminated(); }
 
     void swap( fiber & other) BOOST_NOEXCEPT
     { impl_.swap( other.impl_); }
 
     bool joinable() const BOOST_NOEXCEPT
-    { return impl_ /* && ! impl_->is_terminated() */; }
+    { return 0 != impl_ /* && ! impl_->is_terminated() */; }
 
     id get_id() const BOOST_NOEXCEPT
-    { return impl_ ? impl_->get_id() : id(); }
+    { return 0 != impl_ ? impl_->get_id() : id(); }
 
     int priority() const BOOST_NOEXCEPT;
 
