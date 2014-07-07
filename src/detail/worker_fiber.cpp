@@ -30,7 +30,7 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     use_count_( 1), // allocated on stack
     fss_data_(),
     nxt_( 0),
-    tp_( (clock_type::time_point::max)() ),
+    tp_( (chrono::high_resolution_clock::time_point::max)() ),
     callee_( callee),
     caller_(),
     state_( READY),

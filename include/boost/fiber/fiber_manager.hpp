@@ -7,6 +7,7 @@
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
 #include <boost/assert.hpp>
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/lock_types.hpp> 
@@ -54,7 +55,7 @@ struct fiber_manager : private noncopyable
     sched_algorithm             *   sched_algo_;
     wqueue_t                        wqueue_;
 
-    clock_type::duration            wait_interval_;
+    chrono::high_resolution_clock::duration            wait_interval_;
     detail::worker_fiber        *   active_fiber_;
 };
 
@@ -66,12 +67,12 @@ void fm_spawn( detail::worker_fiber *);
 
 void fm_priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
 
-void fm_wait_interval( clock_type::duration const&) BOOST_NOEXCEPT;
+void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
 template< typename Rep, typename Period >
 void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
 { fm_wait_interval( wait_interval); }
 
-clock_type::duration fm_wait_interval() BOOST_NOEXCEPT;
+chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT;
 
 void fm_join( detail::worker_fiber *);
 
@@ -80,18 +81,18 @@ detail::worker_fiber * fm_active() BOOST_NOEXCEPT;
 void fm_run();
 
 void fm_wait( unique_lock< detail::spinlock > &);
-bool fm_wait_until( clock_type::time_point const&,
+bool fm_wait_until( chrono::high_resolution_clock::time_point const&,
                     unique_lock< detail::spinlock > &);
 template< typename Rep, typename Period >
 bool fm_wait_for( chrono::duration< Rep, Period > const& timeout_duration,
                   unique_lock< detail::spinlock > & lk)
 {
-    return wait_until( clock_type::now() + timeout_duration, lk);
+    return wait_until( chrono::high_resolution_clock::now() + timeout_duration, lk);
 }
 
 void fm_yield();
 
-clock_type::time_point fm_next_wakeup();
+chrono::high_resolution_clock::time_point fm_next_wakeup();
 
 void fm_migrate( detail::worker_fiber *);
 

@@ -9,6 +9,7 @@
 
 #include <deque>
 
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
@@ -54,11 +55,18 @@ public:
 
     bool try_lock();
 
-    bool try_lock_until( clock_type::time_point const& timeout_time);
+    bool try_lock_until( chrono::high_resolution_clock::time_point const& timeout_time);
+
+    template< typename ClockType >
+    bool try_lock_until( typename ClockType::time_point const& timeout_time_)
+    {
+        chrono::high_resolution_clock::time_point timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return try_lock_until( timeout_time);
+    }
 
     template< typename Rep, typename Period >
     bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
-    { return try_lock_until( clock_type::now() + timeout_duration); }
+    { return try_lock_until( chrono::high_resolution_clock::now() + timeout_duration); }
 
     void unlock();
 };

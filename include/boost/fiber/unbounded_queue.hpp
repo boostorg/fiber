@@ -234,10 +234,10 @@ public:
     template< typename Rep, typename Period >
     queue_op_status pop_wait_for( value_type & va,
                                   chrono::duration< Rep, Period > const& timeout_duration)
-    { return pop_wait_until( va, clock_type::now() + timeout_duration); }
+    { return pop_wait_until( va, chrono::high_resolution_clock::now() + timeout_duration); }
 
     queue_op_status pop_wait_until( value_type & va,
-                                    clock_type::time_point const& timeout_time)
+                                    chrono::high_resolution_clock::time_point const& timeout_time)
     {
         boost::unique_lock< mutex > lk( mtx_);
 
@@ -261,6 +261,14 @@ public:
             close_();
             throw;
         }
+    }
+
+    template< typename ClockType >
+    queue_op_status pop_wait_until( value_type & va,
+                                    typename ClockType::time_point const& timeout_time_)
+    {
+        chrono::high_resolution_clock timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return pop_wait_until( va, timeout_time);
     }
 
     queue_op_status try_pop( value_type & va)
@@ -421,9 +429,9 @@ public:
     template< typename Rep, typename Period >
     queue_op_status pop_wait_for( value_type va,
                                   chrono::duration< Rep, Period > const& timeout_duration)
-    { return pop_wait_until( va, clock_type::now() + timeout_duration); }
+    { return pop_wait_until( va, chrono::high_resolution_clock::now() + timeout_duration); }
 
-    queue_op_status pop_wait_until( value_type va, clock_type::time_point const& timeout_time)
+    queue_op_status pop_wait_until( value_type va, chrono::high_resolution_clock::time_point const& timeout_time)
     {
         boost::unique_lock< mutex > lk( mtx_);
 
@@ -447,6 +455,14 @@ public:
             close_();
             throw;
         }
+    }
+
+    template< typename ClockType >
+    queue_op_status pop_wait_until( value_type va,
+                                    typename ClockType::time_point const& timeout_time_)
+    {
+        chrono::high_resolution_clock timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return pop_wait_until( va, timeout_time);
     }
 
     queue_op_status try_pop( value_type va)

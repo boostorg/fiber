@@ -139,7 +139,7 @@ public:
     }
 
     template< typename LockType >
-    cv_status wait_until( LockType & lt, clock_type::time_point const& timeout_time)
+    cv_status wait_until( LockType & lt, chrono::high_resolution_clock::time_point const& timeout_time)
     {
         cv_status status = cv_status::no_timeout;
 
@@ -201,7 +201,7 @@ public:
                 while ( ! n->is_ready() )
                 {
                     // check timepoint
-                    if ( ! ( clock_type::now() < timeout_time) )
+                    if ( ! ( chrono::high_resolution_clock::now() < timeout_time) )
                     {
                         // timeout happend before notified
                         // lock spinlock
@@ -234,9 +234,28 @@ public:
         return status;
     }
 
-    template< typename LockType, typename Pred >
-    bool wait_until( LockType & lt, clock_type::time_point const& timeout_time, Pred pred)
+    template< typename LockType, typename ClockType >
+    cv_status wait_until( LockType & lt, typename ClockType::time_point const& timeout_time_)
     {
+        chrono::high_resolution_clock::time_point timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( lt, timeout_time);
+    }
+
+    template< typename LockType, typename Pred >
+    bool wait_until( LockType & lt, chrono::high_resolution_clock::time_point const& timeout_time, Pred pred)
+    {
+        while ( ! pred() )
+        {
+            if ( cv_status::timeout == wait_until( lt, timeout_time) )
+                return pred();
+        }
+        return true;
+    }
+
+    template< typename LockType, typename ClockType, typename Pred >
+    bool wait_until( LockType & lt, typename ClockType::time_point const& timeout_time_, Pred pred)
+    {
+        chrono::high_resolution_clock::time_point timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
         while ( ! pred() )
         {
             if ( cv_status::timeout == wait_until( lt, timeout_time) )
@@ -247,7 +266,7 @@ public:
 
     template< typename LockType, typename Rep, typename Period >
     cv_status wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration)
-    { return wait_until( lt, clock_type::now() + timeout_duration); }
+    { return wait_until( lt, chrono::high_resolution_clock::now() + timeout_duration); }
 
     template< typename LockType, typename Rep, typename Period, typename Pred >
     bool wait_for( LockType & lt, chrono::duration< Rep, Period > const& timeout_duration, Pred pred)

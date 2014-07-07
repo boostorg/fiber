@@ -37,7 +37,7 @@ bool fetch_ready( detail::worker_fiber * f)
 
     // set fiber to state_ready if dead-line was reached
     // set fiber to state_ready if interruption was requested
-    if ( f->time_point() <= clock_type::now() || f->interruption_requested() )
+    if ( f->time_point() <= chrono::high_resolution_clock::now() || f->interruption_requested() )
         f->set_ready();
     return f->is_ready();
 }
@@ -100,20 +100,20 @@ void fm_set_sched_algo( sched_algorithm * algo)
     fm->def_algo_.reset();
 }
 
-clock_type::time_point fm_next_wakeup()
+chrono::high_resolution_clock::time_point fm_next_wakeup()
 {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( 0 != fm);
 
     if ( fm->wqueue_.empty() )
-        return clock_type::now() + fm->wait_interval_;
+        return chrono::high_resolution_clock::now() + fm->wait_interval_;
     else
     {
         //FIXME: search for the closest time_point to now() in waiting-queue
-        clock_type::time_point wakeup( fm->wqueue_.top()->time_point() );
-        if ( (clock_type::time_point::max)() == wakeup)
-            return clock_type::now() + fm->wait_interval_;
+        chrono::high_resolution_clock::time_point wakeup( fm->wqueue_.top()->time_point() );
+        if ( (chrono::high_resolution_clock::time_point::max)() == wakeup)
+            return chrono::high_resolution_clock::now() + fm->wait_interval_;
         return wakeup;
     }
 }
@@ -140,7 +140,7 @@ void fm_priority( detail::worker_fiber * f,
     fm->sched_algo_->priority( f, prio);
 }
 
-void fm_wait_interval( clock_type::duration const& wait_interval) BOOST_NOEXCEPT
+void fm_wait_interval( chrono::high_resolution_clock::duration const& wait_interval) BOOST_NOEXCEPT
 {
     fiber_manager * fm = detail::scheduler::instance();
 
@@ -149,7 +149,7 @@ void fm_wait_interval( clock_type::duration const& wait_interval) BOOST_NOEXCEPT
     fm->wait_interval_ = wait_interval;
 }
 
-clock_type::duration fm_wait_interval() BOOST_NOEXCEPT
+chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT
 {
     fiber_manager * fm = detail::scheduler::instance();
 
@@ -184,7 +184,7 @@ void fm_run()
         {
             // no fibers ready to run; the thread should sleep
             // until earliest fiber is scheduled to run
-            clock_type::time_point wakeup( fm_next_wakeup() );
+            chrono::high_resolution_clock::time_point wakeup( fm_next_wakeup() );
             this_thread::sleep_until( wakeup);
         }
     }
@@ -192,10 +192,10 @@ void fm_run()
 
 void fm_wait( unique_lock< detail::spinlock > & lk)
 {
-    fm_wait_until( clock_type::time_point( (clock_type::duration::max)() ), lk);
+    fm_wait_until( chrono::high_resolution_clock::time_point( (chrono::high_resolution_clock::duration::max)() ), lk);
 }
 
-bool fm_wait_until( clock_type::time_point const& timeout_time,
+bool fm_wait_until( chrono::high_resolution_clock::time_point const& timeout_time,
                     unique_lock< detail::spinlock > & lk)
 {
     fiber_manager * fm = detail::scheduler::instance();
@@ -204,7 +204,7 @@ bool fm_wait_until( clock_type::time_point const& timeout_time,
     BOOST_ASSERT( 0 != fm->active_fiber_);
     BOOST_ASSERT( fm->active_fiber_->is_running() );
 
-    clock_type::time_point start( clock_type::now() );
+    chrono::high_resolution_clock::time_point start( chrono::high_resolution_clock::now() );
 
     // set active-fiber to state_waiting
     fm->active_fiber_->set_waiting();
@@ -216,7 +216,7 @@ bool fm_wait_until( clock_type::time_point const& timeout_time,
     // suspend active-fiber
     fm->active_fiber_->suspend();
 
-    return clock_type::now() < timeout_time;
+    return chrono::high_resolution_clock::now() < timeout_time;
 }
 
 void fm_yield()

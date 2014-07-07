@@ -11,6 +11,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -145,7 +146,7 @@ private:
     }
 
     future_status wait_until_( unique_lock< mutex > & lk,
-                              clock_type::time_point const& timeout_time) const
+                              chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         while ( ! ready_)
@@ -263,7 +264,7 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -372,7 +373,7 @@ private:
     }
 
     future_status wait_until_( unique_lock< mutex > & lk,
-                              clock_type::time_point const& timeout_time) const
+                              chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         while ( ! ready_)
@@ -466,7 +467,7 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -572,7 +573,7 @@ private:
     }
 
     future_status wait_until_( unique_lock< mutex > & lk,
-                              clock_type::time_point const& timeout_time) const
+                              chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         while ( ! ready_)
@@ -665,7 +666,7 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call

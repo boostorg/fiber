@@ -7,6 +7,8 @@
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
 #include <boost/asio.hpp> 
+#include <boost/chrono/system_clocks.hpp>
+#include <boost/config.hpp> 
 #include <boost/thread/lock_types.hpp> 
 
 #include <boost/fiber/detail/config.hpp>
@@ -40,7 +42,7 @@ void yield()
 }
 
 inline
-void sleep_until( fibers::clock_type::time_point const& sleep_time)
+void sleep_until( chrono::high_resolution_clock::time_point const& sleep_time)
 {
     if ( 0 != fibers::fm_active() )
     {
@@ -53,14 +55,21 @@ void sleep_until( fibers::clock_type::time_point const& sleep_time)
     }
     else
     {
-        while ( fibers::clock_type::now() <= sleep_time)
+        while ( chrono::high_resolution_clock::now() <= sleep_time)
             fibers::fm_run();
     }
 }
 
+template< typename ClockType >
+void sleep_until( typename ClockType::time_point const& sleep_time_)
+{
+    chrono::high_resolution_clock::time_point sleep_time( chrono::high_resolution_clock::now() + ( sleep_time_ - ClockType::now() ) );
+    sleep_until( sleep_time);
+}
+
 template< typename Rep, typename Period >
 void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
-{ sleep_until( fibers::clock_type::now() + timeout_duration); }
+{ sleep_until( chrono::high_resolution_clock::now() + timeout_duration); }
 
 inline
 bool thread_affinity() BOOST_NOEXCEPT

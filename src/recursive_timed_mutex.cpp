@@ -114,7 +114,7 @@ recursive_timed_mutex::try_lock()
 }
 
 bool
-recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_time)
+recursive_timed_mutex::try_lock_until( chrono::high_resolution_clock::time_point const& timeout_time)
 {
     detail::fiber_base * n( fm_active() );
     if ( n)
@@ -123,7 +123,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( clock_type::now() > timeout_time)
+            if ( chrono::high_resolution_clock::now() > timeout_time)
                 return false;
 
             if ( lock_if_unlocked_() ) return true;
@@ -154,7 +154,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
         {
             unique_lock< detail::spinlock > lk( splk_);
 
-            if ( clock_type::now() > timeout_time)
+            if ( chrono::high_resolution_clock::now() > timeout_time)
                 return false;
 
             if ( lock_if_unlocked_() ) return true;
@@ -167,7 +167,7 @@ recursive_timed_mutex::try_lock_until( clock_type::time_point const& timeout_tim
             // wait until main-fiber gets notified
             while ( ! n->is_ready() )
             {
-                if ( clock_type::now() > timeout_time)
+                if ( chrono::high_resolution_clock::now() > timeout_time)
                 {
                     lk.lock();
                     // remove fiber from waiting-list

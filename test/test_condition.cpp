@@ -243,12 +243,12 @@ void fn2( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
-    boost::fibers::clock_type::time_point t = t0 + ms(250);
+    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    boost::chrono::high_resolution_clock::time_point t = t0 + ms(250);
     int count=0;
     while (test2 == 0 && cv.wait_until(lk, t) == boost::fibers::cv_status::no_timeout)
         count++;
-    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -281,10 +281,10 @@ void fn3( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
-    boost::fibers::clock_type::time_point t = t0 + ms(250);
+    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    boost::chrono::high_resolution_clock::time_point t = t0 + ms(250);
     bool r = cv.wait_until(lk, t, Pred(test2));
-    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -306,11 +306,11 @@ void fn4( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
     int count=0;
     while (test2 == 0 && cv.wait_for(lk, ms(250)) == boost::fibers::cv_status::no_timeout)
         count++;
-    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -330,11 +330,11 @@ void fn5( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::fibers::clock_type::time_point t0 = boost::fibers::clock_type::now();
+    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
     int count=0;
     cv.wait_for(lk, ms(250), Pred(test2));
     count++;
-    boost::fibers::clock_type::time_point t1 = boost::fibers::clock_type::now();
+    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250+1000));

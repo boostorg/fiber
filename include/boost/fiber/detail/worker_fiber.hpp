@@ -13,6 +13,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/coroutine/symmetric_coroutine.hpp>
@@ -89,7 +90,7 @@ private:
     atomic< std::size_t >           use_count_;
     fss_data_t                      fss_data_;
     worker_fiber                *   nxt_;
-    clock_type::time_point          tp_;
+    chrono::high_resolution_clock::time_point          tp_;
     coro_t::yield_type          *   callee_;
     coro_t::call_type               caller_;
     atomic< state_t >               state_;
@@ -218,14 +219,14 @@ public:
     void next_reset() BOOST_NOEXCEPT
     { nxt_ = 0; }
 
-    clock_type::time_point const& time_point() const BOOST_NOEXCEPT
+    chrono::high_resolution_clock::time_point const& time_point() const BOOST_NOEXCEPT
     { return tp_; }
 
-    void time_point( clock_type::time_point const& tp)
+    void time_point( chrono::high_resolution_clock::time_point const& tp)
     { tp_ = tp; }
 
     void time_point_reset()
-    { tp_ = (clock_type::time_point::max)(); }
+    { tp_ = (chrono::high_resolution_clock::time_point::max)(); }
 
     void release();
 

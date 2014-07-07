@@ -7,7 +7,6 @@
 #ifndef BOOST_FIBERS_DETAIL_CONFIG_H
 #define BOOST_FIBERS_DETAIL_CONFIG_H
 
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
@@ -42,14 +41,5 @@
 # endif
 # define BOOST_FIBERS_SEGMENTS 10
 #endif
-
-namespace boost {
-namespace fibers {
-#if defined(BOOST_HAS_CLOCK_STEADY)
- typedef boost::chrono::steady_clock   clock_type;
-#else
- typedef boost::chrono::system_clock   clock_type;
-#endif
-}}
 
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H

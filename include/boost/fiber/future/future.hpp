@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_FUTURE_HPP
 #define BOOST_FIBERS_FUTURE_HPP
 
+#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/move/move.hpp>
@@ -171,7 +172,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -179,6 +180,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->wait_until( timeout_time);
+    }
+
+    template< typename ClockType >
+    future_status wait_until( typename ClockType::time_point const& timeout_time_) const
+    {
+        chrono::high_resolution_clock::time_point timeout_time(
+            chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( timeout_time);
     }
 };
 
@@ -321,7 +330,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -329,6 +338,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->wait_until( timeout_time);
+    }
+
+    template< typename ClockType >
+    future_status wait_until( typename ClockType::time_point const& timeout_time_) const
+    {
+        chrono::high_resolution_clock::time_point timeout_time(
+            chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( timeout_time);
     }
 };
 
@@ -471,7 +488,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -479,6 +496,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->wait_until( timeout_time);
+    }
+
+    template< typename ClockType >
+    future_status wait_until( typename ClockType::time_point const& timeout_time_) const
+    {
+        chrono::high_resolution_clock::time_point timeout_time(
+            chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( timeout_time);
     }
 };
 
@@ -659,7 +684,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -667,6 +692,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->wait_until( timeout_time);
+    }
+
+    template< typename ClockType >
+    future_status wait_until( typename ClockType::time_point const& timeout_time_) const
+    {
+        chrono::high_resolution_clock::time_point timeout_time(
+            chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( timeout_time);
     }
 };
 
@@ -841,7 +874,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -849,6 +882,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->wait_until( timeout_time);
+    }
+
+    template< typename ClockType >
+    future_status wait_until( typename ClockType::time_point const& timeout_time_) const
+    {
+        chrono::high_resolution_clock::time_point timeout_time(
+            chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( timeout_time);
     }
 };
 
@@ -1029,7 +1070,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( clock_type::time_point const& timeout_time) const
+    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -1037,6 +1078,14 @@ public:
             boost::throw_exception(
                 future_uninitialized() );
         return state_->wait_until( timeout_time);
+    }
+
+    template< typename ClockType >
+    future_status wait_until( typename ClockType::time_point const& timeout_time_) const
+    {
+        chrono::high_resolution_clock::time_point timeout_time(
+            chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        return wait_until( timeout_time);
     }
 };
 
