@@ -45,9 +45,9 @@ struct bounded_queue_node
     T           va;
     ptr         next;
 
-    bounded_queue_node() :
+    bounded_queue_node( T t) :
         use_count( 0),
-        va(),
+        va( t),
         next()
     {}
 };
@@ -61,9 +61,9 @@ struct bounded_queue_node< T * >
     T           va;
     ptr         next;
 
-    bounded_queue_node() :
+    bounded_queue_node( T * t) :
         use_count( 0),
-        va( 0),
+        va( t),
         next()
     {}
 };
@@ -93,12 +93,11 @@ private:
         CLOSED
     };
 
-    atomic< state_t >           state_;
-    atomic< std::size_t >       count_;
+    state_t                     state_;
+    std::size_t                 count_;
     typename node_type::ptr     head_;
-    mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
-    mutable mutex               tail_mtx_;
+    mutable mutex               mtx_;
     condition                   not_empty_cond_;
     condition                   not_full_cond_;
     std::size_t                 hwm_;
@@ -118,24 +117,30 @@ private:
     { return count_; }
 
     bool is_empty_() const
-    { return head_ == get_tail_(); }
+    { return 0 == head_; }
 
     bool is_full_() const
     { return count_ >= hwm_; }
-
-    typename node_type::ptr get_tail_() const
-    {
-        boost::unique_lock< mutex > lk( tail_mtx_);
-        typename node_type::ptr tmp = tail_;
-        return tmp;
-    }
 
     typename node_type::ptr pop_head_()
     {
         typename node_type::ptr old_head = head_;
         head_ = old_head->next;
-        --count_;
+        if ( 0 == head_) tail_ = 0;
+        old_head->next = 0;
         return old_head;
+    }
+
+    void push_tail_( typename node_type::ptr new_node)
+    {
+        if ( is_empty_() )
+            head_ = tail_ = new_node;
+        else
+        {
+            tail_->next = new_node;
+            tail_ = new_node;
+        }
+        ++count_;
     }
 
 public:
@@ -144,10 +149,9 @@ public:
             std::size_t lwm) :
         state_( OPEN),
         count_( 0),
-        head_( new node_type() ),
-        head_mtx_(),
+        head_(),
         tail_( head_),
-        tail_mtx_(),
+        mtx_(),
         not_empty_cond_(),
         not_full_cond_(),
         hwm_( hwm),
@@ -163,10 +167,9 @@ public:
     bounded_queue( std::size_t wm) :
         state_( OPEN),
         count_( 0),
-        head_( new node_type() ),
-        head_mtx_(),
+        head_(),
         tail_( head_),
-        tail_mtx_(),
+        mtx_(),
         not_empty_cond_(),
         not_full_cond_(),
         hwm_( wm),
@@ -181,33 +184,42 @@ public:
 
     void close()
     {
-        boost::unique_lock< mutex > head_lk( head_mtx_);
-        boost::unique_lock< mutex > tail_lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
+
         close_();
     }
 
     bool is_closed() const
-    { return is_closed_(); }
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        return is_closed_();
+    }
 
     bool is_empty() const
-    { return is_empty_(); }
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        return is_empty_();
+    }
 
     bool is_full() const
-    { return is_full_(); }
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        return is_full_();
+    }
 
     queue_op_status push( value_type const& va)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( tail_mtx_);
+        typename node_type::ptr new_node( new node_type( va) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
 
-        tail_->va = va;
-        tail_->next = new_node;
-        tail_ = new_node;
-        ++count_;
+        push_tail_( new_node);
         not_empty_cond_.notify_one();
 
         return queue_op_status::success;
@@ -215,17 +227,14 @@ public:
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( tail_mtx_);
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
 
-        tail_->va = boost::move( va);
-        tail_->next = new_node;
-        tail_ = new_node;
-        ++count_;
+        push_tail_( new_node);
         not_empty_cond_.notify_one();
 
         return queue_op_status::success;
@@ -244,24 +253,20 @@ public:
     queue_op_status push_wait_until( value_type const& va,
                                      clock_type::time_point const& timeout_time)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( tail_mtx_);
+        typename node_type::ptr new_node( new node_type( va) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
         {
-            if ( cv_status::timeout == not_full_cond_.wait_until(
-                                            lk, timeout_time) )
+            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) )
                 return queue_op_status::timeout;
         }
 
         try
         {
-            tail_->va = va;
-            tail_->next = new_node;
-            tail_ = new_node;
-            ++count_;
+            push_tail_( new_node);
             not_empty_cond_.notify_one();
             return queue_op_status::success;
         }
@@ -275,24 +280,20 @@ public:
     queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
                                      clock_type::time_point const& timeout_time)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( tail_mtx_);
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
         {
-            if ( cv_status::timeout == not_full_cond_.wait_until(
-                                            lk, timeout_time) )
+            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) )
                 return queue_op_status::timeout;
         }
 
         try
         {
-            tail_->va = boost::move( va);
-            tail_->next = new_node;
-            tail_ = new_node;
-            ++count_;
+            push_tail_( new_node);
             not_empty_cond_.notify_one();
             return queue_op_status::success;
         }
@@ -305,18 +306,15 @@ public:
 
     queue_op_status try_push( value_type const& va)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( head_mtx_);
+        typename node_type::ptr new_node( new node_type( va) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
         if ( is_full_() ) return queue_op_status::full;
 
         try
         {
-            tail_->va = va;
-            tail_->next = new_node;
-            tail_ = new_node;
-            ++count_;
+            push_tail_( new_node);
             not_empty_cond_.notify_one();
             return queue_op_status::success;
         }
@@ -329,18 +327,15 @@ public:
 
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( head_mtx_);
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
         if ( is_full_() ) return queue_op_status::full;
 
         try
         {
-            tail_->va = boost::move( va);
-            tail_->next = new_node;
-            tail_ = new_node;
-            ++count_;
+            push_tail_( new_node);
             not_empty_cond_.notify_one();
             return queue_op_status::success;
         }
@@ -353,7 +348,7 @@ public:
 
     queue_op_status pop( value_type & va)
     {
-        boost::unique_lock< mutex > lk( head_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
 
         while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
@@ -382,6 +377,39 @@ public:
         }
     }
 
+    value_type value_pop()
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
+
+        if ( is_closed_() && is_empty_() )
+            BOOST_THROW_EXCEPTION(
+                logic_error("boost fiber: queue is closed") );
+        BOOST_ASSERT( ! is_empty_() );
+
+        try
+        {
+            value_type va = boost::move( head_->va);
+            pop_head_();
+            if ( size_() <= lwm_)
+            {
+                if ( lwm_ == hwm_)
+                    not_full_cond_.notify_one();
+                else
+                    // more than one producer could be waiting
+                    // for submiting an action object
+                    not_full_cond_.notify_all();
+            }
+            return va;
+        }
+        catch (...)
+        {
+            close_();
+            throw;
+        }
+    }
+
     template< typename Rep, typename Period >
     queue_op_status pop_wait_for( value_type & va,
                                   chrono::duration< Rep, Period > const& timeout_duration)
@@ -390,12 +418,11 @@ public:
     queue_op_status pop_wait_until( value_type & va,
                                     clock_type::time_point const& timeout_time)
     {
-        boost::unique_lock< mutex > lk( head_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
 
         while ( ! is_closed_() && is_empty_() )
         {
-            if ( cv_status::timeout == not_empty_cond_.wait_until(
-                                            lk, timeout_time) )
+            if ( cv_status::timeout == not_empty_cond_.wait_until( lk, timeout_time) )
                 return queue_op_status::timeout;
         }
 
@@ -426,7 +453,7 @@ public:
 
     queue_op_status try_pop( value_type & va)
     {
-        boost::unique_lock< mutex > lk( head_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         if ( is_empty_() ) return queue_op_status::empty;
@@ -461,12 +488,11 @@ private:
         CLOSED
     };
 
-    atomic< state_t >           state_;
-    atomic< std::size_t >       count_;
+    state_t                     state_;
+    std::size_t                 count_;
     typename node_type::ptr     head_;
-    mutable mutex               head_mtx_;
     typename node_type::ptr     tail_;
-    mutable mutex               tail_mtx_;
+    mutable mutex               mtx_;
     condition                   not_empty_cond_;
     condition                   not_full_cond_;
     std::size_t                 hwm_;
@@ -486,24 +512,29 @@ private:
     { return count_; }
 
     bool is_empty_() const
-    { return head_ == get_tail_(); }
+    { return 0 == head_; }
 
     bool is_full_() const
     { return count_ >= hwm_; }
-
-    typename node_type::ptr get_tail_() const
-    {
-        boost::unique_lock< mutex > lk( tail_mtx_);
-        typename node_type::ptr tmp = tail_;
-        return tmp;
-    }
 
     typename node_type::ptr pop_head_()
     {
         typename node_type::ptr old_head = head_;
         head_ = old_head->next;
-        --count_;
+        if ( 0 == head_) tail_ = 0;
+        old_head->next = 0;
         return old_head;
+    }
+
+    void push_tail_( typename node_type::ptr new_node)
+    {
+        if ( is_empty_() )
+            head_ = tail_ = new_node;
+        else
+        {
+            tail_->next = new_node;
+            tail_ = new_node;
+        }
     }
 
 public:
@@ -512,10 +543,9 @@ public:
             std::size_t lwm) :
         state_( OPEN),
         count_( 0),
-        head_( new node_type() ),
-        head_mtx_(),
+        head_(),
         tail_( head_),
-        tail_mtx_(),
+        mtx_(),
         not_empty_cond_(),
         not_full_cond_(),
         hwm_( hwm),
@@ -531,10 +561,9 @@ public:
     bounded_queue( std::size_t wm) :
         state_( OPEN),
         count_( 0),
-        head_( new node_type() ),
-        head_mtx_(),
+        head_(),
         tail_( head_),
-        tail_mtx_(),
+        mtx_(),
         not_empty_cond_(),
         not_full_cond_(),
         hwm_( wm),
@@ -549,33 +578,42 @@ public:
 
     void close()
     {
-        boost::unique_lock< mutex > head_lk( head_mtx_);
-        boost::unique_lock< mutex > tail_lk( tail_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
+
         close_();
     }
 
     bool is_closed() const
-    { return is_closed_(); }
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        return is_closed_();
+    }
 
     bool is_empty() const
-    { return is_empty_(); }
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        return is_empty_();
+    }
 
     bool is_full() const
-    { return is_full_(); }
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        return is_full_();
+    }
 
     queue_op_status push( value_type va)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( tail_mtx_);
+        typename node_type::ptr new_node( new node_type( va) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
 
-        tail_->va = va;
-        tail_->next = new_node;
-        tail_ = new_node;
-        ++count_;
+        push_tail_( new_node);
         not_empty_cond_.notify_one();
 
         return queue_op_status::success;
@@ -589,24 +627,20 @@ public:
     queue_op_status push_wait_until( value_type va,
                                      clock_type::time_point const& timeout_time)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( tail_mtx_);
+        typename node_type::ptr new_node( new node_type( va) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
         {
-            if ( cv_status::timeout == not_full_cond_.wait_until(
-                                            lk, timeout_time) )
+            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) )
                 return queue_op_status::timeout;
         }
 
         try
         {
-            tail_->va = va;
-            tail_->next = new_node;
-            tail_ = new_node;
-            ++count_;
+            push_tail_( new_node);
             not_empty_cond_.notify_one();
             return queue_op_status::success;
         }
@@ -619,18 +653,36 @@ public:
 
     queue_op_status try_push( value_type va)
     {
-        typename node_type::ptr new_node( new node_type() );
-        boost::unique_lock< mutex > lk( head_mtx_);
+        typename node_type::ptr new_node( new node_type( va) );
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() ) return queue_op_status::closed;
         if ( is_full_() ) return queue_op_status::full;
 
         try
         {
-            tail_->va = va;
-            tail_->next = new_node;
-            tail_ = new_node;
-            ++count_;
+            push_tail_( new_node);
+            not_empty_cond_.notify_one();
+            return queue_op_status::success;
+        }
+        catch (...)
+        {
+            close_();
+            throw;
+        }
+    }
+
+    queue_op_status try_push( BOOST_RV_REF( value_type) va)
+    {
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
+        boost::unique_lock< mutex > lk( mtx_);
+
+        if ( is_closed_() ) return queue_op_status::closed;
+        if ( is_full_() ) return queue_op_status::full;
+
+        try
+        {
+            push_tail_( new_node);
             not_empty_cond_.notify_one();
             return queue_op_status::success;
         }
@@ -643,7 +695,7 @@ public:
 
     queue_op_status pop( value_type va)
     {
-        boost::unique_lock< mutex > lk( head_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
 
         while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
 
@@ -672,20 +724,52 @@ public:
         }
     }
 
+    value_type value_pop()
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
+
+        if ( is_closed_() && is_empty_() )
+            BOOST_THROW_EXCEPTION(
+                logic_error("boost fiber: queue is closed") );
+        BOOST_ASSERT( ! is_empty_() );
+
+        try
+        {
+            value_type va = head_->va;
+            pop_head_();
+            if ( size_() <= lwm_)
+            {
+                if ( lwm_ == hwm_)
+                    not_full_cond_.notify_one();
+                else
+                    // more than one producer could be waiting
+                    // for submiting an action object
+                    not_full_cond_.notify_all();
+            }
+            return va;
+        }
+        catch (...)
+        {
+            close_();
+            throw;
+        }
+    }
+
     template< typename Rep, typename Period >
     queue_op_status pop_wait_for( value_type va,
-                                 chrono::duration< Rep, Period > const& timeout_duration)
+                                  chrono::duration< Rep, Period > const& timeout_duration)
     { return pop_wait_until( va, clock_type::now() + timeout_duration); }
 
     queue_op_status pop_wait_until( value_type va,
                                     clock_type::time_point const& timeout_time)
     {
-        boost::unique_lock< mutex > lk( head_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
 
         while ( ! is_closed_() && is_empty_() )
         {
-            if ( cv_status::timeout == not_empty_cond_.wait_until(
-                                            lk, timeout_time) )
+            if ( cv_status::timeout == not_empty_cond_.wait_until( lk, timeout_time) )
                 return queue_op_status::timeout;
         }
 
@@ -716,7 +800,7 @@ public:
 
     queue_op_status try_pop( value_type va)
     {
-        boost::unique_lock< mutex > lk( head_mtx_);
+        boost::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
         if ( is_empty_() ) return queue_op_status::empty;

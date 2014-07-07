@@ -147,6 +147,30 @@ public:
     {}
 };
 
+class logic_error : public fiber_exception
+{
+public:
+    logic_error() :
+        fiber_exception( 0, "boost::logic_error")
+    {}
+
+    logic_error( const char * what_arg) :
+        fiber_exception( 0, what_arg)
+    {}
+
+    logic_error( int ev) :
+        fiber_exception( ev, "boost::logic_error")
+    {}
+
+    logic_error( int ev, const char * what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+
+    logic_error( int ev, const std::string & what_arg) :
+        fiber_exception( ev, what_arg)
+    {}
+};
+
 class fiber_interrupted : public fiber_exception
 {
 public:
