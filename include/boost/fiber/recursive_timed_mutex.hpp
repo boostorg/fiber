@@ -64,7 +64,8 @@ public:
     template< typename ClockType >
     bool try_lock_until( typename ClockType::time_point const& timeout_time_)
     {
-        chrono::high_resolution_clock::time_point timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
+        chrono::high_resolution_clock::time_point timeout_time(
+                detail::convert_tp( timeout_time_) );
         return try_lock_until( timeout_time);
     }
 

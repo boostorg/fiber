@@ -81,8 +81,19 @@ detail::worker_fiber * fm_active() BOOST_NOEXCEPT;
 void fm_run();
 
 void fm_wait( unique_lock< detail::spinlock > &);
+
 bool fm_wait_until( chrono::high_resolution_clock::time_point const&,
                     unique_lock< detail::spinlock > &);
+
+template< typename TimePointType >
+bool fm_wait_until( chrono::high_resolution_clock::time_point const& timeout_time_,
+                    unique_lock< detail::spinlock > & lk)
+{
+    chrono::high_resolution_clock::time_point timeout_time(
+            detail::convert_tp( timeout_time_) );
+    return fm_wait_until( timeout_time, lk);
+}
+
 template< typename Rep, typename Period >
 bool fm_wait_for( chrono::duration< Rep, Period > const& timeout_duration,
                   unique_lock< detail::spinlock > & lk)

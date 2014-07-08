@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <boost/asio.hpp>
-#include <boost/asio/system_timer.hpp>
+#include <boost/asio/high_resolution_timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
@@ -22,14 +22,14 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-inline void timer_handler( boost::asio::system_timer & timer) {
+inline void timer_handler( boost::asio::high_resolution_timer & timer) {
     boost::fibers::fm_yield();
     timer.expires_at( boost::fibers::fm_next_wakeup() );
     timer.async_wait( boost::bind( timer_handler, boost::ref( timer) ) );
 }
 
 inline void run_service( boost::asio::io_service & io_service) {
-    boost::asio::system_timer timer( io_service, boost::chrono::seconds(0) );
+    boost::asio::high_resolution_timer timer( io_service, boost::chrono::seconds(0) );
     timer.async_wait( boost::bind( timer_handler, boost::ref( timer) ) );
     io_service.run();
 }

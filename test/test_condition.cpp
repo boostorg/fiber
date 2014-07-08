@@ -243,12 +243,12 @@ void fn2( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
-    boost::chrono::high_resolution_clock::time_point t = t0 + ms(250);
+    boost::chrono::system_clock::time_point t0 = boost::chrono::system_clock::now();
+    boost::chrono::system_clock::time_point t = t0 + ms(250);
     int count=0;
     while (test2 == 0 && cv.wait_until(lk, t) == boost::fibers::cv_status::no_timeout)
         count++;
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    boost::chrono::system_clock::time_point t1 = boost::chrono::system_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));

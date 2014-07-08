@@ -138,10 +138,12 @@ public:
         }
     }
 
-    template< typename LockType >
-    cv_status wait_until( LockType & lt, chrono::high_resolution_clock::time_point const& timeout_time)
+    template< typename LockType, typename TimePointType >
+    cv_status wait_until( LockType & lt, TimePointType const& timeout_time_)
     {
         cv_status status = cv_status::no_timeout;
+        chrono::high_resolution_clock::time_point timeout_time(
+            detail::convert_tp( timeout_time_) );
 
         detail::fiber_base * n( fm_active() );
         try
@@ -234,28 +236,9 @@ public:
         return status;
     }
 
-    template< typename LockType, typename ClockType >
-    cv_status wait_until( LockType & lt, typename ClockType::time_point const& timeout_time_)
+    template< typename LockType, typename TimePointType, typename Pred >
+    bool wait_until( LockType & lt, TimePointType const& timeout_time, Pred pred)
     {
-        chrono::high_resolution_clock::time_point timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( lt, timeout_time);
-    }
-
-    template< typename LockType, typename Pred >
-    bool wait_until( LockType & lt, chrono::high_resolution_clock::time_point const& timeout_time, Pred pred)
-    {
-        while ( ! pred() )
-        {
-            if ( cv_status::timeout == wait_until( lt, timeout_time) )
-                return pred();
-        }
-        return true;
-    }
-
-    template< typename LockType, typename ClockType, typename Pred >
-    bool wait_until( LockType & lt, typename ClockType::time_point const& timeout_time_, Pred pred)
-    {
-        chrono::high_resolution_clock::time_point timeout_time( chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
         while ( ! pred() )
         {
             if ( cv_status::timeout == wait_until( lt, timeout_time) )
