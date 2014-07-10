@@ -7,7 +7,6 @@
 #ifndef BOOST_FIBERS_DETAIL_CONFIG_H
 #define BOOST_FIBERS_DETAIL_CONFIG_H
 
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
@@ -43,21 +42,5 @@
 # define BOOST_FIBERS_SEGMENTS 10
 #endif
 
-namespace boost {
-namespace fibers {
-namespace detail {
-
-inline
-chrono::high_resolution_clock::time_point convert_tp( chrono::high_resolution_clock::time_point const& timeout_time)
-{ return timeout_time; }
-
-template< typename TimePointType >
-chrono::high_resolution_clock::time_point convert_tp( TimePointType const& timeout_time)
-{
-    typedef typename TimePointType::clock ClockType;
-    return chrono::high_resolution_clock::now() + ( timeout_time - ClockType::now() );
-}
-
-}}}
 
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H
