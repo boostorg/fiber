@@ -64,25 +64,6 @@ public:
         //TODO: abandon ownership if any
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    future( future && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        swap( other);
-    }
-
-    future & operator=( future && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases any shared state and move-assigns the contents of other to *this
-        //      after the assignment, other.valid() == false and this->valid() will yield
-        //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     future( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT :
         state_()
     {
@@ -100,7 +81,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif   
 
     void swap( future & other) BOOST_NOEXCEPT
     {
@@ -222,25 +202,6 @@ public:
         //TODO: abandon ownership if any
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    future( future && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        swap( other);
-    }
-
-    future & operator=( future && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases any shared state and move-assigns the contents of other to *this
-        //      after the assignment, other.valid() == false and this->valid() will yield
-        //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     future( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT :
         state_()
     {
@@ -258,7 +219,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     void swap( future & other) BOOST_NOEXCEPT
     {
@@ -380,25 +340,6 @@ public:
         //TODO: abandon ownership if any
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    future( future && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        swap( other);
-    }
-
-    future & operator=( future && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases any shared state and move-assigns the contents of other to *this
-        //      after the assignment, other.valid() == false and this->valid() will yield
-        //      the same value as other.valid() before the assignment
-        future tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
         state_()
     {
@@ -416,7 +357,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     void swap( future & other) BOOST_NOEXCEPT
     {
@@ -548,33 +488,6 @@ public:
         //      as other, if there's any
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    shared_future( future< R > && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a shared_future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        state_.swap( other.state_);
-    }
-
-    shared_future( shared_future && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a shared_future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        swap( other);
-    }
-
-    shared_future & operator=( shared_future && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases any shared state and move-assigns the contents of other to *this
-        //      after the assignment, other.valid() == false and this->valid() will yield
-        //      the same value as other.valid() before the assignment
-        shared_future tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     shared_future( BOOST_RV_REF( future< R >) other) BOOST_NOEXCEPT :
         state_()
     {
@@ -600,7 +513,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {
@@ -738,33 +650,6 @@ public:
         //      as other, if there's any
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    shared_future( future< R & > && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a shared_future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        state_.swap( other.state_);
-    }
-
-    shared_future( shared_future && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a shared_future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        swap( other);
-    }
-
-    shared_future & operator=( shared_future && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases any shared state and move-assigns the contents of other to *this
-        //      after the assignment, other.valid() == false and this->valid() will yield
-        //      the same value as other.valid() before the assignment
-        shared_future tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     shared_future( BOOST_RV_REF( future< R & >) other) BOOST_NOEXCEPT :
         state_()
     {
@@ -790,7 +675,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {
@@ -928,33 +812,6 @@ public:
         //      as other, if there's any
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    shared_future( future< void > && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a shared_future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        state_.swap( other.state_);
-    }
-
-    shared_future( shared_future && other) BOOST_NOEXCEPT :
-        state_()
-    {
-        //TODO: constructs a shared_future with the shared state of other using move semantics
-        //      after construction, other.valid() == false
-        swap( other);
-    }
-
-    shared_future & operator=( shared_future && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases any shared state and move-assigns the contents of other to *this
-        //      after the assignment, other.valid() == false and this->valid() will yield
-        //      the same value as other.valid() before the assignment
-        shared_future tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     shared_future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
         state_()
     {
@@ -980,7 +837,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {

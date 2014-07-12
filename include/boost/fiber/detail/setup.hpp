@@ -44,6 +44,7 @@ struct setup
         f( 0)
     { BOOST_ASSERT( 0 != caller); }
 #endif
+
     setup( BOOST_RV_REF( Fn) fn_,
            coro_t::call_type * caller_,
            typename disable_if<

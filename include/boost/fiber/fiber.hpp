@@ -73,61 +73,7 @@ public:
         impl_( impl)
     {}
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-#ifdef BOOST_MSVC
-    typedef void ( * fiber_fn)();
-
-    explicit fiber( fiber_fn fn, attributes const& attrs = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator() ) :
-        impl_()
-    {
-        coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
-    }
-
-    template< typename StackAllocator >
-    explicit fiber( fiber_fn fn, attributes const& attrs,
-                    StackAllocator const& stack_alloc) :
-        impl_()
-    {
-        coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
-    }
-#endif
-    template< typename Fn >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator() ) :
-        impl_()
-    {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( forward< Fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
-    }
-
-    template< typename Fn, typename StackAllocator >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs,
-                    StackAllocator const& stack_alloc) :
-        impl_()
-    {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( forward< Fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
-    }
-#else
+#ifdef BOOST_NO_RVALUE_REFERENCES
     template< typename Fn >
     explicit fiber( Fn fn, attributes const& attrs = attributes(),
                     stack_allocator const& stack_alloc = stack_allocator() ) :
@@ -153,6 +99,7 @@ public:
 
         start_fiber_();
     }
+#endif
 
     template< typename Fn >
     explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
@@ -160,7 +107,11 @@ public:
         impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+#ifdef BOOST_NO_RVALUE_REFERENCES
         detail::setup< Fn > s( fn, & coro);
+#else
+        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+#endif
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);
 
@@ -173,13 +124,16 @@ public:
         impl_()
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+#ifdef BOOST_NO_RVALUE_REFERENCES
         detail::setup< Fn > s( fn, & coro);
+#else
+        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+#endif
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);
 
         start_fiber_();
     }
-#endif
 
     ~fiber()
     { if ( joinable() ) std::terminate(); }

@@ -75,27 +75,6 @@ public:
             future_->owner_destroyed();
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    promise( promise && other) BOOST_NOEXCEPT :
-        obtained_( false),
-        future_()
-    {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
-        swap( other);
-    }
-
-    promise & operator=( promise && other) BOOST_NOEXCEPT
-    {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
-        promise tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     promise( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT :
         obtained_( false),
         future_()
@@ -115,7 +94,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif   
 
     void swap( promise & other) BOOST_NOEXCEPT
     {
@@ -157,20 +135,6 @@ public:
         future_->set_value( value);
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    void set_value( R && value)
-    {
-        //TODO: store the value into the shared state and make the state ready
-        //      rhe operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
-        if ( ! future_)
-            boost::throw_exception(
-                promise_uninitialized() );
-        future_->set_value( boost::move( value) );
-    }
-#else
     void set_value( BOOST_RV_REF( R) value)
     {
         //TODO: store the value into the shared state and make the state ready
@@ -183,7 +147,6 @@ public:
                 promise_uninitialized() );
         future_->set_value( boost::move( value) );
     }
-#endif
 
     void set_exception( exception_ptr p)
     {
@@ -250,27 +213,6 @@ public:
             future_->owner_destroyed();
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    promise( promise && other) BOOST_NOEXCEPT :
-        obtained_( false),
-        future_()
-    {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
-        swap( other);
-    }
-
-    promise & operator=( promise && other) BOOST_NOEXCEPT
-    {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
-        promise tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     promise( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT :
         obtained_( false),
         future_()
@@ -290,7 +232,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     void swap( promise & other) BOOST_NOEXCEPT
     {
@@ -401,27 +342,6 @@ public:
             future_->owner_destroyed();
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    promise( promise && other) BOOST_NOEXCEPT :
-        obtained_( false),
-        future_()
-    {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
-        swap( other);
-    }
-
-    promise & operator=( promise && other) BOOST_NOEXCEPT
-    {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
-        promise tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
-#else
     promise( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT :
         obtained_( false),
         future_()
@@ -441,7 +361,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif   
 
     void swap( promise & other) BOOST_NOEXCEPT
     {

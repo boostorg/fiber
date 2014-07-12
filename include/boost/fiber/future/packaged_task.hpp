@@ -62,11 +62,9 @@ public:
             task_->owner_destroyed();
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-#ifdef BOOST_MSVC
-    typedef R ( * task_fn)();
-
-    explicit packaged_task( task_fn fn) :
+#ifdef BOOST_NO_RVALUE_REFERENCES
+    template< typename Fn >
+    explicit packaged_task( Fn fn) :
         obtained_( false),
         task_()
     {
@@ -74,7 +72,7 @@ public:
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
         typedef detail::task_object<
-            task_fn,
+            Fn,
             std::allocator< packaged_task< R() > >,
             R
         >                                       object_t;
@@ -82,11 +80,11 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( fn, a) );
     }
 
-    template< typename Allocator >
-    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, task_fn fn) :
+    template< typename Fn, typename Allocator >
+    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn const& fn) :
         obtained_( false),
         task_()
     {
@@ -96,24 +94,19 @@ public:
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
-            task_fn,
+            Fn,
             Allocator,
             R
         >                                       object_t;
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( fn, a) );
     }
 #endif
+
     template< typename Fn >
-    explicit packaged_task( Fn && fn,
-                            typename disable_if<
-                                is_same<
-                                    typename decay< Fn >::type,
-                                    packaged_task
-                                >,
-                                dummy * >::type = 0) :
+    explicit packaged_task( BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {
@@ -129,107 +122,11 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
-    }
-
-    template< typename Fn, typename Allocator >
-    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn && fn,
-                            typename disable_if<
-                                is_same<
-                                    typename decay< Fn >::type,
-                                    packaged_task
-                                >,
-                                dummy * >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        //       uses the provided allocator to allocate
-        //       memory necessary to store the task
-        typedef detail::task_object<
-            Fn,
-            Allocator,
-            R
-        >                                       object_t;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
-    }
+#ifdef BOOST_NO_RVALUE_REFERENCES
+            ::new( a.allocate( 1) ) object_t( fn, a) );
 #else
-    template< typename Fn >
-    explicit packaged_task( Fn fn,
-                            typename disable_if<
-                                is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                                dummy *
-                            >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        typedef detail::task_object<
-            Fn,
-            std::allocator< packaged_task< R() > >,
-            R
-        >                                       object_t;
-        std::allocator< packaged_task< R() > > alloc;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
-    }
-
-    template< typename Fn, typename Allocator >
-    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn const& fn,
-                            typename disable_if<
-                                is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                                dummy *
-                            >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        //       uses the provided allocator to allocate
-        //       memory necessary to store the task
-        typedef detail::task_object<
-            Fn,
-            Allocator,
-            R
-        >                                       object_t;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
-    }
-
-    template< typename Fn >
-    explicit packaged_task( BOOST_RV_REF( Fn) fn,
-                            typename disable_if<
-                                is_same< typename decay< Fn >::type, packaged_task >,
-                                dummy *
-                            >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        typedef detail::task_object<
-            Fn,
-            std::allocator< packaged_task< R() > >,
-            R
-        >                                       object_t;
-        std::allocator< packaged_task< R() > > alloc;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( foreward< Fn >( fn), a) );
+#endif
     }
 
     template< typename Fn, typename Allocator >
@@ -250,9 +147,12 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
+#ifdef BOOST_NO_RVALUE_REFERENCES
             ::new( a.allocate( 1) ) object_t( fn, a) );
-    }
+#else
+            ::new( a.allocate( 1) ) object_t( foreward< Fn >( fn), a) );
 #endif
+    }
 
     packaged_task( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT :
         obtained_( false),
@@ -367,11 +267,9 @@ public:
             task_->owner_destroyed();
     }
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-#ifdef BOOST_MSVC
-    typedef void ( * task_fn)();
-
-    explicit packaged_task( task_fn fn) :
+#ifdef BOOST_NO_RVALUE_REFERENCES
+    template< typename Fn >
+    explicit packaged_task( Fn fn) :
         obtained_( false),
         task_()
     {
@@ -379,19 +277,19 @@ public:
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
         typedef detail::task_object<
-            task_fn,
+            Fn,
             std::allocator< packaged_task< void() > >,
             void
         >                                       object_t;
         std::allocator< packaged_task< void() > > alloc;
-        object_t::allocator_t a( alloc);
+        typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( fn, a) );
     }
 
-    template< typename Allocator >
-    explicit packaged_task( Allocator const& alloc, task_fn fn) :
+    template< typename Fn, typename Allocator >
+    explicit packaged_task( Allocator const& alloc, Fn const& fn) :
         obtained_( false),
         task_()
     {
@@ -401,25 +299,19 @@ public:
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
-            task_fn,
+            Fn,
             Allocator,
             void
         >                                       object_t;
-        object_t::allocator_t a( alloc);
+        typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( fn, a) );
     }
 #endif
 
     template< typename Fn >
-    explicit packaged_task( Fn && fn,
-                            typename disable_if<
-                                is_same<
-                                    typename decay< Fn >::type,
-                                    packaged_task
-                                >,
-                                dummy * >::type = 0) :
+    explicit packaged_task( BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {
@@ -435,129 +327,11 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
-    }
-
-    template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, Fn && fn,
-                            typename disable_if<
-                                is_same<
-                                    typename decay< Fn >::type,
-                                    packaged_task
-                                >,
-                                dummy * >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        //       uses the provided allocator to allocate
-        //       memory necessary to store the task
-        typedef detail::task_object<
-            Fn,
-            Allocator,
-            void
-        >                                       object_t;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
-    }
-
-    packaged_task( packaged_task && other) BOOST_NOEXCEPT :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task with thes
-        //       shared state and task formerly owned by rhs,
-        //       leaving rhs with no shared state and a moved-from task
-        swap( other);
-    }
-
-    packaged_task & operator=( packaged_task && other) BOOST_NOEXCEPT
-    {
-        //TODO: releases the shared state, if any, destroys the
-        //       previously-held task, and moves the shared state
-        //       and the task owned by rhs into *this
-        //       rhs is left without a shared state and with a
-        //       moved-from task
-        packaged_task tmp( boost::move( other) );
-        swap( tmp);
-        return * this;
-    }
+#ifdef BOOST_NO_RVALUE_REFERENCES
+            ::new( a.allocate( 1) ) object_t( fn, a) );
 #else
-    template< typename Fn >
-    explicit packaged_task( Fn fn,
-                            typename disable_if<
-                                is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                                dummy *
-                            >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        typedef detail::task_object<
-            Fn,
-            std::allocator< packaged_task< void() > >,
-            void
-        >                                       object_t;
-        std::allocator< packaged_task< void() > > alloc;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
-    }
-
-    template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, Fn const& fn,
-                            typename disable_if<
-                                is_convertible< Fn &, BOOST_RV_REF( Fn) >,
-                                dummy *
-                            >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        //       uses the provided allocator to allocate
-        //       memory necessary to store the task
-        typedef detail::task_object<
-            Fn,
-            Allocator,
-            void
-        >                                       object_t;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
-    }
-
-    template< typename Fn >
-    explicit packaged_task( BOOST_RV_REF( Fn) fn,
-                            typename disable_if<
-                                is_same< typename decay< Fn >::type, packaged_task >,
-                                dummy *
-                            >::type = 0) :
-        obtained_( false),
-        task_()
-    {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
-        typedef detail::task_object<
-            Fn,
-            std::allocator< packaged_task< void() > >,
-            void
-        >                                       object_t;
-        std::allocator< packaged_task< void() > > alloc;
-        typename object_t::allocator_t a( alloc);
-        task_ = ptr_t(
-            // placement new
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
+#endif
     }
 
     template< typename Fn, typename Allocator >
@@ -578,7 +352,11 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
+#ifdef BOOST_NO_RVALUE_REFERENCES
+            ::new( a.allocate( 1) ) object_t( fn, a) );
+#else
             ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
+#endif
     }
 
     packaged_task( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT :
@@ -602,7 +380,6 @@ public:
         swap( tmp);
         return * this;
     }
-#endif
 
     void swap( packaged_task & other) BOOST_NOEXCEPT
     {

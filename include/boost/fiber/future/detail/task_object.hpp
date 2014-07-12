@@ -29,22 +29,23 @@ public:
         task_object< Fn, Allocator, R >
     >::other                                      allocator_t;
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    task_object( Fn && fn, allocator_t const& alloc) :
+#ifdef BOOST_NO_RVALUE_REFERENCES
+    task_object( Fn fn, allocator_t const& alloc) :
         task_base< R >(),
-        fn_( forward< Fn >( fn) ), alloc_( alloc)
+        fn_( fn),
+        alloc_( alloc)
     {}
-#else
-    task_object( Fn const& fn, allocator_t const& alloc) :
-        task_base< R >(),
-        fn_( fn), alloc_( alloc)
-    {}
+#endif
 
     task_object( BOOST_RV_REF( Fn) fn, allocator_t const& alloc) :
         task_base< R >(),
-        fn_( fn), alloc_( alloc)
-    {}
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
+        fn_( fn),
+#else
+        fn_( forward< Fn >( fn) ),
 #endif
+        alloc_( alloc)
+    {}
 
     void run()
     {
@@ -82,22 +83,23 @@ public:
         task_object< Fn, Allocator, void >
     >::other                                      allocator_t;
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-    task_object( Fn && fn, allocator_t const& alloc) :
-        task_base< void >(),
-        fn_( forward< Fn >( fn) ), alloc_( alloc)
-    {}
-#else
+#ifdef BOOST_NO_RVALUE_REFERENCES
     task_object( Fn const& fn, allocator_t const& alloc) :
         task_base< void >(),
-        fn_( fn), alloc_( alloc)
+        fn_( fn),
+        alloc_( alloc)
     {}
+#endif
 
     task_object( BOOST_RV_REF( Fn) fn, allocator_t const& alloc) :
         task_base< void >(),
-        fn_( fn), alloc_( alloc)
-    {}
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
+        fn_( fn),
+#else
+        fn_( forward< Fn >( fn) ),
 #endif
+        alloc_( alloc)
+    {}
 
     void run()
     {
