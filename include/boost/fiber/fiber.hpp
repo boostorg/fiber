@@ -73,6 +73,35 @@ public:
         impl_( impl)
     {}
 
+#ifdef BOOST_MSVC
+    typedef void ( * fiber_fn)();
+
+    explicit fiber( fiber_fn fn, attributes const& attrs = attributes(),
+                    stack_allocator const& stack_alloc = stack_allocator() ) :
+        impl_()
+    {
+        typename coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
+        detail::setup< fiber_fn > s( fn, & coro);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
+
+        start_fiber_();
+    }
+
+    template< typename StackAllocator >
+    explicit fiber( fiber_fn fn, attributes const& attrs,
+                    StackAllocator const& stack_alloc) :
+        impl_()
+    {
+        typename coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
+        detail::setup< fiber_fn > s( fn, & coro);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
+
+        start_fiber_();
+    }
+#endif
+
 #ifdef BOOST_NO_RVALUE_REFERENCES
     template< typename Fn >
     explicit fiber( Fn fn, attributes const& attrs = attributes(),
