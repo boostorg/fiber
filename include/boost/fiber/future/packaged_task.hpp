@@ -327,7 +327,7 @@ public:
             void
         >                                       object_t;
         std::allocator< packaged_task< void() > > alloc;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
