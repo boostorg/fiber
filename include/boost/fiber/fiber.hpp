@@ -80,7 +80,7 @@ public:
                     stack_allocator const& stack_alloc = stack_allocator() ) :
         impl_()
     {
-        typename coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
+        coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
         detail::setup< fiber_fn > s( fn, & coro);
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);

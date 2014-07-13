@@ -63,7 +63,7 @@ public:
     }
 
 #ifdef BOOST_MSVC
-    typedef void ( * task_fn)();
+    typedef R( * task_fn)();
 
     explicit packaged_task( task_fn fn) :
         obtained_( false),
@@ -72,13 +72,13 @@ public:
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
-        typedef detail::task_object<
+        detail::task_object<
             task_fn,
             std::allocator< packaged_task< R() > >,
             R
         >                                       object_t;
         std::allocator< packaged_task< R() > > alloc;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, a) );
@@ -321,13 +321,13 @@ public:
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
-        typedef detail::task_object<
+        detail::task_object<
             task_fn,
             std::allocator< packaged_task< void() > >,
             void
         >                                       object_t;
         std::allocator< packaged_task< void() > > alloc;
-        typename object_t::allocator_t a( alloc);
+        object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
             ::new( a.allocate( 1) ) object_t( fn, a) );
