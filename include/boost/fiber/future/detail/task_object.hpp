@@ -84,7 +84,7 @@ public:
     >::other                                      allocator_t;
 
 #ifdef BOOST_NO_RVALUE_REFERENCES
-    task_object( Fn const& fn, allocator_t const& alloc) :
+    task_object( Fn fn, allocator_t const& alloc) :
         task_base< void >(),
         fn_( fn),
         alloc_( alloc)

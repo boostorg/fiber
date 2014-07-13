@@ -72,16 +72,16 @@ public:
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
-        detail::task_object<
+        typedef detail::task_object<
             task_fn,
             std::allocator< packaged_task< R() > >,
             R
         >                                       object_t;
         std::allocator< packaged_task< R() > > alloc;
-        object_t::allocator_t a( alloc);
+        typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 
     template< typename Allocator >
@@ -102,7 +102,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 #endif
 
@@ -312,7 +312,7 @@ public:
     }
 
 #ifdef BOOST_MSVC
-    typedef void ( * task_fn)();
+    typedef void( * task_fn)();
 
     explicit packaged_task( task_fn fn) :
         obtained_( false),
@@ -321,16 +321,16 @@ public:
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
         //       initialized with forward< Fn >( fn)
-        detail::task_object<
+        typedef detail::task_object<
             task_fn,
             std::allocator< packaged_task< void() > >,
             void
         >                                       object_t;
         std::allocator< packaged_task< void() > > alloc;
-        object_t::allocator_t a( alloc);
+        typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 
     template< typename Allocator >
@@ -351,7 +351,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( fn, a) );
+            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
     }
 #endif
 
