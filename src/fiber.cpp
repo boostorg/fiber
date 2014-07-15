@@ -22,7 +22,7 @@ namespace boost {
 namespace fibers {
 
 void
-fiber::start_fiber_()
+fiber::start_()
 {
     impl_->set_ready();
     fm_spawn( impl_.get() );

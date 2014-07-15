@@ -17,15 +17,15 @@
 #include <boost/cstdint.hpp>
 
 typedef boost::chrono::high_resolution_clock    clock_type;
-typedef chronoduration                    duration_type;
-typedef chronotime_point                  time_point_type;
+typedef clock_type::duration                    duration_type;
+typedef clock_type::time_point                  time_point_type;
 
 struct clock_overhead
 {
     boost::uint64_t operator()()
     {
-        time_point_type start( chrononow() );
-        return ( chrononow() - start).count();
+        time_point_type start( clock_type::now() );
+        return ( clock_type::now() - start).count();
     }
 };
 

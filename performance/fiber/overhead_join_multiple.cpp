@@ -21,7 +21,7 @@
 #include "../preallocated_stack_allocator.hpp"
 
 #define JOBS 100
-#define CREATE(z, n, x) boost::fibers::fiber BOOST_PP_CAT(f,n) ( worker, attrs);
+#define CREATE(z, n, x) boost::fibers::fiber BOOST_PP_CAT(f,n) ( attrs, worker);
 #define JOIN(z, n, x) BOOST_PP_CAT(f,n).join();
 
 boost::coroutines::flag_fpu_t preserve_fpu = boost::coroutines::fpu_not_preserved;
@@ -29,8 +29,7 @@ boost::coroutines::flag_unwind_t unwind_stack = boost::coroutines::no_stack_unwi
 
 void worker() {}
 
-template< typename StackAllocator >
-duration_type measure( duration_type overhead, StackAllocator const& stack_alloc)
+duration_type measure( duration_type overhead)
 {
     boost::fibers::attributes attrs( unwind_stack, preserve_fpu);
 
@@ -44,13 +43,6 @@ duration_type measure( duration_type overhead, StackAllocator const& stack_alloc
     total /= JOBS;  // loops
 
     return total;
-}
-
-duration_type measure_standard( duration_type overhead)
-{
-    boost::fibers::stack_allocator stack_alloc;
-
-    return measure( overhead, stack_alloc);
 }
 
 int main( int argc, char * argv[])
@@ -85,7 +77,7 @@ int main( int argc, char * argv[])
 
         duration_type overhead = overhead_clock();
         std::cout << "overhead " << overhead.count() << " nano seconds" << std::endl;
-        boost::uint64_t res = measure_standard( overhead).count();
+        boost::uint64_t res = measure( overhead).count();
         std::cout << "average of " << res << " nano seconds" << std::endl;
 
         return EXIT_SUCCESS;

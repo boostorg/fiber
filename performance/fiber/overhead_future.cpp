@@ -30,7 +30,7 @@ void test_future( boost::fibers::attributes const& attrs, StackAllocator const& 
 {
     boost::fibers::packaged_task< void() > pt( worker);
     boost::fibers::future< void > f( pt.get_future() );
-    boost::fibers::fiber( boost::move( pt), attrs).detach();
+    boost::fibers::fiber( stack_alloc, attrs, boost::move( pt) ).detach();
     f.wait();
 }
 

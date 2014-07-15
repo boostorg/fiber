@@ -85,7 +85,7 @@ public:
     }
 
     template< typename Allocator >
-    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, task_fn const& fn) :
+    packaged_task( boost::allocator_arg_t, Allocator const& alloc, task_fn const& fn) :
         obtained_( false),
         task_()
     {
@@ -108,7 +108,7 @@ public:
 
 #ifdef BOOST_NO_RVALUE_REFERENCES
     template< typename Fn >
-    explicit packaged_task( Fn fn) :
+    packaged_task( Fn fn) :
         obtained_( false),
         task_()
     {
@@ -128,7 +128,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn const& fn) :
+    packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn const& fn) :
         obtained_( false),
         task_()
     {
@@ -150,7 +150,7 @@ public:
 #endif
 
     template< typename Fn >
-    explicit packaged_task( BOOST_RV_REF( Fn) fn) :
+    packaged_task( BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {
@@ -174,7 +174,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, BOOST_RV_REF( Fn) fn) :
+    packaged_task( boost::allocator_arg_t, Allocator const& alloc, BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {
@@ -334,7 +334,7 @@ public:
     }
 
     template< typename Allocator >
-    explicit packaged_task( Allocator const& alloc, task_fn const& fn) :
+    packaged_task( Allocator const& alloc, task_fn const& fn) :
         obtained_( false),
         task_()
     {
@@ -357,7 +357,7 @@ public:
 
 #ifdef BOOST_NO_RVALUE_REFERENCES
     template< typename Fn >
-    explicit packaged_task( Fn fn) :
+    packaged_task( Fn fn) :
         obtained_( false),
         task_()
     {
@@ -377,7 +377,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, Fn const& fn) :
+    packaged_task( Allocator const& alloc, Fn const& fn) :
         obtained_( false),
         task_()
     {
@@ -399,7 +399,7 @@ public:
 #endif
 
     template< typename Fn >
-    explicit packaged_task( BOOST_RV_REF( Fn) fn) :
+    packaged_task( BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {
@@ -423,7 +423,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( Allocator const& alloc, BOOST_RV_REF( Fn) fn) :
+    packaged_task( Allocator const& alloc, BOOST_RV_REF( Fn) fn) :
         obtained_( false),
         task_()
     {

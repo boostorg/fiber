@@ -16,7 +16,7 @@ import toolset ;
 
 project boost/fiber/example
     : requirements
-      <library>../build//boost_fiber
+      <library>../../build//boost_fiber
       <library>/boost/atomic//boost_atomic
       <library>/boost/coroutine//boost_coroutine
       <library>/boost/system//boost_system

@@ -271,7 +271,7 @@ struct spawn_helper
   void operator()()
   {
     fiber_entry_point< Handler, Function > entry_point = { data_ };
-    boost::fibers::fiber fiber( entry_point, attributes_);
+    boost::fibers::fiber fiber( attributes_, entry_point);
     fiber.detach();
   }
 

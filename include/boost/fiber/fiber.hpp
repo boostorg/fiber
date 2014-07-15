@@ -17,6 +17,7 @@
 #include <boost/coroutine/symmetric_coroutine.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/move/move.hpp>
+#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 #include <boost/utility.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
 
@@ -60,7 +61,44 @@ private:
 
     BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
 
-    void start_fiber_();
+#ifdef BOOST_MSVC
+    typedef void ( * fiber_fn)();
+
+    template< typename StackAllocator >
+    void setup_( StackAllocator const& stack_alloc, attributes const& attrs, fiber_fn fn)
+    {
+        coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( forward< fiber_fn >( fn), & coro);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
+    }
+#endif
+
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
+    template< typename StackAllocator, typename Fn >
+    void setup_( StackAllocator const& stack_alloc, attributes const& attrs, Fn fn)
+    {
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
+    }
+#endif
+
+    template< typename StackAllocator, typename Fn >
+    void setup_( StackAllocator const& stack_alloc, attributes const& attrs, BOOST_RV_REF( Fn) fn)
+    {
+        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+#ifdef BOOST_NO_RVALUE_REFERENCES
+        detail::setup< Fn > s( fn, & coro);
+#else
+        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+#endif
+        impl_.reset( s.allocate() );
+        BOOST_ASSERT( impl_);
+    }
+
+    void start_();
 
 public:
     typedef detail::worker_fiber::id    id;
@@ -74,95 +112,169 @@ public:
     {}
 
 #ifdef BOOST_MSVC
-    typedef void ( * fiber_fn)();
-
-    explicit fiber( fiber_fn fn, attributes const& attrs = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator() ) :
+    fiber( fiber_fn fn) :
         impl_()
     {
-        coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
+        attributes attrs;
+        stack_allocator stack_alloc;
+        setup_( stack_alloc, attrs, fn);
+        start_();
+    }
 
-        start_fiber_();
+    fiber( attributes const& attrs, fiber_fn fn) :
+        impl_()
+    {
+        stack_allocator stack_alloc;
+        setup_( stack_alloc, attrs, fn);
+        start_();
     }
 
     template< typename StackAllocator >
-    explicit fiber( fiber_fn fn, attributes const& attrs,
-                    StackAllocator const& stack_alloc) :
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, fiber_fn fn) :
         impl_()
     {
-        typename coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
+        attributes attrs;
+        setup_( stack_alloc, attrs, fn);
+        start_();
+    }
 
-        start_fiber_();
+    template< typename StackAllocator >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs, fiber_fn fn) :
+        impl_()
+    {
+        setup_( stack_alloc, attrs, fn);
+        start_();
     }
 #endif
 
 #ifdef BOOST_NO_RVALUE_REFERENCES
     template< typename Fn >
-    explicit fiber( Fn fn, attributes const& attrs = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator() ) :
+    fiber( Fn fn) :
         impl_()
     {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( fn, & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
+        attributes attrs;
+        stack_allocator stack_alloc;
+        setup_( stack_alloc, attrs, fn);
+        start_();
     }
 
-    template< typename Fn, typename StackAllocator >
-    explicit fiber( Fn fn, attributes const& attrs,
-                    StackAllocator const& stack_alloc) :
+    template< typename Fn >
+    fiber( attributes const& attrs, Fn fn) :
         impl_()
     {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( fn, & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
+        stack_allocator stack_alloc;
+        setup_( stack_alloc, attrs, fn);
+        start_();
+    }
 
-        start_fiber_();
+    template< typename StackAllocator, typename Fn >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, Fn fn) :
+        impl_()
+    {
+        attributes attrs;
+        setup_( stack_alloc, attrs, fn);
+        start_();
+    }
+
+    template< typename StackAllocator, typename Fn >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs, Fn fn) :
+        impl_()
+    {
+        setup_( stack_alloc, attrs, fn);
+        start_();
     }
 #endif
 
     template< typename Fn >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs = attributes(),
-                    stack_allocator const& stack_alloc = stack_allocator() ) :
+    fiber( BOOST_RV_REF( Fn) fn) :
         impl_()
     {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        attributes attrs;
+        stack_allocator stack_alloc;
 #ifdef BOOST_NO_RVALUE_REFERENCES
-        detail::setup< Fn > s( fn, & coro);
+        setup_( stack_alloc, attrs, fn);
 #else
-        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        setup_( stack_alloc, attrs, forward< Fn >( fn) );
 #endif
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
+        start_();
     }
 
-    template< typename Fn, typename StackAllocator >
-    explicit fiber( BOOST_RV_REF( Fn) fn, attributes const& attrs,
-                    StackAllocator const& stack_alloc) :
+    template< typename Fn >
+    fiber( attributes const& attrs, BOOST_RV_REF( Fn) fn) :
         impl_()
     {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
+        stack_allocator stack_alloc;
 #ifdef BOOST_NO_RVALUE_REFERENCES
-        detail::setup< Fn > s( fn, & coro);
+        setup_( stack_alloc, attrs, fn);
 #else
-        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        setup_( stack_alloc, attrs, forward< Fn >( fn) );
 #endif
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-
-        start_fiber_();
+        start_();
     }
+
+    template< typename StackAllocator, typename Fn >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, BOOST_RV_REF( Fn) fn) :
+        impl_()
+    {
+        attributes attrs;
+#ifdef BOOST_NO_RVALUE_REFERENCES
+        setup_( stack_alloc, attrs, fn);
+#else
+        setup_( stack_alloc, attrs, forward< Fn >( fn) );
+#endif
+        start_();
+    }
+
+    template< typename StackAllocator, typename Fn >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs, BOOST_RV_REF( Fn) fn) :
+        impl_()
+    {
+#ifdef BOOST_NO_RVALUE_REFERENCES
+        setup_( stack_alloc, attrs, fn);
+#else
+        setup_( stack_alloc, attrs, forward< Fn >( fn) );
+#endif
+        start_();
+    }
+
+#ifdef BOOST_FIBERS_USE_VARIADIC_FIBER
+    template< typename Fn, class ... Args >
+    fiber( BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
+        impl_()
+    {
+        attributes attrs;
+        stack_allocator stack_alloc;
+        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        start_();
+    }
+
+    template< typename Fn, class ... Args >
+    fiber( attributes const& attrs, BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
+        impl_()
+    {
+        stack_allocator stack_alloc;
+        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        start_();
+    }
+
+    template< typename StackAllocator, typename Fn, class ... Args >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
+        impl_()
+    {
+        attributes attrs;
+        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        start_();
+    }
+
+    template< typename StackAllocator, typename Fn, class ... Args >
+    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs,
+           BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
+        impl_()
+    {
+        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        start_();
+    }
+#endif
 
     ~fiber()
     { if ( joinable() ) std::terminate(); }
