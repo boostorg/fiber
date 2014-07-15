@@ -68,7 +68,7 @@ private:
     void setup_( StackAllocator const& stack_alloc, attributes const& attrs, fiber_fn fn)
     {
         coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( forward< fiber_fn >( fn), & coro);
+        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);
     }
