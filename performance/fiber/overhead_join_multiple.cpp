@@ -15,6 +15,7 @@
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <boost/program_options.hpp>
+#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 
 #include "../bind_processor.hpp"
 #include "../clock.hpp"

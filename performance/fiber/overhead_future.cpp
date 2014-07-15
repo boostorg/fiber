@@ -13,6 +13,7 @@
 #include <boost/fiber/all.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/program_options.hpp>
+#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 
 #include "../bind_processor.hpp"
 #include "../clock.hpp"
@@ -30,7 +31,7 @@ void test_future( boost::fibers::attributes const& attrs, StackAllocator const& 
 {
     boost::fibers::packaged_task< void() > pt( worker);
     boost::fibers::future< void > f( pt.get_future() );
-    boost::fibers::fiber( stack_alloc, attrs, boost::move( pt) ).detach();
+    boost::fibers::fiber( boost::allocator_arg, stack_alloc, attrs, boost::move( pt) ).detach();
     f.wait();
 }
 

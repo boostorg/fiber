@@ -13,6 +13,7 @@
 #include <boost/fiber/all.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/program_options.hpp>
+#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 
 #include "../bind_processor.hpp"
 #include "../clock.hpp"
@@ -30,11 +31,11 @@ template< typename StackAllocator >
 duration_type measure( duration_type overhead, StackAllocator const& stack_alloc)
 {
     boost::fibers::attributes attrs( unwind_stack, preserve_fpu);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( boost::allocator_arg, stack_alloc, attrs, worker).join();
 
     time_point_type start( clock_type::now() );
     for ( std::size_t i = 0; i < jobs; ++i) {
-        boost::fibers::fiber( attrs, worker).join();
+        boost::fibers::fiber( boost::allocator_arg, stack_alloc, attrs, worker).join();
     }
     duration_type total = clock_type::now() - start;
     total -= overhead_clock(); // overhead of measurement
