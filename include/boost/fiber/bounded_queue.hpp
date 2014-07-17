@@ -122,7 +122,8 @@ private:
     bool is_full_() const
     { return count_ >= hwm_; }
 
-    queue_op_status push_( typename node_type::ptr const& new_node )
+    queue_op_status push_( typename node_type::ptr const& new_node,
+                           boost::unique_lock< boost::fibers::mutex >& lk )
     {
         if ( is_closed_() ) return queue_op_status::closed;
 
@@ -141,7 +142,8 @@ private:
 
     template< typename TimePointType >
     queue_op_status push_wait_until_( typename node_type::ptr const& new_node,
-                                      TimePointType const& timeout_time)
+                                      TimePointType const& timeout_time,
+                                      boost::unique_lock< boost::fibers::mutex >& lk )
     {
         if ( is_closed_() ) return queue_op_status::closed;
 
@@ -154,7 +156,7 @@ private:
         return push_and_notify_( new_node );
     }
 
-    queue_op_status push_and_notify_( typeame node_type::ptr const& new_node )
+    queue_op_status push_and_notify_( typename node_type::ptr const& new_node )
     {
         try
         {
@@ -285,13 +287,13 @@ public:
     queue_op_status push( value_type const& va)
     {
         boost::unique_lock< mutex > lk( mtx_);
-        return push_( new node_type( va) );
+        return push_( new node_type( va), lk );
     }
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
         boost::unique_lock< mutex > lk( mtx_);
-        return push_( new node_type( boost::move( va) ) );
+        return push_( new node_type( boost::move( va) ), lk );
     }
 
     template< typename Rep, typename Period >
@@ -309,7 +311,7 @@ public:
                                      TimePointType const& timeout_time)
     {
         boost::unique_lock< mutex > lk( mtx_);
-        return push_wait_until_( new node_type( va), timeout_time );
+        return push_wait_until_( new node_type( va), timeout_time, lk );
     }
 
     template< typename TimePointType >
@@ -317,7 +319,7 @@ public:
                                      TimePointType const& timeout_time)
     {
         boost::unique_lock< mutex > lk( mtx_);
-        return push_wait_until_( new node_type( boost::move( va) ), timeout_time );
+        return push_wait_until_( new node_type( boost::move( va) ), timeout_time, lk );
     }
 
     queue_op_status try_push( value_type const& va)
