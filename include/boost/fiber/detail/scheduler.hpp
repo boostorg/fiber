@@ -32,6 +32,8 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+#if ! (defined(__APPLE__) && defined(BOOST_HAS_PTHREADS))
+// generic thread_local_ptr
 template< typename T >
 class thread_local_ptr : private noncopyable
 {
@@ -41,14 +43,16 @@ private:
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
     (defined(__ICC) && defined(BOOST_WINDOWS))
     static __declspec(thread) T         *   t_;
-#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-    static detail::thread_local_ptr< T >    t_;
 #else
     static __thread T                   *   t_;
 #endif
     cleanup_function                        cf_;
 
 public:
+    thread_local_ptr() BOOST_NOEXCEPT :
+        cf_(0)
+    {}
+
     thread_local_ptr( cleanup_function cf) BOOST_NOEXCEPT :
         cf_( cf)
     {}
@@ -75,13 +79,56 @@ public:
     (defined(__ICC) && defined(BOOST_WINDOWS))
 template< typename T >
 __declspec(thread) T * thread_local_ptr< T >::t_ = 0;
-#elif defined(__APPLE__) && defined(BOOST_HAS_PTHREADS)
-template< typename T >
-detail::thread_local_ptr< T > thread_local_ptr< T >::t_;
 #else
 template< typename T >
 __thread T * thread_local_ptr< T >::t_ = 0;
 #endif
+
+#else  // Mac-specific thread_local_ptr
+template< typename T >
+class thread_local_ptr : private noncopyable
+{
+private:
+    typedef void ( * cleanup_function)( T*);
+
+    ::pthread_key_t     key_;
+
+    static void deleter_fn( void * ptr )
+    {
+        T* obj = static_cast<T*>(ptr);
+        delete obj;
+    }
+
+public:
+    /// By default, use a thread-exit cleanup function that deletes T*.
+    thread_local_ptr() BOOST_NOEXCEPT
+    {
+        BOOST_ASSERT( ! ::pthread_key_create( & key_,
+                                              &thread_local_ptr::deleter_fn ) );
+    }
+
+    /// Allow caller to override cleanup function, 0 to suppress
+    thread_local_ptr( cleanup_function cf ) BOOST_NOEXCEPT
+    { BOOST_ASSERT( ! ::pthread_key_create( & key_, cf ) ); }
+
+    BOOST_EXPLICIT_OPERATOR_BOOL();
+
+    T * get() const BOOST_NOEXCEPT
+    { return static_cast< T * >( ::pthread_getspecific( key_) ); }
+
+    bool operator!() const BOOST_NOEXCEPT
+    { return ! get(); }
+
+    bool operator==( thread_local_ptr const& other) BOOST_NOEXCEPT
+    { return this->get() == other.get(); }
+
+    bool operator!=( thread_local_ptr const& other) BOOST_NOEXCEPT
+    { return ! ( * this == other); }
+
+    void reset( T * ptr) BOOST_NOEXCEPT
+    { ::pthread_setspecific( key_, ptr); }
+};
+#endif  // Mac-specific thread_local_ptr
 
 class scheduler : private noncopyable
 {
