@@ -124,8 +124,6 @@ private:
 
     queue_op_status push_( typename node_type::ptr const& new_node )
     {
-        boost::unique_lock< mutex > lk( mtx_);
-
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() ) not_full_cond_.wait( lk);
@@ -135,8 +133,6 @@ private:
 
     queue_op_status try_push_( typename node_type::ptr const& new_node )
     {
-        boost::unique_lock< mutex > lk( mtx_);
-
         if ( is_closed_() ) return queue_op_status::closed;
         if ( is_full_() ) return queue_op_status::full;
 
@@ -147,8 +143,6 @@ private:
     queue_op_status push_wait_until_( typename node_type::ptr const& new_node,
                                       TimePointType const& timeout_time)
     {
-        boost::unique_lock< mutex > lk( mtx_);
-
         if ( is_closed_() ) return queue_op_status::closed;
 
         while ( is_full_() )
@@ -290,11 +284,13 @@ public:
 
     queue_op_status push( value_type const& va)
     {
+        boost::unique_lock< mutex > lk( mtx_);
         return push_( new node_type( va) );
     }
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
+        boost::unique_lock< mutex > lk( mtx_);
         return push_( new node_type( boost::move( va) ) );
     }
 
@@ -312,6 +308,7 @@ public:
     queue_op_status push_wait_until( value_type const& va,
                                      TimePointType const& timeout_time)
     {
+        boost::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new node_type( va), timeout_time );
     }
 
@@ -319,16 +316,19 @@ public:
     queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
                                      TimePointType const& timeout_time)
     {
+        boost::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new node_type( boost::move( va) ), timeout_time );
     }
 
     queue_op_status try_push( value_type const& va)
     {
+        boost::unique_lock< mutex > lk( mtx_);
         return try_push_( new node_type( va) );
     }
 
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
+        boost::unique_lock< mutex > lk( mtx_);
         return try_push_( new node_type( boost::move( va) ) );
     }
 
