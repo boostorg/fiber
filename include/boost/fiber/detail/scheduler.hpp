@@ -103,13 +103,18 @@ public:
     /// By default, use a thread-exit cleanup function that deletes T*.
     thread_local_ptr() BOOST_NOEXCEPT
     {
-        BOOST_ASSERT( ! ::pthread_key_create( & key_,
-                                              &thread_local_ptr::deleter_fn ) );
+        int ok = ::pthread_key_create( & key_, &thread_local_ptr::deleter_fn );
+        BOOST_ASSERT( ok == 0 );
+        (void)ok;
     }
 
     /// Allow caller to override cleanup function, 0 to suppress
     thread_local_ptr( cleanup_function cf ) BOOST_NOEXCEPT
-    { BOOST_ASSERT( ! ::pthread_key_create( & key_, cf ) ); }
+    {
+        int ok = ::pthread_key_create( & key_, cf );
+        BOOST_ASSERT( ok == 0 );
+        (void)ok;
+    }
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 

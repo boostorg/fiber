@@ -147,24 +147,28 @@ public:
     {
         state_t previous = state_.exchange( TERMINATED);
         BOOST_ASSERT( RUNNING == previous);
+        (void)previous;
     }
 
     void set_ready() BOOST_NOEXCEPT
     {
         state_t previous = state_.exchange( READY);
         BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
+        (void)previous;
     }
 
     void set_running() BOOST_NOEXCEPT
     {
         state_t previous = state_.exchange( RUNNING);
         BOOST_ASSERT( READY == previous);
+        (void)previous;
     }
 
     void set_waiting() BOOST_NOEXCEPT
     {
         state_t previous = state_.exchange( WAITING);
         BOOST_ASSERT( RUNNING == previous);
+        (void)previous;
     }
 
     void * get_fss_data( void const* vp) const;
