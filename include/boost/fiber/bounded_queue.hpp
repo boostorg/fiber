@@ -286,14 +286,16 @@ public:
 
     queue_op_status push( value_type const& va)
     {
+        typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
-        return push_( new node_type( va), lk );
+        return push_( new_node, lk );
     }
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
-        return push_( new node_type( boost::move( va) ), lk );
+        return push_( new_node, lk );
     }
 
     template< typename Rep, typename Period >
@@ -310,28 +312,32 @@ public:
     queue_op_status push_wait_until( value_type const& va,
                                      TimePointType const& timeout_time)
     {
+        typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
-        return push_wait_until_( new node_type( va), timeout_time, lk );
+        return push_wait_until_( new_node, timeout_time, lk );
     }
 
     template< typename TimePointType >
     queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
                                      TimePointType const& timeout_time)
     {
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
-        return push_wait_until_( new node_type( boost::move( va) ), timeout_time, lk );
+        return push_wait_until_( new_node, timeout_time, lk );
     }
 
     queue_op_status try_push( value_type const& va)
     {
+        typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
-        return try_push_( new node_type( va) );
+        return try_push_( new_node );
     }
 
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
+        typename node_type::ptr new_node( new node_type( boost::move( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
-        return try_push_( new node_type( boost::move( va) ) );
+        return try_push_( new_node );
     }
 
     value_type value_pop()
