@@ -122,13 +122,53 @@ private:
     bool is_full_() const
     { return count_ >= hwm_; }
 
-    typename node_type::ptr pop_head_()
+    queue_op_status push_( typename node_type::ptr const& new_node,
+                           boost::unique_lock< boost::fibers::mutex >& lk )
     {
-        typename node_type::ptr old_head = head_;
-        head_ = old_head->next;
-        if ( 0 == head_) tail_ = 0;
-        old_head->next = 0;
-        return old_head;
+        if ( is_closed_() ) return queue_op_status::closed;
+
+        while ( is_full_() ) not_full_cond_.wait( lk);
+
+        return push_and_notify_( new_node );
+    }
+
+    queue_op_status try_push_( typename node_type::ptr const& new_node )
+    {
+        if ( is_closed_() ) return queue_op_status::closed;
+        if ( is_full_() ) return queue_op_status::full;
+
+        return push_and_notify_( new_node );
+    }
+
+    template< typename TimePointType >
+    queue_op_status push_wait_until_( typename node_type::ptr const& new_node,
+                                      TimePointType const& timeout_time,
+                                      boost::unique_lock< boost::fibers::mutex >& lk )
+    {
+        if ( is_closed_() ) return queue_op_status::closed;
+
+        while ( is_full_() )
+        {
+            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) )
+                return queue_op_status::timeout;
+        }
+
+        return push_and_notify_( new_node );
+    }
+
+    queue_op_status push_and_notify_( typename node_type::ptr const& new_node )
+    {
+        try
+        {
+            push_tail_( new_node);
+            not_empty_cond_.notify_one();
+            return queue_op_status::success;
+        }
+        catch (...)
+        {
+            close_();
+            throw;
+        }
     }
 
     void push_tail_( typename node_type::ptr new_node)
@@ -141,6 +181,40 @@ private:
             tail_ = new_node;
         }
         ++count_;
+    }
+
+    value_type value_pop_()
+    {
+        BOOST_ASSERT( ! is_empty_() );
+
+        try
+        {
+            typename node_type::ptr old_head = pop_head_();
+            if ( size_() <= lwm_)
+            {
+                if ( lwm_ == hwm_)
+                    not_full_cond_.notify_one();
+                else
+                    // more than one producer could be waiting
+                    // to push a value
+                    not_full_cond_.notify_all();
+            }
+            return old_head->va;       // omit boost::move() for return?
+        }
+        catch (...)
+        {
+            close_();
+            throw;
+        }
+    }
+
+    typename node_type::ptr pop_head_()
+    {
+        typename node_type::ptr old_head = head_;
+        head_ = old_head->next;
+        if ( 0 == head_) tail_ = 0;
+        old_head->next = 0;
+        return old_head;
     }
 
 public:
@@ -214,30 +288,14 @@ public:
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() ) return queue_op_status::closed;
-
-        while ( is_full_() ) not_full_cond_.wait( lk);
-
-        push_tail_( new_node);
-        not_empty_cond_.notify_one();
-
-        return queue_op_status::success;
+        return push_( new_node, lk );
     }
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
         typename node_type::ptr new_node( new node_type( boost::move( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() ) return queue_op_status::closed;
-
-        while ( is_full_() ) not_full_cond_.wait( lk);
-
-        push_tail_( new_node);
-        not_empty_cond_.notify_one();
-
-        return queue_op_status::success;
+        return push_( new_node, lk );
     }
 
     template< typename Rep, typename Period >
@@ -256,26 +314,7 @@ public:
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() ) return queue_op_status::closed;
-
-        while ( is_full_() )
-        {
-            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) )
-                return queue_op_status::timeout;
-        }
-
-        try
-        {
-            push_tail_( new_node);
-            not_empty_cond_.notify_one();
-            return queue_op_status::success;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
+        return push_wait_until_( new_node, timeout_time, lk );
     }
 
     template< typename TimePointType >
@@ -284,99 +323,21 @@ public:
     {
         typename node_type::ptr new_node( new node_type( boost::move( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() ) return queue_op_status::closed;
-
-        while ( is_full_() )
-        {
-            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) )
-                return queue_op_status::timeout;
-        }
-
-        try
-        {
-            push_tail_( new_node);
-            not_empty_cond_.notify_one();
-            return queue_op_status::success;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
+        return push_wait_until_( new_node, timeout_time, lk );
     }
 
     queue_op_status try_push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() ) return queue_op_status::closed;
-        if ( is_full_() ) return queue_op_status::full;
-
-        try
-        {
-            push_tail_( new_node);
-            not_empty_cond_.notify_one();
-            return queue_op_status::success;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
+        return try_push_( new_node );
     }
 
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
         typename node_type::ptr new_node( new node_type( boost::move( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() ) return queue_op_status::closed;
-        if ( is_full_() ) return queue_op_status::full;
-
-        try
-        {
-            push_tail_( new_node);
-            not_empty_cond_.notify_one();
-            return queue_op_status::success;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
-    }
-
-    queue_op_status pop( value_type & va)
-    {
-        boost::unique_lock< mutex > lk( mtx_);
-
-        while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
-
-        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
-        BOOST_ASSERT( ! is_empty_() );
-
-        try
-        {
-            va = boost::move( head_->va);
-            pop_head_();
-            if ( size_() <= lwm_)
-            {
-                if ( lwm_ == hwm_)
-                    not_full_cond_.notify_one();
-                else
-                    // more than one producer could be waiting
-                    // for submiting an action object
-                    not_full_cond_.notify_all();
-            }
-            return queue_op_status::success;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
+        return try_push_( new_node );
     }
 
     value_type value_pop()
@@ -388,28 +349,31 @@ public:
         if ( is_closed_() && is_empty_() )
             BOOST_THROW_EXCEPTION(
                 logic_error("boost fiber: queue is closed") );
-        BOOST_ASSERT( ! is_empty_() );
 
-        try
-        {
-            value_type va = boost::move( head_->va);
-            pop_head_();
-            if ( size_() <= lwm_)
-            {
-                if ( lwm_ == hwm_)
-                    not_full_cond_.notify_one();
-                else
-                    // more than one producer could be waiting
-                    // for submiting an action object
-                    not_full_cond_.notify_all();
-            }
-            return va;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
+        return value_pop_();
+    }
+
+    queue_op_status pop( value_type & va)
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        while ( is_closed_() && is_empty_() ) not_empty_cond_.wait( lk);
+
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
+
+        va = value_pop_();
+        return queue_op_status::success;
+    }
+
+    queue_op_status try_pop( value_type & va)
+    {
+        boost::unique_lock< mutex > lk( mtx_);
+
+        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
+        if ( is_empty_() ) return queue_op_status::empty;
+
+        va = value_pop_();
+        return queue_op_status::success;
     }
 
     template< typename Rep, typename Period >
@@ -430,48 +394,8 @@ public:
         }
 
         if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
-        BOOST_ASSERT( ! is_empty_() );
 
-        try
-        {
-            va = boost::move( head_->va);
-            pop_head_();
-            if ( size_() <= lwm_)
-            {
-                if ( lwm_ == hwm_)
-                    not_full_cond_.notify_one();
-                else
-                    // more than one producer could be waiting
-                    // for submiting an action object
-                    not_full_cond_.notify_all();
-            }
-            return queue_op_status::success;
-        }
-        catch (...)
-        {
-            close_();
-            throw;
-        }
-    }
-
-    queue_op_status try_pop( value_type & va)
-    {
-        boost::unique_lock< mutex > lk( mtx_);
-
-        if ( is_closed_() && is_empty_() ) return queue_op_status::closed;
-        if ( is_empty_() ) return queue_op_status::empty;
-
-        va = boost::move( head_->va);
-        pop_head_();
-        if ( size_() <= lwm_)
-        {
-            if ( lwm_ == hwm_)
-                not_full_cond_.notify_one();
-            else
-                // more than one producer could be waiting
-                // in order to submit an task
-                not_full_cond_.notify_all();
-        }
+        va = value_pop_();
         return queue_op_status::success;
     }
 };

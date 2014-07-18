@@ -17,9 +17,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-static void deleter_fn( fiber_manager * mgr) { delete mgr; }
-
-thread_local_ptr< fiber_manager > scheduler::instance_( deleter_fn);
+thread_local_ptr< fiber_manager > scheduler::instance_;
 
 void
 scheduler::replace( sched_algorithm * other)
