@@ -34,169 +34,42 @@ it to [function_link set_scheduling_algorithm].
 
         #include <boost/fiber/algorithm.hpp>
 
-        struct algorithm
+        struct sched_algorithm
         {
-            virtual ~algorithm() {}
+            virtual ~sched_algorithm() {}
 
-            algorithm( algorithm const&) = delete;
-            algorithm & operator=( algorithm const&) = delete;
+            virtual void awakened( detail::worker_fiber *) = 0;
 
-            virtual void spawn( detail::worker_fiber::ptr_t const&) = 0;
+            virtual detail::worker_fiber * pick_next() = 0;
 
-            virtual void priority( detail::worker_fiber::ptr_t const&, int) noexcept = 0;
-
-            virtual void join( detail::worker_fiber::ptr_t const&) = 0;
-
-            virtual detail::worker_fiber::ptr_t active() noexcept = 0;
-
-            virtual bool run() = 0;
-
-            virtual void wait( unique_lock< detail::spinlock > &) = 0;
-            virtual bool wait_until( clock_type::time_point const&,
-                                     unique_lock< detail::spinlock > &) = 0;
-            template< typename Rep, typename Period >
-            bool wait_for( chrono::duration< Rep, Period > const&,
-                           unique_lock< detail::spinlock > &);
-
-            virtual void yield() = 0;
-
-            virtual detail::worker_fiber::id get_main_id() = 0;
-            virtual detail::fiber_base::ptr_t get_main_fiber() = 0;
+            virtual void priority( detail::worker_fiber *, int) noexcept = 0;
         };
 
-        void set_scheduling_algorithm( algorithm *);
+        void set_scheduling_algorithm( sched_algorithm *);
 
-[member_heading algorithm..spawn]
+[member_heading algorithm..awakened]
 
-        virtual void spawn( detail::worker_fiber::ptr_t const& f) = 0;
+        virtual void awakened( detail::worker_fiber * f) = 0;
 
 [variablelist
-[[Effects:] [Spawns fiber `f`, e.g. `f` will be entered the first time
-or resumed where it was suspended before. Suspends the current fiber.]]
+[[Effects:] [Marks fiber `f`, to be ready to run.]]
+]
+
+[member_heading algorithm..pick_next]
+
+        virtual detail::worker_fiber * pick_next() = 0;
+
+[variablelist
+[[Effects:] [Depending on the scheduling algorithm, this function returns the
+fiber which has to be resumed next.]]
 ]
 
 [member_heading algorithm..priority]
 
-        virtual void priority( detail::worker_fiber::ptr_t const& f, int p) noexcept = 0;
+        virtual void priority( detail::worker_fiber *, int) noexcept = 0;
 
 [variablelist
-[[Effects:] [Sets priority `p` for fiber `f`. Interpretation of "priority"
-is entirely up to the subclass.]]
-[[Throws:] [Nothing]]
-]
-
-[member_heading algorithm..join]
-
-        virtual void join( detail::worker_fiber::ptr_t const& f) = 0;
-
-[variablelist
-[[Effects:] [Suspends the current fiber until fiber `f` terminates.]]
-]
-
-[member_heading algorithm..active]
-
-        virtual detail::worker_fiber::ptr_t active() noexcept = 0;
-
-[variablelist
-[[Returns:] [The active fiber, or a null-pointer if the current
-execution context is not a fiber managed by this __algo__ instance.]]
-[[Note:] [While the initial context for a given thread is conceptually also a
-fiber, it has no associated `detail::worker_fiber` instance. This is when
-`active()` returns null. Higher-level __boost_fiber__ operations treat a
-thread's initial context as equivalent to an explicitly-launched fiber, but
-this method operates below that level of abstraction.]]
-[[See also:] [[member_link algorithm..get_main_id]]]
-]
-
-[member_heading algorithm..run]
-
-        virtual bool run() = 0;
-
-[variablelist
-[[Effects:] [Selects one fiber in ready state and runs it until it suspends.
-The choice of fiber is up to the subclass instance.]]
-[[Returns:] [Returns `true` if one fiber was ready and successfully executed, `false`
-otherwise.]]
-]
-
-[member_heading algorithm..wait]
-
-        virtual void wait( unique_lock< detail::spinlock > & lk) = 0;
-
-[variablelist
-[[Precondition:] [`lk` is locked by the current fiber. It locks the spinlock
-protecting the internal state of a mutex or condition_variable.]]
-[[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
-[[Postcondition:] [`lk` is unlocked.]]
-]
-
-[member_heading algorithm..wait_until]
-
-        virtual bool wait_until( clock_type::time_point const& timeout_time,
-                                 unique_lock< detail::spinlock > & lk) = 0;
-
-[variablelist
-[[Precondition:] [`lk` is locked by the current fiber. It locks the spinlock
-protecting the internal state of a mutex or condition_variable.]]
-[[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
-[[Returns:] [Returns `true` if fiber was resumed before time-point
-`timeout_time` was reached, `false` otherwise.]]
-[[Postcondition:] [`lk` is unlocked.]]
-]
-
-[member_heading algorithm..wait_for]
-
-        template< typename Rep, typename Period >
-        bool wait_for( chrono::duration< Rep, Period > const& timeout_duration,
-                       unique_lock< detail::spinlock > & lk)
-
-[variablelist
-[[Precondition:] [`lk` is locked by the current fiber. It locks the spinlock
-protecting the internal state of a mutex or condition_variable.]]
-[[Effects:] [Current fiber is set to waiting-state and gets suspended.]]
-[[Returns:] [Returns `true` if fiber was resumed before time-duration
-`timeout_duration` has passed, `false` otherwise.]]
-[[Postcondition:] [`lk` is unlocked.]]
-]
-
-[member_heading algorithm..yield]
-
-        virtual void yield() = 0;
-
-[variablelist
-[[Effects:] [Suspends active fiber without waiting; that is, the current fiber
-is immediately set to ready-state.]]
-]
-
-[member_heading algorithm..get_main_id]
-
-        virtual detail::worker_fiber::id get_main_id() = 0;
-
-[variablelist
-[[Returns:] [A `worker_fiber::id` associated with the initial context of the
-thread on which the scheduler is running.]]
-[[Note:] [While the initial context for a given thread is conceptually also a
-fiber, it has no associated `detail::worker_fiber` instance. Higher-level
-__boost_fiber__ operations treat a thread's initial context as equivalent to
-an explicitly-launched fiber, but this method operates below that level of
-abstraction.]]
-[[See also:] [[member_link algorithm..active]]]
-]
-
-[member_heading algorithm..get_main_fiber]
-
-        virtual detail::fiber_base::ptr_t get_main_fiber() = 0;
-
-[variablelist
-[[Returns:] [A `fiber_base::ptr_t` associated with the initial context of the
-thread on which the scheduler is running.]]
-[[Note:] [While the initial context for a given thread is conceptually also a
-fiber, it has no associated `detail::worker_fiber` instance. Higher-level
-__boost_fiber__ operations treat a thread's initial context as equivalent to
-an explicitly-launched fiber, but this method operates below that level of
-abstraction. The `fiber_base::ptr_t` is used in condition_variable and mutex
-to signal threads initial context.]]
-[[See also:] [[member_link algorithm..active]]]
+[[Effects:] [Reschedule the fiber depending on the priority.]]
 ]
 
 
@@ -204,28 +77,8 @@ to signal threads initial context.]]
 
 This class implements __algo__ and schedules fibers in round-robin fashion.
 
-[class_heading round_robin_ws]
-
-`round_robin_ws` is intended to be used for migrating fibers between threads (different
-schedulers). For this purpose the class has two additional functions - `steal_from()` and
-`migrate_to()`.
-This functionality can be used to implement work-stealing/-sharing in a threadpool.
-
-        boost::fibers::round_robin_ws rr;
-        boost::fibers::set_scheduling_algorithm( & rr);
-
-        // steal a fiber from a scheduler `other_rr` running in another thread
-        boost::fibers::fiber f( other_rr->steal_from() );
-
-        // check if stealing was successful
-        if ( f)
-        {
-            // migrate stolen fiber to scheduler running in this thread
-            rr.migrate_to( f);
-
-            // detach fiber
-            f.detach();
-        }
+[info The exsample section provides an scheduler used for migrating fibers
+(work-stealing) between threads (different schedulers).]
 
 
 [endsect]
