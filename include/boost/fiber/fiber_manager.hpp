@@ -13,6 +13,7 @@
 #include <boost/thread/lock_types.hpp> 
 #include <boost/utility.hpp>
 
+#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/main_fiber.hpp>
@@ -32,17 +33,6 @@
 
 namespace boost {
 namespace fibers {
-
-struct sched_algorithm
-{
-    virtual ~sched_algorithm() {}
-
-    virtual void awakened( detail::worker_fiber *) = 0;
-
-    virtual detail::worker_fiber * pick_next() = 0;
-
-    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT = 0;
-};
 
 struct fiber_manager : private noncopyable
 {

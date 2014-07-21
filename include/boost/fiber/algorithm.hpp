@@ -3,14 +3,13 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
-#define BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
+#ifndef BOOST_FIBERS_ALGORITHM_H
+#define BOOST_FIBERS_ALGORITHM_H
 
 #include <boost/config.hpp>
+#include <boost/utility.hpp>
 
-#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -25,19 +24,15 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL round_robin : public sched_algorithm
+struct sched_algorithm
 {
-private:
-    typedef detail::fifo        rqueue_t;
+    virtual ~sched_algorithm() {}
 
-    rqueue_t                    rqueue_;
+    virtual void awakened( detail::worker_fiber *) = 0;
 
-public:
-    virtual void awakened( detail::worker_fiber *);
+    virtual detail::worker_fiber * pick_next() = 0;
 
-    virtual detail::worker_fiber * pick_next();
-
-    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
+    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT = 0;
 };
 
 }}
@@ -50,4 +45,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
+#endif // BOOST_FIBERS_ALGORITHM_H
