@@ -23,61 +23,21 @@ project boost/fiber/performance/fiber
       <optimization>speed
       <threading>multi
       <variant>release
+      <cxxflags>-DBOOST_DISABLE_ASSERTS
     ;
 
-alias sources
-   : ../bind_processor_aix.cpp
-   : <target-os>aix
-   ;
-
-alias sources
-   : ../bind_processor_freebsd.cpp
-   : <target-os>freebsd
-   ;
-
-alias sources
-   : ../bind_processor_hpux.cpp
-   : <target-os>hpux
-   ;
-
-alias sources
-   : ../bind_processor_linux.cpp
-   : <target-os>linux
-   ;
-
-alias sources
-   : ../bind_processor_solaris.cpp
-   : <target-os>solaris
-   ;
-
-alias sources
-   : ../bind_processor_windows.cpp
-   : <target-os>windows
-   ;
-
-explicit sources ;
-
 exe overhead_join
-   : sources
-     overhead_join.cpp
-   ;
-
-exe overhead_join_multiple
-   : sources
-     overhead_join_multiple.cpp
+   : overhead_join.cpp
    ;
 
 exe overhead_detach
-   : sources
-     overhead_detach.cpp
+   : overhead_detach.cpp
    ;
 
 exe overhead_yield
-   : sources
-     overhead_yield.cpp
+   : overhead_yield.cpp
    ;
 
 exe overhead_future
-   : sources
-     overhead_future.cpp
+   : overhead_future.cpp
    ;

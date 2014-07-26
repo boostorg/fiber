@@ -26,20 +26,26 @@
 class preallocated_stack_allocator
 {
 private:
-    boost::coroutines::stack_context    stack_ctx_;
+    typedef std::vector< boost::coroutines::stack_context > cont_t;
+    cont_t      stacks_;
+    std::size_t idx_;
 
 public:
-    preallocated_stack_allocator() :
-        stack_ctx_()
+    preallocated_stack_allocator( std::size_t size = 1) :
+        stacks_( size), idx_( 0)
     {
         boost::coroutines::standard_stack_allocator allocator;
-        allocator.allocate( stack_ctx_, boost::coroutines::stack_allocator::traits_type::default_size() ); 
+        for ( unsigned int i = 0; i < size; ++i)
+        {
+            allocator.allocate( stacks_[0], boost::coroutines::stack_allocator::traits_type::default_size() ); 
+        }
     }
 
     void allocate( boost::coroutines::stack_context & ctx, std::size_t size)
     {
-        ctx.sp = stack_ctx_.sp;
-        ctx.size = stack_ctx_.size;
+        ctx.sp = stacks_[idx_].sp;
+        ctx.size = stacks_[idx_].size;
+        ++idx_;
     }
 
     void deallocate( boost::coroutines::stack_context & ctx)
