@@ -244,7 +244,7 @@ public:
     {
         attributes attrs;
         stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
         start_();
     }
 
@@ -253,7 +253,7 @@ public:
         impl_()
     {
         stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
         start_();
     }
 
@@ -262,7 +262,7 @@ public:
         impl_()
     {
         attributes attrs;
-        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
         start_();
     }
 
@@ -271,7 +271,7 @@ public:
            BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
         impl_()
     {
-        setup_( stack_alloc, attrs, std::bind( fn, std::forward< Args >( args) ... ) );
+        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
         start_();
     }
 #endif
