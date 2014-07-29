@@ -42,25 +42,25 @@ void trampoline( typename worker_fiber::coro_t::yield_type & yield)
     BOOST_ASSERT( p);
     setup< Fn > * from( static_cast< setup< Fn > * >( p) );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    Fn fn_( forward< Fn >( from->fn) );
-#else
-    Fn fn_( move( from->fn) );
-#endif
-
+    // allocate instance of worker-fiber on its stack
     worker_fiber f( & yield);
+    // return address of worker-fiber instance
     from->f = & f;
-
-    f.set_running();
-    f.suspend();
 
     try
     {
+        // allocate fiber-function on worker-fiber's stack
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        Fn fn( forward< Fn >( fn_) );
+        Fn fn( forward< Fn >( from->fn) );
 #else
-        Fn fn( move( fn_) );
+        Fn fn( move( from->fn) );
 #endif
+
+        // after setup return to caller
+        f.set_running();
+        f.suspend();
+
+        // start executing fiber-function
         BOOST_ASSERT( f.is_running() );
         fn();
         BOOST_ASSERT( f.is_running() );
