@@ -105,7 +105,7 @@ int main( int argc, char * argv[])
             prealloc
             ? measure_prealloc( overhead).count()
             : measure_standard( overhead).count();
-        std::cout << JOBS << " jobs: average of " << res << " nano seconds" << std::endl;
+        std::cout << "average of " << res << " nano seconds" << std::endl;
 
         return EXIT_SUCCESS;
     }

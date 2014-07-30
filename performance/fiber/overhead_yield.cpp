@@ -17,14 +17,13 @@
 #include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
 
 #include "../clock.hpp"
-#include "../preallocated_stack_allocator.hpp"
 
 #ifndef JOBS
 #define JOBS BOOST_PP_LIMIT_REPEAT
 #endif
 
 #define JOIN(z, n, _) \
-    boost::fibers::fiber(boost::allocator_arg, stack_alloc, attrs, worker).join();
+    boost::fibers::fiber( attrs, worker).join();
 
 boost::coroutines::flag_fpu_t preserve_fpu = boost::coroutines::fpu_not_preserved;
 boost::coroutines::flag_unwind_t unwind_stack = boost::coroutines::no_stack_unwind;
@@ -35,11 +34,10 @@ bool unwind = false;
 void worker()
 { boost::this_fiber::yield(); }
 
-template< typename StackAllocator >
-duration_type measure( duration_type overhead, StackAllocator const& stack_alloc)
+duration_type measure( duration_type overhead)
 {
     boost::fibers::attributes attrs( unwind_stack, preserve_fpu);
-    boost::fibers::fiber( boost::allocator_arg, stack_alloc, attrs, worker).join();
+    boost::fibers::fiber( attrs, worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -50,20 +48,6 @@ duration_type measure( duration_type overhead, StackAllocator const& stack_alloc
     total /= JOBS;  // loops
 
     return total;
-}
-
-duration_type measure_standard( duration_type overhead)
-{
-    boost::fibers::stack_allocator stack_alloc;
-
-    return measure( overhead, stack_alloc);
-}
-
-duration_type measure_prealloc( duration_type overhead)
-{
-    preallocated_stack_allocator stack_alloc( JOBS + 1);
-
-    return measure( overhead, stack_alloc);
 }
 
 int main( int argc, char * argv[])
@@ -96,11 +80,8 @@ int main( int argc, char * argv[])
 
         duration_type overhead = overhead_clock();
         std::cout << "overhead " << overhead.count() << " nano seconds" << std::endl;
-        boost::uint64_t res =
-            prealloc
-            ? measure_prealloc( overhead).count()
-            : measure_standard( overhead).count();
-        std::cout << JOBS << " jobs: average of " << res << " nano seconds" << std::endl;
+        boost::uint64_t res = measure( overhead).count();
+        std::cout << "average of " << res << " nano seconds" << std::endl;
 
         return EXIT_SUCCESS;
     }
