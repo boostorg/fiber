@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2014/02/22 19:01:43 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2014/07/31 16:03:05 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -159,12 +159,11 @@
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-<phrase role="keyword">class</phrase> <phrase role="identifier">fiber_group</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">attributes</phrase><phrase role="special">;</phrase>
 
-<phrase role="keyword">struct</phrase> <phrase role="identifier">algorithm</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">*</phrase> <phrase role="identifier">al</phrase><phrase role="special">)</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">*</phrase> <phrase role="identifier">al</phrase><phrase role="special">)</phrase>
 
 <phrase role="special">}</phrase>
 
@@ -172,9 +171,12 @@
 
 <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">();</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">sleep_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_point</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePoint</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">sleep_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">TimePoint</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_point</phrase><phrase role="special">);</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">sleep_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">sleep_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">bool</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">interruption_point</phrase><phrase role="special">();</phrase>
 <phrase role="keyword">bool</phrase> <phrase role="identifier">interruption_requested</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -410,21 +412,42 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attr</phrase> <phrase role="special">=</phrase> <phrase role="identifier">attributes</phrase><phrase role="special">(),</phrase>
-                    <phrase role="identifier">stack_allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase> <phrase role="special">=</phrase> <phrase role="identifier">stack_allocator</phrase><phrase role="special">(),</phrase>
-                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase> <phrase role="special">=</phrase>
-                         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;()</phrase> <phrase role="special">);</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
 
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attr</phrase><phrase role="special">,</phrase>
-                    <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase>
-                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase> <phrase role="special">=</phrase>
-                         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;()</phrase> <phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
 
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attr</phrase><phrase role="special">,</phrase>
-                    <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase>
-                    <phrase role="identifier">Allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="preprocessor">#ifdef</phrase> <phrase role="identifier">BOOST_FIBERS_USE_VARIADRIC_FIBER</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="preprocessor">#endif</phrase>
 
     <phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">();</phrase>
 
@@ -436,7 +459,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">operator</phrase><phrase role="special">=(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">operator</phrase> <phrase role="identifier">safe_bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">operator</phrase> <phrase role="keyword">bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">!()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
@@ -504,21 +527,42 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <phrase id="fiber.fiber_mgmt.fiber.constructor"/><link linkend="fiber.fiber_mgmt.fiber.constructor">Constructor</link>
       </bridgehead>
 <programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attr</phrase> <phrase role="special">=</phrase> <phrase role="identifier">attributes</phrase><phrase role="special">(),</phrase>
-                <phrase role="identifier">stack_allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase> <phrase role="special">=</phrase> <phrase role="identifier">stack_allocator</phrase><phrase role="special">(),</phrase>
-                <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase> <phrase role="special">=</phrase>
-                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;()</phrase> <phrase role="special">);</phrase>
+<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
 
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attr</phrase><phrase role="special">,</phrase>
-                <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase>
-                <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase> <phrase role="special">=</phrase>
-                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&gt;()</phrase> <phrase role="special">);</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
 
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attr</phrase><phrase role="special">,</phrase>
-                <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase>
-                <phrase role="identifier">Allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">);</phrase>
+
+<phrase role="preprocessor">#ifdef</phrase> <phrase role="identifier">BOOST_FIBERS_USE_VARIADRIC_FIBER</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">..</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="preprocessor">#endif</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1119,13 +1163,13 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         </varlistentry>
       </variablelist>
       <para>
-        <bridgehead renderas="sect4" id="fiber_operator safe_bool_bridgehead">
-  <phrase id="fiber_operator safe_bool"/>
-  <link linkend="fiber_operator
-        safe_bool">Member function <code>operator safe_bool</code>()</link>
+        <bridgehead renderas="sect4" id="fiber_operator bool_bridgehead">
+  <phrase id="fiber_operator bool"/>
+  <link linkend="fiber_operator bool">Member
+        function <code>operator bool</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">operator</phrase> <phrase role="identifier">safe_bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">operator</phrase> <phrase role="keyword">bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1275,7 +1319,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         function <code>set_scheduling_algorithm()</code></link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">algorithm</phrase><phrase role="special">*</phrase> <phrase role="identifier">scheduler</phrase> <phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">sched_algorithm</phrase><phrase role="special">*</phrase> <phrase role="identifier">scheduler</phrase> <phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1337,396 +1381,6 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               Nothing
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-    </section>
-    <section id="fiber.fiber_mgmt.fiber_group">
-      <title><anchor id="class_fiber_group"/><link linkend="fiber.fiber_mgmt.fiber_group">Class
-      <code><phrase role="identifier">fiber_group</phrase></code></link></title>
-      <para>
-        <link linkend="class_fiber_group"> <code>fiber_group</code></link> represents a collection of fibers which can be
-        collectively waited on or interrupted. <link linkend="class_fiber_group"> <code>fiber_group</code></link> is neither
-        copyable nor movable.
-      </para>
-<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber_group</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
-
-<phrase role="keyword">class</phrase> <phrase role="identifier">fiber_group</phrase>
-<phrase role="special">{</phrase>
-<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">fiber_group</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
-
-    <phrase role="special">~</phrase><phrase role="identifier">fiber_group</phrase><phrase role="special">();</phrase>
-
-    <phrase role="identifier">fiber_group</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_group</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
-
-    <phrase role="identifier">fiber_group</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">operator</phrase><phrase role="special">=(</phrase> <phrase role="identifier">fiber_group</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_this_fiber_in</phrase><phrase role="special">();</phrase>
-
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_fiber_in</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">create_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="identifier">attrs</phrase> <phrase role="special">=</phrase> <phrase role="identifier">attributes</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
-
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">create_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase>
-                          <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">);</phrase>
-
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">create_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase>
-                          <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase>
-                          <phrase role="identifier">Allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase><phrase role="special">);</phrase>
-
-    <phrase role="keyword">void</phrase> <phrase role="identifier">add_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-
-    <phrase role="keyword">void</phrase> <phrase role="identifier">remove_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-
-    <phrase role="keyword">void</phrase> <phrase role="identifier">join_all</phrase><phrase role="special">();</phrase>
-
-    <phrase role="keyword">void</phrase> <phrase role="identifier">interrupt_all</phrase><phrase role="special">();</phrase>
-
-    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">size</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
-<phrase role="special">};</phrase>
-</programlisting>
-      <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber_group.h0">
-        <phrase id="fiber.fiber_mgmt.fiber_group.constructor"/><link linkend="fiber.fiber_mgmt.fiber_group.constructor">Constructor</link>
-      </bridgehead>
-<programlisting><phrase role="identifier">fiber_group</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Create a new fiber group with no fibers.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber_group.h1">
-        <phrase id="fiber.fiber_mgmt.fiber_group.destructor"/><link linkend="fiber.fiber_mgmt.fiber_group.destructor">Destructor</link>
-      </bridgehead>
-<programlisting><phrase role="special">~</phrase><phrase role="identifier">fiber_group</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Destroy <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
-              and all <link linkend="class_fiber"> <code>fiber</code></link> objects in the group.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_create_fiber_bridgehead">
-  <phrase id="fiber_group_create_fiber"/>
-  <link linkend="fiber_group_create_fiber">Member
-        function <code>create_fiber</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">create_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="identifier">attrs</phrase> <phrase role="special">=</phrase> <phrase role="identifier">attributes</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
-
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">create_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase>
-                      <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">);</phrase>
-
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">create_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">attributes</phrase> <phrase role="identifier">attrs</phrase><phrase role="special">,</phrase>
-                      <phrase role="identifier">StackAllocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">stack_alloc</phrase><phrase role="special">,</phrase>
-                      <phrase role="identifier">Allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">alloc</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Create a new <link linkend="class_fiber"> <code>fiber</code></link> object as-if by <code><phrase role="keyword">new</phrase>
-              <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase>
-              <phrase role="identifier">fn</phrase><phrase role="special">)</phrase></code>
-              and add it to the group.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Postcondition:</term>
-          <listitem>
-            <para>
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">size</phrase><phrase role="special">()</phrase></code>
-              is increased by one, the new fiber is running.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              A pointer to the new <link linkend="class_fiber"> <code>fiber</code></link> object.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_add_fiber_bridgehead">
-  <phrase id="fiber_group_add_fiber"/>
-  <link linkend="fiber_group_add_fiber">Member
-        function <code>add_fiber</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">add_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Precondition:</term>
-          <listitem>
-            <para>
-              The expression <code><phrase role="keyword">delete</phrase> <phrase
-              role="identifier">f</phrase></code> is well-formed and will not result
-              in undefined behaviour and <code><phrase role="identifier">is_fiber_in</phrase><phrase
-              role="special">(</phrase><phrase role="identifier">f</phrase><phrase
-              role="special">)</phrase> <phrase role="special">==</phrase> <phrase
-              role="keyword">false</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Add <link linkend="class_fiber"> <code>fiber</code></link> object pointed to by <code><phrase role="identifier">f</phrase></code>
-              to the group.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Postcondition:</term>
-          <listitem>
-            <para>
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">size</phrase><phrase role="special">()</phrase></code>
-              is increased by one.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              Unless the same <code><phrase role="identifier">f</phrase></code> is
-              later passed to <code><phrase role="identifier">remove_fiber</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="special">*</phrase><phrase
-              role="keyword">this</phrase></code> becomes responsible for the lifespan
-              of <code><phrase role="special">*</phrase><phrase role="identifier">f</phrase></code>.
-              When the <code><phrase role="identifier">fiber_group</phrase></code>
-              is destroyed, <code><phrase role="special">*</phrase><phrase role="identifier">f</phrase></code>
-              will also be destroyed.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        The Precondition implies that <code><phrase role="identifier">f</phrase></code>
-        must point to a heap <link linkend="class_fiber"> <code>fiber</code></link> object. This is erroneous:
-      </para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_group</phrase> <phrase role="identifier">fg</phrase><phrase role="special">;</phrase>
-<phrase role="special">{</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f</phrase><phrase role="special">(</phrase><phrase role="identifier">somefunc</phrase><phrase role="special">);</phrase>
-    <phrase role="identifier">fg</phrase><phrase role="special">.</phrase><phrase role="identifier">add_fiber</phrase><phrase role="special">(&amp;</phrase><phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-<phrase role="special">}</phrase> <phrase role="comment">// WRONG!</phrase>
-</programlisting>
-      <para>
-        Instead, use the following:
-      </para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_group</phrase> <phrase role="identifier">fg</phrase><phrase role="special">;</phrase>
-<phrase role="special">{</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="keyword">new</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">(</phrase><phrase role="identifier">somefunc</phrase><phrase role="special">);</phrase>
-    <phrase role="identifier">fg</phrase><phrase role="special">.</phrase><phrase role="identifier">add_fiber</phrase><phrase role="special">(</phrase><phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-<phrase role="special">}</phrase> <phrase role="comment">// okay, fg is now responsible for *f</phrase>
-</programlisting>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_remove_fiber_bridgehead">
-  <phrase id="fiber_group_remove_fiber"/>
-  <link linkend="fiber_group_remove_fiber">Member
-        function <code>remove_fiber</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">remove_fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              If <code><phrase role="identifier">f</phrase></code> is a member of
-              the group, remove it without calling <code><phrase role="keyword">delete</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Postcondition:</term>
-          <listitem>
-            <para>
-              If <code><phrase role="identifier">f</phrase></code> was a member of
-              the group, <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">size</phrase><phrase role="special">()</phrase></code>
-              is decreased by one.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_join_all_bridgehead">
-  <phrase id="fiber_group_join_all"/>
-  <link linkend="fiber_group_join_all">Member
-        function <code>join_all</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">join_all</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Requires:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">is_this_fiber_in</phrase><phrase role="special">()</phrase>
-              <phrase role="special">==</phrase> <phrase role="keyword">false</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Call <code><phrase role="identifier">join</phrase><phrase role="special">()</phrase></code>
-              on each <link linkend="class_fiber"> <code>fiber</code></link> object in the group.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Postcondition:</term>
-          <listitem>
-            <para>
-              Every fiber in the group has terminated.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              Since <link linkend="fiber_join"> <code>fiber::join()</code></link> is one of the predefined <link linkend="interruption"><emphasis>interruption-points</emphasis></link>,
-              <code><phrase role="identifier">join_all</phrase><phrase role="special">()</phrase></code>
-              is also an interruption point.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_is_this_fiber_in_bridgehead">
-  <phrase id="fiber_group_is_this_fiber_in"/>
-  <link linkend="fiber_group_is_this_fiber_in">Member
-        function <code>is_this_fiber_in</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_this_fiber_in</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              true if there is a fiber <code><phrase role="identifier">f</phrase></code>
-              in the group such that <code><phrase role="identifier">f</phrase><phrase
-              role="special">.</phrase><phrase role="identifier">get_id</phrase><phrase
-              role="special">()</phrase> <phrase role="special">==</phrase> <phrase
-              role="identifier">this_fiber</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">get_id</phrase><phrase role="special">()</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_is_fiber_in_bridgehead">
-  <phrase id="fiber_group_is_fiber_in"/>
-  <link linkend="fiber_group_is_fiber_in">Member
-        function <code>is_fiber_in</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_fiber_in</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              true if there is a fiber <code><phrase role="identifier">fx</phrase></code>
-              in the group such that <code><phrase role="identifier">fx</phrase><phrase
-              role="special">.</phrase><phrase role="identifier">get_id</phrase><phrase
-              role="special">()</phrase> <phrase role="special">==</phrase> <phrase
-              role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">get_id</phrase><phrase role="special">()</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_interrupt_all_bridgehead">
-  <phrase id="fiber_group_interrupt_all"/>
-  <link linkend="fiber_group_interrupt_all">Member
-        function <code>interrupt_all</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">interrupt_all</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Call <code><phrase role="identifier">interrupt</phrase><phrase role="special">()</phrase></code>
-              on each <link linkend="class_fiber"> <code>fiber</code></link> object in the group.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="fiber_group_size_bridgehead">
-  <phrase id="fiber_group_size"/>
-  <link linkend="fiber_group_size">Member function
-        <code>size</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">int</phrase> <phrase role="identifier">size</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              The number of fibers in the group.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
             </para>
           </listitem>
         </varlistentry>
@@ -2364,45 +2018,27 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">struct</phrase> <phrase role="identifier">algorithm</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase>
 <phrase role="special">{</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">sched_algorithm</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
 
-    <phrase role="identifier">algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
-    <phrase role="identifier">algorithm</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">operator</phrase><phrase role="special">=(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">spawn</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">run</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase>
-                             <phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase>
-                   <phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;);</phrase>
-
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_main_id</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">get_main_fiber</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
 
-<phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">*);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">*);</phrase>
 </programlisting>
     <para>
-      <bridgehead renderas="sect4" id="algorithm_spawn_bridgehead">
-  <phrase id="algorithm_spawn"/>
-  <link linkend="algorithm_spawn">Member function <code>spawn</code>()</link>
+      <bridgehead renderas="sect4" id="algorithm_awakened_bridgehead">
+  <phrase id="algorithm_awakened"/>
+  <link linkend="algorithm_awakened">Member function
+      <code>awakened</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">spawn</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2410,10 +2046,29 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <term>Effects:</term>
         <listitem>
           <para>
-            Spawns fiber <code><phrase role="identifier">f</phrase></code>, e.g.
-            <code><phrase role="identifier">f</phrase></code> will be entered the
-            first time or resumed where it was suspended before. Suspends the current
-            fiber.
+            Marks fiber <code><phrase role="identifier">f</phrase></code>, to be
+            ready to run.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="algorithm_pick_next_bridgehead">
+  <phrase id="algorithm_pick_next"/>
+  <link linkend="algorithm_pick_next">Member
+      function <code>pick_next</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Depending on the scheduling algorithm, this function returns the fiber
+            which has to be resumed next.
           </para>
         </listitem>
       </varlistentry>
@@ -2425,7 +2080,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <code>priority</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">p</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2433,356 +2088,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <term>Effects:</term>
         <listitem>
           <para>
-            Sets priority <code><phrase role="identifier">p</phrase></code> for fiber
-            <code><phrase role="identifier">f</phrase></code>. Interpretation of
-            &quot;priority&quot; is entirely up to the subclass.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Throws:</term>
-        <listitem>
-          <para>
-            Nothing
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_join_bridgehead">
-  <phrase id="algorithm_join"/>
-  <link linkend="algorithm_join">Member function <code>join</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Effects:</term>
-        <listitem>
-          <para>
-            Suspends the current fiber until fiber <code><phrase role="identifier">f</phrase></code>
-            terminates.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_active_bridgehead">
-  <phrase id="algorithm_active"/>
-  <link linkend="algorithm_active">Member function
-      <code>active</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Returns:</term>
-        <listitem>
-          <para>
-            The active fiber, or a null-pointer if the current execution context
-            is not a fiber managed by this <link linkend="class_algorithm"> <code>algorithm</code></link> instance.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Note:</term>
-        <listitem>
-          <para>
-            While the initial context for a given thread is conceptually also a fiber,
-            it has no associated <code><phrase role="identifier">detail</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">worker_fiber</phrase></code>
-            instance. This is when <code><phrase role="identifier">active</phrase><phrase
-            role="special">()</phrase></code> returns null. Higher-level <emphasis
-            role="bold">Boost.Fiber</emphasis> operations treat a thread's initial
-            context as equivalent to an explicitly-launched fiber, but this method
-            operates below that level of abstraction.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>See also:</term>
-        <listitem>
-          <para>
-            <link linkend="algorithm_get_main_id"> <code>algorithm::get_main_id()</code></link>
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_run_bridgehead">
-  <phrase id="algorithm_run"/>
-  <link linkend="algorithm_run">Member function <code>run</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">run</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Effects:</term>
-        <listitem>
-          <para>
-            Selects one fiber in ready state and runs it until it suspends. The choice
-            of fiber is up to the subclass instance.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Returns:</term>
-        <listitem>
-          <para>
-            Returns <code><phrase role="keyword">true</phrase></code> if one fiber
-            was ready and successfully executed, <code><phrase role="keyword">false</phrase></code>
-            otherwise.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_wait_bridgehead">
-  <phrase id="algorithm_wait"/>
-  <link linkend="algorithm_wait">Member function <code>wait</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">lk</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Precondition:</term>
-        <listitem>
-          <para>
-            <code><phrase role="identifier">lk</phrase></code> is locked by the current
-            fiber. It locks the spinlock protecting the internal state of a mutex
-            or condition_variable.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Effects:</term>
-        <listitem>
-          <para>
-            Current fiber is set to waiting-state and gets suspended.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Postcondition:</term>
-        <listitem>
-          <para>
-            <code><phrase role="identifier">lk</phrase></code> is unlocked.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_wait_until_bridgehead">
-  <phrase id="algorithm_wait_until"/>
-  <link linkend="algorithm_wait_until">Member
-      function <code>wait_until</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">,</phrase>
-                         <phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">lk</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Precondition:</term>
-        <listitem>
-          <para>
-            <code><phrase role="identifier">lk</phrase></code> is locked by the current
-            fiber. It locks the spinlock protecting the internal state of a mutex
-            or condition_variable.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Effects:</term>
-        <listitem>
-          <para>
-            Current fiber is set to waiting-state and gets suspended.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Returns:</term>
-        <listitem>
-          <para>
-            Returns <code><phrase role="keyword">true</phrase></code> if fiber was
-            resumed before time-point <code><phrase role="identifier">timeout_time</phrase></code>
-            was reached, <code><phrase role="keyword">false</phrase></code> otherwise.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Postcondition:</term>
-        <listitem>
-          <para>
-            <code><phrase role="identifier">lk</phrase></code> is unlocked.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_wait_for_bridgehead">
-  <phrase id="algorithm_wait_for"/>
-  <link linkend="algorithm_wait_for">Member function
-      <code>wait_for</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">bool</phrase> <phrase role="identifier">wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">,</phrase>
-               <phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">lk</phrase><phrase role="special">)</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Precondition:</term>
-        <listitem>
-          <para>
-            <code><phrase role="identifier">lk</phrase></code> is locked by the current
-            fiber. It locks the spinlock protecting the internal state of a mutex
-            or condition_variable.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Effects:</term>
-        <listitem>
-          <para>
-            Current fiber is set to waiting-state and gets suspended.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Returns:</term>
-        <listitem>
-          <para>
-            Returns <code><phrase role="keyword">true</phrase></code> if fiber was
-            resumed before time-duration <code><phrase role="identifier">timeout_duration</phrase></code>
-            has passed, <code><phrase role="keyword">false</phrase></code> otherwise.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Postcondition:</term>
-        <listitem>
-          <para>
-            <code><phrase role="identifier">lk</phrase></code> is unlocked.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_yield_bridgehead">
-  <phrase id="algorithm_yield"/>
-  <link linkend="algorithm_yield">Member function <code>yield</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Effects:</term>
-        <listitem>
-          <para>
-            Suspends active fiber without waiting; that is, the current fiber is
-            immediately set to ready-state.
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_get_main_id_bridgehead">
-  <phrase id="algorithm_get_main_id"/>
-  <link linkend="algorithm_get_main_id">Member
-      function <code>get_main_id</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_main_id</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Returns:</term>
-        <listitem>
-          <para>
-            A <code><phrase role="identifier">worker_fiber</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">id</phrase></code> associated with the initial context
-            of the thread on which the scheduler is running.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Note:</term>
-        <listitem>
-          <para>
-            While the initial context for a given thread is conceptually also a fiber,
-            it has no associated <code><phrase role="identifier">detail</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">worker_fiber</phrase></code>
-            instance. Higher-level <emphasis role="bold">Boost.Fiber</emphasis> operations
-            treat a thread's initial context as equivalent to an explicitly-launched
-            fiber, but this method operates below that level of abstraction.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>See also:</term>
-        <listitem>
-          <para>
-            <link linkend="algorithm_active"> <code>algorithm::active()</code></link>
-          </para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <para>
-      <bridgehead renderas="sect4" id="algorithm_get_main_fiber_bridgehead">
-  <phrase id="algorithm_get_main_fiber"/>
-  <link linkend="algorithm_get_main_fiber">Member
-      function <code>get_main_fiber</code>()</link>
-</bridgehead>
-    </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase role="identifier">ptr_t</phrase> <phrase role="identifier">get_main_fiber</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-</programlisting>
-    <variablelist>
-      <title></title>
-      <varlistentry>
-        <term>Returns:</term>
-        <listitem>
-          <para>
-            A <code><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">ptr_t</phrase></code> associated with the initial context
-            of the thread on which the scheduler is running.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Note:</term>
-        <listitem>
-          <para>
-            While the initial context for a given thread is conceptually also a fiber,
-            it has no associated <code><phrase role="identifier">detail</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">worker_fiber</phrase></code>
-            instance. Higher-level <emphasis role="bold">Boost.Fiber</emphasis> operations
-            treat a thread's initial context as equivalent to an explicitly-launched
-            fiber, but this method operates below that level of abstraction. The
-            <code><phrase role="identifier">notify</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">ptr_t</phrase></code> is used in condition_variable
-            and mutex to signal threads initial context.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>See also:</term>
-        <listitem>
-          <para>
-            <link linkend="algorithm_active"> <code>algorithm::active()</code></link>
+            Reschedule the fiber depending on the priority.
           </para>
         </listitem>
       </varlistentry>
@@ -2798,36 +2104,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       fashion.
     </para>
     <para>
-      <bridgehead renderas="sect4" id="class_round_robin_ws_bridgehead">
-  <phrase id="class_round_robin_ws"/>
-  <link linkend="class_round_robin_ws">Class
-      <code>round_robin_ws</code></link>
-</bridgehead>
+      [info The exsample section provides an scheduler used for migrating fibers
+      (work-stealing) between threads (different schedulers).]
     </para>
-    <para>
-      <code><phrase role="identifier">round_robin_ws</phrase></code> is intended
-      to be used for migrating fibers between threads (different schedulers). For
-      this purpose the class has two additional functions - <code><phrase role="identifier">steal_from</phrase><phrase
-      role="special">()</phrase></code> and <code><phrase role="identifier">migrate_to</phrase><phrase
-      role="special">()</phrase></code>. This functionality can be used to implement
-      work-stealing/-sharing in a threadpool.
-    </para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">round_robin_ws</phrase> <phrase role="identifier">rr</phrase><phrase role="special">;</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">rr</phrase><phrase role="special">);</phrase>
-
-<phrase role="comment">// steal a fiber from a scheduler `other_rr` running in another thread</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f</phrase><phrase role="special">(</phrase> <phrase role="identifier">other_rr</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">steal_from</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
-
-<phrase role="comment">// check if stealing was successful</phrase>
-<phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase>
-<phrase role="special">{</phrase>
-    <phrase role="comment">// migrate stolen fiber to scheduler running in this thread</phrase>
-    <phrase role="identifier">rr</phrase><phrase role="special">.</phrase><phrase role="identifier">migrate_to</phrase><phrase role="special">(</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
-
-    <phrase role="comment">// detach fiber</phrase>
-    <phrase role="identifier">f</phrase><phrase role="special">.</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
   </section>
   <section id="fiber.stack">
     <title><link linkend="fiber.stack">Stack allocation</link></title>
@@ -4137,7 +3416,7 @@ which is required to model a <link
       <bridgehead renderas="sect4" id="fiber.synchronization.barriers.h0">
         <phrase id="fiber.synchronization.barriers.constructor"/><link linkend="fiber.synchronization.barriers.constructor">Constructor</link>
       </bridgehead>
-<programlisting><phrase role="identifier">barrier</phrase><phrase role="special">(</phrase> <phrase role="keyword">unsigned</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">initial</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">barrier</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">initial</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -4718,11 +3997,14 @@ which is required to model a <link
     <phrase role="identifier">bounded_queue</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">wm</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">bounded_queue</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">hwm</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">lwm</phrase><phrase role="special">);</phrase>
 
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">upper_bound</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">lower_bound</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
+
     <phrase role="keyword">bool</phrase> <phrase role="identifier">is_closed</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">close</phrase><phrase role="special">();</phrase>
 
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">();</phrase>
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">();</phrase>
+    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
@@ -4732,19 +4014,23 @@ which is required to model a <link
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                    <phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePointType</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                     <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                     <phrase role="identifier">TimePointType</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePointType</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                     <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                     <phrase role="identifier">TimePointType</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 
+    <phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">pop_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                   <phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePointType</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">pop_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                    <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                    <phrase role="identifier">TimePointType</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">try_pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
@@ -4809,6 +4095,64 @@ which is required to model a <link
               role="special">()</phrase></code> returns <code><phrase role="keyword">true</phrase></code>)
               even though the number of values in the queue is less than <code><phrase
               role="identifier">hwm</phrase></code>.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        <bridgehead renderas="sect4" id="bounded_queue_upper_bound_bridgehead">
+  <phrase id="bounded_queue_upper_bound"/>
+  <link linkend="bounded_queue_upper_bound">Member
+        function <code>upper_bound</code>()</link>
+</bridgehead>
+      </para>
+<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">upper_bound</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
+</programlisting>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Returns:</term>
+          <listitem>
+            <para>
+              the high-watermark with which <code><phrase role="special">*</phrase><phrase
+              role="keyword">this</phrase></code> was constructed.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        <bridgehead renderas="sect4" id="bounded_queue_lower_bound_bridgehead">
+  <phrase id="bounded_queue_lower_bound"/>
+  <link linkend="bounded_queue_lower_bound">Member
+        function <code>lower_bound</code>()</link>
+</bridgehead>
+      </para>
+<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">lower_bound</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
+</programlisting>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Returns:</term>
+          <listitem>
+            <para>
+              the low-watermark with which <code><phrase role="special">*</phrase><phrase
+              role="keyword">this</phrase></code> was constructed.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
             </para>
           </listitem>
         </varlistentry>
@@ -4904,7 +4248,7 @@ which is required to model a <link
         function <code>is_empty</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -4942,7 +4286,7 @@ which is required to model a <link
         function <code>is_full</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -5044,15 +4388,13 @@ which is required to model a <link
             <para>
               Accepts <code><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
               role="identifier">duration</phrase></code> and internally computes
-              a <code><phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase></code> as <code><phrase role="special">(</phrase><phrase
-              role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">now</phrase><phrase role="special">()</phrase> <phrase
-              role="special">+</phrase> <phrase role="identifier">timeout_duration</phrase><phrase
-              role="special">)</phrase></code>. If <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_closed</phrase><phrase
-              role="special">()</phrase></code>, returns <code><phrase role="identifier">closed</phrase></code>.
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
+              a time_point as <code><phrase role="special">(</phrase><phrase role="identifier">now</phrase><phrase
+              role="special">()</phrase> <phrase role="special">+</phrase> <phrase
+              role="identifier">timeout_duration</phrase><phrase role="special">)</phrase></code>.
+              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
+              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
+              returns <code><phrase role="identifier">closed</phrase></code>. If
+              <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
               role="special">-&gt;</phrase><phrase role="identifier">is_full</phrase><phrase
               role="special">())</phrase></code>, enqueues the value in the queue,
               wakes up a fiber blocked on <code><phrase role="keyword">this</phrase><phrase
@@ -5062,17 +4404,14 @@ which is required to model a <link
               role="special">()</phrase></code> or <code><phrase role="keyword">this</phrase><phrase
               role="special">-&gt;</phrase><phrase role="identifier">pop_wait_until</phrase><phrase
               role="special">()</phrase></code> and returns <code><phrase role="identifier">success</phrase></code>.
-              Otherwise the fiber gets suspended until the number of values in the
-              queue drops below <code><phrase role="identifier">lwm</phrase></code>
+              Otherwise the calling fiber is suspended until the number of values
+              in the queue drops below <code><phrase role="identifier">lwm</phrase></code>
               (return value <code><phrase role="identifier">success</phrase></code>),
               the queue is <code><phrase role="identifier">close</phrase><phrase
               role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the time as reported by <code><phrase role="identifier">clock_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">now</phrase><phrase
-              role="special">()</phrase></code> reaches the computed <code><phrase
-              role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase></code> (return value <code><phrase
-              role="identifier">timeout</phrase></code>).
+              or the time as reported by <code><phrase role="identifier">now</phrase><phrase
+              role="special">()</phrase></code> reaches the computed time_point (return
+              value <code><phrase role="identifier">timeout</phrase></code>).
             </para>
           </listitem>
         </varlistentry>
@@ -5092,10 +4431,12 @@ which is required to model a <link
         function <code>push_wait_until</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                 <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePointType</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
+                                 <phrase role="identifier">TimePointType</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePointType</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                 <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                 <phrase role="identifier">TimePointType</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -5103,12 +4444,11 @@ which is required to model a <link
           <term>Effects:</term>
           <listitem>
             <para>
-              Accepts a <code><phrase role="identifier">clock_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">time_point</phrase></code>.
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. If
-              <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
+              Accepts an absolute <code><phrase role="identifier">timeout_time</phrase></code>
+              in any supported time_point type. If <code><phrase role="keyword">this</phrase><phrase
+              role="special">-&gt;</phrase><phrase role="identifier">is_closed</phrase><phrase
+              role="special">()</phrase></code>, returns <code><phrase role="identifier">closed</phrase></code>.
+              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
               role="special">-&gt;</phrase><phrase role="identifier">is_full</phrase><phrase
               role="special">())</phrase></code>, enqueues the value in the queue,
               wakes up a fiber blocked on <code><phrase role="keyword">this</phrase><phrase
@@ -5118,17 +4458,14 @@ which is required to model a <link
               role="special">()</phrase></code> or <code><phrase role="keyword">this</phrase><phrase
               role="special">-&gt;</phrase><phrase role="identifier">pop_wait_until</phrase><phrase
               role="special">()</phrase></code> and returns <code><phrase role="identifier">success</phrase></code>.
-              Otherwise the fiber gets suspended until the number of values in the
-              queue drops below <code><phrase role="identifier">lwm</phrase></code>
+              Otherwise the calling fiber is suspended until the number of values
+              in the queue drops below <code><phrase role="identifier">lwm</phrase></code>
               (return value <code><phrase role="identifier">success</phrase></code>),
               the queue is <code><phrase role="identifier">close</phrase><phrase
               role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the time as reported by <code><phrase role="identifier">clock_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">now</phrase><phrase
-              role="special">()</phrase></code> reaches the passed <code><phrase
-              role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase></code> (return value <code><phrase
-              role="identifier">timeout</phrase></code>).
+              or the time as reported by <code><phrase role="identifier">now</phrase><phrase
+              role="special">()</phrase></code> reaches the passed time_point (return
+              value <code><phrase role="identifier">timeout</phrase></code>).
             </para>
           </listitem>
         </varlistentry>
@@ -5179,6 +4516,46 @@ which is required to model a <link
           <listitem>
             <para>
               <code><phrase role="identifier">fiber_interrupted</phrase></code>
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        <bridgehead renderas="sect4" id="bounded_queue_value_pop_bridgehead">
+  <phrase id="bounded_queue_value_pop"/>
+  <link linkend="bounded_queue_value_pop">Member
+        function <code>value_pop</code>()</link>
+</bridgehead>
+      </para>
+<programlisting><phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
+</programlisting>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Effects:</term>
+          <listitem>
+            <para>
+              Dequeues a value from the queue. If the queue <code><phrase role="identifier">is_empty</phrase><phrase
+              role="special">()</phrase></code>, the fiber gets suspended until at
+              least one new item is <code><phrase role="identifier">push</phrase><phrase
+              role="special">()</phrase></code>ed or the queue gets <code><phrase
+              role="identifier">close</phrase><phrase role="special">()</phrase></code>d
+              (which throws an exception). Once the number of items remaining in
+              the queue drops below <code><phrase role="identifier">lwm</phrase></code>,
+              any fibers blocked on <code><phrase role="identifier">push</phrase><phrase
+              role="special">()</phrase></code>, <code><phrase role="identifier">push_wait_for</phrase><phrase
+              role="special">()</phrase></code> or <code><phrase role="identifier">push_wait_until</phrase><phrase
+              role="special">()</phrase></code> may resume.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">logic_error</phrase></code> if <code><phrase
+              role="special">*</phrase><phrase role="keyword">this</phrase></code>
+              is closed; <code><phrase role="identifier">fiber_interrupted</phrase></code>
             </para>
           </listitem>
         </varlistentry>
@@ -5242,26 +4619,21 @@ which is required to model a <link
             <para>
               Accepts <code><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
               role="identifier">duration</phrase></code> and internally computes
-              a <code><phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase></code> as <code><phrase role="special">(</phrase><phrase
-              role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">now</phrase><phrase role="special">()</phrase> <phrase
-              role="special">+</phrase> <phrase role="identifier">timeout_duration</phrase><phrase
-              role="special">)</phrase></code>. If <code><phrase role="special">(!</phrase>
-              <phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_empty</phrase><phrase role="special">())</phrase></code>,
-              immediately dequeues a value from the queue. Otherwise the fiber gets
-              suspended until at least one new item is <code><phrase role="identifier">push</phrase><phrase
+              a time_point as <code><phrase role="special">(</phrase><phrase role="identifier">now</phrase><phrase
+              role="special">()</phrase> <phrase role="special">+</phrase> <phrase
+              role="identifier">timeout_duration</phrase><phrase role="special">)</phrase></code>.
+              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
+              role="special">-&gt;</phrase><phrase role="identifier">is_empty</phrase><phrase
+              role="special">())</phrase></code>, immediately dequeues a value from
+              the queue. Otherwise the calling fiber gets suspended until at least
+              one new item is <code><phrase role="identifier">push</phrase><phrase
               role="special">()</phrase></code>ed (return value <code><phrase role="identifier">success</phrase></code>
               and <code><phrase role="identifier">va</phrase></code> contains dequeued
               value), or the queue gets <code><phrase role="identifier">close</phrase><phrase
               role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the time as reported by <code><phrase role="identifier">clock_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">now</phrase><phrase
-              role="special">()</phrase></code> reaches the computed <code><phrase
-              role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase></code> (return value <code><phrase
-              role="identifier">timeout</phrase></code>).
+              or the time as reported by <code><phrase role="identifier">now</phrase><phrase
+              role="special">()</phrase></code> reaches the computed time_point (return
+              value <code><phrase role="identifier">timeout</phrase></code>).
             </para>
           </listitem>
         </varlistentry>
@@ -5281,8 +4653,9 @@ which is required to model a <link
         function <code>pop_wait_until</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">pop_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                <phrase role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">)</phrase>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">TimePointType</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">queue_op_status</phrase> <phrase role="identifier">pop_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
+                                <phrase role="identifier">TimePointType</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -5290,23 +4663,19 @@ which is required to model a <link
           <term>Effects:</term>
           <listitem>
             <para>
-              Accepts a <code><phrase role="identifier">clock_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">time_point</phrase></code>.
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_empty</phrase><phrase
-              role="special">())</phrase></code>, immediately dequeues a value from
-              the queue. Otherwise the fiber gets suspended until at least one new
-              item is <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
-              (return value <code><phrase role="identifier">success</phrase></code>
+              Accepts an absolute <code><phrase role="identifier">timeout_time</phrase></code>
+              in any supported time_point type. If <code><phrase role="special">(!</phrase>
+              <phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
+              role="identifier">is_empty</phrase><phrase role="special">())</phrase></code>,
+              immediately dequeues a value from the queue. Otherwise the calling
+              fiber gets suspended until at least one new item is <code><phrase role="identifier">push</phrase><phrase
+              role="special">()</phrase></code>ed (return value <code><phrase role="identifier">success</phrase></code>
               and <code><phrase role="identifier">va</phrase></code> contains dequeued
               value), or the queue gets <code><phrase role="identifier">close</phrase><phrase
               role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the time as reported by <code><phrase role="identifier">clock_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">now</phrase><phrase
-              role="special">()</phrase></code> reaches the passed <code><phrase
-              role="identifier">clock_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase></code> (return value <code><phrase
-              role="identifier">timeout</phrase></code>).
+              or the time as reported by <code><phrase role="identifier">now</phrase><phrase
+              role="special">()</phrase></code> reaches the passed time_point (return
+              value <code><phrase role="identifier">timeout</phrase></code>).
             </para>
           </listitem>
         </varlistentry>
@@ -7732,15 +7101,16 @@ are
       Performance measurements were taken using <code><phrase role="identifier">boost</phrase><phrase
       role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase
       role="special">::</phrase><phrase role="identifier">highresolution_clock</phrase></code>,
-      with overhead corrections. The code was compiled using the build options, 'variant
-      = release cxxflags = -DBOOST_DISABLE_ASSERTS optimization = speed'.
+      with overhead corrections. The code was compiled using the build options: variant
+      = release, cxxflags = -DBOOST_DISABLE_ASSERTS,optimization = speed <footnote
+      id="fiber.performance.f0">
+      <para>
+        Intel Core2 Q6700, x86_64
+      </para>
+      </footnote>.
     </para>
-    <para>
-      The numbers in the table are the number of ns, based upon an average computed
-      over 1000 iterations.
-    </para>
-    <table frame="all" id="fiber.performance.perfomance_of_coroutine_switch">
-      <title>Perfomance of coroutine switch</title>
+    <table frame="all" id="fiber.performance.overhead_of_creating_and_joining">
+      <title>Overhead of creating and joining</title>
       <tgroup cols="4">
         <thead>
           <row>
@@ -7756,7 +7126,50 @@ are
             </entry>
             <entry>
               <para>
+                fiber
+              </para>
+            </entry>
+            <entry>
+              <para>
                 tbb
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                31 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                620 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                600 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                570 ns
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.overhead_of_detach">
+      <title>Overhead of detach</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
               </para>
             </entry>
             <entry>
@@ -7770,22 +7183,223 @@ are
           <row>
             <entry>
               <para>
-                37114 ns
+                16 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                577 ns
+                3 &#xb5;s
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.overhead_of_yield">
+      <title>Overhead of yield</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
               </para>
             </entry>
             <entry>
               <para>
-                309 ns
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                32 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                37981 ns
+                860 ns
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.overhead_of_waiting_on_a_future">
+      <title>Overhead of waiting on a future</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                32 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                2.5 &#xb5;s
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.scaling_of_creating_and_joining">
+      <title>Scaling of creating and joining</title>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                average of
+              </para>
+            </entry>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                10
+              </para>
+            </entry>
+            <entry>
+              <para>
+                32.90 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                4.65 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                50
+              </para>
+            </entry>
+            <entry>
+              <para>
+                32.71 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                2.88 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                100
+              </para>
+            </entry>
+            <entry>
+              <para>
+                39.84 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                2.57 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                500
+              </para>
+            </entry>
+            <entry>
+              <para>
+                49.78 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                3.08 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                1000
+              </para>
+            </entry>
+            <entry>
+              <para>
+                55.95 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                3.15 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                5000
+              </para>
+            </entry>
+            <entry>
+              <para>
+                42.88 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                4.95 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                10000
+              </para>
+            </entry>
+            <entry>
+              <para>
+                47.13 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                4.47 &#xb5;s
               </para>
             </entry>
           </row>

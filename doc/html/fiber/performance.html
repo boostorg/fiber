@@ -28,16 +28,12 @@
 </h2></div></div></div>
 <p>
       Performance measurements were taken using <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">highresolution_clock</span></code>,
-      with overhead corrections. The code was compiled using the build options, 'variant
-      = release cxxflags = -DBOOST_DISABLE_ASSERTS optimization = speed'.
-    </p>
-<p>
-      The numbers in the table are the number of ns, based upon an average computed
-      over 1000 iterations.
+      with overhead corrections. The code was compiled using the build options: variant
+      = release, cxxflags = -DBOOST_DISABLE_ASSERTS,optimization = speed <sup>[<a name="fiber.performance.f0" href="#ftn.fiber.performance.f0" class="footnote">2</a>]</sup>.
     </p>
 <div class="table">
-<a name="fiber.performance.perfomance_of_coroutine_switch"></a><p class="title"><b>Table&#160;1.1.&#160;Perfomance of coroutine switch</b></p>
-<div class="table-contents"><table class="table" summary="Perfomance of coroutine switch">
+<a name="fiber.performance.overhead_of_creating_and_joining"></a><p class="title"><b>Table&#160;1.1.&#160;Overhead of creating and joining</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of creating and joining">
 <colgroup>
 <col>
 <col>
@@ -57,7 +53,50 @@
             </th>
 <th>
               <p>
+                fiber
+              </p>
+            </th>
+<th>
+              <p>
                 tbb
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                31 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                620 ns
+              </p>
+            </td>
+<td>
+              <p>
+                600 ns
+              </p>
+            </td>
+<td>
+              <p>
+                570 ns
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_detach"></a><p class="title"><b>Table&#160;1.2.&#160;Overhead of detach</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of detach">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
               </p>
             </th>
 <th>
@@ -69,28 +108,237 @@
 <tbody><tr>
 <td>
               <p>
-                37114 ns
+                16 &#181;s
               </p>
             </td>
 <td>
               <p>
-                577 ns
-              </p>
-            </td>
-<td>
-              <p>
-                309 ns
-              </p>
-            </td>
-<td>
-              <p>
-                37981 ns
+                3 &#181;s
               </p>
             </td>
 </tr></tbody>
 </table></div>
 </div>
-<br class="table-break">
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_yield"></a><p class="title"><b>Table&#160;1.3.&#160;Overhead of yield</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of yield">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                32 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                860 ns
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_waiting_on_a_future"></a><p class="title"><b>Table&#160;1.4.&#160;Overhead of waiting on a future</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of waiting on a future">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                32 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.5 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.scaling_of_creating_and_joining"></a><p class="title"><b>Table&#160;1.5.&#160;Scaling of creating and joining</b></p>
+<div class="table-contents"><table class="table" summary="Scaling of creating and joining">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                average of
+              </p>
+            </th>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+              <p>
+                10
+              </p>
+            </td>
+<td>
+              <p>
+                32.90 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.65 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                50
+              </p>
+            </td>
+<td>
+              <p>
+                32.71 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.88 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                100
+              </p>
+            </td>
+<td>
+              <p>
+                39.84 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.57 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                500
+              </p>
+            </td>
+<td>
+              <p>
+                49.78 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.08 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                1000
+              </p>
+            </td>
+<td>
+              <p>
+                55.95 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.15 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                5000
+              </p>
+            </td>
+<td>
+              <p>
+                42.88 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.95 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                10000
+              </p>
+            </td>
+<td>
+              <p>
+                47.13 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.47 &#181;s
+              </p>
+            </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.performance.f0" href="#fiber.performance.f0" class="para">2</a>] </sup>
+        Intel Core2 Q6700, x86_64
+      </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

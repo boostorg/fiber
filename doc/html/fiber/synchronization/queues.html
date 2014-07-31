@@ -443,11 +443,14 @@
     <span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">);</span>
     <span class="identifier">bounded_queue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">);</span>
 
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">upper_bound</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lower_bound</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+
     <span class="keyword">bool</span> <span class="identifier">is_closed</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
     <span class="keyword">void</span> <span class="identifier">close</span><span class="special">();</span>
 
-    <span class="keyword">bool</span> <span class="identifier">is_empty</span><span class="special">();</span>
-    <span class="keyword">bool</span> <span class="identifier">is_full</span><span class="special">();</span>
+    <span class="keyword">bool</span> <span class="identifier">is_empty</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="keyword">bool</span> <span class="identifier">is_full</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 
     <span class="identifier">queue_op_status</span> <span class="identifier">push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">);</span>
@@ -457,19 +460,23 @@
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">push_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
                                    <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePointType</span> <span class="special">&gt;</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                     <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                     <span class="identifier">TimePointType</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePointType</span> <span class="special">&gt;</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                     <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                     <span class="identifier">TimePointType</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">try_push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">try_push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">);</span>
 
+    <span class="identifier">value_type</span> <span class="identifier">value_pop</span><span class="special">();</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">pop</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">pop_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
                                   <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePointType</span> <span class="special">&gt;</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                    <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                    <span class="identifier">TimePointType</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="identifier">queue_op_status</span> <span class="identifier">try_pop</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
@@ -515,6 +522,56 @@
               <span class="identifier">hwm</span></code>, the queue can be in
               a state in which <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="identifier">push_wait_until</span><span class="special">()</span></code> calls will block (<code class="computeroutput"><span class="identifier">is_full</span><span class="special">()</span></code> returns <code class="computeroutput"><span class="keyword">true</span></code>)
               even though the number of values in the queue is less than <code class="computeroutput"><span class="identifier">hwm</span></code>.
+            </p></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="bounded_queue_upper_bound_bridgehead"></a>
+  <span><a name="bounded_queue_upper_bound"></a></span>
+  <a class="link" href="queues.html#bounded_queue_upper_bound">Member
+        function <code class="computeroutput">upper_bound</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">upper_bound</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              the high-watermark with which <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> was constructed.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="bounded_queue_lower_bound_bridgehead"></a>
+  <span><a name="bounded_queue_lower_bound"></a></span>
+  <a class="link" href="queues.html#bounded_queue_lower_bound">Member
+        function <code class="computeroutput">lower_bound</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lower_bound</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              the low-watermark with which <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> was constructed.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
             </p></dd>
 </dl>
 </div>
@@ -590,7 +647,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_empty</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_empty</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -620,7 +677,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_full</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_full</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -700,14 +757,17 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Accepts <code class="computeroutput"><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span></code> and internally computes
-              a <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> as <code class="computeroutput"><span class="special">(</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>. If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>, returns <code class="computeroutput"><span class="identifier">closed</span></code>.
-              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the queue,
+              a time_point as <code class="computeroutput"><span class="special">(</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>.
+              If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>,
+              returns <code class="computeroutput"><span class="identifier">closed</span></code>. If
+              <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the queue,
               wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code> <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
-              Otherwise the fiber gets suspended until the number of values in the
-              queue drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
+              Otherwise the calling fiber is suspended until the number of values
+              in the queue drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
               (return value <code class="computeroutput"><span class="identifier">success</span></code>),
               the queue is <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span></code> reaches the computed <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the computed time_point (return
+              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -725,26 +785,28 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="identifier">queue_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                 <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePointType</span> <span class="special">&gt;</span>
+<span class="identifier">queue_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
+                                 <span class="identifier">TimePointType</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePointType</span> <span class="special">&gt;</span>
 <span class="identifier">queue_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                 <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                 <span class="identifier">TimePointType</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Accepts a <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code>.
-              If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>,
-              returns <code class="computeroutput"><span class="identifier">closed</span></code>. If
-              <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the queue,
+              Accepts an absolute <code class="computeroutput"><span class="identifier">timeout_time</span></code>
+              in any supported time_point type. If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>, returns <code class="computeroutput"><span class="identifier">closed</span></code>.
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the queue,
               wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
-              Otherwise the fiber gets suspended until the number of values in the
-              queue drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
+              Otherwise the calling fiber is suspended until the number of values
+              in the queue drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
               (return value <code class="computeroutput"><span class="identifier">success</span></code>),
               the queue is <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span></code> reaches the passed <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the passed time_point (return
+              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -781,6 +843,36 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+            </p></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="bounded_queue_value_pop_bridgehead"></a>
+  <span><a name="bounded_queue_value_pop"></a></span>
+  <a class="link" href="queues.html#bounded_queue_value_pop">Member
+        function <code class="computeroutput">value_pop</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="identifier">value_type</span> <span class="identifier">value_pop</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+              Dequeues a value from the queue. If the queue <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
+              least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed or the queue gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d
+              (which throws an exception). Once the number of items remaining in
+              the queue drops below <code class="computeroutput"><span class="identifier">lwm</span></code>,
+              any fibers blocked on <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="identifier">push_wait_until</span><span class="special">()</span></code> may resume.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">logic_error</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              is closed; <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
             </p></dd>
 </dl>
 </div>
@@ -835,13 +927,14 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Accepts <code class="computeroutput"><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span></code> and internally computes
-              a <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> as <code class="computeroutput"><span class="special">(</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>. If <code class="computeroutput"><span class="special">(!</span>
-              <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>,
-              immediately dequeues a value from the queue. Otherwise the fiber gets
-              suspended until at least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
+              a time_point as <code class="computeroutput"><span class="special">(</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>.
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dequeues a value from
+              the queue. Otherwise the calling fiber gets suspended until at least
+              one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
               and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value), or the queue gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span></code> reaches the computed <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the computed time_point (return
+              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -859,22 +952,24 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="identifier">queue_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePointType</span> <span class="special">&gt;</span>
+<span class="identifier">queue_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
+                                <span class="identifier">TimePointType</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Accepts a <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code>.
-              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dequeues a value from
-              the queue. Otherwise the fiber gets suspended until at least one new
-              item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed
-              (return value <code class="computeroutput"><span class="identifier">success</span></code>
+              Accepts an absolute <code class="computeroutput"><span class="identifier">timeout_time</span></code>
+              in any supported time_point type. If <code class="computeroutput"><span class="special">(!</span>
+              <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>,
+              immediately dequeues a value from the queue. Otherwise the calling
+              fiber gets suspended until at least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
               and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value), or the queue gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span></code> reaches the passed <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the passed time_point (return
+              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>

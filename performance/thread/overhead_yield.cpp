@@ -49,7 +49,7 @@ int main( int argc, char * argv[])
         duration_type overhead = overhead_clock();
         std::cout << "overhead " << overhead.count() << " nano seconds" << std::endl;
         boost::uint64_t res = measure( overhead).count();
-        std::cout << JOBS << " jobs: average of " << res << " nano seconds" << std::endl;
+        std::cout << "average of " << res << " nano seconds" << std::endl;
 
         return EXIT_SUCCESS;
     }

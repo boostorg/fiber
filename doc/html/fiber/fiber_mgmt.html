@@ -29,8 +29,6 @@
 <div class="toc"><dl>
 <dt><span class="section"><a href="fiber_mgmt/fiber.html">Class
       <code class="computeroutput"><span class="identifier">fiber</span></code></a></span></dt>
-<dt><span class="section"><a href="fiber_mgmt/fiber_group.html">Class
-      <code class="computeroutput"><span class="identifier">fiber_group</span></code></a></span></dt>
 <dt><span class="section"><a href="fiber_mgmt/attributes.html">Class
       attributes</a></span></dt>
 <dt><span class="section"><a href="fiber_mgmt/this_fiber.html">Namespace this_fiber</a></span></dt>
@@ -48,12 +46,11 @@
 <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-<span class="keyword">class</span> <span class="identifier">fiber_group</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">attributes</span><span class="special">;</span>
 
-<span class="keyword">struct</span> <span class="identifier">algorithm</span><span class="special">;</span>
+<span class="keyword">struct</span> <span class="identifier">sched_algorithm</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
-<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
+<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
 
 <span class="special">}</span>
 
@@ -61,9 +58,12 @@
 
 <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">();</span>
-<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_point</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">TimePoint</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">TimePoint</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_point</span><span class="special">);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
 <span class="keyword">void</span> <span class="identifier">interruption_point</span><span class="special">();</span>
 <span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
