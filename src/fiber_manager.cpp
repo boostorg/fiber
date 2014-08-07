@@ -30,14 +30,14 @@
 namespace boost {
 namespace fibers {
 
-bool fetch_ready( detail::worker_fiber * f)
+bool fetch_ready( detail::worker_fiber * f, const clock_type::time_point& now)
 {
     BOOST_ASSERT( ! f->is_running() );
     BOOST_ASSERT( ! f->is_terminated() );
 
     // set fiber to state_ready if dead-line was reached
     // set fiber to state_ready if interruption was requested
-    if ( f->time_point() <= clock_type::now() || f->interruption_requested() )
+    if ( f->time_point() <= now || f->interruption_requested() )
         f->set_ready();
     return f->is_ready();
 }

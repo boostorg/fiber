@@ -97,10 +97,11 @@ public:
         BOOST_ASSERT( sched_algo);
 
         worker_fiber * f = head_, * prev = 0;
+        clock_type::time_point now = clock_type::now();
         while ( 0 != f)
         {
             worker_fiber * nxt = f->next();
-            if ( fn( f) )
+            if ( fn( f, now) )
             {
                 if ( f == head_)
                 {
@@ -122,6 +123,7 @@ public:
                 f->next_reset();
                 f->time_point_reset();
                 sched_algo->awakened( f);
+                break;
             }
             else
                 prev = f;
