@@ -33,6 +33,14 @@ namespace fibers {
 namespace detail {
 
 #if ! (defined(__APPLE__) && defined(BOOST_HAS_PTHREADS))
+
+#   if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
+        (defined(__ICC) && defined(BOOST_WINDOWS))
+#       define TLS_VAR_DECL(type) __declspec(thread) type
+#   else
+#       define TLS_VAR_DECL(type) __thread type
+#   endif // if defined(_MSC_VER) || defined(__BORLANDC__) || ...
+
 // generic thread_local_ptr
 template< typename T >
 class thread_local_ptr : private noncopyable
@@ -40,13 +48,8 @@ class thread_local_ptr : private noncopyable
 private:
     typedef void ( * cleanup_function)( T*);
 
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
-    (defined(__ICC) && defined(BOOST_WINDOWS))
-    static __declspec(thread) T         *   t_;
-#else
-    static __thread T                   *   t_;
-#endif
-    cleanup_function                        cf_;
+    static TLS_VAR_DECL(T) *t_;
+    cleanup_function cf_;
 
 public:
     thread_local_ptr() BOOST_NOEXCEPT :
@@ -75,14 +78,10 @@ public:
     { t_ = t; }
 };
 
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__DMC__) || \
-    (defined(__ICC) && defined(BOOST_WINDOWS))
 template< typename T >
-__declspec(thread) T * thread_local_ptr< T >::t_ = 0;
-#else
-template< typename T >
-__thread T * thread_local_ptr< T >::t_ = 0;
-#endif
+TLS_VAR_DECL(T) * thread_local_ptr< T >::t_ = 0;
+
+#undef TLS_VAR_DECL
 
 #else  // Mac-specific thread_local_ptr
 template< typename T >
