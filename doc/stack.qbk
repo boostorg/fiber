@@ -41,6 +41,71 @@ to `allocate()` results in undefined behaviour.]
 [note The memory for the stack is not required to be aligned; alignment takes
 place inside __coro__.]
 
+[class_heading stack_traits]
+
+['stack_traits] models a __stack_traits__ providing a way to access certain
+properites defined by the enironment. Stack allocators use __stack_traits__ to
+allocate stacks.
+
+        #include <boost/coroutine/stack_traits.hpp>
+
+        struct stack_traits
+        {
+            static bool is_unbounded() noexcept;
+
+            static std::size_t page_size() noexcept;
+
+            static std::size_t default_size() noexcept;
+
+            static std::size_t minimum_size() noexcept;
+
+            static std::size_t maximum_size() noexcept;
+        }
+
+[static_member_heading stack_traits..is_stack_unbound]
+
+            static bool is_stack_unbound();
+
+[variablelist
+[[Returns:] [Returns `true` if the environment defines no limit for the size of a stack.]]
+]
+
+[static_member_heading stack_traits..page_size]
+
+            static std::size_t page_size();
+
+[variablelist
+[[Returns:] [Returns the page size in bytes.]]
+]
+
+[static_member_heading stack_traits..maximum_stacksize]
+
+            static std::size_t maximum_stacksize();
+
+[variablelist
+[[Preconditions:] [`is_stack_unbound()` returns `false`.]]
+[[Returns:] [Returns the maximum size in bytes of stack defined by the environment.]]
+]
+
+[static_member_heading stack_traits..default_stacksize]
+
+            static std::size_t default_stacksize();
+
+[variablelist
+[[Returns:] [Returns a default stack size, which may be platform specific. If
+`is_stack_unbound()` returns `true` then the present implementation returns
+the maximum of `64 kB` and `minimum_stacksize()`.]]
+]
+
+[static_member_heading stack_traits..minimum_stacksize]
+
+            static std::size_t minimum_stacksize();
+
+[variablelist
+[[Returns:] [Returns the minimum size in bytes of stack required by the
+environment: Win32 4kB, Win64 8kB, defined by rlimit on POSIX.]]
+]
+
 
 [class_heading stack_allocator]
 
@@ -57,54 +122,11 @@ virtual addresses are used.]
 
         class stack_allocator
         {
-            static bool is_stack_unbound();
-
-            static std::size_t maximum_stacksize();
-
-            static std::size_t default_stacksize();
-
-            static std::size_t minimum_stacksize();
-
             void allocate( stack_context &, std::size_t size);
 
             void deallocate( stack_context &);
         }
 
-[static_member_heading stack_allocator..is_stack_unbound]
-
-            static bool is_stack_unbound();
-
-[variablelist
-[[Returns:] [Returns `true` if the environment defines no limit for the size of a stack.]]
-]
-
-[static_member_heading stack_allocator..maximum_stacksize]
-
-            static std::size_t maximum_stacksize();
-
-[variablelist
-[[Preconditions:] [`is_stack_unbound()` returns `false`.]]
-[[Returns:] [Returns the maximum size in bytes of stack defined by the environment.]]
-]
-
-[static_member_heading stack_allocator..default_stacksize]
-
-            static std::size_t default_stacksize();
-
-[variablelist
-[[Returns:] [Returns a default stack size, which may be platform specific. If
-`is_stack_unbound()` returns `true` then the present implementation returns
-the maximum of `64 kB` and `minimum_stacksize()`.]]
-]
-
-[static_member_heading stack_allocator..minimum_stacksize]
-
-            static std::size_t minimum_stacksize();
-
-[variablelist
-[[Returns:] [Returns the minimum size in bytes of stack required by the
-environment: Win32 4kB, Win64 8kB, defined by rlimit on POSIX.]]
-]
 
 [member_heading stack_allocator..allocate]
 

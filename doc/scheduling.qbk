@@ -23,14 +23,14 @@ any other __boost_fiber__ entry point.
             ...
         }
 
-A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides two
-schedulers: [class_link round_robin] and [class_link round_robin_ws].
+A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides 
+scheduler [class_link round_robin].
 
 You are explicitly permitted to code your own __algo__ subclass, and to pass
 it to [function_link set_scheduling_algorithm].
 
 
-[class_heading algorithm]
+[class_heading sched_algorithm]
 
         #include <boost/fiber/algorithm.hpp>
 

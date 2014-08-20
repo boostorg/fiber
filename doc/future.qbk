@@ -34,7 +34,10 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 [heading `deferred`]
 [variablelist
 [[Effects:] [The function is deferred, e.g. result will be computed only when explictly requested.]]
+[[Note:] [Not implemented yet.]]
 ]
+
+[note Launch policy `deferred`, which indicates you simply want to defer the function call until a later time (lazy evaluation), is not supported yet.]
 
 
 [template_heading future]
@@ -67,14 +70,17 @@ A __future__ contains a shared state which is not shared with any other future.
 
             shared_future< R > share();
 
-            R get();
+            R get();    // member only of generic future template
+            R & get();  // member only of future< R & > template specialization
+            void get(); // member only of future< void > template specialization
 
             void wait() const;
 
             template< class Rep, class Period >
             future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
 
-            future_status wait_until( clock_type::time_point const& timeout_time) const;
+            template< typename Clock, typename Duration >
+            future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
         };
 
 [heading Default constructor]
@@ -163,7 +169,9 @@ After construction is `false == other.valid()`]]
 
 [member_heading future..get]
 
-        R get();
+        R get();    // member only of generic future template
+        R & get();  // member only of future< R & > template specialization
+        void get(); // member only of future< void > template specialization
 
 [variablelist
 [[Precondition:] [`true == valid()`]]
@@ -194,7 +202,8 @@ After construction is `false == other.valid()`]]
 
 [member_heading future..wait_until]
 
-        future_status wait_until( clock_type::time_point const& timeout_time) const;
+        template< typename Clock, typename Duration >
+        future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
 
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
@@ -235,14 +244,17 @@ A __shared_future__ contains a shared state which might be shared with other fut
 
             bool valid() const noexcept;
 
-            R get();
+            R const& get(); // member only of generic shared_future template
+            R & get();      // member only of shared_future< R & > template specialization
+            void get();     // member only of shared_future< void > template specialization
 
             void wait() const;
 
             template< class Rep, class Period >
             future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
 
-            future_status wait_until( clock_type::time_point const& timeout_time) const;
+            template< typename Clock, typename Duration >
+            future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
         };
 
 [heading Default constructor]
@@ -339,7 +351,9 @@ return * this;
 
 [member_heading shared_future..get]
 
-        R get();
+        R const& get(); // member only of generic shared_future template
+        R & get();      // member only of shared_future< R & > template specialization
+        void get();     // member only of shared_future< void > template specialization
 
 [variablelist
 [[Precondition:] [`true == valid()`]]
@@ -370,7 +384,8 @@ return * this;
 
 [member_heading shared_future..wait_until]
 
-        future_status wait_until( clock_type::time_point const& timeout_time) const;
+        template< typename Clock, typename Duration >
+        future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
 
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
