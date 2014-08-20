@@ -137,9 +137,9 @@ private:
         return push_and_notify_( new_node );
     }
 
-    template< typename TimePointType >
+    template< typename Clock, typename Duration >
     queue_op_status push_wait_until_( typename node_type::ptr const& new_node,
-                                      TimePointType const& timeout_time,
+                                      chrono::time_point< Clock, Duration > const& timeout_time,
                                       boost::unique_lock< boost::fibers::mutex >& lk )
     {
         if ( is_closed_() ) return queue_op_status::closed;
@@ -306,18 +306,18 @@ public:
                                    chrono::duration< Rep, Period > const& timeout_duration)
     { return push_wait_until( forward< value_type >( va), chrono::high_resolution_clock::now() + timeout_duration); }
 
-    template< typename TimePointType >
+    template< typename Clock, typename Duration >
     queue_op_status push_wait_until( value_type const& va,
-                                     TimePointType const& timeout_time)
+                                     chrono::time_point< Clock, Duration > const& timeout_time)
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new_node, timeout_time, lk );
     }
 
-    template< typename TimePointType >
+    template< typename Clock, typename Duration >
     queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
-                                     TimePointType const& timeout_time)
+                                     chrono::time_point< Clock, Duration > const& timeout_time)
     {
         typename node_type::ptr new_node( new node_type( forward< value_type >( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
@@ -379,9 +379,9 @@ public:
                                   chrono::duration< Rep, Period > const& timeout_duration)
     { return pop_wait_until( va, chrono::high_resolution_clock::now() + timeout_duration); }
 
-    template< typename TimePointType >
+    template< typename Clock, typename Duration >
     queue_op_status pop_wait_until( value_type & va,
-                                    TimePointType const& timeout_time)
+                                   chrono::time_point< Clock, Duration > const& timeout_time)
     {
         boost::unique_lock< mutex > lk( mtx_);
 

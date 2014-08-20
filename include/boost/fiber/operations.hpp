@@ -41,8 +41,8 @@ void yield()
         fibers::fm_run();
 }
 
-template< typename TimePointType >
-void sleep_until( TimePointType const& sleep_time)
+template< typename Clock, typename Duration >
+void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
 {
     if ( 0 != fibers::fm_active() )
     {

@@ -24,11 +24,10 @@ inline
 chrono::high_resolution_clock::time_point convert_tp( chrono::high_resolution_clock::time_point const& timeout_time)
 { return timeout_time; }
 
-template< typename TimePointType >
-chrono::high_resolution_clock::time_point convert_tp( TimePointType const& timeout_time)
+template< typename Clock, typename Duration >
+chrono::high_resolution_clock::time_point convert_tp( chrono::time_point< Clock, Duration > const& timeout_time)
 {
-    typedef typename TimePointType::clock ClockType;
-    return chrono::high_resolution_clock::now() + ( timeout_time - ClockType::now() );
+    return chrono::high_resolution_clock::now() + ( timeout_time - Clock::now() );
 }
 
 }}}

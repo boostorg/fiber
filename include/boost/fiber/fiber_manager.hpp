@@ -76,8 +76,8 @@ void fm_wait( unique_lock< detail::spinlock > &);
 bool fm_wait_until( chrono::high_resolution_clock::time_point const&,
                     unique_lock< detail::spinlock > &);
 
-template< typename TimePointType >
-bool fm_wait_until( chrono::high_resolution_clock::time_point const& timeout_time_,
+template< typename Clock, typename Duration >
+bool fm_wait_until( chrono::time_point< Clock, Duration > const& timeout_time_,
                     unique_lock< detail::spinlock > & lk)
 {
     chrono::high_resolution_clock::time_point timeout_time(

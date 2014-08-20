@@ -251,9 +251,9 @@ public:
                                   chrono::duration< Rep, Period > const& timeout_duration)
     { return pop_wait_until( va, chrono::high_resolution_clock::now() + timeout_duration); }
 
-    template< typename TimePointType >
+    template< typename Clock, typename Duration >
     queue_op_status pop_wait_until( value_type & va,
-                                    TimePointType const& timeout_time)
+                                    chrono::time_point< Clock, Duration > const& timeout_time)
     {
         boost::unique_lock< mutex > lk( mtx_);
 

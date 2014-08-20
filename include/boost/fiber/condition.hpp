@@ -139,8 +139,8 @@ public:
         }
     }
 
-    template< typename LockType, typename TimePointType >
-    cv_status wait_until( LockType & lt, TimePointType const& timeout_time_)
+    template< typename LockType, typename Clock, typename Duration >
+    cv_status wait_until( LockType & lt, chrono::time_point< Clock, Duration > const& timeout_time_)
     {
         cv_status status = cv_status::no_timeout;
         chrono::high_resolution_clock::time_point timeout_time(
@@ -237,8 +237,8 @@ public:
         return status;
     }
 
-    template< typename LockType, typename TimePointType, typename Pred >
-    bool wait_until( LockType & lt, TimePointType const& timeout_time, Pred pred)
+    template< typename LockType, typename Clock, typename Duration, typename Pred >
+    bool wait_until( LockType & lt, chrono::time_point< Clock, Duration > const& timeout_time, Pred pred)
     {
         while ( ! pred() )
         {
