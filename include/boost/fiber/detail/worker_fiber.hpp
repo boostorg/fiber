@@ -238,7 +238,7 @@ public:
     {
         callee_ = 0;
         // destroyes coroutine and deallocates stack
-        coro_t::call_type tmp( move( caller_) );
+        coro_t::call_type tmp( boost::move( caller_) );
     }
 
     friend void intrusive_ptr_add_ref( worker_fiber * f)

@@ -51,9 +51,9 @@ void trampoline( typename worker_fiber::coro_t::yield_type & yield)
     {
         // allocate fiber-function on worker-fiber's stack
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        Fn fn( forward< Fn >( from->fn) );
+        Fn fn( boost::forward< Fn >( from->fn) );
 #else
-        Fn fn( move( from->fn) );
+        Fn fn( boost::move( from->fn) );
 #endif
 
         // after setup return to caller

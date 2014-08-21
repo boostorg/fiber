@@ -71,7 +71,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         typedef detail::task_object<
             task_fn,
             std::allocator< packaged_task< R() > >,
@@ -81,7 +81,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< task_fn >( fn), a) );
     }
 
     template< typename Allocator >
@@ -91,7 +91,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
@@ -102,7 +102,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< task_fn >( fn), a) );
     }
 #endif
 
@@ -114,7 +114,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         typedef detail::task_object<
             Fn,
             std::allocator< packaged_task< R() > >,
@@ -134,7 +134,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
@@ -156,7 +156,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         typedef detail::task_object<
             Fn,
             std::allocator< packaged_task< R() > >,
@@ -169,7 +169,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
             ::new( a.allocate( 1) ) object_t( fn, a) );
 #else
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
 #endif
     }
 
@@ -180,7 +180,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
@@ -194,7 +194,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
             ::new( a.allocate( 1) ) object_t( fn, a) );
 #else
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
 #endif
     }
 
@@ -310,7 +310,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         typedef detail::task_object<
             task_fn,
             std::allocator< packaged_task< void() > >,
@@ -320,7 +320,7 @@ public:
         object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< task_fn >( fn), a) );
     }
 
     template< typename Allocator >
@@ -330,7 +330,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
@@ -341,7 +341,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( forward< task_fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< task_fn >( fn), a) );
     }
 #endif
 
@@ -353,7 +353,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         typedef detail::task_object<
             Fn,
             std::allocator< packaged_task< void() > >,
@@ -373,7 +373,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
@@ -395,7 +395,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         typedef detail::task_object<
             Fn,
             std::allocator< packaged_task< void() > >,
@@ -408,7 +408,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
             ::new( a.allocate( 1) ) object_t( fn, a) );
 #else
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
 #endif
     }
 
@@ -419,7 +419,7 @@ public:
     {
         //TODO: constructs a std::packaged_task object
         //       with a shared state and a copy of the task,
-        //       initialized with forward< Fn >( fn)
+        //       initialized with boost::forward< Fn >( fn)
         //       uses the provided allocator to allocate
         //       memory necessary to store the task
         typedef detail::task_object<
@@ -433,7 +433,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
             ::new( a.allocate( 1) ) object_t( fn, a) );
 #else
-            ::new( a.allocate( 1) ) object_t( forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( boost::forward< Fn >( fn), a) );
 #endif
     }
 

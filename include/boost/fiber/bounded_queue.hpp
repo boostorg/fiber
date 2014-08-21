@@ -59,7 +59,7 @@ struct bounded_queue_node
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
         va( t),
 #else
-        va( forward< T >( t) ),
+        va( boost::forward< T >( t) ),
 #endif
         next()
     {}
@@ -197,7 +197,7 @@ private:
                     // to push a value
                     not_full_cond_.notify_all();
             }
-            return move( old_head->va);
+            return boost::move( old_head->va);
         }
         catch (...)
         {
@@ -291,7 +291,7 @@ public:
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
-        typename node_type::ptr new_node( new node_type( forward< value_type >( va) ) );
+        typename node_type::ptr new_node( new node_type( boost::forward< value_type >( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk );
     }
@@ -304,7 +304,7 @@ public:
     template< typename Rep, typename Period >
     queue_op_status push_wait_for( BOOST_RV_REF( value_type) va,
                                    chrono::duration< Rep, Period > const& timeout_duration)
-    { return push_wait_until( forward< value_type >( va), chrono::high_resolution_clock::now() + timeout_duration); }
+    { return push_wait_until( boost::forward< value_type >( va), chrono::high_resolution_clock::now() + timeout_duration); }
 
     template< typename Clock, typename Duration >
     queue_op_status push_wait_until( value_type const& va,
@@ -319,7 +319,7 @@ public:
     queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
                                      chrono::time_point< Clock, Duration > const& timeout_time)
     {
-        typename node_type::ptr new_node( new node_type( forward< value_type >( va) ) );
+        typename node_type::ptr new_node( new node_type( boost::forward< value_type >( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new_node, timeout_time, lk );
     }
@@ -333,7 +333,7 @@ public:
 
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
-        typename node_type::ptr new_node( new node_type( forward< value_type >( va) ) );
+        typename node_type::ptr new_node( new node_type( boost::forward< value_type >( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
         return try_push_( new_node );
     }

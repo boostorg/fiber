@@ -42,7 +42,7 @@ public:
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
         fn_( fn),
 #else
-        fn_( forward< Fn >( fn) ),
+        fn_( boost::forward< Fn >( fn) ),
 #endif
         alloc_( alloc)
     {}
@@ -96,7 +96,7 @@ public:
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
         fn_( fn),
 #else
-        fn_( forward< Fn >( fn) ),
+        fn_( boost::forward< Fn >( fn) ),
 #endif
         alloc_( alloc)
     {}

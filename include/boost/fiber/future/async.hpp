@@ -26,8 +26,8 @@ async( R( *f)() )
 {
     packaged_task< R() > pt( f);
     future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
+    fiber( boost::move( pt) ).detach();
+    return boost::move( fi);
 }
 #endif
 template< typename F >
@@ -35,10 +35,10 @@ future< typename result_of< F() >::type >
 async( F && f)
 {
     typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( forward< F >( f) );
+    packaged_task< R() > pt( boost::forward< F >( f) );
     future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
+    fiber( boost::move( pt) ).detach();
+    return boost::move( fi);
 }
 #else
 template< typename F >
@@ -46,10 +46,10 @@ future< typename result_of< F() >::type >
 async( F f)
 {
     typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( forward< F >( f) );
+    packaged_task< R() > pt( boost::forward< F >( f) );
     future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
+    fiber( boost::move( pt) ).detach();
+    return boost::move( fi);
 }
 
 template< typename F >
@@ -57,10 +57,10 @@ future< typename result_of< F() >::type >
 async( BOOST_RV_REF( F) f)
 {
     typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( forward< F >( f) );
+    packaged_task< R() > pt( boost::forward< F >( f) );
     future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
+    fiber( boost::move( pt) ).detach();
+    return boost::move( fi);
 }
 #endif
 

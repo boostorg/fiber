@@ -57,7 +57,7 @@ struct unbounded_queue_node
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
         va( t),
 #else
-        va( forward< T >( t) ),
+        va( boost::forward< T >( t) ),
 #endif
         next()
     {}
@@ -148,7 +148,7 @@ private:
         try
         {
             typename node_type::ptr old_head = pop_head_();
-            return move( old_head->va);
+            return boost::move( old_head->va);
         }
         catch (...)
         {
@@ -205,7 +205,7 @@ public:
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
-        typename node_type::ptr new_node( new node_type( forward< value_type >( va) ) );
+        typename node_type::ptr new_node( new node_type( boost::forward< value_type >( va) ) );
         boost::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk );
     }

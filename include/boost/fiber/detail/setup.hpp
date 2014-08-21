@@ -39,7 +39,7 @@ struct setup
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     setup( Fn fn_,
            coro_t::call_type * caller_) :
-        fn( forward< Fn >( fn_) ),
+        fn( boost::forward< Fn >( fn_) ),
         caller( caller_),
         f( 0)
     { BOOST_ASSERT( 0 != caller); }
@@ -54,7 +54,7 @@ struct setup
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
         fn( fn_),
 #else
-        fn( forward< Fn >( fn_) ),
+        fn( boost::forward< Fn >( fn_) ),
 #endif
         caller( caller_),
         f( 0)

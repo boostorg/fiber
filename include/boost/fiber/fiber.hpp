@@ -68,7 +68,7 @@ private:
     void setup_( StackAllocator const& stack_alloc, attributes const& attrs, fiber_fn fn)
     {
         coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< fiber_fn > s( forward< fiber_fn >( fn), & coro);
+        detail::setup< fiber_fn > s( boost::forward< fiber_fn >( fn), & coro);
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);
     }
@@ -79,7 +79,7 @@ private:
     void setup_( StackAllocator const& stack_alloc, attributes const& attrs, Fn fn)
     {
         typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        detail::setup< Fn > s( boost::forward< Fn >( fn), & coro);
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);
     }
@@ -92,7 +92,7 @@ private:
 #ifdef BOOST_NO_RVALUE_REFERENCES
         detail::setup< Fn > s( fn, & coro);
 #else
-        detail::setup< Fn > s( forward< Fn >( fn), & coro);
+        detail::setup< Fn > s( boost::forward< Fn >( fn), & coro);
 #endif
         impl_.reset( s.allocate() );
         BOOST_ASSERT( impl_);
@@ -194,7 +194,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
         setup_( stack_alloc, attrs, fn);
 #else
-        setup_( stack_alloc, attrs, forward< Fn >( fn) );
+        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
 #endif
         start_();
     }
@@ -207,7 +207,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
         setup_( stack_alloc, attrs, fn);
 #else
-        setup_( stack_alloc, attrs, forward< Fn >( fn) );
+        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
 #endif
         start_();
     }
@@ -220,7 +220,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
         setup_( stack_alloc, attrs, fn);
 #else
-        setup_( stack_alloc, attrs, forward< Fn >( fn) );
+        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
 #endif
         start_();
     }
@@ -232,7 +232,7 @@ public:
 #ifdef BOOST_NO_RVALUE_REFERENCES
         setup_( stack_alloc, attrs, fn);
 #else
-        setup_( stack_alloc, attrs, forward< Fn >( fn) );
+        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
 #endif
         start_();
     }
@@ -286,7 +286,7 @@ public:
     fiber & operator=( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT
     {
         if ( joinable() ) std::terminate();
-        fiber tmp( move( other) );
+        fiber tmp( boost::move( other) );
         swap( tmp);
         return * this;
     }
