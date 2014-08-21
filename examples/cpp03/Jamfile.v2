@@ -31,13 +31,13 @@ project boost/fiber/example
     ;
 
 exe barrier : barrier.cpp ;
-exe future : future.cpp ;
+exe future : future.cpp test_future.cpp ;
 exe futures_mt : futures_mt.cpp ;
 exe interrupt : interrupt.cpp ;
 exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
-exe simple : simple.cpp ;
+exe simple : simple.cpp test_fiber.cpp ;
 exe migrate_fibers
     : migrate_fibers.cpp
       workstealing_round_robin.cpp
