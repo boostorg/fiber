@@ -20,6 +20,8 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 
@@ -41,7 +43,6 @@ typedef boost::shared_ptr<subscriber_session> subscriber_session_ptr;
 class subscriptions
 {
 public:
-
     ~subscriptions();
 
     // subscribe to this channel
@@ -338,7 +339,7 @@ void accept_publisher( boost::asio::io_service& io_service,
         // create new publisher-session
         // this instance will be associated with one publisher
         publisher_session_ptr new_publisher_session = 
-            boost::make_shared<publisher_session>( io_service, reg);
+            boost::make_shared<publisher_session>( boost::ref( io_service), boost::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (publisher)
@@ -370,7 +371,7 @@ void accept_subscriber( boost::asio::io_service& io_service,
         // create new subscriber-session
         // this instance will be associated with one subscriber
         subscriber_session_ptr new_subscriber_session = 
-            boost::make_shared<subscriber_session>( io_service, reg);
+            boost::make_shared<subscriber_session>( boost::ref( io_service), boost::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (subscriber)
