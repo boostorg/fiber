@@ -498,13 +498,13 @@ private:
     bool                    ready_;
     exception_ptr           except_;
 
-    void mark_ready_and_notify_()
+    inline void mark_ready_and_notify_()
     {
         ready_ = true;
         waiters_.notify_all();
     }
 
-    void owner_destroyed_()
+    inline void owner_destroyed_()
     {
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
@@ -512,7 +512,7 @@ private:
             set_exception_( boost::copy_exception( broken_promise() ) );
     }
 
-    void set_value_()
+    inline void set_value_()
     {
         //TODO: store the value and make the future ready
         //      notify all waiters
@@ -522,7 +522,7 @@ private:
         mark_ready_and_notify_();
     }
 
-    void set_exception_( exception_ptr except)
+    inline void set_exception_( exception_ptr except)
     {
         //TODO: store the exception pointer p into the shared state and make the state ready
         //      done = true, notify all waiters
@@ -533,7 +533,7 @@ private:
         mark_ready_and_notify_();
     }
 
-    void get_( unique_lock< mutex > & lk)
+    inline void get_( unique_lock< mutex > & lk)
     {
         //TODO: the get method waits until the future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -545,13 +545,13 @@ private:
             rethrow_exception( except_);
     }
 
-    exception_ptr get_exception_ptr_( unique_lock< mutex > & lk)
+    inline exception_ptr get_exception_ptr_( unique_lock< mutex > & lk)
     {
         wait_( lk);
         return except_;
     }
 
-    void wait_( unique_lock< mutex > & lk) const
+    inline void wait_( unique_lock< mutex > & lk) const
     {
         //TODO: blocks until the result becomes available
         while ( ! ready_)
@@ -572,8 +572,8 @@ private:
         return future_status::ready;
     }
 
-    future_status wait_until_( unique_lock< mutex > & lk,
-                              chrono::high_resolution_clock::time_point const& timeout_time) const
+    inline future_status wait_until_( unique_lock< mutex > & lk,
+                                      chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         while ( ! ready_)
@@ -597,7 +597,7 @@ public:
 
     virtual ~shared_state() {}
 
-    void owner_destroyed()
+    inline void owner_destroyed()
     {
         //TODO: lock mutex
         //      set broken_exception if future was not already done
@@ -606,7 +606,7 @@ public:
         owner_destroyed_();
     }
 
-    void set_value()
+    inline void set_value()
     {
         //TODO: store the value into the shared state and make the state ready
         //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
@@ -617,7 +617,7 @@ public:
         set_value_();
     }
 
-    void set_exception( exception_ptr except)
+    inline void set_exception( exception_ptr except)
     {
         //TODO: store the exception pointer p into the shared state and make the state ready
         //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
@@ -628,7 +628,7 @@ public:
         set_exception_( except);
     }
 
-    void get()
+    inline void get()
     {
         //TODO: the get method waits until the future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -643,13 +643,13 @@ public:
         get_( lk);
     }
 
-    exception_ptr get_exception_ptr()
+    inline exception_ptr get_exception_ptr()
     {
         unique_lock< mutex > lk( mtx_);
         return get_exception_ptr_( lk);
     }
 
-    void wait() const
+    inline void wait() const
     {
         //TODO: blocks until the result becomes available
         //      valid() == true after the call
@@ -666,7 +666,7 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
+    inline future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -674,7 +674,7 @@ public:
         return wait_until_( lk, timeout_time);
     }
 
-    void reset()
+    inline void reset()
     { ready_ = false; }
 
     friend inline void intrusive_ptr_add_ref( shared_state * p) BOOST_NOEXCEPT

@@ -301,16 +301,6 @@ public:
         //       no task and no shared state
     }
 
-    ~packaged_task()
-    {
-        //TODO: abandons the shared state and destroys the stored task object
-        //      a usual, if the shared state is abandoned before it was made
-        //      ready, an std::future_error exception is stored with the error
-        //      code future_errc::broken_promise
-        if ( task_)
-            task_->owner_destroyed();
-    }
-
 #ifdef BOOST_MSVC
     typedef void( * task_fn)();
 
@@ -447,7 +437,17 @@ public:
 #endif
     }
 
-    packaged_task( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT :
+    ~packaged_task()
+    {
+        //TODO: abandons the shared state and destroys the stored task object
+        //      a usual, if the shared state is abandoned before it was made
+        //      ready, an std::future_error exception is stored with the error
+        //      code future_errc::broken_promise
+        if ( task_)
+            task_->owner_destroyed();
+    }
+
+    inline packaged_task( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT :
         obtained_( false),
         task_()
     {
@@ -457,7 +457,7 @@ public:
         swap( other);
     }
 
-    packaged_task & operator=( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT
+    inline packaged_task & operator=( BOOST_RV_REF( packaged_task) other) BOOST_NOEXCEPT
     {
         //TODO: releases the shared state, if any, destroys the
         //       previously-held task, and moves the shared state
@@ -469,7 +469,7 @@ public:
         return * this;
     }
 
-    void swap( packaged_task & other) BOOST_NOEXCEPT
+    inline void swap( packaged_task & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two packaged_task
         std::swap( obtained_, other.obtained_);
@@ -478,16 +478,16 @@ public:
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
-    bool operator!() const BOOST_NOEXCEPT
+    inline bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
 
-    bool valid() const BOOST_NOEXCEPT
+    inline bool valid() const BOOST_NOEXCEPT
     {
         //TODO: checks whether *this has a shared state
         return 0 != task_.get();
     }
 
-    future< void > get_future()
+    inline future< void > get_future()
     {
         //TODO: returns a future which shares the same shared state as *this
         //      get_future can be called only once for each packaged_task
@@ -501,7 +501,7 @@ public:
         return future< void >( task_);
     }
 
-    void operator()()
+    inline void operator()()
     {
         //TODO: calls the stored task with args as the arguments
         //      the return value of the task or any exceptions thrown are
@@ -514,7 +514,7 @@ public:
         task_->run();
     }
 
-    void reset()
+    inline void reset()
     {
         //TODO: resets the state abandoning the results of previous executions
         //      new shared state is constructed

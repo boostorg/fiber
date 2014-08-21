@@ -342,7 +342,7 @@ public:
             future_->owner_destroyed();
     }
 
-    promise( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT :
+    inline promise( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT :
         obtained_( false),
         future_()
     {
@@ -352,7 +352,7 @@ public:
         swap( other);
     }
 
-    promise & operator=( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT
+    inline promise & operator=( BOOST_RV_REF( promise) other) BOOST_NOEXCEPT
     {
         //TODO: take over ownership
         //      other is valid before but in
@@ -362,7 +362,7 @@ public:
         return * this;
     }
 
-    void swap( promise & other) BOOST_NOEXCEPT
+    inline void swap( promise & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two promises
         std::swap( obtained_, other.obtained_);
@@ -371,10 +371,10 @@ public:
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
-    bool operator!() const BOOST_NOEXCEPT
+    inline bool operator!() const BOOST_NOEXCEPT
     { return 0 == future_.get(); }
 
-    future< void > get_future()
+    inline future< void > get_future()
     {
         //TODO: returns a future object associated with the same shared state
         //      exception is thrown if *this has no shared state or get_future
@@ -389,7 +389,7 @@ public:
         return future< void >( future_);
     }
 
-    void set_value()
+    inline void set_value()
     {
         //TODO: store the value into the shared state and make the state ready
         //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
@@ -402,7 +402,7 @@ public:
         future_->set_value();
     }
 
-    void set_exception( exception_ptr p)
+    inline void set_exception( exception_ptr p)
     {
         //TODO: store the exception pointer p into the shared state and make the state ready
         //      the operation is atomic, i.e. it behaves as though they acquire a single mutex

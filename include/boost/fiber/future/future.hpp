@@ -340,7 +340,7 @@ public:
         //TODO: abandon ownership if any
     }
 
-    future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
+    inline future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
         state_()
     {
         //TODO: constructs a future with the shared state of other using move semantics
@@ -348,7 +348,7 @@ public:
         swap( other);
     }
 
-    future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
+    inline future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
@@ -358,7 +358,7 @@ public:
         return * this;
     }
 
-    void swap( future & other) BOOST_NOEXCEPT
+    inline void swap( future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two futures
         state_.swap( other.state_);
@@ -366,10 +366,10 @@ public:
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
-    bool operator!() const BOOST_NOEXCEPT
+    inline bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
 
-    bool valid() const BOOST_NOEXCEPT
+    inline bool valid() const BOOST_NOEXCEPT
     {
         //TODO: checks if the future refers to a shared state
         //      this is the case only for futures returned by
@@ -380,7 +380,7 @@ public:
 
     shared_future< void > share();
 
-    void get()
+    inline void get()
     {
         //TODO: the get method waits until the future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -399,7 +399,7 @@ public:
         tmp->get();
     }
 
-    exception_ptr get_exception_ptr()
+    inline exception_ptr get_exception_ptr()
     {
         if ( ! valid() )
             boost::throw_exception(
@@ -407,7 +407,7 @@ public:
         return state_->get_exception_ptr();
     }
 
-    void wait() const
+    inline void wait() const
     {
         //TODO: blocks until the result becomes available
         //      valid() == true after the call
@@ -428,7 +428,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
+    inline future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
@@ -805,14 +805,14 @@ public:
         //      destroys the shared state otherwise does nothing
     }
 
-    shared_future( shared_future const& other) :
+    inline shared_future( shared_future const& other) :
         state_( other.state_)
     {
         //TODO: constructs a shared future that refers to the same shared state,
         //      as other, if there's any
     }
 
-    shared_future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
+    inline shared_future( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT :
         state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
@@ -820,7 +820,7 @@ public:
         state_.swap( other.state_);
     }
 
-    shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
+    inline shared_future( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT :
         state_()
     {
         //TODO: constructs a shared_future with the shared state of other using move semantics
@@ -828,7 +828,7 @@ public:
         swap( other);
     }
 
-    shared_future & operator=( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT
+    inline shared_future & operator=( BOOST_RV_REF( shared_future) other) BOOST_NOEXCEPT
     {
         //TODO: releases any shared state and move-assigns the contents of other to *this
         //      after the assignment, other.valid() == false and this->valid() will yield
@@ -838,7 +838,7 @@ public:
         return * this;
     }
 
-    shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
+    inline shared_future & operator=( shared_future const& other) BOOST_NOEXCEPT
     {
         //TODO:
         shared_future tmp( boost::move( other) );
@@ -846,7 +846,7 @@ public:
         return * this;
     }
 
-    shared_future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
+    inline shared_future & operator=( BOOST_RV_REF( future< void >) other) BOOST_NOEXCEPT
     {
         //TODO:
         shared_future tmp( boost::move( other) );
@@ -854,13 +854,13 @@ public:
         return * this;
     }
 
-    void swap( future< void > & other) BOOST_NOEXCEPT
+    inline void swap( future< void > & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
         state_.swap( other.state_);
     }
 
-    void swap( shared_future & other) BOOST_NOEXCEPT
+    inline void swap( shared_future & other) BOOST_NOEXCEPT
     {
         //TODO: exchange the shared states of two shared_futures
         state_.swap( other.state_);
@@ -868,10 +868,10 @@ public:
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
-    bool operator!() const BOOST_NOEXCEPT
+    inline bool operator!() const BOOST_NOEXCEPT
     { return ! valid(); }
 
-    bool valid() const BOOST_NOEXCEPT
+    inline bool valid() const BOOST_NOEXCEPT
     {
         //TODO: checks if the shared_future refers to a shared state
         //      this is the case only for shared_futures returned by
@@ -880,7 +880,7 @@ public:
         return 0 != state_.get();
     }
 
-    void get() const
+    inline void get() const
     {
         //TODO: the get method waits until the shared_future has a valid result and
         //      (depending on which template is used) retrieves it
@@ -897,7 +897,7 @@ public:
         state_->get();
     }
 
-    exception_ptr get_exception_ptr()
+    inline exception_ptr get_exception_ptr()
     {
         if ( ! valid() )
             boost::throw_exception(
@@ -905,7 +905,7 @@ public:
         return state_->get_exception_ptr();
     }
 
-    void wait() const
+    inline void wait() const
     {
         //TODO: blocks until the result becomes available
         //      valid() == true after the call
@@ -926,7 +926,7 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
+    inline future_status wait_until( chrono::high_resolution_clock::time_point const& timeout_time) const
     {
         //TODO: blocks until the result becomes available or timeout
         //      valid() == true after the call
