@@ -66,7 +66,7 @@ class registry : private boost::noncopyable
 {
 private:
     typedef std::map< std::string, boost::shared_ptr< subscriptions > > channels_cont;
-    typedef typename channels_cont::iterator channels_iter;
+    typedef channels_cont::iterator channels_iter;
 
     boost::fibers::mutex    mtx_;
     channels_cont           channels_;
