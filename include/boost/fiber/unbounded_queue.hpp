@@ -196,12 +196,14 @@ public:
         return is_empty_();
     }
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     queue_op_status push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk );
     }
+#endif
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {

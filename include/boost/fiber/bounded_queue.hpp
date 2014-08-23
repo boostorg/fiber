@@ -282,12 +282,14 @@ public:
         return is_full_();
     }
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     queue_op_status push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk );
     }
+#endif
 
     queue_op_status push( BOOST_RV_REF( value_type) va)
     {
@@ -296,16 +298,19 @@ public:
         return push_( new_node, lk );
     }
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     template< typename Rep, typename Period >
     queue_op_status push_wait_for( value_type const& va,
                                    chrono::duration< Rep, Period > const& timeout_duration)
     { return push_wait_until( va, chrono::high_resolution_clock::now() + timeout_duration); }
+#endif
 
     template< typename Rep, typename Period >
     queue_op_status push_wait_for( BOOST_RV_REF( value_type) va,
                                    chrono::duration< Rep, Period > const& timeout_duration)
     { return push_wait_until( boost::forward< value_type >( va), chrono::high_resolution_clock::now() + timeout_duration); }
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     template< typename Clock, typename Duration >
     queue_op_status push_wait_until( value_type const& va,
                                      chrono::time_point< Clock, Duration > const& timeout_time)
@@ -314,6 +319,7 @@ public:
         boost::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new_node, timeout_time, lk );
     }
+#endif
 
     template< typename Clock, typename Duration >
     queue_op_status push_wait_until( BOOST_RV_REF( value_type) va,
@@ -324,12 +330,14 @@ public:
         return push_wait_until_( new_node, timeout_time, lk );
     }
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     queue_op_status try_push( value_type const& va)
     {
         typename node_type::ptr new_node( new node_type( va) );
         boost::unique_lock< mutex > lk( mtx_);
         return try_push_( new_node );
     }
+#endif
 
     queue_op_status try_push( BOOST_RV_REF( value_type) va)
     {
