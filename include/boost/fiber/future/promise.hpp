@@ -33,7 +33,7 @@ private:
     bool            obtained_;
     ptr_t           future_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise)
 
 public:
     promise() :
@@ -171,7 +171,7 @@ private:
     bool            obtained_;
     ptr_t           future_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise)
 
 public:
     promise() :
@@ -296,7 +296,7 @@ private:
     bool            obtained_;
     ptr_t           future_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( promise)
 
 public:
     promise() :

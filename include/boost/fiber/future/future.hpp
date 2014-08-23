@@ -45,7 +45,7 @@ private:
 
     ptr_t           state_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( future)
 
     future( ptr_t const& p) :
         state_( p)
@@ -183,7 +183,7 @@ private:
 
     ptr_t           state_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( future)
 
     future( ptr_t const& p) :
         state_( p)
@@ -321,7 +321,7 @@ private:
 
     ptr_t           state_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( future);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( future)
 
     future( ptr_t const& p) :
         state_( p)

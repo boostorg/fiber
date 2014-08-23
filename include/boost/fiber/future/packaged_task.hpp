@@ -41,7 +41,7 @@ private:
     bool            obtained_;
     ptr_t           task_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( packaged_task);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( packaged_task)
 
 public:
     packaged_task() BOOST_NOEXCEPT :
@@ -290,7 +290,7 @@ private:
     bool            obtained_;
     ptr_t           task_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( packaged_task);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( packaged_task)
 
 public:
     packaged_task() BOOST_NOEXCEPT :

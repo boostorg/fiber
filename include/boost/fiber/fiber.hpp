@@ -59,7 +59,7 @@ private:
 
     ptr_t                               impl_;
 
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber);
+    BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber)
 
 #ifdef BOOST_MSVC
     typedef void ( * fiber_fn)();
