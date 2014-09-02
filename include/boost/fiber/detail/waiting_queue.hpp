@@ -41,12 +41,28 @@ public:
     {
         BOOST_ASSERT( 0 != item);
         BOOST_ASSERT( 0 == item->next() );
+        BOOST_ASSERT( 0 == item->prev() );
 
         if ( empty() )
             head_ = tail_ = item;
         else
         {
             worker_fiber * f = head_, * prev = 0;
+            if (item->time_point() == (clock_type::time_point::max)())
+            {
+                tail_->next(item);
+                item->prev(tail_);
+                tail_ = item;
+                return;
+            }
+            if (item->is_ready())
+            {
+                item->next(head_);
+                head_->prev(item);
+                head_ = item;
+                return;
+            }
+
             do
             {
                 worker_fiber * nxt = f->next();
@@ -57,6 +73,7 @@ public:
                         BOOST_ASSERT( 0 == prev);
 
                         item->next( f);
+                        f->prev(item);
                         head_ = item;
                     }
                     else
@@ -64,7 +81,9 @@ public:
                         BOOST_ASSERT( 0 != prev);
 
                         item->next( f);
+                        f->prev(item);
                         prev->next( item);
+                        item->prev(prev);
                     }
                     break;
                 }
@@ -73,6 +92,7 @@ public:
                     BOOST_ASSERT( 0 == nxt);
 
                     tail_->next( item);
+                    item->prev(tail_);
                     tail_ = item;
                     break;
                 }
@@ -91,6 +111,48 @@ public:
         return head_; 
     }
 
+    template< typename SchedAlgo >
+    void move_to_run( SchedAlgo * sched_algo, detail::worker_fiber* f)
+    {
+        BOOST_ASSERT(!f->is_running());
+        if (f->next() == NULL && f->prev() == NULL && f != head_)
+        {
+            // not a waiting fiber
+        }
+        else
+        {
+            BOOST_ASSERT(!(f->prev() == NULL && f != head_));
+            BOOST_ASSERT(!(f->next() == NULL && f != tail_));
+            if (f == head_)
+            {
+                head_ = f->next();
+                if (0 == head_)
+                    tail_ = 0;
+                else
+                {
+                    head_->prev(0);
+                }
+            }
+            else
+            {
+                if (0 == f->next())
+                {
+                    BOOST_ASSERT(tail_ == f);
+                    tail_ = f->prev();
+                }
+                else
+                {
+                    f->next()->prev(f->prev());
+                }
+                f->prev()->next(f->next());
+            }
+            f->next_reset();
+            f->prev_reset();
+            f->time_point_reset();
+        }
+        sched_algo->awakened(f);
+    }
+
     template< typename SchedAlgo, typename Fn >
     void move_to( SchedAlgo * sched_algo, Fn fn)
     {
@@ -103,30 +165,12 @@ public:
             worker_fiber * nxt = f->next();
             if ( fn( f, now) )
             {
-                if ( f == head_)
-                {
-                    BOOST_ASSERT( 0 == prev);
-
-                    head_ = nxt;
-                    if ( 0 == head_)
-                        tail_ = 0;
-                }
-                else
-                {
-                    BOOST_ASSERT( 0 != prev);
-
-                    if ( 0 == nxt)
-                        tail_ = prev;
-
-                    prev->next( nxt); 
-                }
-                f->next_reset();
-                f->time_point_reset();
-                sched_algo->awakened( f);
-                break;
             }
             else
-                prev = f;
+            {
+                // since the wait time is ordered, the fibers after will not be ready.
+                break;
+            }
             f = nxt;
         }
     }

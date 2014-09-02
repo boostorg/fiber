@@ -127,7 +127,7 @@ void fm_spawn( detail::worker_fiber * f)
     BOOST_ASSERT( f->is_ready() );
     BOOST_ASSERT( f != fm->active_fiber_);
 
-    fm->sched_algo_->awakened( f);
+    //fm->sched_algo_->awakened( f);
 }
 
 void fm_priority( detail::worker_fiber * f,
@@ -230,7 +230,7 @@ void fm_yield()
     // set active-fiber to state_waiting
     fm->active_fiber_->set_ready();
     // push active-fiber to fm->wqueue_
-    fm->wqueue_.push( fm->active_fiber_);
+    //fm->wqueue_.push( fm->active_fiber_);
     // suspend active-fiber
     fm->active_fiber_->suspend();
 }
@@ -285,6 +285,13 @@ void fm_migrate( detail::worker_fiber * f)
 
     fm_spawn( f);
     fm_run();
+}
+
+void fm_move_to_run( detail::worker_fiber * f)
+{
+    if (f == NULL)
+        return;
+    wqueue_.move_to_run(sched_algo_, f);
 }
 
 }}

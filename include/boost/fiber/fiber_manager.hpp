@@ -97,6 +97,7 @@ void fm_yield();
 chrono::high_resolution_clock::time_point fm_next_wakeup();
 
 void fm_migrate( detail::worker_fiber *);
+void fm_move_to_run( detail::worker_fiber *);
 
 }}
 

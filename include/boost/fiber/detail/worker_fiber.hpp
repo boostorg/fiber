@@ -89,6 +89,7 @@ private:
 
     atomic< std::size_t >           use_count_;
     fss_data_t                      fss_data_;
+    worker_fiber                *   prev_;
     worker_fiber                *   nxt_;
     chrono::high_resolution_clock::time_point          tp_;
     coro_t::yield_type          *   callee_;
@@ -150,12 +151,7 @@ public:
         (void)previous;
     }
 
-    void set_ready() BOOST_NOEXCEPT
-    {
-        state_t previous = state_.exchange( READY);
-        BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
-        (void)previous;
-    }
+    void set_ready() BOOST_NOEXCEPT;
 
     void set_running() BOOST_NOEXCEPT
     {
@@ -213,6 +209,15 @@ public:
 
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
+
+    worker_fiber * prev() const BOOST_NOEXCEPT
+    { return prev_; }
+
+    void prev( worker_fiber * prv) BOOST_NOEXCEPT
+    { prev_ = prv; }
+
+    void prev_reset() BOOST_NOEXCEPT
+    { prev_ = 0; }
 
     worker_fiber * next() const BOOST_NOEXCEPT
     { return nxt_; }
