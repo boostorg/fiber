@@ -18,7 +18,7 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
         {
             ready,
             timeout,
-            deferred
+            deferred  // not supported yet
         };
 
 [heading `ready`]

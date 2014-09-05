@@ -32,8 +32,8 @@
 
         fibers::id get_id() noexcept;
         void yield();
-        template< typename TimePoint >
-        void sleep_until( TimePoint const& timeout_point);
+        template< typename Clock, typename Duration >
+        void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
         void sleep_for( chrono::duration< Rep, Period > const& timeout_duration); 
         bool thread_affinity() noexcept;
@@ -614,7 +614,8 @@ fiber's context.
 
         fibers::fiber::id get_id() noexcept;
         void yield();
-        void sleep_until( fibers::clock_type::time_point const& sleep_time);
+        template< typename Clock, typename Duration >
+        void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
         void sleep_for( chrono::duration< Rep, Period > const& timeout_duration);
         bool thread_affinity() noexcept;
@@ -644,7 +645,8 @@ executing fiber.]]
 
         #include <boost/fiber/operations.hpp>
 
-        void sleep_until( fibers::clock_type & abs_time);
+        template< typename Clock, typename Duration >
+        void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time point specified by

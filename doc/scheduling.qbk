@@ -73,6 +73,15 @@ fiber which has to be resumed next.]]
 ]
 
 
+[ns_function_heading fibers..set_scheduling_algorithm]
+
+        void set_scheduling_algorithm( sched_algorithm * a);
+
+[variablelist
+[[Effects:] [Registers `a` as scheduling algorithm.]]
+]
+
+
 [class_heading round_robin]
 
 This class implements __algo__ and schedules fibers in round-robin fashion.
