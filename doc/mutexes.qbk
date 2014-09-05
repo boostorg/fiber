@@ -51,7 +51,8 @@ fiber releases the lock by calling __unlock__.
             void unlock();
             bool try_lock();
 
-            bool try_lock_until( clock_type::time_point const& timeout_time);
+            template< typename Clock, typename Duration >
+            bool try_lock_until( chrono::time_point< Clock, Duration > const& timeout_time)
             template< typename Rep, typename Period >
             bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
         };
@@ -107,7 +108,8 @@ acquired by another fiber.
             bool try_lock() noexcept;
             void unlock();
 
-            bool try_lock_until( clock_type::time_point const& timeout_time);
+            template< typename Clock, typename Duration >
+            bool try_lock_until( chrono::time_point< Clock, Duration > const& timeout_time)
             template< typename Rep, typename Period >
             bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
         };
