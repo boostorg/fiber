@@ -402,8 +402,8 @@ return * this;
 
 [variablelist
 [[Effects:] [Executes `fn` in a fiber and returns an associated future.]]
-[[Result:] `future< typename result_of< Fn >::type >` representing the shared state associated with
-the asynchronous execution of `fn`.]
+[[Result:] [`future< typename result_of< Fn >::type >` representing the shared state associated with
+the asynchronous execution of `fn`.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]
 ]
 

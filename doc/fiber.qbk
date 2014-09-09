@@ -613,7 +613,7 @@ ensure that the instance is destroyed on thread termination.)]]
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading id..operator==]
+[operator_heading id..operator_equal..operator==]
 
         bool operator==( id const& other) const noexcept;
 
@@ -623,7 +623,7 @@ or both represent __not_a_fiber__, `false` otherwise.]
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading id..operator!=]
+[operator_heading id..operator_not_equal..operator!=]
 
         bool operator!=( id const& other) const noexcept;
 
@@ -632,7 +632,7 @@ or both represent __not_a_fiber__, `false` otherwise.]
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading id..operator<]
+[operator_heading id..operator_less..operator<]
 
         bool operator<( id const& other) const noexcept;
 
@@ -643,7 +643,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading id..operator>]
+[operator_heading id..operator_greater..operator>]
 
         bool operator>( id const& other) const noexcept;
 
@@ -652,7 +652,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading id..operator<=]
+[operator_heading id..operator_less_equal..operator<=]
 
         bool operator<=( id const& other) const noexcept;
 
@@ -661,7 +661,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading id..operator>=]
+[operator_heading id..operator_greater_equal..operator>=]
 
         bool operator>=( id const& other) const noexcept;
 
@@ -670,7 +670,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
 [[Throws:] [Nothing.]]
 ]
 
-[operator_heading operator<<]
+[heading operator<<]
 
         template< typename charT, class traitsT >
         std::basic_ostream< charT, traitsT > &
