@@ -94,9 +94,10 @@ might have suspended.
 
 [heading Exceptions]
 
-Exceptions thrown by the function or callable object passed to the __fiber__
-constructor are consumed by the framework. If you need to know which
-exception was thrown, use __future__ and __packaged_task__.
+A exception thrown by the function or callable object passed to the __fiber__
+constructor calls `std::terminate()`.
+If you need to know which exception was thrown, use __future__ and
+__packaged_task__.
 
 
 [heading Detaching]
@@ -207,7 +208,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         class fiber
         {
         public:
-            typedef uspecified-class        id;
+            class        id;
 
             fiber() noexcept;
 
@@ -462,7 +463,7 @@ interruption enabled.]]
 [[Throws:] [Nothing]]
 [[Note:] [The meaning of particular `int` values is determined by the specific
 __algo__ passed to [function_link set_scheduling_algorithm]. [class_link
-round_robin] and [class_link round_robin_ws] ignore `fiber::priority()`.]]
+round_robin] ignores `fiber::priority()`.]]
 ]
 
 [member_heading fiber..priority]
@@ -576,6 +577,113 @@ ensure that the instance is destroyed on thread termination.)]]
 
 [endsect] [/ section Class fiber]
 
+[#class_id]
+[section:id Class fiber::id]
+
+        #include <boost/fiber/fiber.hpp>
+
+        class id
+        {
+        public:
+            id() noexcept;
+
+            bool operator==( id const& other) const noexcept;
+
+            bool operator!=( id const& other) const noexcept;
+            
+            bool operator<( id const& other) const noexcept;
+            
+            bool operator>( id const& other) const noexcept;
+            
+            bool operator<=( id const& other) const noexcept;
+            
+            bool operator>=( id const& other) const noexcept;
+
+            template< typename charT, class traitsT >
+            friend std::basic_ostream< charT, traitsT > &
+            operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
+        };
+
+[heading Constructor]
+
+        id() noexcept;
+
+[variablelist
+[[Effects:] [Represents an instance of __not_a_fiber__.]]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator==]
+
+        bool operator==( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` and `other` represent the same fiber,
+or both represent __not_a_fiber__, `false` otherwise.]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator!=]
+
+        bool operator!=( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`! (other == * this)]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator<]
+
+        bool operator<( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this != other` is true and the
+implementation-defined total order of `fiber::id` values places `*this` before
+`other`, false otherwise.]]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator>]
+
+        bool operator>( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`other < * this`]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator<=]
+
+        bool operator<=( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`! (other < * this)`]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator>=]
+
+        bool operator>=( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`! (* this < other)`]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading operator<<]
+
+        template< typename charT, class traitsT >
+        std::basic_ostream< charT, traitsT > &
+        operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
+
+[variablelist
+[[Efects:] [Writes the representation of `other` to stream `os`.]
+[[Returns:] [`os`]]
+]
+
+
+[endsect] [/ section Class fiber::id]
+
 
 [#class_attributes]
 [section:attributes Class attributes]
@@ -589,15 +697,15 @@ fiber's context.
         {
             std::size_t                 size;
 
-            attributes() BOOST_NOEXCEPT;
+            attributes() noexcept;
 
-            explicit attributes( std::size_t size_) BOOST_NOEXCEPT;
+            explicit attributes( std::size_t size_) noexcept;
         };
 
 [heading Constructor]
 
-        attributes();
-        attributes( std::size_t size);
+        attributes() noexcept;
+        attributes( std::size_t size) noexcept;
 
 [variablelist
 [[Effects:] [Parameter `size` determines the stack size.]]

@@ -1,0 +1,85 @@
+[/
+          Copyright Oliver Kowalke 2013.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[section:custom Customization]
+
+__boost_fiber__ allows to customize the scheduling algorithm by a user-defined
+implementation.
+A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides 
+scheduler [class_link round_robin].
+
+To prevent the library from heap-allocating a default scheduler for a given
+thread, that thread must call [function_link set_scheduling_algorithm] before
+any other __boost_fiber__ entry point.
+
+        void thread_fn()
+        {
+            my_fiber_scheduler mfs;
+            boost::fibers::set_scheduling_algorithm( & mfs);
+            ...
+        }
+
+You are explicitly permitted to code your own __algo__ subclass, and to pass
+it to [function_link set_scheduling_algorithm].
+
+
+[class_heading sched_algorithm]
+
+        #include <boost/fiber/algorithm.hpp>
+
+        struct sched_algorithm
+        {
+            virtual ~sched_algorithm() {}
+
+            virtual void awakened( detail::worker_fiber *) = 0;
+
+            virtual detail::worker_fiber * pick_next() = 0;
+
+            virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+        };
+
+        void set_scheduling_algorithm( sched_algorithm *);
+
+[member_heading algorithm..awakened]
+
+        virtual void awakened( detail::worker_fiber * f) = 0;
+
+[variablelist
+[[Effects:] [Marks fiber `f`, to be ready to run.]]
+]
+
+[member_heading algorithm..pick_next]
+
+        virtual detail::worker_fiber * pick_next() = 0;
+
+[variablelist
+[[Effects:] [Depending on the scheduling algorithm, this function returns the
+fiber which has to be resumed next.]]
+]
+
+[member_heading algorithm..priority]
+
+        virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+
+[variablelist
+[[Effects:] [Reschedule the fiber depending on the priority.]]
+]
+
+
+[ns_function_heading fibers..set_scheduling_algorithm]
+
+        void set_scheduling_algorithm( sched_algorithm * a);
+
+[variablelist
+[[Effects:] [Registers `a` as scheduling algorithm.]]
+]
+
+
+[info The exsample section provides an scheduler used for migrating fibers
+(work-stealing) between threads (different schedulers).]
+
+[endsect]

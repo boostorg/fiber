@@ -37,7 +37,7 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 [[Note:] [Not implemented yet.]]
 ]
 
-[note Launch policy `deferred`, which indicates you simply want to defer the function call until a later time (lazy evaluation), is not supported yet.]
+[warning Launch policy `deferred`, which indicates you simply want to defer the function call until a later time (lazy evaluation), is not supported yet.]
 
 
 [template_heading future]
@@ -392,5 +392,21 @@ return * this;
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
 [[Throws:] [__future_error__ with error condition __no_state__.]]
 ]
+
+[ns_function_heading fibers..async]
+
+        #include <boost/fiber/future/async.hpp>
+
+        template< typename Fn >
+        future< typename result_of< Fn >::type > async( Fn && fn);
+
+[variablelist
+[[Effects:] [Executes `fn` in a fiber and returns an associated future.]]
+[[Result:] `future< typename result_of< Fn >::type >` representing the shared state associated with
+the asynchronous execution of `fn`.]
+[[Throws:] [__fiber_error__ if an error occurs.]]
+]
+
+[warning Launch policy `deferred`, which indicates you simply want to defer the function call until a later time (lazy evaluation), is not supported yet.]
 
 [endsect]

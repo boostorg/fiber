@@ -192,9 +192,11 @@ public:
                 // published message is stored in buffer 'data_'
                 boost::unique_lock< boost::fibers::mutex > lk( mtx_);
                 cond_.wait( lk);
+                std::string data( data_);
+                lk.unlock();
                 
                 // message '<fini>' terminates subscription
-                if ( "<fini>" == std::string( data_) ) break;
+                if ( "<fini>" == data) break;
 
                 // async. write message to socket connected with
                 // subscriber
@@ -202,7 +204,7 @@ public:
                 // the fiber is suspended in the meanwhile
                 boost::asio::async_write(
                         socket_,
-                        boost::asio::buffer( data_, max_length),
+                        boost::asio::buffer( data, data.size() ),
                         yield[ec]);
                 if ( ec) throw std::runtime_error("publishing message failed");
             }
