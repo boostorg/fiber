@@ -101,7 +101,7 @@ private:
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
     worker_fiber                **  phead_;
-    worker_fiber                *   ptail_;
+    worker_fiber                **   ptail_;
 
 public:
     worker_fiber( coro_t::yield_type *);
