@@ -45,6 +45,11 @@ public:
 
         if ( empty() )
             head_ = tail_ = item;
+        else if (head_ == item)
+        {
+            // avoid cycle
+            return;
+        }
         else
         {
             tail_->next( item);

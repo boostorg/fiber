@@ -43,18 +43,21 @@ public:
         BOOST_ASSERT( 0 == item->next() );
         BOOST_ASSERT( 0 == item->prev() );
 
+        if (item->head() != NULL)
+        {
+            // already in waiting queue.
+            return;
+        }
+        item->attach_queue(&head_, &tail_);
         if ( empty() )
             head_ = tail_ = item;
+        else if (head_ == item)
+        {
+            // avoid cycle
+            return;
+        }
         else
         {
-            worker_fiber * f = head_, * prev = 0;
-            if (item->time_point() == (clock_type::time_point::max)())
-            {
-                tail_->next(item);
-                item->prev(tail_);
-                tail_ = item;
-                return;
-            }
             if (item->is_ready())
             {
                 item->next(head_);
@@ -63,10 +66,19 @@ public:
                 return;
             }
 
+            if (item->time_point() == (clock_type::time_point::max)())
+            {
+                tail_->next(item);
+                item->prev(tail_);
+                tail_ = item;
+                return;
+            }
+
+            worker_fiber * f = head_, * prev = 0;
             do
             {
                 worker_fiber * nxt = f->next();
-                if ( item->time_point() <= f->time_point() )
+                if ( (!f->is_ready()) && item->time_point() <= f->time_point() )
                 {
                     if ( head_ == f)
                     {
@@ -114,43 +126,35 @@ public:
     template< typename SchedAlgo >
     void move_to_run( SchedAlgo * sched_algo, detail::worker_fiber* f)
     {
+        // head_/tail_ can not be used here, since it can be called in other thread.
         BOOST_ASSERT(!f->is_running());
-        if (f->next() == NULL && f->prev() == NULL && f != head_)
+        if (f->prev() == NULL)
         {
-            // not a waiting fiber
+            // no need move the head of waiting queue.
         }
         else
         {
-            BOOST_ASSERT(!(f->prev() == NULL && f != head_));
-            BOOST_ASSERT(!(f->next() == NULL && f != tail_));
-            if (f == head_)
+            if (f->head() == NULL)
             {
-                head_ = f->next();
-                if (0 == head_)
-                    tail_ = 0;
-                else
-                {
-                    head_->prev(0);
-                }
+                // not in any queue.
+                return;
+            }
+            // moving f to the head of queue so that it can be awakened first.
+            if (0 == f->next())
+            {
+                *(f->tail()) = f->prev();
             }
             else
             {
-                if (0 == f->next())
-                {
-                    BOOST_ASSERT(tail_ == f);
-                    tail_ = f->prev();
-                }
-                else
-                {
-                    f->next()->prev(f->prev());
-                }
-                f->prev()->next(f->next());
+                f->next()->prev(f->prev());
             }
-            f->next_reset();
+            f->prev()->next(f->next());
+
+            f->next(*(f->head()));
             f->prev_reset();
-            f->time_point_reset();
+            (*(f->head()))->prev(f);
+            *(f->head()) = f;
         }
-        sched_algo->awakened(f);
     }
 
     template< typename SchedAlgo, typename Fn >
@@ -165,6 +169,22 @@ public:
             worker_fiber * nxt = f->next();
             if ( fn( f, now) )
             {
+                // the f should be moved to head of queue.
+                BOOST_ASSERT(head_ == f);
+                head_ = f->next();
+                if (0 == head_)
+                {
+                    tail_ = 0;
+                }
+                else
+                {
+                    head_->prev(0);
+                }
+                f->next_reset();
+                f->prev_reset();
+                f->detach_queue();
+                f->time_point_reset();
+                sched_algo->awakened(f);
             }
             else
             {

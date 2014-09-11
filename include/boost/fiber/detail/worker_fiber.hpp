@@ -100,6 +100,8 @@ private:
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
+    worker_fiber                **  phead_;
+    worker_fiber                *   ptail_;
 
 public:
     worker_fiber( coro_t::yield_type *);
@@ -208,6 +210,25 @@ public:
         ( * callee_)();
 
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
+    }
+
+    void attach_queue(worker_fiber** h, worker_fiber** t)
+    {
+        phead_ = h;
+        ptail_ = t;
+    }
+    void detach_queue()
+    {
+        phead_ = 0;
+        ptail_ = 0;
+    }
+    worker_fiber** head()
+    {
+        return phead_;
+    }
+    worker_fiber** tail()
+    {
+        return ptail_;
     }
 
     worker_fiber * prev() const BOOST_NOEXCEPT
