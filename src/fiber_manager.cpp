@@ -287,6 +287,13 @@ void fm_migrate( detail::worker_fiber * f)
     fm_run();
 }
 
+void fm_move_to_run( detail::worker_fiber * f)
+{
+    if (f == NULL)
+        return;
+    wqueue_.move_to_run(sched_algo_, f);
+}
+
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS

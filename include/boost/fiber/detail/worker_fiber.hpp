@@ -89,6 +89,7 @@ private:
 
     atomic< std::size_t >           use_count_;
     fss_data_t                      fss_data_;
+    worker_fiber                *   prev_;
     worker_fiber                *   nxt_;
     chrono::high_resolution_clock::time_point          tp_;
     coro_t::yield_type          *   callee_;
@@ -99,6 +100,8 @@ private:
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
+    worker_fiber                **  phead_;
+    worker_fiber                **  ptail_;
 
 public:
     worker_fiber( coro_t::yield_type *);
@@ -150,12 +153,7 @@ public:
         (void)previous;
     }
 
-    void set_ready() BOOST_NOEXCEPT
-    {
-        state_t previous = state_.exchange( READY);
-        BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
-        (void)previous;
-    }
+    void set_ready() BOOST_NOEXCEPT;
 
     void set_running() BOOST_NOEXCEPT
     {
@@ -213,6 +211,34 @@ public:
 
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
+
+    void attach_queue(worker_fiber** h, worker_fiber** t)
+    {
+        phead_ = h;
+        ptail_ = t;
+    }
+    void detach_queue()
+    {
+        phead_ = 0;
+        ptail_ = 0;
+    }
+    worker_fiber** head()
+    {
+        return phead_;
+    }
+    worker_fiber** tail()
+    {
+        return ptail_;
+    }
+
+    worker_fiber * prev() const BOOST_NOEXCEPT
+    { return prev_; }
+
+    void prev( worker_fiber * prv) BOOST_NOEXCEPT
+    { prev_ = prv; }
+
+    void prev_reset() BOOST_NOEXCEPT
+    { prev_ = 0; }
 
     worker_fiber * next() const BOOST_NOEXCEPT
     { return nxt_; }

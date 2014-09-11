@@ -38,14 +38,22 @@ public:
 
     void push( worker_fiber * item) BOOST_NOEXCEPT
     {
+        BOOST_ASSERT(item->is_ready() || item->is_running());
         BOOST_ASSERT( 0 != item);
         BOOST_ASSERT( 0 == item->next() );
+        BOOST_ASSERT( 0 == item->prev() );
 
         if ( empty() )
             head_ = tail_ = item;
+        else if (head_ == item)
+        {
+            // avoid cycle
+            return;
+        }
         else
         {
             tail_->next( item);
+            item->prev(tail_);
             tail_ = item;
         }
     }
@@ -57,7 +65,12 @@ public:
         worker_fiber * item = head_;
         head_ = head_->next();
         if ( 0 == head_) tail_ = 0;
+        else
+        {
+            head_->prev(0);
+        }
         item->next_reset();
+        item->prev_reset();
         return item;
     }
 

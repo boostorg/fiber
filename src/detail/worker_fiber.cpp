@@ -29,6 +29,7 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     fiber_base(),
     use_count_( 1), // allocated on stack
     fss_data_(),
+    prev_( 0),
     nxt_( 0),
     tp_( (chrono::high_resolution_clock::time_point::max)() ),
     callee_( callee),
@@ -37,7 +38,9 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     flags_( 0),
     priority_( 0),
     except_(),
-    waiting_()
+    waiting_(),
+    phead_(0),
+    ptail_(0)
 { BOOST_ASSERT( callee_); }
 
 worker_fiber::~worker_fiber()
@@ -67,6 +70,15 @@ worker_fiber::release()
     { data.second.do_cleanup(); }
 }
 
+void
+worker_fiber::set_ready()
+{
+    state_t previous = state_.exchange( READY);
+    BOOST_ASSERT( WAITING == previous || RUNNING == previous || READY == previous);
+    (void)previous;
+    scheduler::instance()->move_to_run(this);
+}
+
 bool
 worker_fiber::join( worker_fiber * p)
 {
@@ -89,7 +101,10 @@ void
 worker_fiber::request_interruption( bool req) BOOST_NOEXCEPT
 {
     if ( req)
+    {
         flags_ |= flag_interruption_requested;
+        set_ready();
+    }
     else
         flags_ &= ~flag_interruption_requested;
 }
