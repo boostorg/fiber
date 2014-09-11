@@ -5,7 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:asio Asynchronous network I/O (boost.asio)]
+[section:asio Example: asynchronous network I/O (boost.asio)]
 
 In the past, code using asio's ['asynchronous operations] was scattered by
 callbacks.
@@ -26,9 +26,10 @@ __yield_context__ internally uses __boost_coroutine__:
 Unfortunately __boost_coroutine__ (__yield_context__) does not provide primitives
 to synchronize different coroutines (execution contexts).
 
-__boost_fiber__ provides an integration of __fibers__ into __boost_asio__ so
-that ['asynchronous operations] from __boost_asio__ can be used together with
-fibers, synchronized by primitives provided by __boost_fiber__.
+__boost_fiber__ provides an example how __fibers__ could be integrated into
+__boost_asio__ so that ['asynchronous operations] from __boost_asio__ can be
+used together with fibers, synchronized by primitives provided by
+__boost_fiber__.
 
 The example section contains a complete publish-subscribe application
 demonstrating the use of fibers with asio's ['asynchronous operations].

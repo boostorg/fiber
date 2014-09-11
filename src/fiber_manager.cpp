@@ -95,7 +95,7 @@ void fm_set_sched_algo( sched_algorithm * algo)
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( 0 != fm);
-    
+
     fm->sched_algo_ = algo;
     fm->def_algo_.reset();
 }

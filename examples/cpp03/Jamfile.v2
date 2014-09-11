@@ -39,8 +39,8 @@ exe ping_pong : ping_pong.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp test_fiber.cpp ;
 exe migrate_fibers
-    : migrate_fibers.cpp
-      workstealing_round_robin.cpp
+    : migration/migrate_fibers.cpp
+      migration/workstealing_round_robin.cpp
     ;
 
 exe asio/daytime_client : asio/daytime_client.cpp ;

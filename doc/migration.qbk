@@ -5,8 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:acknowledgements Acknowledgments]
+[section:migartion Example: fiber migration]
 
-I'd like to thank Eugene Yakubovich and especially Nat Goodspeed.
 
 [endsect]
