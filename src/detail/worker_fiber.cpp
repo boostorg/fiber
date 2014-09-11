@@ -38,7 +38,9 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     flags_( 0),
     priority_( 0),
     except_(),
-    waiting_()
+    waiting_(),
+    phead_(0),
+    ptail_(0)
 { BOOST_ASSERT( callee_); }
 
 worker_fiber::~worker_fiber()
