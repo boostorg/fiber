@@ -619,7 +619,7 @@ ensure that the instance is destroyed on thread termination.)]]
 
 [variablelist
 [[Returns:] [`true` if `*this` and `other` represent the same fiber,
-or both represent __not_a_fiber__, `false` otherwise.]
+or both represent __not_a_fiber__, `false` otherwise.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -628,7 +628,7 @@ or both represent __not_a_fiber__, `false` otherwise.]
         bool operator!=( id const& other) const noexcept;
 
 [variablelist
-[[Returns:] [`! (other == * this)]
+[[Returns:] [`! (other == * this)]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -648,7 +648,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
         bool operator>( id const& other) const noexcept;
 
 [variablelist
-[[Returns:] [`other < * this`]
+[[Returns:] [`other < * this`]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -657,7 +657,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
         bool operator<=( id const& other) const noexcept;
 
 [variablelist
-[[Returns:] [`! (other < * this)`]
+[[Returns:] [`! (other < * this)`]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -666,7 +666,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
         bool operator>=( id const& other) const noexcept;
 
 [variablelist
-[[Returns:] [`! (* this < other)`]
+[[Returns:] [`! (* this < other)`]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -677,7 +677,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
         operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
 
 [variablelist
-[[Efects:] [Writes the representation of `other` to stream `os`.]
+[[Efects:] [Writes the representation of `other` to stream `os`.]]
 [[Returns:] [`os`]]
 ]
 

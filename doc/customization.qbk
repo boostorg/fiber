@@ -79,7 +79,7 @@ fiber which has to be resumed next.]]
 ]
 
 
-[info The exsample section provides an scheduler used for migrating fibers
+[note The exsample section provides an scheduler used for migrating fibers
 (work-stealing) between threads (different schedulers).]
 
 [endsect]
