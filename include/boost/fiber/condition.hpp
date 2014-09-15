@@ -132,9 +132,12 @@ public:
         catch (...)
         {
             unique_lock< detail::spinlock > lk( splk_);
-            // remove fiber from waiting-list
-            waiting_.erase(
-                    std::find( waiting_.begin(), waiting_.end(), n) );
+            std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+            if (wit != waiting_.end())
+            {
+                // remove fiber from waiting-list
+                waiting_.erase( wit );
+            }
             throw;
         }
     }
@@ -169,9 +172,12 @@ public:
                     // this fiber was not notified before timeout
                     // lock spinlock again
                     unique_lock< detail::spinlock > lk( splk_);
-                    // remove fiber from waiting-list
-                    waiting_.erase(
-                        std::find( waiting_.begin(), waiting_.end(), n) );
+                    std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+                    if (wit != waiting_.end())
+                    {
+                        // remove fiber from waiting-list
+                        waiting_.erase( wit );
+                    }
 
                     status = cv_status::timeout;
                 }
@@ -209,12 +215,14 @@ public:
                         // timeout happend before notified
                         // lock spinlock
                         unique_lock< detail::spinlock > lk( splk_);
-                        // remove fiber from waiting-list
-                        waiting_.erase(
-                                std::find( waiting_.begin(), waiting_.end(), n) );
+                        std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+                        if (wit != waiting_.end())
+                        {
+                            // remove fiber from waiting-list
+                            waiting_.erase(wit);
+                        }
 
                         status = cv_status::timeout;
-
                         break;
                     }
                     // run scheduler
@@ -228,9 +236,12 @@ public:
         catch (...)
         {
             unique_lock< detail::spinlock > lk( splk_);
-            // remove fiber from waiting-list
-            waiting_.erase(
-                std::find( waiting_.begin(), waiting_.end(), n) );
+            std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+            if (wit != waiting_.end())
+            {
+                // remove fiber from waiting-list
+                waiting_.erase( wit );
+            }
             throw;
         }
 
