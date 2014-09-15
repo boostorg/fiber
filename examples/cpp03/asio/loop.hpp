@@ -31,7 +31,14 @@ inline void timer_handler( boost::asio::high_resolution_timer & timer) {
 inline void run_service( boost::asio::io_service & io_service) {
     boost::asio::high_resolution_timer timer( io_service, boost::chrono::seconds(0) );
     timer.async_wait( boost::bind( timer_handler, boost::ref( timer) ) );
-    io_service.run();
+    while(true)
+    {
+        boost::system::error_code ec;
+        std::size_t num = io_service.run_one(ec);
+        if (num == 0)
+            return;
+        boost::this_fiber::yield();
+    }
 }
 
 }}}
