@@ -136,9 +136,12 @@ recursive_timed_mutex::try_lock_until( chrono::high_resolution_clock::time_point
             if ( ! fm_wait_until( timeout_time, lk) )
             {
                 lk.lock();
-                // remove fiber from waiting-list
-                waiting_.erase(
-                    std::find( waiting_.begin(), waiting_.end(), n) );
+                std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+                if (wit != waiting_.end())
+                {
+                    // remove fiber from waiting-list
+                    waiting_.erase( wit );
+                }
                 lk.unlock();
                 return false;
             }
@@ -170,9 +173,12 @@ recursive_timed_mutex::try_lock_until( chrono::high_resolution_clock::time_point
                 if ( chrono::high_resolution_clock::now() > timeout_time)
                 {
                     lk.lock();
-                    // remove fiber from waiting-list
-                    waiting_.erase(
-                            std::find( waiting_.begin(), waiting_.end(), n) );
+                    std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+                    if (wit != waiting_.end())
+                    {
+                        // remove fiber from waiting-list
+                        waiting_.erase( wit );
+                    }
                     lk.unlock();
                     return false;
                 }
