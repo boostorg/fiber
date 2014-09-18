@@ -123,7 +123,6 @@ public:
                 f->next_reset();
                 f->time_point_reset();
                 sched_algo->awakened( f);
-                break;
             }
             else
                 prev = f;
