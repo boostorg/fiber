@@ -24,6 +24,15 @@ Coroutines have no scheduler because they need no scheduler.
 'N4024: Distinguishing coroutines and fibers']].
 
 
+[heading what about transactional memory]
+
+GCC support transactional memory since version 4.7. Unfortunately testes showed
+that transactional memory is slower (ca. 4x) than using spinlocks using atomics.
+If transactional memory will be improved (supporting hybrid tm), spinlocks will
+be replaced by __transaction_atomic{} statements surrounding the critical
+sections. 
+
+
 [heading `fiber_manager`with free-functions]
 
 Some compiler store the `this`-pointer on the stack so that the fiber, which has
