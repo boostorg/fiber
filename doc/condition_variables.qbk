@@ -33,11 +33,13 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     void wait_for_data_to_process()
     {
-        boost::fibers::mutex::scoped_lock lk( mtx);
-        while ( ! data_ready)
         {
-            cond.wait( lk);
-        }
+            boost::lock_guard< boost::fibers::mutex > lk( mtx);
+            while ( ! data_ready)
+            {
+                cond.wait( lk);
+            }
+        }                       // release lk
         process_data();
     }
 
@@ -48,9 +50,9 @@ When the fiber is awakened, the mutex will be locked again before the call to
 update the shared data, and ensures that the data associated with the condition
 is correctly synchronized.
 
-In the meantime, another fiber sets the condition to `true`, and then calls
-either `notify_one` or `notify_all` on the condition variable to wake one
-waiting fiber or all the waiting fibers respectively.
+In the meantime, another fiber sets `data_ready` to `true`, and then calls
+either `notify_one` or `notify_all` on the condition variable `cond` to wake
+one waiting fiber or all the waiting fibers respectively.
 
     void retrieve_data();
     void prepare_data();
@@ -68,6 +70,10 @@ waiting fiber or all the waiting fibers respectively.
 
 Note that the same mutex is locked before the shared data is updated, but that
 the mutex does not have to be locked across the call to `notify_one`.
+
+Locking is important because the synchronization objects provided by
+__boost_fiber__ can be used to synchronize fibers running on different
+threads.
 
 __boost_fiber__ provides both `condition_variable` and
 `condition_variable_any` because __boost_thread__ provides both.
