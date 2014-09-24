@@ -23,29 +23,14 @@ namespace detail {
 class main_fiber : public fiber_base
 {
 public:
-    static main_fiber * make_pointer( main_fiber & n) {
-        return & n;
+    main_fiber() :
+        fiber_base( 0) // main-fiber represents main-context
+    {
+        thread_affinity( true);
+        set_running();
     }
 
-    main_fiber() :
-        fiber_base(),
-        ready_( false)
-    {}
-
-    bool is_ready() const BOOST_NOEXCEPT
-    { return ready_; }
-
-    void set_ready() BOOST_NOEXCEPT
-    { ready_ = true; }
-
-    id get_id() const BOOST_NOEXCEPT
-    { return id( const_cast< main_fiber * >( this) ); }
-
-private:
-    atomic< bool >  ready_;
-
-    main_fiber( main_fiber const&);
-    main_fiber & operator=( main_fiber const&);
+    void deallocate() {}
 };
 
 }}}

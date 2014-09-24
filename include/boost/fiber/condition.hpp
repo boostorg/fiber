@@ -72,71 +72,40 @@ public:
     template< typename LockType >
     void wait( LockType & lt)
     {
-        detail::fiber_base * n( fm_active() );
+        detail::fiber_base * f( fm_active() );
         try
         {
-            if ( n)
-            {
-                // lock spinlock
-                unique_lock< detail::spinlock > lk( splk_);
+            // lock spinlock
+            unique_lock< detail::spinlock > lk( splk_);
 
-                BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
-                // store this fiber in waiting-queue
-                // in order notify (resume) this fiber later
-                waiting_.push_back( n);
+            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
+            // store this fiber in waiting-queue
+            // in order notify (resume) this fiber later
+            waiting_.push_back( f);
 
-                // unlock external
-                lt.unlock();
+            // unlock external
+            lt.unlock();
 
-                // suspend this fiber
-                // locked spinlock will be released if this fiber
-                // was stored inside schedulers's waiting-queue
-                fm_wait( lk);
+            // suspend this fiber
+            // locked spinlock will be released if this fiber
+            // was stored inside schedulers's waiting-queue
+            fm_wait( lk);
 
-                // this fiber was notified and resumed
-                // check if fiber was interrupted
-                this_fiber::interruption_point();
+            // this fiber was notified and resumed
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
 
-                // lock external again before returning
-                lt.lock();
-            }
-            else
-            {
-                // notification for main-fiber
-                detail::main_fiber mf;
-                n = & mf;
-
-                // lock spinlock
-                unique_lock< detail::spinlock > lk( splk_);
-
-                BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
-                // store this main-notifier in waiting-queue
-                // in order to be notified later
-                waiting_.push_back( n);
-
-                // unlock external
-                lt.unlock();
-
-                // release spinlock
-                lk.unlock();
-
-                // loop until main-notifier gets notified
-                while ( ! n->is_ready() )
-                    // run scheduler
-                    fm_run();
-
-                // lock external again before returning
-                lt.lock();
-            }
+            // lock external again before returning
+            lt.lock();
         }
         catch (...)
         {
             unique_lock< detail::spinlock > lk( splk_);
-            std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
-            if (wit != waiting_.end())
+            std::deque< detail::fiber_base * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            if ( waiting_.end() != i)
             {
                 // remove fiber from waiting-list
-                waiting_.erase( wit );
+                waiting_.erase( i);
             }
             throw;
         }
@@ -149,17 +118,15 @@ public:
         chrono::high_resolution_clock::time_point timeout_time(
             detail::convert_tp( timeout_time_) );
 
-        detail::fiber_base * n( fm_active() );
+        detail::fiber_base * f( fm_active() );
         try
         {
-            if ( n)
-            {
                 // lock spinlock
                 unique_lock< detail::spinlock > lk( splk_);
 
                 // store this fiber in waiting-queue
                 // in order notify (resume) this fiber later
-                waiting_.push_back( n);
+                waiting_.push_back( f);
 
                 // unlock external
                 lt.unlock();
@@ -172,7 +139,7 @@ public:
                     // this fiber was not notified before timeout
                     // lock spinlock again
                     unique_lock< detail::spinlock > lk( splk_);
-                    std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
+                    std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), f);
                     if (wit != waiting_.end())
                     {
                         // remove fiber from waiting-list
@@ -187,60 +154,15 @@ public:
 
                 // lock external again before returning
                 lt.lock();
-            }
-            else
-            {
-                // notification for main-fiber
-                detail::main_fiber mf;
-                n = & mf;
-
-                // lock spinlock
-                unique_lock< detail::spinlock > lk( splk_);
-
-                // store this fiber in order to be notified later
-                waiting_.push_back( n);
-
-                // unlock external
-                lt.unlock();
-
-                // release spinlock
-                lk.unlock();
-
-                // loop until main-notifier gets notified
-                while ( ! n->is_ready() )
-                {
-                    // check timepoint
-                    if ( ! ( chrono::high_resolution_clock::now() < timeout_time) )
-                    {
-                        // timeout happend before notified
-                        // lock spinlock
-                        unique_lock< detail::spinlock > lk( splk_);
-                        std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
-                        if (wit != waiting_.end())
-                        {
-                            // remove fiber from waiting-list
-                            waiting_.erase(wit);
-                        }
-
-                        status = cv_status::timeout;
-                        break;
-                    }
-                    // run scheduler
-                    fm_run();
-                }
-
-                // lock external again before returning
-                lt.lock();
-            }
         }
         catch (...)
         {
             unique_lock< detail::spinlock > lk( splk_);
-            std::deque< detail::fiber_base * >::iterator wit = std::find( waiting_.begin(), waiting_.end(), n);
-            if (wit != waiting_.end())
+            std::deque< detail::fiber_base * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            if ( waiting_.end() != i)
             {
                 // remove fiber from waiting-list
-                waiting_.erase( wit );
+                waiting_.erase( i);
             }
             throw;
         }

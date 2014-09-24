@@ -15,7 +15,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -36,7 +36,7 @@ public:
     bool empty() const BOOST_NOEXCEPT
     { return 0 == head_; }
 
-    void push( worker_fiber * item) BOOST_NOEXCEPT
+    void push( fiber_base * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( 0 != item);
         BOOST_ASSERT( 0 == item->next() );
@@ -50,11 +50,11 @@ public:
         }
     }
 
-    worker_fiber * pop() BOOST_NOEXCEPT
+    fiber_base * pop() BOOST_NOEXCEPT
     {
         BOOST_ASSERT( ! empty() );
 
-        worker_fiber * item = head_;
+        fiber_base * item = head_;
         head_ = head_->next();
         if ( 0 == head_) tail_ = 0;
         item->next_reset();
@@ -68,8 +68,8 @@ public:
     }
 
 private:
-    worker_fiber    *  head_;
-    worker_fiber    *  tail_;
+    fiber_base    *  head_;
+    fiber_base    *  tail_;
 };
 
 }}}

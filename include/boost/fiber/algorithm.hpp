@@ -10,7 +10,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -28,11 +28,11 @@ struct sched_algorithm
 {
     virtual ~sched_algorithm() {}
 
-    virtual void awakened( detail::worker_fiber *) = 0;
+    virtual void awakened( detail::fiber_base *) = 0;
 
-    virtual detail::worker_fiber * pick_next() = 0;
+    virtual detail::fiber_base * pick_next() = 0;
 
-    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT = 0;
+    virtual void priority( detail::fiber_base *, int) BOOST_NOEXCEPT = 0;
 };
 
 }}

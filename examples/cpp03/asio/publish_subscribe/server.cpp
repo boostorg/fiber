@@ -194,6 +194,7 @@ public:
                 cond_.wait( lk);
                 std::string data( data_);
                 lk.unlock();
+                std::cout << "subscriber::run(): '" << data << std::endl;
                 
                 // message '<fini>' terminates subscription
                 if ( "<fini>" == data) break;
@@ -206,7 +207,11 @@ public:
                         socket_,
                         boost::asio::buffer( data, data.size() ),
                         yield[ec]);
-                if ( ec) throw std::runtime_error("publishing message failed");
+                if ( ec == boost::asio::error::eof)
+                    break; //connection closed cleanly by peer
+                else if ( ec)
+                    throw boost::system::system_error( ec); //some other error
+                std::cout << "subscriber::run(): '" << data << " written" << std::endl;
             }
         }
         catch ( std::exception const& e)

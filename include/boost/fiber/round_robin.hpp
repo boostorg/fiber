@@ -11,7 +11,7 @@
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fifo.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -33,11 +33,11 @@ private:
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( detail::worker_fiber *);
+    virtual void awakened( detail::fiber_base *);
 
-    virtual detail::worker_fiber * pick_next();
+    virtual detail::fiber_base * pick_next();
 
-    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
+    virtual void priority( detail::fiber_base *, int) BOOST_NOEXCEPT;
 };
 
 }}

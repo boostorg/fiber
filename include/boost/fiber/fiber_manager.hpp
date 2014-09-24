@@ -16,11 +16,10 @@
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/main_fiber.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -42,21 +41,22 @@ struct fiber_manager : private noncopyable
 
     typedef detail::waiting_queue   wqueue_t;
 
-    scoped_ptr< sched_algorithm >   def_algo_;
-    sched_algorithm             *   sched_algo_;
-    wqueue_t                        wqueue_;
-
-    chrono::high_resolution_clock::duration            wait_interval_;
-    detail::worker_fiber        *   active_fiber_;
+    scoped_ptr< sched_algorithm >               def_algo;
+    sched_algorithm                         *   sched_algo;
+    wqueue_t                                    wqueue;
+    bool                                        preserve_fpu;
+    detail::main_fiber                          main_fiber_;
+    chrono::high_resolution_clock::duration     wait_interval;
+    detail::fiber_base                      *   active_fiber;
 };
 
-void fm_resume_( detail::worker_fiber *);
+void fm_resume_( detail::fiber_base *);
 
 void fm_set_sched_algo( sched_algorithm *);
 
-void fm_spawn( detail::worker_fiber *);
+void fm_spawn( detail::fiber_base *);
 
-void fm_priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
+void fm_priority( detail::fiber_base *, int) BOOST_NOEXCEPT;
 
 void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
 template< typename Rep, typename Period >
@@ -65,9 +65,9 @@ void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOO
 
 chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT;
 
-void fm_join( detail::worker_fiber *);
+void fm_join( detail::fiber_base *);
 
-detail::worker_fiber * fm_active() BOOST_NOEXCEPT;
+detail::fiber_base * fm_active() BOOST_NOEXCEPT;
 
 void fm_run();
 
@@ -96,7 +96,10 @@ void fm_yield();
 
 chrono::high_resolution_clock::time_point fm_next_wakeup();
 
-void fm_migrate( detail::worker_fiber *);
+void fm_migrate( detail::fiber_base *);
+
+bool fm_preserve_fpu_();
+void  fm_preserve_fpu_( bool);
 
 }}
 

@@ -141,7 +141,7 @@ private:
 
 public:
     template< typename F >
-    static worker_fiber * extract( F const& f) BOOST_NOEXCEPT
+    static fiber_base * extract( F const& f) BOOST_NOEXCEPT
     { return f.impl_.get(); }
 
     static fiber_manager * instance()

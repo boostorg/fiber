@@ -23,7 +23,7 @@
 #define JOBS BOOST_PP_LIMIT_REPEAT
 #endif
 
-boost::coroutines::flag_fpu_t preserve_fpu = boost::coroutines::fpu_not_preserved;
+boost::coroutines::flag_fpu_t preserve_fpu_ = boost::coroutines::fpu_not_preserved;
 boost::coroutines::flag_unwind_t unwind_stack = boost::coroutines::no_stack_unwind;
 bool prealloc = false;
 bool preserve = false;
@@ -43,7 +43,7 @@ void test_future( boost::fibers::attributes const& attrs, StackAllocator const& 
 template< typename StackAllocator >
 duration_type measure( duration_type overhead, StackAllocator const& stack_alloc)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu);
+    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
     test_future( attrs, stack_alloc);
 
     time_point_type start( clock_type::now() );
@@ -96,7 +96,7 @@ int main( int argc, char * argv[])
             return EXIT_SUCCESS;
         }
 
-        if ( preserve) preserve_fpu = boost::coroutines::fpu_preserved;
+        if ( preserve) preserve_fpu_ = boost::coroutines::fpu_preserved;
         if ( unwind) unwind_stack = boost::coroutines::stack_unwind;
 
         duration_type overhead = overhead_clock();

@@ -16,7 +16,7 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,7 +37,7 @@ public:
     bool empty() const BOOST_NOEXCEPT
     { return 0 == head_; }
 
-    void push( worker_fiber * item) BOOST_NOEXCEPT
+    void push( fiber_base * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( 0 != item);
         BOOST_ASSERT( 0 == item->next() );
@@ -46,10 +46,10 @@ public:
             head_ = tail_ = item;
         else
         {
-            worker_fiber * f = head_, * prev = 0;
+            fiber_base * f = head_, * prev = 0;
             do
             {
-                worker_fiber * nxt = f->next();
+                fiber_base * nxt = f->next();
                 if ( item->time_point() <= f->time_point() )
                 {
                     if ( head_ == f)
@@ -84,7 +84,7 @@ public:
         }
     }
 
-    worker_fiber * top() const BOOST_NOEXCEPT
+    fiber_base * top() const BOOST_NOEXCEPT
     {
         BOOST_ASSERT( ! empty() );
 
@@ -96,11 +96,11 @@ public:
     {
         BOOST_ASSERT( sched_algo);
 
-        worker_fiber * f = head_, * prev = 0;
+        fiber_base * f = head_, * prev = 0;
         chrono::high_resolution_clock::time_point now( chrono::high_resolution_clock::now() );
         while ( 0 != f)
         {
-            worker_fiber * nxt = f->next();
+            fiber_base * nxt = f->next();
             if ( fn( f, now) )
             {
                 if ( f == head_)
@@ -137,8 +137,8 @@ public:
     }
 
 private:
-    worker_fiber    *  head_;
-    worker_fiber    *  tail_;
+    fiber_base    *  head_;
+    fiber_base    *  tail_;
 };
 
 }}}

@@ -33,7 +33,7 @@ project boost/fiber
 lib boost_fiber
     : barrier.cpp
       condition.cpp
-      detail/worker_fiber.cpp
+      detail/fiber_base.cpp
       detail/scheduler.cpp
       detail/spinlock.cpp
       fiber.cpp

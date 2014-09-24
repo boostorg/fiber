@@ -10,6 +10,7 @@
 
 #include <boost/throw_exception.hpp>
 
+#include "boost/fiber/detail/fiber_base.hpp"
 #include "boost/fiber/detail/interrupt_flags.hpp"
 #include "boost/fiber/fiber_manager.hpp"
 #include "boost/fiber/exceptions.hpp"
@@ -50,13 +51,13 @@ restore_interruption::~restore_interruption() BOOST_NOEXCEPT
 
 bool interruption_enabled() BOOST_NOEXCEPT 
 { 
-    fibers::detail::worker_fiber * f = fibers::fm_active();
+    fibers::detail::fiber_base * f = fibers::fm_active();
     return 0 != f && ! f->interruption_blocked(); 
 } 
  
 bool interruption_requested() BOOST_NOEXCEPT 
 { 
-    fibers::detail::worker_fiber * f = fibers::fm_active();
+    fibers::detail::fiber_base * f = fibers::fm_active();
     if ( 0 == f) return false; 
     return f->interruption_requested(); 
 }

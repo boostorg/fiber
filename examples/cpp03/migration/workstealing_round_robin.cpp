@@ -13,17 +13,17 @@
 #endif
 
 void
-workstealing_round_robin::awakened( boost::fibers::detail::worker_fiber * f)
+workstealing_round_robin::awakened( boost::fibers::detail::fiber_base * f)
 {
     boost::mutex::scoped_lock lk( mtx_);
     rqueue_.push_back( f);
 }
 
-boost::fibers::detail::worker_fiber *
+boost::fibers::detail::fiber_base *
 workstealing_round_robin::pick_next()
 {
     boost::mutex::scoped_lock lk( mtx_);
-    boost::fibers::detail::worker_fiber * f = 0;
+    boost::fibers::detail::fiber_base * f = 0;
     if ( ! rqueue_.empty() )
     {
         f = rqueue_.front();
@@ -33,7 +33,7 @@ workstealing_round_robin::pick_next()
 }
 
 void
-workstealing_round_robin::priority( boost::fibers::detail::worker_fiber * f, int prio) BOOST_NOEXCEPT
+workstealing_round_robin::priority( boost::fibers::detail::fiber_base * f, int prio) BOOST_NOEXCEPT
 {
     BOOST_ASSERT( f);
 
@@ -46,7 +46,7 @@ boost::fibers::fiber
 workstealing_round_robin::steal() BOOST_NOEXCEPT
 {
     boost::mutex::scoped_lock lk( mtx_);
-    boost::fibers::detail::worker_fiber * f = 0;
+    boost::fibers::detail::fiber_base * f = 0;
     if ( ! rqueue_.empty() )
     {
         f = rqueue_.back();

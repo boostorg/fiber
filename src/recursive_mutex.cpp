@@ -58,45 +58,19 @@ recursive_mutex::~recursive_mutex()
 void
 recursive_mutex::lock()
 {
-    detail::fiber_base * n( fm_active() );
-    if ( 0 != n)
+    detail::fiber_base * f( fm_active() );
+    for (;;)
     {
-        for (;;)
-        {
-            unique_lock< detail::spinlock > lk( splk_);
+        unique_lock< detail::spinlock > lk( splk_);
 
-            if ( lock_if_unlocked_() ) return;
-        
-            // store this fiber in order to be notified later
-            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
-            waiting_.push_back( n);
+        if ( lock_if_unlocked_() ) return;
 
-            // suspend this fiber
-            fm_wait( lk);
-        }
-    }
-    else
-    {
-        // notification for main-fiber
-        detail::main_fiber mf;
-        n = & mf;
+        // store this fiber in order to be notified later
+        BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
+        waiting_.push_back( f);
 
-        for (;;)
-        {
-            unique_lock< detail::spinlock > lk( splk_);
-
-            if ( lock_if_unlocked_() ) return;
-
-            // store this fiber in order to be notified later
-            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
-            waiting_.push_back( n);
-            lk.unlock();
-
-            // wait until main-fiber gets notified
-            while ( ! n->is_ready() )
-                // run scheduler
-                fm_run();
-        }
+        // suspend this fiber
+        fm_wait( lk);
     }
 }
 
@@ -120,19 +94,19 @@ recursive_mutex::unlock()
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     unique_lock< detail::spinlock > lk( splk_);
-    detail::fiber_base * n = 0;
+    detail::fiber_base * f( 0);
     
     if ( 0 == --count_)
     {
         if ( ! waiting_.empty() )
         {
-            n = waiting_.front();
+            f = waiting_.front();
             waiting_.pop_front();
         }
-        owner_ = detail::worker_fiber::id();
+        owner_ = detail::fiber_base::id();
         state_ = UNLOCKED;
         lk.unlock();
-        if ( n) n->set_ready();
+        if ( f) f->set_ready();
     }
 }
 
