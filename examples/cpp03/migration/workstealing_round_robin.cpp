@@ -51,7 +51,14 @@ workstealing_round_robin::steal() BOOST_NOEXCEPT
     {
         f = rqueue_.back();
         rqueue_.pop_back();
+        if ( f->thread_affinity() )
+        {
+            rqueue_.push_back( f);
+            f = 0;
+        }
     }
+    if ( 0 != f)
+       fprintf(stderr, "migrated fiber: %p\n", f);
     return boost::fibers::fiber( f);
 }
 

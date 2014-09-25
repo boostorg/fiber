@@ -147,10 +147,7 @@ public:
     {}
 
     virtual ~fiber_base()
-    {
-        BOOST_ASSERT( is_terminated() );
-        BOOST_ASSERT( waiting_.empty() );
-    }
+    { BOOST_ASSERT( waiting_.empty() ); }
 
     id get_id() const BOOST_NOEXCEPT
     { return id( const_cast< fiber_base * >( this) ); }

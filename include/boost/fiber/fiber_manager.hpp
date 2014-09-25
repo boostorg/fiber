@@ -45,8 +45,8 @@ struct fiber_manager : private noncopyable
     sched_algorithm                         *   sched_algo;
     wqueue_t                                    wqueue;
     bool                                        preserve_fpu;
-    detail::main_fiber                          main_fiber_;
     chrono::high_resolution_clock::duration     wait_interval;
+    detail::main_fiber                          main_fiber;
     detail::fiber_base                      *   active_fiber;
 };
 

@@ -47,10 +47,10 @@ fiber_manager::fiber_manager() BOOST_NOEXCEPT :
     sched_algo( def_algo.get() ),
     wqueue(),
     preserve_fpu( false),
-    main_fiber_(),
     wait_interval( chrono::milliseconds( 10) ),
-    active_fiber( & main_fiber_)
-{}
+    main_fiber(),
+    active_fiber( & main_fiber)
+{ fprintf(stderr, "active-fiber: %p\n", active_fiber); }
 
 fiber_manager::~fiber_manager() BOOST_NOEXCEPT
 {
@@ -61,6 +61,7 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
     // if not referenced on other places
     while ( ! wqueue.empty() )
         fm_run();
+    fprintf(stderr, "~fiber_manager()\n");
 }
 
 void fm_resume_( detail::fiber_base * f)
@@ -71,22 +72,17 @@ void fm_resume_( detail::fiber_base * f)
     BOOST_ASSERT( 0 != f);
     BOOST_ASSERT( f->is_ready() );
 
-    // fiber to state_running
+    // set fiber to state running
     f->set_running();
 
     if ( f == fm->active_fiber) return;
 
     // store active-fiber in local var
-    detail::fiber_base * tmp = fm->active_fiber;
+    detail::fiber_base * current = fm->active_fiber;
     // assign new fiber to active-fiber
     fm->active_fiber = f;
-    // if active-fiber is detached and has terminated
-    // the fiber has to be destructed/deallocated
-    BOOST_ASSERT( 0 != tmp);
-    if ( tmp->is_terminated() )
-        intrusive_ptr_release( tmp);
     // resume active-fiber == start or yield to
-    fm->active_fiber->resume( tmp, fm->preserve_fpu);
+    fm->active_fiber->resume( current, fm->preserve_fpu);
 }
 
 void fm_set_sched_algo( sched_algorithm * algo)

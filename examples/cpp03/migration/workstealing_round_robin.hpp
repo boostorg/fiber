@@ -6,7 +6,7 @@
 #ifndef WORKSTEALING_ROUND_ROBIN_H
 #define WORKSTEALING_ROUND_ROBIN_H
 
-#include <deque>
+#include <list>
 
 #include <boost/config.hpp>
 #include <boost/thread/mutex.hpp>
@@ -25,7 +25,7 @@
 class workstealing_round_robin : public boost::fibers::sched_algorithm
 {
 private:
-    typedef std::deque< boost::fibers::detail::fiber_base * >  rqueue_t;
+    typedef std::list< boost::fibers::detail::fiber_base * >  rqueue_t;
 
     boost::mutex                mtx_;
     rqueue_t                    rqueue_;

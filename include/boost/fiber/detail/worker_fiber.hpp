@@ -50,21 +50,18 @@ private:
             fn_();
             BOOST_ASSERT( is_running() );
         }
-#if 0
-        catch( forced_unwind const&)
-        {}
-#endif
         catch( fiber_interrupted const& )
-        {
-            except_ = current_exception();
-        }
+        { except_ = current_exception(); }
         catch( ... )
-        {
-            std::terminate();
-        }
+        { std::terminate(); }
+
         set_terminated();
-        release(); // notify joining fibers
+        // notify joining fibers
+        release();
+
+        // switch to another fiber
         fibers::fm_run();
+
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
 
@@ -93,9 +90,16 @@ public:
         sctx_( sctx)
     {}
 
+    ~worker_fiber()
+    {
+        BOOST_ASSERT( is_terminated() );
+        fprintf( stderr, "~worker_fiber()\n");
+    }
+
     void deallocate()
     {
-        // FIXME: correct?
+        BOOST_ASSERT( is_terminated() );
+
         StackAllocator salloc( salloc_);
         stack_context sctx( sctx_);
         // call destructor of worker_fiber
