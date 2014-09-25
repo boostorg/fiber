@@ -46,19 +46,26 @@ template< typename T >
 class thread_local_ptr : private noncopyable
 {
 private:
-    typedef void ( * cleanup_function)( T*);
+    typedef void ( * cleanup_function)( T *);
 
-    static TLS_VAR_DECL(T) *t_;
-    cleanup_function cf_;
+    static void default_cleanup( T * t)
+    { delete t; }
+
+    static TLS_VAR_DECL(T)  *   t_;
+
+    cleanup_function            cf_;
 
 public:
     thread_local_ptr() BOOST_NOEXCEPT :
-        cf_(0)
+        cf_( & thread_local_ptr::default_cleanup)
     {}
 
     thread_local_ptr( cleanup_function cf) BOOST_NOEXCEPT :
         cf_( cf)
     {}
+
+    ~thread_local_ptr()
+    { if ( 0 != cf_) cf_( t_); }
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
@@ -88,30 +95,28 @@ template< typename T >
 class thread_local_ptr : private noncopyable
 {
 private:
-    typedef void ( * cleanup_function)( T*);
-
-    ::pthread_key_t     key_;
-
-    static void deleter_fn( void * ptr )
+    static void default_cleanup( void * ptr)
     {
-        T* obj = static_cast<T*>(ptr);
+        T * obj = static_cast< T * >( ptr);
         delete obj;
     }
+
+    ::pthread_key_t     key_;
 
 public:
     /// By default, use a thread-exit cleanup function that deletes T*.
     thread_local_ptr() BOOST_NOEXCEPT
     {
-        int ok = ::pthread_key_create( & key_, &thread_local_ptr::deleter_fn );
-        BOOST_ASSERT( ok == 0 );
+        int ok = ::pthread_key_create( & key_, & thread_local_ptr::default_cleanup);
+        BOOST_ASSERT( ok == 0);
         (void)ok;
     }
 
     /// Allow caller to override cleanup function, 0 to suppress
-    thread_local_ptr( cleanup_function cf ) BOOST_NOEXCEPT
+    thread_local_ptr( cleanup_function cf) BOOST_NOEXCEPT
     {
-        int ok = ::pthread_key_create( & key_, cf );
-        BOOST_ASSERT( ok == 0 );
+        int ok = ::pthread_key_create( & key_, cf);
+        BOOST_ASSERT( ok == 0);
         (void)ok;
     }
 
