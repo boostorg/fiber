@@ -12,6 +12,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/config.hpp>
+#include <boost/thread.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/explicit_operator_bool.hpp>
 
@@ -65,7 +66,10 @@ public:
     {}
 
     ~thread_local_ptr()
-    { if ( 0 != cf_) cf_( t_); }
+    { 
+        fprintf( stderr, "~thread_local_ptr()\n");
+        if ( 0 != cf_) cf_( t_);
+    }
 
     BOOST_EXPLICIT_OPERATOR_BOOL();
 
@@ -142,7 +146,7 @@ public:
 class scheduler : private noncopyable
 {
 private:
-    static thread_local_ptr< fiber_manager > instance_;
+    static thread_specific_ptr< fiber_manager > instance_;
 
 public:
     template< typename F >

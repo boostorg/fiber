@@ -57,8 +57,10 @@ workstealing_round_robin::steal() BOOST_NOEXCEPT
             f = 0;
         }
     }
+#if 0
     if ( 0 != f)
        fprintf(stderr, "migrated fiber: %p\n", f);
+#endif
     return boost::fibers::fiber( f);
 }
 

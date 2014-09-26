@@ -64,8 +64,6 @@ void fn_create_fibers( workstealing_round_robin * ds, boost::barrier * b)
     fprintf( stderr, "fibonacci(%d) = %d", n, result);
 
     fini = true;
-
-    fprintf( stderr, "fn_create_fibers() returns\n");
 }
 
 void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b, int * count)
@@ -88,10 +86,10 @@ void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b,
         {
             ++( * count);
             boost::fibers::migrate( f);
-            f.detach();
+            f.join();
         }
         
-        boost::this_fiber::yield();
+        //boost::this_fiber::yield();
     }
 }
 

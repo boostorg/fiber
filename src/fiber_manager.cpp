@@ -46,11 +46,12 @@ fiber_manager::fiber_manager() BOOST_NOEXCEPT :
     def_algo( new round_robin() ),
     sched_algo( def_algo.get() ),
     wqueue(),
+    tqueue(),
     preserve_fpu( false),
     wait_interval( chrono::milliseconds( 10) ),
     main_fiber(),
     active_fiber( & main_fiber)
-{ fprintf(stderr, "active-fiber: %p\n", active_fiber); }
+{}
 
 fiber_manager::~fiber_manager() BOOST_NOEXCEPT
 {
@@ -59,9 +60,10 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
     // therefore destructing fm->wqueue && rqueue_
     // will destroy the fibers in this scheduler
     // if not referenced on other places
-    while ( ! wqueue.empty() )
+#if 0
+    while ( ! wqueue.empty() && )
         fm_run();
-    fprintf(stderr, "~fiber_manager()\n");
+#endif
 }
 
 void fm_resume_( detail::fiber_base * f)
@@ -75,6 +77,8 @@ void fm_resume_( detail::fiber_base * f)
     // set fiber to state running
     f->set_running();
 
+    // fiber next-to-run is same as current fiber
+    // this might happen in context of this_fiber::yield() 
     if ( f == fm->active_fiber) return;
 
     // store active-fiber in local var
@@ -83,16 +87,6 @@ void fm_resume_( detail::fiber_base * f)
     fm->active_fiber = f;
     // resume active-fiber == start or yield to
     fm->active_fiber->resume( current, fm->preserve_fpu);
-}
-
-void fm_set_sched_algo( sched_algorithm * algo)
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    fm->sched_algo = algo;
-    fm->def_algo.reset();
 }
 
 chrono::high_resolution_clock::time_point fm_next_wakeup()
@@ -125,34 +119,6 @@ void fm_spawn( detail::fiber_base * f)
     fm->sched_algo->awakened( f);
 }
 
-void fm_priority( detail::fiber_base * f,
-                  int prio) BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    fm->sched_algo->priority( f, prio);
-}
-
-void fm_wait_interval( chrono::high_resolution_clock::duration const& wait_interval) BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    fm->wait_interval = wait_interval;
-}
-
-chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    return fm->wait_interval;
-}
-
 void fm_run()
 {
     fiber_manager * fm = detail::scheduler::instance();
@@ -161,6 +127,11 @@ void fm_run()
 
     for (;;)
     {
+        // destroy terminated fibers
+        BOOST_FOREACH( detail::fiber_base * f, fm->tqueue)
+        { intrusive_ptr_release( f); }
+        fm->tqueue.clear();
+
         // move all fibers witch are ready (state_ready)
         // from waiting-queue to the runnable-queue
         fm->wqueue.move_to( fm->sched_algo, fetch_ready);
@@ -170,7 +141,18 @@ void fm_run()
         if ( f)
         {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
+
+            // if current fiber is in state terminated, push it to terminated-queue
+            if ( fm->active_fiber->is_terminated() ) fm->tqueue.push_back( fm->active_fiber);
+
+            // resume fiber f
             fm_resume_( f);
+
+            // destroy terminated fibers
+            BOOST_FOREACH( detail::fiber_base * f, fm->tqueue)
+            { intrusive_ptr_release( f); }
+            fm->tqueue.clear();
+
             return;
         }
         else
@@ -264,16 +246,45 @@ detail::fiber_base * fm_active() BOOST_NOEXCEPT
     return fm->active_fiber;
 }
 
-void fm_migrate( detail::fiber_base * f)
+void fm_set_sched_algo( sched_algorithm * algo)
 {
-    BOOST_ASSERT( 0 != f);
-    BOOST_ASSERT( f->is_ready() );
+    fiber_manager * fm = detail::scheduler::instance();
 
-    fm_spawn( f);
-    fm_run();
+    BOOST_ASSERT( 0 != fm);
+
+    fm->sched_algo = algo;
+    fm->def_algo.reset();
 }
 
-bool fm_preserve_fpu_()
+void fm_priority( detail::fiber_base * f,
+                  int prio) BOOST_NOEXCEPT
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( 0 != fm);
+
+    fm->sched_algo->priority( f, prio);
+}
+
+void fm_wait_interval( chrono::high_resolution_clock::duration const& wait_interval) BOOST_NOEXCEPT
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( 0 != fm);
+
+    fm->wait_interval = wait_interval;
+}
+
+chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( 0 != fm);
+
+    return fm->wait_interval;
+}
+
+bool fm_preserve_fpu()
 {
     fiber_manager * fm = detail::scheduler::instance();
 
@@ -282,7 +293,7 @@ bool fm_preserve_fpu_()
     return fm->preserve_fpu;
 }
 
-void fm_preserve_fpu_( bool preserve_fpu_)
+void fm_preserve_fpu( bool preserve_fpu_)
 {
     fiber_manager * fm = detail::scheduler::instance();
 

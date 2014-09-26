@@ -55,8 +55,9 @@ private:
         catch( ... )
         { std::terminate(); }
 
+        // mark fiber as terminated
         set_terminated();
-        // notify joining fibers
+        // notify waiting (joining) fibers
         release();
 
         // switch to another fiber
@@ -91,10 +92,7 @@ public:
     {}
 
     ~worker_fiber()
-    {
-        BOOST_ASSERT( is_terminated() );
-        fprintf( stderr, "~worker_fiber()\n");
-    }
+    { BOOST_ASSERT( is_terminated() ); }
 
     void deallocate()
     {

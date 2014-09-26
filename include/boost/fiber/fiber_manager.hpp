@@ -6,6 +6,8 @@
 #ifndef BOOST_FIBERS_FIBER_MANAGER_H
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
+#include <vector>
+
 #include <boost/assert.hpp>
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
@@ -39,11 +41,13 @@ struct fiber_manager : private noncopyable
 
     virtual ~fiber_manager() BOOST_NOEXCEPT;
 
-    typedef detail::waiting_queue   wqueue_t;
+    typedef detail::waiting_queue               wqueue_t;
+    typedef std::vector< detail::fiber_base * > tqueue_t;
 
     scoped_ptr< sched_algorithm >               def_algo;
     sched_algorithm                         *   sched_algo;
     wqueue_t                                    wqueue;
+    tqueue_t                                    tqueue;
     bool                                        preserve_fpu;
     chrono::high_resolution_clock::duration     wait_interval;
     detail::main_fiber                          main_fiber;
@@ -52,22 +56,9 @@ struct fiber_manager : private noncopyable
 
 void fm_resume_( detail::fiber_base *);
 
-void fm_set_sched_algo( sched_algorithm *);
+chrono::high_resolution_clock::time_point fm_next_wakeup();
 
 void fm_spawn( detail::fiber_base *);
-
-void fm_priority( detail::fiber_base *, int) BOOST_NOEXCEPT;
-
-void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
-template< typename Rep, typename Period >
-void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
-{ fm_wait_interval( wait_interval); }
-
-chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT;
-
-void fm_join( detail::fiber_base *);
-
-detail::fiber_base * fm_active() BOOST_NOEXCEPT;
 
 void fm_run();
 
@@ -94,12 +85,25 @@ bool fm_wait_for( chrono::duration< Rep, Period > const& timeout_duration,
 
 void fm_yield();
 
-chrono::high_resolution_clock::time_point fm_next_wakeup();
+void fm_join( detail::fiber_base *);
 
-void fm_migrate( detail::fiber_base *);
+detail::fiber_base * fm_active() BOOST_NOEXCEPT;
 
-bool fm_preserve_fpu_();
-void  fm_preserve_fpu_( bool);
+void fm_set_sched_algo( sched_algorithm *);
+
+void fm_priority( detail::fiber_base *, int) BOOST_NOEXCEPT;
+
+void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
+
+template< typename Rep, typename Period >
+void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
+{ fm_wait_interval( wait_interval); }
+
+chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT;
+
+bool fm_preserve_fpu();
+
+void fm_preserve_fpu( bool);
 
 }}
 

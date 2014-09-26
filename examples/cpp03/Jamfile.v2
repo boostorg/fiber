@@ -30,25 +30,25 @@ project boost/fiber/example
 #      <define>BOOST_ASIO_ENABLE_HANDLER_TRACKING
     ;
 
-#exe barrier : barrier.cpp ;
-#exe future : future.cpp test_future.cpp ;
-#exe futures_mt : futures_mt.cpp ;
-#exe interrupt : interrupt.cpp ;
-#exe join : join.cpp ;
-#exe ping_pong : ping_pong.cpp ;
-#exe segmented_stack : segmented_stack.cpp ;
+exe barrier : barrier.cpp ;
+exe future : future.cpp test_future.cpp ;
+exe futures_mt : futures_mt.cpp ;
+exe interrupt : interrupt.cpp ;
+exe join : join.cpp ;
+exe ping_pong : ping_pong.cpp ;
+exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp test_fiber.cpp ;
 exe migrate_fibers
    : migration/migrate_fibers.cpp
      migration/workstealing_round_robin.cpp
    ;
  
-#exe asio/daytime_client : asio/daytime_client.cpp ;
-#exe asio/daytime_client2 : asio/daytime_client2.cpp ;
-#exe asio/echo_client : asio/echo_client.cpp ;
-#exe asio/echo_client2 : asio/echo_client2.cpp ;
-#exe asio/echo_server : asio/echo_server.cpp ;
-#exe asio/echo_server2 : asio/echo_server2.cpp ;
-#exe asio/publish_subscribe/server : asio/publish_subscribe/server.cpp ;
-#exe asio/publish_subscribe/publisher : asio/publish_subscribe/publisher.cpp ;
-#exe asio/publish_subscribe/subscriber : asio/publish_subscribe/subscriber.cpp ;
+exe asio/daytime_client : asio/daytime_client.cpp ;
+exe asio/daytime_client2 : asio/daytime_client2.cpp ;
+exe asio/echo_client : asio/echo_client.cpp ;
+exe asio/echo_client2 : asio/echo_client2.cpp ;
+exe asio/echo_server : asio/echo_server.cpp ;
+exe asio/echo_server2 : asio/echo_server2.cpp ;
+exe asio/publish_subscribe/server : asio/publish_subscribe/server.cpp ;
+exe asio/publish_subscribe/publisher : asio/publish_subscribe/publisher.cpp ;
+exe asio/publish_subscribe/subscriber : asio/publish_subscribe/subscriber.cpp ;

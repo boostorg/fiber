@@ -6,6 +6,7 @@
 #ifndef BOOST_FIBERS_DETAIL_MAIN_FIBER_H
 #define BOOST_FIBERS_DETAIL_MAIN_FIBER_H
 
+#include <boost/assert.hpp>
 #include <boost/atomic.hpp>
 #include <boost/config.hpp>
 
@@ -29,6 +30,9 @@ public:
         thread_affinity( true);
         set_running();
     }
+    
+    ~main_fiber()
+    { BOOST_ASSERT( ! is_terminated() ); }
 
     void deallocate() {}
 };

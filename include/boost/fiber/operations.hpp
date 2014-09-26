@@ -84,20 +84,28 @@ void thread_affinity( bool req) BOOST_NOEXCEPT
 namespace fibers {
 
 inline
+void migrate( fiber const& f)
+{ fm_spawn( detail::scheduler::extract( f ) ); }
+
+inline
 void set_scheduling_algorithm( sched_algorithm * al)
 { detail::scheduler::replace( al); }
 
 template< typename Rep, typename Period >
-void set_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
+void wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
 { fm_wait_interval( wait_interval); }
 
 template< typename Rep, typename Period >
-chrono::duration< Rep, Period > get_wait_interval() BOOST_NOEXCEPT
+chrono::duration< Rep, Period > wait_interval() BOOST_NOEXCEPT
 { return fm_wait_interval< Rep, Period >(); }
 
 inline
-void migrate( fiber const& f)
-{ fm_migrate( detail::scheduler::extract( f ) ); }
+bool preserve_fpu()
+{ return fm_preserve_fpu(); }
+
+inline
+void preserve_fpu( bool preserve)
+{ return fm_preserve_fpu( preserve); }
 
 }}
 
