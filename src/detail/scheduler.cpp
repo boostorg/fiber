@@ -18,6 +18,7 @@ namespace fibers {
 namespace detail {
 
 thread_local_ptr< fiber_manager > scheduler::instance_;
+//thread_specific_ptr< fiber_manager > scheduler::instance_;
 
 void
 scheduler::replace( sched_algorithm * other)

@@ -59,6 +59,8 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
     // if not referenced on other places
     while ( ! wqueue_.empty() )
         fm_run();
+    active_fiber_ = 0;
+    fprintf(stderr, "~fiber_manager()\n");
 }
 
 void fm_resume_( detail::worker_fiber * f)

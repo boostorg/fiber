@@ -62,9 +62,10 @@ worker_fiber::release()
     BOOST_FOREACH( worker_fiber * p, waiting)
     { p->set_ready(); }
 
-    // release all fiber-specific-pointers
+    // release fiber-specific-data
     BOOST_FOREACH( fss_data_t::value_type & data, fss_data_)
     { data.second.do_cleanup(); }
+    fss_data_.clear();
 }
 
 bool
