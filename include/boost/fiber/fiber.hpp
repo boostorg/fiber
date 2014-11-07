@@ -26,6 +26,7 @@
 #include <boost/fiber/detail/setup.hpp>
 #include <boost/fiber/detail/trampoline.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 #include <boost/fiber/stack_allocator.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -318,6 +319,12 @@ public:
     void join();
 
     void interrupt() BOOST_NOEXCEPT;
+
+    template <class PROPS>
+    PROPS& properties()
+    {
+        return fm_properties<PROPS>(impl_);
+    }
 };
 
 inline

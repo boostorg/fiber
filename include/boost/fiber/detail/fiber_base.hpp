@@ -39,6 +39,9 @@ public:
     private:
         fiber_base  *   impl_;
 
+        // support sched_algorithm_with_properties::properties(fiber::id)
+        friend fiber_base* extract_base(id);
+
     public:
         id() BOOST_NOEXCEPT :
             impl_( 0)

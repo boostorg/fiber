@@ -41,6 +41,9 @@
 
 namespace boost {
 namespace fibers {
+
+class fiber_properties;
+
 namespace detail {
 
 namespace coro = boost::coroutines;
@@ -99,6 +102,7 @@ private:
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
+    fiber_properties            *   properties_;
 
 public:
     worker_fiber( coro_t::yield_type *);
@@ -253,6 +257,13 @@ public:
             BOOST_ASSERT( f->is_terminated() );
             f->deallocate();
         }
+    }
+
+    void set_properties( fiber_properties* props);
+
+    fiber_properties* get_properties()
+    {
+        return properties_;
     }
 };
 

@@ -14,6 +14,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
+#include <boost/fiber/fiber.hpp>
 #include <boost/fiber/fiber_manager.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS

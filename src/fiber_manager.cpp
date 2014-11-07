@@ -100,6 +100,14 @@ void fm_set_sched_algo( sched_algorithm * algo)
     fm->def_algo_.reset();
 }
 
+sched_algorithm* fm_get_sched_algo_()
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( 0 != fm);
+    return fm->sched_algo_;
+}
+
 chrono::high_resolution_clock::time_point fm_next_wakeup()
 {
     fiber_manager * fm = detail::scheduler::instance();

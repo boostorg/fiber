@@ -79,7 +79,13 @@ void thread_affinity( bool req) BOOST_NOEXCEPT
         fibers::fm_active()->thread_affinity( req);
 }
 
+template < class PROPS >
+PROPS& properties()
+{
+    return fibers::fm_properties<PROPS>();
 }
+
+} // this_fiber
 
 namespace fibers {
 

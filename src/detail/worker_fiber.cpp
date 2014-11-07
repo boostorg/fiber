@@ -14,6 +14,7 @@
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/properties.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,13 +38,16 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     flags_( 0),
     priority_( 0),
     except_(),
-    waiting_()
+    waiting_(),
+    properties_(0)
 { BOOST_ASSERT( callee_); }
 
 worker_fiber::~worker_fiber()
 {
     BOOST_ASSERT( is_terminated() );
     BOOST_ASSERT( waiting_.empty() );
+
+    delete properties_;
 }
 
 void
@@ -139,6 +143,13 @@ worker_fiber::set_fss_data(
             std::make_pair(
                 key,
                 fss_data( data, cleanup_fn) ) );
+}
+
+void
+worker_fiber::set_properties( fiber_properties* props)
+{
+    delete properties_;
+    properties_ = props;
 }
 
 }}}
