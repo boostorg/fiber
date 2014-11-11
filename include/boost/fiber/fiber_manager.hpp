@@ -58,8 +58,6 @@ sched_algorithm* fm_get_sched_algo_();
 
 void fm_spawn( detail::worker_fiber *);
 
-void fm_priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
-
 void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
 template< typename Rep, typename Period >
 void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT

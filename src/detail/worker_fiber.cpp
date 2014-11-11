@@ -35,7 +35,6 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     caller_(),
     state_( READY),
     flags_( 0),
-    priority_( 0),
     except_(),
     waiting_(),
     properties_(0)

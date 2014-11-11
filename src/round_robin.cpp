@@ -32,16 +32,6 @@ round_robin::pick_next()
     return victim;
 }
 
-void
-round_robin::priority( fiber_base * f, int prio) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( f);
-
-    // set only priority to fiber
-    // round-robin does not respect priorities
-    static_cast<detail::worker_fiber*>(f)->priority( prio);
-}
-
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS

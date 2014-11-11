@@ -138,16 +138,6 @@ void fm_spawn( detail::worker_fiber * f)
     fm->sched_algo_->awakened( f);
 }
 
-void fm_priority( detail::worker_fiber * f,
-                  int prio) BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    fm->sched_algo_->priority( f, prio);
-}
-
 void fm_wait_interval( chrono::high_resolution_clock::duration const& wait_interval) BOOST_NOEXCEPT
 {
     fiber_manager * fm = detail::scheduler::instance();

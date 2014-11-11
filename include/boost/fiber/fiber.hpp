@@ -308,10 +308,6 @@ public:
     id get_id() const BOOST_NOEXCEPT
     { return 0 != impl_ ? impl_->get_id() : id(); }
 
-    int priority() const BOOST_NOEXCEPT;
-
-    void priority( int) BOOST_NOEXCEPT;
-
     void detach() BOOST_NOEXCEPT;
 
     void join();

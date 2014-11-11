@@ -48,16 +48,6 @@ workstealing_round_robin::pick_next()
     return f;
 }
 
-void
-workstealing_round_robin::priority( boost::fibers::fiber_base * f, int prio) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( f);
-
-    // set only priority to fiber
-    // round-robin does not respect priorities
-    static_cast<boost::fibers::detail::worker_fiber*>(f)->priority( prio);
-}
-
 boost::fibers::fiber
 workstealing_round_robin::steal() BOOST_NOEXCEPT
 {

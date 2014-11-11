@@ -36,8 +36,6 @@ struct sched_algorithm
 
     virtual fiber_base * pick_next() = 0;
 
-    virtual void priority( fiber_base *, int) BOOST_NOEXCEPT = 0;
-
     virtual void property_change( fiber_base *, fiber_properties* ) {}
 };
 

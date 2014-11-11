@@ -97,7 +97,6 @@ private:
     coro_t::call_type               caller_;
     atomic< state_t >               state_;
     atomic< int >                   flags_;
-    atomic< int >                   priority_;
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
@@ -110,12 +109,6 @@ public:
 
     id get_id() const BOOST_NOEXCEPT
     { return id( const_cast< worker_fiber * >( this) ); }
-
-    int priority() const BOOST_NOEXCEPT
-    { return priority_; }
-
-    void priority( int prio) BOOST_NOEXCEPT
-    { priority_ = prio; }
 
     bool join( worker_fiber *);
 

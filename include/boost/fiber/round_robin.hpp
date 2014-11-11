@@ -36,8 +36,6 @@ public:
     virtual void awakened( fiber_base *);
 
     virtual fiber_base * pick_next();
-
-    virtual void priority( fiber_base *, int) BOOST_NOEXCEPT;
 };
 
 }}

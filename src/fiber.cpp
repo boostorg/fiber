@@ -28,22 +28,6 @@ fiber::start_()
     fm_spawn( impl_.get() );
 }
 
-int
-fiber::priority() const BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( impl_);
-
-    return impl_->priority();
-}
-
-void
-fiber::priority( int prio) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( impl_);
-
-    fm_priority( impl_.get(), prio);
-}
-
 void
 fiber::join()
 {
