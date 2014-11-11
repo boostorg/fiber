@@ -108,8 +108,10 @@ public:
         impl_()
     {}
 
-    explicit fiber( detail::worker_fiber * impl) BOOST_NOEXCEPT :
-        impl_( impl)
+    // This fiber_base* is allowed to be 0 -- call joinable() before performing
+    // operations on such a fiber object!
+    explicit fiber( fiber_base * impl) BOOST_NOEXCEPT :
+        impl_( dynamic_cast<detail::worker_fiber*>(impl))
     {}
 
 #ifdef BOOST_MSVC

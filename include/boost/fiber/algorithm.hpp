@@ -25,17 +25,20 @@
 namespace boost {
 namespace fibers {
 
+// hoist fiber_base out of detail namespace into boost::fibers
+typedef detail::fiber_base fiber_base;
+
 struct sched_algorithm
 {
     virtual ~sched_algorithm() {}
 
-    virtual void awakened( detail::worker_fiber *) = 0;
+    virtual void awakened( fiber_base *) = 0;
 
-    virtual detail::worker_fiber * pick_next() = 0;
+    virtual fiber_base * pick_next() = 0;
 
-    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT = 0;
+    virtual void priority( fiber_base *, int) BOOST_NOEXCEPT = 0;
 
-    virtual void property_change( detail::worker_fiber *, fiber_properties* ) {}
+    virtual void property_change( fiber_base *, fiber_properties* ) {}
 };
 
 namespace detail {
@@ -51,9 +54,10 @@ public:
     typedef sched_algorithm_with_properties<PROPS> super;
 
     // Start every subclass awakened() override with:
-    // sched_algorithm_with_properties<PROPS>::awakened(f);
-    virtual void awakened( detail::worker_fiber *f)
+    // sched_algorithm_with_properties<PROPS>::awakened(fb);
+    virtual void awakened( fiber_base *fb)
     {
+        detail::worker_fiber* f = static_cast<detail::worker_fiber*>(fb);
         if (! f->get_properties())
         {
             // TODO: would be great if PROPS could be allocated on the new

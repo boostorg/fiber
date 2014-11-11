@@ -36,28 +36,28 @@ public:
     bool empty() const BOOST_NOEXCEPT
     { return 0 == head_; }
 
-    void push( worker_fiber * item) BOOST_NOEXCEPT
+    void push( fiber_base * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->next() );
+        BOOST_ASSERT( 0 == item->nxt_ );
 
         if ( empty() )
             head_ = tail_ = item;
         else
         {
-            tail_->next( item);
+            tail_->nxt_ = item;
             tail_ = item;
         }
     }
 
-    worker_fiber * pop() BOOST_NOEXCEPT
+    fiber_base * pop() BOOST_NOEXCEPT
     {
         BOOST_ASSERT( ! empty() );
 
-        worker_fiber * item = head_;
-        head_ = head_->next();
+        fiber_base * item = head_;
+        head_ = head_->nxt_;
         if ( 0 == head_) tail_ = 0;
-        item->next_reset();
+        item->nxt_ = 0;
         return item;
     }
 
@@ -68,8 +68,8 @@ public:
     }
 
 private:
-    worker_fiber    *  head_;
-    worker_fiber    *  tail_;
+    fiber_base    *  head_;
+    fiber_base    *  tail_;
 };
 
 }}}

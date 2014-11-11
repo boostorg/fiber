@@ -29,17 +29,17 @@
 class workstealing_round_robin : public boost::fibers::sched_algorithm
 {
 private:
-    typedef std::deque< boost::fibers::detail::worker_fiber * >  rqueue_t;
+    typedef std::deque< boost::fibers::fiber_base * >  rqueue_t;
 
     boost::mutex                mtx_;
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( boost::fibers::detail::worker_fiber *);
+    virtual void awakened( boost::fibers::fiber_base *);
 
-    virtual boost::fibers::detail::worker_fiber * pick_next();
+    virtual boost::fibers::fiber_base * pick_next();
 
-    virtual void priority( boost::fibers::detail::worker_fiber *, int) BOOST_NOEXCEPT;
+    virtual void priority( boost::fibers::fiber_base *, int) BOOST_NOEXCEPT;
 
     boost::fibers::fiber steal();
 };

@@ -172,17 +172,17 @@ void fm_run()
 
     BOOST_ASSERT( 0 != fm);
 
-    // move all fibers witch are ready (state_ready)
+    // move all fibers which are ready (state_ready)
     // from waiting-queue to the runnable-queue
     fm->wqueue_.move_to( fm->sched_algo_, fetch_ready);
 
     // pop new fiber from ready-queue which is not complete
     // (example: fiber in ready-queue could be canceled by active-fiber)
-    detail::worker_fiber * f( fm->sched_algo_->pick_next() );
+    fiber_base * f( fm->sched_algo_->pick_next());
     if ( f)
     {
         BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
-        fm_resume_( f);
+        fm_resume_( static_cast<detail::worker_fiber*>(f));
     }
     else
     {

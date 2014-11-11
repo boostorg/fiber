@@ -40,7 +40,7 @@ public:
     void push( worker_fiber * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->next() );
+        BOOST_ASSERT( 0 == item->nxt_ );
 
         if ( empty() )
             head_ = tail_ = item;
@@ -49,22 +49,22 @@ public:
             worker_fiber * f = head_, * prev = 0;
             do
             {
-                worker_fiber * nxt = f->next();
+                worker_fiber * nxt = static_cast<worker_fiber*>(f->nxt_);
                 if ( item->time_point() <= f->time_point() )
                 {
                     if ( head_ == f)
                     {
                         BOOST_ASSERT( 0 == prev);
 
-                        item->next( f);
+                        item->nxt_ = f;
                         head_ = item;
                     }
                     else
                     {
                         BOOST_ASSERT( 0 != prev);
 
-                        item->next( f);
-                        prev->next( item);
+                        item->nxt_ = f;
+                        prev->nxt_ = item;
                     }
                     break;
                 }
@@ -72,7 +72,7 @@ public:
                 {
                     BOOST_ASSERT( 0 == nxt);
 
-                    tail_->next( item);
+                    tail_->nxt_ = item;
                     tail_ = item;
                     break;
                 }
@@ -100,7 +100,7 @@ public:
         chrono::high_resolution_clock::time_point now( chrono::high_resolution_clock::now() );
         while ( 0 != f)
         {
-            worker_fiber * nxt = f->next();
+            worker_fiber * nxt = static_cast<worker_fiber*>(f->nxt_);
             if ( fn( f, now) )
             {
                 if ( f == head_)
@@ -118,9 +118,9 @@ public:
                     if ( 0 == nxt)
                         tail_ = prev;
 
-                    prev->next( nxt); 
+                    prev->nxt_ = nxt;
                 }
-                f->next_reset();
+                f->nxt_ = 0;
                 f->time_point_reset();
                 sched_algo->awakened( f);
             }

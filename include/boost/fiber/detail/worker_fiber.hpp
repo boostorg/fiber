@@ -92,7 +92,6 @@ private:
 
     atomic< std::size_t >           use_count_;
     fss_data_t                      fss_data_;
-    worker_fiber                *   nxt_;
     chrono::high_resolution_clock::time_point          tp_;
     coro_t::yield_type          *   callee_;
     coro_t::call_type               caller_;
@@ -217,15 +216,6 @@ public:
 
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
-
-    worker_fiber * next() const BOOST_NOEXCEPT
-    { return nxt_; }
-
-    void next( worker_fiber * nxt) BOOST_NOEXCEPT
-    { nxt_ = nxt; }
-
-    void next_reset() BOOST_NOEXCEPT
-    { nxt_ = 0; }
 
     chrono::high_resolution_clock::time_point const& time_point() const BOOST_NOEXCEPT
     { return tp_; }
