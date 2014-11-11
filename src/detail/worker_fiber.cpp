@@ -97,15 +97,6 @@ worker_fiber::request_interruption( bool req) BOOST_NOEXCEPT
         flags_ &= ~flag_interruption_requested;
 }
 
-void
-worker_fiber::thread_affinity( bool req) BOOST_NOEXCEPT
-{
-    if ( req)
-        flags_ |= flag_thread_affinity;
-    else
-        flags_ &= ~flag_thread_affinity;
-}
-
 void *
 worker_fiber::get_fss_data( void const* vp) const
 {

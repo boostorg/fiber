@@ -44,22 +44,6 @@ fiber::priority( int prio) BOOST_NOEXCEPT
     fm_priority( impl_.get(), prio);
 }
 
-bool
-fiber::thread_affinity() const BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( impl_);
-
-    return impl_->thread_affinity();
-}
-
-void
-fiber::thread_affinity( bool req) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( impl_);
-
-    impl_->thread_affinity( req);
-}
-
 void
 fiber::join()
 {
