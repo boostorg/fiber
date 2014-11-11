@@ -78,32 +78,31 @@ public:
     {
         BOOST_ASSERT( sched_algo);
 
-        worker_fiber * f = static_cast<worker_fiber*>(head_), * prev = 0;
         chrono::high_resolution_clock::time_point now( chrono::high_resolution_clock::now() );
-        while ( 0 != f)
+
+        // Search the queue for every worker_fiber 'f' for which fn(f, now)
+        // returns true. Each time we find such a worker_fiber, unlink it from
+        // the queue and pass it to sched_algo->awakened().
+
+        // Search using a fiber_base**, starting at &head_.
+        for (fiber_base** fp = &head_; *fp; )
         {
-            worker_fiber * nxt = static_cast<worker_fiber*>(f->nxt_);
-            if ( fn( f, now) )
+            worker_fiber *f = static_cast<worker_fiber*>(*fp);
+
+            if (! fn(f, now))
             {
-                if ( f == static_cast<worker_fiber*>(head_))
-                {
-                    BOOST_ASSERT( 0 == prev);
-
-                    head_ = nxt;
-                }
-                else
-                {
-                    BOOST_ASSERT( 0 != prev);
-
-                    prev->nxt_ = nxt;
-                }
-                f->nxt_ = 0;
-                f->time_point_reset();
-                sched_algo->awakened( f);
+                // If f does NOT meet caller's criteria, skip fp past it.
+                fp = &(*fp)->nxt_;
             }
             else
-                prev = f;
-            f = nxt;
+            {
+                // Here f satisfies our caller. Unlink it from the list.
+                *fp = (*fp)->nxt_;
+                f->nxt_ = 0;
+                // Pass the newly-unlinked worker_fiber* to sched_algo.
+                f->time_point_reset();
+                sched_algo->awakened(f);
+            }
         }
     }
 
