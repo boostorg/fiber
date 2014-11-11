@@ -30,7 +30,7 @@ class fifo : private noncopyable
 public:
     fifo() BOOST_NOEXCEPT :
         head_( 0),
-        tail_( 0)
+        tail_( &head_)
     {}
 
     bool empty() const BOOST_NOEXCEPT
@@ -41,13 +41,11 @@ public:
         BOOST_ASSERT( 0 != item);
         BOOST_ASSERT( 0 == item->nxt_ );
 
-        if ( empty() )
-            head_ = tail_ = item;
-        else
-        {
-            tail_->nxt_ = item;
-            tail_ = item;
-        }
+        // *tail_ holds the null marking the end of the fifo. So we can extend
+        // the fifo by assigning to *tail_.
+        *tail_ = item;
+        // Advance tail_ to point to the new end marker.
+        tail_ = &item->nxt_;
     }
 
     fiber_base * pop() BOOST_NOEXCEPT
@@ -56,7 +54,7 @@ public:
 
         fiber_base * item = head_;
         head_ = head_->nxt_;
-        if ( 0 == head_) tail_ = 0;
+        if ( 0 == head_) tail_ = &head_;
         item->nxt_ = 0;
         return item;
     }
@@ -68,8 +66,13 @@ public:
     }
 
 private:
+    // head_ points to the head item, or is null
     fiber_base    *  head_;
-    fiber_base    *  tail_;
+    // tail_ points to the nxt_ field that contains the null that marks the
+    // end of the fifo. When the fifo is empty, tail_ points to head_. tail_
+    // must never be null: it always points to a real fiber_base*. However, in
+    // normal use, (*tail_) is always null.
+    fiber_base   **  tail_;
 };
 
 }}}
