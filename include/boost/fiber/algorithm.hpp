@@ -9,6 +9,7 @@
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
 
+#include <boost/fiber/properties.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
 
@@ -57,8 +58,12 @@ public:
         {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
-            f->set_properties(new PROPS(f, this));
+            f->set_properties(new PROPS(f));
         }
+        // Set sched_algo_ again every time this fiber becomes READY. That
+        // handles the case of a fiber migrating to a new thread with a new
+        // sched_algorithm subclass instance.
+        f->get_properties()->set_sched_algorithm(this);
     }
 
     // used for all internal calls
