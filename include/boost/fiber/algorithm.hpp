@@ -71,9 +71,9 @@ public:
     }
 
     // used for all internal calls
-    PROPS& properties(detail::worker_fiber* f)
+    PROPS& properties(fiber_base* f)
     {
-        return static_cast<PROPS&>(*f->get_properties());
+        return static_cast<PROPS&>(*static_cast<detail::worker_fiber*>(f)->get_properties());
     }
 
     // public-facing properties(fiber::id) method in case consumer retains a

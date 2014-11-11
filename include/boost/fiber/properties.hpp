@@ -45,9 +45,11 @@ protected:
 
 public:
     // fiber_properties, and by implication every subclass, must accept a back
-    // pointer to its worker_fiber. Any specific property setter method, after
-    // updating the relevant instance variable, can/should call notify().
-    fiber_properties(detail::worker_fiber* f):
+    // pointer to its worker_fiber.
+    typedef detail::worker_fiber* back_ptr;
+    // Any specific property setter method, after updating the relevant
+    // instance variable, can/should call notify().
+    fiber_properties(back_ptr f):
         fiber_(f),
         sched_algo_(0)
     {}
