@@ -33,11 +33,9 @@ private:
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( detail::worker_fiber *);
+    virtual void awakened( fiber_base *);
 
-    virtual detail::worker_fiber * pick_next();
-
-    virtual void priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
+    virtual fiber_base * pick_next();
 };
 
 }}

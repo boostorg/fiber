@@ -14,6 +14,7 @@
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/properties.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -29,21 +30,22 @@ worker_fiber::worker_fiber( coro_t::yield_type * callee) :
     fiber_base(),
     use_count_( 1), // allocated on stack
     fss_data_(),
-    nxt_( 0),
     tp_( (chrono::high_resolution_clock::time_point::max)() ),
     callee_( callee),
     caller_(),
     state_( READY),
     flags_( 0),
-    priority_( 0),
     except_(),
-    waiting_()
+    waiting_(),
+    properties_(0)
 { BOOST_ASSERT( callee_); }
 
 worker_fiber::~worker_fiber()
 {
     BOOST_ASSERT( is_terminated() );
     BOOST_ASSERT( waiting_.empty() );
+
+    delete properties_;
 }
 
 void
@@ -95,15 +97,6 @@ worker_fiber::request_interruption( bool req) BOOST_NOEXCEPT
         flags_ &= ~flag_interruption_requested;
 }
 
-void
-worker_fiber::thread_affinity( bool req) BOOST_NOEXCEPT
-{
-    if ( req)
-        flags_ |= flag_thread_affinity;
-    else
-        flags_ &= ~flag_thread_affinity;
-}
-
 void *
 worker_fiber::get_fss_data( void const* vp) const
 {
@@ -140,6 +133,13 @@ worker_fiber::set_fss_data(
             std::make_pair(
                 key,
                 fss_data( data, cleanup_fn) ) );
+}
+
+void
+worker_fiber::set_properties( fiber_properties* props)
+{
+    delete properties_;
+    properties_ = props;
 }
 
 }}}

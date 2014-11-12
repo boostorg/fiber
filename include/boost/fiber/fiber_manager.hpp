@@ -20,7 +20,7 @@
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/fiber.hpp>
+//#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -54,9 +54,9 @@ void fm_resume_( detail::worker_fiber *);
 
 void fm_set_sched_algo( sched_algorithm *);
 
-void fm_spawn( detail::worker_fiber *);
+sched_algorithm* fm_get_sched_algo_();
 
-void fm_priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
+void fm_spawn( detail::worker_fiber *);
 
 void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
 template< typename Rep, typename Period >
@@ -97,6 +97,21 @@ void fm_yield();
 chrono::high_resolution_clock::time_point fm_next_wakeup();
 
 void fm_migrate( detail::worker_fiber *);
+
+// implementation for fiber::properties<PROPS>()
+template < class PROPS >
+PROPS& fm_properties( detail::worker_fiber * f )
+{
+    return dynamic_cast<sched_algorithm_with_properties<PROPS>&>(*fm_get_sched_algo_())
+           .properties(f);
+}
+
+// implementation for this_fiber::properties<PROPS>()
+template < class PROPS >
+PROPS& fm_properties()
+{
+    return fm_properties<PROPS>(fm_active());
+}
 
 }}
 

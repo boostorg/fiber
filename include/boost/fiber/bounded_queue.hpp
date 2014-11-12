@@ -93,7 +93,7 @@ private:
     state_t                     state_;
     std::size_t                 count_;
     typename node_type::ptr     head_;
-    typename node_type::ptr     tail_;
+    typename node_type::ptr  *  tail_;
     mutable mutex               mtx_;
     condition                   not_empty_cond_;
     condition                   not_full_cond_;
@@ -171,13 +171,8 @@ private:
 
     void push_tail_( typename node_type::ptr new_node)
     {
-        if ( is_empty_() )
-            head_ = tail_ = new_node;
-        else
-        {
-            tail_->next = new_node;
-            tail_ = new_node;
-        }
+        *tail_ = new_node;
+        tail_ = &new_node->next;
         ++count_;
     }
 
@@ -210,7 +205,7 @@ private:
     {
         typename node_type::ptr old_head = head_;
         head_ = old_head->next;
-        if ( 0 == head_) tail_ = 0;
+        if ( 0 == head_) tail_ = &head_;
         old_head->next = 0;
         return old_head;
     }
@@ -222,7 +217,7 @@ public:
         state_( OPEN),
         count_( 0),
         head_(),
-        tail_( head_),
+        tail_( &head_),
         mtx_(),
         not_empty_cond_(),
         not_full_cond_(),
@@ -240,7 +235,7 @@ public:
         state_( OPEN),
         count_( 0),
         head_(),
-        tail_( head_),
+        tail_( &head_),
         mtx_(),
         not_empty_cond_(),
         not_full_cond_(),

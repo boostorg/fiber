@@ -41,6 +41,9 @@
 
 namespace boost {
 namespace fibers {
+
+class fiber_properties;
+
 namespace detail {
 
 namespace coro = boost::coroutines;
@@ -89,16 +92,15 @@ private:
 
     atomic< std::size_t >           use_count_;
     fss_data_t                      fss_data_;
-    worker_fiber                *   nxt_;
     chrono::high_resolution_clock::time_point          tp_;
     coro_t::yield_type          *   callee_;
     coro_t::call_type               caller_;
     atomic< state_t >               state_;
     atomic< int >                   flags_;
-    atomic< int >                   priority_;
     exception_ptr                   except_;
     spinlock                        splk_;
     std::vector< worker_fiber * >   waiting_;
+    fiber_properties            *   properties_;
 
 public:
     worker_fiber( coro_t::yield_type *);
@@ -107,12 +109,6 @@ public:
 
     id get_id() const BOOST_NOEXCEPT
     { return id( const_cast< worker_fiber * >( this) ); }
-
-    int priority() const BOOST_NOEXCEPT
-    { return priority_; }
-
-    void priority( int prio) BOOST_NOEXCEPT
-    { priority_ = prio; }
 
     bool join( worker_fiber *);
 
@@ -125,11 +121,6 @@ public:
     { return 0 != ( flags_.load() & flag_interruption_requested); }
 
     void request_interruption( bool req) BOOST_NOEXCEPT;
-
-    bool thread_affinity() const BOOST_NOEXCEPT
-    { return 0 != ( flags_.load() & flag_thread_affinity); }
-
-    void thread_affinity( bool req) BOOST_NOEXCEPT;
 
     bool is_terminated() const BOOST_NOEXCEPT
     { return TERMINATED == state_; }
@@ -214,15 +205,6 @@ public:
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
     }
 
-    worker_fiber * next() const BOOST_NOEXCEPT
-    { return nxt_; }
-
-    void next( worker_fiber * nxt) BOOST_NOEXCEPT
-    { nxt_ = nxt; }
-
-    void next_reset() BOOST_NOEXCEPT
-    { nxt_ = 0; }
-
     chrono::high_resolution_clock::time_point const& time_point() const BOOST_NOEXCEPT
     { return tp_; }
 
@@ -253,6 +235,13 @@ public:
             BOOST_ASSERT( f->is_terminated() );
             f->deallocate();
         }
+    }
+
+    void set_properties( fiber_properties* props);
+
+    fiber_properties* get_properties()
+    {
+        return properties_;
     }
 };
 
