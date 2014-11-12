@@ -59,6 +59,8 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
     // if not referenced on other places
     while ( ! wqueue_.empty() )
         fm_run();
+    active_fiber_ = 0;
+    fprintf(stderr, "~fiber_manager()\n");
 }
 
 void fm_resume_( detail::worker_fiber * f)
@@ -100,6 +102,14 @@ void fm_set_sched_algo( sched_algorithm * algo)
     fm->def_algo_.reset();
 }
 
+sched_algorithm* fm_get_sched_algo_()
+{
+    fiber_manager * fm = detail::scheduler::instance();
+
+    BOOST_ASSERT( 0 != fm);
+    return fm->sched_algo_;
+}
+
 chrono::high_resolution_clock::time_point fm_next_wakeup()
 {
     fiber_manager * fm = detail::scheduler::instance();
@@ -130,16 +140,6 @@ void fm_spawn( detail::worker_fiber * f)
     fm->sched_algo_->awakened( f);
 }
 
-void fm_priority( detail::worker_fiber * f,
-                  int prio) BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    fm->sched_algo_->priority( f, prio);
-}
-
 void fm_wait_interval( chrono::high_resolution_clock::duration const& wait_interval) BOOST_NOEXCEPT
 {
     fiber_manager * fm = detail::scheduler::instance();
@@ -164,17 +164,17 @@ void fm_run()
 
     BOOST_ASSERT( 0 != fm);
 
-    // move all fibers witch are ready (state_ready)
+    // move all fibers which are ready (state_ready)
     // from waiting-queue to the runnable-queue
     fm->wqueue_.move_to( fm->sched_algo_, fetch_ready);
 
     // pop new fiber from ready-queue which is not complete
     // (example: fiber in ready-queue could be canceled by active-fiber)
-    detail::worker_fiber * f( fm->sched_algo_->pick_next() );
+    fiber_base * f( fm->sched_algo_->pick_next());
     if ( f)
     {
         BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
-        fm_resume_( f);
+        fm_resume_( static_cast<detail::worker_fiber*>(f));
     }
     else
     {
