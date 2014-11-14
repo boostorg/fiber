@@ -18,7 +18,7 @@ namespace fibers {
 void fiber_properties::notify()
 {
     BOOST_ASSERT(sched_algo_);
-    sched_algo_->property_change(fiber_, this);
+    static_cast<sched_algorithm_with_properties_base*>(sched_algo_)->property_change_(fiber_, this);
 }
 
 }}                                  // boost::fiber

@@ -35,8 +35,6 @@ struct sched_algorithm
     virtual void awakened( fiber_base *) = 0;
 
     virtual fiber_base * pick_next() = 0;
-
-    virtual void property_change( fiber_base *, fiber_properties* ) {}
 };
 
 namespace detail {
@@ -45,8 +43,15 @@ inline
 fiber_base* extract_base(fiber_base::id id) { return id.impl_; }
 } // detail
 
+struct sched_algorithm_with_properties_base: public sched_algorithm
+{
+    // called by fiber_properties::notify() -- don't directly call
+    virtual void property_change_( fiber_base *f, fiber_properties* props ) = 0;
+};
+
 template <class PROPS>
-struct sched_algorithm_with_properties: public sched_algorithm
+struct sched_algorithm_with_properties:
+        public sched_algorithm_with_properties_base
 {
 public:
     typedef sched_algorithm_with_properties<PROPS> super;
@@ -79,6 +84,15 @@ public:
     PROPS& properties(detail::worker_fiber::id id)
     {
         return properties(extract(id));
+    }
+
+    // override this to be notified by PROPS::notify()
+    virtual void property_change( fiber_base* f, PROPS& props) {}
+
+    // implementation for sched_algorithm_with_properties_base method
+    void property_change_( fiber_base *f, fiber_properties* props )
+    {
+        property_change(f, *static_cast<PROPS*>(props));
     }
 
 private:
