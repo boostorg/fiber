@@ -18,10 +18,20 @@ namespace fibers {
 void fiber_properties::notify()
 {
     BOOST_ASSERT(sched_algo_);
-    static_cast<sched_algorithm_with_properties_base*>(sched_algo_)->property_change_(fiber_, this);
+    // Application code might change an important property for any fiber at
+    // any time. The fiber in question might be ready, running or waiting.
+    // Significantly, only a fiber which is ready but not actually running is
+    // in the sched_algorithm's ready queue. Don't bother the sched_algorithm
+    // with a change to a fiber it's not currently tracking: it will do the
+    // right thing next time the fiber is passed to its awakened() method.
+    if (fiber_->is_ready())
+    {
+        static_cast<sched_algorithm_with_properties_base*>(sched_algo_)->
+            property_change_(fiber_, this);
+    }
 }
 
-}}                                  // boost::fiber
+}}                                  // boost::fibers
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
