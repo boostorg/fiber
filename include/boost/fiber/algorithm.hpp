@@ -13,6 +13,14 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
 
+#ifndef BOOST_FINAL
+#  ifdef BOOST_NO_CXX11_FINAL
+#    define BOOST_FINAL
+#  else
+#    define BOOST_FINAL final
+#  endif
+#endif
+ 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -56,9 +64,11 @@ struct sched_algorithm_with_properties:
 public:
     typedef sched_algorithm_with_properties<PROPS> super;
 
-    // Start every subclass awakened() override with:
+    // On C++11 compilers, mark this override 'final': subclasses must
+    // override awakened_props() instead. Otherwise you'd have to remember to
+    // start every subclass awakened() override with:
     // sched_algorithm_with_properties<PROPS>::awakened(fb);
-    virtual void awakened( fiber_base *fb)
+    virtual void awakened( fiber_base *fb) BOOST_FINAL
     {
         detail::worker_fiber* f = static_cast<detail::worker_fiber*>(fb);
         if (! f->get_properties())
@@ -71,7 +81,13 @@ public:
         // handles the case of a fiber migrating to a new thread with a new
         // sched_algorithm subclass instance.
         f->get_properties()->set_sched_algorithm(this);
+
+        // Okay, now forward the call to subclass override.
+        awakened_props(fb);
     }
+
+    // subclasses override this method instead of the original awakened()
+    virtual void awakened_props( fiber_base *fb) {}
 
     // used for all internal calls
     PROPS& properties(fiber_base* f)

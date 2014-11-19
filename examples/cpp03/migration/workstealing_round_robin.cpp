@@ -18,11 +18,8 @@ workstealing_round_robin::workstealing_round_robin():
 {}
 
 void
-workstealing_round_robin::awakened( boost::fibers::fiber_base * f)
+workstealing_round_robin::awakened_props( boost::fibers::fiber_base * f)
 {
-    // forward this call to base-class method
-    boost::fibers::sched_algorithm_with_properties<affinity>::awakened(f);
-
     boost::mutex::scoped_lock lk( mtx_);
     // append this fiber_base* to ready queue
     BOOST_ASSERT(! f->nxt_);

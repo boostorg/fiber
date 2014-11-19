@@ -48,7 +48,7 @@ private:
 public:
     workstealing_round_robin();
 
-    virtual void awakened( boost::fibers::fiber_base *);
+    virtual void awakened_props( boost::fibers::fiber_base *);
 
     virtual boost::fibers::fiber_base * pick_next();
 
