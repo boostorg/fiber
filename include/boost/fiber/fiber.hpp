@@ -317,7 +317,7 @@ public:
     template <class PROPS>
     PROPS& properties()
     {
-        return fm_properties<PROPS>(impl_);
+        return fm_properties<PROPS>(impl_.get());
     }
 };
 
