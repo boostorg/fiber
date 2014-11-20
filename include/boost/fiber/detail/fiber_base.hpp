@@ -39,9 +39,6 @@ public:
     private:
         fiber_base  *   impl_;
 
-        // support sched_algorithm_with_properties::properties(fiber::id)
-        friend fiber_base* extract_base(id);
-
     public:
         id() BOOST_NOEXCEPT :
             impl_( 0)
@@ -86,8 +83,7 @@ public:
         { return 0 == impl_; }
     };
 
-    fiber_base():
-        nxt_(0)
+    fiber_base()
     {}
 
     virtual ~fiber_base() {};
@@ -97,9 +93,6 @@ public:
     virtual void set_ready() BOOST_NOEXCEPT = 0;
 
     virtual id get_id() const BOOST_NOEXCEPT = 0;
-
-    // for use by sched_algorithm to queue any subclass instance
-    fiber_base      *   nxt_;
 };
 
 }}}

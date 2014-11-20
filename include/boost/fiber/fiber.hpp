@@ -26,7 +26,6 @@
 #include <boost/fiber/detail/setup.hpp>
 #include <boost/fiber/detail/trampoline.hpp>
 #include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/fiber_manager.hpp>
 #include <boost/fiber/stack_allocator.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -108,10 +107,8 @@ public:
         impl_()
     {}
 
-    // This fiber_base* is allowed to be 0 -- call joinable() before performing
-    // operations on such a fiber object!
-    explicit fiber( fiber_base * impl) BOOST_NOEXCEPT :
-        impl_( dynamic_cast<detail::worker_fiber*>(impl))
+    explicit fiber( detail::worker_fiber * impl) BOOST_NOEXCEPT :
+        impl_( impl)
     {}
 
 #ifdef BOOST_MSVC
@@ -308,17 +305,19 @@ public:
     id get_id() const BOOST_NOEXCEPT
     { return 0 != impl_ ? impl_->get_id() : id(); }
 
+    int priority() const BOOST_NOEXCEPT;
+
+    void priority( int) BOOST_NOEXCEPT;
+
+    bool thread_affinity() const BOOST_NOEXCEPT;
+
+    void thread_affinity( bool) BOOST_NOEXCEPT;
+
     void detach() BOOST_NOEXCEPT;
 
     void join();
 
     void interrupt() BOOST_NOEXCEPT;
-
-    template <class PROPS>
-    PROPS& properties()
-    {
-        return fm_properties<PROPS>(impl_);
-    }
 };
 
 inline

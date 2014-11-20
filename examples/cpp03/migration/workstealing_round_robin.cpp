@@ -12,71 +12,47 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-workstealing_round_robin::workstealing_round_robin():
-    rhead_(0),
-    rtail_(&rhead_)
-{}
-
 void
-workstealing_round_robin::awakened( boost::fibers::fiber_base * f)
+workstealing_round_robin::awakened( boost::fibers::detail::worker_fiber * f)
 {
-    // forward this call to base-class method
-    boost::fibers::sched_algorithm_with_properties<affinity>::awakened(f);
-
     boost::mutex::scoped_lock lk( mtx_);
-    // append this fiber_base* to ready queue
-    BOOST_ASSERT(! f->nxt_);
-    *rtail_ = f;
-    rtail_ = &f->nxt_;
+    rqueue_.push_back( f);
 }
 
-boost::fibers::fiber_base *
+boost::fibers::detail::worker_fiber *
 workstealing_round_robin::pick_next()
 {
     boost::mutex::scoped_lock lk( mtx_);
-    boost::fibers::fiber_base * f = 0;
-    if ( rhead_ )
+    boost::fibers::detail::worker_fiber * f = 0;
+    if ( ! rqueue_.empty() )
     {
-        f = rhead_;
-        // pop head item from ready queue
-        rhead_ = rhead_->nxt_;
-        f->nxt_ = 0;
-        // if that was the last item, reset tail_
-        if (! rhead_)
-            rtail_ = &rhead_;
+        f = rqueue_.front();
+        rqueue_.pop_front();
     }
     return f;
+}
+
+void
+workstealing_round_robin::priority( boost::fibers::detail::worker_fiber * f, int prio) BOOST_NOEXCEPT
+{
+    BOOST_ASSERT( f);
+
+    // set only priority to fiber
+    // round-robin does not respect priorities
+    f->priority( prio);
 }
 
 boost::fibers::fiber
 workstealing_round_robin::steal() BOOST_NOEXCEPT
 {
     boost::mutex::scoped_lock lk( mtx_);
-
-    // Search the queue for the LAST fiber_base that's willing to migrate,
-    // in other words (! thread_affinity).
-    boost::fibers::fiber_base ** fp = &rhead_, ** found = 0;
-    for ( ; *fp; fp = &(*fp)->nxt_)
+    boost::fibers::detail::worker_fiber * f = 0;
+    if ( ! rqueue_.empty() )
     {
-        // do not consider any fiber whose thread_affinity is set
-        if (! properties(*fp).thread_affinity)
-            found = fp;
+        f = rqueue_.back();
+        rqueue_.pop_back();
     }
-    if (! found)
-    {
-        // either the queue is completely empty or all current entries have
-        // thread_affinity set
-        return boost::fibers::fiber(static_cast<boost::fibers::fiber_base*>(0));
-    }
-    // We found at least one fiber_base whose thread_affinity is NOT set;
-    // *found points to the last of these. Unlink and return it.
-    boost::fibers::fiber_base* ret = *found;
-    *found = ret->nxt_;
-    ret->nxt_ = 0;
-    // if that was the last item, reset tail_
-    if (! *found)
-        rtail_ = &rhead_;
-    return boost::fibers::fiber(ret);
+    return boost::fibers::fiber( f);
 }
 
 #ifdef BOOST_HAS_ABI_HEADERS

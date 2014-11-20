@@ -64,13 +64,22 @@ template< typename Rep, typename Period >
 void sleep_for( chrono::duration< Rep, Period > const& timeout_duration)
 { sleep_until( chrono::high_resolution_clock::now() + timeout_duration); }
 
-template < class PROPS >
-PROPS& properties()
+inline
+bool thread_affinity() BOOST_NOEXCEPT
 {
-    return fibers::fm_properties<PROPS>();
+    return 0 != fibers::fm_active()
+        ? fibers::fm_active()->thread_affinity()
+        : true;
 }
 
-} // this_fiber
+inline
+void thread_affinity( bool req) BOOST_NOEXCEPT
+{
+    if ( 0 != fibers::fm_active() )
+        fibers::fm_active()->thread_affinity( req);
+}
+
+}
 
 namespace fibers {
 

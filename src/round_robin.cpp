@@ -16,20 +16,30 @@ namespace boost {
 namespace fibers {
 
 void
-round_robin::awakened( fiber_base * f)
+round_robin::awakened( detail::worker_fiber * f)
 {
     BOOST_ASSERT( 0 != f);
 
     rqueue_.push( f);
 }
 
-fiber_base *
+detail::worker_fiber *
 round_robin::pick_next()
 {
-    fiber_base * victim = 0;
+    detail::worker_fiber * victim = 0;
     if ( ! rqueue_.empty() )
         victim = rqueue_.pop();
     return victim;
+}
+
+void
+round_robin::priority( detail::worker_fiber * f, int prio) BOOST_NOEXCEPT
+{
+    BOOST_ASSERT( f);
+
+    // set only priority to fiber
+    // round-robin does not respect priorities
+    f->priority( prio);
 }
 
 }}
