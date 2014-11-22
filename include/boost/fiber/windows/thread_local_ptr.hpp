@@ -9,7 +9,7 @@
 
 #include <boost/config.hpp>
 #include <boost/utility.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread/tss.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
