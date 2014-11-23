@@ -30,7 +30,7 @@ class fifo : private noncopyable
 public:
     fifo() BOOST_NOEXCEPT :
         head_( 0),
-        tail_( 0)
+        tail_( & head_)
     {}
 
     bool empty() const BOOST_NOEXCEPT
@@ -39,15 +39,13 @@ public:
     void push( worker_fiber * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->next() );
+        BOOST_ASSERT( 0 == item->nxt);
 
-        if ( empty() )
-            head_ = tail_ = item;
-        else
-        {
-            tail_->next( item);
-            tail_ = item;
-        }
+        // * tail_ holds the null marking the end of the fifo. So we can extend
+        // the fifo by assigning to * tail_.
+        * tail_ = item;
+        // Advance tail_ to point to the new end marker.
+        tail_ = & item->nxt;
     }
 
     worker_fiber * pop() BOOST_NOEXCEPT
@@ -55,9 +53,9 @@ public:
         BOOST_ASSERT( ! empty() );
 
         worker_fiber * item = head_;
-        head_ = head_->next();
-        if ( 0 == head_) tail_ = 0;
-        item->next_reset();
+        head_ = head_->nxt;
+        if ( 0 == head_) tail_ = & head_;
+        item->nxt = 0;
         return item;
     }
 
@@ -68,8 +66,13 @@ public:
     }
 
 private:
+    // head_ points to the head item, or is null
     worker_fiber    *  head_;
-    worker_fiber    *  tail_;
+    // tail_ points to the nxt field that contains the null that marks the
+    // end of the fifo. When the fifo is empty, tail_ points to head_. tail_
+    // must never be null: it always points to a real worker_fiber *. However, in
+    // normal use, ( * tail_) is always null.
+    worker_fiber   **  tail_;
 };
 
 }}}
