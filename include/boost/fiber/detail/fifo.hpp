@@ -30,7 +30,7 @@ class fifo : private noncopyable
 public:
     fifo() BOOST_NOEXCEPT :
         head_( 0),
-        tail_( 0)
+        tail_( & head_)
     {}
 
     bool empty() const BOOST_NOEXCEPT
@@ -39,15 +39,13 @@ public:
     void push( fiber_base * item) BOOST_NOEXCEPT
     {
         BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->next() );
+        BOOST_ASSERT( 0 == item->nxt);
 
-        if ( empty() )
-            head_ = tail_ = item;
-        else
-        {
-            tail_->next( item);
-            tail_ = item;
-        }
+        // * tail_ holds the null marking the end of the fifo. So we can extend
+        // the fifo by assigning to * tail_.
+        * tail_ = item;
+        // Advance tail_ to point to the new end marker.
+        tail_ = & item->nxt;
     }
 
     fiber_base * pop() BOOST_NOEXCEPT
@@ -55,9 +53,9 @@ public:
         BOOST_ASSERT( ! empty() );
 
         fiber_base * item = head_;
-        head_ = head_->next();
-        if ( 0 == head_) tail_ = 0;
-        item->next_reset();
+        head_ = head_->nxt;
+        if ( 0 == head_) tail_ = & head_;
+        item->nxt = 0;
         return item;
     }
 
@@ -69,7 +67,7 @@ public:
 
 private:
     fiber_base    *  head_;
-    fiber_base    *  tail_;
+    fiber_base    ** tail_;
 };
 
 }}}

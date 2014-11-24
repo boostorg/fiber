@@ -72,7 +72,6 @@ private:
     atomic< std::size_t >                       use_count_;
     context::fcontext_t                         ctx_;
     fss_data_t                                  fss_data_;
-    fiber_base                              *   nxt_;
     chrono::high_resolution_clock::time_point   tp_;
     atomic< state_t >                           state_;
     atomic< int >                               flags_;
@@ -133,17 +132,19 @@ public:
         { return 0 == impl_; }
     };
 
+    fiber_base                              *   nxt;
+
     fiber_base( context::fcontext_t ctx) :
         use_count_( 1), // allocated on stack
         ctx_( ctx),
         fss_data_(),
-        nxt_( 0),
         tp_( (chrono::high_resolution_clock::time_point::max)() ),
         state_( READY),
         flags_( 0),
         priority_( 0),
         waiting_(),
-        except_()
+        except_(),
+        nxt( 0)
     {}
 
     virtual ~fiber_base()
@@ -237,15 +238,6 @@ public:
         context::jump_fcontext(
             & current->ctx_, ctx_, reinterpret_cast< intptr_t >( this), preserve_fpu_);
     }
-
-    fiber_base * next() const BOOST_NOEXCEPT
-    { return nxt_; }
-
-    void next( fiber_base * nxt) BOOST_NOEXCEPT
-    { nxt_ = nxt; }
-
-    void next_reset() BOOST_NOEXCEPT
-    { nxt_ = 0; }
 
     chrono::high_resolution_clock::time_point const& time_point() const BOOST_NOEXCEPT
     { return tp_; }
