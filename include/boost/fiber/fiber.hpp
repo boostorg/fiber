@@ -131,82 +131,9 @@ public:
         impl_( impl)
     {}
 
-#ifdef BOOST_MSVC
-    fiber( fiber_fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        stack_allocator salloc;
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-
-    fiber( attributes const& attrs, fiber_fn fn) :
-        impl_()
-    {
-        stack_allocator salloc;
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-
-    template< typename StackAllocator >
-    fiber( boost::allocator_arg_t, StackAllocator salloc, fiber_fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-
-    template< typename StackAllocator >
-    fiber( boost::allocator_arg_t, StackAllocator salloc, attributes const& attrs, fiber_fn fn) :
-        impl_()
-    {
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-#endif
-
-#ifdef BOOST_NO_RVALUE_REFERENCES
-    template< typename Fn >
-    fiber( Fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        stack_allocator salloc;
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
 
     template< typename Fn >
-    fiber( attributes const& attrs, Fn fn) :
-        impl_()
-    {
-        stack_allocator salloc;
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn >
-    fiber( boost::allocator_arg_t, StackAllocator salloc, Fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn >
-    fiber( boost::allocator_arg_t, StackAllocator salloc, attributes const& attrs, Fn fn) :
-        impl_()
-    {
-        impl_.reset( make_fiber_( salloc, attrs, fn) );
-        start_();
-    }
-#endif
-
-    template< typename Fn >
-    fiber( BOOST_RV_REF( Fn) fn) :
+    fiber( Fn && fn) :
         impl_()
     {
         attributes attrs;

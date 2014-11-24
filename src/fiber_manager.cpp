@@ -65,7 +65,6 @@ fiber_manager::~fiber_manager() BOOST_NOEXCEPT
         fm_run();
 #endif
     active_fiber = 0;
-    fprintf(stderr, "~fiber_manager()\n");
 }
 
 void fm_resume_( detail::fiber_base * f)
@@ -79,16 +78,15 @@ void fm_resume_( detail::fiber_base * f)
     // set fiber to state running
     f->set_running();
 
-    // fiber next-to-run is same as current fiber
+    // fiber next-to-run is same as current active fiber
     // this might happen in context of this_fiber::yield() 
     if ( f == fm->active_fiber) return;
 
-    // store active-fiber in local var
-    detail::fiber_base * current = fm->active_fiber;
     // assign new fiber to active-fiber
     fm->active_fiber = f;
+
     // resume active-fiber == start or yield to
-    fm->active_fiber->resume( current, fm->preserve_fpu);
+    fm->active_fiber->resume();
 }
 
 chrono::high_resolution_clock::time_point fm_next_wakeup()
@@ -144,7 +142,7 @@ void fm_run()
         {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
-            // if current fiber is in state terminated, push it to terminated-queue
+            // if current active fiber is in state terminated, push it to terminated-queue
             if ( fm->active_fiber->is_terminated() ) fm->tqueue.push_back( fm->active_fiber);
 
             // resume fiber f

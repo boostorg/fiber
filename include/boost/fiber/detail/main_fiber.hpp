@@ -9,6 +9,7 @@
 #include <boost/assert.hpp>
 #include <boost/atomic.hpp>
 #include <boost/config.hpp>
+#include <boost/context/execution_context.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
@@ -25,7 +26,8 @@ class main_fiber : public fiber_base
 {
 public:
     main_fiber() :
-        fiber_base( 0) // main-fiber represents main-context
+        fiber_base(
+            context::execution_context::current() ) // main-fiber represents main-context
     {
         thread_affinity( true);
         set_running();

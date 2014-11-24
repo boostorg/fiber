@@ -13,6 +13,7 @@
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/context/all.hpp>
+#include <boost/context/execution_context.hpp>
 #include <boost/move/move.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -34,14 +35,9 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-template< typename Fn, typename StackAllocator >
 class worker_fiber : public fiber_base
 {
 private:
-    Fn              fn_;
-    StackAllocator  salloc_;
-    stack_context   sctx_;
-
     void run_()
     {
         try
@@ -67,28 +63,34 @@ private:
     }
 
 public:
-    static void entry_func( intptr_t);
+    template< typename StackAllocator, typename Fn >
+    worker_fiber( StackAllocator const& salloc, Fn && fn_) :
+        fiber_base(
+            context::execution_context( salloc,
+                                        [=,&fn_](){
+                                            try
+                                            {
+                                                BOOST_ASSERT( is_running() );
+                                                // store fiber-fn
+                                                Fn fn( std::forward< Fn >( fn_) );
+                                                fn_();
+                                                BOOST_ASSERT( is_running() );
+                                            }
+                                            catch( fiber_interrupted const& )
+                                            { except_ = current_exception(); }
+                                            catch( ... )
+                                            { std::terminate(); }
 
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-    worker_fiber( Fn fn, void * sp, std::size_t size,
-                  StackAllocator const& salloc, stack_context const& sctx) :
-        fiber_base( context::make_fcontext( sp, size, & worker_fiber::entry_func) ),
-        fn_( boost::forward< Fn >( fn) ),
-        salloc_( salloc),
-        sctx_( sctx)
-    {}
-#endif
+                                            // mark fiber as terminated
+                                            set_terminated();
+                                            // notify waiting (joining) fibers
+                                            release();
 
-    worker_fiber( BOOST_RV_REF( Fn) fn, void * sp, std::size_t size,
-                  StackAllocator const& salloc, stack_context const& sctx) :
-        fiber_base( context::make_fcontext( sp, size, & worker_fiber::entry_func) ),
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-        fn_( fn),
-#else
-        fn_( boost::forward< Fn >( fn) ),
-#endif
-        salloc_( salloc),
-        sctx_( sctx)
+                                            // switch to another fiber
+                                            fibers::fm_run();
+
+                                            BOOST_ASSERT_MSG( false, "fiber already terminated");
+                                        })
     {}
 
     ~worker_fiber()
@@ -106,16 +108,6 @@ public:
         salloc.deallocate( sctx);
     }
 };
-
-template< typename Fn, typename StackAllocator >
-void
-worker_fiber< Fn, StackAllocator >::entry_func( intptr_t param)
-{
-    worker_fiber< Fn, StackAllocator > * f(
-        reinterpret_cast< worker_fiber< Fn, StackAllocator > * >( param) );
-    BOOST_ASSERT( 0 != f);
-    f->run_();
-}
 
 }}}
 

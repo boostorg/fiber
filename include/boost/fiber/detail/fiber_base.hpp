@@ -17,6 +17,7 @@
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/context/all.hpp>
+#include <boost/context/execution_context.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/utility.hpp>
@@ -70,7 +71,7 @@ private:
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
     atomic< std::size_t >                       use_count_;
-    context::fcontext_t                         ctx_;
+    context::execution_context                  ctx_;
     fss_data_t                                  fss_data_;
     chrono::high_resolution_clock::time_point   tp_;
     atomic< state_t >                           state_;
@@ -134,7 +135,7 @@ public:
 
     fiber_base                              *   nxt;
 
-    fiber_base( context::fcontext_t ctx) :
+    fiber_base( context::execution_context ctx) :
         use_count_( 1), // allocated on stack
         ctx_( ctx),
         fss_data_(),
@@ -230,13 +231,11 @@ public:
     void set_exception( exception_ptr except) BOOST_NOEXCEPT
     { except_ = except; }
 
-    void resume( fiber_base * current, bool preserve_fpu_)
+    void resume()
     {
-        BOOST_ASSERT( 0 != current);
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
-        context::jump_fcontext(
-            & current->ctx_, ctx_, reinterpret_cast< intptr_t >( this), preserve_fpu_);
+        ctx_.jump_to();
     }
 
     chrono::high_resolution_clock::time_point const& time_point() const BOOST_NOEXCEPT
