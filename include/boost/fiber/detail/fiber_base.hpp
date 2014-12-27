@@ -184,7 +184,7 @@ public:
         fss_data_(),
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         state_( fiber_status::ready),
-        flags_( 0),
+        flags_( flag_main_fiber | flag_thread_affinity),
         priority_( 0),
         waiting_(),
         except_(),

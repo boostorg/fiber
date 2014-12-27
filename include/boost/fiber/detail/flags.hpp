@@ -20,10 +20,11 @@ namespace fibers {
 namespace detail {
 
 enum flag_t {
-    flag_interruption_blocked   = 1 << 1,
-    flag_interruption_requested = 1 << 2,
-    flag_thread_affinity        = 1 << 3,
-    flag_detached               = 1 << 4
+    flag_main_fiber             = 1 << 1,
+    flag_interruption_blocked   = 1 << 2,
+    flag_interruption_requested = 1 << 3,
+    flag_thread_affinity        = 1 << 4,
+    flag_detached               = 1 << 5
 };
 
 }}}

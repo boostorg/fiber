@@ -74,10 +74,13 @@ fiber_base::request_interruption( bool req) noexcept {
 
 void
 fiber_base::thread_affinity( bool req) noexcept {
-    if ( req) {
-        flags_ |= flag_thread_affinity;
-    } else {
-        flags_ &= ~flag_thread_affinity;
+    // BOOST_ASSERT( 0 == ( flags_.load() & flag_main_fiber) );
+    if ( 0 == ( flags_.load() & flag_main_fiber) ) {
+        if ( req) {
+            flags_ |= flag_thread_affinity;
+        } else {
+            flags_ &= ~flag_thread_affinity;
+        }
     }
 }
 
