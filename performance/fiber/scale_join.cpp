@@ -17,19 +17,15 @@
 #include "../clock.hpp"
 
 #define CREATE(z, n, _) \
-    boost::fibers::fiber BOOST_PP_CAT(f,n) (attrs, worker);
+    boost::fibers::fiber BOOST_PP_CAT(f,n) (worker);
 #define JOIN(z, n, _) \
     BOOST_PP_CAT(f,n) .join();
-
-boost::coroutines::flag_fpu_t preserve_fpu_ = boost::coroutines::fpu_not_preserved;
-boost::coroutines::flag_unwind_t unwind_stack = boost::coroutines::no_stack_unwind;
 
 void worker() {}
 
 duration_type measure10( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -45,8 +41,7 @@ duration_type measure10( duration_type overhead)
 
 duration_type measure50( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -62,8 +57,7 @@ duration_type measure50( duration_type overhead)
 
 duration_type measure100( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -79,8 +73,7 @@ duration_type measure100( duration_type overhead)
 
 duration_type measure500( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -96,8 +89,7 @@ duration_type measure500( duration_type overhead)
 
 duration_type measure1000( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -113,8 +105,7 @@ duration_type measure1000( duration_type overhead)
 
 duration_type measure5000( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 
@@ -130,8 +121,7 @@ duration_type measure5000( duration_type overhead)
 
 duration_type measure10000( duration_type overhead)
 {
-    boost::fibers::attributes attrs( unwind_stack, preserve_fpu_);
-    boost::fibers::fiber( attrs, worker).join();
+    boost::fibers::fiber( worker).join();
 
     time_point_type start( clock_type::now() );
 

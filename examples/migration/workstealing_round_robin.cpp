@@ -13,17 +13,17 @@
 #endif
 
 void
-workstealing_round_robin::awakened( boost::fibers::detail::fiber_base * f)
+workstealing_round_robin::awakened( boost::fibers::detail::fiber_handle f)
 {
-    boost::mutex::scoped_lock lk( mtx_);
+    std::unique_lock< std::mutex > lk( mtx_);
     rqueue_.push_back( f);
 }
 
-boost::fibers::detail::fiber_base *
+boost::fibers::detail::fiber_handle
 workstealing_round_robin::pick_next()
 {
-    boost::mutex::scoped_lock lk( mtx_);
-    boost::fibers::detail::fiber_base * f = 0;
+    std::unique_lock< std::mutex > lk( mtx_);
+    boost::fibers::detail::fiber_handle f;
     if ( ! rqueue_.empty() )
     {
         f = rqueue_.front();
@@ -33,7 +33,7 @@ workstealing_round_robin::pick_next()
 }
 
 void
-workstealing_round_robin::priority( boost::fibers::detail::fiber_base * f, int prio) BOOST_NOEXCEPT
+workstealing_round_robin::priority( boost::fibers::detail::fiber_handle f, int prio) noexcept
 {
     BOOST_ASSERT( f);
 
@@ -43,10 +43,10 @@ workstealing_round_robin::priority( boost::fibers::detail::fiber_base * f, int p
 }
 
 boost::fibers::fiber
-workstealing_round_robin::steal() BOOST_NOEXCEPT
+workstealing_round_robin::steal()
 {
-    boost::mutex::scoped_lock lk( mtx_);
-    boost::fibers::detail::fiber_base * f = 0;
+    std::unique_lock< std::mutex > lk( mtx_);
+    boost::fibers::detail::fiber_handle f;
     if ( ! rqueue_.empty() )
     {
         f = rqueue_.back();
@@ -57,10 +57,6 @@ workstealing_round_robin::steal() BOOST_NOEXCEPT
             f = 0;
         }
     }
-#if 0
-    if ( 0 != f)
-       fprintf(stderr, "migrated fiber: %p\n", f);
-#endif
     return boost::fibers::fiber( f);
 }
 

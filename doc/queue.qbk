@@ -98,10 +98,10 @@ Queue operations return the state of the queue.
         queue_op_status try_pop( value_type & va);
         template< typename Rep, typename Period >
         queue_op_status pop_wait_for( value_type & va,
-                                      chrono::duration< Rep, Period > const& timeout_duration);
+                                      std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Clock, typename Duration >
         queue_op_status pop_wait_until( value_type & va,
-                                        chrono::time_point< Clock, Duration > const& timeout_time);
+                                        std::chrono::time_point< Clock, Duration > const& timeout_time);
     };
 
 [member_heading unbounded_queue..is_closed]
@@ -187,10 +187,10 @@ dequeued value.]]
 
         template< typename Rep, typename Period >
         queue_op_status pop_wait_for( value_type & va,
-                                      chrono::duration< Rep, Period > const& timeout_duration)
+                                      std::chrono::duration< Rep, Period > const& timeout_duration)
 
 [variablelist
-[[Effects:] [Accepts `chrono::duration` and internally
+[[Effects:] [Accepts `std::chrono::duration` and internally
 computes a `clock_type::time_point` as `(clock_type::now() +
 timeout_duration)`. If `(! this->is_empty())`, immediately dequeues a value
 from the queue. Otherwise the fiber gets suspended until at least one new item
@@ -205,10 +205,10 @@ the queue gets `close()`d (return value `closed`), or the time as reported by
 
         template< typename Clock, typename Duration >
         queue_op_status pop_wait_until( value_type & va,
-                                        chrono::time_point< Clock, Duration > const& timeout_time)
+                                        std::chrono::time_point< Clock, Duration > const& timeout_time)
 
 [variablelist
-[[Effects:] [Accepts a `chrono::time_point< Clock, Duration >`. If `(! this->is_empty())`,
+[[Effects:] [Accepts a `std::chrono::time_point< Clock, Duration >`. If `(! this->is_empty())`,
 immediately dequeues a value from the queue. Otherwise the fiber gets suspended
 until at least one new item is `push()`ed (return value `success` and `va`
 contains dequeued value), or the queue gets `close()`d (return value `closed`),
@@ -247,16 +247,16 @@ or the time as reported by `clock_type::now()` reaches the passed
         queue_op_status push( value_type && va);
         template< typename Rep, typename Period >
         queue_op_status push_wait_for( value_type const& va,
-                                       chrono::duration< Rep, Period > const& timeout_duration);
+                                       std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Rep, typename Period >
         queue_op_status push_wait_for( value_type && va,
-                                       chrono::duration< Rep, Period > const& timeout_duration);
+                                       std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Clock, typename Duration >
         queue_op_status push_wait_until( value_type const& va,
-                                         chrono::time_point< Clock, Duration > const& timeout_time);
+                                         std::chrono::time_point< Clock, Duration > const& timeout_time);
         template< typename Clock, typename Duration >
         queue_op_status push_wait_until( value_type && va,
-                                         chrono::time_point< Clock, Duration > const& timeout_time);
+                                         std::chrono::time_point< Clock, Duration > const& timeout_time);
         queue_op_status try_push( value_type const& va);
         queue_op_status try_push( value_type && va);
 
@@ -264,10 +264,10 @@ or the time as reported by `clock_type::now()` reaches the passed
         queue_op_status pop( value_type & va);
         template< typename Rep, typename Period >
         queue_op_status pop_wait_for( value_type & va,
-                                      chrono::duration< Rep, Period > const& timeout_duration);
+                                      std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Clock, typename Duration >
         queue_op_status pop_wait_until( value_type & va,
-                                        chrono::time_point< Clock, Duration > const& timeout_time);
+                                        std::chrono::time_point< Clock, Duration > const& timeout_time);
         queue_op_status try_pop( value_type & va);
     };
 
@@ -376,13 +376,13 @@ queue drops below `lwm` (return value `success`), or the queue is `close()`d
 
         template< typename Rep, typename Period >
         queue_op_status push_wait_for( value_type const& va,
-                                       chrono::duration< Rep, Period > const& timeout_duration);
+                                       std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Rep, typename Period >
         queue_op_status push_wait_for( value_type && va,
-                                       chrono::duration< Rep, Period > const& timeout_duration);
+                                       std::chrono::duration< Rep, Period > const& timeout_duration);
 
 [variablelist
-[[Effects:] [Accepts `chrono::duration` and internally computes a time_point
+[[Effects:] [Accepts `std::chrono::duration` and internally computes a time_point
 as `(now() + timeout_duration)`. If `this->is_closed()`, returns `closed`. If
 `(! this->is_full())`, enqueues the value in the queue, wakes up a fiber
 blocked on `this->pop()` `this->pop_wait_for()` or `this->pop_wait_until()`
@@ -397,10 +397,10 @@ queue is `close()`d (return value `closed`), or the time as reported by
 
         template< typename Clock, typename Duration >
         queue_op_status push_wait_until( value_type const& va,
-                                         chrono::time_point< Clock, Duration > const& timeout_time);
+                                         std::chrono::time_point< Clock, Duration > const& timeout_time);
         template< typename Clock, typename Duration >
         queue_op_status push_wait_until( value_type && va,
-                                         chrono::time_point< Clock, Duration > const& timeout_time);
+                                         std::chrono::time_point< Clock, Duration > const& timeout_time);
 
 [variablelist
 [[Effects:] [Accepts an absolute `timeout_time` in any supported time_point
@@ -469,10 +469,10 @@ dequeued value.]]
 
         template< typename Rep, typename Period >
         queue_op_status pop_wait_for( value_type & va,
-                                      chrono::duration< Rep, Period > const& timeout_duration)
+                                      std::chrono::duration< Rep, Period > const& timeout_duration)
 
 [variablelist
-[[Effects:] [Accepts `chrono::duration` and internally computes a time_point
+[[Effects:] [Accepts `std::chrono::duration` and internally computes a time_point
 as `(now() + timeout_duration)`. If `(! this->is_empty())`, immediately
 dequeues a value from the queue. Otherwise the calling fiber gets suspended
 until at least one new item is `push()`ed (return value `success` and `va`
@@ -486,7 +486,7 @@ contains dequeued value), or the queue gets `close()`d (return value
 
         template< typename Clock, typename Duration >
         queue_op_status pop_wait_until( value_type & va,
-                                        chrono::time_point< Clock, Duration > const& timeout_time);
+                                        std::chrono::time_point< Clock, Duration > const& timeout_time);
 
 [variablelist
 [[Effects:] [Accepts an absolute `timeout_time` in any supported time_point

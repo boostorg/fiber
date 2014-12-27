@@ -9,21 +9,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <stdexcept>
 #include <vector>
 
-#include <boost/bind.hpp>
-#include <boost/chrono.hpp>
-#include <boost/function.hpp>
-#include <boost/ref.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
 
-typedef boost::chrono::nanoseconds  ns;
-typedef boost::chrono::milliseconds ms;
+typedef std::chrono::nanoseconds  ns;
+typedef std::chrono::milliseconds ms;
 
 int value1 = 0;
 int value2 = 0;
@@ -32,7 +27,7 @@ template< typename M >
 void fn1( M & mtx)
 {
     typedef M mutex_type;
-	typename boost::unique_lock< mutex_type > lk( mtx);
+	typename std::unique_lock< mutex_type > lk( mtx);
 	++value1;
 	for ( int i = 0; i < 3; ++i)
 		boost::this_fiber::yield();
@@ -43,15 +38,15 @@ void fn2( M & mtx)
 {
     typedef M mutex_type;
 	++value2;
-	typename boost::unique_lock< mutex_type > lk( mtx);
+	typename std::unique_lock< mutex_type > lk( mtx);
 	++value2;
 }
 
 void fn3( boost::fibers::timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     m.lock();
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
@@ -59,9 +54,9 @@ void fn3( boost::fibers::timed_mutex & m)
 
 void fn4( boost::fibers::timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     while ( ! m.try_lock() );
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(50000000)+ms(2000)); // within 50 ms
@@ -69,9 +64,9 @@ void fn4( boost::fibers::timed_mutex & m)
 
 void fn5( boost::fibers::timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK( m.try_lock_for(ms(300)+ms(2000)) == true);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
@@ -79,18 +74,18 @@ void fn5( boost::fibers::timed_mutex & m)
 
 void fn6( boost::fibers::timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK(m.try_lock_for(ms(250)) == false);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
 void fn7( boost::fibers::timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
-    BOOST_CHECK(m.try_lock_until(boost::chrono::high_resolution_clock::now() + ms(300) + ms(1000)) == true);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    BOOST_CHECK(m.try_lock_until(std::chrono::high_resolution_clock::now() + ms(300) + ms(1000)) == true);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
@@ -98,18 +93,18 @@ void fn7( boost::fibers::timed_mutex & m)
 
 void fn8( boost::fibers::timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
-    BOOST_CHECK(m.try_lock_until(boost::chrono::high_resolution_clock::now() + ms(250)) == false);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    BOOST_CHECK(m.try_lock_until(std::chrono::high_resolution_clock::now() + ms(250)) == false);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
 }
 
 void fn9( boost::fibers::recursive_timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     m.lock();
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.lock();
     m.unlock();
     m.unlock();
@@ -119,9 +114,9 @@ void fn9( boost::fibers::recursive_timed_mutex & m)
 
 void fn10( boost::fibers::recursive_timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     while (!m.try_lock()) ;
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK(m.try_lock());
     m.unlock();
     m.unlock();
@@ -131,9 +126,9 @@ void fn10( boost::fibers::recursive_timed_mutex & m)
 
 void fn11( boost::fibers::recursive_timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK(m.try_lock_for(ms(300)+ms(1000)) == true);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK(m.try_lock());
     m.unlock();
     m.unlock();
@@ -143,18 +138,18 @@ void fn11( boost::fibers::recursive_timed_mutex & m)
 
 void fn12( boost::fibers::recursive_timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK(m.try_lock_for(ms(250)) == false);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
 void fn13( boost::fibers::recursive_timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
-    BOOST_CHECK(m.try_lock_until(boost::chrono::high_resolution_clock::now() + ms(300) + ms(1000)) == true);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    BOOST_CHECK(m.try_lock_until(std::chrono::high_resolution_clock::now() + ms(300) + ms(1000)) == true);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
@@ -162,18 +157,18 @@ void fn13( boost::fibers::recursive_timed_mutex & m)
 
 void fn14( boost::fibers::recursive_timed_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
-    BOOST_CHECK(m.try_lock_until(boost::chrono::high_resolution_clock::now() + ms(250)) == false);
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    BOOST_CHECK(m.try_lock_until(std::chrono::high_resolution_clock::now() + ms(250)) == false);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
 void fn15( boost::fibers::recursive_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     m.lock();
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.lock();
     m.unlock();
     m.unlock();
@@ -183,9 +178,9 @@ void fn15( boost::fibers::recursive_mutex & m)
 
 void fn16( boost::fibers::recursive_mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     while (!m.try_lock());
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     BOOST_CHECK(m.try_lock());
     m.unlock();
     m.unlock();
@@ -195,9 +190,9 @@ void fn16( boost::fibers::recursive_mutex & m)
 
 void fn17( boost::fibers::mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     m.lock();
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
@@ -205,9 +200,9 @@ void fn17( boost::fibers::mutex & m)
 
 void fn18( boost::fibers::mutex & m)
 {
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     while (!m.try_lock()) ;
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
@@ -217,7 +212,7 @@ template< typename M >
 struct test_lock
 {
     typedef M mutex_type;
-    typedef typename boost::unique_lock< M > lock_type;
+    typedef typename std::unique_lock< M > lock_type;
 
     void operator()()
     {
@@ -225,7 +220,7 @@ struct test_lock
 
         // Test the lock's constructors.
         {
-            lock_type lk(mtx, boost::defer_lock);
+            lock_type lk(mtx, std::defer_lock);
             BOOST_CHECK(!lk);
         }
         lock_type lk(mtx);
@@ -243,7 +238,7 @@ template< typename M >
 struct test_exclusive
 {
     typedef M mutex_type;
-    typedef typename boost::unique_lock< M > lock_type;
+    typedef typename std::unique_lock< M > lock_type;
 
     void operator()()
     {
@@ -254,9 +249,9 @@ struct test_exclusive
 
         mutex_type mtx;
         boost::fibers::fiber f1(
-                boost::bind( & fn1< mutex_type >, boost::ref( mtx) ) );
+                std::bind( & fn1< mutex_type >, std::ref( mtx) ) );
         boost::fibers::fiber f2(
-                boost::bind( & fn2< mutex_type >, boost::ref( mtx) ) );
+                std::bind( & fn2< mutex_type >, std::ref( mtx) ) );
         BOOST_ASSERT( f1);
         BOOST_ASSERT( f2);
 
@@ -271,7 +266,7 @@ template< typename M >
 struct test_recursive_lock
 {
     typedef M mutex_type;
-    typedef typename boost::unique_lock< M > lock_type;
+    typedef typename std::unique_lock< M > lock_type;
 
     void operator()()
     {
@@ -289,7 +284,7 @@ void do_test_mutex()
     {
         boost::fibers::mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn17, boost::ref( mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn17, std::ref( mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -298,7 +293,7 @@ void do_test_mutex()
     {
         boost::fibers::mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn18, boost::ref( mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn18, std::ref( mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -319,7 +314,7 @@ void do_test_recursive_mutex()
     {
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn15, boost::ref( mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn15, std::ref( mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -328,7 +323,7 @@ void do_test_recursive_mutex()
     {
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn16, boost::ref( mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn16, std::ref( mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -348,7 +343,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn3, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn3, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -357,7 +352,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn4, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn4, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -366,7 +361,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn5, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn5, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -375,7 +370,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn6, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn6, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(300) );
         timed_mtx.unlock();
         f.join();
@@ -384,7 +379,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn7, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn7, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -393,7 +388,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn8, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn8, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(300) + ms(1000) );
         timed_mtx.unlock();
         f.join();
@@ -414,7 +409,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn9, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn9, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -423,7 +418,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn10, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn10, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -432,7 +427,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn11, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn11, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -441,7 +436,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn12, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn12, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(400) );
         timed_mtx.unlock();
         f.join();
@@ -450,7 +445,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn13, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn13, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -459,7 +454,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( boost::bind( & fn14, boost::ref( timed_mtx) ) );
+        boost::fibers::fiber f( std::bind( & fn14, std::ref( timed_mtx) ) );
         boost::this_fiber::sleep_for( ms(300) );
         timed_mtx.unlock();
         f.join();

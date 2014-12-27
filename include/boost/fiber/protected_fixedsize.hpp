@@ -1,18 +1,16 @@
 
-//          Copyright Oliver Kowalke 2013.
+//          Copyright Oliver Kowalke 2014.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_STACK_ALLOCATOR_H
-#define BOOST_FIBERS_STACK_ALLOCATOR_H
-
-#include <cstddef>
+#ifndef BOOST_FIBERS_PROTECTED_FIXEDSIZE_H
+#define BOOST_FIBERS_PROTECTED_FIXEDSIZE_H
 
 #include <boost/config.hpp>
-#include <boost/coroutine/stack_allocator.hpp>
+#include <boost/context/protected_fixedsize.hpp>
 
-#include <boost/context/detail/config.hpp>
+#include <boost/fiber/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -21,7 +19,7 @@
 namespace boost {
 namespace fibers {
 
-typedef coroutines::stack_allocator    stack_allocator;
+typedef boost::context::protected_fixedsize protected_fixedsize;
 
 }}
 
@@ -29,4 +27,4 @@ typedef coroutines::stack_allocator    stack_allocator;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_STACK_ALLOCATOR_H
+#endif // BOOST_FIBERS_PROTECTED_FIXEDSIZE_H

@@ -29,7 +29,7 @@ inline void timer_handler( boost::asio::high_resolution_timer & timer) {
 }
 
 inline void run_service( boost::asio::io_service & io_service) {
-    boost::asio::high_resolution_timer timer( io_service, boost::chrono::seconds(0) );
+    boost::asio::high_resolution_timer timer( io_service, std::chrono::seconds(0) );
     timer.async_wait( boost::bind( timer_handler, boost::ref( timer) ) );
     io_service.run();
 }

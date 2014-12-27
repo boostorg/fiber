@@ -10,6 +10,7 @@
 
 #include <boost/assert.hpp>
 
+#include "boost/fiber/fiber_manager.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -21,11 +22,12 @@ namespace boost {
 namespace fibers {
 
 bool
-timed_mutex::lock_if_unlocked_()
-{
-    if ( UNLOCKED != state_) return false;
+timed_mutex::lock_if_unlocked_() {
+    if ( mutex_status::unlocked != state_) {
+        return false;
+    }
     
-    state_ = LOCKED;
+    state_ = mutex_status::locked;
     BOOST_ASSERT( ! owner_);
     owner_ = this_fiber::get_id();
     return true;
@@ -33,26 +35,25 @@ timed_mutex::lock_if_unlocked_()
 
 timed_mutex::timed_mutex() :
     splk_(),
-	state_( UNLOCKED),
+	state_( mutex_status::unlocked),
     owner_(),
-    waiting_()
-{}
+    waiting_() {
+}
 
-timed_mutex::~timed_mutex()
-{
+timed_mutex::~timed_mutex() {
     BOOST_ASSERT( ! owner_);
     BOOST_ASSERT( waiting_.empty() );
 }
 
 void
-timed_mutex::lock()
-{
-    detail::fiber_base * f( fm_active() );
-    for (;;)
-    {
-        unique_lock< detail::spinlock > lk( splk_);
+timed_mutex::lock() {
+    detail::fiber_handle f( fm_active() );
+    for (;;) {
+        std::unique_lock< detail::spinlock > lk( splk_);
 
-        if ( lock_if_unlocked_() ) return;
+        if ( lock_if_unlocked_() ) {
+            return;
+        }
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
@@ -64,11 +65,12 @@ timed_mutex::lock()
 }
 
 bool
-timed_mutex::try_lock()
-{
-    unique_lock< detail::spinlock > lk( splk_);
+timed_mutex::try_lock() {
+    std::unique_lock< detail::spinlock > lk( splk_);
 
-    if ( lock_if_unlocked_() ) return true;
+    if ( lock_if_unlocked_() ) {
+        return true;
+    }
 
     lk.unlock();
     // let other fiber release the lock
@@ -77,29 +79,28 @@ timed_mutex::try_lock()
 }
 
 bool
-timed_mutex::try_lock_until( chrono::high_resolution_clock::time_point const& timeout_time)
-{
-    detail::fiber_base * f( fm_active() );
-    for (;;)
-    {
-        unique_lock< detail::spinlock > lk( splk_);
+timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_point const& timeout_time) {
+    detail::fiber_handle f( fm_active() );
+    for (;;) {
+        std::unique_lock< detail::spinlock > lk( splk_);
 
-        if ( chrono::high_resolution_clock::now() > timeout_time)
+        if ( std::chrono::high_resolution_clock::now() > timeout_time) {
             return false;
+        }
 
-        if ( lock_if_unlocked_() ) return true;
+        if ( lock_if_unlocked_() ) {
+            return true;
+        }
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
         waiting_.push_back( f);
 
         // suspend this fiber until notified or timed-out
-        if ( ! fm_wait_until( timeout_time, lk) )
-        {
+        if ( ! fm_wait_until( timeout_time, lk) ) {
             lk.lock();
-            std::deque< detail::fiber_base * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
-            if ( waiting_.end() != i)
-            {
+            std::deque< detail::fiber_handle >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
                 waiting_.erase( i);
             }
@@ -110,23 +111,22 @@ timed_mutex::try_lock_until( chrono::high_resolution_clock::time_point const& ti
 }
 
 void
-timed_mutex::unlock()
-{
-    BOOST_ASSERT( LOCKED == state_);
+timed_mutex::unlock() {
+    BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-    unique_lock< detail::spinlock > lk( splk_);
-    detail::fiber_base * f( 0);
-    
-    if ( ! waiting_.empty() )
-    {
+    std::unique_lock< detail::spinlock > lk( splk_);
+    detail::fiber_handle f;
+    if ( ! waiting_.empty() ) {
         f = waiting_.front();
         waiting_.pop_front();
     }
     owner_ = detail::fiber_base::id();
-    state_ = UNLOCKED;
+    state_ = mutex_status::unlocked;
     lk.unlock();
-    if ( f) f->set_ready();
+    if ( f) {
+        f->set_ready();
+    }
 }
 
 }}

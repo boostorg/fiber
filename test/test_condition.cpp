@@ -13,28 +13,22 @@
 #include <stdexcept>
 #include <vector>
 
-#include <boost/bind.hpp>
-#include <boost/chrono/system_clocks.hpp>
-#include <boost/cstdint.hpp>
-#include <boost/function.hpp>
-#include <boost/ref.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
 
-typedef boost::chrono::nanoseconds  ns;
-typedef boost::chrono::milliseconds ms;
+typedef std::chrono::nanoseconds  ns;
+typedef std::chrono::milliseconds ms;
 
 int value = 0;
 
 inline
-boost::chrono::system_clock::time_point delay(int secs, int msecs=0, int nsecs=0)
+std::chrono::system_clock::time_point delay(int secs, int msecs=0, int nsecs=0)
 {
-    boost::chrono::system_clock::time_point t = boost::chrono::system_clock::now();
-    t += boost::chrono::seconds( secs);
-    t += boost::chrono::milliseconds( msecs);
-    //t += boost::chrono::nanoseconds( nsecs);
+    std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+    t += std::chrono::seconds( secs);
+    t += std::chrono::milliseconds( msecs);
+    //t += std::chrono::nanoseconds( nsecs);
 
     return t;
 }
@@ -51,7 +45,7 @@ struct condition_test_data
 
 void condition_test_fiber(condition_test_data* data)
 {
-    boost::unique_lock<boost::fibers::mutex> lock(data->mutex);
+    std::unique_lock<boost::fibers::mutex> lock(data->mutex);
     BOOST_CHECK(lock ? true : false);
     while (!(data->notified > 0))
         data->condition.wait(lock);
@@ -86,7 +80,7 @@ void wait_fn(
 	boost::fibers::mutex & mtx,
 	boost::fibers::condition & cond)
 {
-	boost::unique_lock< boost::fibers::mutex > lk( mtx);
+	std::unique_lock< boost::fibers::mutex > lk( mtx);
 	cond.wait( lk);
 	++value;
 }
@@ -95,7 +89,7 @@ void test_condition_wait_is_a_interruption_point()
 {
     condition_test_data data;
     bool interrupted = false;
-    boost::fibers::fiber f(boost::bind(&condition_test_fiber, &data));
+    boost::fibers::fiber f(std::bind(&condition_test_fiber, &data));
 
     f.interrupt();
     try
@@ -113,16 +107,16 @@ void test_one_waiter_notify_one()
 	boost::fibers::condition cond;
 
     boost::fibers::fiber s1(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( mtx),
-                boost::ref( cond) ) );
+                std::ref( mtx),
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	boost::fibers::fiber s2(
-            boost::bind(
+            std::bind(
                 notify_one_fn,
-                boost::ref( cond) ) );
+                std::ref( cond) ) );
 
 	BOOST_CHECK_EQUAL( 0, value);
 
@@ -139,29 +133,29 @@ void test_two_waiter_notify_one()
 	boost::fibers::condition cond;
 
     boost::fibers::fiber s1(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( mtx),
-                boost::ref( cond) ) );
+                std::ref( mtx),
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s2(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( mtx),
-                boost::ref( cond) ) );
+                std::ref( mtx),
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s3(
-            boost::bind(
+            std::bind(
                 notify_one_fn,
-                boost::ref( cond) ) );
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s4(
-            boost::bind(
+            std::bind(
                 notify_one_fn,
-                boost::ref( cond) ) );
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     s1.join();
@@ -179,36 +173,36 @@ void test_two_waiter_notify_all()
 	boost::fibers::condition cond;
 
     boost::fibers::fiber s1(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( mtx),
-                boost::ref( cond) ) );
+                std::ref( mtx),
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s2(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( mtx),
-                boost::ref( cond) ) );
+                std::ref( mtx),
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s3(
-            boost::bind(
+            std::bind(
                 notify_all_fn,
-                boost::ref( cond) ) );
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s4(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( mtx),
-                boost::ref( cond) ) );
+                std::ref( mtx),
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber s5(
-            boost::bind(
+            std::bind(
                 notify_all_fn,
-                boost::ref( cond) ) );
+                std::ref( cond) ) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     s1.join();
@@ -227,7 +221,7 @@ int runs = 0;
 
 void fn1( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 {
-    boost::unique_lock< boost::fibers::mutex > lk( m);
+    std::unique_lock< boost::fibers::mutex > lk( m);
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
@@ -239,16 +233,16 @@ void fn1( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 
 void fn2( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 {
-    boost::unique_lock< boost::fibers::mutex > lk( m);
+    std::unique_lock< boost::fibers::mutex > lk( m);
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::chrono::system_clock::time_point t0 = boost::chrono::system_clock::now();
-    boost::chrono::system_clock::time_point t = t0 + ms(250);
+    std::chrono::system_clock::time_point t0 = std::chrono::system_clock::now();
+    std::chrono::system_clock::time_point t = t0 + ms(250);
     int count=0;
     while (test2 == 0 && cv.wait_until(lk, t) == boost::fibers::cv_status::no_timeout)
         count++;
-    boost::chrono::system_clock::time_point t1 = boost::chrono::system_clock::now();
+    std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -277,14 +271,14 @@ public:
 
 void fn3( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 {
-    boost::unique_lock< boost::fibers::mutex > lk( m);
+    std::unique_lock< boost::fibers::mutex > lk( m);
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
-    boost::chrono::high_resolution_clock::time_point t = t0 + ms(250);
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t = t0 + ms(250);
     bool r = cv.wait_until(lk, t, Pred(test2));
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -302,15 +296,15 @@ void fn3( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 
 void fn4( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 {
-    boost::unique_lock< boost::fibers::mutex > lk( m);
+    std::unique_lock< boost::fibers::mutex > lk( m);
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     int count=0;
     while (test2 == 0 && cv.wait_for(lk, ms(250)) == boost::fibers::cv_status::no_timeout)
         count++;
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -326,15 +320,15 @@ void fn4( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 
 void fn5( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
 {
-    boost::unique_lock< boost::fibers::mutex > lk( m);
+    std::unique_lock< boost::fibers::mutex > lk( m);
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    boost::chrono::high_resolution_clock::time_point t0 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     int count=0;
     cv.wait_for(lk, ms(250), Pred(test2));
     count++;
-    boost::chrono::high_resolution_clock::time_point t1 = boost::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250+1000));
@@ -356,8 +350,8 @@ void do_test_condition_wait()
 
     boost::fibers::mutex m;
     boost::fibers::condition_variable cv;
-    boost::unique_lock< boost::fibers::mutex > lk( m);
-    boost::fibers::fiber f( boost::bind( & fn1, boost::ref( m), boost::ref( cv) ) );
+    std::unique_lock< boost::fibers::mutex > lk( m);
+    boost::fibers::fiber f( std::bind( & fn1, std::ref( m), std::ref( cv) ) );
     BOOST_CHECK(test1 == 0);
     while (test1 == 0)
         cv.wait(lk);
@@ -383,8 +377,8 @@ void do_test_condition_wait_until()
     boost::fibers::mutex m;
     boost::fibers::condition_variable cv;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn2, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn2, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -397,8 +391,8 @@ void do_test_condition_wait_until()
     test1 = 0;
     test2 = 0;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn2, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn2, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -423,8 +417,8 @@ void do_test_condition_wait_until_pred()
     boost::fibers::mutex m;
     boost::fibers::condition_variable cv;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn3, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn3, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -437,8 +431,8 @@ void do_test_condition_wait_until_pred()
     test1 = 0;
     test2 = 0;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn3, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn3, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -463,8 +457,8 @@ void do_test_condition_wait_for()
     boost::fibers::mutex m;
     boost::fibers::condition_variable cv;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn4, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn4, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -477,8 +471,8 @@ void do_test_condition_wait_for()
     test1 = 0;
     test2 = 0;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn4, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn4, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -503,8 +497,8 @@ void do_test_condition_wait_for_pred()
     boost::fibers::mutex m;
     boost::fibers::condition_variable cv;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn5, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn5, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -517,8 +511,8 @@ void do_test_condition_wait_for_pred()
     test1 = 0;
     test2 = 0;
     {
-        boost::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::bind( & fn5, boost::ref( m), boost::ref( cv) ) );
+        std::unique_lock< boost::fibers::mutex > lk( m);
+        boost::fibers::fiber f( std::bind( & fn5, std::ref( m), std::ref( cv) ) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);

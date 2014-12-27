@@ -4,12 +4,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_THREAD_LOCAL_PTR_H
-#define BOOST_FIBERS_THREAD_LOCAL_PTR_H
+#ifndef BOOST_FIBERS_DETAIL_FIBER_HANDLE_H
+#define BOOST_FIBERS_DETAIL_FIBER_HANDLE_H
 
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
-#include <boost/thread/tss.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -19,15 +18,17 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
 
-template< typename T >
-struct thread_local_ptr : public boost::thread_specific_ptr< T >
-{};
+class fiber_base;
+typedef intrusive_ptr< fiber_base > fiber_handle;
+void intrusive_ptr_add_ref( fiber_base *);
+void intrusive_ptr_release( fiber_base *);
 
-}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_THREAD_LOCAL_PTR_H
+#endif // BOOST_FIBERS_DETAIL_FIBER_HANDLE_H

@@ -7,9 +7,9 @@
 #define WORKSTEALING_ROUND_ROBIN_H
 
 #include <list>
+#include <mutex>
 
 #include <boost/config.hpp>
-#include <boost/thread/mutex.hpp>
 
 #include <boost/fiber/all.hpp>
 
@@ -17,32 +17,23 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 class workstealing_round_robin : public boost::fibers::sched_algorithm
 {
 private:
-    typedef std::list< boost::fibers::detail::fiber_base * >  rqueue_t;
+    typedef std::list< boost::fibers::detail::fiber_handle >  rqueue_t;
 
-    boost::mutex                mtx_;
-    rqueue_t                    rqueue_;
+    std::mutex                mtx_;
+    rqueue_t                  rqueue_;
 
 public:
-    virtual void awakened( boost::fibers::detail::fiber_base *);
+    virtual void awakened( boost::fibers::detail::fiber_handle);
 
-    virtual boost::fibers::detail::fiber_base * pick_next();
+    virtual boost::fibers::detail::fiber_handle pick_next();
 
-    virtual void priority( boost::fibers::detail::fiber_base *, int) BOOST_NOEXCEPT;
+    virtual void priority( boost::fibers::detail::fiber_handle, int) noexcept;
 
     boost::fibers::fiber steal();
 };
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

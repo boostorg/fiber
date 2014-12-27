@@ -7,15 +7,13 @@
 #ifndef BOOST_FIBERS_TIMED_MUTEX_H
 #define BOOST_FIBERS_TIMED_MUTEX_H
 
+#include <chrono>
 #include <deque>
 
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -23,27 +21,20 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4355 4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL timed_mutex : private noncopyable
-{
+class BOOST_FIBERS_DECL timed_mutex {
 private:
-    enum state_t
-    {
-        LOCKED = 0,
-        UNLOCKED
+    enum class mutex_status {
+        locked = 0,
+        unlocked
     };
 
     detail::spinlock                    splk_;
-    state_t                             state_;
+    mutex_status                         state_;
     detail::fiber_base::id              owner_;
-    std::deque< detail::fiber_base * >  waiting_;
+    std::deque< detail::fiber_handle >  waiting_;
 
     bool lock_if_unlocked_();
 
@@ -52,32 +43,31 @@ public:
 
     ~timed_mutex();
 
+    timed_mutex( timed_mutex const&) = delete;
+    timed_mutex & operator=( timed_mutex const&) = delete;
+
     void lock();
 
     bool try_lock();
 
-    bool try_lock_until( chrono::high_resolution_clock::time_point const& timeout_time);
+    bool try_lock_until( std::chrono::high_resolution_clock::time_point const& timeout_time);
 
     template< typename Clock, typename Duration >
-    bool try_lock_until( chrono::time_point< Clock, Duration > const& timeout_time_)
-    {
-        chrono::high_resolution_clock::time_point timeout_time(
+    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+        std::chrono::high_resolution_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
         return try_lock_until( timeout_time);
     }
 
     template< typename Rep, typename Period >
-    bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
-    { return try_lock_until( chrono::high_resolution_clock::now() + timeout_duration); }
+    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
+        return try_lock_until( std::chrono::high_resolution_clock::now() + timeout_duration);
+    }
 
     void unlock();
 };
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

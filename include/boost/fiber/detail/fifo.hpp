@@ -10,12 +10,10 @@
 #include <algorithm>
 #include <cstddef>
 
-#include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/fiber_handle.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -25,49 +23,32 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class fifo : private noncopyable
-{
+class fifo {
 public:
-    fifo() BOOST_NOEXCEPT :
-        head_( 0),
-        tail_( & head_)
-    {}
-
-    bool empty() const BOOST_NOEXCEPT
-    { return 0 == head_; }
-
-    void push( fiber_base * item) BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->nxt);
-
-        // * tail_ holds the null marking the end of the fifo. So we can extend
-        // the fifo by assigning to * tail_.
-        * tail_ = item;
-        // Advance tail_ to point to the new end marker.
-        tail_ = & item->nxt;
+    fifo() noexcept :
+        head_(),
+        tail_( & head_) {
     }
 
-    fiber_base * pop() BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( ! empty() );
+    fifo( fifo const&) = delete;
+    fifo & operator=( fifo const&) = delete;
 
-        fiber_base * item = head_;
-        head_ = head_->nxt;
-        if ( 0 == head_) tail_ = & head_;
-        item->nxt = 0;
-        return item;
+    bool empty() const noexcept {
+        return ! head_;
     }
 
-    void swap( fifo & other)
-    {
-        std::swap( head_, other.head_);
+    void push( fiber_handle item) noexcept;
+
+    fiber_handle pop() noexcept;
+
+    void swap( fifo & other) {
+        head_.swap( other.head_);
         std::swap( tail_, other.tail_);
     }
 
 private:
-    fiber_base    *  head_;
-    fiber_base    ** tail_;
+    fiber_handle        head_;
+    fiber_handle    *   tail_;
 };
 
 }}}

@@ -7,39 +7,28 @@
 #define BOOST_FIBERS_ALGORITHM_H
 
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/fiber_handle.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-struct sched_algorithm
-{
+struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}
 
-    virtual void awakened( detail::fiber_base *) = 0;
+    virtual void awakened( detail::fiber_handle) = 0;
 
-    virtual detail::fiber_base * pick_next() = 0;
+    virtual detail::fiber_handle pick_next() = 0;
 
-    virtual void priority( detail::fiber_base *, int) BOOST_NOEXCEPT = 0;
+    virtual void priority( detail::fiber_handle, int) noexcept = 0;
 };
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

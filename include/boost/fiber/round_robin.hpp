@@ -10,41 +10,31 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/fiber_handle.hpp>
 #include <boost/fiber/detail/fifo.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL round_robin : public sched_algorithm
-{
+class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
 private:
     typedef detail::fifo        rqueue_t;
 
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( detail::fiber_base *);
+    virtual void awakened( detail::fiber_handle);
 
-    virtual detail::fiber_base * pick_next();
+    virtual detail::fiber_handle pick_next();
 
-    virtual void priority( detail::fiber_base *, int) BOOST_NOEXCEPT;
+    virtual void priority( detail::fiber_handle, int) noexcept;
 };
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

@@ -7,9 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include <boost/bind.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
 
@@ -55,12 +53,12 @@ void test_barrier()
 
     boost::fibers::barrier b( 2);
     boost::fibers::fiber s1(
-            boost::bind(
-                fn1, boost::ref( b) ) );
+            std::bind(
+                fn1, std::ref( b) ) );
 
     boost::fibers::fiber s2(
-            boost::bind(
-                fn2, boost::ref( b) ) );
+            std::bind(
+                fn2, std::ref( b) ) );
 
     s1.join();
     s2.join();

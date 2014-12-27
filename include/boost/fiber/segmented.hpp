@@ -1,16 +1,14 @@
 
-//          Copyright Oliver Kowalke 2009.
+//          Copyright Oliver Kowalke 2014.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_STACK_CONTEXT_H
-#define BOOST_FIBERS_STACK_CONTEXT_H
-
-#include <cstddef>
+#ifndef BOOST_FIBERS_SEGMENTED_H
+#define BOOST_FIBERS_SEGMENTED_H
 
 #include <boost/config.hpp>
-#include <boost/coroutine/stack_context.hpp>
+#include <boost/context/segmented.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -21,7 +19,11 @@
 namespace boost {
 namespace fibers {
 
-typedef coroutines::stack_context    stack_context;
+#if defined(BOOST_USE_SEGMENTED_STACKS)
+# if ! defined(BOOST_WINDOWS)
+typedef boost::context::segmented   segemented;
+# endif
+#endif
 
 }}
 
@@ -29,4 +31,4 @@ typedef coroutines::stack_context    stack_context;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_STACK_CONTEXT_H
+#endif // BOOST_FIBERS_SEGMENTED_H

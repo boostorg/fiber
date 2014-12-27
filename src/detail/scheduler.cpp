@@ -17,13 +17,15 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-thread_local_ptr< fiber_manager > scheduler::instance_;
-//thread_specific_ptr< fiber_manager > scheduler::instance_;
+fiber_manager *
+scheduler::instance() noexcept {
+    static thread_local fiber_manager mgr;
+    return & mgr;
+}
 
 void
-scheduler::replace( sched_algorithm * other)
-{
-    BOOST_ASSERT( other);
+scheduler::replace( sched_algorithm * other) {
+    BOOST_ASSERT( nullptr != other);
 
     fm_set_sched_algo( other);
 }

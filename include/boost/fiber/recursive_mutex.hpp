@@ -13,10 +13,8 @@
 #include <deque>
 
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -24,28 +22,21 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4355 4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL recursive_mutex : private noncopyable
-{
+class BOOST_FIBERS_DECL recursive_mutex {
 private:
-    enum state_t
-    {
-        LOCKED = 0,
-        UNLOCKED
+    enum class mutex_status {
+        locked = 0,
+        unlocked
     };
 
     detail::spinlock                    splk_;
-    state_t                             state_;
+    mutex_status                         state_;
     detail::fiber_base::id              owner_;
     std::size_t                         count_;
-    std::deque< detail::fiber_base * >  waiting_;
+    std::deque< detail::fiber_handle >  waiting_;
 
     bool lock_if_unlocked_();
 
@@ -53,6 +44,9 @@ public:
     recursive_mutex();
 
     ~recursive_mutex();
+
+    recursive_mutex( recursive_mutex const&) = delete;
+    recursive_mutex & operator=( recursive_mutex const&) = delete;
 
     void lock();
 
@@ -62,10 +56,6 @@ public:
 };
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

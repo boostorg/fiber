@@ -6,7 +6,7 @@
 
 #include "boost/fiber/condition.hpp"
 
-#include <boost/foreach.hpp>
+#include "boost/fiber/detail/fiber_base.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -17,18 +17,18 @@ namespace fibers {
 
 condition::condition() :
     splk_(),
-    waiting_()
-{}
+    waiting_() {
+}
 
-condition::~condition()
-{ BOOST_ASSERT( waiting_.empty() ); }
+condition::~condition() {
+    BOOST_ASSERT( waiting_.empty() );
+}
 
 void
-condition::notify_one()
-{
-    detail::fiber_base * f( 0);
+condition::notify_one() {
+    detail::fiber_handle f;
 
-    unique_lock< detail::spinlock > lk( splk_);
+    std::unique_lock< detail::spinlock > lk( splk_);
     // get one waiting fiber
     if ( ! waiting_.empty() ) {
         f = waiting_.front();
@@ -37,23 +37,23 @@ condition::notify_one()
     lk.unlock();
 
     // notify waiting fiber
-    if ( f) f->set_ready();
+    if ( f) {
+        f->set_ready();
+    }
 }
 
 void
-condition::notify_all()
-{
-    std::deque< detail::fiber_base * > waiting;
+condition::notify_all() {
+    std::deque< detail::fiber_handle > waiting;
 
-    unique_lock< detail::spinlock > lk( splk_);
+    std::unique_lock< detail::spinlock > lk( splk_);
     // get all waiting fibers
     waiting.swap( waiting_);
     lk.unlock();
 
     // notify all waiting fibers
-    while ( ! waiting.empty() )
-    {
-        detail::fiber_base * f( waiting.front() );
+    while ( ! waiting.empty() ) {
+        detail::fiber_handle f( waiting.front() );
         waiting.pop_front();
         BOOST_ASSERT( f);
         f->set_ready();

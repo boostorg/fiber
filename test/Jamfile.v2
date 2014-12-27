@@ -31,7 +31,6 @@ test-suite fibers :
   [ fiber-test test_fiber ]
   [ fiber-test test_mutex ]
   [ fiber-test test_condition ]
-  [ fiber-test test_generic_locks ]
   [ fiber-test test_unique_lock ]
   [ fiber-test test_lock ]
   [ fiber-test test_barrier ]

@@ -8,32 +8,30 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
-#include <boost/bind.hpp>
 #include <boost/fiber/all.hpp>
-#include <boost/move/move.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
 
-typedef boost::shared_ptr< boost::fibers::packaged_task< int() > >  packaged_task_t;
+typedef std::shared_ptr< boost::fibers::packaged_task< int() > >  packaged_task_t;
 
 int fn( int i)
 { return i; }
 
 void exec( packaged_task_t pt)
 {
-    boost::fibers::fiber( boost::move( * pt) ).join();
+    boost::fibers::fiber( std::move( * pt) ).join();
 }
 
 boost::fibers::future< int > async( int i)
 {
     packaged_task_t pt(
         new boost::fibers::packaged_task< int() >(
-            boost::bind( fn, i) ) );
+            std::bind( fn, i) ) );
     boost::fibers::future< int > f( pt->get_future() );
-    boost::thread( boost::bind( exec, pt) ).detach();
-    return boost::move( f);
+    std::thread( std::bind( exec, pt) ).detach();
+    return std::move( f);
 }
 
 void test_async()

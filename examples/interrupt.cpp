@@ -18,7 +18,7 @@ struct condition_test_data
 
 void condition_test_fiber(condition_test_data* data)
 {
-    boost::unique_lock<boost::fibers::mutex> lock(data->mutex);
+    std::unique_lock<boost::fibers::mutex> lock(data->mutex);
     while (!(data->notified > 0))
         data->condition.wait(lock);
     data->awoken++;

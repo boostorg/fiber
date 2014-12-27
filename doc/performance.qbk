@@ -7,7 +7,7 @@
 
 [section:performance Performance]
 
-Performance measurements were taken using `boost::chrono::highresolution_clock`,
+Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
 The code was compiled using the build options:
 variant = release, cxxflags = -DBOOST_DISABLE_ASSERTS,optimization = speed

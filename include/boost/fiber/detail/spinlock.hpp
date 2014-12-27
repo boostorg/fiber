@@ -9,8 +9,7 @@
 #ifndef BOOST_FIBERS_SPINLOCK_H
 #define BOOST_FIBERS_SPINLOCK_H
 
-#include <boost/atomic.hpp>
-#include <boost/utility.hpp>
+#include <atomic>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -18,22 +17,24 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class BOOST_FIBERS_DECL spinlock : private noncopyable
-{
+class BOOST_FIBERS_DECL spinlock {
 private:
-    enum state_t {
-        LOCKED = 0,
-        UNLOCKED
+    enum class spinlock_status {
+        locked = 0,
+        unlocked
     };
 
-    atomic< state_t >           state_;
+    std::atomic< spinlock_status >  state_;
 
 public:
-    spinlock();
+    spinlock() noexcept;
+
+    spinlock( spinlock const&) = delete;
+    spinlock & operator=( spinlock const&) = delete;
 
     void lock();
 
-    void unlock();
+    void unlock() noexcept;
 };
 
 }}}

@@ -7,10 +7,11 @@
 #ifndef BOOST_FIBERS_ASYNC_HPP
 #define BOOST_FIBERS_ASYNC_HPP
 
+#include <algorithm> // std::move()
+#include <type_traits> // std::result_of
+#include <utility> // std::forward()
+
 #include <boost/config.hpp>
-#include <boost/detail/scoped_enum_emulation.hpp>
-#include <boost/move/move.hpp>
-#include <boost/utility/result_of.hpp>
 
 #include <boost/fiber/future/future.hpp>
 #include <boost/fiber/future/packaged_task.hpp>
@@ -18,51 +19,16 @@
 namespace boost {
 namespace fibers {
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-#ifdef BOOST_MSVC
-template< typename R >
-future< R >
-async( R( *f)() )
-{
-    packaged_task< R() > pt( f);
-    future< R > fi( pt.get_future() );
-    fiber( boost::move( pt) ).detach();
-    return boost::move( fi);
-}
-#endif
-template< typename F >
-future< typename result_of< F() >::type >
-async( F && f)
-{
-    typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( boost::forward< F >( f) );
-    future< R > fi( pt.get_future() );
-    fiber( boost::move( pt) ).detach();
-    return boost::move( fi);
-}
-#else
-template< typename F >
-future< typename result_of< F() >::type >
-async( F f)
-{
-    typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( boost::forward< F >( f) );
-    future< R > fi( pt.get_future() );
-    fiber( boost::move( pt) ).detach();
-    return boost::move( fi);
-}
+template< typename Fn >
+future< typename std::result_of< Fn() >::type >
+async( Fn fn) {
+    typedef typename std::result_of< Fn() >::type result_type;
 
-template< typename F >
-future< typename result_of< F() >::type >
-async( BOOST_RV_REF( F) f)
-{
-    typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( boost::forward< F >( f) );
-    future< R > fi( pt.get_future() );
-    fiber( boost::move( pt) ).detach();
-    return boost::move( fi);
+    packaged_task< result_type() > pt( std::forward< Fn >( fn) );
+    future< result_type > f( pt.get_future() );
+    fiber( std::move( pt) ).detach();
+    return std::move( f);
 }
-#endif
 
 }}
 

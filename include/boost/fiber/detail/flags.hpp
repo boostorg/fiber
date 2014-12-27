@@ -19,12 +19,11 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-enum flag_t
-{
-    flag_interruption_blocked   = 1 << 0,
-    flag_interruption_requested = 1 << 1,
-    flag_thread_affinity = 1 << 2,
-    flag_detached = 1 << 3
+enum flag_t {
+    flag_interruption_blocked   = 1 << 1,
+    flag_interruption_requested = 1 << 2,
+    flag_thread_affinity        = 1 << 3,
+    flag_detached               = 1 << 4
 };
 
 }}}

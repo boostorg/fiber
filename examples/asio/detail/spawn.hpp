@@ -184,7 +184,7 @@ public:
     type get()
     {
         fibers::detail::spinlock splk;
-        unique_lock< fibers::detail::spinlock > lk( splk);
+        std::unique_lock< fibers::detail::spinlock > lk( splk);
         boost::fibers::fm_wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
         return value_;
@@ -212,7 +212,7 @@ public:
     void get()
     {
         fibers::detail::spinlock splk;
-        unique_lock< fibers::detail::spinlock > lk( splk);
+        std::unique_lock< fibers::detail::spinlock > lk( splk);
         boost::fibers::fm_wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
     }

@@ -6,11 +6,7 @@
 
 #include "boost/fiber/detail/fiber_base.hpp"
 
-#include <exception>
-
-#include <boost/exception_ptr.hpp>
-#include <boost/foreach.hpp>
-#include <boost/thread/locks.hpp>
+#include <thread>
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
@@ -24,11 +20,10 @@ namespace fibers {
 namespace detail {
 
 void
-fiber_base::release()
-{
+fiber_base::release() {
     BOOST_ASSERT( is_terminated() );
 
-    std::vector< fiber_base * > waiting;
+    std::vector< fiber_handle > waiting;
 
     // get all waiting fibers
     splk_.lock();
@@ -36,54 +31,58 @@ fiber_base::release()
     splk_.unlock();
 
     // notify all waiting fibers
-    BOOST_FOREACH( fiber_base * p, waiting)
-    { p->set_ready(); }
+    for ( fiber_handle p : waiting) {
+        p->set_ready();
+    }
 
     // release fiber-specific-data
-    BOOST_FOREACH( fss_data_t::value_type & data, fss_data_)
-    { data.second.do_cleanup(); }
+    for ( fss_data_t::value_type & data : fss_data_) {
+        data.second.do_cleanup();
+    }
     fss_data_.clear();
 }
 
 bool
-fiber_base::join( fiber_base * p)
-{
-    unique_lock< spinlock > lk( splk_);
-    if ( is_terminated() ) return false;
-    waiting_.push_back( p);
+fiber_base::join( fiber_handle f) {
+    BOOST_ASSERT( f);
+
+    std::unique_lock< spinlock > lk( splk_);
+    if ( is_terminated() ) {
+        return false;
+    }
+    waiting_.push_back( f);
     return true;
 }
 
 void
-fiber_base::interruption_blocked( bool blck) BOOST_NOEXCEPT
-{
-    if ( blck)
+fiber_base::interruption_blocked( bool blck) noexcept {
+    if ( blck) {
         flags_ |= flag_interruption_blocked;
-    else
+    } else {
         flags_ &= ~flag_interruption_blocked;
+    }
 }
 
 void
-fiber_base::request_interruption( bool req) BOOST_NOEXCEPT
-{
-    if ( req)
+fiber_base::request_interruption( bool req) noexcept {
+    if ( req) {
         flags_ |= flag_interruption_requested;
-    else
+    } else {
         flags_ &= ~flag_interruption_requested;
+    }
 }
 
 void
-fiber_base::thread_affinity( bool req) BOOST_NOEXCEPT
-{
-    if ( req)
+fiber_base::thread_affinity( bool req) noexcept {
+    if ( req) {
         flags_ |= flag_thread_affinity;
-    else
+    } else {
         flags_ &= ~flag_thread_affinity;
+    }
 }
 
 void *
-fiber_base::get_fss_data( void const* vp) const
-{
+fiber_base::get_fss_data( void const * vp) const {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::const_iterator i( fss_data_.find( key) );
 
@@ -91,32 +90,34 @@ fiber_base::get_fss_data( void const* vp) const
 }
 
 void
-fiber_base::set_fss_data(
-    void const* vp,
-    fss_cleanup_function::ptr_t const& cleanup_fn,
-    void * data, bool cleanup_existing)
-{
+fiber_base::set_fss_data( void const * vp,
+                          fss_cleanup_function::ptr_t const& cleanup_fn,
+                          void * data,
+                          bool cleanup_existing) {
     BOOST_ASSERT( cleanup_fn);
 
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::iterator i( fss_data_.find( key) );
 
-    if ( fss_data_.end() != i)
-    {
-        if( cleanup_existing) i->second.do_cleanup();
-        if ( data)
+    if ( fss_data_.end() != i) {
+        if( cleanup_existing) {
+            i->second.do_cleanup();
+        }
+        if ( data) {
             fss_data_.insert(
                     i,
                     std::make_pair(
                         key,
                         fss_data( data, cleanup_fn) ) );
-        else fss_data_.erase( i);
-    }
-    else
+        } else {
+            fss_data_.erase( i);
+        }
+    } else {
         fss_data_.insert(
             std::make_pair(
                 key,
                 fss_data( data, cleanup_fn) ) );
+    }
 }
 
 }}}

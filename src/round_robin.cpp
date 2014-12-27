@@ -8,6 +8,8 @@
 
 #include <boost/assert.hpp>
 
+#include <boost/fiber/detail/fiber_base.hpp>
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -16,25 +18,23 @@ namespace boost {
 namespace fibers {
 
 void
-round_robin::awakened( detail::fiber_base * f)
-{
-    BOOST_ASSERT( 0 != f);
+round_robin::awakened( detail::fiber_handle f) {
+    BOOST_ASSERT( f);
 
     rqueue_.push( f);
 }
 
-detail::fiber_base *
-round_robin::pick_next()
-{
-    detail::fiber_base * victim = 0;
-    if ( ! rqueue_.empty() )
+detail::fiber_handle
+round_robin::pick_next() {
+    detail::fiber_handle victim;
+    if ( ! rqueue_.empty() ) {
         victim = rqueue_.pop();
+    }
     return victim;
 }
 
 void
-round_robin::priority( detail::fiber_base * f, int prio) BOOST_NOEXCEPT
-{
+round_robin::priority( detail::fiber_handle f, int prio) noexcept {
     BOOST_ASSERT( f);
 
     // set only priority to fiber

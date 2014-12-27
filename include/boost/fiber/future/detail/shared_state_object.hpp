@@ -29,18 +29,18 @@ public:
     >::other                                      allocator_t;
 
     shared_state_object( allocator_t const& alloc) :
-        shared_state< R >(), alloc_( alloc)
-    {}
+        shared_state< R >(), alloc_( alloc) {
+    }
 
 protected:
-    void deallocate_future()
-    { destroy_( alloc_, this); }
+    void deallocate_future() {
+        destroy_( alloc_, this);
+    }
 
 private:
     allocator_t             alloc_;
 
-    static void destroy_( allocator_t & alloc, shared_state_object * p)
-    {
+    static void destroy_( allocator_t & alloc, shared_state_object * p) {
         alloc.destroy( p);
         alloc.deallocate( p, 1);
     }
