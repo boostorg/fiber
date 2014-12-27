@@ -27,16 +27,15 @@
 
 namespace boost {
 namespace fibers {
-
 namespace detail {
 
-class scheduler;
+struct scheduler;
 
 }
 
 class BOOST_FIBERS_DECL fiber {
 private:
-    friend class detail::scheduler;
+    friend struct detail::scheduler;
 
     typedef detail::fiber_handle        ptr_t;
 
