@@ -210,7 +210,7 @@ public:
         hwm_( hwm),
         lwm_( lwm) {
         if ( hwm_ < lwm_) {
-            throw invalid_argument( std::errc::invalid_argument,
+            throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: high-watermark is less than low-watermark for bounded_queue");
         }
     }
