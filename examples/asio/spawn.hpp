@@ -17,9 +17,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
-#include <boost/move/move.hpp>
 
-#include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -158,14 +156,11 @@ typedef basic_yield_context<
  * @param function The fiber function. The function must have the signature:
  * @code void function( basic_yield_context< Handler > yield); @endcode
  *
- * @param attributes Boost.Fiber attributes used to customise the fiber.
  */
 template< typename Handler, typename Function >
 void spawn( boost::asio::io_service & io_service,
         BOOST_ASIO_MOVE_ARG( Handler) handler,
-        BOOST_ASIO_MOVE_ARG( Function) function,
-        boost::fibers::attributes const& attributes
-            = boost::fibers::attributes() );
+        BOOST_ASIO_MOVE_ARG( Function) function);
 
 /// Start a new fiber, inheriting the execution context of another.
 /**
@@ -180,14 +175,11 @@ void spawn( boost::asio::io_service & io_service,
  * @param function The fiber function. The function must have the signature:
  * @code void function( basic_yield_context< Handler > yield); @endcode
  *
- * @param attributes Boost.Fiber attributes used to customise the fiber.
  */
 template< typename Handler, typename Function >
 void spawn( boost::asio::io_service & io_service,
         basic_yield_context< Handler > ctx,
-        BOOST_ASIO_MOVE_ARG( Function) function,
-        boost::fibers::attributes const& attributes
-            = boost::fibers::attributes() );
+        BOOST_ASIO_MOVE_ARG( Function) function);
 
 /// Start a new fiber that executes in the contex of a strand.
 /**
@@ -200,13 +192,10 @@ void spawn( boost::asio::io_service & io_service,
  * @param function The fiber function. The function must have the signature:
  * @code void function( yield_context yield); @endcode
  *
- * @param attributes Boost.Fiber attributes used to customise the fiber.
  */
 template< typename Function >
 void spawn( boost::asio::io_service::strand strand,
-        BOOST_ASIO_MOVE_ARG( Function) function,
-        boost::fibers::attributes const& attributes
-            = boost::fibers::attributes() );
+        BOOST_ASIO_MOVE_ARG( Function) function);
 
 /// Start a new fiber that executes on a given io_service.
 /**
@@ -218,13 +207,10 @@ void spawn( boost::asio::io_service::strand strand,
  * @param function The fiber function. The function must have the signature:
  * @code void function( yield_context yield); @endcode
  *
- * @param attributes Boost.Fiber attributes used to customise the fiber.
  */
 template< typename Function >
 void spawn( boost::asio::io_service & io_service,
-        BOOST_ASIO_MOVE_ARG( Function) function,
-        boost::fibers::attributes const& attributes
-            = boost::fibers::attributes() );
+        BOOST_ASIO_MOVE_ARG( Function) function);
 
 } // namespace asio
 } // namespace fibers

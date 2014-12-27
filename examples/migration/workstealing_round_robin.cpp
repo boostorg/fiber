@@ -46,18 +46,15 @@ boost::fibers::fiber
 workstealing_round_robin::steal()
 {
     std::unique_lock< std::mutex > lk( mtx_);
-    boost::fibers::detail::fiber_handle f;
-    if ( ! rqueue_.empty() )
+    for ( boost::fibers::detail::fiber_handle f : rqueue_)
     {
-        f = rqueue_.back();
-        rqueue_.pop_back();
-        if ( f->thread_affinity() )
+        if ( ! f->thread_affinity() )
         {
-            rqueue_.push_back( f);
-            f = 0;
+            rqueue_.remove( f);
+            return boost::fibers::fiber( f);
         }
     }
-    return boost::fibers::fiber( f);
+    return boost::fibers::fiber();
 }
 
 #ifdef BOOST_HAS_ABI_HEADERS
