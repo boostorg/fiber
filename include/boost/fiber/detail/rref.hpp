@@ -27,15 +27,15 @@ template< typename Fn >
 class rref {
 public:
     rref( Fn && fn) :
-        fn_( std::move( fn) ) {
+        fn_( std::forward< Fn >( fn) ) {
     }
 
     rref( rref & other) :
-        fn_( std::move( other.fn_) ) {
+        fn_( std::forward< Fn >( other.fn_) ) {
     }
 
     rref( rref && other) :
-        fn_( std::move( other.fn_) ) {
+        fn_( std::forward< Fn >( other.fn_) ) {
     }
 
     rref( rref const& other) = delete;
@@ -49,9 +49,9 @@ private:
     Fn  fn_;
 };
 
-template< typename T >
-rref< T > make_rref( T && t) {
-    return rref< T >( std::move( t) );
+template< typename Fn >
+rref< Fn > make_rref( Fn && fn) {
+    return rref< Fn >( std::forward< Fn >( fn) );
 }
 
 }}}

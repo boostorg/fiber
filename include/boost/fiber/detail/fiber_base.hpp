@@ -14,6 +14,7 @@
 #include <exception>
 #include <iostream>
 #include <map>
+#include <utility>
 #include <vector>
 
 #include <boost/assert.hpp>
@@ -72,23 +73,23 @@ private:
     std::atomic< std::size_t >                      use_count_;
     context::execution_context                      ctx_;
     fss_data_t                                      fss_data_;
-    std::chrono::high_resolution_clock::time_point  tp_;
     std::atomic< fiber_status >                     state_;
     std::atomic< int >                              flags_;
     spinlock                                        splk_;
     std::vector< fiber_handle >                     waiting_;
     std::exception_ptr                              except_;
+    std::chrono::high_resolution_clock::time_point  tp_;
 
     // main-context fiber
     fiber_base() :
         use_count_( 1),
         ctx_( context::execution_context::current() ),
         fss_data_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         state_( fiber_status::running),
         flags_( flag_main_fiber | flag_thread_affinity),
         waiting_(),
         except_(),
+        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         nxt() {
     }
 
@@ -121,11 +122,11 @@ private:
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
         fss_data_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         state_( fiber_status::ready),
         flags_( 0),
         waiting_(),
         except_(),
+        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         nxt( nullptr) {
     }
 
@@ -194,7 +195,7 @@ public:
     // generalized lambda captures are support by C++14
     template< typename StackAlloc, typename Fn >
     explicit fiber_base( StackAlloc salloc, Fn && fn) :
-        fiber_base( salloc, make_rref( std::move( fn) ) ) {
+        fiber_base( salloc, make_rref( std::forward< Fn >( fn) ) ) {
     }
 
     virtual ~fiber_base() {
