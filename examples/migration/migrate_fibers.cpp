@@ -4,21 +4,20 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <atomic>
 #include <cstdio>
 #include <sstream>
 #include <string>
+#include <thread>
 
-#include <boost/atomic.hpp>
 #include <boost/assert.hpp>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
 #include "workstealing_round_robin.hpp"
 
 #define MAXCOUNT 10
 
-boost::atomic< bool > fini( false);
+std::atomic< bool > fini( false);
 
 boost::fibers::future< int > fibonacci( int);
 
@@ -41,10 +40,10 @@ int fibonacci_( int n)
 
 boost::fibers::future< int > fibonacci( int n)
 {
-    boost::fibers::packaged_task< int() > pt( boost::bind( fibonacci_, n) );
+    boost::fibers::packaged_task< int() > pt( std::bind( fibonacci_, n) );
     boost::fibers::future< int > f( pt.get_future() );
-    boost::fibers::fiber( boost::move( pt) ).detach();
-    return boost::move( f);
+    boost::fibers::fiber( boost::fibers::fixedsize(1024*1024), std::move( pt) ).detach();
+    return std::move( f);
 }
 
 int create_fiber( int n)
@@ -52,25 +51,22 @@ int create_fiber( int n)
     return fibonacci( n).get();
 }
 
-void fn_create_fibers( workstealing_round_robin * ds, boost::barrier * b)
+void fn_create_fibers( workstealing_round_robin * ds)
 {
     boost::fibers::set_scheduling_algorithm( ds);
 
-    b->wait();
-
     int n = 10;
-    int result = boost::fibers::async( boost::bind( create_fiber, n) ).get();
+    int result = boost::fibers::async( boost::fibers::fixedsize(1024*1024),
+                                       std::bind( create_fiber, n) ).get();
     BOOST_ASSERT( 89 == result);
     fprintf( stderr, "fibonacci(%d) = %d", n, result);
 
     fini = true;
 }
 
-void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b, int * count)
+void fn_migrate_fibers( workstealing_round_robin * other_ds, int * count)
 {
     BOOST_ASSERT( other_ds);
-
-    b->wait();
 
     while ( ! fini)
     {
@@ -79,7 +75,7 @@ void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b,
         // which are idle except for task-stealing. 
         // This call yields the thief ’s processor to another thread, allowing
         // descheduled threads to regain a processor and make progress. 
-        boost::this_thread::yield();
+        std::this_thread::yield();
 
         boost::fibers::fiber f( other_ds->steal() );
         if ( f)
@@ -88,8 +84,6 @@ void fn_migrate_fibers( workstealing_round_robin * other_ds, boost::barrier * b,
             boost::fibers::migrate( f);
             f.join();
         }
-        
-        //boost::this_fiber::yield();
     }
 }
 
@@ -104,9 +98,8 @@ int main()
             int count = 0;
 
             workstealing_round_robin * ds = new workstealing_round_robin();
-            boost::barrier b( 2);
-            boost::thread t1( boost::bind( fn_create_fibers, ds, &b) );
-            boost::thread t2( boost::bind( fn_migrate_fibers, ds, &b, &count) );
+            std::thread t1( std::bind( fn_create_fibers, ds) );
+            std::thread t2( std::bind( fn_migrate_fibers, ds, &count) );
 
             t1.join();
             t2.join();

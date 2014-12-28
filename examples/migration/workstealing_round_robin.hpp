@@ -30,8 +30,6 @@ public:
 
     virtual boost::fibers::detail::fiber_handle pick_next();
 
-    virtual void priority( boost::fibers::detail::fiber_handle, int) noexcept;
-
     boost::fibers::fiber steal();
 };
 

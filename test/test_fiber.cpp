@@ -173,15 +173,6 @@ void test_move()
     }
 }
 
-void test_priority()
-{
-    boost::fibers::fiber f( f1);
-    BOOST_CHECK_EQUAL( 0, f.priority() );
-    f.priority( 7);
-    BOOST_CHECK_EQUAL( 7, f.priority() );
-    f.join();
-}
-
 void test_id()
 {
     boost::fibers::fiber s1;
@@ -347,7 +338,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
      test->add( BOOST_TEST_CASE( & test_move) );
      test->add( BOOST_TEST_CASE( & test_id) );
-     test->add( BOOST_TEST_CASE( & test_priority) );
      test->add( BOOST_TEST_CASE( & test_detach) );
      test->add( BOOST_TEST_CASE( & test_complete) );
      test->add( BOOST_TEST_CASE( & test_join_in_thread) );

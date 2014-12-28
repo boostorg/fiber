@@ -28,20 +28,6 @@ fiber::start_() {
     fm_spawn( impl_);
 }
 
-int
-fiber::priority() const noexcept {
-    BOOST_ASSERT( impl_);
-
-    return impl_->priority();
-}
-
-void
-fiber::priority( int prio) noexcept {
-    BOOST_ASSERT( impl_);
-
-    fm_priority( impl_, prio);
-}
-
 bool
 fiber::thread_affinity() const noexcept {
     BOOST_ASSERT( impl_);

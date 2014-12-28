@@ -108,10 +108,6 @@ public:
         return nullptr != impl_ ? impl_->get_id() : id();
     }
 
-    int priority() const noexcept;
-
-    void priority( int) noexcept;
-
     bool thread_affinity() const noexcept;
 
     void thread_affinity( bool) noexcept;

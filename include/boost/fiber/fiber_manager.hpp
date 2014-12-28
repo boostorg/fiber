@@ -79,8 +79,6 @@ detail::fiber_handle fm_active() noexcept;
 
 void fm_set_sched_algo( sched_algorithm *);
 
-void fm_priority( detail::fiber_handle, int) noexcept;
-
 void fm_wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
 
 template< typename Rep, typename Period >

@@ -30,8 +30,6 @@ public:
     virtual void awakened( detail::fiber_handle);
 
     virtual detail::fiber_handle pick_next();
-
-    virtual void priority( detail::fiber_handle, int) noexcept;
 };
 
 }}

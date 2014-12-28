@@ -24,8 +24,6 @@ struct BOOST_FIBERS_DECL sched_algorithm {
     virtual void awakened( detail::fiber_handle) = 0;
 
     virtual detail::fiber_handle pick_next() = 0;
-
-    virtual void priority( detail::fiber_handle, int) noexcept = 0;
 };
 
 }}

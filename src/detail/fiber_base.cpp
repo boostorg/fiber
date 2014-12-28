@@ -19,6 +19,12 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
+fiber_handle
+fiber_base::main_fiber() {
+    static thread_local fiber_base mf;
+    return fiber_handle( & mf);
+}
+
 void
 fiber_base::release() {
     BOOST_ASSERT( is_terminated() );

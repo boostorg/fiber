@@ -75,10 +75,22 @@ private:
     std::chrono::high_resolution_clock::time_point  tp_;
     std::atomic< fiber_status >                     state_;
     std::atomic< int >                              flags_;
-    std::atomic< int >                              priority_;
     spinlock                                        splk_;
     std::vector< fiber_handle >                     waiting_;
     std::exception_ptr                              except_;
+
+    // main-context fiber
+    fiber_base() :
+        use_count_( 1),
+        ctx_( context::execution_context::current() ),
+        fss_data_(),
+        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        state_( fiber_status::running),
+        flags_( flag_main_fiber | flag_thread_affinity),
+        waiting_(),
+        except_(),
+        nxt() {
+    }
 
     // worker fiber
     // generalized lambda captures are support by C++14
@@ -112,7 +124,6 @@ private:
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         state_( fiber_status::ready),
         flags_( 0),
-        priority_( 0),
         waiting_(),
         except_(),
         nxt( nullptr) {
@@ -177,19 +188,7 @@ public:
 
     fiber_handle    nxt;
 
-    // main-context fiber
-    fiber_base() :
-        use_count_( 1),
-        ctx_( context::execution_context::current() ),
-        fss_data_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
-        state_( fiber_status::ready),
-        flags_( flag_main_fiber | flag_thread_affinity),
-        priority_( 0),
-        waiting_(),
-        except_(),
-        nxt() {
-    }
+    static fiber_handle main_fiber();
 
     // worker fiber
     // generalized lambda captures are support by C++14
@@ -204,14 +203,6 @@ public:
 
     id get_id() const noexcept {
         return id( const_cast< fiber_base * >( this) );
-    }
-
-    int priority() const noexcept {
-        return priority_;
-    }
-
-    void priority( int prio) noexcept {
-        priority_ = prio;
     }
 
     bool join( fiber_handle);

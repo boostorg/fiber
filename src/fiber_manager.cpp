@@ -29,18 +29,12 @@ sched_algorithm * default_algorithm() {
     return & rr;
 }
 
-detail::fiber_handle main_fiber() {
-    static thread_local detail::fiber_base mf;
-    return detail::fiber_handle( & mf);
-}
-
 fiber_manager::fiber_manager() noexcept :
     sched_algo( default_algorithm() ),
-    active_fiber( main_fiber() ),
+    active_fiber( detail::fiber_base::main_fiber() ),
     wqueue(),
     preserve_fpu( false),
     wait_interval( std::chrono::milliseconds( 10) ) {
-    active_fiber->set_running();
 }
 
 fiber_manager::~fiber_manager() noexcept {
@@ -216,15 +210,6 @@ void fm_set_sched_algo( sched_algorithm * algo) {
     BOOST_ASSERT( nullptr != fm);
 
     fm->sched_algo = algo;
-}
-
-void fm_priority( detail::fiber_handle f,
-                  int prio) noexcept {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    fm->sched_algo->priority( f, prio);
 }
 
 void fm_wait_interval( std::chrono::high_resolution_clock::duration const& wait_interval) noexcept {
