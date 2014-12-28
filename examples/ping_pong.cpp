@@ -10,7 +10,7 @@
 
 #include <boost/fiber/all.hpp>
 
-typedef boost::fibers::unbounded_queue< std::string >	fifo_t;
+typedef boost::fibers::unbounded_channel< std::string >	fifo_t;
 
 inline
 void ping( fifo_t & recv_buf, fifo_t & send_buf)

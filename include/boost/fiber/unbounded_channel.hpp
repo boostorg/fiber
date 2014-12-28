@@ -5,12 +5,13 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_FIBERS_UNBOUNDED_QUEUE_H
-#define BOOST_FIBERS_UNBOUNDED_QUEUE_H
+#ifndef BOOST_FIBERS_UNBOUNDED_CHANNEL_H
+#define BOOST_FIBERS_UNBOUNDED_CHANNEL_H
 
 #include <algorithm> // std::move()
 #include <chrono>
 #include <cstddef>
+#include <memory> // std::allocator
 #include <mutex> // std::unique_lock
 #include <utility> // std::forward()
 
@@ -28,55 +29,57 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
 
-template< typename T >
-struct unbounded_queue_node {
-    typedef intrusive_ptr< unbounded_queue_node >   ptr;
-
-    std::size_t use_count;
-    T           va;
-    ptr         nxt;
-
-    unbounded_queue_node( T && t) :
-        use_count( 0),
-        va( std::forward< T >( t) ),
-        nxt() {
-    }
-};
-
-template< typename T >
-void intrusive_ptr_add_ref( unbounded_queue_node< T > * p) {
-    ++p->use_count;
-}
-
-template< typename T >
-void intrusive_ptr_release( unbounded_queue_node< T > * p) {
-    if ( 0 == --p->use_count) {
-        delete p;
-    }
-}
-
-}
-
-template< typename T >
-class unbounded_queue {
+template< typename T, typename Allocator = std::allocator< T > >
+class unbounded_channel {
 public:
     typedef T   value_type;
 
 private:
-    typedef detail::unbounded_queue_node< value_type >  node_type;
+    struct node {
+        typedef intrusive_ptr< node >                                     ptr;
+        typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >  allocator_type;
+
+        std::size_t         use_count;
+        allocator_type  &   alloc;
+        T                   va;
+        ptr                 nxt;
+
+        explicit node( T && t, allocator_type & alloc_) :
+            use_count( 0),
+            alloc( alloc_),
+            va( std::forward< T >( t) ),
+            nxt() {
+        }
+
+        friend
+        void intrusive_ptr_add_ref( node * p) {
+            ++p->use_count;
+        }
+
+        friend
+        void intrusive_ptr_release( node * p) {
+            if ( 0 == --p->use_count) {
+                allocator_type & alloc( p->alloc);
+                std::allocator_traits< allocator_type >::destroy( alloc, p);
+                std::allocator_traits< allocator_type >::deallocate( alloc, p, 1);
+            }
+        }
+    };
+
+    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >   allocator_type;
 
     enum class queue_status {
         open = 0,
         closed
     };
 
-    queue_status                state_;
-    typename node_type::ptr     head_;
-    typename node_type::ptr  *  tail_;
-    mutable mutex               mtx_;
-    condition                   not_empty_cond_;
+    allocator_type         alloc_;
+    queue_status           state_;
+    typename node::ptr     head_;
+    typename node::ptr  *  tail_;
+    mutable mutex          mtx_;
+    condition              not_empty_cond_;
 
     bool is_closed_() const noexcept {
         return queue_status::closed == state_;
@@ -91,7 +94,7 @@ private:
         return ! head_;
     }
 
-    queue_op_status push_( typename node_type::ptr const& new_node,
+    queue_op_status push_( typename node::ptr const& new_node,
                            std::unique_lock< boost::fibers::mutex >& lk) {
         if ( is_closed_() ) {
             return queue_op_status::closed;
@@ -100,7 +103,7 @@ private:
         return push_and_notify_( new_node);
     }
 
-    queue_op_status push_and_notify_( typename node_type::ptr const& new_node) {
+    queue_op_status push_and_notify_( typename node::ptr const& new_node) {
         try {
             push_tail_( new_node);
             not_empty_cond_.notify_one();
@@ -112,7 +115,7 @@ private:
         }
     }
 
-    void push_tail_( typename node_type::ptr new_node) {
+    void push_tail_( typename node::ptr new_node) {
         * tail_ = new_node;
         tail_ = & new_node->nxt;
     }
@@ -121,7 +124,7 @@ private:
         BOOST_ASSERT( ! is_empty_() );
 
         try {
-            typename node_type::ptr old_head = pop_head_();
+            typename node::ptr old_head = pop_head_();
             return std::move( old_head->va);
         } catch (...) {
             close_();
@@ -129,8 +132,8 @@ private:
         }
     }
 
-    typename node_type::ptr pop_head_() {
-        typename node_type::ptr old_head = head_;
+    typename node::ptr pop_head_() {
+        typename node::ptr old_head = head_;
         head_ = old_head->nxt;
         if ( nullptr == head_) {
             tail_ = & head_;
@@ -140,7 +143,8 @@ private:
     }
 
 public:
-    unbounded_queue() :
+    unbounded_channel( Allocator const& alloc = Allocator() ) :
+        alloc_( alloc),
         state_( queue_status::open),
         head_(),
         tail_( & head_),
@@ -148,8 +152,8 @@ public:
         not_empty_cond_() {
     }
 
-    unbounded_queue( unbounded_queue const&) = delete;
-    unbounded_queue & operator=( unbounded_queue const&) = delete;
+    unbounded_channel( unbounded_channel const&) = delete;
+    unbounded_channel & operator=( unbounded_channel const&) = delete;
 
     void close() {
         std::unique_lock< mutex > lk( mtx_);
@@ -170,7 +174,8 @@ public:
     }
 
     queue_op_status push( value_type && va) {
-        typename node_type::ptr new_node( new node_type( std::forward< value_type >( va) ) );
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk);
     }
@@ -250,4 +255,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_UNBOUNDED_QUEUE_H
+#endif // BOOST_FIBERS_UNBOUNDED_CHANNEL_H

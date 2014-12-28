@@ -5,12 +5,13 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_FIBERS_BOUNDED_QUEUE_H
-#define BOOST_FIBERS_BOUNDED_QUEUE_H
+#ifndef BOOST_FIBERS_BOUNDED_CHANNEL_H
+#define BOOST_FIBERS_BOUNDED_CHANNEL_H
 
 #include <algorithm> // std::move()
 #include <chrono>
 #include <cstddef>
+#include <memory> // std::allocator
 #include <mutex> // std::unique_lock
 #include <system_error> // std::errc
 #include <utility> // std::forward()
@@ -29,59 +30,61 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
 
-template< typename T >
-struct bounded_queue_node {
-    typedef intrusive_ptr< bounded_queue_node >   ptr;
-
-    std::size_t use_count;
-    T           va;
-    ptr         nxt;
-
-    explicit bounded_queue_node( T && t) :
-        use_count( 0),
-        va( std::forward< T >( t) ),
-        nxt() {
-    }
-};
-
-template< typename T >
-void intrusive_ptr_add_ref( bounded_queue_node< T > * p) {
-    ++p->use_count;
-}
-
-template< typename T >
-void intrusive_ptr_release( bounded_queue_node< T > * p) {
-    if ( 0 == --p->use_count) {
-        delete p;
-    }
-}
-
-}
-
-template< typename T >
-class bounded_queue {
+template< typename T, typename Allocator = std::allocator< T > >
+class bounded_channel {
 public:
     typedef T   value_type;
 
 private:
-    typedef detail::bounded_queue_node< value_type >      node_type;  
+    struct node {
+        typedef intrusive_ptr< node >                                     ptr;
+        typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >  allocator_type;
+
+        std::size_t         use_count;
+        allocator_type  &   alloc;
+        T                   va;
+        ptr                 nxt;
+
+        explicit node( T && t, allocator_type & alloc_) :
+            use_count( 0),
+            alloc( alloc_),
+            va( std::forward< T >( t) ),
+            nxt() {
+        }
+
+        friend
+        void intrusive_ptr_add_ref( node * p) {
+            ++p->use_count;
+        }
+
+        friend
+        void intrusive_ptr_release( node * p) {
+            if ( 0 == --p->use_count) {
+                allocator_type & alloc( p->alloc);
+                std::allocator_traits< allocator_type >::destroy( alloc, p);
+                std::allocator_traits< allocator_type >::deallocate( alloc, p, 1);
+            }
+        }
+    };
+
+    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >   allocator_type;
 
     enum class queue_status {
         open = 0,
         closed
     };
 
-    queue_status                state_;
-    std::size_t                 count_;
-    typename node_type::ptr     head_;
-    typename node_type::ptr  *  tail_;
-    mutable mutex               mtx_;
-    condition                   not_empty_cond_;
-    condition                   not_full_cond_;
-    std::size_t                 hwm_;
-    std::size_t                 lwm_;
+    allocator_type         alloc_;
+    queue_status           state_;
+    std::size_t            count_;
+    typename node::ptr     head_;
+    typename node::ptr  *  tail_;
+    mutable mutex          mtx_;
+    condition              not_empty_cond_;
+    condition              not_full_cond_;
+    std::size_t            hwm_;
+    std::size_t            lwm_;
 
     bool is_closed_() const noexcept {
         return queue_status::closed == state_;
@@ -105,7 +108,7 @@ private:
         return count_ >= hwm_;
     }
 
-    queue_op_status push_( typename node_type::ptr const& new_node,
+    queue_op_status push_( typename node::ptr const& new_node,
                            std::unique_lock< boost::fibers::mutex >& lk ) {
         if ( is_closed_() ) {
             return queue_op_status::closed;
@@ -118,7 +121,7 @@ private:
         return push_and_notify_( new_node);
     }
 
-    queue_op_status try_push_( typename node_type::ptr const& new_node) {
+    queue_op_status try_push_( typename node::ptr const& new_node) {
         if ( is_closed_() ) {
             return queue_op_status::closed;
         }
@@ -131,7 +134,7 @@ private:
     }
 
     template< typename Clock, typename Duration >
-    queue_op_status push_wait_until_( typename node_type::ptr const& new_node,
+    queue_op_status push_wait_until_( typename node::ptr const& new_node,
                                       std::chrono::time_point< Clock, Duration > const& timeout_time,
                                       std::unique_lock< boost::fibers::mutex >& lk) {
         if ( is_closed_() ) {
@@ -147,7 +150,7 @@ private:
         return push_and_notify_( new_node);
     }
 
-    queue_op_status push_and_notify_( typename node_type::ptr const& new_node) {
+    queue_op_status push_and_notify_( typename node::ptr const& new_node) {
         try {
             push_tail_( new_node);
             not_empty_cond_.notify_one();
@@ -159,7 +162,7 @@ private:
         }
     }
 
-    void push_tail_( typename node_type::ptr new_node) {
+    void push_tail_( typename node::ptr new_node) {
         * tail_ = new_node;
         tail_ = & new_node->nxt;
         ++count_;
@@ -169,7 +172,7 @@ private:
         BOOST_ASSERT( ! is_empty_() );
 
         try {
-            typename node_type::ptr old_head = pop_head_();
+            typename node::ptr old_head = pop_head_();
             if ( size_() <= lwm_) {
                 if ( lwm_ == hwm_) {
                     not_full_cond_.notify_one();
@@ -186,8 +189,8 @@ private:
         }
     }
 
-    typename node_type::ptr pop_head_() {
-        typename node_type::ptr old_head = head_;
+    typename node::ptr pop_head_() {
+        typename node::ptr old_head = head_;
         head_ = old_head->nxt;
         if ( ! head_) {
             tail_ = & head_;
@@ -198,8 +201,10 @@ private:
     }
 
 public:
-    bounded_queue( std::size_t hwm,
-                   std::size_t lwm) :
+    bounded_channel( std::size_t hwm,
+                   std::size_t lwm,
+                   Allocator const& alloc = Allocator() ) :
+        alloc_( alloc),
         state_( queue_status::open),
         count_( 0),
         head_(),
@@ -211,11 +216,13 @@ public:
         lwm_( lwm) {
         if ( hwm_ < lwm_) {
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
-                                    "boost fiber: high-watermark is less than low-watermark for bounded_queue");
+                                    "boost fiber: high-watermark is less than low-watermark for bounded_channel");
         }
     }
 
-    bounded_queue( std::size_t wm) :
+    bounded_channel( std::size_t wm,
+                   Allocator const& alloc = Allocator() ) :
+        alloc_( alloc),
         state_( queue_status::open),
         count_( 0),
         head_(),
@@ -227,8 +234,8 @@ public:
         lwm_( wm) {
     }
 
-    bounded_queue( bounded_queue const&) = delete;
-    bounded_queue & operator=( bounded_queue const&) = delete;
+    bounded_channel( bounded_channel const&) = delete;
+    bounded_channel & operator=( bounded_channel const&) = delete;
 
     std::size_t upper_bound() const {
         return hwm_;
@@ -260,7 +267,8 @@ public:
 
     queue_op_status push( value_type && va)
     {
-        typename node_type::ptr new_node( new node_type( std::forward< value_type >( va) ) );
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk);
     }
@@ -275,13 +283,15 @@ public:
     template< typename Clock, typename Duration >
     queue_op_status push_wait_until( value_type && va,
                                      std::chrono::time_point< Clock, Duration > const& timeout_time) {
-        typename node_type::ptr new_node( new node_type( std::forward< value_type >( va) ) );
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new_node, timeout_time, lk);
     }
 
     queue_op_status try_push( value_type && va) {
-        typename node_type::ptr new_node( new node_type( std::forward< value_type >( va) ) );
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return try_push_( new_node);
     }
@@ -363,4 +373,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_BOUNDED_QUEUE_H
+#endif // BOOST_FIBERS_BOUNDED_CHANNEL_H
