@@ -30,6 +30,17 @@ async( Fn fn) {
     return std::move( f);
 }
 
+template< typename StackAllocator, typename Fn >
+future< typename std::result_of< Fn() >::type >
+async( StackAllocator salloc, Fn fn) {
+    typedef typename std::result_of< Fn() >::type result_type;
+
+    packaged_task< result_type() > pt( std::forward< Fn >( fn) );
+    future< result_type > f( pt.get_future() );
+    fiber( salloc, std::move( pt) ).detach();
+    return std::move( f);
+}
+
 }}
 
 #endif // BOOST_FIBERS_ASYNC_HPP
