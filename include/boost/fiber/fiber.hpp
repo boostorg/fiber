@@ -19,6 +19,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fiber_handle.hpp>
 #include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/detail/worker_fiber.hpp>
 #include <boost/fiber/fixedsize.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -61,7 +62,18 @@ public:
 
     template< typename StackAllocator, typename Fn >
     explicit fiber( StackAllocator salloc, Fn && fn) :
-        impl_( new detail::fiber_base( salloc, std::forward< Fn >( fn) ) ) {
+        fiber( std::allocator_arg, std::allocator< fiber >(), fixedsize(), std::forward< Fn >( fn) ) {
+    }
+
+    template< typename Allocator, typename StackAllocator, typename Fn >
+    explicit fiber( std::allocator_arg_t, Allocator alloc_, StackAllocator salloc, Fn && fn) :
+        impl_() {
+        typedef detail::worker_fiber< Allocator >   worker_t;
+        typedef typename worker_t::allocator_type   allocator_t;
+
+        allocator_t alloc( alloc_);
+        impl_.reset(
+            new ( alloc.allocate( 1) ) worker_t( alloc, salloc, std::forward< Fn >( fn) ) );
         start_();
     }
 

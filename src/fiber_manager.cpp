@@ -46,7 +46,7 @@ fiber_manager::~fiber_manager() noexcept {
     active_fiber.reset();
 }
 
-void fm_resume_( detail::fiber_handle f) {
+void fm_resume_( detail::fiber_handle & f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
@@ -63,7 +63,8 @@ void fm_resume_( detail::fiber_handle f) {
     }
 
     // assign new fiber to active-fiber
-    fm->active_fiber = f;
+    fm->active_fiber.swap( f);
+    f.reset();
 
     // resume active-fiber == start or yield to
     fm->active_fiber->resume();
@@ -86,7 +87,7 @@ std::chrono::high_resolution_clock::time_point fm_next_wakeup() {
     }
 }
 
-void fm_spawn( detail::fiber_handle f) {
+void fm_spawn( detail::fiber_handle & f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
@@ -116,11 +117,13 @@ void fm_run() {
             fm_resume_( f);
 
             return;
+#if 0
         } else {
             // no fibers ready to run; the thread should sleep
             // until earliest fiber is scheduled to run
             std::chrono::high_resolution_clock::time_point wakeup( fm_next_wakeup() );
             std::this_thread::sleep_until( wakeup);
+#endif
         }
     }
 }
@@ -171,7 +174,7 @@ void fm_yield() {
     // fiber is resumed
 }
 
-void fm_join( detail::fiber_handle f) {
+void fm_join( detail::fiber_handle & f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
@@ -196,7 +199,7 @@ void fm_join( detail::fiber_handle f) {
     BOOST_ASSERT( f->is_terminated() );
 }
 
-detail::fiber_handle fm_active() noexcept {
+detail::fiber_handle & fm_active() noexcept {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);

@@ -27,7 +27,7 @@ namespace fibers {
 namespace detail {
 
 void
-waiting_queue::push( fiber_handle item) noexcept {
+waiting_queue::push( fiber_handle & item) noexcept {
     BOOST_ASSERT( item);
     BOOST_ASSERT( ! item->nxt);
 

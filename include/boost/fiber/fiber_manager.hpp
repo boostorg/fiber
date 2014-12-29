@@ -44,11 +44,11 @@ struct fiber_manager {
     std::chrono::high_resolution_clock::duration    wait_interval;
 };
 
-void fm_resume_( detail::fiber_handle);
+void fm_resume_( detail::fiber_handle &);
 
 std::chrono::high_resolution_clock::time_point fm_next_wakeup();
 
-void fm_spawn( detail::fiber_handle);
+void fm_spawn( detail::fiber_handle &);
 
 void fm_run();
 
@@ -73,9 +73,9 @@ bool fm_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
 
 void fm_yield();
 
-void fm_join( detail::fiber_handle);
+void fm_join( detail::fiber_handle &);
 
-detail::fiber_handle fm_active() noexcept;
+detail::fiber_handle & fm_active() noexcept;
 
 void fm_set_sched_algo( sched_algorithm *);
 

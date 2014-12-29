@@ -66,6 +66,7 @@ int main()
 {
 	try
 	{
+        {
         fifo_t buf1, buf2;
 
         boost::fibers::fiber f1(
@@ -77,6 +78,7 @@ int main()
 
         f1.join();
         f2.join();
+        }
 
 		std::cout << "done." << std::endl;
 

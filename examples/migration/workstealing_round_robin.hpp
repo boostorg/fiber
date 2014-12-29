@@ -26,7 +26,7 @@ private:
     rqueue_t                  rqueue_;
 
 public:
-    virtual void awakened( boost::fibers::detail::fiber_handle);
+    virtual void awakened( boost::fibers::detail::fiber_handle &);
 
     virtual boost::fibers::detail::fiber_handle pick_next();
 

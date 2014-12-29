@@ -39,7 +39,7 @@ public:
         return ! head_;
     }
 
-    void push( fiber_handle item) noexcept;
+    void push( fiber_handle & item) noexcept;
 
     fiber_handle top() const noexcept {
         BOOST_ASSERT( ! empty() );

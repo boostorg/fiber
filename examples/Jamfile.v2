@@ -31,13 +31,13 @@ project boost/fiber/example
 #exe futures_mt : futures_mt.cpp ;
 #exe interrupt : interrupt.cpp ;
 #exe join : join.cpp ;
-exe ping_pong : ping_pong.cpp ;
+#exe ping_pong : ping_pong.cpp ;
 #exe segmented_stack : segmented_stack.cpp ;
-#exe simple : simple.cpp test_fiber.cpp ;
+exe simple : simple.cpp test_fiber.cpp ;
 exe migrate_fibers
     : migration/migrate_fibers.cpp
       migration/workstealing_round_robin.cpp
-  ;
+    ;
 
 #exe asio/daytime_client : asio/daytime_client.cpp ;
 #exe asio/daytime_client2 : asio/daytime_client2.cpp ;

@@ -28,8 +28,8 @@ struct scheduler {
     scheduler & operator=( scheduler const&) = delete;
 
     template< typename F >
-    static fiber_handle extract( F const& f) noexcept {
-        return f.impl_.get();
+    static fiber_handle & extract( F const& f) noexcept {
+        return const_cast< F & >( f).impl_;
     }
 
     static fiber_manager * instance() noexcept;

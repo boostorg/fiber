@@ -20,7 +20,7 @@ namespace fibers {
 namespace detail {
 
 void
-fifo::push( fiber_handle item) noexcept {
+fifo::push( fiber_handle & item) noexcept {
     BOOST_ASSERT( item);
     BOOST_ASSERT( ! item->nxt);
 

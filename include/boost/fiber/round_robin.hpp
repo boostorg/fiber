@@ -27,7 +27,7 @@ private:
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( detail::fiber_handle);
+    virtual void awakened( detail::fiber_handle &);
 
     virtual detail::fiber_handle pick_next();
 };

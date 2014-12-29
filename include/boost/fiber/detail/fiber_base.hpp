@@ -130,6 +130,10 @@ private:
         nxt( nullptr) {
     }
 
+protected:
+    virtual void deallocate() {
+    }
+
 public:
     class id {
     private:
@@ -315,7 +319,7 @@ public:
 
         if ( 0 == --f->use_count_) {
             BOOST_ASSERT( f->is_terminated() );
-            delete f;
+            f->deallocate();
         }
     }
 };

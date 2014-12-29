@@ -13,7 +13,7 @@
 #endif
 
 void
-workstealing_round_robin::awakened( boost::fibers::detail::fiber_handle f)
+workstealing_round_robin::awakened( boost::fibers::detail::fiber_handle & f)
 {
     std::unique_lock< std::mutex > lk( mtx_);
     rqueue_.push_back( f);

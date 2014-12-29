@@ -18,7 +18,7 @@ namespace boost {
 namespace fibers {
 
 void
-round_robin::awakened( detail::fiber_handle f) {
+round_robin::awakened( detail::fiber_handle & f) {
     BOOST_ASSERT( f);
 
     rqueue_.push( f);
