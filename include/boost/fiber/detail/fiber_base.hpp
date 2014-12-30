@@ -95,14 +95,14 @@ private:
 
     // worker fiber
     // generalized lambda captures are support by C++14
-    template< typename StackAlloc, typename Fn >
-    fiber_base( StackAlloc salloc, rref< Fn > rr) :
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    fiber_base( StackAlloc salloc, fn_rref< Fn > fn_rr, arg_rref< Args > ... arg_rr) :
         use_count_( 0),
         ctx_( salloc,
               [=] () mutable {
                 try {
                     BOOST_ASSERT( is_running() );
-                    rr();
+                    fn_rr( arg_rr ... );
                     BOOST_ASSERT( is_running() );
                 } catch( fiber_interrupted const&) {
                     except_ = std::current_exception();
@@ -197,9 +197,11 @@ public:
 
     // worker fiber
     // generalized lambda captures are support by C++14
-    template< typename StackAlloc, typename Fn >
-    explicit fiber_base( StackAlloc salloc, Fn && fn) :
-        fiber_base( salloc, make_rref( std::forward< Fn >( fn) ) ) {
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    explicit fiber_base( StackAlloc salloc, Fn && fn, Args && ... args) :
+        fiber_base( salloc,
+                    fn_rref< Fn >( std::forward< Fn >( fn) ),
+                    arg_rref< Args >( std::forward< Args >( args) ) ... ) {
     }
 
     virtual ~fiber_base() {
@@ -319,7 +321,7 @@ public:
 
         if ( 0 == --f->use_count_) {
             BOOST_ASSERT( f->is_terminated() );
-            f->deallocate();
+            delete f;
         }
     }
 };

@@ -1,9 +1,9 @@
 #include <cstdlib>
+#include <functional>
 #include <iostream>
+#include <stdexcept>
 
 #include <boost/assert.hpp>
-#include <boost/ref.hpp>
-#include <boost/thread.hpp>
 
 #include <boost/fiber/all.hpp>
 
@@ -74,8 +74,8 @@ int main()
 	{
 		boost::fibers::barrier fb( 2);
 
-		boost::fibers::fiber f1( boost::bind( & fn1, boost::ref( fb) ) );
-		boost::fibers::fiber f2( boost::bind( & fn2, boost::ref( fb) ) );
+		boost::fibers::fiber f1( & fn1, std::ref( fb) );
+		boost::fibers::fiber f2( & fn2, std::ref( fb) );
 
         f1.join();
         f2.join();

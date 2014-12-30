@@ -19,25 +19,26 @@
 namespace boost {
 namespace fibers {
 
-template< typename Fn >
-future< typename std::result_of< Fn() >::type >
-async( Fn fn) {
-    typedef typename std::result_of< Fn() >::type result_type;
+template< typename Fn, typename ... Args >
+future< typename std::result_of< Fn( Args ... ) >::type >
+async( Fn fn, Args && ... args) {
+    typedef typename std::result_of< Fn( Args ... ) >::type result_type;
 
-    packaged_task< result_type() > pt( std::forward< Fn >( fn) );
+    packaged_task< result_type( Args ... ) > pt( std::forward< Fn >( fn) );
     future< result_type > f( pt.get_future() );
-    fiber( std::move( pt) ).detach();
+    fiber( std::move( pt), std::forward< Args >( args) ... ).detach();
     return std::move( f);
 }
 
-template< typename StackAllocator, typename Fn >
-future< typename std::result_of< Fn() >::type >
-async( StackAllocator salloc, Fn fn) {
-    typedef typename std::result_of< Fn() >::type result_type;
+template< typename StackAllocator, typename Fn, typename ... Args >
+future< typename std::result_of< Fn( Args ... ) >::type >
+async( StackAllocator salloc, Fn fn, Args && ... args) {
+    typedef typename std::result_of< Fn( Args ... ) >::type result_type;
 
-    packaged_task< result_type() > pt( std::forward< Fn >( fn) );
+    packaged_task< result_type( Args ... ) > pt(
+        std::forward< Fn >( fn), std::forward< Args >( args) ... );
     future< result_type > f( pt.get_future() );
-    fiber( salloc, std::move( pt) ).detach();
+    fiber( salloc, std::move( pt), std::forward< Args >( args) ... ).detach();
     return std::move( f);
 }
 

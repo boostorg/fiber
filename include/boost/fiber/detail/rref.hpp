@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_DETAIL_RREF_H
 #define BOOST_FIBERS_DETAIL_RREF_H
 
+#include <algorithm>
 #include <utility>
 
 #include <boost/config.hpp>
@@ -21,38 +22,60 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-// helper class for capture move-only objects
+// helper classes for capture move-only objects
 // generalized lambda captures are supported by C++14
-template< typename Fn >
-class rref {
+template< typename T >
+class arg_rref {
 public:
-    rref( Fn && fn) :
+    arg_rref( T && t) :
+        t_( std::forward< T >( t) ) {
+    }
+
+    arg_rref( arg_rref & other) :
+        t_( std::forward< T >( other.t_) ) {
+    }
+
+    arg_rref( arg_rref && other) :
+        t_( std::forward< T >( other.t_) ) {
+    }
+
+    arg_rref( arg_rref const& other) = delete;
+    arg_rref & operator=( arg_rref const& other) = delete;
+
+    T && move() {
+        return std::move( t_);
+    }
+
+private:
+    T   t_;
+};
+
+template< typename Fn >
+class fn_rref {
+public:
+    fn_rref( Fn && fn) :
         fn_( std::forward< Fn >( fn) ) {
     }
 
-    rref( rref & other) :
+    fn_rref( fn_rref & other) :
         fn_( std::forward< Fn >( other.fn_) ) {
     }
 
-    rref( rref && other) :
+    fn_rref( fn_rref && other) :
         fn_( std::forward< Fn >( other.fn_) ) {
     }
 
-    rref( rref const& other) = delete;
-    rref & operator=( rref const& other) = delete;
+    fn_rref( fn_rref const& other) = delete;
+    fn_rref & operator=( fn_rref const& other) = delete;
 
-    void operator()() {
-        return fn_();
+    template< typename ... Args >
+    void operator()( arg_rref< Args > ... arg_rr) {
+        return fn_( arg_rr.move() ... );
     }
 
 private:
     Fn  fn_;
 };
-
-template< typename Fn >
-rref< Fn > make_rref( Fn && fn) {
-    return rref< Fn >( std::forward< Fn >( fn) );
-}
 
 }}}
 

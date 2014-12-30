@@ -20,14 +20,14 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-template< typename R >
+template< typename R, typename ... Args >
 struct task_base : public shared_state< R > {
     typedef intrusive_ptr< task_base >  ptr_t;
 
     virtual ~task_base() noexcept {
     }
 
-    virtual void run() = 0;
+    virtual void run( Args && ... args) = 0;
 };
 
 }}}

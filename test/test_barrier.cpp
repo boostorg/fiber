@@ -52,13 +52,9 @@ void test_barrier()
     value2 = 0;
 
     boost::fibers::barrier b( 2);
-    boost::fibers::fiber s1(
-            std::bind(
-                fn1, std::ref( b) ) );
+    boost::fibers::fiber s1( fn1, std::ref( b) );
 
-    boost::fibers::fiber s2(
-            std::bind(
-                fn2, std::ref( b) ) );
+    boost::fibers::fiber s2( fn2, std::ref( b) );
 
     s1.join();
     s2.join();

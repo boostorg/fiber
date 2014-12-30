@@ -24,10 +24,10 @@ namespace fibers {
 template< typename Signature >
 class packaged_task;
 
-template< typename R >
-class packaged_task< R() > {
+template< typename R, typename ... Args >
+class packaged_task< R( Args ... ) > {
 private:
-    typedef typename detail::task_base< R >::ptr_t   ptr_t;
+    typedef typename detail::task_base< R, Args ... >::ptr_t   ptr_t;
 
     bool            obtained_;
     ptr_t           task_;
@@ -60,13 +60,14 @@ public:
         typedef detail::task_object<
             Fn,
             std::allocator< packaged_task< R() > >,
-            R
+            R,
+            Args ...
         >                                       object_t;
         std::allocator< packaged_task< R() > > alloc;
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( std::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( a, std::forward< Fn >( fn) ) );
     }
 
     template< typename Fn, typename Allocator >
@@ -86,7 +87,7 @@ public:
         typename object_t::allocator_t a( alloc);
         task_ = ptr_t(
             // placement new
-            ::new( a.allocate( 1) ) object_t( std::forward< Fn >( fn), a) );
+            ::new( a.allocate( 1) ) object_t( a, std::forward< Fn >( fn) ) );
     }
 
     packaged_task( packaged_task const&) = delete;
@@ -136,10 +137,11 @@ public:
             throw packaged_task_uninitialized();
         }
         obtained_ = true;
-        return future< R >( task_);
+        return future< R >(
+             boost::static_pointer_cast< detail::shared_state< R > >( task_) );
     }
 
-    void operator()() {
+    void operator()( Args && ... args) {
         //TODO: calls the stored task with args as the arguments
         //      the return value of the task or any exceptions thrown are
         //      stored in the shared state
@@ -148,7 +150,7 @@ public:
         if ( ! valid() ) {
             throw packaged_task_uninitialized();
         }
-        task_->run();
+        task_->run( std::forward< Args >( args) ... );
     }
 
     void reset() {

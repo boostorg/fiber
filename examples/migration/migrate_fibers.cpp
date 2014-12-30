@@ -42,7 +42,7 @@ boost::fibers::future< int > fibonacci( int n)
 {
     boost::fibers::packaged_task< int() > pt( std::bind( fibonacci_, n) );
     boost::fibers::future< int > f( pt.get_future() );
-    boost::fibers::fiber( boost::fibers::fixedsize(1024*1024), std::move( pt) ).detach();
+    boost::fibers::fiber( std::move( pt) ).detach();
     return std::move( f);
 }
 
@@ -56,8 +56,7 @@ void fn_create_fibers( workstealing_round_robin * ds)
     boost::fibers::set_scheduling_algorithm( ds);
 
     int n = 10;
-    int result = boost::fibers::async( boost::fibers::fixedsize(1024*1024),
-                                       std::bind( create_fiber, n) ).get();
+    int result = boost::fibers::async( std::bind( create_fiber, n) ).get();
     BOOST_ASSERT( 89 == result);
     fprintf( stderr, "fibonacci(%d) = %d", n, result);
 

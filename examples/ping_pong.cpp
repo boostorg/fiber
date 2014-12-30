@@ -3,7 +3,6 @@
 #include <string>
 
 #include <boost/assert.hpp>
-#include <boost/bind.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/ref.hpp>
 #include <boost/optional.hpp>
@@ -69,12 +68,8 @@ int main()
         {
         fifo_t buf1, buf2;
 
-        boost::fibers::fiber f1(
-                boost::bind(
-                    & ping, boost::ref( buf1), boost::ref( buf2) ) );
-        boost::fibers::fiber f2(
-                boost::bind(
-                    & pong, boost::ref( buf2), boost::ref( buf1) ) );
+        boost::fibers::fiber f1( & ping, boost::ref( buf1), boost::ref( buf2) );
+        boost::fibers::fiber f2( & pong, boost::ref( buf2), boost::ref( buf1) );
 
         f1.join();
         f2.join();

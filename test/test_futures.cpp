@@ -1080,7 +1080,7 @@ void test_async_1()
 
 void test_async_2()
 {
-    boost::fibers::future< int > f1 = boost::fibers::async( std::bind( fn8, 3) );
+    boost::fibers::future< int > f1 = boost::fibers::async( fn8, 3);
     BOOST_CHECK( f1.valid() );
 
     BOOST_CHECK( 3 == f1.get());

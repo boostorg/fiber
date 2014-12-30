@@ -28,15 +28,15 @@ rule fiber-test ( source )
 }
 
 test-suite fibers :
-  [ fiber-test test_fiber ]
-  [ fiber-test test_mutex ]
-  [ fiber-test test_condition ]
-  [ fiber-test test_unique_lock ]
-  [ fiber-test test_lock ]
-  [ fiber-test test_barrier ]
-  [ fiber-test test_fss ]
-  [ fiber-test test_futures ]
-  [ fiber-test test_futures_mt ]
-  [ fiber-test test_mutex_mt ]
-  [ fiber-test test_condition_mt ]
+ [ fiber-test test_fiber ]
+ [ fiber-test test_mutex ]
+ [ fiber-test test_condition ]
+ [ fiber-test test_unique_lock ]
+ [ fiber-test test_lock ]
+ [ fiber-test test_barrier ]
+ [ fiber-test test_fss ]
+ [ fiber-test test_futures ]
+ [ fiber-test test_futures_mt ]
+ [ fiber-test test_mutex_mt ]
+ [ fiber-test test_condition_mt ]
 ;

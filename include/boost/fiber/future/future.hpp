@@ -35,15 +35,9 @@ class future {
 private:
     typedef typename detail::shared_state< R >::ptr_t   ptr_t;
 
-    friend class packaged_task< R() >;
-    friend class promise< R >;
     friend class shared_future< R >;
 
     ptr_t           state_;
-
-    explicit future( ptr_t const& p) noexcept :
-        state_( p) {
-    }
 
 public:
     future() noexcept :
@@ -52,6 +46,10 @@ public:
         //      after construction, valid() == false
     }
 
+
+    explicit future( ptr_t const& p) noexcept :
+        state_( p) {
+    }
     ~future() noexcept {
         //TODO: abandon ownership if any
     }
@@ -151,21 +149,19 @@ class future< R & > {
 private:
     typedef typename detail::shared_state< R & >::ptr_t   ptr_t;
 
-    friend class packaged_task< R&() >;
-    friend class promise< R & >;
     friend class shared_future< R & >;
 
     ptr_t           state_;
-
-    explicit future( ptr_t const& p) noexcept :
-        state_( p) {
-    }
 
 public:
     future() noexcept :
         state_() {
         //TODO: constructs a future with no shared state
         //      after construction, valid() == false
+    }
+
+    explicit future( ptr_t const& p) noexcept :
+        state_( p) {
     }
 
     ~future() noexcept {
@@ -267,21 +263,19 @@ class future< void > {
 private:
     typedef detail::shared_state< void >::ptr_t   ptr_t;
 
-    friend class packaged_task< void() >;
-    friend class promise< void >;
     friend class shared_future< void >;
 
     ptr_t           state_;
-
-    explicit future( ptr_t const& p) noexcept :
-        state_( p) {
-    }
 
 public:
     future() noexcept :
         state_() {
         //TODO: constructs a future with no shared state
         //      after construction, valid() == false
+    }
+
+    explicit future( ptr_t const& p) noexcept :
+        state_( p) {
     }
 
     ~future() noexcept {

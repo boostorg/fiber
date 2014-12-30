@@ -279,8 +279,8 @@ void test_yield()
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    boost::fibers::fiber s1( std::bind( f6, std::ref( v1) ) );
-    boost::fibers::fiber s2( std::bind( f6, std::ref( v2) ) );
+    boost::fibers::fiber s1( f6, std::ref( v1) );
+    boost::fibers::fiber s2( f6, std::ref( v2) );
     s1.join();
     s2.join();
     BOOST_CHECK( ! s1);
@@ -295,7 +295,7 @@ void test_fiber_interrupts_at_interruption_point()
     bool failed=false;
     bool interrupted = false;
     std::unique_lock<boost::fibers::mutex> lk(m);
-    boost::fibers::fiber f(std::bind(&interruption_point_wait,&m,&failed));
+    boost::fibers::fiber f( & interruption_point_wait,&m,&failed);
     f.interrupt();
     lk.unlock();
     try
@@ -311,7 +311,7 @@ void test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point()
     boost::fibers::mutex m;
     bool failed=true;
     std::unique_lock<boost::fibers::mutex> lk(m);
-    boost::fibers::fiber f(std::bind(&disabled_interruption_point_wait,&m,&failed));
+    boost::fibers::fiber f( & disabled_interruption_point_wait,&m,&failed);
     f.interrupt();
     lk.unlock();
     f.join();
@@ -322,8 +322,8 @@ void test_fiber_interrupts_at_join()
 {
     int i = 0;
     bool failed = false;
-    boost::fibers::fiber f1( std::bind( f7, std::ref( i), std::ref( failed) ) );
-    boost::fibers::fiber f2( std::bind( interruption_point_join, std::ref( f1) ) );
+    boost::fibers::fiber f1( f7, std::ref( i), std::ref( failed) );
+    boost::fibers::fiber f2( interruption_point_join, std::ref( f1) );
     f1.interrupt();
     f2.join();
     BOOST_CHECK_EQUAL( 1, i);

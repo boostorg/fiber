@@ -23,22 +23,22 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-template< typename Fn, typename Allocator, typename R >
-class task_object : public task_base< R > {
+template< typename Fn, typename Allocator, typename R, typename ... Args >
+class task_object : public task_base< R, Args ... > {
 public:
     typedef typename Allocator::template rebind<
-        task_object< Fn, Allocator, R >
+        task_object< Fn, Allocator, R, Args ... >
     >::other                                      allocator_t;
 
-    explicit task_object( Fn && fn, allocator_t const& alloc) :
-        task_base< R >(),
+    explicit task_object( allocator_t const& alloc, Fn && fn) :
+        task_base< R, Args ... >(),
         fn_( std::forward< Fn >( fn) ),
         alloc_( alloc) {
     }
 
-    void run() {
+    void run( Args && ... args) {
         try {
-            this->set_value( fn_() );
+            this->set_value( fn_( std::forward< Args >( args) ... ) );
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
@@ -59,22 +59,22 @@ private:
     }
 };
 
-template< typename Fn, typename Allocator >
-class task_object< Fn, Allocator, void > : public task_base< void > {
+template< typename Fn, typename Allocator, typename ... Args >
+class task_object< Fn, Allocator, void, Args ... > : public task_base< void, Args ... > {
 public:
     typedef typename Allocator::template rebind<
-        task_object< Fn, Allocator, void >
+        task_object< Fn, Allocator, void, Args ... >
     >::other                                      allocator_t;
 
-    explicit task_object( Fn && fn, allocator_t const& alloc) :
-        task_base< void >(),
+    explicit task_object( allocator_t const& alloc, Fn && fn) :
+        task_base< void, Args ... >(),
         fn_( std::forward< Fn >( fn) ),
         alloc_( alloc) {
     }
 
-    void run() {
+    void run( Args && ... args) {
         try {
-            fn_();
+            fn_( std::forward< Args >( args) ... );
             this->set_value();
         } catch (...) {
             this->set_exception( std::current_exception() );

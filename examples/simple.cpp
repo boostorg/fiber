@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
 
@@ -21,9 +22,10 @@ void fn( std::string const& str, int n)
 void foo() {
     try
     {
-        boost::fibers::fiber f1( boost::bind( fn, "abc", 0) );
+        boost::fibers::fiber f1( fn, "abc", 5);
         std::cerr << "f1 : " << f1.get_id() << std::endl;
-        boost::fibers::fiber f2( boost::bind( fn, "xyz", 0) );
+        boost::fibers::fiber f2( std::allocator_arg, boost::fibers::fixedsize(),
+                                 fn, std::string("xyz"), 8);
         std::cerr << "f2 : " << f2.get_id() << std::endl;
 
         f1.join();

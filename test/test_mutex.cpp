@@ -248,10 +248,8 @@ struct test_exclusive
         BOOST_CHECK_EQUAL( 0, value2);
 
         mutex_type mtx;
-        boost::fibers::fiber f1(
-                std::bind( & fn1< mutex_type >, std::ref( mtx) ) );
-        boost::fibers::fiber f2(
-                std::bind( & fn2< mutex_type >, std::ref( mtx) ) );
+        boost::fibers::fiber f1( & fn1< mutex_type >, std::ref( mtx) );
+        boost::fibers::fiber f2( & fn2< mutex_type >, std::ref( mtx) );
         BOOST_ASSERT( f1);
         BOOST_ASSERT( f2);
 
@@ -284,7 +282,7 @@ void do_test_mutex()
     {
         boost::fibers::mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn17, std::ref( mtx) ) );
+        boost::fibers::fiber f( & fn17, std::ref( mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -293,7 +291,7 @@ void do_test_mutex()
     {
         boost::fibers::mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn18, std::ref( mtx) ) );
+        boost::fibers::fiber f( & fn18, std::ref( mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -314,7 +312,7 @@ void do_test_recursive_mutex()
     {
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn15, std::ref( mtx) ) );
+        boost::fibers::fiber f( & fn15, std::ref( mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -323,7 +321,7 @@ void do_test_recursive_mutex()
     {
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn16, std::ref( mtx) ) );
+        boost::fibers::fiber f( & fn16, std::ref( mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         mtx.unlock();
         f.join();
@@ -343,7 +341,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn3, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn3, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -352,7 +350,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn4, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn4, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -361,7 +359,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn5, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn5, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -370,7 +368,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn6, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn6, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(300) );
         timed_mtx.unlock();
         f.join();
@@ -379,7 +377,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn7, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn7, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -388,7 +386,7 @@ void do_test_timed_mutex()
     {
         boost::fibers::timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn8, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn8, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(300) + ms(1000) );
         timed_mtx.unlock();
         f.join();
@@ -409,7 +407,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn9, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn9, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -418,7 +416,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn10, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn10, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -427,7 +425,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn11, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn11, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -436,7 +434,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn12, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn12, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(400) );
         timed_mtx.unlock();
         f.join();
@@ -445,7 +443,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn13, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn13, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(250) );
         timed_mtx.unlock();
         f.join();
@@ -454,7 +452,7 @@ void do_test_recursive_timed_mutex()
     {
         boost::fibers::recursive_timed_mutex timed_mtx;
         timed_mtx.lock();
-        boost::fibers::fiber f( std::bind( & fn14, std::ref( timed_mtx) ) );
+        boost::fibers::fiber f( & fn14, std::ref( timed_mtx) );
         boost::this_fiber::sleep_for( ms(300) );
         timed_mtx.unlock();
         f.join();
