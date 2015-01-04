@@ -16,6 +16,7 @@ void
 workstealing_round_robin::awakened( boost::fibers::detail::fiber_handle & f)
 {
     std::unique_lock< std::mutex > lk( mtx_);
+    BOOST_ASSERT( f->is_ready() );
     rqueue_.push_back( f);
 }
 
@@ -28,6 +29,7 @@ workstealing_round_robin::pick_next()
     {
         f = rqueue_.front();
         rqueue_.pop_front();
+        BOOST_ASSERT( f->is_ready() );
     }
     return f;
 }
@@ -41,6 +43,7 @@ workstealing_round_robin::steal()
         if ( ! f->thread_affinity() )
         {
             rqueue_.remove( f);
+            BOOST_ASSERT( f->is_ready() );
             return boost::fibers::fiber( f);
         }
     }

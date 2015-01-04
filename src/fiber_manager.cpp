@@ -117,13 +117,11 @@ void fm_run() {
             fm_resume_( f);
 
             return;
-#if 0
         } else {
             // no fibers ready to run; the thread should sleep
             // until earliest fiber is scheduled to run
             std::chrono::high_resolution_clock::time_point wakeup( fm_next_wakeup() );
             std::this_thread::sleep_until( wakeup);
-#endif
         }
     }
 }
@@ -141,8 +139,6 @@ bool fm_wait_until( std::chrono::high_resolution_clock::time_point const& timeou
     BOOST_ASSERT( nullptr != fm);
     BOOST_ASSERT( fm->active_fiber);
     BOOST_ASSERT( fm->active_fiber->is_running() );
-
-    std::chrono::high_resolution_clock::time_point start( std::chrono::high_resolution_clock::now() );
 
     // set active-fiber to state_waiting
     fm->active_fiber->set_waiting();
@@ -244,7 +240,7 @@ void fm_preserve_fpu( bool preserve) {
 
     BOOST_ASSERT( nullptr != fm);
 
-    fm->preserve_fpu == preserve;
+    fm->preserve_fpu = preserve;
 }
 
 }}
