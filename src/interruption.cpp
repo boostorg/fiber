@@ -8,7 +8,7 @@
 
 #include "boost/fiber/interruption.hpp"
 
-#include "boost/fiber/detail/fiber_base.hpp"
+#include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/fiber_manager.hpp"
 #include "boost/fiber/exceptions.hpp"
 

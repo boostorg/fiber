@@ -15,7 +15,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -34,9 +34,9 @@ private:
 
     detail::spinlock                    splk_;
     mutex_status                         state_;
-    detail::fiber_base::id              owner_;
+    fiber_context::id              owner_;
     std::size_t                         count_;
-    std::deque< detail::fiber_handle >  waiting_;
+    std::deque< fiber_handle >  waiting_;
 
     bool lock_if_unlocked_();
 

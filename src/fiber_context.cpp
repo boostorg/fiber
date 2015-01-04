@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/detail/fiber_base.hpp"
+#include "boost/fiber/fiber_context.hpp"
 
 #include <thread>
 
@@ -17,16 +17,15 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
 
 fiber_handle
-fiber_base::main_fiber() {
-    static thread_local fiber_base mf;
+fiber_context::main_fiber() {
+    static thread_local fiber_context mf;
     return fiber_handle( & mf);
 }
 
 void
-fiber_base::release() {
+fiber_context::release() {
     BOOST_ASSERT( is_terminated() );
 
     std::vector< fiber_handle > waiting;
@@ -49,10 +48,10 @@ fiber_base::release() {
 }
 
 bool
-fiber_base::join( fiber_handle f) {
+fiber_context::join( fiber_handle f) {
     BOOST_ASSERT( f);
 
-    std::unique_lock< spinlock > lk( splk_);
+    std::unique_lock< detail::spinlock > lk( splk_);
     if ( is_terminated() ) {
         return false;
     }
@@ -61,7 +60,7 @@ fiber_base::join( fiber_handle f) {
 }
 
 void
-fiber_base::interruption_blocked( bool blck) noexcept {
+fiber_context::interruption_blocked( bool blck) noexcept {
     if ( blck) {
         flags_ |= flag_interruption_blocked;
     } else {
@@ -70,7 +69,7 @@ fiber_base::interruption_blocked( bool blck) noexcept {
 }
 
 void
-fiber_base::request_interruption( bool req) noexcept {
+fiber_context::request_interruption( bool req) noexcept {
     if ( req) {
         flags_ |= flag_interruption_requested;
     } else {
@@ -79,7 +78,7 @@ fiber_base::request_interruption( bool req) noexcept {
 }
 
 void
-fiber_base::thread_affinity( bool req) noexcept {
+fiber_context::thread_affinity( bool req) noexcept {
     // BOOST_ASSERT( 0 == ( flags_.load() & flag_main_fiber) );
     if ( 0 == ( flags_.load() & flag_main_fiber) ) {
         if ( req) {
@@ -91,7 +90,7 @@ fiber_base::thread_affinity( bool req) noexcept {
 }
 
 void *
-fiber_base::get_fss_data( void const * vp) const {
+fiber_context::get_fss_data( void const * vp) const {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::const_iterator i( fss_data_.find( key) );
 
@@ -99,10 +98,10 @@ fiber_base::get_fss_data( void const * vp) const {
 }
 
 void
-fiber_base::set_fss_data( void const * vp,
-                          fss_cleanup_function::ptr_t const& cleanup_fn,
-                          void * data,
-                          bool cleanup_existing) {
+fiber_context::set_fss_data( void const * vp,
+                             detail::fss_cleanup_function::ptr_t const& cleanup_fn,
+                             void * data,
+                             bool cleanup_existing) {
     BOOST_ASSERT( cleanup_fn);
 
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
@@ -129,7 +128,7 @@ fiber_base::set_fss_data( void const * vp,
     }
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

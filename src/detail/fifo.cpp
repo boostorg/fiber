@@ -9,7 +9,7 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/fiber_context.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX

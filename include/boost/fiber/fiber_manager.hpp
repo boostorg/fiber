@@ -14,7 +14,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/fiber_handle.hpp>
+#include <boost/fiber/fiber_handle.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 
@@ -38,17 +38,17 @@ struct fiber_manager {
     typedef detail::waiting_queue               wqueue_t;
 
     sched_algorithm                             *   sched_algo;
-    detail::fiber_handle                            active_fiber;
+    fiber_handle                            active_fiber;
     wqueue_t                                        wqueue;
     bool                                            preserve_fpu;
     std::chrono::high_resolution_clock::duration    wait_interval;
 };
 
-void fm_resume_( detail::fiber_handle &);
+void fm_resume_( fiber_handle &);
 
 std::chrono::high_resolution_clock::time_point fm_next_wakeup();
 
-void fm_spawn( detail::fiber_handle &);
+void fm_spawn( fiber_handle &);
 
 void fm_run();
 
@@ -73,9 +73,9 @@ bool fm_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
 
 void fm_yield();
 
-void fm_join( detail::fiber_handle &);
+void fm_join( fiber_handle &);
 
-detail::fiber_handle & fm_active() noexcept;
+fiber_handle & fm_active() noexcept;
 
 void fm_set_sched_algo( sched_algorithm *);
 

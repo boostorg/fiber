@@ -30,12 +30,12 @@ project boost/fiber
 lib boost_fiber
     : barrier.cpp
       condition.cpp
-      detail/fiber_base.cpp
       detail/fifo.cpp
       detail/scheduler.cpp
       detail/spinlock.cpp
       detail/waiting_queue.cpp
       fiber.cpp
+      fiber_context.cpp
       fiber_manager.cpp
       future.cpp
       interruption.cpp

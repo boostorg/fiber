@@ -6,7 +6,7 @@
 
 #include "boost/fiber/condition.hpp"
 
-#include "boost/fiber/detail/fiber_base.hpp"
+#include "boost/fiber/fiber_context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -26,7 +26,7 @@ condition::~condition() {
 
 void
 condition::notify_one() {
-    detail::fiber_handle f;
+    fiber_handle f;
 
     std::unique_lock< detail::spinlock > lk( splk_);
     // get one waiting fiber
@@ -44,7 +44,7 @@ condition::notify_one() {
 
 void
 condition::notify_all() {
-    std::deque< detail::fiber_handle > waiting;
+    std::deque< fiber_handle > waiting;
 
     std::unique_lock< detail::spinlock > lk( splk_);
     // get all waiting fibers
@@ -53,7 +53,7 @@ condition::notify_all() {
 
     // notify all waiting fibers
     while ( ! waiting.empty() ) {
-        detail::fiber_handle f( waiting.front() );
+        fiber_handle f( waiting.front() );
         waiting.pop_front();
         BOOST_ASSERT( f);
         f->set_ready();

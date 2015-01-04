@@ -54,7 +54,7 @@ recursive_mutex::~recursive_mutex() {
 
 void
 recursive_mutex::lock() {
-    detail::fiber_handle f( fm_active() );
+    fiber_handle f( fm_active() );
     for (;;) {
         std::unique_lock< detail::spinlock > lk( splk_);
 
@@ -91,13 +91,13 @@ recursive_mutex::unlock() {
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     std::unique_lock< detail::spinlock > lk( splk_);
-    detail::fiber_handle f;
+    fiber_handle f;
     if ( 0 == --count_) {
         if ( ! waiting_.empty() ) {
             f = waiting_.front();
             waiting_.pop_front();
         }
-        owner_ = detail::fiber_base::id();
+        owner_ = fiber_context::id();
         state_ = mutex_status::unlocked;
         lk.unlock();
         if ( f) {

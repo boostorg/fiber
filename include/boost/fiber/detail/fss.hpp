@@ -12,6 +12,7 @@
 #include <atomic>
 #include <cstddef>
 
+#include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 

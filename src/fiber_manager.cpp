@@ -12,7 +12,7 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/algorithm.hpp"
-#include "boost/fiber/detail/fiber_base.hpp"
+#include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/round_robin.hpp"
@@ -31,7 +31,7 @@ sched_algorithm * default_algorithm() {
 
 fiber_manager::fiber_manager() noexcept :
     sched_algo( default_algorithm() ),
-    active_fiber( detail::fiber_base::main_fiber() ),
+    active_fiber( fiber_context::main_fiber() ),
     wqueue(),
     preserve_fpu( false),
     wait_interval( std::chrono::milliseconds( 10) ) {
@@ -46,7 +46,7 @@ fiber_manager::~fiber_manager() noexcept {
     active_fiber.reset();
 }
 
-void fm_resume_( detail::fiber_handle & f) {
+void fm_resume_( fiber_handle & f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
@@ -87,7 +87,7 @@ std::chrono::high_resolution_clock::time_point fm_next_wakeup() {
     }
 }
 
-void fm_spawn( detail::fiber_handle & f) {
+void fm_spawn( fiber_handle & f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
@@ -109,7 +109,7 @@ void fm_run() {
         fm->wqueue.move_to( fm->sched_algo);
 
         // pop new fiber from ready-queue
-        detail::fiber_handle f( fm->sched_algo->pick_next() );
+        fiber_handle f( fm->sched_algo->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
@@ -170,7 +170,7 @@ void fm_yield() {
     // fiber is resumed
 }
 
-void fm_join( detail::fiber_handle & f) {
+void fm_join( fiber_handle & f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
@@ -195,7 +195,7 @@ void fm_join( detail::fiber_handle & f) {
     BOOST_ASSERT( f->is_terminated() );
 }
 
-detail::fiber_handle & fm_active() noexcept {
+fiber_handle & fm_active() noexcept {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);

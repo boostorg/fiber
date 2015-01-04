@@ -9,7 +9,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_handle.hpp>
+#include <boost/fiber/fiber_handle.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -21,9 +21,9 @@ namespace fibers {
 struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}
 
-    virtual void awakened( detail::fiber_handle &) = 0;
+    virtual void awakened( fiber_handle &) = 0;
 
-    virtual detail::fiber_handle pick_next() = 0;
+    virtual fiber_handle pick_next() = 0;
 };
 
 }}

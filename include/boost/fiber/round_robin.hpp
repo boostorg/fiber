@@ -10,7 +10,7 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_handle.hpp>
+#include <boost/fiber/fiber_handle.hpp>
 #include <boost/fiber/detail/fifo.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -27,9 +27,9 @@ private:
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( detail::fiber_handle &);
+    virtual void awakened( fiber_handle &);
 
-    virtual detail::fiber_handle pick_next();
+    virtual fiber_handle pick_next();
 };
 
 }}

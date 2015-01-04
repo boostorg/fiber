@@ -17,8 +17,8 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_handle.hpp>
-#include <boost/fiber/detail/fiber_base.hpp>
+#include <boost/fiber/fiber_handle.hpp>
+#include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/fixedsize.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -37,14 +37,14 @@ class BOOST_FIBERS_DECL fiber {
 private:
     friend struct detail::scheduler;
 
-    typedef detail::fiber_handle        ptr_t;
+    typedef fiber_handle        ptr_t;
 
     ptr_t                               impl_;
 
     void start_();
 
 public:
-    typedef detail::fiber_base::id    id;
+    typedef fiber_context::id    id;
 
     fiber() noexcept :
         impl_() {
@@ -61,7 +61,7 @@ public:
 
     template< typename StackAllocator, typename Fn, typename ... Args >
     explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_( new detail::fiber_base( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
+        impl_( new fiber_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 

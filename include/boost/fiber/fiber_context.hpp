@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_FIBER_BASE_H
-#define BOOST_FIBERS_DETAIL_FIBER_BASE_H
+#ifndef BOOST_FIBERS_FIBER_CONTEXT_H
+#define BOOST_FIBERS_FIBER_CONTEXT_H
 
 #include <atomic>
 #include <chrono>
@@ -22,13 +22,12 @@
 #include <boost/context/execution_context.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fiber_handle.hpp>
-#include <boost/fiber/detail/flags.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/rref.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/fiber_manager.hpp>
 #include <boost/fiber/exceptions.hpp>
+#include <boost/fiber/fiber_handle.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -36,9 +35,8 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
 
-class BOOST_FIBERS_DECL fiber_base {
+class BOOST_FIBERS_DECL fiber_context {
 private:
     enum class fiber_status {
         ready = 0,
@@ -47,9 +45,17 @@ private:
         terminated
     };
 
+    enum flag_t {
+        flag_main_fiber             = 1 << 1,
+        flag_interruption_blocked   = 1 << 2,
+        flag_interruption_requested = 1 << 3,
+        flag_thread_affinity        = 1 << 4,
+        flag_detached               = 1 << 5
+    };
+
     struct BOOST_FIBERS_DECL fss_data {
         void                       *    vp;
-        fss_cleanup_function::ptr_t     cleanup_function;
+        detail::fss_cleanup_function::ptr_t     cleanup_function;
 
         fss_data() :
             vp( nullptr),
@@ -57,7 +63,7 @@ private:
         }
 
         fss_data( void * vp_,
-                  fss_cleanup_function::ptr_t const& fn) :
+                  detail::fss_cleanup_function::ptr_t const& fn) :
             vp( vp_),
             cleanup_function( fn) {
             BOOST_ASSERT( cleanup_function);
@@ -75,13 +81,13 @@ private:
     fss_data_t                                      fss_data_;
     std::atomic< fiber_status >                     state_;
     std::atomic< int >                              flags_;
-    spinlock                                        splk_;
+    detail::spinlock                                splk_;
     std::vector< fiber_handle >                     waiting_;
     std::exception_ptr                              except_;
     std::chrono::high_resolution_clock::time_point  tp_;
 
     // main-context fiber
-    fiber_base() :
+    fiber_context() :
         use_count_( 1),
         ctx_( context::execution_context::current() ),
         fss_data_(),
@@ -96,7 +102,7 @@ private:
     // worker fiber
     // generalized lambda captures are support by C++14
     template< typename StackAlloc, typename Fn, typename ... Args >
-    fiber_base( StackAlloc salloc, fn_rref< Fn > fn_rr, arg_rref< Args > ... arg_rr) :
+    fiber_context( StackAlloc salloc, detail::fn_rref< Fn > fn_rr, detail::arg_rref< Args > ... arg_rr) :
         use_count_( 0),
         ctx_( salloc,
               [=] () mutable {
@@ -137,14 +143,14 @@ protected:
 public:
     class id {
     private:
-        fiber_base  *   impl_;
+        fiber_context  *   impl_;
 
     public:
         id() noexcept :
             impl_( nullptr) {
         }
 
-        explicit id( fiber_base * impl) noexcept :
+        explicit id( fiber_context * impl) noexcept :
             impl_( impl) {
         }
 
@@ -198,18 +204,18 @@ public:
     // worker fiber
     // generalized lambda captures are support by C++14
     template< typename StackAlloc, typename Fn, typename ... Args >
-    explicit fiber_base( StackAlloc salloc, Fn && fn, Args && ... args) :
-        fiber_base( salloc,
-                    fn_rref< Fn >( std::forward< Fn >( fn) ),
-                    arg_rref< Args >( std::forward< Args >( args) ) ... ) {
+    explicit fiber_context( StackAlloc salloc, Fn && fn, Args && ... args) :
+        fiber_context( salloc,
+                    detail::fn_rref< Fn >( std::forward< Fn >( fn) ),
+                    detail::arg_rref< Args >( std::forward< Args >( args) ) ... ) {
     }
 
-    virtual ~fiber_base() {
+    virtual ~fiber_context() {
         BOOST_ASSERT( waiting_.empty() );
     }
 
     id get_id() const noexcept {
-        return id( const_cast< fiber_base * >( this) );
+        return id( const_cast< fiber_context * >( this) );
     }
 
     bool join( fiber_handle);
@@ -276,7 +282,7 @@ public:
 
     void set_fss_data(
         void const * vp,
-        fss_cleanup_function::ptr_t const& cleanup_fn,
+        detail::fss_cleanup_function::ptr_t const& cleanup_fn,
         void * data,
         bool cleanup_existing);
 
@@ -309,14 +315,14 @@ public:
     void release();
 
     friend inline
-    void intrusive_ptr_add_ref( fiber_base * f) {
+    void intrusive_ptr_add_ref( fiber_context * f) {
         BOOST_ASSERT( nullptr != f);
 
         ++f->use_count_;
     }
 
     friend inline
-    void intrusive_ptr_release( fiber_base * f) {
+    void intrusive_ptr_release( fiber_context * f) {
         BOOST_ASSERT( nullptr != f);
 
         if ( 0 == --f->use_count_) {
@@ -326,10 +332,10 @@ public:
     }
 };
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_FIBER_BASE_H
+#endif // BOOST_FIBERS_FIBER_CONTEXT_H

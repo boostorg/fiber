@@ -11,7 +11,7 @@
 #include <boost/assert.hpp>
 #include <boost/system/error_code.hpp>
 
-#include "boost/fiber/detail/fiber_base.hpp"
+#include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/operations.hpp"
 
