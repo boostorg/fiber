@@ -311,12 +311,12 @@ void test_promise_set_exception()
     boost::fibers::promise< int > p1;
     boost::fibers::future< int > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
-    p1.set_exception( std::copy_exception( my_exception() ) );
+    p1.set_exception( std::make_exception_ptr( my_exception() ) );
 
     // set exception a second time
     bool thrown = false;
     try
-    { p1.set_exception( std::copy_exception( my_exception() ) ); }
+    { p1.set_exception( std::make_exception_ptr( my_exception() ) ); }
     catch ( boost::fibers::promise_already_satisfied const&)
     { thrown = true; }
     BOOST_CHECK( thrown);
@@ -335,12 +335,12 @@ void test_promise_set_exception_ref()
     boost::fibers::promise< int& > p1;
     boost::fibers::future< int& > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
-    p1.set_exception( std::copy_exception( my_exception() ) );
+    p1.set_exception( std::make_exception_ptr( my_exception() ) );
 
     // set exception a second time
     bool thrown = false;
     try
-    { p1.set_exception( std::copy_exception( my_exception() ) ); }
+    { p1.set_exception( std::make_exception_ptr( my_exception() ) ); }
     catch ( boost::fibers::promise_already_satisfied const&)
     { thrown = true; }
     BOOST_CHECK( thrown);
@@ -360,12 +360,12 @@ void test_promise_set_exception_void()
     boost::fibers::promise< void > p1;
     boost::fibers::future< void > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
-    p1.set_exception( std::copy_exception( my_exception() ) );
+    p1.set_exception( std::make_exception_ptr( my_exception() ) );
 
     // set exception a second time
     bool thrown = false;
     try
-    { p1.set_exception( std::copy_exception( my_exception() ) ); }
+    { p1.set_exception( std::make_exception_ptr( my_exception() ) ); }
     catch ( boost::fibers::promise_already_satisfied const&)
     { thrown = true; }
     BOOST_CHECK( thrown);

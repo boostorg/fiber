@@ -52,7 +52,7 @@ private:
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
         if ( ! ready_) {
-            set_exception_( std::copy_exception( broken_promise() ) );
+            set_exception_( std::make_exception_ptr( broken_promise() ) );
         }
     }
 
@@ -268,7 +268,7 @@ private:
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
         if ( ! ready_) {
-            set_exception_( std::copy_exception( broken_promise() ) );
+            set_exception_( std::make_exception_ptr( broken_promise() ) );
         }
     }
 
@@ -465,7 +465,7 @@ private:
         //TODO: set broken_exception if future was not already done
         //      notify all waiters
         if ( ! ready_) {
-            set_exception_( std::copy_exception( broken_promise() ) );
+            set_exception_( std::make_exception_ptr( broken_promise() ) );
         }
     }
 
