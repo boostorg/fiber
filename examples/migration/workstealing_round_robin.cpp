@@ -13,18 +13,18 @@
 #endif
 
 void
-workstealing_round_robin::awakened( boost::fibers::detail::fiber_handle & f)
+workstealing_round_robin::awakened( boost::fibers::fiber_handle & f)
 {
-    std::unique_lock< std::mutex > lk( mtx_);
+    std::unique_lock< boost::fibers::mutex > lk( mtx_);
     BOOST_ASSERT( f->is_ready() );
     rqueue_.push_back( f);
 }
 
-boost::fibers::detail::fiber_handle
+boost::fibers::fiber_handle
 workstealing_round_robin::pick_next()
 {
-    std::unique_lock< std::mutex > lk( mtx_);
-    boost::fibers::detail::fiber_handle f;
+    std::unique_lock< boost::fibers::mutex > lk( mtx_);
+    boost::fibers::fiber_handle f;
     if ( ! rqueue_.empty() )
     {
         f = rqueue_.front();
@@ -37,8 +37,8 @@ workstealing_round_robin::pick_next()
 boost::fibers::fiber
 workstealing_round_robin::steal()
 {
-    std::unique_lock< std::mutex > lk( mtx_);
-    for ( boost::fibers::detail::fiber_handle f : rqueue_)
+    std::unique_lock< boost::fibers::mutex > lk( mtx_);
+    for ( boost::fibers::fiber_handle f : rqueue_)
     {
         if ( ! f->thread_affinity() )
         {
