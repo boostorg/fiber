@@ -21,7 +21,7 @@
 #endif
 
 #define JOIN(z, n, _) \
-    boost::fibers::fiber( stack_alloc, worker).join();
+    boost::fibers::fiber( std::allocator_arg, stack_alloc, worker).join();
 
 bool prealloc = false;
 bool preserve = false;
@@ -31,7 +31,7 @@ void worker() {}
 template< typename StackAllocator >
 duration_type measure( duration_type overhead, StackAllocator const& stack_alloc)
 {
-    boost::fibers::fiber( stack_alloc, worker).join();
+    boost::fibers::fiber( std::allocator_arg, stack_alloc, worker).join();
 
     time_point_type start( clock_type::now() );
 
