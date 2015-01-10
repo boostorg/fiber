@@ -43,7 +43,7 @@ workstealing_round_robin::priority( boost::fibers::detail::worker_fiber * f, int
 }
 
 boost::fibers::fiber
-workstealing_round_robin::steal() BOOST_NOEXCEPT
+workstealing_round_robin::steal()
 {
     boost::mutex::scoped_lock lk( mtx_);
     boost::fibers::detail::worker_fiber * f = 0;
