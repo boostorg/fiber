@@ -22,25 +22,19 @@ spinlock::spinlock() :
 void
 spinlock::lock()
 {
-    for (;;)
-    {
+    do {
         // access to CPU's cache
         // first access to state_ -> cache miss
-        // sucessive acccess to state_ > cache hit
-        while ( LOCKED == state_)
-        {
+        // sucessive acccess to state_ -> cache hit
+        while ( LOCKED == state_.load( boost::memory_order_relaxed) ) {
             // busy-wait
-            if ( 0 != fm_active() )
-                fm_yield();
-           else
-                this_thread::yield();
+            fm_yield();
         }
-        // state_ was released by other
+        // state_ was released by other fiber
         // cached copies are invalidated -> cache miss
-        // test-and-set over the bus 
-        if ( UNLOCKED == state_.exchange( LOCKED) )
-            return;
+        // test-and-set signaled over the bus
     }
+    while ( UNLOCKED != state_.exchange( LOCKED, boost::memory_order_acquire) );
 }
 
 void
