@@ -25,6 +25,7 @@
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/rref.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 #include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -97,6 +98,44 @@ private:
         nxt() {
     }
 
+    // worker fiber
+    // generalized lambda captures are support by C++14
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    fiber_context( context::preallocated palloc, StackAlloc salloc,
+                   detail::fn_rref< Fn > fn_rr, detail::arg_rref< Args > ... arg_rr) :
+        use_count_( 1), // allocated on stack
+        ctx_( palloc, salloc,
+              [=] () mutable {
+                try {
+                    BOOST_ASSERT( is_running() );
+                    fn_rr( arg_rr ... );
+                    BOOST_ASSERT( is_running() );
+                } catch( fiber_interrupted const&) {
+                    except_ = std::current_exception();
+                } catch( ... ) {
+                    std::terminate();
+                }
+
+                // mark fiber as terminated
+                set_terminated();
+
+                // notify waiting (joining) fibers
+                release();
+
+                // switch to another fiber
+                fm_run();
+
+                BOOST_ASSERT_MSG( false, "fiber already terminated");
+              }),
+        fss_data_(),
+        state_( fiber_status::ready),
+        flags_( 0),
+        waiting_(),
+        except_(),
+        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        nxt( nullptr) {
+    }
+
 protected:
     virtual void deallocate() {
     }
@@ -158,21 +197,17 @@ public:
         }
     };
 
-    fiber_context *    nxt;
+    fiber_context   *   nxt;
 
     static fiber_context * main_fiber();
 
     // worker fiber
-    fiber_context( context::execution_context const& ctx) :
-        use_count_( 1), // allocated on stack
-        ctx_( ctx),
-        fss_data_(),
-        state_( fiber_status::ready),
-        flags_( 0),
-        waiting_(),
-        except_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
-        nxt( nullptr) {
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    explicit fiber_context( context::preallocated palloc, StackAlloc salloc,
+                            Fn && fn, Args && ... args) :
+        fiber_context( palloc, salloc,
+                       detail::fn_rref< Fn >( std::forward< Fn >( fn) ),
+                       detail::arg_rref< Args >( std::forward< Args >( args) ) ... ) {
     }
 
     virtual ~fiber_context() {

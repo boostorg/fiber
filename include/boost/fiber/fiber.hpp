@@ -11,7 +11,6 @@
 #include <exception>
 #include <memory>
 #include <utility>
-#include <type_traits>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -21,7 +20,6 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/fixedsize.hpp>
-#include <boost/fiber/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -47,30 +45,16 @@ private:
 
     void start_();
 
-    template< typename StackAlloc, typename Fn >
-    static ptr_t create( StackAlloc salloc, Fn && fn) {
-        typedef worker_fiber< Fn >  fiber_t;
-
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    static ptr_t create( StackAlloc salloc, Fn && fn, Args && ... args) {
         context::stack_context sctx( salloc.allocate() );
         // reserve space for control structure
-        std::size_t size = sctx.size - sizeof( fiber_t);
-        void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_t);
+        std::size_t size = sctx.size - sizeof( fiber_context);
+        void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_context);
         // placement new of worker_fiber on top of fiber's stack
         return ptr_t( 
-            new ( sp) fiber_t( context::preallocated( sp, size, sctx),
-                               salloc, std::forward< Fn >( fn) ) );
-    }
-
-    template< std::size_t I = 0, typename StackAlloc, typename Fn, typename ... Args >
-    static typename std::enable_if< I == sizeof ... ( Args), ptr_t >::type
-    create_fiber( StackAlloc salloc, Fn && fn, Args && ... args) {
-        return create( salloc, std::forward< Fn >( fn) );
-    }
-
-    template< std::size_t I = 0, typename StackAlloc, typename Fn, typename ... Args >
-    static typename std::enable_if< I < sizeof ... ( Args), ptr_t >::type
-    create_fiber( StackAlloc salloc, Fn && fn, Args && ... args) {
-        return create( salloc, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
+            new ( sp) fiber_context( context::preallocated( sp, size, sctx), salloc,
+                                     std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
     }
 
 public:
@@ -86,12 +70,13 @@ public:
 
     template< typename Fn, typename ... Args >
     explicit fiber( Fn && fn, Args && ... args) :
-        fiber( std::allocator_arg, fixedsize(), std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
+        fiber( std::allocator_arg, fixedsize(),
+               std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
     }
 
     template< typename StackAllocator, typename Fn, typename ... Args >
     explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_( create_fiber( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
+        impl_( create( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 
