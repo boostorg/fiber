@@ -10,7 +10,6 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 #include <boost/fiber/detail/fifo.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -20,6 +19,8 @@
 namespace boost {
 namespace fibers {
 
+class fiber_context;
+
 class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
 private:
     typedef detail::fifo        rqueue_t;
@@ -27,9 +28,9 @@ private:
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( fiber_handle &);
+    virtual void awakened( fiber_context *);
 
-    virtual fiber_handle pick_next();
+    virtual fiber_context * pick_next();
 };
 
 }}

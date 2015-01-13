@@ -7,19 +7,21 @@
 #ifndef BOOST_FIBERS_FIBER_H
 #define BOOST_FIBERS_FIBER_H
 
-#include <algorithm> // std::move()
-#include <exception> // std::terminate()
-#include <memory> // std::allocator_arg
-#include <utility> // std::forward()
+#include <algorithm>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <type_traits>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/context/all.hpp>
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 #include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/fixedsize.hpp>
+#include <boost/fiber/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -33,15 +35,43 @@ struct scheduler;
 
 }
 
+class fiber_context;
+
 class BOOST_FIBERS_DECL fiber {
 private:
     friend struct detail::scheduler;
 
-    typedef fiber_handle        ptr_t;
+    typedef intrusive_ptr< fiber_context >  ptr_t;
 
-    ptr_t                               impl_;
+    ptr_t       impl_;
 
     void start_();
+
+    template< typename StackAlloc, typename Fn >
+    static ptr_t create( StackAlloc salloc, Fn && fn) {
+        typedef worker_fiber< Fn >  fiber_t;
+
+        context::stack_context sctx( salloc.allocate() );
+        // reserve space for control structure
+        std::size_t size = sctx.size - sizeof( fiber_t);
+        void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_t);
+        // placement new of worker_fiber on top of fiber's stack
+        return ptr_t( 
+            new ( sp) fiber_t( context::preallocated( sp, size, sctx),
+                               salloc, std::forward< Fn >( fn) ) );
+    }
+
+    template< std::size_t I = 0, typename StackAlloc, typename Fn, typename ... Args >
+    static typename std::enable_if< I == sizeof ... ( Args), ptr_t >::type
+    create_fiber( StackAlloc salloc, Fn && fn, Args && ... args) {
+        return create( salloc, std::forward< Fn >( fn) );
+    }
+
+    template< std::size_t I = 0, typename StackAlloc, typename Fn, typename ... Args >
+    static typename std::enable_if< I < sizeof ... ( Args), ptr_t >::type
+    create_fiber( StackAlloc salloc, Fn && fn, Args && ... args) {
+        return create( salloc, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
+    }
 
 public:
     typedef fiber_context::id    id;
@@ -50,7 +80,7 @@ public:
         impl_() {
     }
 
-    explicit fiber( ptr_t impl) noexcept :
+    explicit fiber( fiber_context * impl) noexcept :
         impl_( impl) {
     }
 
@@ -61,7 +91,7 @@ public:
 
     template< typename StackAllocator, typename Fn, typename ... Args >
     explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_( new fiber_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
+        impl_( create_fiber( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 
@@ -75,7 +105,8 @@ public:
     fiber & operator=( fiber const&) = delete;
 
     fiber( fiber && other) noexcept :
-        impl_( std::move( other.impl_) ) {
+        impl_() {
+        impl_.swap( other.impl_);
     }
 
     fiber & operator=( fiber && other) noexcept {
@@ -83,17 +114,17 @@ public:
             std::terminate();
         }
         if ( this != & other) {
-            impl_ = std::move( other.impl_);
+            impl_.swap( other.impl_);
         }
         return * this;
     }
 
     explicit operator bool() const noexcept {
-        return nullptr != impl_ && ! impl_->is_terminated();
+        return impl_ && ! impl_->is_terminated();
     }
 
     bool operator!() const noexcept {
-        return nullptr == impl_ || impl_->is_terminated();
+        return ! impl_ || impl_->is_terminated();
     }
 
     void swap( fiber & other) noexcept {
@@ -105,7 +136,7 @@ public:
     }
 
     id get_id() const noexcept {
-        return nullptr != impl_ ? impl_->get_id() : id();
+        return impl_ ? impl_->get_id() : id();
     }
 
     bool thread_affinity() const noexcept;

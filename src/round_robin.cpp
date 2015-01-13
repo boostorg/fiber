@@ -18,17 +18,18 @@ namespace boost {
 namespace fibers {
 
 void
-round_robin::awakened( fiber_handle & f) {
-    BOOST_ASSERT( f);
+round_robin::awakened( fiber_context * f) {
+    BOOST_ASSERT( nullptr != f);
 
     rqueue_.push( f);
 }
 
-fiber_handle
+fiber_context *
 round_robin::pick_next() {
-    fiber_handle victim;
+    fiber_context * victim( nullptr);
     if ( ! rqueue_.empty() ) {
         victim = rqueue_.pop();
+        BOOST_ASSERT( nullptr != victim);
     }
     return victim;
 }

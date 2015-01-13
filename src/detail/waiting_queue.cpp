@@ -27,9 +27,9 @@ namespace fibers {
 namespace detail {
 
 void
-waiting_queue::push( fiber_handle & item) noexcept {
-    BOOST_ASSERT( item);
-    BOOST_ASSERT( ! item->nxt);
+waiting_queue::push( fiber_context * item) noexcept {
+    BOOST_ASSERT( nullptr != item);
+    BOOST_ASSERT( nullptr == item->nxt);
 
     // Skip past any worker_fibers in the queue whose time_point() is less
     // than item->time_point(), looking for the first worker_fiber in the
@@ -44,8 +44,8 @@ waiting_queue::push( fiber_handle & item) noexcept {
     // the item with the right time_point(), we're already pointing to the
     // worker_fiber* that links it into the list. Insert item right there.
 
-    fiber_handle * f = & head_;
-    for ( ; * f; f = & ( * f)->nxt) {
+    fiber_context ** f( & head_);
+    for ( ; nullptr != * f; f = & ( * f)->nxt) {
         if ( item->time_point() <= ( * f)->time_point() ) {
             break;
         }
@@ -70,8 +70,8 @@ waiting_queue::move_to( sched_algorithm * sched_algo) {
     // the queue and pass it to sched_algo->awakened().
 
     // Search using a worker_fiber**, starting at &head_.
-    for ( fiber_handle * fp = & head_; * fp;) {
-        fiber_handle f = * fp;
+    for ( fiber_context ** fp( & head_); nullptr != * fp;) {
+        fiber_context * f( * fp);
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
 
@@ -87,7 +87,7 @@ waiting_queue::move_to( sched_algorithm * sched_algo) {
         } else {
             // Here f satisfies our caller. Unlink it from the list.
             * fp = ( * fp)->nxt;
-            f->nxt.reset();
+            f->nxt = nullptr;
             // Pass the newly-unlinked worker_fiber* to sched_algo.
             f->time_point_reset();
             sched_algo->awakened( f);

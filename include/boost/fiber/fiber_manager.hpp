@@ -7,14 +7,13 @@
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
 #include <chrono>
-#include <mutex> // std::unique_lock
+#include <mutex>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 
@@ -25,6 +24,7 @@
 namespace boost {
 namespace fibers {
 
+class fiber_context;
 struct sched_algorithm;
 
 struct fiber_manager {
@@ -35,20 +35,20 @@ struct fiber_manager {
 
     virtual ~fiber_manager() noexcept;
 
-    typedef detail::waiting_queue               wqueue_t;
+    typedef detail::waiting_queue                   wqueue_t;
 
     sched_algorithm                             *   sched_algo;
-    fiber_handle                            active_fiber;
+    fiber_context                               *   active_fiber;
     wqueue_t                                        wqueue;
     bool                                            preserve_fpu;
     std::chrono::high_resolution_clock::duration    wait_interval;
 };
 
-void fm_resume_( fiber_handle &);
+void fm_resume_( fiber_context *);
 
 std::chrono::high_resolution_clock::time_point fm_next_wakeup();
 
-void fm_spawn( fiber_handle &);
+void fm_spawn( fiber_context *);
 
 void fm_run();
 
@@ -73,9 +73,9 @@ bool fm_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
 
 void fm_yield();
 
-void fm_join( fiber_handle &);
+void fm_join( fiber_context *);
 
-fiber_handle & fm_active() noexcept;
+fiber_context * fm_active() noexcept;
 
 void fm_set_sched_algo( sched_algorithm *);
 

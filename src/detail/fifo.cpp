@@ -20,9 +20,9 @@ namespace fibers {
 namespace detail {
 
 void
-fifo::push( fiber_handle & item) noexcept {
-    BOOST_ASSERT( item);
-    BOOST_ASSERT( ! item->nxt);
+fifo::push( fiber_context * item) noexcept {
+    BOOST_ASSERT( nullptr != item);
+    BOOST_ASSERT( nullptr == item->nxt);
 
     // * tail_ holds the null marking the end of the fifo. So we can extend
     // the fifo by assigning to * tail_.
@@ -31,16 +31,16 @@ fifo::push( fiber_handle & item) noexcept {
     tail_ = & item->nxt;
 }
 
-fiber_handle
+fiber_context *
 fifo::pop() noexcept {
     BOOST_ASSERT( ! empty() );
 
-    fiber_handle item = head_;
+    fiber_context * item( head_);
     head_ = head_->nxt;
-    if ( ! head_) {
+    if ( nullptr == head_) {
         tail_ = & head_;
     }
-    item->nxt.reset();
+    item->nxt = nullptr;
     return item;
 }
 

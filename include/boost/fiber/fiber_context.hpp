@@ -19,15 +19,13 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/execution_context.hpp>
+#include <boost/context/all.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/rref.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/fiber_handle.hpp>
-#include <boost/fiber/fiber_manager.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -54,7 +52,7 @@ private:
     };
 
     struct BOOST_FIBERS_DECL fss_data {
-        void                       *    vp;
+        void                                *   vp;
         detail::fss_cleanup_function::ptr_t     cleanup_function;
 
         fss_data() :
@@ -82,13 +80,13 @@ private:
     std::atomic< fiber_status >                     state_;
     std::atomic< int >                              flags_;
     detail::spinlock                                splk_;
-    std::vector< fiber_handle >                     waiting_;
+    std::vector< fiber_context * >                  waiting_;
     std::exception_ptr                              except_;
     std::chrono::high_resolution_clock::time_point  tp_;
 
-    // main-context fiber
+    // main fiber
     fiber_context() :
-        use_count_( 1),
+        use_count_( 1), // allocated on stack
         ctx_( context::execution_context::current() ),
         fss_data_(),
         state_( fiber_status::running),
@@ -97,43 +95,6 @@ private:
         except_(),
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         nxt() {
-    }
-
-    // worker fiber
-    // generalized lambda captures are support by C++14
-    template< typename StackAlloc, typename Fn, typename ... Args >
-    fiber_context( StackAlloc salloc, detail::fn_rref< Fn > fn_rr, detail::arg_rref< Args > ... arg_rr) :
-        use_count_( 0),
-        ctx_( salloc,
-              [=] () mutable {
-                try {
-                    BOOST_ASSERT( is_running() );
-                    fn_rr( arg_rr ... );
-                    BOOST_ASSERT( is_running() );
-                } catch( fiber_interrupted const&) {
-                    except_ = std::current_exception();
-                } catch( ... ) {
-                    std::terminate();
-                }
-
-                // mark fiber as terminated
-                set_terminated();
-
-                // notify waiting (joining) fibers
-                release();
-
-                // switch to another fiber
-                fm_run();
-
-                BOOST_ASSERT_MSG( false, "fiber already terminated");
-              }),
-        fss_data_(),
-        state_( fiber_status::ready),
-        flags_( 0),
-        waiting_(),
-        except_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
-        nxt( nullptr) {
     }
 
 protected:
@@ -197,17 +158,21 @@ public:
         }
     };
 
-    fiber_handle    nxt;
+    fiber_context *    nxt;
 
-    static fiber_handle main_fiber();
+    static fiber_context * main_fiber();
 
     // worker fiber
-    // generalized lambda captures are support by C++14
-    template< typename StackAlloc, typename Fn, typename ... Args >
-    explicit fiber_context( StackAlloc salloc, Fn && fn, Args && ... args) :
-        fiber_context( salloc,
-                    detail::fn_rref< Fn >( std::forward< Fn >( fn) ),
-                    detail::arg_rref< Args >( std::forward< Args >( args) ) ... ) {
+    fiber_context( context::execution_context const& ctx) :
+        use_count_( 1), // allocated on stack
+        ctx_( ctx),
+        fss_data_(),
+        state_( fiber_status::ready),
+        flags_( 0),
+        waiting_(),
+        except_(),
+        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        nxt( nullptr) {
     }
 
     virtual ~fiber_context() {
@@ -218,7 +183,7 @@ public:
         return id( const_cast< fiber_context * >( this) );
     }
 
-    bool join( fiber_handle);
+    bool join( fiber_context *);
 
     bool interruption_blocked() const noexcept {
         return 0 != ( flags_.load() & flag_interruption_blocked);
@@ -314,20 +279,16 @@ public:
 
     void release();
 
-    friend inline
-    void intrusive_ptr_add_ref( fiber_context * f) {
+    friend void intrusive_ptr_add_ref( fiber_context * f) {
         BOOST_ASSERT( nullptr != f);
-
         ++f->use_count_;
     }
 
-    friend inline
-    void intrusive_ptr_release( fiber_context * f) {
+    friend void intrusive_ptr_release( fiber_context * f) {
         BOOST_ASSERT( nullptr != f);
-
         if ( 0 == --f->use_count_) {
             BOOST_ASSERT( f->is_terminated() );
-            delete f;
+            f->~fiber_context();
         }
     }
 };

@@ -13,7 +13,6 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -22,6 +21,7 @@
 namespace boost {
 namespace fibers {
 
+class fiber_context;
 struct sched_algorithm;
 
 namespace detail {
@@ -29,19 +29,19 @@ namespace detail {
 class waiting_queue {
 public:
     waiting_queue() noexcept :
-        head_() {
+        head_( nullptr) {
     }
 
     waiting_queue( waiting_queue const&) = delete;
     waiting_queue & operator=( waiting_queue const&) = delete;
 
     bool empty() const noexcept {
-        return ! head_;
+        return nullptr == head_;
     }
 
-    void push( fiber_handle & item) noexcept;
+    void push( fiber_context * item) noexcept;
 
-    fiber_handle top() const noexcept {
+    fiber_context * top() const noexcept {
         BOOST_ASSERT( ! empty() );
 
         return head_; 
@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    fiber_handle    head_;
+    fiber_context   *   head_;
 };
 
 }}}

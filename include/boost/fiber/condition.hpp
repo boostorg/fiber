@@ -7,17 +7,16 @@
 #ifndef BOOST_FIBERS_CONDITION_H
 #define BOOST_FIBERS_CONDITION_H
 
-#include <algorithm> // std::find()
+#include <algorithm>
 #include <chrono>
 #include <deque>
-#include <mutex> // std::unique_lock
+#include <mutex>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
@@ -30,6 +29,8 @@
 namespace boost {
 namespace fibers {
 
+class fiber_context;
+
 enum class cv_status {
     no_timeout = 1,
     timeout
@@ -37,8 +38,8 @@ enum class cv_status {
 
 class BOOST_FIBERS_DECL condition {
 private:
-    detail::spinlock                        splk_;
-    std::deque< fiber_handle >      waiting_;
+    detail::spinlock                    splk_;
+    std::deque< fiber_context * >       waiting_;
 
 public:
     condition();
@@ -61,7 +62,7 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
-        fiber_handle f( fm_active() );
+        fiber_context * f( fm_active() );
         try {
             // lock spinlock
             std::unique_lock< detail::spinlock > lk( splk_);
@@ -87,7 +88,7 @@ public:
             lt.lock();
         } catch (...) {
             std::unique_lock< detail::spinlock > lk( splk_);
-            std::deque< fiber_handle >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
                 waiting_.erase( i);
@@ -101,7 +102,7 @@ public:
         cv_status status = cv_status::no_timeout;
         std::chrono::high_resolution_clock::time_point timeout_time( detail::convert_tp( timeout_time_) );
 
-        fiber_handle f( fm_active() );
+        fiber_context * f( fm_active() );
         try {
             // lock spinlock
             std::unique_lock< detail::spinlock > lk( splk_);
@@ -120,7 +121,7 @@ public:
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 std::unique_lock< detail::spinlock > lk( splk_);
-                std::deque< fiber_handle >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+                std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
                 if ( waiting_.end() != i) {
                     // remove fiber from waiting-list
                     waiting_.erase( i);
@@ -136,7 +137,7 @@ public:
             lt.lock();
         } catch (...) {
             std::unique_lock< detail::spinlock > lk( splk_);
-            std::deque< fiber_handle >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
                 waiting_.erase( i);

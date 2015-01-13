@@ -13,7 +13,6 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -21,12 +20,15 @@
 
 namespace boost {
 namespace fibers {
+
+class fiber_context;
+
 namespace detail {
 
 class fifo {
 public:
     fifo() noexcept :
-        head_(),
+        head_( nullptr),
         tail_( & head_) {
     }
 
@@ -34,21 +36,21 @@ public:
     fifo & operator=( fifo const&) = delete;
 
     bool empty() const noexcept {
-        return ! head_;
+        return nullptr == head_;
     }
 
-    void push( fiber_handle & item) noexcept;
+    void push( fiber_context * item) noexcept;
 
-    fiber_handle pop() noexcept;
+    fiber_context * pop() noexcept;
 
     void swap( fifo & other) {
-        head_.swap( other.head_);
+        std::swap( head_, other.head_);
         std::swap( tail_, other.tail_);
     }
 
 private:
-    fiber_handle        head_;
-    fiber_handle    *   tail_;
+    fiber_context   *   head_;
+    fiber_context   **  tail_;
 };
 
 }}}

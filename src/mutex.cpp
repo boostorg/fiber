@@ -6,8 +6,8 @@
 
 #include "boost/fiber/mutex.hpp"
 
-#include <algorithm> // std::find()
-#include <mutex> // std::unique_lock
+#include <algorithm>
+#include <mutex>
 
 #include <boost/assert.hpp>
 
@@ -48,7 +48,8 @@ mutex::~mutex() {
 
 void
 mutex::lock() {
-    fiber_handle f( fm_active() );
+    fiber_context * f( fm_active() );
+    BOOST_ASSERT( nullptr != f);
     for (;;) {
         std::unique_lock< detail::spinlock > lk( splk_);
 
@@ -85,15 +86,17 @@ mutex::unlock() {
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     std::unique_lock< detail::spinlock > lk( splk_);
-    fiber_handle f;
+    fiber_context * f( nullptr);
     if ( ! waiting_.empty() ) {
         f = waiting_.front();
         waiting_.pop_front();
+        BOOST_ASSERT( nullptr != f);
     }
     owner_ = fiber_context::id();
 	state_ = mutex_status::unlocked;
     lk.unlock();
-    if ( f) {
+    if ( nullptr != f) {
+        BOOST_ASSERT( ! f->is_terminated() );
         f->set_ready();
     }
 }

@@ -8,13 +8,13 @@
 #ifndef BOOST_FIBERS_BOUNDED_CHANNEL_H
 #define BOOST_FIBERS_BOUNDED_CHANNEL_H
 
-#include <algorithm> // std::move()
+#include <algorithm>
 #include <chrono>
 #include <cstddef>
-#include <memory> // std::allocator
-#include <mutex> // std::unique_lock
-#include <system_error> // std::errc
-#include <utility> // std::forward()
+#include <memory>
+#include <mutex>
+#include <system_error>
+#include <utility>
 
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>

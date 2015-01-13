@@ -43,14 +43,17 @@ fiber_manager::~fiber_manager() noexcept {
     // therefore destructing fm->wqueue && rqueue_
     // will destroy the fibers in this scheduler
     // if not referenced on other places
-    active_fiber.reset();
+    while ( ! wqueue.empty() ) {
+        fm_run();
+    }
+    active_fiber = nullptr;
 }
 
-void fm_resume_( fiber_handle & f) {
+void fm_resume_( fiber_context * f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( f);
+    BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
 
     // set fiber to state running
@@ -63,8 +66,14 @@ void fm_resume_( fiber_handle & f) {
     }
 
     // assign new fiber to active-fiber
-    fm->active_fiber.swap( f);
-    f.reset();
+    std::swap( fm->active_fiber, f);
+    // FIXME
+#if 0
+    // release old active-fiber if terminated
+    if ( f_->is_terminated() ) {
+        intrusive_ptr_release( f);
+    }
+#endif
 
     // resume active-fiber == start or yield to
     fm->active_fiber->resume();
@@ -87,11 +96,11 @@ std::chrono::high_resolution_clock::time_point fm_next_wakeup() {
     }
 }
 
-void fm_spawn( fiber_handle & f) {
+void fm_spawn( fiber_context * f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( f);
+    BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
     BOOST_ASSERT( f != fm->active_fiber);
 
@@ -109,7 +118,7 @@ void fm_run() {
         fm->wqueue.move_to( fm->sched_algo);
 
         // pop new fiber from ready-queue
-        fiber_handle f( fm->sched_algo->pick_next() );
+        fiber_context * f( fm->sched_algo->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
@@ -137,7 +146,7 @@ bool fm_wait_until( std::chrono::high_resolution_clock::time_point const& timeou
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( fm->active_fiber);
+    BOOST_ASSERT( nullptr != fm->active_fiber);
     BOOST_ASSERT( fm->active_fiber->is_running() );
 
     // set active-fiber to state_waiting
@@ -158,7 +167,7 @@ void fm_yield() {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( fm->active_fiber);
+    BOOST_ASSERT( nullptr != fm->active_fiber);
     BOOST_ASSERT( fm->active_fiber->is_running() );
 
     // set active-fiber to state_waiting
@@ -170,11 +179,11 @@ void fm_yield() {
     // fiber is resumed
 }
 
-void fm_join( fiber_handle & f) {
+void fm_join( fiber_context * f) {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( f);
+    BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f != fm->active_fiber);
 
     // set active-fiber to state_waiting
@@ -195,7 +204,7 @@ void fm_join( fiber_handle & f) {
     BOOST_ASSERT( f->is_terminated() );
 }
 
-fiber_handle & fm_active() noexcept {
+fiber_context * fm_active() noexcept {
     fiber_manager * fm = detail::scheduler::instance();
 
     BOOST_ASSERT( nullptr != fm);

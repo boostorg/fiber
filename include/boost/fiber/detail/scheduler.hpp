@@ -9,7 +9,6 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_handle.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -18,6 +17,7 @@
 namespace boost {
 namespace fibers {
 
+class fiber_context;
 struct fiber_manager;
 struct sched_algorithm;
 
@@ -28,8 +28,8 @@ struct scheduler {
     scheduler & operator=( scheduler const&) = delete;
 
     template< typename F >
-    static fiber_handle & extract( F const& f) noexcept {
-        return const_cast< F & >( f).impl_;
+    static fiber_context * extract( F const& f) noexcept {
+        return const_cast< F & >( f).impl_.get();
     }
 
     static fiber_manager * instance() noexcept;

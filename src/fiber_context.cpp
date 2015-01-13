@@ -6,7 +6,7 @@
 
 #include "boost/fiber/fiber_context.hpp"
 
-#include <thread>
+#include <mutex>
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
@@ -18,17 +18,17 @@
 namespace boost {
 namespace fibers {
 
-fiber_handle
+fiber_context *
 fiber_context::main_fiber() {
     static thread_local fiber_context mf;
-    return fiber_handle( & mf);
+    return & mf;
 }
 
 void
 fiber_context::release() {
     BOOST_ASSERT( is_terminated() );
 
-    std::vector< fiber_handle > waiting;
+    std::vector< fiber_context * > waiting;
 
     // get all waiting fibers
     splk_.lock();
@@ -36,8 +36,10 @@ fiber_context::release() {
     splk_.unlock();
 
     // notify all waiting fibers
-    for ( fiber_handle p : waiting) {
-        p->set_ready();
+    for ( fiber_context * f : waiting) {
+        BOOST_ASSERT( nullptr != f);
+        BOOST_ASSERT( ! f->is_terminated() );
+        f->set_ready();
     }
 
     // release fiber-specific-data
@@ -48,8 +50,8 @@ fiber_context::release() {
 }
 
 bool
-fiber_context::join( fiber_handle f) {
-    BOOST_ASSERT( f);
+fiber_context::join( fiber_context * f) {
+    BOOST_ASSERT( nullptr != f);
 
     std::unique_lock< detail::spinlock > lk( splk_);
     if ( is_terminated() ) {
@@ -94,7 +96,7 @@ fiber_context::get_fss_data( void const * vp) const {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::const_iterator i( fss_data_.find( key) );
 
-    return fss_data_.end() != i ? i->second.vp : 0;
+    return fss_data_.end() != i ? i->second.vp : nullptr;
 }
 
 void
@@ -111,7 +113,7 @@ fiber_context::set_fss_data( void const * vp,
         if( cleanup_existing) {
             i->second.do_cleanup();
         }
-        if ( data) {
+        if ( nullptr != data) {
             fss_data_.insert(
                     i,
                     std::make_pair(
