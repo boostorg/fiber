@@ -14,6 +14,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 
@@ -36,10 +37,12 @@ struct fiber_manager {
     virtual ~fiber_manager() noexcept;
 
     typedef detail::waiting_queue                   wqueue_t;
+    typedef detail::fifo                            tqueue_t;
 
     sched_algorithm                             *   sched_algo;
     fiber_context                               *   active_fiber;
     wqueue_t                                        wqueue;
+    tqueue_t                                        tqueue;
     bool                                            preserve_fpu;
     std::chrono::high_resolution_clock::duration    wait_interval;
 };

@@ -33,6 +33,7 @@ fiber_manager::fiber_manager() noexcept :
     sched_algo( default_algorithm() ),
     active_fiber( fiber_context::main_fiber() ),
     wqueue(),
+    tqueue(),
     preserve_fpu( false),
     wait_interval( std::chrono::milliseconds( 10) ) {
 }
@@ -67,13 +68,10 @@ void fm_resume_( fiber_context * f) {
 
     // assign new fiber to active-fiber
     std::swap( fm->active_fiber, f);
-    // FIXME
-#if 0
-    // release old active-fiber if terminated
-    if ( f_->is_terminated() ) {
-        intrusive_ptr_release( f);
+    // push terminated fibers to tqueue
+    if ( f->is_terminated() ) {
+        fm->tqueue.push( f);
     }
-#endif
 
     // resume active-fiber == start or yield to
     fm->active_fiber->resume();
@@ -122,8 +120,24 @@ void fm_run() {
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
+            // destory terminated fibers from tqueue
+            while ( ! fm->tqueue.empty() ) {
+                fiber_context * f_( fm->tqueue.pop() );
+                BOOST_ASSERT( nullptr != f_);
+                BOOST_ASSERT( f_->is_terminated() );
+                intrusive_ptr_release( f_);
+            }
+
             // resume fiber f
             fm_resume_( f);
+
+            // destory terminated fibers from tqueue
+            while ( ! fm->tqueue.empty() ) {
+                fiber_context * f_( fm->tqueue.pop() );
+                BOOST_ASSERT( nullptr != f_);
+                BOOST_ASSERT( f_->is_terminated() );
+                intrusive_ptr_release( f_);
+            }
 
             return;
         } else {
