@@ -22,8 +22,8 @@ class workstealing_round_robin : public boost::fibers::sched_algorithm
 private:
     typedef std::list< boost::fibers::fiber_context * >  rqueue_t;
 
-    boost::fibers::mutex    mtx_;
-    rqueue_t                rqueue_;
+    boost::fibers::recursive_mutex  mtx_;
+    rqueue_t                        rqueue_;
 
 public:
     virtual void awakened( boost::fibers::fiber_context *);
