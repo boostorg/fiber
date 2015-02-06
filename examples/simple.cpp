@@ -24,7 +24,7 @@ void foo() {
     {
         boost::fibers::fiber f1( fn, "abc", 5);
         std::cerr << "f1 : " << f1.get_id() << std::endl;
-        boost::fibers::fiber f2( std::allocator_arg, boost::fibers::fixedsize(),
+        boost::fibers::fiber f2( std::allocator_arg, boost::fibers::fixedsize_stack(),
                                  fn, std::string("xyz"), 8);
         std::cerr << "f2 : " << f2.get_id() << std::endl;
 

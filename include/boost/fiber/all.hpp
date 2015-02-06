@@ -13,17 +13,17 @@
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
-#include <boost/fiber/fixedsize.hpp>
+#include <boost/fiber/fixedsize_stack.hpp>
 #include <boost/fiber/fss.hpp>
 #include <boost/fiber/future.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
-#include <boost/fiber/protected_fixedsize.hpp>
+#include <boost/fiber/protected_fixedsize_stack.hpp>
 #include <boost/fiber/recursive_mutex.hpp>
 #include <boost/fiber/recursive_timed_mutex.hpp>
 #include <boost/fiber/round_robin.hpp>
-#include <boost/fiber/segmented.hpp>
+#include <boost/fiber/segmented_stack.hpp>
 #include <boost/fiber/timed_mutex.hpp>
 #include <boost/fiber/unbounded_channel.hpp>
 

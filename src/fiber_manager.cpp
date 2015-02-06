@@ -120,7 +120,7 @@ void fm_run() {
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
-            // destory terminated fibers from tqueue
+            // destroy terminated fibers from tqueue
             while ( ! fm->tqueue.empty() ) {
                 fiber_context * f_( fm->tqueue.pop() );
                 BOOST_ASSERT( nullptr != f_);
@@ -131,7 +131,7 @@ void fm_run() {
             // resume fiber f
             fm_resume_( f);
 
-            // destory terminated fibers from tqueue
+            // destroy terminated fibers from tqueue
             while ( ! fm->tqueue.empty() ) {
                 fiber_context * f_( fm->tqueue.pop() );
                 BOOST_ASSERT( nullptr != f_);

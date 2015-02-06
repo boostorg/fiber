@@ -107,7 +107,7 @@
 [def __promise__ [template_link promise]]
 [def __recursive_mutex__ [class_link recursive_mutex]]
 [def __recursive_timed_mutex__ [class_link recursive_timed_mutex]]
-[def __segmented_stack__ ['segmented-stack]]
+[def __segmented_stack_stack__ ['segmented_stack-stack]]
 [def __shared_future__ [template_link shared_future]]
 [def __stack_allocator_concept__ [link stack_allocator_concept ['stack-allocator concept]]]
 [def __stack_allocator__ [class_link stack_allocator]]

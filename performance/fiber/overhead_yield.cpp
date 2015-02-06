@@ -47,7 +47,7 @@ duration_type measure( duration_type overhead, StackAllocator const& stack_alloc
 
 duration_type measure_standard( duration_type overhead)
 {
-    boost::fibers::fixedsize stack_alloc;
+    boost::fibers::fixedsize_stack stack_alloc;
 
     return measure( overhead, stack_alloc);
 }

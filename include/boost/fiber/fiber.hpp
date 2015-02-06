@@ -19,7 +19,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber_context.hpp>
-#include <boost/fiber/fixedsize.hpp>
+#include <boost/fiber/fixedsize_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -70,7 +70,7 @@ public:
 
     template< typename Fn, typename ... Args >
     explicit fiber( Fn && fn, Args && ... args) :
-        fiber( std::allocator_arg, fixedsize(),
+        fiber( std::allocator_arg, fixedsize_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
     }
 

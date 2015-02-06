@@ -16,14 +16,16 @@ void
 workstealing_round_robin::awakened( boost::fibers::fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
 
-    std::unique_lock< boost::fibers::recursive_mutex > lk( mtx_);
+//    std::unique_lock< boost::fibers::recursive_mutex > lk( mtx_);
+    std::unique_lock< std::recursive_mutex > lk( mtx_);
     BOOST_ASSERT( f->is_ready() );
     rqueue_.push_back( f);
 }
 
 boost::fibers::fiber_context *
 workstealing_round_robin::pick_next() {
-    std::unique_lock< boost::fibers::recursive_mutex > lk( mtx_);
+//    std::unique_lock< boost::fibers::recursive_mutex > lk( mtx_);
+    std::unique_lock< std::recursive_mutex > lk( mtx_);
     boost::fibers::fiber_context * f( nullptr);
     if ( ! rqueue_.empty() ) {
         f = rqueue_.front();
@@ -36,7 +38,8 @@ workstealing_round_robin::pick_next() {
 
 boost::fibers::fiber
 workstealing_round_robin::steal() {
-    std::unique_lock< boost::fibers::recursive_mutex > lk( mtx_);
+//    std::unique_lock< boost::fibers::recursive_mutex > lk( mtx_);
+    std::unique_lock< std::recursive_mutex > lk( mtx_);
     for ( boost::fibers::fiber_context * f : rqueue_) {
         BOOST_ASSERT( nullptr != f);
         if ( ! f->thread_affinity() ) {

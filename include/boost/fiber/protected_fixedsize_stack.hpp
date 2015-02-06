@@ -4,11 +4,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_FIXEDSIZE_H
-#define BOOST_FIBERS_FIXEDSIZE_H
+#ifndef BOOST_FIBERS_PROTECTED_FIXEDSIZE_STACK_H
+#define BOOST_FIBERS_PROTECTED_FIXEDSIZE_STACK_H
 
 #include <boost/config.hpp>
-#include <boost/context/fixedsize.hpp>
+#include <boost/context/protected_fixedsize_stack.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -19,7 +19,7 @@
 namespace boost {
 namespace fibers {
 
-typedef boost::context::fixedsize fixedsize;
+typedef boost::context::protected_fixedsize_stack protected_fixedsize_stack;
 
 }}
 
@@ -27,4 +27,4 @@ typedef boost::context::fixedsize fixedsize;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_FIXEDSIZE_H
+#endif // BOOST_FIBERS_PROTECTED_FIXEDSIZE_STACK_H

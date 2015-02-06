@@ -4,11 +4,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_SEGMENTED_H
-#define BOOST_FIBERS_SEGMENTED_H
+#ifndef BOOST_FIBERS_SEGMENTED_STACK_H
+#define BOOST_FIBERS_SEGMENTED_STACK_H
 
 #include <boost/config.hpp>
-#include <boost/context/segmented.hpp>
+#include <boost/context/segmented_stack.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -21,7 +21,7 @@ namespace fibers {
 
 #if defined(BOOST_USE_SEGMENTED_STACKS)
 # if ! defined(BOOST_WINDOWS)
-typedef boost::context::segmented   segemented;
+typedef boost::context::segmented_stack   segemented;
 # endif
 #endif
 
@@ -31,4 +31,4 @@ typedef boost::context::segmented   segemented;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_SEGMENTED_H
+#endif // BOOST_FIBERS_SEGMENTED_STACK_H

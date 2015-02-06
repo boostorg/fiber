@@ -33,7 +33,7 @@ public:
     preallocated_stack_allocator( std::size_t size = 1) :
         stacks_(), idx_( 0)
     {
-        boost::context::fixedsize allocator;
+        boost::context::fixedsize_stack allocator;
         for ( std::size_t i = 0; i < size; ++i)
         {
             stacks_.push_back( allocator.allocate() );
