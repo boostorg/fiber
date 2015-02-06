@@ -8,15 +8,11 @@
 #define BOOST_FIBERS_DETAIL_WAITING_QUEUE_H
 
 #include <algorithm>
-#include <cstddef>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/intrusive_ptr.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -24,95 +20,41 @@
 
 namespace boost {
 namespace fibers {
+
+class fiber_context;
+struct sched_algorithm;
+
 namespace detail {
 
-class waiting_queue : private noncopyable
-{
+class waiting_queue {
 public:
-    waiting_queue() BOOST_NOEXCEPT :
-        head_( 0)
-    {}
-
-    bool empty() const BOOST_NOEXCEPT
-    { return 0 == head_; }
-
-    void push( worker_fiber * item) BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->nxt);
-
-        // Skip past any worker_fibers in the queue whose time_point() is less
-        // than item->time_point(), looking for the first worker_fiber in the
-        // queue whose time_point() is at least item->time_point(). Insert
-        // item before that. In other words, insert item so as to preserve
-        // ascending order of time_point() values. (Recall that a worker_fiber
-        // waiting with no timeout uses the maximum time_point value.)
-
-        // We do this by walking the linked list of nxt fields with a
-        // worker_fiber**. In other words, first we point to &head_, then to
-        // &head_->nxt then to &head_->nxt->nxt and so forth. When we find
-        // the item with the right time_point(), we're already pointing to the
-        // worker_fiber* that links it into the list. Insert item right there.
-
-        worker_fiber ** f = & head_;
-        for ( ; 0 != * f; f = & ( * f)->nxt)
-            if ( item->time_point() <= ( * f)->time_point() )
-                break;
-
-        // Here, either we reached the end of the list (! *f) or we found a
-        // (*f) before which to insert 'item'. Break the link at *f and insert
-        // item.
-        item->nxt = * f;
-        * f = item;
+    waiting_queue() noexcept :
+        head_( nullptr) {
     }
 
-    worker_fiber * top() const BOOST_NOEXCEPT
-    {
+    waiting_queue( waiting_queue const&) = delete;
+    waiting_queue & operator=( waiting_queue const&) = delete;
+
+    bool empty() const noexcept {
+        return nullptr == head_;
+    }
+
+    void push( fiber_context * item) noexcept;
+
+    fiber_context * top() const noexcept {
         BOOST_ASSERT( ! empty() );
 
         return head_; 
     }
 
-    template< typename SchedAlgo, typename Fn >
-    void move_to( SchedAlgo * sched_algo, Fn fn)
-    {
-        BOOST_ASSERT( sched_algo);
+    void move_to( sched_algorithm *);
 
-        chrono::high_resolution_clock::time_point now( chrono::high_resolution_clock::now() );
-
-        // Search the queue for every worker_fiber 'f' for which fn(f, now)
-        // returns true. Each time we find such a worker_fiber, unlink it from
-        // the queue and pass it to sched_algo->awakened().
-
-        // Search using a worker_fiber**, starting at &head_.
-        for ( worker_fiber ** fp = & head_; 0 != *fp;)
-        {
-            worker_fiber * f = * fp;
-
-            if ( ! fn( f, now) )
-            {
-                // If f does NOT meet caller's criteria, skip fp past it.
-                fp = & ( * fp)->nxt;
-            }
-            else
-            {
-                // Here f satisfies our caller. Unlink it from the list.
-                * fp = ( * fp)->nxt;
-                f->nxt = 0;
-                // Pass the newly-unlinked worker_fiber* to sched_algo.
-                f->time_point_reset();
-                sched_algo->awakened( f);
-            }
-        }
-    }
-
-    void swap( waiting_queue & other)
-    {
+    void swap( waiting_queue & other) noexcept {
         std::swap( head_, other.head_);
     }
 
 private:
-    worker_fiber    *  head_;
+    fiber_context   *   head_;
 };
 
 }}}

@@ -33,9 +33,9 @@
         fibers::id get_id() noexcept;
         void yield();
         template< typename Clock, typename Duration >
-        void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
-        void sleep_for( chrono::duration< Rep, Period > const& timeout_duration); 
+        void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration); 
         bool thread_affinity() noexcept;
         void thread_affinity( bool) noexcept;
 
@@ -723,9 +723,9 @@ fiber's context.
         fibers::fiber::id get_id() noexcept;
         void yield();
         template< typename Clock, typename Duration >
-        void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
-        void sleep_for( chrono::duration< Rep, Period > const& timeout_duration);
+        void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         bool thread_affinity() noexcept;
         void thread_affinity( bool req) noexcept;
 
@@ -754,7 +754,7 @@ executing fiber.]]
         #include <boost/fiber/operations.hpp>
 
         template< typename Clock, typename Duration >
-        void sleep_until( chrono::time_point< Clock, Duration > const& sleep_time)
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time point specified by
@@ -770,12 +770,12 @@ guarantees about how soon after `abs_time` it might resume.]]
         #include <boost/fiber/operations.hpp>
 
         template< class Rep, class Period >
-        void sleep_for( chrono::duration< Rep, Period > const& rel_time);
+        void sleep_for( std::chrono::duration< Rep, Period > const& rel_time);
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time duration specified by
 `rel_time` has elapsed.]]
-[[Throws:] [Nothing if operations of chrono::duration<Rep, Period> do not throw
+[[Throws:] [Nothing if operations of std::chrono::duration<Rep, Period> do not throw
 exceptions. __fiber_interrupted__ if the current fiber is interrupted.]]
 [[Note:] [`sleep_for()` is one of the predefined __interruption_points__.]]
 [[Note:][The current fiber will not resume before `rel_time` has elapsed, but

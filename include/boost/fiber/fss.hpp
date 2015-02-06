@@ -9,11 +9,12 @@
 #ifndef BOOST_FIBERS_FSS_H
 #define BOOST_FIBERS_FSS_H
 
+#include <atomic>
 #include <cstddef>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/fss.hpp>
 
@@ -25,25 +26,26 @@ namespace boost {
 namespace fibers {
 
 template< typename T >
-class fiber_specific_ptr : private noncopyable
-{
+class fiber_specific_ptr {
 private:
-    struct default_cleanup_function : public detail::fss_cleanup_function
-    {
-        void operator()( void * data)
-        { delete static_cast< T * >( data); }
+    struct default_cleanup_function : public detail::fss_cleanup_function {
+        void operator()( void * data) {
+            delete static_cast< T * >( data);
+        }
     };
 
-    struct custom_cleanup_function : public detail::fss_cleanup_function
-    {
+    struct custom_cleanup_function : public detail::fss_cleanup_function {
         void (*fn)(T*);
 
         explicit custom_cleanup_function( void(*fn_)(T*) ):
-            fn( fn_)
-        {}
+            fn( fn_) {
+        }
 
-        void operator()( void* data)
-        { if ( fn) fn( static_cast< T * >( data) ); }
+        void operator()( void* data) {
+            if ( fn) {
+                fn( static_cast< T * >( data) );
+            }
+        }
     };
 
     detail::fss_cleanup_function::ptr_t cleanup_fn_;
@@ -52,48 +54,51 @@ public:
     typedef T   element_type;
 
     fiber_specific_ptr() :
-        cleanup_fn_( new default_cleanup_function() )
-    {}
-
-    explicit fiber_specific_ptr( void(*fn)(T*) ) :
-        cleanup_fn_( new custom_cleanup_function( fn) )
-    {}
-
-    ~fiber_specific_ptr()
-    {
-        if ( fm_active() )
-            fm_active()->set_fss_data(
-                this, cleanup_fn_, 0, true);
+        cleanup_fn_( new default_cleanup_function() ) {
     }
 
-    T * get() const
-    {
+    explicit fiber_specific_ptr( void(*fn)(T*) ) :
+        cleanup_fn_( new custom_cleanup_function( fn) ) {
+    }
+
+    ~fiber_specific_ptr() {
+        if ( fm_active() ) {
+            fm_active()->set_fss_data(
+                this, cleanup_fn_, nullptr, true);
+        }
+    }
+
+    fiber_specific_ptr( fiber_specific_ptr const&) = delete;
+    fiber_specific_ptr & operator=( fiber_specific_ptr const&) = delete;
+
+    T * get() const {
         BOOST_ASSERT( fm_active() );
 
         void * vp( fm_active()->get_fss_data( this) );
         return static_cast< T * >( vp);
     }
 
-    T * operator->() const
-    { return get(); }
+    T * operator->() const {
+        return get();
+    }
 
-    T & operator*() const
-    { return * get(); }
+    T & operator*() const {
+        return * get();
+    }
 
-    T * release()
-    {
+    T * release() {
         T * tmp = get();
         fm_active()->set_fss_data(
-            this, cleanup_fn_, 0, false);
+            this, cleanup_fn_, nullptr, false);
         return tmp;
     }
 
-    void reset( T * t)
-    {
+    void reset( T * t) {
         T * c = get();
-        if ( c != t)
+        if ( c != t) {
             fm_active()->set_fss_data(
                 this, cleanup_fn_, t, true);
+        }
     }
 };
 

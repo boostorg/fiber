@@ -17,14 +17,11 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-enum interrupt_t_
-{
-	INTERRUPTION_DISABLED	= 1 << 0,
-	INTERRUPTION_ENABLED	= 1 << 1,
-	INTERRUPTION_BLOCKED	= 1 << 2
+enum interrupt_t {
+	INTERRUPTION_DISABLED = 1 << 1,
+	INTERRUPTION_ENABLED  = 1 << 2,
+	INTERRUPTION_BLOCKED  = 1 << 3
 };
-
-typedef char interrupt_type;
 
 }}}
 

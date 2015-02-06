@@ -30,13 +30,13 @@ exe overhead_join
    : overhead_join.cpp
    ;
 
-exe scale_join
-   : scale_join.cpp
-   ;
+#exe scale_join
+#   : scale_join.cpp
+#   ;
 
 exe overhead_detach
-   : overhead_detach.cpp
-   ;
+  : overhead_detach.cpp
+  ;
 
 exe overhead_yield
    : overhead_yield.cpp

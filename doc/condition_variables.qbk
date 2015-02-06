@@ -113,16 +113,16 @@ optimize as described for `boost::thread::condition_variable`.
         void wait( LockType & lk, Pred predicate);
 
         template< typename LockType, typename Clock, typename Duration >
-        cv_status wait_until( LockType & lk, chrono::time_point< Clock, Duration > const& timeout_time);
+        cv_status wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time);
 
         template< typename LockType, typename Clock, typename Duration, typename Pred >
-        bool wait_until( LockType & lk, chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
+        bool wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
 
         template< typename LockType, typename Rep, typename Period >
-        cv_status wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration);
+        cv_status wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration);
 
         template< typename LockType, typename Rep, typename Period, typename Pred >
-        bool wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+        bool wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
     };
 
     typedef condition_variable condition_variable_any;
@@ -223,10 +223,10 @@ from one another: sooner or later a collision will result.]]
 [template_member_heading condition_variable..wait_until]
 
         template< typename LockType, typename Clock, typename Duration >
-        cv_status wait_until( LockType & lk, chrono::time_point< Clock, Duration > const& timeout_time);
+        cv_status wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time);
 
         template< typename LockType, typename Clock, typename Duration, typename Pred >
-        bool wait_until( LockType & lk, chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
+        bool wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
 
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
@@ -269,10 +269,10 @@ predicate returns `false`, `true` otherwise.]]
 [template_member_heading condition_variable..wait_for]
 
         template< typename LockType, typename Rep, typename Period >
-        cv_status wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration);
+        cv_status wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration);
 
         template< typename LockType, typename Rep, typename Period, typename Pred >
-        bool wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+        bool wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
 
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other

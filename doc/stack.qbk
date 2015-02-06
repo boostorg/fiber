@@ -159,7 +159,7 @@ the highest/lowest address of the stack.]]
 
 __boost_coroutine__ provides the class __stack_context__ which will contain
 the stack pointer and the size of the stack.
-In case of a __segmented_stack__, __stack_context__ contains some extra control
+In case of a __segmented_stack_stack__, __stack_context__ contains some extra control
 structures.
 
         struct stack_context
@@ -168,7 +168,7 @@ structures.
             std::size_t size;
 
             // might contain additional control structures,
-            // for instance for segmented stacks
+            // for instance for segmented_stack stacks
         }
 
 [#stack_context_sp]
@@ -188,13 +188,13 @@ highest address is architecture-dependent.]]
 
 [heading Segmented stacks]
 
-__boost_fiber__ supports use of a __segmented_stack__, whose size
+__boost_fiber__ supports use of a __segmented_stack_stack__, whose size
 grows on demand. The fiber is created with a minimal stack size, which
 will be increased as required.
 
 Segmented stacks are currently only supported by [*gcc] from version [*4.7]
-onwards. In order to use a __segmented_stack__, __boost_fiber__ must be built
-with [*toolset=gcc segmented-stacks=on] at b2/bjam command-line. Applications
+onwards. In order to use a __segmented_stack_stack__, __boost_fiber__ must be built
+with [*toolset=gcc segmented_stack-stacks=on] at b2/bjam command-line. Applications
 must be compiled with compiler-flags [*-fsplit-stack -DBOOST_USE_SEGMENTED_STACKS].
 
 [endsect]

@@ -7,7 +7,6 @@
 #define BOOST_FIBERS_QUEUE_OP_STATUS_H
 
 #include <boost/config.hpp>
-#include <boost/detail/scoped_enum_emulation.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -18,15 +17,13 @@
 namespace boost {
 namespace fibers {
 
-BOOST_SCOPED_ENUM_DECLARE_BEGIN(queue_op_status)
-{
+enum class queue_op_status {
     success = 0,
     empty,
     full,
     closed,
     timeout
-}
-BOOST_SCOPED_ENUM_DECLARE_END(queue_op_status)
+};
 
 }}
 

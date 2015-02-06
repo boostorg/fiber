@@ -12,11 +12,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-#include <boost/ref.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
 
@@ -46,7 +42,7 @@ struct dummy_mutex
 void lock()
 {
     boost::fibers::mutex mtx;
-    boost::unique_lock< boost::fibers::mutex > lk( mtx);
+    std::unique_lock< boost::fibers::mutex > lk( mtx);
 
     BOOST_CHECK( lk);
     BOOST_CHECK( lk.owns_lock() );
@@ -60,7 +56,7 @@ void lock()
 void defer_lock()
 {
     boost::fibers::mutex mtx;
-    boost::unique_lock< boost::fibers::mutex > lk( mtx, boost::defer_lock);
+    std::unique_lock< boost::fibers::mutex > lk( mtx, std::defer_lock);
 
     BOOST_CHECK( ! lk);
     BOOST_CHECK( ! lk.owns_lock() );
@@ -75,7 +71,7 @@ void adopt_lock()
 {
     boost::fibers::mutex mtx;
     mtx.lock();
-    boost::unique_lock< boost::fibers::mutex > lk( mtx, boost::adopt_lock);
+    std::unique_lock< boost::fibers::mutex > lk( mtx, std::adopt_lock);
 
     BOOST_CHECK( lk);
     BOOST_CHECK( lk.owns_lock() );
@@ -84,7 +80,7 @@ void adopt_lock()
 void try_lock()
 {
     boost::fibers::mutex mtx;
-    boost::unique_lock< boost::fibers::mutex > lk( mtx, boost::defer_lock);
+    std::unique_lock< boost::fibers::mutex > lk( mtx, std::defer_lock);
 
     BOOST_CHECK( ! lk);
     BOOST_CHECK( ! lk.owns_lock() );
@@ -95,34 +91,9 @@ void try_lock()
     BOOST_CHECK( lk.owns_lock() );
 }
 
-void lock_twice()
-{
-    boost::fibers::mutex mtx;
-    boost::unique_lock< boost::fibers::mutex > lk( mtx);
-
-    BOOST_CHECK_THROW( lk.lock(), boost::lock_error);
-}
-
-void try_lock_twice()
-{
-    boost::fibers::mutex mtx;
-    boost::unique_lock< boost::fibers::mutex > lk( mtx);
-
-    BOOST_CHECK_THROW( lk.try_lock(), boost::lock_error);
-}
-
-void unlock_twice()
-{
-    boost::fibers::mutex mtx;
-    boost::unique_lock< boost::fibers::mutex > lk( mtx);
-    lk.unlock();
-
-    BOOST_CHECK_THROW( lk.unlock(), boost::lock_error);
-}
-
 void default_ctor()
 {
-    boost::unique_lock< boost::fibers::mutex > lk;
+    std::unique_lock< boost::fibers::mutex > lk;
 
     BOOST_CHECK( ! lk);
     BOOST_CHECK( ! lk.owns_lock() );
@@ -132,15 +103,15 @@ void lock_concept()
 {
     boost::fibers::mutex mtx1, mtx2, mtx3;
 
-    boost::unique_lock< boost::fibers::mutex > lk1( mtx1, boost::defer_lock),
-        lk2( mtx2, boost::defer_lock),
-        lk3( mtx3, boost::defer_lock);
+    std::unique_lock< boost::fibers::mutex > lk1( mtx1, std::defer_lock),
+        lk2( mtx2, std::defer_lock),
+        lk3( mtx3, std::defer_lock);
 
     BOOST_CHECK( ! lk1.owns_lock() );
     BOOST_CHECK( ! lk2.owns_lock() );
     BOOST_CHECK( ! lk3.owns_lock() );
     
-    boost::lock( lk1, lk2, lk3);
+    std::lock( lk1, lk2, lk3);
     
     BOOST_CHECK( lk1.owns_lock() );
     BOOST_CHECK( lk2.owns_lock() );
@@ -152,10 +123,10 @@ void try_lock_concept()
     dummy_mutex mtx1, mtx2;
     mtx2.lock();
 
-    boost::unique_lock< dummy_mutex > lk1( mtx1, boost::defer_lock),
-        lk2( mtx2, boost::defer_lock);
+    std::unique_lock< dummy_mutex > lk1( mtx1, std::defer_lock),
+        lk2( mtx2, std::defer_lock);
 
-    int res = boost::try_lock( lk1, lk2);
+    int res = std::try_lock( lk1, lk2);
     
     BOOST_CHECK( res == 1);
     BOOST_CHECK( ! mtx1.is_locked);
@@ -168,7 +139,7 @@ void swap()
 {
     boost::fibers::mutex mtx1, mtx2;
 
-    boost::unique_lock< boost::fibers::mutex > lk1( mtx1), lk2( mtx2);
+    std::unique_lock< boost::fibers::mutex > lk1( mtx1), lk2( mtx2);
 
     BOOST_CHECK_EQUAL( lk1.mutex(), & mtx1);
     BOOST_CHECK_EQUAL( lk2.mutex(), & mtx2);
@@ -197,21 +168,6 @@ void test_adopt_lock()
 void test_try_lock()
 {
     try_lock();
-}
-
-void test_lock_twice()
-{
-    lock_twice();
-}
-
-void test_try_lock_twice()
-{
-    try_lock_twice();
-}
-
-void test_unlock_twice()
-{
-    unlock_twice();
 }
 
 void test_default_ctor()
@@ -243,9 +199,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_defer_lock) );
     test->add( BOOST_TEST_CASE( & test_adopt_lock) );
     test->add( BOOST_TEST_CASE( & test_try_lock) );
-    test->add( BOOST_TEST_CASE( & test_lock_twice) );
-    test->add( BOOST_TEST_CASE( & test_try_lock_twice) );
-    test->add( BOOST_TEST_CASE( & test_unlock_twice) );
     test->add( BOOST_TEST_CASE( & test_default_ctor) );
     test->add( BOOST_TEST_CASE( & test_lock_concept) );
     test->add( BOOST_TEST_CASE( & test_try_lock_concept) );

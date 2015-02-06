@@ -6,103 +6,96 @@
 #ifndef BOOST_FIBERS_FIBER_MANAGER_H
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
-#include <boost/assert.hpp>
-#include <boost/chrono/system_clocks.hpp>
-#include <boost/config.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread/lock_types.hpp> 
-#include <boost/utility.hpp>
+#include <chrono>
+#include <mutex>
 
-#include <boost/fiber/algorithm.hpp>
+#include <boost/assert.hpp>
+#include <boost/config.hpp>
+
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/main_fiber.hpp>
+#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-struct fiber_manager : private noncopyable
-{
-    fiber_manager() BOOST_NOEXCEPT;
+class fiber_context;
+struct sched_algorithm;
 
-    virtual ~fiber_manager() BOOST_NOEXCEPT;
+struct fiber_manager {
+    fiber_manager() noexcept;
 
-    typedef detail::waiting_queue   wqueue_t;
+    fiber_manager( fiber_manager const&) = delete;
+    fiber_manager & operator=( fiber_manager const&) = delete;
 
-    scoped_ptr< sched_algorithm >   def_algo_;
-    sched_algorithm             *   sched_algo_;
-    wqueue_t                        wqueue_;
+    virtual ~fiber_manager() noexcept;
 
-    chrono::high_resolution_clock::duration            wait_interval_;
-    detail::worker_fiber        *   active_fiber_;
+    typedef detail::waiting_queue                   wqueue_t;
+    typedef detail::fifo                            tqueue_t;
+
+    sched_algorithm                             *   sched_algo;
+    fiber_context                               *   active_fiber;
+    wqueue_t                                        wqueue;
+    tqueue_t                                        tqueue;
+    bool                                            preserve_fpu;
+    std::chrono::high_resolution_clock::duration    wait_interval;
 };
 
-void fm_resume_( detail::worker_fiber *);
+void fm_resume_( fiber_context *);
 
-void fm_set_sched_algo( sched_algorithm *);
+std::chrono::high_resolution_clock::time_point fm_next_wakeup();
 
-void fm_spawn( detail::worker_fiber *);
-
-void fm_priority( detail::worker_fiber *, int) BOOST_NOEXCEPT;
-
-void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
-template< typename Rep, typename Period >
-void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
-{ fm_wait_interval( wait_interval); }
-
-chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT;
-
-void fm_join( detail::worker_fiber *);
-
-detail::worker_fiber * fm_active() BOOST_NOEXCEPT;
+void fm_spawn( fiber_context *);
 
 void fm_run();
 
-void fm_wait( unique_lock< detail::spinlock > &);
+void fm_wait( std::unique_lock< detail::spinlock > &);
 
-bool fm_wait_until( chrono::high_resolution_clock::time_point const&,
-                    unique_lock< detail::spinlock > &);
+bool fm_wait_until( std::chrono::high_resolution_clock::time_point const&,
+                    std::unique_lock< detail::spinlock > &);
 
 template< typename Clock, typename Duration >
-bool fm_wait_until( chrono::time_point< Clock, Duration > const& timeout_time_,
-                    unique_lock< detail::spinlock > & lk)
-{
-    chrono::high_resolution_clock::time_point timeout_time(
+bool fm_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
+                    std::unique_lock< detail::spinlock > & lk) {
+    std::chrono::high_resolution_clock::time_point timeout_time(
             detail::convert_tp( timeout_time_) );
     return fm_wait_until( timeout_time, lk);
 }
 
 template< typename Rep, typename Period >
-bool fm_wait_for( chrono::duration< Rep, Period > const& timeout_duration,
-                  unique_lock< detail::spinlock > & lk)
-{
-    return wait_until( chrono::high_resolution_clock::now() + timeout_duration, lk);
+bool fm_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
+                  std::unique_lock< detail::spinlock > & lk) {
+    return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration, lk);
 }
 
 void fm_yield();
 
-chrono::high_resolution_clock::time_point fm_next_wakeup();
+void fm_join( fiber_context *);
 
-void fm_migrate( detail::worker_fiber *);
+fiber_context * fm_active() noexcept;
+
+void fm_set_sched_algo( sched_algorithm *);
+
+void fm_wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
+
+template< typename Rep, typename Period >
+void fm_wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
+    fm_wait_interval( wait_interval);
+}
+
+std::chrono::high_resolution_clock::duration fm_wait_interval() noexcept;
+
+bool fm_preserve_fpu();
+
+void fm_preserve_fpu( bool);
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

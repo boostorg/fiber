@@ -14,21 +14,21 @@ fibers's context.
         {
             std::size_t     size;
             flag_unwind_t   do_unwind;
-            flag_fpu_t      preserve_fpu;
+            flag_fpu_t      preserve_fpu_;
 
-            attributes() BOOST_NOEXCEPT;
+            attributes() noexcept;
 
-            explicit attributes( std::size_t size_) BOOST_NOEXCEPT;
+            explicit attributes( std::size_t size_) noexcept;
 
-            explicit attributes( flag_unwind_t do_unwind_) BOOST_NOEXCEPT;
+            explicit attributes( flag_unwind_t do_unwind_) noexcept;
 
-            explicit attributes( flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT;
+            explicit attributes( flag_fpu_t preserve_fpu) noexcept;
 
-            explicit attributes( std::size_t size_, flag_unwind_t do_unwind_) BOOST_NOEXCEPT;
+            explicit attributes( std::size_t size_, flag_unwind_t do_unwind_) noexcept;
 
-            explicit attributes( std::size_t size_, flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT;
+            explicit attributes( std::size_t size_, flag_fpu_t preserve_fpu) noexcept;
 
-            explicit attributes( flag_unwind_t do_unwind_, flag_fpu_t preserve_fpu_) BOOST_NOEXCEPT;
+            explicit attributes( flag_unwind_t do_unwind_, flag_fpu_t preserve_fpu) noexcept;
         };
 
 [member_heading attributes..attributes]
@@ -54,9 +54,9 @@ and FPU registers are preserved.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading `attributes( flag_fpu_t preserve_fpu)`]
+[heading `attributes( flag_fpu_t preserve_fpu_)`]
 [variablelist
-[[Effects:] [Argument `preserve_fpu` determines if FPU registers have to be
+[[Effects:] [Argument `preserve_fpu_` determines if FPU registers have to be
 preserved if a `context` switches. The default stacksize is used for the
 inner `context` and the stack will be unwound after termination.]]
 [[Throws:] [Nothing.]]
@@ -69,16 +69,16 @@ FPU registers preserved during each `context` switch.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading `attributes( std::size_t size, flag_fpu_t preserve_fpu)`]
+[heading `attributes( std::size_t size, flag_fpu_t preserve_fpu_)`]
 [variablelist
-[[Effects:] [Arguments `size` and `preserve_fpu` are given by the user.
+[[Effects:] [Arguments `size` and `preserve_fpu_` are given by the user.
 The stack is automatically unwound after fiber terminates.]]
 [[Throws:] [Nothing.]]
 ]
 
-[heading `attributes( flag_unwind_t do_unwind, flag_fpu_t preserve_fpu)`]
+[heading `attributes( flag_unwind_t do_unwind, flag_fpu_t preserve_fpu_)`]
 [variablelist
-[[Effects:] [Arguments `do_unwind` and `preserve_fpu` are given by the user.
+[[Effects:] [Arguments `do_unwind` and `preserve_fpu_` are given by the user.
 The stack gets a default value of `ctx::default_stacksize()`.]]
 [[Throws:] [Nothing.]]
 ]

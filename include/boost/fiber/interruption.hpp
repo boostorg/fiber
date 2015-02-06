@@ -9,10 +9,7 @@
 #ifndef BOOST_THIS_FIBER_INTERRUPTION_H
 #define BOOST_THIS_FIBER_INTERRUPTION_H
 
-#include <cstddef>
-
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -25,33 +22,37 @@ namespace this_fiber {
 
 class restore_interruption;
 
-class disable_interruption : private noncopyable
-{
+class BOOST_FIBERS_DECL disable_interruption {
 private:
 	friend class restore_interruption;
 
 	bool	set_;
 
 public:
-	disable_interruption() BOOST_NOEXCEPT;
+	disable_interruption() noexcept;
 
-	~disable_interruption() BOOST_NOEXCEPT;
+	~disable_interruption() noexcept;
+
+    disable_interruption( disable_interruption const&) = delete;
+    disable_interruption & operator=( disable_interruption const&) = delete;
 };
 
-class restore_interruption : private noncopyable
-{
+class BOOST_FIBERS_DECL restore_interruption {
 private:
 	disable_interruption	&	disabler_;
 
 public:
-	explicit restore_interruption( disable_interruption & disabler) BOOST_NOEXCEPT;
+	explicit restore_interruption( disable_interruption & disabler) noexcept;
 
-	~restore_interruption() BOOST_NOEXCEPT;
+	~restore_interruption() noexcept;
+
+    restore_interruption( restore_interruption const&) = delete;
+    restore_interruption & operator=( restore_interruption const&) = delete;
 };
 
-bool interruption_enabled() BOOST_NOEXCEPT;
+bool interruption_enabled() noexcept;
 
-bool interruption_requested() BOOST_NOEXCEPT;
+bool interruption_requested() noexcept;
 
 void interruption_point();
 

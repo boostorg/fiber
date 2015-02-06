@@ -8,331 +8,144 @@
 #define BOOST_FIBERS_FIBER_H
 
 #include <algorithm>
-#include <cstddef>
 #include <exception>
 #include <memory>
+#include <utility>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/coroutine/symmetric_coroutine.hpp>
+#include <boost/context/all.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/move/move.hpp>
-#include <boost/thread/detail/memory.hpp> // boost::allocator_arg_t
-#include <boost/utility.hpp>
-#include <boost/utility/explicit_operator_bool.hpp>
 
-#include <boost/fiber/attributes.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/setup.hpp>
-#include <boost/fiber/detail/trampoline.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
-#include <boost/fiber/stack_allocator.hpp>
+#include <boost/fiber/fiber_context.hpp>
+#include <boost/fiber/fixedsize_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
-
-namespace coro = boost::coroutines;
-
 namespace detail {
 
-class scheduler;
+struct scheduler;
 
 }
 
-class BOOST_FIBERS_DECL fiber : private noncopyable
-{
+class fiber_context;
+
+class BOOST_FIBERS_DECL fiber {
 private:
-    friend class detail::scheduler;
+    friend struct detail::scheduler;
 
-    typedef detail::worker_fiber        base_t;
-    typedef base_t::coro_t              coro_t;
-    typedef intrusive_ptr< base_t >     ptr_t;
+    typedef intrusive_ptr< fiber_context >  ptr_t;
 
-    ptr_t                               impl_;
-
-    BOOST_MOVABLE_BUT_NOT_COPYABLE( fiber)
-
-#ifdef BOOST_MSVC
-    typedef void ( * fiber_fn)();
-
-    template< typename StackAllocator >
-    void setup_( StackAllocator const& stack_alloc, attributes const& attrs, fiber_fn fn)
-    {
-        coro_t::call_type coro( detail::trampoline< fiber_fn >, attrs, stack_alloc); 
-        detail::setup< fiber_fn > s( boost::forward< fiber_fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-    }
-#endif
-
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-    template< typename StackAllocator, typename Fn >
-    void setup_( StackAllocator const& stack_alloc, attributes const& attrs, Fn fn)
-    {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-        detail::setup< Fn > s( boost::forward< Fn >( fn), & coro);
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-    }
-#endif
-
-    template< typename StackAllocator, typename Fn >
-    void setup_( StackAllocator const& stack_alloc, attributes const& attrs, BOOST_RV_REF( Fn) fn)
-    {
-        typename coro_t::call_type coro( detail::trampoline< Fn >, attrs, stack_alloc); 
-#ifdef BOOST_NO_RVALUE_REFERENCES
-        detail::setup< Fn > s( fn, & coro);
-#else
-        detail::setup< Fn > s( boost::forward< Fn >( fn), & coro);
-#endif
-        impl_.reset( s.allocate() );
-        BOOST_ASSERT( impl_);
-    }
+    ptr_t       impl_;
 
     void start_();
 
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    static ptr_t create( StackAlloc salloc, Fn && fn, Args && ... args) {
+        context::stack_context sctx( salloc.allocate() );
+        // reserve space for control structure
+        std::size_t size = sctx.size - sizeof( fiber_context);
+        void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_context);
+        // placement new of worker_fiber on top of fiber's stack
+        return ptr_t( 
+            new ( sp) fiber_context( context::preallocated( sp, size, sctx), salloc,
+                                     std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
+    }
+
 public:
-    typedef detail::worker_fiber::id    id;
+    typedef fiber_context::id    id;
 
-    fiber() BOOST_NOEXCEPT :
-        impl_()
-    {}
+    fiber() noexcept :
+        impl_() {
+    }
 
-    explicit fiber( detail::worker_fiber * impl) BOOST_NOEXCEPT :
-        impl_( impl)
-    {}
+    explicit fiber( fiber_context * impl) noexcept :
+        impl_( impl) {
+    }
 
-#ifdef BOOST_MSVC
-    fiber( fiber_fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, fn);
+    template< typename Fn, typename ... Args >
+    explicit fiber( Fn && fn, Args && ... args) :
+        fiber( std::allocator_arg, fixedsize_stack(),
+               std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
+    }
+
+    template< typename StackAllocator, typename Fn, typename ... Args >
+    explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
+        impl_( create( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 
-    fiber( attributes const& attrs, fiber_fn fn) :
-        impl_()
-    {
-        stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, fn);
-        start_();
+    ~fiber() {
+        if ( joinable() ) {
+            std::terminate();
+        }
     }
 
-    template< typename StackAllocator >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, fiber_fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        setup_( stack_alloc, attrs, fn);
-        start_();
+    fiber( fiber const&) = delete;
+    fiber & operator=( fiber const&) = delete;
+
+    fiber( fiber && other) noexcept :
+        impl_() {
+        impl_.swap( other.impl_);
     }
 
-    template< typename StackAllocator >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs, fiber_fn fn) :
-        impl_()
-    {
-        setup_( stack_alloc, attrs, fn);
-        start_();
-    }
-#endif
-
-#ifdef BOOST_NO_RVALUE_REFERENCES
-    template< typename Fn >
-    fiber( Fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, fn);
-        start_();
-    }
-
-    template< typename Fn >
-    fiber( attributes const& attrs, Fn fn) :
-        impl_()
-    {
-        stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, fn);
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, Fn fn) :
-        impl_()
-    {
-        attributes attrs;
-        setup_( stack_alloc, attrs, fn);
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs, Fn fn) :
-        impl_()
-    {
-        setup_( stack_alloc, attrs, fn);
-        start_();
-    }
-#endif
-
-    template< typename Fn >
-    fiber( BOOST_RV_REF( Fn) fn) :
-        impl_()
-    {
-        attributes attrs;
-        stack_allocator stack_alloc;
-#ifdef BOOST_NO_RVALUE_REFERENCES
-        setup_( stack_alloc, attrs, fn);
-#else
-        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
-#endif
-        start_();
-    }
-
-    template< typename Fn >
-    fiber( attributes const& attrs, BOOST_RV_REF( Fn) fn) :
-        impl_()
-    {
-        stack_allocator stack_alloc;
-#ifdef BOOST_NO_RVALUE_REFERENCES
-        setup_( stack_alloc, attrs, fn);
-#else
-        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
-#endif
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, BOOST_RV_REF( Fn) fn) :
-        impl_()
-    {
-        attributes attrs;
-#ifdef BOOST_NO_RVALUE_REFERENCES
-        setup_( stack_alloc, attrs, fn);
-#else
-        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
-#endif
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs, BOOST_RV_REF( Fn) fn) :
-        impl_()
-    {
-#ifdef BOOST_NO_RVALUE_REFERENCES
-        setup_( stack_alloc, attrs, fn);
-#else
-        setup_( stack_alloc, attrs, boost::forward< Fn >( fn) );
-#endif
-        start_();
-    }
-
-#ifdef BOOST_FIBERS_USE_VARIADIC_FIBER
-    template< typename Fn, class ... Args >
-    fiber( BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
-        impl_()
-    {
-        attributes attrs;
-        stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
-        start_();
-    }
-
-    template< typename Fn, class ... Args >
-    fiber( attributes const& attrs, BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
-        impl_()
-    {
-        stack_allocator stack_alloc;
-        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn, class ... Args >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
-        impl_()
-    {
-        attributes attrs;
-        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
-        start_();
-    }
-
-    template< typename StackAllocator, typename Fn, class ... Args >
-    fiber( boost::allocator_arg_t, StackAllocator const& stack_alloc, attributes const& attrs,
-           BOOST_RV_REF( Fn) fn, BOOST_RV_REF( Args) ... args) :
-        impl_()
-    {
-        setup_( stack_alloc, attrs, std::bind( std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
-        start_();
-    }
-#endif
-
-    ~fiber()
-    { if ( joinable() ) std::terminate(); }
-
-    fiber( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT :
-        impl_()
-    { swap( other); }
-
-    fiber & operator=( BOOST_RV_REF( fiber) other) BOOST_NOEXCEPT
-    {
-        if ( joinable() ) std::terminate();
-        fiber tmp( boost::move( other) );
-        swap( tmp);
+    fiber & operator=( fiber && other) noexcept {
+        if ( joinable() ) {
+            std::terminate();
+        }
+        if ( this != & other) {
+            impl_.swap( other.impl_);
+        }
         return * this;
     }
 
-    BOOST_EXPLICIT_OPERATOR_BOOL();
+    explicit operator bool() const noexcept {
+        return impl_ && ! impl_->is_terminated();
+    }
 
-    bool operator!() const BOOST_NOEXCEPT
-    { return 0 == impl_ || impl_->is_terminated(); }
+    bool operator!() const noexcept {
+        return ! impl_ || impl_->is_terminated();
+    }
 
-    void swap( fiber & other) BOOST_NOEXCEPT
-    { impl_.swap( other.impl_); }
+    void swap( fiber & other) noexcept {
+        impl_.swap( other.impl_);
+    }
 
-    bool joinable() const BOOST_NOEXCEPT
-    { return 0 != impl_ /* && ! impl_->is_terminated() */; }
+    bool joinable() const noexcept {
+        return nullptr != impl_ /* && ! impl_->is_terminated() */;
+    }
 
-    id get_id() const BOOST_NOEXCEPT
-    { return 0 != impl_ ? impl_->get_id() : id(); }
+    id get_id() const noexcept {
+        return impl_ ? impl_->get_id() : id();
+    }
 
-    int priority() const BOOST_NOEXCEPT;
+    bool thread_affinity() const noexcept;
 
-    void priority( int) BOOST_NOEXCEPT;
+    void thread_affinity( bool) noexcept;
 
-    bool thread_affinity() const BOOST_NOEXCEPT;
-
-    void thread_affinity( bool) BOOST_NOEXCEPT;
-
-    void detach() BOOST_NOEXCEPT;
+    void detach() noexcept;
 
     void join();
 
-    void interrupt() BOOST_NOEXCEPT;
+    void interrupt() noexcept;
 };
 
 inline
-bool operator<( fiber const& l, fiber const& r)
-{ return l.get_id() < r.get_id(); }
+bool operator<( fiber const& l, fiber const& r) {
+    return l.get_id() < r.get_id();
+}
 
 inline
-void swap( fiber & l, fiber & r)
-{ return l.swap( r); }
+void swap( fiber & l, fiber & r) {
+    return l.swap( r);
+}
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

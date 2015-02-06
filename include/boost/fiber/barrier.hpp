@@ -10,7 +10,6 @@
 #include <cstddef>
 
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/condition.hpp>
@@ -20,16 +19,10 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL barrier : private noncopyable
-{
+class BOOST_FIBERS_DECL barrier {
 private:
 	std::size_t		initial_;
 	std::size_t		current_;
@@ -40,14 +33,13 @@ private:
 public:
 	barrier( std::size_t);
 
+    barrier( barrier const&) = delete;
+    barrier & operator=( barrier const&) = delete;
+
 	bool wait();
 };
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

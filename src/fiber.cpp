@@ -6,11 +6,12 @@
 
 #include "boost/fiber/fiber.hpp"
 
+#include <system_error>
+
 #include <boost/assert.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/scope_exit.hpp>
 #include <boost/system/error_code.hpp>
 
+#include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -22,92 +23,68 @@ namespace boost {
 namespace fibers {
 
 void
-fiber::start_()
-{
+fiber::start_() {
     impl_->set_ready();
     fm_spawn( impl_.get() );
 }
 
-int
-fiber::priority() const BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( impl_);
-
-    return impl_->priority();
-}
-
-void
-fiber::priority( int prio) BOOST_NOEXCEPT
-{
-    BOOST_ASSERT( impl_);
-
-    fm_priority( impl_.get(), prio);
-}
-
 bool
-fiber::thread_affinity() const BOOST_NOEXCEPT
-{
+fiber::thread_affinity() const noexcept {
     BOOST_ASSERT( impl_);
 
     return impl_->thread_affinity();
 }
 
 void
-fiber::thread_affinity( bool req) BOOST_NOEXCEPT
-{
+fiber::thread_affinity( bool req) noexcept {
     BOOST_ASSERT( impl_);
 
     impl_->thread_affinity( req);
 }
 
 void
-fiber::join()
-{
+fiber::join() {
     BOOST_ASSERT( impl_);
 
-    if ( boost::this_fiber::get_id() == get_id() )
-        boost::throw_exception(
-            fiber_resource_error(
-                system::errc::resource_deadlock_would_occur, "boost fiber: trying joining itself") );
+    if ( boost::this_fiber::get_id() == get_id() ) {
+        throw fiber_resource_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
+                                    "boost fiber: trying joining itself");
+    }
 
-    if ( ! joinable() )
-    {
-        boost::throw_exception(
-            fiber_resource_error(
-                system::errc::invalid_argument, "boost fiber: fiber not joinable") );
+    if ( ! joinable() ) {
+        throw fiber_resource_error( static_cast< int >( std::errc::invalid_argument),
+                                    "boost fiber: fiber not joinable");
     }
 
     fm_join( impl_.get() );
 
     // check if joined fiber was interrupted
-    exception_ptr except( impl_->get_exception() );
+    std::exception_ptr except( impl_->get_exception() );
 
     ptr_t tmp;
-    std::swap( tmp, impl_);
+    tmp.swap( impl_);
 
     // re-throw excpetion
-    if ( except) rethrow_exception( except);
+    if ( except) {
+        std::rethrow_exception( except);
+    }
 }
 
 void
-fiber::detach() BOOST_NOEXCEPT
-{
+fiber::detach() noexcept {
     BOOST_ASSERT( impl_);
 
-    if ( ! joinable() )
-    {
-        boost::throw_exception(
-            fiber_resource_error(
-                system::errc::invalid_argument, "boost fiber: fiber not joinable") );
+    if ( ! joinable() ) {
+        throw fiber_resource_error( static_cast< int >( std::errc::invalid_argument),
+                                    "boost fiber: fiber not joinable");
     }
 
     ptr_t tmp;
-    std::swap( tmp, impl_);
+    tmp.swap( impl_);
 }
 
 void
-fiber::interrupt() BOOST_NOEXCEPT
-{
+fiber::interrupt() noexcept {
     BOOST_ASSERT( impl_);
 
     impl_->request_interruption( true);
