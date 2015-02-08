@@ -20,42 +20,42 @@ namespace boost {
 namespace this_fiber {
 
 disable_interruption::disable_interruption() noexcept :
-    set_( ( fibers::fm_active()->interruption_blocked() ) ) {
+    set_( ( fibers::detail::scheduler::instance()->active()->interruption_blocked() ) ) {
     if ( ! set_) {
-        fibers::fm_active()->interruption_blocked( true);
+        fibers::detail::scheduler::instance()->active()->interruption_blocked( true);
     }
 }
 
 disable_interruption::~disable_interruption() noexcept {
     if ( ! set_) {
-        fibers::fm_active()->interruption_blocked( false);
+        fibers::detail::scheduler::instance()->active()->interruption_blocked( false);
     }
 }
 
 restore_interruption::restore_interruption( disable_interruption & disabler) noexcept :
     disabler_( disabler) {
     if ( ! disabler_.set_) {
-        fibers::fm_active()->interruption_blocked( false);
+        fibers::detail::scheduler::instance()->active()->interruption_blocked( false);
     }
 }
 
 restore_interruption::~restore_interruption() noexcept {
     if ( ! disabler_.set_) {
-        fibers::fm_active()->interruption_blocked( true);
+        fibers::detail::scheduler::instance()->active()->interruption_blocked( true);
     }
 }
 
 bool interruption_enabled() noexcept { 
-    return ! fibers::fm_active()->interruption_blocked(); 
+    return ! fibers::detail::scheduler::instance()->active()->interruption_blocked(); 
 } 
  
 bool interruption_requested() noexcept { 
-    return fibers::fm_active()->interruption_requested(); 
+    return fibers::detail::scheduler::instance()->active()->interruption_requested(); 
 }
 
 void interruption_point() {
     if ( interruption_requested() && interruption_enabled() ) {
-        fibers::fm_active()->request_interruption( false);
+        fibers::detail::scheduler::instance()->active()->request_interruption( false);
         throw fibers::fiber_interrupted();
     }
 }

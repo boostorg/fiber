@@ -31,7 +31,6 @@ lib boost_fiber
     : barrier.cpp
       condition.cpp
       detail/fifo.cpp
-      detail/scheduler.cpp
       detail/spinlock.cpp
       detail/waiting_queue.cpp
       fiber.cpp

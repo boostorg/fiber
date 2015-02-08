@@ -30,30 +30,28 @@ sched_algorithm * default_algorithm() {
 }
 
 fiber_manager::fiber_manager() noexcept :
-    sched_algo( default_algorithm() ),
-    active_fiber( fiber_context::main_fiber() ),
-    wqueue(),
-    tqueue(),
-    preserve_fpu( false),
-    wait_interval( std::chrono::milliseconds( 10) ) {
+    sched_algo_( default_algorithm() ),
+    active_fiber_( fiber_context::main_fiber() ),
+    wqueue_(),
+    tqueue_(),
+    preserve_fpu_( false),
+    wait_interval_( std::chrono::milliseconds( 10) ) {
 }
 
 fiber_manager::~fiber_manager() noexcept {
     // fibers will be destroyed (stack-unwinding)
     // if last reference goes out-of-scope
-    // therefore destructing fm->wqueue && rqueue_
+    // therefore destructing wqueue_ && rqueue_
     // will destroy the fibers in this scheduler
     // if not referenced on other places
-    while ( ! wqueue.empty() ) {
-        fm_run();
+    while ( ! wqueue_.empty() ) {
+        run();
     }
-    active_fiber = nullptr;
+    active_fiber_ = nullptr;
 }
 
-void fm_resume_( fiber_context * f) {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
+void
+fiber_manager::resume_( fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
 
@@ -62,78 +60,70 @@ void fm_resume_( fiber_context * f) {
 
     // fiber next-to-run is same as current active fiber
     // this might happen in context of this_fiber::yield() 
-    if ( f == fm->active_fiber) {
+    if ( f == active_fiber_) {
         return;
     }
 
     // assign new fiber to active-fiber
-    std::swap( fm->active_fiber, f);
-    // push terminated fibers to tqueue
+    std::swap( active_fiber_, f);
+    // push terminated fibers to tqueue_
     if ( f->is_terminated() ) {
-        fm->tqueue.push( f);
+        tqueue_.push( f);
     }
 
     // resume active-fiber == start or yield to
-    fm->active_fiber->resume();
+    active_fiber_->resume();
 }
 
-std::chrono::high_resolution_clock::time_point fm_next_wakeup() {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    if ( fm->wqueue.empty() ) {
-        return std::chrono::high_resolution_clock::now() + fm->wait_interval;
+std::chrono::high_resolution_clock::time_point
+fiber_manager::next_wakeup() {
+    if ( wqueue_.empty() ) {
+        return std::chrono::high_resolution_clock::now() + wait_interval_;
     } else {
         //FIXME: search for the closest time_point to now() in waiting-queue
-        std::chrono::high_resolution_clock::time_point wakeup( fm->wqueue.top()->time_point() );
+        std::chrono::high_resolution_clock::time_point wakeup( wqueue_.top()->time_point() );
         if ( (std::chrono::high_resolution_clock::time_point::max)() == wakeup) {
-            return std::chrono::high_resolution_clock::now() + fm->wait_interval;
+            return std::chrono::high_resolution_clock::now() + wait_interval_;
         }
         return wakeup;
     }
 }
 
-void fm_spawn( fiber_context * f) {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
+void
+fiber_manager::spawn( fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
-    BOOST_ASSERT( f != fm->active_fiber);
+    BOOST_ASSERT( f != active_fiber_);
 
-    fm->sched_algo->awakened( f);
+    sched_algo_->awakened( f);
 }
 
-void fm_run() {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
+void
+fiber_manager::run() {
     for (;;) {
         // move all fibers witch are ready (state_ready)
         // from waiting-queue to the runnable-queue
-        fm->wqueue.move_to( fm->sched_algo);
+        wqueue_.move_to( sched_algo_);
 
         // pop new fiber from ready-queue
-        fiber_context * f( fm->sched_algo->pick_next() );
+        fiber_context * f( sched_algo_->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
-            // destroy terminated fibers from tqueue
-            while ( ! fm->tqueue.empty() ) {
-                fiber_context * f_( fm->tqueue.pop() );
+            // destroy terminated fibers from tqueue_
+            while ( ! tqueue_.empty() ) {
+                fiber_context * f_( tqueue_.pop() );
                 BOOST_ASSERT( nullptr != f_);
                 BOOST_ASSERT( f_->is_terminated() );
                 intrusive_ptr_release( f_);
             }
 
             // resume fiber f
-            fm_resume_( f);
+            resume_( f);
 
-            // destroy terminated fibers from tqueue
-            while ( ! fm->tqueue.empty() ) {
-                fiber_context * f_( fm->tqueue.pop() );
+            // destroy terminated fibers from tqueue_
+            while ( ! tqueue_.empty() ) {
+                fiber_context * f_( tqueue_.pop() );
                 BOOST_ASSERT( nullptr != f_);
                 BOOST_ASSERT( f_->is_terminated() );
                 intrusive_ptr_release( f_);
@@ -143,127 +133,102 @@ void fm_run() {
         } else {
             // no fibers ready to run; the thread should sleep
             // until earliest fiber is scheduled to run
-            std::chrono::high_resolution_clock::time_point wakeup( fm_next_wakeup() );
+            std::chrono::high_resolution_clock::time_point wakeup( next_wakeup() );
             std::this_thread::sleep_until( wakeup);
         }
     }
 }
 
-void fm_wait( std::unique_lock< detail::spinlock > & lk) {
-    fm_wait_until(
+void
+fiber_manager::wait( std::unique_lock< detail::spinlock > & lk) {
+    wait_until(
         std::chrono::high_resolution_clock::time_point( (std::chrono::high_resolution_clock::duration::max)() ),
         lk);
 }
 
-bool fm_wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time,
+bool
+fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time,
                     std::unique_lock< detail::spinlock > & lk) {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( nullptr != fm->active_fiber);
-    BOOST_ASSERT( fm->active_fiber->is_running() );
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active-fiber to state_waiting
-    fm->active_fiber->set_waiting();
+    active_fiber_->set_waiting();
     // release lock
     lk.unlock();
-    // push active-fiber to fm->wqueue
-    fm->active_fiber->time_point( timeout_time);
-    fm->wqueue.push( fm->active_fiber);
+    // push active-fiber to wqueue_
+    active_fiber_->time_point( timeout_time);
+    wqueue_.push( active_fiber_);
     // switch to another fiber
-    fm_run();
+    run();
     // fiber is resumed
 
     return std::chrono::high_resolution_clock::now() < timeout_time;
 }
 
-void fm_yield() {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-    BOOST_ASSERT( nullptr != fm->active_fiber);
-    BOOST_ASSERT( fm->active_fiber->is_running() );
+void
+fiber_manager::yield() {
+    BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active-fiber to state_waiting
-    fm->active_fiber->set_ready();
-    // push active-fiber to fm->wqueue
-    fm->wqueue.push( fm->active_fiber);
+    active_fiber_->set_ready();
+    // push active-fiber to wqueue_
+    wqueue_.push( active_fiber_);
     // switch to another fiber
-    fm_run();
+    run();
     // fiber is resumed
 }
 
-void fm_join( fiber_context * f) {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
+void
+fiber_manager::join( fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
-    BOOST_ASSERT( f != fm->active_fiber);
+    BOOST_ASSERT( f != active_fiber_);
 
     // set active-fiber to state_waiting
-    fm->active_fiber->set_waiting();
-    // push active-fiber to fm->wqueue
-    fm->wqueue.push( fm->active_fiber);
+    active_fiber_->set_waiting();
+    // push active-fiber to wqueue_
+    wqueue_.push( active_fiber_);
     // add active-fiber to joinig-list of f
-    if ( ! f->join( fm->active_fiber) ) {
+    if ( ! f->join( active_fiber_) ) {
         // f must be already terminated therefore we set
         // active-fiber to state_ready
         // FIXME: better state_running and no suspend
-        fm->active_fiber->set_ready();
+        active_fiber_->set_ready();
     }
     // switch to another fiber
-    fm_run();
+    run();
     // fiber is resumed
 
     BOOST_ASSERT( f->is_terminated() );
 }
 
-fiber_context * fm_active() noexcept {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    return fm->active_fiber;
+fiber_context *
+fiber_manager::active() noexcept {
+    return active_fiber_;
 }
 
-void fm_set_sched_algo( sched_algorithm * algo) {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    fm->sched_algo = algo;
+void
+fiber_manager::set_sched_algo( sched_algorithm * algo) {
+    sched_algo_ = algo;
 }
 
-void fm_wait_interval( std::chrono::high_resolution_clock::duration const& wait_interval) noexcept {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    fm->wait_interval = wait_interval;
+void
+fiber_manager::wait_interval( std::chrono::high_resolution_clock::duration const& wait_interval) noexcept {
+    wait_interval_ = wait_interval;
 }
 
-std::chrono::high_resolution_clock::duration fm_wait_interval() noexcept {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    return fm->wait_interval;
+std::chrono::high_resolution_clock::duration
+fiber_manager::wait_interval() noexcept {
+    return wait_interval_;
 }
 
-bool fm_preserve_fpu() {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    return fm->preserve_fpu;
+bool
+fiber_manager::preserve_fpu() {
+    return preserve_fpu_;
 }
 
-void fm_preserve_fpu( bool preserve) {
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( nullptr != fm);
-
-    fm->preserve_fpu = preserve;
+void
+fiber_manager::preserve_fpu( bool preserve) {
+    preserve_fpu_ = preserve;
 }
 
 }}

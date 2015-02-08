@@ -62,5 +62,7 @@ int main( int argc, char * argv[])
 
     std::thread( thread_fn).join();
 
+	std::cout << "done." << std::endl;
+
     return 0;
 }

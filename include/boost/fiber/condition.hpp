@@ -62,7 +62,7 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
-        fiber_context * f( fm_active() );
+        fiber_context * f( detail::scheduler::instance()->active() );
         try {
             // lock spinlock
             std::unique_lock< detail::spinlock > lk( splk_);
@@ -78,7 +78,7 @@ public:
             // suspend this fiber
             // locked spinlock will be released if this fiber
             // was stored inside schedulers's waiting-queue
-            fm_wait( lk);
+            detail::scheduler::instance()->wait( lk);
 
             // this fiber was notified and resumed
             // check if fiber was interrupted
@@ -102,7 +102,7 @@ public:
         cv_status status = cv_status::no_timeout;
         std::chrono::high_resolution_clock::time_point timeout_time( detail::convert_tp( timeout_time_) );
 
-        fiber_context * f( fm_active() );
+        fiber_context * f( detail::scheduler::instance()->active() );
         try {
             // lock spinlock
             std::unique_lock< detail::spinlock > lk( splk_);
@@ -117,7 +117,7 @@ public:
             // suspend this fiber
             // locked spinlock will be released if this fiber
             // was stored inside schedulers's waiting-queue
-            if ( ! fm_wait_until( timeout_time, lk) ) {
+            if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 std::unique_lock< detail::spinlock > lk( splk_);

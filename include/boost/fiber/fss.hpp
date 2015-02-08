@@ -62,8 +62,8 @@ public:
     }
 
     ~fiber_specific_ptr() {
-        if ( fm_active() ) {
-            fm_active()->set_fss_data(
+        if ( detail::scheduler::instance()->active() ) {
+            detail::scheduler::instance()->active()->set_fss_data(
                 this, cleanup_fn_, nullptr, true);
         }
     }
@@ -72,9 +72,9 @@ public:
     fiber_specific_ptr & operator=( fiber_specific_ptr const&) = delete;
 
     T * get() const {
-        BOOST_ASSERT( fm_active() );
+        BOOST_ASSERT( detail::scheduler::instance()->active() );
 
-        void * vp( fm_active()->get_fss_data( this) );
+        void * vp( detail::scheduler::instance()->active()->get_fss_data( this) );
         return static_cast< T * >( vp);
     }
 
@@ -88,7 +88,7 @@ public:
 
     T * release() {
         T * tmp = get();
-        fm_active()->set_fss_data(
+        detail::scheduler::instance()->active()->set_fss_data(
             this, cleanup_fn_, nullptr, false);
         return tmp;
     }
@@ -96,7 +96,7 @@ public:
     void reset( T * t) {
         T * c = get();
         if ( c != t) {
-            fm_active()->set_fss_data(
+            detail::scheduler::instance()->active()->set_fss_data(
                 this, cleanup_fn_, t, true);
         }
     }

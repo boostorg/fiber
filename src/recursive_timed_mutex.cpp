@@ -53,7 +53,7 @@ recursive_timed_mutex::~recursive_timed_mutex() {
 
 void
 recursive_timed_mutex::lock() {
-    fiber_context * f( fm_active() );
+    fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         std::unique_lock< detail::spinlock > lk( splk_);
@@ -67,7 +67,7 @@ recursive_timed_mutex::lock() {
         waiting_.push_back( f);
 
         // suspend this fiber
-        fm_wait( lk);
+        detail::scheduler::instance()->wait( lk);
     }
 }
 
@@ -87,7 +87,7 @@ recursive_timed_mutex::try_lock() {
 
 bool
 recursive_timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_point const& timeout_time) {
-    fiber_context * f( fm_active() );
+    fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         std::unique_lock< detail::spinlock > lk( splk_);
@@ -105,7 +105,7 @@ recursive_timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_
         waiting_.push_back( f);
 
         // suspend this fiber until notified or timed-out
-        if ( ! fm_wait_until( timeout_time, lk) ) {
+        if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
             lk.lock();
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {

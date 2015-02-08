@@ -25,6 +25,7 @@
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/rref.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber_manager.hpp>
 #include <boost/fiber/exceptions.hpp>
 
@@ -123,7 +124,7 @@ private:
                 release();
 
                 // switch to another fiber
-                fm_run();
+                detail::scheduler::instance()->run();
 
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),

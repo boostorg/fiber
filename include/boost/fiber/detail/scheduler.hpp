@@ -6,9 +6,11 @@
 #ifndef BOOST_FIBERS_DETAIL_SCHEDULER_H
 #define BOOST_FIBERS_DETAIL_SCHEDULER_H
 
+#include <boost/assert.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/fiber_manager.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -32,9 +34,16 @@ struct scheduler {
         return const_cast< F & >( f).impl_.get();
     }
 
-    static fiber_manager * instance() noexcept;
+    static fiber_manager * instance() noexcept {
+        static thread_local fiber_manager mgr;
+        return & mgr;
+    }
 
-    static void replace( sched_algorithm *);
+    static void replace( sched_algorithm * other) {
+        BOOST_ASSERT( nullptr != other);
+
+        instance()->set_sched_algo( other);
+    }
 };
 
 }}}

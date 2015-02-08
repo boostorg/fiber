@@ -26,19 +26,19 @@ namespace this_fiber {
 
 inline
 fibers::fiber::id get_id() noexcept {
-    return fibers::fm_active()->get_id();
+    return fibers::detail::scheduler::instance()->active()->get_id();
 }
 
 inline
 void yield() {
-    fibers::fm_yield();
+    fibers::detail::scheduler::instance()->yield();
 }
 
 template< typename Clock, typename Duration >
 void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time) {
     fibers::detail::spinlock splk;
     std::unique_lock< fibers::detail::spinlock > lk( splk);
-    fibers::fm_wait_until( sleep_time, lk);
+    fibers::detail::scheduler::instance()->wait_until( sleep_time, lk);
 
     // check if fiber was interrupted
     interruption_point();
@@ -51,12 +51,12 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 
 inline
 bool thread_affinity() noexcept {
-    return fibers::fm_active()->thread_affinity();
+    return fibers::detail::scheduler::instance()->active()->thread_affinity();
 }
 
 inline
 void thread_affinity( bool req) noexcept {
-    fibers::fm_active()->thread_affinity( req);
+    fibers::detail::scheduler::instance()->active()->thread_affinity( req);
 }
 
 }
@@ -65,7 +65,7 @@ namespace fibers {
 
 inline
 void migrate( fiber const& f) {
-    fm_spawn( detail::scheduler::extract( f) );
+    detail::scheduler::instance()->spawn( detail::scheduler::extract( f) );
 }
 
 inline
@@ -75,22 +75,22 @@ void set_scheduling_algorithm( sched_algorithm * al) {
 
 template< typename Rep, typename Period >
 void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
-    fm_wait_interval( wait_interval);
+    detail::scheduler::instance()->wait_interval( wait_interval);
 }
 
 template< typename Rep, typename Period >
 std::chrono::duration< Rep, Period > wait_interval() noexcept {
-    return fm_wait_interval< Rep, Period >();
+    return detail::scheduler::instance()->wait_interval< Rep, Period >();
 }
 
 inline
 bool preserve_fpu() {
-    return fm_preserve_fpu();
+    return detail::scheduler::instance()->preserve_fpu();
 }
 
 inline
 void preserve_fpu( bool preserve) {
-    return fm_preserve_fpu( preserve);
+    return detail::scheduler::instance()->preserve_fpu( preserve);
 }
 
 }}

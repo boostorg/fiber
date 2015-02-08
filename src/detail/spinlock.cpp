@@ -8,6 +8,7 @@
 
 #include <boost/assert.hpp>
 
+#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/fiber_manager.hpp>
 
@@ -27,7 +28,7 @@ spinlock::lock() {
         // sucessive acccess to state_ -> cache hit
         while ( spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
             // busy-wait
-            fm_yield();
+            scheduler::instance()->yield();
         }
         // state_ was released by other fiber
         // cached copies are invalidated -> cache miss

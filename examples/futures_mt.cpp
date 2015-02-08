@@ -67,5 +67,7 @@ int main( int argc, char * argv[])
         std::cout << "result == " << result << std::endl;
     }
 
+    std::cout << "done." << std::endl;
+
     return 0;
 }
