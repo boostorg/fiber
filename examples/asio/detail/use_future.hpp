@@ -18,9 +18,11 @@
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/detail/config.hpp>
 #include <boost/asio/handler_type.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/thread/detail/memory.hpp>
 
-#include <boost/fiber/future/future.hpp>
-#include <boost/fiber/future/promise.hpp>
+#include <boost/fiber/all.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -38,17 +40,17 @@ public:
     // Construct from use_future special value.
     template< typename Allocator >
     promise_handler( boost::fibers::asio::use_future_t< Allocator > uf) :
-        promise_( std::make_shared< boost::fibers::promise< T > >(
-            uf.get_allocator(), std::allocator_arg, uf.get_allocator() ) )
+        promise_( boost::make_shared< boost::fibers::promise< T > >(
+            uf.get_allocator(), boost::allocator_arg, uf.get_allocator() ) )
     {}
 
     void operator()( T t)
     {
         promise_->set_value( t);
-        //boost::fibers::fm_run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
-    void operator()( std::error_code const& ec, T t)
+    void operator()( boost::system::error_code const& ec, T t)
     {
         if (ec)
             promise_->set_exception(
@@ -59,7 +61,7 @@ public:
 
         // scheduler::run() resumes a ready fiber
         // invoke scheduler::run() until no fiber was resumed
-        //boost::fibers::fm_run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     //private:
@@ -81,7 +83,7 @@ public:
     void operator()()
     {
         promise_->set_value();
-        //boost::fibers::fm_run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     void operator()( boost::system::error_code const& ec)
@@ -95,7 +97,7 @@ public:
 
         // scheduler::run() resumes a ready fiber
         // invoke scheduler::run() until no fiber was resumed
-        //boost::fibers::fm_run();
+        //boost::fibers::detail::scheduler::instance()->run();
     }
 
     //private:

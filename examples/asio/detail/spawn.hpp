@@ -21,8 +21,7 @@
 #include <boost/asio/handler_type.hpp>
 #include <boost/config.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
-#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/all.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -60,7 +59,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base       *   fiber_;
+    boost::fibers::fiber_context       *   fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
@@ -90,7 +89,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base       *   fiber_;
+    boost::fibers::fiber_context       *   fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
 };
@@ -185,7 +184,7 @@ public:
     {
         fibers::detail::spinlock splk;
         std::unique_lock< fibers::detail::spinlock > lk( splk);
-        boost::fibers::fm_wait(lk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
         return value_;
     }
@@ -213,7 +212,7 @@ public:
     {
         fibers::detail::spinlock splk;
         std::unique_lock< fibers::detail::spinlock > lk( splk);
-        boost::fibers::fm_wait(lk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
     }
 
@@ -240,7 +239,7 @@ struct spawn_data : private noncopyable
     {}
 
     boost::asio::io_service&                    io_svc_;
-    boost::fibers::detail::fiber_base*          fiber_;
+    boost::fibers::fiber_context*          fiber_;
     Handler                                     handler_;
     bool                                        call_handler_;
     Function                                    function_;
@@ -252,7 +251,7 @@ struct fiber_entry_point
   void operator()()
   {
     shared_ptr< spawn_data< Handler, Function > > data( data_);
-    data->fiber_ = boost::fibers::fm_active();
+    data->fiber_ = boost::fibers::detail::scheduler::instance()->active();
     const basic_yield_context< Handler > yield(
         data->fiber_, data->handler_);
 

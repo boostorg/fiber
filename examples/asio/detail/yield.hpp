@@ -24,7 +24,7 @@ class yield_handler
 {
 public:
     yield_handler( yield_t const& y) :
-        fiber_( boost::fibers::fm_active() ),
+        fiber_( boost::fibers::detail::scheduler::instance()->active() ),
         ec_( y.ec_), value_( 0)
     {}
 
@@ -43,7 +43,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base       *   fiber_;
+    boost::fibers::fiber_context       *   fiber_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
 };
@@ -54,7 +54,7 @@ class yield_handler< void >
 {
 public:
     yield_handler( yield_t const& y) :
-        fiber_( boost::fibers::fm_active() ),
+        fiber_( boost::fibers::detail::scheduler::instance()->active() ),
         ec_( y.ec_)
     {}
     
@@ -71,7 +71,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base     *   fiber_;
+    boost::fibers::fiber_context     *   fiber_;
     boost::system::error_code             *   ec_;
 };
 
@@ -100,7 +100,7 @@ public:
     {
         fibers::detail::spinlock splk;
         std::unique_lock< fibers::detail::spinlock > lk( splk);
-        boost::fibers::fm_wait(lk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
         return value_;
@@ -128,7 +128,7 @@ public:
     {
         fibers::detail::spinlock splk;
         std::unique_lock< fibers::detail::spinlock > lk( splk);
-        boost::fibers::fm_wait(lk);
+        boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
     }
