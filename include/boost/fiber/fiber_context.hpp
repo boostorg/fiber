@@ -14,6 +14,7 @@
 #include <exception>
 #include <iostream>
 #include <map>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -23,7 +24,6 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fss.hpp>
-#include <boost/fiber/detail/rref.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber_manager.hpp>
@@ -100,16 +100,19 @@ private:
     }
 
     // worker fiber
-    // generalized lambda captures are support by C++14
-    template< typename StackAlloc, typename Fn, typename ... Args >
+    template< typename StackAlloc, typename Fn, typename Tpl, std::size_t ... I >
     fiber_context( context::preallocated palloc, StackAlloc salloc,
-                   detail::fn_rref< Fn > fn_rr, detail::arg_rref< Args > ... arg_rr) :
+                   Fn && fn_, Tpl && tpl_,
+                   std::index_sequence< I ... >) :
         use_count_( 1), // allocated on stack
         ctx_( palloc, salloc,
-              [=] () mutable {
+              [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable {
                 try {
                     BOOST_ASSERT( is_running() );
-                    fn_rr( arg_rr ... );
+                    fn(
+                        // std::tuple_element<> does not perfect forwarding
+                        std::forward< decltype( std::get< I >( std::declval< Tpl >() ) ) >(
+                            std::get< I >( std::forward< Tpl >( tpl) ) ) ... );
                     BOOST_ASSERT( is_running() );
                 } catch( fiber_interrupted const&) {
                     except_ = std::current_exception();
@@ -207,8 +210,9 @@ public:
     explicit fiber_context( context::preallocated palloc, StackAlloc salloc,
                             Fn && fn, Args && ... args) :
         fiber_context( palloc, salloc,
-                       detail::fn_rref< Fn >( std::forward< Fn >( fn) ),
-                       detail::arg_rref< Args >( std::forward< Args >( args) ) ... ) {
+                       std::forward< Fn >( fn),
+                       std::make_tuple( std::forward< Args >( args) ... ),
+                       std::index_sequence_for< Args ... >() ) {
     }
 
     virtual ~fiber_context() {
