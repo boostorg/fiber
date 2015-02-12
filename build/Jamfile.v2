@@ -11,17 +11,14 @@ import toolset ;
 
 project boost/fiber
     : requirements
-      <target-os>freebsd:<linkflags>"-lrt"
-      <target-os>linux:<linkflags>"-lrt"
-      <toolset>pgi:<linkflags>"-lrt"
       <library>/boost/context//boost_context
-      <toolset>gcc-4.7,<segmented-stacks>on:<cxxflags>-fsplit-stack
-      <toolset>gcc-4.7,<segmented-stacks>on:<linkflags>"-static-libgcc"
-      <toolset>gcc-4.8,<segmented-stacks>on:<cxxflags>-fsplit-stack
-      <toolset>gcc-4.8,<segmented-stacks>on:<linkflags>"-static-libgcc"
+      <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
+      <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
+      <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
+      <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
-      <threading>multi
       <define>BOOST_FIBERS_SOURCE
+      <threading>multi
     : usage-requirements
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
     : source-location ../src

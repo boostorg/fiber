@@ -9,13 +9,12 @@ import testing ;
 
 project boost/fiber/test
     : requirements
-      <target-os>freebsd:<linkflags>"-lrt"
-      <target-os>linux:<linkflags>"-lrt"
-      <toolset>pgi:<linkflags>"-lrt"
       <library>../../test/build//boost_unit_test_framework
       <library>/boost/fiber//boost_fiber
-      <library>/boost/system//boost_system
-      <library>/boost/thread//boost_thread
+      <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
+      <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
+      <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
+      <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <link>static
       <threading>multi
     ;
