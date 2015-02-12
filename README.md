@@ -14,3 +14,5 @@ A context switch between threads costs usally thousends of CPU cycles on x86 com
 with less than 100 cycles. A fiber can only run on a single thread at any point in time.
 
 Building: Detailed instructions can be found at https://svn.boost.org/trac/boost/wiki/TryModBoost.
+
+boost.fiber is C++14-only!
