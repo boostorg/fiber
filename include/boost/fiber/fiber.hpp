@@ -64,10 +64,6 @@ public:
         impl_() {
     }
 
-    explicit fiber( fiber_context * impl) noexcept :
-        impl_( impl) {
-    }
-
     template< typename Fn, typename ... Args >
     explicit fiber( Fn && fn, Args && ... args) :
         fiber( std::allocator_arg, fixedsize_stack(),
