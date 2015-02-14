@@ -49,14 +49,13 @@ packaged task to the fiber constructor. The future retrieved from the packaged
 task can then be used to obtain the return value. If the function throws an
 exception, that is stored in the future in place of the return value.
 
-        int calculate_the_answer_to_life_the_universe_and_everything()
-        {
+        int calculate_the_answer_to_life_the_universe_and_everything() {
             return 42;
         }
 
         boost::fibers::packaged_task<int()> pt(calculate_the_answer_to_life_the_universe_and_everything);
         boost::fibers::future<int> fi=pt.get_future();
-        boost::fibers::fiber(boost::move(pt)).detach(); // launch task on a fiber
+        boost::fibers::fiber(std::move(pt)).detach(); // launch task on a fiber
 
         fi.wait(); // wait for it to finish
 

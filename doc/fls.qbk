@@ -27,8 +27,7 @@ order.
         #include <boost/fiber/fss.hpp>
 
         template< typename T >
-        class fiber_specific_ptr
-        {
+        class fiber_specific_ptr {
         public:
             typedef T   element_type;
 

@@ -10,8 +10,7 @@
 
 [heading Synopsis]
 
-        enum class cv_status;
-        {
+        enum class cv_status; {
             no_timeout,
             timeout
         };
@@ -31,12 +30,10 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     void process_data();
 
-    void wait_for_data_to_process()
-    {
+    void wait_for_data_to_process() {
         {
-            boost::lock_guard< boost::fibers::mutex > lk( mtx);
-            while ( ! data_ready)
-            {
+            std::lock_guard< boost::fibers::mutex > lk( mtx);
+            while ( ! data_ready) {
                 cond.wait( lk);
             }
         }                       // release lk
@@ -57,12 +54,11 @@ one waiting fiber or all the waiting fibers respectively.
     void retrieve_data();
     void prepare_data();
 
-    void prepare_data_for_processing()
-    {
+    void prepare_data_for_processing() {
         retrieve_data();
         prepare_data();
         {
-            boost::lock_guard< boost::fibers::mutex > lk( mtx);
+            std::lock_guard< boost::fibers::mutex > lk( mtx);
             data_ready = true;
         }
         cond.notify_one();
@@ -88,14 +84,12 @@ optimize as described for `boost::thread::condition_variable`.
 
     #include <boost/fiber/condition.hpp>
 
-    enum cv_status
-    {
+    enum cv_status {
         no_timeout = 1,
         timeout
     };
 
-    class condition_variable
-    {
+    class condition_variable {
     public:
         condition_variable();
         ~condition_variable();
@@ -289,10 +283,10 @@ unblocked (for whatever reason), the lock is reacquired by invoking
 invoking `lk.lock()` if the function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
 
-while ( ! pred() )
-{
-    if ( cv_status::timeout == wait_for( lk, timeout_duration) )
+while ( ! pred() ) {
+    if ( cv_status::timeout == wait_for( lk, timeout_duration) ) {
         return pred();
+    }
 }
 return true;
 

@@ -14,8 +14,7 @@ A future provides a mechanism to access the result of an asynchronous operation.
 
 Timed wait-operations (__wait_for__ and __wait_until__) return the state of the future.
 
-        enum class future_status
-        {
+        enum class future_status {
             ready,
             timeout,
             deferred  // not supported yet
@@ -45,8 +44,7 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 A __future__ contains a shared state which is not shared with any other future.
 
         template< typename R >
-        class future
-        {
+        class future {
         public:
             future() noexcept;
 
@@ -217,8 +215,7 @@ After construction is `false == other.valid()`]]
 A __shared_future__ contains a shared state which might be shared with other futures.
 
         template< typename R >
-        class shared_future
-        {
+        class shared_future {
         public:
             shared_future() noexcept;
 
