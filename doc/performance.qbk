@@ -14,8 +14,8 @@ variant = release, cxxflags = -DBOOST_DISABLE_ASSERTS,optimization = speed
 [footnote Intel Core2 Q6700, x86_64].
 
 [table Overhead of creating and joining
-    [[thread]     [qthread] [fiber]  [tbb]]
-    [[31 \u00b5s] [620 ns]  [600 ns] [570 ns]]
+    [[thread]     [qthread] [fiber]     [tbb]]
+    [[31 \u00b5s] [620 ns]  [3 \u00b5s] [570 ns]]
 ]
 
 [table Overhead of detach
