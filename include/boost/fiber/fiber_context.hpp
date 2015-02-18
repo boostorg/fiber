@@ -302,7 +302,7 @@ public:
     void resume() {
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
-        ctx_.jump_to();
+        ctx_.resume();
     }
 
     std::chrono::high_resolution_clock::time_point const& time_point() const noexcept {
