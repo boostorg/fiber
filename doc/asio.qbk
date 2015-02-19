@@ -23,8 +23,8 @@ __yield_context__ internally uses __boost_coroutine__:
             boost::asio::async_write(socket,boost::asio::buffer(data,n),yield);
         }
 
-Unfortunately __boost_coroutine__ (__yield_context__) does not provide primitives
-to synchronize different coroutines (execution contexts).
+Unfortunately __boost_coroutine__ (__yield_context__) does not provide
+primitives to synchronize different coroutines (execution contexts).
 
 __boost_fiber__ provides an example how __fibers__ could be integrated into
 __boost_asio__ so that ['asynchronous operations] from __boost_asio__ can be
@@ -82,8 +82,8 @@ from Dan Kegel describes the problem of handling ten thousand clients
 simultaneously and which strategies are possible.
 
 __boost_fiber__ and __boost_asio__ support the strategy 'serve many clients with
-each server thread, and use asynchronous I/O' without scattering the logic across
-many callbacks (as was asio's previous strategy) and overloading the
+each server thread, and use asynchronous I/O' without scattering the logic
+across many callbacks (as was asio's previous strategy) and overloading the
 operating system with too many threads. (Beyond a certain number of threads, the
 overhead of the kernel scheduler starts to swamp the available cores.)
 
@@ -95,5 +95,8 @@ __boost_fiber__ provides the same classes and interfaces as __boost_thread__.
 Therefore developers are able to use patterns familiar from multi-threaded
 programming. For instance the strategy 'serve one client with one thread'
 could be transformed into 'serve one client with one fiber'.
+
+[heading Integration]
+
 
 [endsect]

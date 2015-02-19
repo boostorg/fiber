@@ -12,9 +12,9 @@ implementation.
 A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides 
 scheduler [class_link round_robin].
 
-To prevent the library from heap-allocating a default scheduler for a given
-thread, that thread must call [function_link set_scheduling_algorithm] before
-any other __boost_fiber__ entry point.
+In order to use a custom scheduler for a given thread, that thread must call
+[function_link set_scheduling_algorithm] before any other __boost_fiber__ entry
+point.
 
         void thread_fn()
         {
@@ -31,22 +31,19 @@ it to [function_link set_scheduling_algorithm].
 
         #include <boost/fiber/algorithm.hpp>
 
-        struct sched_algorithm
-        {
+        struct sched_algorithm {
             virtual ~sched_algorithm() {}
 
-            virtual void awakened( detail::worker_fiber *) = 0;
+            virtual void awakened( fiber_context *) = 0;
 
-            virtual detail::worker_fiber * pick_next() = 0;
-
-            virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+            virtual fiber_context * pick_next() = 0;
         };
 
         void set_scheduling_algorithm( sched_algorithm *);
 
 [member_heading algorithm..awakened]
 
-        virtual void awakened( detail::worker_fiber * f) = 0;
+        virtual void awakened( fiber_context * f) = 0;
 
 [variablelist
 [[Effects:] [Marks fiber `f`, to be ready to run.]]
@@ -54,19 +51,11 @@ it to [function_link set_scheduling_algorithm].
 
 [member_heading algorithm..pick_next]
 
-        virtual detail::worker_fiber * pick_next() = 0;
+        virtual fiber_context * pick_next() = 0;
 
 [variablelist
 [[Effects:] [Depending on the scheduling algorithm, this function returns the
 fiber which has to be resumed next.]]
-]
-
-[member_heading algorithm..priority]
-
-        virtual void priority( detail::worker_fiber *, int) noexcept = 0;
-
-[variablelist
-[[Effects:] [Reschedule the fiber depending on the priority.]]
 ]
 
 
@@ -78,8 +67,5 @@ fiber which has to be resumed next.]]
 [[Effects:] [Registers `a` as scheduling algorithm.]]
 ]
 
-
-[note The exsample section provides an scheduler used for migrating fibers
-(work-stealing) between threads (different schedulers).]
 
 [endsect]

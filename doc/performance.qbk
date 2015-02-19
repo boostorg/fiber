@@ -10,12 +10,12 @@
 Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
 The code was compiled using the build options:
-variant = release, cxxflags = -DBOOST_DISABLE_ASSERTS,optimization = speed
-[footnote Intel Core2 Q6700, x86_64].
+variant = release, optimization = speed
+[footnote Intel Core2 Q6700, x86_64, 3GHz].
 
 [table Overhead of creating and joining
-    [[thread]     [qthread] [fiber]     [tbb]]
-    [[31 \u00b5s] [620 ns]  [3 \u00b5s] [570 ns]]
+    [[thread]     [fiber]     [tbb]    [qthread]]
+    [[31 \u00b5s] [3 \u00b5s] [570 ns] [620 ns]]
 ]
 
 [table Overhead of detach
