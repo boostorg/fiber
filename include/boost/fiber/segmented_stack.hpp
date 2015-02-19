@@ -21,7 +21,7 @@ namespace fibers {
 
 #if defined(BOOST_USE_SEGMENTED_STACKS)
 # if ! defined(BOOST_WINDOWS)
-typedef boost::context::segmented_stack   segemented;
+typedef boost::context::segmented_stack   segmented_stack;
 # endif
 #endif
 
