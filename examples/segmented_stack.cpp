@@ -43,7 +43,14 @@ void foo()
 void thread_fn()
 {
     {
-        boost::fibers::fiber f( foo);
+        boost::fibers::fiber f(
+#if defined(BOOST_USE_SEGMENTED_STACKS)
+                                std::allocator_arg,
+                                boost::fibers::segmented_stack(
+                                    boost::fibers::segmented_stack::traits_type::default_size() ),
+#endif
+                                foo);
+
         f.join();
     }
 }
