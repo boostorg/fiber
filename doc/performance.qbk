@@ -25,23 +25,23 @@ variant = release, optimization = speed
 
 [table Overhead of yield
     [[thread]     [fiber]]
-    [[32 \u00b5s] [860 ns]]
+    [[32 \u00b5s] [3 \u00b5s]]
 ]
 
 [table Overhead of waiting on a future
     [[thread]     [fiber]]
-    [[32 \u00b5s] [2.5 \u00b5s]]
+    [[32 \u00b5s] [4 \u00b5s]]
 ]
 
 [table Scaling of creating and joining
     [[average of]   [thread]        [fiber]]
-    [[10]           [32.90 \u00b5s] [4.65 \u00b5s]]
-    [[50]           [32.71 \u00b5s] [2.88 \u00b5s]]
-    [[100]          [39.84 \u00b5s] [2.57 \u00b5s]]
-    [[500]          [49.78 \u00b5s] [3.08 \u00b5s]]
-    [[1000]         [55.95 \u00b5s] [3.15 \u00b5s]]
-    [[5000]         [42.88 \u00b5s] [4.95 \u00b5s]]
-    [[10000]        [47.13 \u00b5s] [4.47 \u00b5s]]
+    [[10]           [32.90 \u00b5s] [3.769 \u00b5s]]
+    [[50]           [32.71 \u00b5s] [2.789 \u00b5s]]
+    [[100]          [39.84 \u00b5s] [2.450 \u00b5s]]
+    [[500]          [49.78 \u00b5s] [2.919 \u00b5s]]
+    [[1000]         [55.95 \u00b5s] [3.607 \u00b5s]]
+    [[5000]         [42.88 \u00b5s] [4.579 \u00b5s]]
+    [[10000]        [47.13 \u00b5s] [4.219 \u00b5s]]
 ]
 
 

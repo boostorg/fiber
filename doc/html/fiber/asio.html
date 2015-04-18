@@ -1,0 +1,164 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Example: asynchronous network I/O (boost.asio)</title>
+<link rel="stylesheet" href="../../../../../doc/src/boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="prev" href="fls.html" title="Fiber local storage">
+<link rel="next" href="performance.html" title="Performance">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="fls.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="performance.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="fiber.asio"></a><a class="link" href="asio.html" title="Example: asynchronous network I/O (boost.asio)">Example: asynchronous network I/O (boost.asio)</a>
+</h2></div></div></div>
+<p>
+      In the past, code using asio's <span class="emphasis"><em>asynchronous operations</em></span>
+      was scattered by callbacks. <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      provides with its new <span class="emphasis"><em>asynchronous result</em></span> feature a new
+      way to simplify the code and make it easier to read. <span class="emphasis"><em>boost::asio::yield_context</em></span>
+      internally uses __boost_coroutine__:
+    </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">echo</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">ip</span><span class="special">::</span><span class="identifier">tcp</span><span class="special">::</span><span class="identifier">socket</span><span class="special">&amp;</span> <span class="identifier">socket</span><span class="special">,</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_context</span> <span class="identifier">yield</span><span class="special">){</span>
+    <span class="keyword">char</span> <span class="identifier">data</span><span class="special">[</span><span class="number">128</span><span class="special">];</span>
+    <span class="comment">// read asynchronous data from socket</span>
+    <span class="comment">// execution context will be suspended until</span>
+    <span class="comment">// some bytes are read from socket</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">n</span><span class="special">=</span><span class="identifier">socket</span><span class="special">.</span><span class="identifier">async_read_some</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">buffer</span><span class="special">(</span><span class="identifier">data</span><span class="special">),</span><span class="identifier">yield</span><span class="special">);</span>
+    <span class="comment">// write some bytes asynchronously</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">async_write</span><span class="special">(</span><span class="identifier">socket</span><span class="special">,</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">buffer</span><span class="special">(</span><span class="identifier">data</span><span class="special">,</span><span class="identifier">n</span><span class="special">),</span><span class="identifier">yield</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+      Unfortunately __boost_coroutine__ (<span class="emphasis"><em>boost::asio::yield_context</em></span>)
+      does not provide primitives to synchronize different coroutines (execution
+      contexts).
+    </p>
+<p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides an example how <code class="computeroutput"><span class="identifier">fibers</span></code> could be integrated into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      so that <span class="emphasis"><em>asynchronous operations</em></span> from <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      can be used together with fibers, synchronized by primitives provided by <span class="bold"><strong>Boost.Fiber</strong></span>.
+    </p>
+<p>
+      The example section contains a complete publish-subscribe application demonstrating
+      the use of fibers with asio's <span class="emphasis"><em>asynchronous operations</em></span>.
+      <span class="emphasis"><em>boost::fibers::asio::yield_context</em></span> abstracts the fiber
+      in asio's context.
+    </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">subscriber</span><span class="special">::</span><span class="identifier">run</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_fiber</span> <span class="identifier">yield</span><span class="special">)</span>
+<span class="special">{</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span> <span class="identifier">ec</span><span class="special">;</span>
+
+    <span class="comment">// read first message == channel name</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">channel</span><span class="special">;</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">async_read</span><span class="special">(</span>
+            <span class="identifier">socket_</span><span class="special">,</span>
+            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">buffer</span><span class="special">(</span> <span class="identifier">channel</span><span class="special">),</span>
+            <span class="identifier">yield</span><span class="special">[</span><span class="identifier">ec</span><span class="special">]);</span>
+    <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ec</span><span class="special">)</span> <span class="keyword">throw</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="string">"no channel from subscriber"</span><span class="special">);</span>
+
+    <span class="comment">// register new channel</span>
+    <span class="identifier">reg_</span><span class="special">.</span><span class="identifier">subscribe</span><span class="special">(</span> <span class="identifier">channel</span><span class="special">,</span> <span class="identifier">shared_from_this</span><span class="special">()</span> <span class="special">);</span>
+
+    <span class="keyword">for</span> <span class="special">(;;)</span>
+    <span class="special">{</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span><span class="special">::</span><span class="identifier">scoped_lock</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_</span><span class="special">);</span>
+        <span class="comment">// wait for published messages</span>
+        <span class="comment">// fiber gets suspended and will be woken up if a</span>
+        <span class="comment">// new message has to be published to subscriber</span>
+        <span class="identifier">cond_</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
+
+        <span class="comment">// '&lt;fini&gt;' terminates subscriber</span>
+        <span class="comment">// data_ is a private member of subscriber and</span>
+        <span class="comment">// gets filled by the publisher</span>
+        <span class="comment">// notification of available data via condition_var cond_</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="string">"&lt;fini&gt;"</span> <span class="special">==</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span> <span class="identifier">data_</span><span class="special">)</span> <span class="special">)</span> <span class="keyword">break</span><span class="special">;</span>
+
+        <span class="comment">// write message asynchronously to subscriber</span>
+        <span class="comment">// fiber gets suspended until message was written</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">async_write</span><span class="special">(</span>
+                <span class="identifier">socket_</span><span class="special">,</span>
+                <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">buffer</span><span class="special">(</span> <span class="identifier">data_</span><span class="special">,</span> <span class="identifier">max_length</span><span class="special">),</span>
+                <span class="identifier">yield</span><span class="special">[</span><span class="identifier">ec</span><span class="special">]);</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ec</span><span class="special">)</span> <span class="keyword">throw</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="string">"publishing message failed"</span><span class="special">);</span>
+    <span class="special">}</span>
+<span class="special">}</span>
+</pre>
+<h4>
+<a name="fiber.asio.h0"></a>
+      <span><a name="fiber.asio.c10k_problem"></a></span><a class="link" href="asio.html#fiber.asio.c10k_problem">C10K
+      problem</a>
+    </h4>
+<p>
+      The C10K-website <sup>[<a name="fiber.asio.f0" href="#ftn.fiber.asio.f0" class="footnote">1</a>]</sup> from Dan Kegel describes the problem of handling ten thousand clients
+      simultaneously and which strategies are possible.
+    </p>
+<p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> and <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      support the strategy 'serve many clients with each server thread, and use asynchronous
+      I/O' without scattering the logic across many callbacks (as was asio's previous
+      strategy) and overloading the operating system with too many threads. (Beyond
+      a certain number of threads, the overhead of the kernel scheduler starts to
+      swamp the available cores.)
+    </p>
+<p>
+      Because <span class="bold"><strong>Boost.Fiber</strong></span> contains synchronization
+      primitives, it is easy to synchronize different fibers and use asynchronous
+      network I/O at the same time.
+    </p>
+<p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides the same classes and
+      interfaces as <a href="../../../../../libs/thread/index.html" target="_top">Boost.Thread</a>.
+      Therefore developers are able to use patterns familiar from multi-threaded
+      programming. For instance the strategy 'serve one client with one thread' could
+      be transformed into 'serve one client with one fiber'.
+    </p>
+<h4>
+<a name="fiber.asio.h1"></a>
+      <span><a name="fiber.asio.integration"></a></span><a class="link" href="asio.html#fiber.asio.integration">Integration</a>
+    </h4>
+<p>
+      The code for integrating boost.fiber int boost.asio can be found in the example
+      directory. THe author believes, that a better, more tight integration is possible
+      but requires input of boost.asio's author and maybe some changes in the boost.asio
+      framework.
+    </p>
+<p>
+      The current integration pattern requires to runn <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span></code> in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">run_service</span><span class="special">()</span></code>
+      (separate fiber).
+    </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.asio.f0" href="#fiber.asio.f0" class="para">1</a>] </sup>
+        <a href="http://www.kegel.com/c10k.html" target="_top">'The C10K problem', Dan Kegel</a>
+      </p></div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2013 Oliver Kowalke<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="fls.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="performance.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

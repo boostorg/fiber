@@ -62,8 +62,6 @@ efficient to use as any other stack.]
 [note The appended `guard page` is [*not] mapped to physical memory, only
 virtual addresses are used.]
 
-[endsect]
-
 
 [class_heading fixedsize_stack]
 
@@ -72,8 +70,6 @@ the __stack_allocator_concept__.
 In contrast to __pfixedsize_stack__ it does not append a guard page at the
 end of each stack. The memory is simply managed by `std::malloc()` and
 `std::free()`.
-
-[endsect]
 
 
 [class_heading segmented_stack]
