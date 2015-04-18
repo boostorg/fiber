@@ -10,20 +10,16 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <thread>
 #include <vector>
 
-#include <boost/bind.hpp>
-#include <boost/chrono.hpp>
-#include <boost/function.hpp>
-#include <boost/ref.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
+#include <boost/thread/barrier.hpp>
 
 #include <boost/fiber/all.hpp>
 
-typedef boost::chrono::nanoseconds  ns;
-typedef boost::chrono::milliseconds ms;
+typedef std::chrono::nanoseconds  ns;
+typedef std::chrono::milliseconds ms;
 
 int value1 = 0;
 int value2 = 0;
@@ -49,13 +45,13 @@ void f( boost::barrier & b, Mtx & m)
 template< typename Mtx >
 void fn1( boost::barrier & b, Mtx & m)
 {
-    boost::fibers::fiber( boost::bind( g< Mtx >, boost::ref( b), boost::ref( m) ) ).join();
+    boost::fibers::fiber( std::bind( g< Mtx >, std::ref( b), std::ref( m) ) ).join();
 }
 
 template< typename Mtx >
 void fn2( boost::barrier & b, Mtx & m)
 {
-    boost::fibers::fiber( boost::bind( f< Mtx >, boost::ref( b), boost::ref( m) ) ).join();
+    boost::fibers::fiber( std::bind( f< Mtx >, std::ref( b), std::ref( m) ) ).join();
 }
 
 void test_mutex()
@@ -65,10 +61,10 @@ void test_mutex()
         boost::fibers::mutex mtx;
         mtx.lock();
         boost::barrier b( 3);
-        boost::thread t1( fn1< boost::fibers::mutex >, boost::ref( b), boost::ref( mtx) );
-        boost::thread t2( fn2< boost::fibers::mutex >, boost::ref( b), boost::ref( mtx) );
+        std::thread t1( fn1< boost::fibers::mutex >, std::ref( b), std::ref( mtx) );
+        std::thread t2( fn2< boost::fibers::mutex >, std::ref( b), std::ref( mtx) );
         b.wait();
-        boost::this_thread::sleep_for( ms( 250) );
+        std::this_thread::sleep_for( ms( 250) );
         mtx.unlock();
         t1.join();
         t2.join();
@@ -84,10 +80,10 @@ void test_recursive_mutex()
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
         boost::barrier b( 3);
-        boost::thread t1( fn1< boost::fibers::recursive_mutex >, boost::ref( b), boost::ref( mtx) );
-        boost::thread t2( fn2< boost::fibers::recursive_mutex >, boost::ref( b), boost::ref( mtx) );
+        std::thread t1( fn1< boost::fibers::recursive_mutex >, std::ref( b), std::ref( mtx) );
+        std::thread t2( fn2< boost::fibers::recursive_mutex >, std::ref( b), std::ref( mtx) );
         b.wait();
-        boost::this_thread::sleep_for( ms( 250) );
+        std::this_thread::sleep_for( ms( 250) );
         mtx.unlock();
         t1.join();
         t2.join();
@@ -103,10 +99,10 @@ void test_recursive_timed_mutex()
         boost::fibers::recursive_timed_mutex mtx;
         mtx.lock();
         boost::barrier b( 3);
-        boost::thread t1( fn1< boost::fibers::recursive_timed_mutex >, boost::ref( b), boost::ref( mtx) );
-        boost::thread t2( fn2< boost::fibers::recursive_timed_mutex >, boost::ref( b), boost::ref( mtx) );
+        std::thread t1( fn1< boost::fibers::recursive_timed_mutex >, std::ref( b), std::ref( mtx) );
+        std::thread t2( fn2< boost::fibers::recursive_timed_mutex >, std::ref( b), std::ref( mtx) );
         b.wait();
-        boost::this_thread::sleep_for( ms( 250) );
+        std::this_thread::sleep_for( ms( 250) );
         mtx.unlock();
         t1.join();
         t2.join();
@@ -122,10 +118,10 @@ void test_timed_mutex()
         boost::fibers::timed_mutex mtx;
         mtx.lock();
         boost::barrier b( 3);
-        boost::thread t1( fn1< boost::fibers::timed_mutex >, boost::ref( b), boost::ref( mtx) );
-        boost::thread t2( fn2< boost::fibers::timed_mutex >, boost::ref( b), boost::ref( mtx) );
+        std::thread t1( fn1< boost::fibers::timed_mutex >, std::ref( b), std::ref( mtx) );
+        std::thread t2( fn2< boost::fibers::timed_mutex >, std::ref( b), std::ref( mtx) );
         b.wait();
-        boost::this_thread::sleep_for( ms( 250) );
+        std::this_thread::sleep_for( ms( 250) );
         mtx.unlock();
         t1.join();
         t2.join();

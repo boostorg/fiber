@@ -12,8 +12,7 @@
 
         #include <boost/fiber/mutex.hpp>
         
-        class mutex
-        {
+        class mutex {
         public:
             mutex();
             ~mutex();
@@ -24,8 +23,6 @@
             void lock();
             bool try_lock();
             void unlock();
-        
-            typedef unique_lock< mutex > scoped_lock;
         };
 
 __mutex__ provides an exclusive-ownership mutex. At most one fiber can own the
@@ -40,8 +37,7 @@ fiber releases the lock by calling __unlock__.
 
         #include <boost/fiber/timed_mutex.hpp>
 
-        class timed_mutex : private boost::noncopyable
-        {
+        class timed_mutex {
         public:
             timed_mutex();
             ~timed_mutex();
@@ -53,11 +49,10 @@ fiber releases the lock by calling __unlock__.
             void unlock();
             bool try_lock();
 
-            bool try_lock_until( clock_type::time_point const& timeout_time);
+            template< typename Clock, typename Duration >
+            bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
             template< typename Rep, typename Period >
-            bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
-
-            typedef unique_lock< timed_mutex > scoped_lock;
+            bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
         };
 
 __timed_mutex__ provides an exclusive-ownership mutex. At most one fiber can own
@@ -70,8 +65,7 @@ __unlock__ shall be permitted.
 
         #include <boost/fiber/recursive_mutex.hpp>
 
-        class recursive_mutex : private boost::noncopyable
-        {
+        class recursive_mutex {
         public:
             recursive_mutex();
             ~recursive_mutex();
@@ -82,8 +76,6 @@ __unlock__ shall be permitted.
             void lock();
             bool try_lock() noexcept;
             void unlock();
-
-            typedef unique_lock<recursive_mutex> scoped_lock;
         };
 
 __recursive_mutex__ provides an exclusive-ownership recursive mutex. At most one
@@ -100,8 +92,7 @@ acquired by another fiber.
 
         #include <boost/fiber/recursive_timed_mutex.hpp>
 
-        class recursive_timed_mutex : private boost::noncopyable
-        {
+        class recursive_timed_mutex {
         public:
             recursive_timed_mutex();
             ~recursive_timed_mutex();
@@ -113,11 +104,10 @@ acquired by another fiber.
             bool try_lock() noexcept;
             void unlock();
 
-            bool try_lock_until( clock_type::time_point const& timeout_time);
+            template< typename Clock, typename Duration >
+            bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
             template< typename Rep, typename Period >
-            bool try_lock_for( chrono::duration< Rep, Period > const& timeout_duration)
-
-            typedef unique_lock<recursive_timed_mutex> scoped_lock;
+            bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
         };
 
 __recursive_timed_mutex__ provides an exclusive-ownership recursive mutex. At

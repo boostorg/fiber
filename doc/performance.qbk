@@ -7,27 +7,41 @@
 
 [section:performance Performance]
 
-Performance measurements were taken using `boost::chrono::highresolution_clock`,
+Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
-The code was compiled using the build options,
-'variant = release cxxflags = -DBOOST_DISABLE_ASSERTS optimization = speed'.
-
-The numbers in the table are the number of ns, based upon an
-average computed over 1000 iterations.
+The code was compiled using the build options:
+variant = release, optimization = speed
+[footnote Intel Core2 Q6700, x86_64, 3GHz].
 
 [table Overhead of creating and joining
-    [[thread] [qthread] [fiber] [tbb]]
-    [[32114 ns] [572 ns] [500 ns] [444 ns]]
+    [[thread]     [fiber]     [tbb]    [qthread]]
+    [[31 \u00b5s] [3 \u00b5s] [570 ns] [620 ns]]
+]
+
+[table Overhead of detach
+    [[thread]     [fiber]]
+    [[16 \u00b5s] [3 \u00b5s]]
 ]
 
 [table Overhead of yield
-    [[thread] [fiber]]
-    [[33114 ns] [690 ns]]
+    [[thread]     [fiber]]
+    [[32 \u00b5s] [3 \u00b5s]]
 ]
 
 [table Overhead of waiting on a future
-    [[thread] [fiber]]
-    [[32.3 \u00b5s] [2.2 \u00b5s]]
+    [[thread]     [fiber]]
+    [[32 \u00b5s] [4 \u00b5s]]
+]
+
+[table Scaling of creating and joining
+    [[average of]   [thread]        [fiber]]
+    [[10]           [32.90 \u00b5s] [3.769 \u00b5s]]
+    [[50]           [32.71 \u00b5s] [2.789 \u00b5s]]
+    [[100]          [39.84 \u00b5s] [2.450 \u00b5s]]
+    [[500]          [49.78 \u00b5s] [2.919 \u00b5s]]
+    [[1000]         [55.95 \u00b5s] [3.607 \u00b5s]]
+    [[5000]         [42.88 \u00b5s] [4.579 \u00b5s]]
+    [[10000]        [47.13 \u00b5s] [4.219 \u00b5s]]
 ]
 
 

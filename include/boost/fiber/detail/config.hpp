@@ -7,7 +7,6 @@
 #ifndef BOOST_FIBERS_DETAIL_CONFIG_H
 #define BOOST_FIBERS_DETAIL_CONFIG_H
 
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
@@ -38,18 +37,19 @@
 
 #if defined(BOOST_USE_SEGMENTED_STACKS)
 # if ! (defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 6)
-#  error "compiler does not support segmented stacks"
+#  error "compiler does not support segmented_stack stacks"
 # endif
 # define BOOST_FIBERS_SEGMENTS 10
 #endif
 
-namespace boost {
-namespace fibers {
-#if defined(BOOST_HAS_CLOCK_STEADY)
- typedef boost::chrono::steady_clock   clock_type;
-#else
- typedef boost::chrono::system_clock   clock_type;
+#if ! defined(BOOST_NO_SFINAE_EXPR) && \
+    ! defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) && \
+    ! defined(BOOST_NO_CXX11_DECLTYPE) && \
+    ! defined(BOOST_NO_CXX11_DECLTYPE_N3276) && \
+    ! defined(BOOST_NO_CXX11_AUTO) && \
+    ! defined(BOOST_NO_CXX11_RVALUE_REFERENCES) && \
+    ! defined(BOOST_NO_CXX11_HDR_TUPLE)
+# define BOOST_FIBERS_USE_VARIADIC_FIBER
 #endif
-}}
 
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H

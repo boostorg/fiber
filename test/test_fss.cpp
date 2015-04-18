@@ -7,7 +7,6 @@
 
 #include <iostream>
 
-#include <boost/bind.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <boost/fiber/all.hpp>
@@ -21,14 +20,14 @@ struct fss_value_t
 {
     fss_value_t()
     {
-        boost::unique_lock<boost::fibers::mutex> lock(fss_mutex);
+        std::unique_lock<boost::fibers::mutex> lock(fss_mutex);
         ++fss_instances;
         ++fss_total;
         value = 0;
     }
     ~fss_value_t()
     {
-        boost::unique_lock<boost::fibers::mutex> lock(fss_mutex);
+        std::unique_lock<boost::fibers::mutex> lock(fss_mutex);
         --fss_instances;
     }
     int value;
@@ -44,7 +43,7 @@ void fss_fiber()
         int& n = fss_value->value;
         if (n != i)
         {
-            boost::unique_lock<boost::fibers::mutex> lock(check_mutex);
+            std::unique_lock<boost::fibers::mutex> lock(check_mutex);
             BOOST_CHECK_EQUAL(n, i);
         }
         ++n;
@@ -177,7 +176,7 @@ void do_test_fss_does_no_cleanup_with_null_cleanup_function()
 {
     dummy_class_tracks_deletions* delete_tracker=new dummy_class_tracks_deletions;
     boost::fibers::fiber f(
-        boost::bind( fss_fiber_with_null_cleanup,delete_tracker) );
+        std::bind( fss_fiber_with_null_cleanup,delete_tracker) );
     try
     {
         f.join();

@@ -7,7 +7,7 @@
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../fiber_mgmt.html" title="Fiber management">
 <link rel="prev" href="../fiber_mgmt.html" title="Fiber management">
-<link rel="next" href="fiber_group.html" title="Class fiber_group">
+<link rel="next" href="id.html" title="Class fiber::id">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_group.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="id.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -29,29 +29,17 @@
 </h3></div></div></div>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">fiber</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">fiber</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="keyword">typedef</span> <span class="identifier">uspecified</span><span class="special">-</span><span class="keyword">class</span>        <span class="identifier">id</span><span class="special">;</span>
+    <span class="keyword">class</span>        <span class="identifier">id</span><span class="special">;</span>
 
     <span class="identifier">fiber</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
-    <span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">attr</span> <span class="special">=</span> <span class="identifier">attributes</span><span class="special">(),</span>
-                    <span class="identifier">stack_allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span> <span class="special">=</span> <span class="identifier">stack_allocator</span><span class="special">(),</span>
-                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span>
-                         <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;()</span> <span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+    <span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span> <span class="special">&gt;</span>
-    <span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">attr</span><span class="special">,</span>
-                    <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">,</span>
-                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span>
-                         <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;()</span> <span class="special">);</span>
-
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-    <span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">attr</span><span class="special">,</span>
-                    <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">,</span>
-                    <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+    <span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
     <span class="special">~</span><span class="identifier">fiber</span><span class="special">();</span>
 
@@ -63,7 +51,7 @@
 
     <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">operator</span> <span class="identifier">safe_bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -73,10 +61,8 @@
 
     <span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="keyword">void</span> <span class="identifier">priority</span><span class="special">(</span> <span class="keyword">int</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
     <span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
     <span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">void</span> <span class="identifier">detach</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -119,22 +105,11 @@
 <a name="fiber.fiber_mgmt.fiber.h1"></a>
         <span><a name="fiber.fiber_mgmt.fiber.constructor"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.constructor">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
-<span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">attr</span> <span class="special">=</span> <span class="identifier">attributes</span><span class="special">(),</span>
-                <span class="identifier">stack_allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span> <span class="special">=</span> <span class="identifier">stack_allocator</span><span class="special">(),</span>
-                <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span>
-                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;()</span> <span class="special">);</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span> <span class="special">&gt;</span>
-<span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">attr</span><span class="special">,</span>
-                <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">,</span>
-                <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span>
-                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">fiber</span> <span class="special">&gt;()</span> <span class="special">);</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-<span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">attributes</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">attr</span><span class="special">,</span>
-                <span class="identifier">StackAllocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">stack_alloc</span><span class="special">,</span>
-                <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="keyword">explicit</span> <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -161,7 +136,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              StackAllocator is required to allocate a stack for the internal coroutine.
+              StackAllocator is required to allocate a stack for the internal <span class="emphasis"><em>execution_context</em></span>.
             </p></dd>
 </dl>
 </div>
@@ -241,7 +216,7 @@
 <dd><p>
               The programmer must ensure that the destructor is never executed while
               the fiber is still <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. Even if you know
-              (by calling <a class="link" href="fiber.html#fiber_operator%20safe_bool"> <code class="computeroutput">fiber::operator safe_bool()</code></a>) that
+              (by calling <a class="link" href="../../"> <code class="computeroutput">fiber::operator safe_bool()</code></a>) that
               the fiber has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
               <a class="link" href="fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a> before destroying the <code class="computeroutput"><span class="identifier">fiber</span></code>
               object.
@@ -274,7 +249,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="fiber.html#fiber_operator%20safe_bool"> <code class="computeroutput">fiber::operator safe_bool()</code></a>
+              <a class="link" href="../../"> <code class="computeroutput">fiber::operator safe_bool()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -425,70 +400,8 @@
             </p></dd>
 </dl>
 </div>
-<h5>
-<a name="fiber.fiber_mgmt.fiber.h5"></a>
-        <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__priority__phrase__phrase_role__special_____phrase___phrase_role__keyword__int__phrase__phrase_role__special_____phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__priority__phrase__phrase_role__special_____phrase___phrase_role__keyword__int__phrase__phrase_role__special_____phrase___code_">Member
-        function <code class="computeroutput"><span class="identifier">priority</span><span class="special">(</span>
-        <span class="keyword">int</span><span class="special">)</span></code></a>
-      </h5>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">priority</span><span class="special">(</span> <span class="keyword">int</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Preconditions:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution.
-            </p></dd>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              set priority for the fiber referenced by <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              The meaning of particular <code class="computeroutput"><span class="keyword">int</span></code>
-              values is determined by the specific <a class="link" href="../scheduling.html#class_algorithm"> <code class="computeroutput">algorithm</code></a> passed
-              to <a class="link" href="fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a>. <a class="link" href="../scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> and
-              <a class="link" href="../scheduling.html#class_round_robin_ws"> <code class="computeroutput">round_robin_ws</code></a> ignore <code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">priority</span><span class="special">()</span></code>.
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="fiber_priority_bridgehead"></a>
-  <span><a name="fiber_priority"></a></span>
-  <a class="link" href="fiber.html#fiber_priority">Member function <code class="computeroutput">priority</code>()</a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">priority</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Preconditions:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution.
-            </p></dd>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              priority for the fiber referenced by <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
-</dl>
-</div>
 <a name="fiber_thread_affinity"></a><h5>
-<a name="fiber.fiber_mgmt.fiber.h6"></a>
+<a name="fiber.fiber_mgmt.fiber.h5"></a>
         <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special_____phrase___phrase_role__keyword__bool__phrase__phrase_role__special_____phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special_____phrase___phrase_role__keyword__bool__phrase__phrase_role__special_____phrase___code_">Member
         function <code class="computeroutput"><span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span></code></a>
       </h5>
@@ -513,7 +426,7 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               "Thread affinity" is only meaningful for certain scheduler
-              algorithms, such as <a class="link" href="../scheduling.html#class_round_robin_ws"> <code class="computeroutput">round_robin_ws</code></a>. Many schedulers
+              algorithms, such as <a class="link" href="../../"> <code class="computeroutput">round_robin_ws</code></a>. Many schedulers
               ignore this fiber attribute. With a scheduler that might potentially
               migrate a fiber from its initial thread to another, the value <code class="computeroutput"><span class="keyword">true</span></code> prevents migration: the fiber will
               always run on its current thread. The default is <code class="computeroutput"><span class="keyword">false</span></code>:
@@ -527,7 +440,7 @@
 </dl>
 </div>
 <h5>
-<a name="fiber.fiber_mgmt.fiber.h7"></a>
+<a name="fiber.fiber_mgmt.fiber.h6"></a>
         <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special______phrase___code_">Member
         function <code class="computeroutput"><span class="identifier">thread_affinity</span><span class="special">()</span></code></a>
       </h5>
@@ -558,13 +471,14 @@
 <p>
         </p>
 <h5>
-<a name="fiber_operator%20safe_bool_bridgehead"></a>
-  <span><a name="fiber_operator%20safe_bool"></a></span>
-  <a class="link" href="fiber.html#fiber_operator%20safe_bool">Member function <code class="computeroutput">operator safe_bool</code>()</a>
+<a name="fiber_operator%20bool_bridgehead"></a>
+  <span><a name="fiber_operator%20bool"></a></span>
+  <a class="link" href="fiber.html#fiber_operator%20bool">Member
+        function <code class="computeroutput">operator bool</code>()</a>
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">operator</span> <span class="identifier">safe_bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -614,7 +528,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="fiber.html#fiber_operator%20safe_bool"> <code class="computeroutput">fiber::operator safe_bool()</code></a>, <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>
+              <a class="link" href="../../"> <code class="computeroutput">fiber::operator safe_bool()</code></a>, <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -680,7 +594,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">algorithm</span><span class="special">*</span> <span class="identifier">scheduler</span> <span class="special">);</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span><span class="special">*</span> <span class="identifier">scheduler</span> <span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -688,13 +602,13 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Directs <span class="bold"><strong>Boost.Fiber</strong></span> to use <code class="computeroutput"><span class="identifier">scheduler</span></code>, which must be a concrete
-              subclass of <a class="link" href="../scheduling.html#class_algorithm"> <code class="computeroutput">algorithm</code></a>, as the scheduling algorithm for
-              all fibers in the current thread.
+              subclass of <a class="link" href="../scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>, as the scheduling
+              algorithm for all fibers in the current thread.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-              Previous <a class="link" href="../scheduling.html#class_algorithm"> <code class="computeroutput">algorithm</code></a> instance set for the current thread,
-              0 if this is the first <span class="bold"><strong>Boost.Fiber</strong></span>
+              Previous <a class="link" href="../scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> instance set for the current
+              thread, 0 if this is the first <span class="bold"><strong>Boost.Fiber</strong></span>
               entry point called by the current thread.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
@@ -703,18 +617,16 @@
               make that thread call <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> before any other <span class="bold"><strong>Boost.Fiber</strong></span>
               entry point. If no scheduler has been set for the current thread by
               the time <span class="bold"><strong>Boost.Fiber</strong></span> needs to use
-              it, the library will heap-allocate a default <a class="link" href="../scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> instance
+              it, the library will create a default <a class="link" href="../scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> instance
               for this thread.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> does <span class="emphasis"><em>not</em></span> take
-              ownership of the passed <code class="computeroutput"><span class="identifier">algorithm</span><span class="special">*</span></code>: <span class="bold"><strong>Boost.Fiber</strong></span>
+              ownership of the passed <code class="computeroutput"><span class="identifier">sched_algorithm</span><span class="special">*</span></code>: <span class="bold"><strong>Boost.Fiber</strong></span>
               does not claim responsibility for the lifespan of the referenced <code class="computeroutput"><span class="identifier">scheduler</span></code> object. The caller must
               eventually destroy the passed <code class="computeroutput"><span class="identifier">scheduler</span></code>,
-              just as it must allocate it in the first place. (Storing the pointer
-              in a <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">thread_specific_ptr</span></code> is one way to
-              ensure that the instance is destroyed on thread termination.)
+              just as it must allocate it in the first place.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -733,7 +645,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_group.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../fiber_mgmt.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="id.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

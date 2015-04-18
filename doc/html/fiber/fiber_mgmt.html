@@ -29,10 +29,7 @@
 <div class="toc"><dl>
 <dt><span class="section"><a href="fiber_mgmt/fiber.html">Class
       <code class="computeroutput"><span class="identifier">fiber</span></code></a></span></dt>
-<dt><span class="section"><a href="fiber_mgmt/fiber_group.html">Class
-      <code class="computeroutput"><span class="identifier">fiber_group</span></code></a></span></dt>
-<dt><span class="section"><a href="fiber_mgmt/attributes.html">Class
-      attributes</a></span></dt>
+<dt><span class="section"><a href="fiber_mgmt/id.html">Class fiber::id</a></span></dt>
 <dt><span class="section"><a href="fiber_mgmt/this_fiber.html">Namespace this_fiber</a></span></dt>
 </dl></div>
 <h4>
@@ -48,12 +45,9 @@
 <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-<span class="keyword">class</span> <span class="identifier">fiber_group</span><span class="special">;</span>
-<span class="keyword">class</span> <span class="identifier">attributes</span><span class="special">;</span>
-
-<span class="keyword">struct</span> <span class="identifier">algorithm</span><span class="special">;</span>
+<span class="keyword">struct</span> <span class="identifier">sched_algorithm</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
-<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
+<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
 
 <span class="special">}</span>
 
@@ -61,9 +55,12 @@
 
 <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">();</span>
-<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_point</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">sleep_time</span><span class="special">)</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
 <span class="keyword">void</span> <span class="identifier">interruption_point</span><span class="special">();</span>
 <span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -83,11 +80,10 @@
     </p>
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f1</span><span class="special">;</span> <span class="comment">// not-a-fiber</span>
 
-<span class="keyword">void</span> <span class="identifier">f</span><span class="special">()</span>
-<span class="special">{</span>
+<span class="keyword">void</span> <span class="identifier">f</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f2</span><span class="special">(</span> <span class="identifier">some_fn</span><span class="special">);</span>
 
-    <span class="identifier">f1</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span> <span class="identifier">f2</span><span class="special">);</span> <span class="comment">// f2 moved to f1</span>
+    <span class="identifier">f1</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span> <span class="identifier">f2</span><span class="special">);</span> <span class="comment">// f2 moved to f1</span>
 <span class="special">}</span>
 </pre>
 <h4>
@@ -97,23 +93,22 @@
 <p>
       A new fiber is launched by passing an object of a callable type that can be
       invoked with no parameters. If the object must not (or cannot) be copied, then
-      <span class="emphasis"><em>boost::ref</em></span> can be used to pass in a reference to the function
+      <span class="emphasis"><em>std::ref</em></span> can be used to pass in a reference to the function
       object. In this case, the user must ensure that the referenced object outlives
       the newly-created fiber.
     </p>
-<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">callable</span>
-<span class="special">{</span> <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()();</span> <span class="special">};</span>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">callable</span> <span class="special">{</span>
+    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()();</span>
+<span class="special">};</span>
 
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">copies_are_safe</span><span class="special">()</span>
-<span class="special">{</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">copies_are_safe</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">callable</span> <span class="identifier">x</span><span class="special">;</span>
     <span class="keyword">return</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">x</span><span class="special">);</span>
 <span class="special">}</span> <span class="comment">// x is destroyed, but the newly-created fiber has a copy, so this is OK</span>
 
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">oops</span><span class="special">()</span>
-<span class="special">{</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">oops</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">callable</span> <span class="identifier">x</span><span class="special">;</span>
-    <span class="keyword">return</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">x</span><span class="special">)</span> <span class="special">);</span>
+    <span class="keyword">return</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">x</span><span class="special">)</span> <span class="special">);</span>
 <span class="special">}</span> <span class="comment">// x is destroyed, but the newly-created fiber still has a reference</span>
   <span class="comment">// this leads to undefined behaviour</span>
 </pre>
@@ -127,10 +122,11 @@
       <span><a name="fiber.fiber_mgmt.exceptions"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.exceptions">Exceptions</a>
     </h4>
 <p>
-      Exceptions thrown by the function or callable object passed to the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a>
+      A exception thrown by the function or callable object passed to the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a>
 constructor
-      are consumed by the framework. If you need to know which exception was thrown,
-      use <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> and <a class="link" href="synchronization/futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a>.
+      calls <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span><span class="special">()</span></code>.
+      If you need to know which exception was thrown, use <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> and
+      <a class="link" href="synchronization/futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a>.
     </p>
 <h4>
 <a name="fiber.fiber_mgmt.h4"></a>
@@ -155,8 +151,9 @@ constructor
       already completed, or the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object represents <span class="emphasis"><em>not-a-fiber</em></span>,
       then <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> returns immediately.
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">some_fn</span><span class="special">()</span>
-<span class="special">{</span> <span class="special">...</span> <span class="special">}</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">some_fn</span><span class="special">()</span> <span class="special">{</span>
+    <span class="special">...</span>
+<span class="special">}</span>
 
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f</span><span class="special">(</span> <span class="identifier">some_fn</span><span class="special">);</span>
 <span class="special">...</span>

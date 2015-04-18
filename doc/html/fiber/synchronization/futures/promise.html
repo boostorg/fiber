@@ -32,13 +32,12 @@
           can later be accessed asynchronously by a <a class="link" href="future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> object.
         </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">promise</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">promise</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">promise</span><span class="special">();</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-    <span class="identifier">promise</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="identifier">alloc</span><span class="special">);</span>
+    <span class="identifier">promise</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="identifier">alloc</span><span class="special">);</span>
 
     <span class="identifier">promise</span><span class="special">(</span> <span class="identifier">promise</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -90,7 +89,7 @@
           <span><a name="fiber.synchronization.futures.promise.constructor"></a></span><a class="link" href="promise.html#fiber.synchronization.futures.promise.constructor">Constructor</a>
         </h6>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-<span class="identifier">promise</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="identifier">alloc</span><span class="special">);</span>
+<span class="identifier">promise</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="identifier">alloc</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>

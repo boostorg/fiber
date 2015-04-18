@@ -10,8 +10,7 @@
 
 [heading Synopsis]
 
-        enum class cv_status;
-        {
+        enum class cv_status; {
             no_timeout,
             timeout
         };
@@ -31,13 +30,13 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     void process_data();
 
-    void wait_for_data_to_process()
-    {
-        boost::fibers::mutex::scoped_lock lk( mtx);
-        while ( ! data_ready)
+    void wait_for_data_to_process() {
         {
-            cond.wait( lk);
-        }
+            std::lock_guard< boost::fibers::mutex > lk( mtx);
+            while ( ! data_ready) {
+                cond.wait( lk);
+            }
+        }                       // release lk
         process_data();
     }
 
@@ -48,19 +47,18 @@ When the fiber is awakened, the mutex will be locked again before the call to
 update the shared data, and ensures that the data associated with the condition
 is correctly synchronized.
 
-In the meantime, another fiber sets the condition to `true`, and then calls
-either `notify_one` or `notify_all` on the condition variable to wake one
-waiting fiber or all the waiting fibers respectively.
+In the meantime, another fiber sets `data_ready` to `true`, and then calls
+either `notify_one` or `notify_all` on the condition variable `cond` to wake
+one waiting fiber or all the waiting fibers respectively.
 
     void retrieve_data();
     void prepare_data();
 
-    void prepare_data_for_processing()
-    {
+    void prepare_data_for_processing() {
         retrieve_data();
         prepare_data();
         {
-            boost::lock_guard< boost::fibers::mutex > lk( mtx);
+            std::lock_guard< boost::fibers::mutex > lk( mtx);
             data_ready = true;
         }
         cond.notify_one();
@@ -68,6 +66,10 @@ waiting fiber or all the waiting fibers respectively.
 
 Note that the same mutex is locked before the shared data is updated, but that
 the mutex does not have to be locked across the call to `notify_one`.
+
+Locking is important because the synchronization objects provided by
+__boost_fiber__ can be used to synchronize fibers running on different
+threads.
 
 __boost_fiber__ provides both `condition_variable` and
 `condition_variable_any` because __boost_thread__ provides both.
@@ -82,14 +84,12 @@ optimize as described for `boost::thread::condition_variable`.
 
     #include <boost/fiber/condition.hpp>
 
-    enum cv_status
-    {
+    enum cv_status {
         no_timeout = 1,
         timeout
     };
 
-    class condition_variable
-    {
+    class condition_variable {
     public:
         condition_variable();
         ~condition_variable();
@@ -106,17 +106,17 @@ optimize as described for `boost::thread::condition_variable`.
         template< typename LockType, typename Pred >
         void wait( LockType & lk, Pred predicate);
 
-        template< typename LockType >
-        cv_status wait_until( LockType & lk, clock_type::time_point const& timeout_time);
+        template< typename LockType, typename Clock, typename Duration >
+        cv_status wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time);
 
-        template< typename LockType, typename Pred >
-        bool wait_until( LockType & lk, clock_type::time_point const& timeout_time, Pred pred);
+        template< typename LockType, typename Clock, typename Duration, typename Pred >
+        bool wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
 
         template< typename LockType, typename Rep, typename Period >
-        cv_status wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration);
+        cv_status wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration);
 
         template< typename LockType, typename Rep, typename Period, typename Pred >
-        bool wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+        bool wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
     };
 
     typedef condition_variable condition_variable_any;
@@ -216,11 +216,11 @@ from one another: sooner or later a collision will result.]]
 
 [template_member_heading condition_variable..wait_until]
 
-        template< typename LockType >
-        cv_status wait_until( LockType & lk, clock_type::time_point const& timeout_time);
+        template< typename LockType, typename Clock, typename Duration >
+        cv_status wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time);
 
-        template< typename LockType, typename Pred >
-        bool wait_until( LockType & lk, clock_type::time_point const& timeout_time, Pred pred);
+        template< typename LockType, typename Clock, typename Duration, typename Pred >
+        bool wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
 
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
@@ -263,10 +263,10 @@ predicate returns `false`, `true` otherwise.]]
 [template_member_heading condition_variable..wait_for]
 
         template< typename LockType, typename Rep, typename Period >
-        cv_status wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration);
+        cv_status wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration);
 
         template< typename LockType, typename Rep, typename Period, typename Pred >
-        bool wait_for( LockType & lk, chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+        bool wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
 
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
@@ -283,10 +283,10 @@ unblocked (for whatever reason), the lock is reacquired by invoking
 invoking `lk.lock()` if the function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
 
-while ( ! pred() )
-{
-    if ( cv_status::timeout == wait_for( lk, timeout_duration) )
+while ( ! pred() ) {
+    if ( cv_status::timeout == wait_for( lk, timeout_duration) ) {
         return pred();
+    }
 }
 return true;
 

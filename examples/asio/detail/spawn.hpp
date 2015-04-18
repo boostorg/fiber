@@ -21,8 +21,7 @@
 #include <boost/asio/handler_type.hpp>
 #include <boost/config.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
-#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/all.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -60,7 +59,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base       *   fiber_;
+    boost::fibers::fiber_context       *   fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
@@ -90,7 +89,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base       *   fiber_;
+    boost::fibers::fiber_context       *   fiber_;
     Handler                                 &   handler_;
     boost::system::error_code               *   ec_;
 };
@@ -184,7 +183,7 @@ public:
     type get()
     {
         fibers::detail::spinlock splk;
-        unique_lock< fibers::detail::spinlock > lk( splk);
+        std::unique_lock< fibers::detail::spinlock > lk( splk);
         boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
         return value_;
@@ -212,7 +211,7 @@ public:
     void get()
     {
         fibers::detail::spinlock splk;
-        unique_lock< fibers::detail::spinlock > lk( splk);
+        std::unique_lock< fibers::detail::spinlock > lk( splk);
         boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_) throw boost::system::system_error( ec_);
     }
@@ -240,7 +239,7 @@ struct spawn_data : private noncopyable
     {}
 
     boost::asio::io_service&                    io_svc_;
-    boost::fibers::detail::fiber_base*          fiber_;
+    boost::fibers::fiber_context*          fiber_;
     Handler                                     handler_;
     bool                                        call_handler_;
     Function                                    function_;
@@ -271,12 +270,11 @@ struct spawn_helper
   void operator()()
   {
     fiber_entry_point< Handler, Function > entry_point = { data_ };
-    boost::fibers::fiber fiber( entry_point, attributes_);
+    boost::fibers::fiber fiber( entry_point);
     fiber.detach();
   }
 
   shared_ptr< spawn_data< Handler, Function > > data_;
-  boost::fibers::attributes                     attributes_;
 };
 
 inline void default_spawn_handler() {}
@@ -286,8 +284,7 @@ inline void default_spawn_handler() {}
 template< typename Handler, typename Function >
 void spawn( boost::asio::io_service& io_service,
     BOOST_ASIO_MOVE_ARG( Handler) handler,
-    BOOST_ASIO_MOVE_ARG( Function) function,
-    boost::fibers::attributes const& attributes)
+    BOOST_ASIO_MOVE_ARG( Function) function)
 {
     detail::spawn_helper< Handler, Function > helper;
     helper.data_.reset(
@@ -295,15 +292,13 @@ void spawn( boost::asio::io_service& io_service,
             io_service,
             BOOST_ASIO_MOVE_CAST( Handler)( handler), true,
             BOOST_ASIO_MOVE_CAST( Function)( function) ) );
-    helper.attributes_ = attributes;
     boost_asio_handler_invoke_helpers::invoke(
         helper, helper.data_->handler_);
 }
 
 template< typename Handler, typename Function >
 void spawn( basic_yield_context< Handler > ctx,
-    BOOST_ASIO_MOVE_ARG( Function) function,
-    boost::fibers::attributes const& attributes)
+    BOOST_ASIO_MOVE_ARG( Function) function)
 {
     Handler handler( ctx.handler_); // Explicit copy that might be moved from.
     detail::spawn_helper< Handler, Function > helper;
@@ -311,32 +306,27 @@ void spawn( basic_yield_context< Handler > ctx,
         new detail::spawn_data< Handler, Function >(
             BOOST_ASIO_MOVE_CAST( Handler)( handler), false,
             BOOST_ASIO_MOVE_CAST( Function)( function) ) );
-    helper.attributes_ = attributes;
     boost_asio_handler_invoke_helpers::invoke(
         helper, helper.data_->handler_);
 }
 
 template< typename Function >
 void spawn( boost::asio::io_service::strand strand,
-    BOOST_ASIO_MOVE_ARG( Function) function,
-    boost::fibers::attributes const& attributes)
+    BOOST_ASIO_MOVE_ARG( Function) function)
 {
     boost::fibers::asio::spawn(
         strand.get_io_service(),
         strand.wrap( & detail::default_spawn_handler),
-        BOOST_ASIO_MOVE_CAST( Function)( function),
-        attributes);
+        BOOST_ASIO_MOVE_CAST( Function)( function));
 }
 
 template< typename Function >
 void spawn( boost::asio::io_service & io_service,
-    BOOST_ASIO_MOVE_ARG( Function) function,
-    boost::fibers::attributes const& attributes)
+    BOOST_ASIO_MOVE_ARG( Function) function)
 {
     boost::fibers::asio::spawn(
         boost::asio::io_service::strand( io_service),
-        BOOST_ASIO_MOVE_CAST( Function)( function),
-        attributes);
+        BOOST_ASIO_MOVE_CAST( Function)( function));
 }
 
 #endif // !defined(GENERATING_DOCUMENTATION)

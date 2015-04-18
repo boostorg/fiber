@@ -19,8 +19,7 @@ barrier is reset.
 
     #include <boost/fiber/barrier.hpp>
 
-    class barrier
-    {
+    class barrier {
     public:
         barrier( unsigned int initial);
 
@@ -36,7 +35,7 @@ Instances of __barrier__ are not copyable or movable.
 
 [heading Constructor]
 
-        barrier( unsigned int initial);
+        barrier( std::size_t initial);
 
 [variablelist
 [[Effects:] [Construct a barrier for `initial` fibers.]]

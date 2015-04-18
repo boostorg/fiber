@@ -30,8 +30,7 @@
 <a name="fiber.synchronization.conditions.h0"></a>
         <span><a name="fiber.synchronization.conditions.synopsis"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.synopsis">Synopsis</a>
       </h5>
-<pre class="programlisting"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="identifier">cv_status</span><span class="special">;</span>
-<span class="special">{</span>
+<pre class="programlisting"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="identifier">cv_status</span><span class="special">;</span> <span class="special">{</span>
     <span class="identifier">no_timeout</span><span class="special">,</span>
     <span class="identifier">timeout</span>
 <span class="special">};</span>
@@ -53,13 +52,13 @@
 
 <span class="keyword">void</span> <span class="identifier">process_data</span><span class="special">();</span>
 
-<span class="keyword">void</span> <span class="identifier">wait_for_data_to_process</span><span class="special">()</span>
-<span class="special">{</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span><span class="special">::</span><span class="identifier">scoped_lock</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
-    <span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">data_ready</span><span class="special">)</span>
+<span class="keyword">void</span> <span class="identifier">wait_for_data_to_process</span><span class="special">()</span> <span class="special">{</span>
     <span class="special">{</span>
-        <span class="identifier">cond</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
-    <span class="special">}</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">lock_guard</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
+        <span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">data_ready</span><span class="special">)</span> <span class="special">{</span>
+            <span class="identifier">cond</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
+        <span class="special">}</span>
+    <span class="special">}</span>                       <span class="comment">// release lk</span>
     <span class="identifier">process_data</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
@@ -74,20 +73,19 @@
         is correctly synchronized.
       </p>
 <p>
-        In the meantime, another fiber sets the condition to <code class="computeroutput"><span class="keyword">true</span></code>,
-        and then calls either <code class="computeroutput"><span class="identifier">notify_one</span></code>
-        or <code class="computeroutput"><span class="identifier">notify_all</span></code> on the condition
-        variable to wake one waiting fiber or all the waiting fibers respectively.
+        In the meantime, another fiber sets <code class="computeroutput"><span class="identifier">data_ready</span></code>
+        to <code class="computeroutput"><span class="keyword">true</span></code>, and then calls either
+        <code class="computeroutput"><span class="identifier">notify_one</span></code> or <code class="computeroutput"><span class="identifier">notify_all</span></code> on the condition variable <code class="computeroutput"><span class="identifier">cond</span></code> to wake one waiting fiber or all the
+        waiting fibers respectively.
       </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">retrieve_data</span><span class="special">();</span>
 <span class="keyword">void</span> <span class="identifier">prepare_data</span><span class="special">();</span>
 
-<span class="keyword">void</span> <span class="identifier">prepare_data_for_processing</span><span class="special">()</span>
-<span class="special">{</span>
+<span class="keyword">void</span> <span class="identifier">prepare_data_for_processing</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">retrieve_data</span><span class="special">();</span>
     <span class="identifier">prepare_data</span><span class="special">();</span>
     <span class="special">{</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">lock_guard</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">lock_guard</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
         <span class="identifier">data_ready</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
     <span class="special">}</span>
     <span class="identifier">cond</span><span class="special">.</span><span class="identifier">notify_one</span><span class="special">();</span>
@@ -96,6 +94,10 @@
 <p>
         Note that the same mutex is locked before the shared data is updated, but
         that the mutex does not have to be locked across the call to <code class="computeroutput"><span class="identifier">notify_one</span></code>.
+      </p>
+<p>
+        Locking is important because the synchronization objects provided by <span class="bold"><strong>Boost.Fiber</strong></span> can be used to synchronize fibers running
+        on different threads.
       </p>
 <p>
         <span class="bold"><strong>Boost.Fiber</strong></span> provides both <code class="computeroutput"><span class="identifier">condition_variable</span></code> and <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>
@@ -120,14 +122,12 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">condition</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">enum</span> <span class="identifier">cv_status</span>
-<span class="special">{</span>
+<span class="keyword">enum</span> <span class="identifier">cv_status</span> <span class="special">{</span>
     <span class="identifier">no_timeout</span> <span class="special">=</span> <span class="number">1</span><span class="special">,</span>
     <span class="identifier">timeout</span>
 <span class="special">};</span>
 
-<span class="keyword">class</span> <span class="identifier">condition_variable</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">condition_variable</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">condition_variable</span><span class="special">();</span>
     <span class="special">~</span><span class="identifier">condition_variable</span><span class="special">();</span>
@@ -144,17 +144,17 @@
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
     <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">predicate</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span> <span class="special">&gt;</span>
-    <span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+    <span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+    <span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
+    <span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 <span class="special">};</span>
 
 <span class="keyword">typedef</span> <span class="identifier">condition_variable</span> <span class="identifier">condition_variable_any</span><span class="special">;</span>
@@ -365,11 +365,11 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span> <span class="special">&gt;</span>
-<span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+<span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -453,10 +453,10 @@
 <p>
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
+<span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -483,10 +483,10 @@
               if the function exits with an exception. The member function accepting
               <code class="computeroutput"><span class="identifier">pred</span></code> is shorthand for:
 </p>
-<pre class="programlisting"><span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">pred</span><span class="special">()</span> <span class="special">)</span>
-<span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">cv_status</span><span class="special">::</span><span class="identifier">timeout</span> <span class="special">==</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">timeout_duration</span><span class="special">)</span> <span class="special">)</span>
+<pre class="programlisting"><span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">pred</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">cv_status</span><span class="special">::</span><span class="identifier">timeout</span> <span class="special">==</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">timeout_duration</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span>
         <span class="keyword">return</span> <span class="identifier">pred</span><span class="special">();</span>
+    <span class="special">}</span>
 <span class="special">}</span>
 <span class="keyword">return</span> <span class="keyword">true</span><span class="special">;</span>
 </pre>

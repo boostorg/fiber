@@ -1,8 +1,8 @@
 #include <cstdlib>
+#include <functional>
+#include <stdexcept>
 #include <iostream>
 #include <string>
-
-#include <boost/bind.hpp>
 
 #include <boost/fiber/all.hpp>
 
@@ -11,7 +11,7 @@ int value2 = 0;
 
 void fn1()
 {
-    boost::fibers::fiber::id id =boost::this_fiber::get_id();
+    boost::fibers::fiber::id id = boost::this_fiber::get_id();
     for ( int i = 0; i < 5; ++i)
     {
         ++value1;
@@ -23,7 +23,7 @@ void fn1()
 
 void fn2( boost::fibers::fiber & f)
 {
-    boost::fibers::fiber::id id =boost::this_fiber::get_id();
+    boost::fibers::fiber::id id = boost::this_fiber::get_id();
     for ( int i = 0; i < 5; ++i)
     {
         ++value2;
@@ -45,7 +45,7 @@ int main()
     try
     {
         boost::fibers::fiber f1( fn1);
-        boost::fibers::fiber f2( boost::bind( fn2, boost::ref( f1) ) );
+        boost::fibers::fiber f2( fn2, std::ref( f1) );
 
         f2.join();
 

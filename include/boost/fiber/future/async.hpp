@@ -7,10 +7,11 @@
 #ifndef BOOST_FIBERS_ASYNC_HPP
 #define BOOST_FIBERS_ASYNC_HPP
 
+#include <algorithm> // std::move()
+#include <type_traits> // std::result_of
+#include <utility> // std::forward()
+
 #include <boost/config.hpp>
-#include <boost/detail/scoped_enum_emulation.hpp>
-#include <boost/move/move.hpp>
-#include <boost/utility/result_of.hpp>
 
 #include <boost/fiber/future/future.hpp>
 #include <boost/fiber/future/packaged_task.hpp>
@@ -18,51 +19,28 @@
 namespace boost {
 namespace fibers {
 
-#ifndef BOOST_NO_RVALUE_REFERENCES
-#ifdef BOOST_MSVC
-template< typename R >
-future< R >
-async( R( *f)() )
-{
-    packaged_task< R() > pt( f);
-    future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
-}
-#endif
-template< typename F >
-future< typename result_of< F() >::type >
-async( F && f)
-{
-    typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( forward< F >( f) );
-    future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
-}
-#else
-template< typename F >
-future< typename result_of< F() >::type >
-async( F f)
-{
-    typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( forward< F >( f) );
-    future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
+template< typename Fn, typename ... Args >
+future< typename std::result_of< Fn( Args ... ) >::type >
+async( Fn fn, Args && ... args) {
+    typedef typename std::result_of< Fn( Args ... ) >::type result_type;
+
+    packaged_task< result_type( Args ... ) > pt( std::forward< Fn >( fn) );
+    future< result_type > f( pt.get_future() );
+    fiber( std::move( pt), std::forward< Args >( args) ... ).detach();
+    return std::move( f);
 }
 
-template< typename F >
-future< typename result_of< F() >::type >
-async( BOOST_RV_REF( F) f)
-{
-    typedef typename result_of< F() >::type R;
-    packaged_task< R() > pt( forward< F >( f) );
-    future< R > fi( pt.get_future() );
-    fiber( move( pt) ).detach();
-    return move( fi);
+template< typename StackAllocator, typename Fn, typename ... Args >
+future< typename std::result_of< Fn( Args ... ) >::type >
+async( StackAllocator salloc, Fn fn, Args && ... args) {
+    typedef typename std::result_of< Fn( Args ... ) >::type result_type;
+
+    packaged_task< result_type( Args ... ) > pt(
+        std::forward< Fn >( fn), std::forward< Args >( args) ... );
+    future< result_type > f( pt.get_future() );
+    fiber( salloc, std::move( pt), std::forward< Args >( args) ... ).detach();
+    return std::move( f);
 }
-#endif
 
 }}
 

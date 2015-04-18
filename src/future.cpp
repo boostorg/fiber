@@ -4,21 +4,49 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/future.hpp"
+#include "boost/fiber/exceptions.hpp"
 
 namespace boost {
 namespace fibers {
 
-class future_error_category : public system::error_category
-{
+class future_error_category : public std::error_category {
 public:
-    virtual const char* name() const BOOST_NOEXCEPT
-    { return "future"; }
+    virtual const char* name() const noexcept {
+        return "future";
+    }
 
-    virtual std::string message( int ev) const
-    {
-        switch (BOOST_SCOPED_ENUM_NATIVE(future_errc)(ev))
-        {
+    virtual std::error_condition default_error_condition( int ev) const noexcept {
+        switch ( ev) {
+            case 1: return std::error_condition(
+                            static_cast< int >( future_errc::broken_promise),
+                            future_category() );
+            case 2: return std::error_condition(
+                            static_cast< int >( future_errc::future_already_retrieved),
+                            future_category() );
+            case 3: return std::error_condition(
+                            static_cast< int >( future_errc::promise_already_satisfied),
+                            future_category() );
+            case 4: return std::error_condition(
+                            static_cast<
+                            int >( future_errc::no_state),
+                            future_category() );
+            default:
+                    return std::error_condition(
+                            static_cast<
+                            int >( future_errc::unknown),
+                            future_category() );
+        }
+    }
+
+      virtual bool equivalent( std::error_code const& code, int condition) const noexcept {
+          return * this == code.category() &&
+              static_cast< int >( default_error_condition( code.value() ).value() ) == condition;
+      }
+
+    virtual std::string message( int ev) const {
+        switch ( static_cast< future_errc >( ev) ) {
+        case future_errc::unknown:
+            return std::string("Unknown error");
         case future_errc::broken_promise:
             return std::string("The associated promise has been destructed prior "
                           "to the associated state becoming ready.");
@@ -35,8 +63,7 @@ public:
     }
 };
 
-system::error_category const& future_category() BOOST_NOEXCEPT
-{
+std::error_category const& future_category() noexcept {
     static fibers::future_error_category cat;
     return cat;
 }

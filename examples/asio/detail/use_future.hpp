@@ -13,21 +13,16 @@
 #ifndef BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
 #define BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
 
+#include <exception>
 #include <memory>
 
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/detail/config.hpp>
 #include <boost/asio/handler_type.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/move/move.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/system/system_error.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/thread/detail/memory.hpp>
-#include <boost/throw_exception.hpp>
 
-#include <boost/fiber/future/future.hpp>
-#include <boost/fiber/future/promise.hpp>
+#include <boost/fiber/all.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -45,8 +40,7 @@ public:
     // Construct from use_future special value.
     template< typename Allocator >
     promise_handler( boost::fibers::asio::use_future_t< Allocator > uf) :
-        promise_( boost::allocate_shared< boost::fibers::promise< T > >(
-            uf.get_allocator(), boost::allocator_arg, uf.get_allocator() ) )
+        promise_( new boost::fibers::promise< T >( std::allocator_arg, uf.get_allocator() ) )
     {}
 
     void operator()( T t)
@@ -59,7 +53,7 @@ public:
     {
         if (ec)
             promise_->set_exception(
-                    boost::copy_exception(
+                    std::make_exception_ptr(
                         boost::system::system_error( ec) ) );
         else
             promise_->set_value( t);
@@ -81,8 +75,7 @@ public:
     // Construct from use_future special value. Used during rebinding.
     template< typename Allocator >
     promise_handler( boost::fibers::asio::use_future_t< Allocator > uf) :
-        promise_( boost::allocate_shared< boost::fibers::promise< void > >(
-            uf.get_allocator(), boost::allocator_arg, uf.get_allocator() ) )
+        promise_( new boost::fibers::promise< void > >( std::allocator_arg, uf.get_allocator() ) )
     {}
 
     void operator()()
@@ -95,7 +88,7 @@ public:
     {
         if ( ec)
             promise_->set_exception(
-                    boost::copy_exception(
+                    std::make_exception_ptr(
                         boost::system::system_error( ec) ) );
         else
             promise_->set_value();
@@ -118,7 +111,7 @@ void asio_handler_invoke( Function f, promise_handler< T > * h)
     try
     { f(); }
     catch (...)
-    { p->set_exception( boost::current_exception() ); }
+    { p->set_exception( std::current_exception() ); }
 }
 
 } // namespace detail

@@ -7,10 +7,11 @@
 #include "boost/fiber/mutex.hpp"
 
 #include <algorithm>
+#include <mutex>
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/detail/scheduler.hpp"
+#include "boost/fiber/fiber_manager.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -21,114 +22,83 @@
 namespace boost {
 namespace fibers {
 
+bool
+mutex::lock_if_unlocked_() {
+    if ( mutex_status::unlocked != state_) {
+        return false;
+    }
+    
+    state_ = mutex_status::locked;
+    BOOST_ASSERT( ! owner_);
+    owner_ = this_fiber::get_id();
+    return true;
+}
+
 mutex::mutex() :
     splk_(),
-	state_( UNLOCKED),
+	state_( mutex_status::unlocked),
     owner_(),
-    waiting_()
-{}
+    waiting_() {
+}
 
-mutex::~mutex()
-{
+mutex::~mutex() {
     BOOST_ASSERT( ! owner_);
     BOOST_ASSERT( waiting_.empty() );
 }
 
 void
-mutex::lock()
-{
-    detail::fiber_base * n( detail::scheduler::instance()->active() );
-    if ( 0 != n)
-    {
-        for (;;)
-        {
-            unique_lock< detail::spinlock > lk( splk_);
+mutex::lock() {
+    fiber_context * f( detail::scheduler::instance()->active() );
+    BOOST_ASSERT( nullptr != f);
+    for (;;) {
+        std::unique_lock< detail::spinlock > lk( splk_);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return;
-            }
-
-            // store this fiber in order to be notified later
-            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
-            waiting_.push_back( n);
-
-            // suspend this fiber
-            detail::scheduler::instance()->wait( lk);
+        if ( lock_if_unlocked_() ) {
+            return;
         }
-    }
-    else
-    {
-        // notification for main-fiber
-        detail::main_fiber mf;
-        n = & mf;
 
-        for (;;)
-        {
-            unique_lock< detail::spinlock > lk( splk_);
+        // store this fiber in order to be notified later
+        BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
+        waiting_.push_back( f);
 
-            if ( UNLOCKED == state_)
-            {
-                state_ = LOCKED;
-                BOOST_ASSERT( ! owner_);
-                owner_ = this_fiber::get_id();
-                return;
-            }
-
-            // store this fiber in order to be notified later
-            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), n) );
-            waiting_.push_back( n);
-            lk.unlock();
-
-            // wait until main-fiber gets notified
-            while ( ! n->is_ready() )
-                // run scheduler
-                detail::scheduler::instance()->run();
-        }
+        // suspend this fiber
+        detail::scheduler::instance()->wait( lk);
     }
 }
 
 bool
-mutex::try_lock()
-{
-    unique_lock< detail::spinlock > lk( splk_);
+mutex::try_lock() {
+    std::unique_lock< detail::spinlock > lk( splk_);
 
-    if ( UNLOCKED == state_)
-    {
-        state_ = LOCKED;
-        BOOST_ASSERT( ! owner_);
-        owner_ = this_fiber::get_id();
+    if ( lock_if_unlocked_() ) {
         return true;
     }
-    else
-    {
-        lk.unlock();
-        // let other fiber release the lock
-        this_fiber::yield();
-        return false;
-    }
+
+    lk.unlock();
+    // let other fiber release the lock
+    this_fiber::yield();
+    return false;
 }
 
 void
-mutex::unlock()
-{
-    BOOST_ASSERT( LOCKED == state_);
+mutex::unlock() {
+    BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-    unique_lock< detail::spinlock > lk( splk_);
-    detail::fiber_base * n = 0;
-    if ( ! waiting_.empty() )
-    {
-        n = waiting_.front();
+    std::unique_lock< detail::spinlock > lk( splk_);
+    fiber_context * f( nullptr);
+    if ( ! waiting_.empty() ) {
+        f = waiting_.front();
         waiting_.pop_front();
+        BOOST_ASSERT( nullptr != f);
     }
-    owner_ = detail::worker_fiber::id();
-	state_ = UNLOCKED;
+    owner_ = fiber_context::id();
+	state_ = mutex_status::unlocked;
     lk.unlock();
-    if ( n) n->set_ready();
+    if ( nullptr != f) {
+        BOOST_ASSERT( ! f->is_terminated() );
+        f->set_ready();
+    }
 }
 
 }}

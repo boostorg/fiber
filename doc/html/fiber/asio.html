@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Asynchronous network I/O (boost.asio)</title>
+<title>Example: asynchronous network I/O (boost.asio)</title>
 <link rel="stylesheet" href="../../../../../doc/src/boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
@@ -24,14 +24,14 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="fiber.asio"></a><a class="link" href="asio.html" title="Asynchronous network I/O (boost.asio)">Asynchronous network I/O (boost.asio)</a>
+<a name="fiber.asio"></a><a class="link" href="asio.html" title="Example: asynchronous network I/O (boost.asio)">Example: asynchronous network I/O (boost.asio)</a>
 </h2></div></div></div>
 <p>
       In the past, code using asio's <span class="emphasis"><em>asynchronous operations</em></span>
       was scattered by callbacks. <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
       provides with its new <span class="emphasis"><em>asynchronous result</em></span> feature a new
       way to simplify the code and make it easier to read. <span class="emphasis"><em>boost::asio::yield_context</em></span>
-      internally uses <a href="../../../../../libs/coroutine/index.html" target="_top">Boost.Coroutine</a>:
+      internally uses __boost_coroutine__:
     </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">echo</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">ip</span><span class="special">::</span><span class="identifier">tcp</span><span class="special">::</span><span class="identifier">socket</span><span class="special">&amp;</span> <span class="identifier">socket</span><span class="special">,</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_context</span> <span class="identifier">yield</span><span class="special">){</span>
     <span class="keyword">char</span> <span class="identifier">data</span><span class="special">[</span><span class="number">128</span><span class="special">];</span>
@@ -44,12 +44,12 @@
 <span class="special">}</span>
 </pre>
 <p>
-      Unfortunately <a href="../../../../../libs/coroutine/index.html" target="_top">Boost.Coroutine</a>
-      (<span class="emphasis"><em>boost::asio::yield_context</em></span>) does not provide primitives
-      to synchronize different coroutines (execution contexts).
+      Unfortunately __boost_coroutine__ (<span class="emphasis"><em>boost::asio::yield_context</em></span>)
+      does not provide primitives to synchronize different coroutines (execution
+      contexts).
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides an integration of <code class="computeroutput"><span class="identifier">fibers</span></code> into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides an example how <code class="computeroutput"><span class="identifier">fibers</span></code> could be integrated into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
       so that <span class="emphasis"><em>asynchronous operations</em></span> from <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>
       can be used together with fibers, synchronized by primitives provided by <span class="bold"><strong>Boost.Fiber</strong></span>.
     </p>
@@ -126,6 +126,20 @@
       Therefore developers are able to use patterns familiar from multi-threaded
       programming. For instance the strategy 'serve one client with one thread' could
       be transformed into 'serve one client with one fiber'.
+    </p>
+<h4>
+<a name="fiber.asio.h1"></a>
+      <span><a name="fiber.asio.integration"></a></span><a class="link" href="asio.html#fiber.asio.integration">Integration</a>
+    </h4>
+<p>
+      The code for integrating boost.fiber int boost.asio can be found in the example
+      directory. THe author believes, that a better, more tight integration is possible
+      but requires input of boost.asio's author and maybe some changes in the boost.asio
+      framework.
+    </p>
+<p>
+      The current integration pattern requires to runn <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span></code> in <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">run_service</span><span class="special">()</span></code>
+      (separate fiber).
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">

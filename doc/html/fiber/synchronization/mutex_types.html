@@ -37,8 +37,7 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">mutex</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">mutex</span><span class="special">();</span>
     <span class="special">~</span><span class="identifier">mutex</span><span class="special">();</span>
@@ -49,8 +48,6 @@
     <span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
-
-    <span class="keyword">typedef</span> <span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">scoped_lock</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -73,8 +70,7 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">timed_mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">timed_mutex</span> <span class="special">:</span> <span class="keyword">private</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">noncopyable</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">timed_mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">timed_mutex</span><span class="special">();</span>
     <span class="special">~</span><span class="identifier">timed_mutex</span><span class="special">();</span>
@@ -86,11 +82,10 @@
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
 
-    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
-
-    <span class="keyword">typedef</span> <span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">timed_mutex</span> <span class="special">&gt;</span> <span class="identifier">scoped_lock</span><span class="special">;</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -110,8 +105,7 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">recursive_mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">recursive_mutex</span> <span class="special">:</span> <span class="keyword">private</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">noncopyable</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">recursive_mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">recursive_mutex</span><span class="special">();</span>
     <span class="special">~</span><span class="identifier">recursive_mutex</span><span class="special">();</span>
@@ -122,8 +116,6 @@
     <span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
-
-    <span class="keyword">typedef</span> <span class="identifier">unique_lock</span><span class="special">&lt;</span><span class="identifier">recursive_mutex</span><span class="special">&gt;</span> <span class="identifier">scoped_lock</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -148,8 +140,7 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">recursive_timed_mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">recursive_timed_mutex</span> <span class="special">:</span> <span class="keyword">private</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">noncopyable</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">recursive_timed_mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">recursive_timed_mutex</span><span class="special">();</span>
     <span class="special">~</span><span class="identifier">recursive_timed_mutex</span><span class="special">();</span>
@@ -161,11 +152,10 @@
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
 
-    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
-
-    <span class="keyword">typedef</span> <span class="identifier">unique_lock</span><span class="special">&lt;</span><span class="identifier">recursive_timed_mutex</span><span class="special">&gt;</span> <span class="identifier">scoped_lock</span><span class="special">;</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
 <span class="special">};</span>
 </pre>
 <p>

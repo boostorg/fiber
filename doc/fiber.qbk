@@ -20,12 +20,9 @@
         bool operator<( fiber const& l, fiber const& r) noexcept;
         void swap( fiber & l, fiber & r) noexcept;
 
-        class fiber_group;
-        class attributes;
-
-        struct algorithm;
+        struct sched_algorithm;
         class round_robin;
-        void set_scheduling_algorithm( algorithm * al)
+        void set_scheduling_algorithm( sched_algorithm * al)
 
         }
 
@@ -33,9 +30,12 @@
 
         fibers::id get_id() noexcept;
         void yield();
-        void sleep_until( fibers::clock_type::time_point const& timeout_point);
+        template< typename Clock, typename Duration >
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
-        void sleep_for( fibers::clock_type::duration< Rep, Period > const& timeout_duration); 
+        void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration); 
+        bool thread_affinity() noexcept;
+        void thread_affinity( bool) noexcept;
 
         void interruption_point();
         bool interruption_requested() noexcept;
@@ -53,11 +53,10 @@ cooperatively by a scheduler. Objects of type __fiber__ are only moveable.
 
         boost::fibers::fiber f1; // not-a-fiber
 
-        void f()
-        {
+        void f() {
             boost::fibers::fiber f2( some_fn);
 
-            f1 = boost::move( f2); // f2 moved to f1
+            f1 = std::move( f2); // f2 moved to f1
         }
 
 
@@ -65,23 +64,22 @@ cooperatively by a scheduler. Objects of type __fiber__ are only moveable.
 
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
-If the object must not (or cannot) be copied, then ['boost::ref] can be used to
+If the object must not (or cannot) be copied, then ['std::ref] can be used to
 pass in a reference to the function object. In this case, the user must ensure
 that the referenced object outlives the newly-created fiber.
 
-        struct callable
-        { void operator()(); };
+        struct callable {
+            void operator()();
+        };
 
-        boost::fibers::fiber copies_are_safe()
-        {
+        boost::fibers::fiber copies_are_safe() {
             callable x;
             return boost::fibers::fiber( x);
         } // x is destroyed, but the newly-created fiber has a copy, so this is OK
 
-        boost::fibers::fiber oops()
-        {
+        boost::fibers::fiber oops() {
             callable x;
-            return boost::fibers::fiber( boost::ref( x) );
+            return boost::fibers::fiber( std::ref( x) );
         } // x is destroyed, but the newly-created fiber still has a reference
           // this leads to undefined behaviour
 
@@ -92,9 +90,10 @@ might have suspended.
 
 [heading Exceptions]
 
-Exceptions thrown by the function or callable object passed to the __fiber__
-constructor are consumed by the framework. If you need to know which
-exception was thrown, use __future__ and __packaged_task__.
+A exception thrown by the function or callable object passed to the __fiber__
+constructor calls `std::terminate()`.
+If you need to know which exception was thrown, use __future__ and
+__packaged_task__.
 
 
 [heading Detaching]
@@ -114,8 +113,9 @@ has completed.
 If the __fiber__ has already completed, or the __fiber__ object represents
 __not_a_fiber__, then __join__ returns immediately.
 
-        void some_fn()
-        { ... }
+        void some_fn() {
+            ...
+        }
 
         boost::fibers::fiber f( some_fn);
         ...
@@ -202,29 +202,17 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
         #include <boost/fiber/fiber.hpp>
 
-        class fiber
-        {
+        class fiber {
         public:
-            typedef uspecified-class        id;
+            class        id;
 
             fiber() noexcept;
 
-            template< typename Fn >
-            explicit fiber( Fn fn, attributes const& attr = attributes(),
-                            stack_allocator const& stack_alloc = stack_allocator(),
-                            std::allocator< fiber > const& alloc =
-                                 std::allocator< fiber >() );
+            template< typename Fn, typename ... Args >
+            explicit fiber( Fn && fn, Args && ... args);
 
-            template< typename Fn, typename StackAllocator >
-            explicit fiber( Fn fn, attributes const& attr,
-                            StackAllocator const& stack_alloc,
-                            std::allocator< fiber > const& alloc =
-                                 std::allocator< fiber >() );
-
-            template< typename Fn, typename StackAllocator, typename Allocator >
-            explicit fiber( Fn fn, attributes const& attr,
-                            StackAllocator const& stack_alloc,
-                            Allocator const& alloc);
+            template< typename StackAllocator, typename Fn, typename ... Args >
+            explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
 
             ~fiber();
 
@@ -236,7 +224,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
             fiber & operator=( fiber && other) noexcept;
 
-            operator safe_bool() const noexcept;
+            operator bool() const noexcept;
 
             bool operator!() const noexcept;
 
@@ -246,10 +234,8 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
             id get_id() const noexcept;
 
-            int priority() const noexcept;
-            void priority( int) noexcept;
-
             bool thread_affinity() const noexcept;
+
             void thread_affinity( bool) noexcept;
 
             void detach() noexcept;
@@ -276,22 +262,11 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
 [heading Constructor]
 
-        template< typename Fn >
-        explicit fiber( Fn fn, attributes const& attr = attributes(),
-                        stack_allocator const& stack_alloc = stack_allocator(),
-                        std::allocator< fiber > const& alloc =
-                             std::allocator< fiber >() );
+        template< typename Fn, typename ... Args >
+        explicit fiber( Fn && fn, Args && ... args);
 
-        template< typename Fn, typename StackAllocator >
-        explicit fiber( Fn fn, attributes const& attr,
-                        StackAllocator const& stack_alloc,
-                        std::allocator< fiber > const& alloc =
-                             std::allocator< fiber >() );
-
-        template< typename Fn, typename StackAllocator, typename Allocator >
-        explicit fiber( Fn fn, attributes const& attr,
-                        StackAllocator const& stack_alloc,
-                        Allocator const& alloc);
+        template< typename StackAllocator, typename Fn, typename ... Args >
+        explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
 
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
@@ -299,7 +274,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_exception__ if an error occurs.]]
 [[Note:] [StackAllocator is required to allocate a stack for the internal
-coroutine.]]
+__econtext__.]]
 ]
 
 [heading Move constructor]
@@ -408,29 +383,6 @@ interruption enabled.]]
 [[Throws:] [Nothing]]
 ]
 
-[heading Member function `priority( int)`]
-
-        void priority( int) noexcept;
-
-[variablelist
-[[Preconditions:] [`*this` refers to a fiber of execution.]]
-[[Effects:] [set priority for the fiber referenced by `*this`.]]
-[[Throws:] [Nothing]]
-[[Note:] [The meaning of particular `int` values is determined by the specific
-__algo__ passed to [function_link set_scheduling_algorithm]. [class_link
-round_robin] and [class_link round_robin_ws] ignore `fiber::priority()`.]]
-]
-
-[member_heading fiber..priority]
-
-        int priority() const noexcept;
-
-[variablelist
-[[Preconditions:] [`*this` refers to a fiber of execution.]]
-[[Returns:] [priority for the fiber referenced by `*this`.]]
-[[Throws:] [Nothing]]
-]
-
 [#fiber_thread_affinity]
 [heading Member function `thread_affinity( bool)`]
 
@@ -460,9 +412,9 @@ an applicable scheduler, a fiber is allowed to migrate across threads.]]
 [[See also:] [[ns_function_link this_fiber..thread_affinity]]]
 ]
 
-[member_heading fiber..operator safe_bool]
+[member_heading fiber..operator bool]
 
-        operator safe_bool() const noexcept;
+        operator bool() const noexcept;
 
 [variablelist
 [[Returns:] [`true` if `*this` refers to a fiber of execution which has not
@@ -507,7 +459,7 @@ prior to the call.]]
 
 [function_heading set_scheduling_algorithm]
 
-    void set_scheduling_algorithm( algorithm* scheduler );
+    void set_scheduling_algorithm( sched_algorithm* scheduler );
 
 [variablelist
 [[Effects:] [Directs __boost_fiber__ to use `scheduler`, which must be a
@@ -519,223 +471,123 @@ is the first __boost_fiber__ entry point called by the current thread.]]
 algorithm, make that thread call `set_scheduling_algorithm()` before any other
 __boost_fiber__ entry point. If no scheduler has been set for the current
 thread by the time __boost_fiber__ needs to use it, the library will
-heap-allocate a default [class_link round_robin] instance for this thread.]]
+create a default [class_link round_robin] instance for this thread.]]
 [[Note:] [`set_scheduling_algorithm()` does ['not] take ownership of the
-passed `algorithm*`: __boost_fiber__ does not claim responsibility for the
+passed `sched_algorithm*`: __boost_fiber__ does not claim responsibility for the
 lifespan of the referenced `scheduler` object. The caller must eventually
 destroy the passed `scheduler`, just as it must allocate it in the first
-place. (Storing the pointer in a `boost::thread_specific_ptr` is one way to
-ensure that the instance is destroyed on thread termination.)]]
+place.]]
 [[Throws:] [Nothing]]
 ]
 
 
 [endsect] [/ section Class fiber]
 
-[#class_fiber_group]
-[section:fiber_group Class `fiber_group`]
+[#class_id]
+[section:id Class fiber::id]
 
-__fiber_group__ represents a collection of fibers which can be collectively
-waited on or interrupted.
-__fiber_group__ is neither copyable nor movable. 
+        #include <boost/fiber/fiber.hpp>
 
-        #include <boost/fiber/fiber_group.hpp>
-
-        class fiber_group
-        {
+        class id {
         public:
-            fiber_group() {}
+            id() noexcept;
 
-            ~fiber_group();
+            bool operator==( id const& other) const noexcept;
 
-            fiber_group( fiber_group const& other) = delete;
+            bool operator!=( id const& other) const noexcept;
+            
+            bool operator<( id const& other) const noexcept;
+            
+            bool operator>( id const& other) const noexcept;
+            
+            bool operator<=( id const& other) const noexcept;
+            
+            bool operator>=( id const& other) const noexcept;
 
-            fiber_group & operator=( fiber_group const& other) = delete;
-
-            bool is_this_fiber_in();
-
-            bool is_fiber_in( fiber * f);
-
-            template< typename Fn >
-            fiber * create_fiber( Fn fn, attributes attrs = attributes() );
-
-            template< typename Fn, typename StackAllocator >
-            fiber * create_fiber( Fn fn, attributes attrs,
-                                  StackAllocator const& stack_alloc);
-
-            template< typename Fn, typename StackAllocator, typename Allocator >
-            fiber * create_fiber( Fn fn, attributes attrs,
-                                  StackAllocator const& stack_alloc,
-                                  Allocator const& alloc);
-
-            void add_fiber( fiber * f);
-
-            void remove_fiber( fiber * f);
-
-            void join_all();
-
-            void interrupt_all();
-
-            std::size_t size() const;
+            template< typename charT, class traitsT >
+            friend std::basic_ostream< charT, traitsT > &
+            operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
         };
 
 [heading Constructor]
 
-        fiber_group();
+        id() noexcept;
 
 [variablelist
-[[Effects:] [Create a new fiber group with no fibers.]]
-]
-
-[heading Destructor]
-
-        ~fiber_group();
-
-[variablelist
-[[Effects:] [Destroy `*this` and all __fiber__ objects in the group.]]
-]
-
-[member_heading fiber_group..create_fiber]
-
-        template< typename Fn >
-        fiber * create_fiber( Fn fn, attributes attrs = attributes() );
-
-        template< typename Fn, typename StackAllocator >
-        fiber * create_fiber( Fn fn, attributes attrs,
-                              StackAllocator const& stack_alloc);
-
-        template< typename Fn, typename StackAllocator, typename Allocator >
-        fiber * create_fiber( Fn fn, attributes attrs,
-                              StackAllocator const& stack_alloc,
-                              Allocator const& alloc);
-
-[variablelist
-[[Effects:] [Create a new __fiber__ object as-if by `new fiber( fn)` and add it
-to the group.]]
-[[Postcondition:] [`this->size()` is increased by one, the new fiber is running.]]
-[[Returns:] [A pointer to the new __fiber__ object.]]
-]
-
-[member_heading fiber_group..add_fiber]
-
-        void add_fiber( fiber * f);
-
-[variablelist
-[[Precondition:] [The expression `delete f` is well-formed and will not result
-in undefined behaviour and `is_fiber_in(f) == false`.]]
-[[Effects:] [Add __fiber__ object pointed to by `f` to the group.]]
-[[Postcondition:] [`this->size()` is increased by one.]]
-[[Note:] [Unless the same `f` is later passed to `remove_fiber()`, `*this`
-becomes responsible for the lifespan of `*f`. When the `fiber_group` is
-destroyed, `*f` will also be destroyed.]]
-]
-
-The Precondition implies that `f` must point to a heap __fiber__ object. This
-is erroneous:
-
-    boost::fibers::fiber_group fg;
-    {
-        boost::fibers::fiber f(somefunc);
-        fg.add_fiber(&f);
-    } // WRONG!
-
-Instead, use the following:
-
-    boost::fibers::fiber_group fg;
-    {
-        boost::fibers::fiber* f = new boost::fibers::fiber(somefunc);
-        fg.add_fiber(f);
-    } // okay, fg is now responsible for *f
-
-[member_heading fiber_group..remove_fiber]
-
-        void remove_fiber( fiber * f);
-
-[variablelist
-[[Effects:] [If `f` is a member of the group, remove it without calling
-`delete`.]]
-[[Postcondition:] [If `f` was a member of the group, `this->size()` is
-decreased by one.]]
-]
-
-[member_heading fiber_group..join_all]
-
-        void join_all();
-
-[variablelist
-[[Requires:] [`is_this_fiber_in() == false`.]]
-[[Effects:] [Call `join()` on each __fiber__ object in the group.]]
-[[Postcondition:] [Every fiber in the group has terminated.]]
-[[Note:] [Since __join__ is one of the predefined __interruption_points__,
-`join_all()` is also an interruption point.]]
-]
-
-[member_heading fiber_group..is_this_fiber_in]
-
-        bool is_this_fiber_in();
-
-[variablelist
-[[Returns:] [true if there is a fiber `f` in the group such that
-`f.get_id() == this_fiber::get_id()`.]]
-]
-
-[member_heading fiber_group..is_fiber_in]
-
-        bool is_fiber_in( fiber * f);
-
-[variablelist
-[[Returns:] [true if there is a fiber `fx` in the group such that
-`fx.get_id() == f->get_id()`.]]
-]
-
-[member_heading fiber_group..interrupt_all]
-
-        void interrupt_all();
-
-[variablelist
-[[Effects:] [Call `interrupt()` on each __fiber__ object in the group.]]
-]
-
-[member_heading fiber_group..size]
-
-        int size();
-
-[variablelist
-[[Returns:] [The number of fibers in the group.]]
+[[Effects:] [Represents an instance of __not_a_fiber__.]]
 [[Throws:] [Nothing.]]
 ]
 
+[operator_heading id..operator_equal..operator==]
 
-[endsect] [/ section Class fiber_group]
-
-[#class_attributes]
-[section:attributes Class attributes]
-
-Class `attributes` is used to transfer parameters required to set up a
-fiber's context.
-
-        #include <boost/fiber/attributes.hpp>
-
-        struct attributes
-        {
-            std::size_t                 size;
-
-            attributes() BOOST_NOEXCEPT;
-
-            explicit attributes( std::size_t size_) BOOST_NOEXCEPT;
-        };
-
-[heading Constructor]
-
-        attributes();
-        attributes( std::size_t size);
+        bool operator==( id const& other) const noexcept;
 
 [variablelist
-[[Effects:] [Parameter `size` determines the stack size.]]
+[[Returns:] [`true` if `*this` and `other` represent the same fiber,
+or both represent __not_a_fiber__, `false` otherwise.]]
 [[Throws:] [Nothing.]]
 ]
 
-[endsect] [/ section Class attributes]
+[operator_heading id..operator_not_equal..operator!=]
+
+        bool operator!=( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`! (other == * this)]]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator_less..operator<]
+
+        bool operator<( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this != other` is true and the
+implementation-defined total order of `fiber::id` values places `*this` before
+`other`, false otherwise.]]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator_greater..operator>]
+
+        bool operator>( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`other < * this`]]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator_less_equal..operator<=]
+
+        bool operator<=( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`! (other < * this)`]]
+[[Throws:] [Nothing.]]
+]
+
+[operator_heading id..operator_greater_equal..operator>=]
+
+        bool operator>=( id const& other) const noexcept;
+
+[variablelist
+[[Returns:] [`! (* this < other)`]]
+[[Throws:] [Nothing.]]
+]
+
+[heading operator<<]
+
+        template< typename charT, class traitsT >
+        std::basic_ostream< charT, traitsT > &
+        operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
+
+[variablelist
+[[Efects:] [Writes the representation of `other` to stream `os`.]]
+[[Returns:] [`os`]]
+]
+
+
+[endsect] [/ section Class fiber::id]
 
 
 [section:this_fiber Namespace this_fiber]
@@ -745,9 +597,10 @@ fiber's context.
 
         fibers::fiber::id get_id() noexcept;
         void yield();
-        void sleep_until( fibers::clock_type::time_point const& sleep_time);
+        template< typename Clock, typename Duration >
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
-        void sleep_for( chrono::duration< Rep, Period > const& timeout_duration);
+        void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         bool thread_affinity() noexcept;
         void thread_affinity( bool req) noexcept;
 
@@ -775,7 +628,8 @@ executing fiber.]]
 
         #include <boost/fiber/operations.hpp>
 
-        void sleep_until( fibers::clock_type & abs_time);
+        template< typename Clock, typename Duration >
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time point specified by
@@ -791,12 +645,12 @@ guarantees about how soon after `abs_time` it might resume.]]
         #include <boost/fiber/operations.hpp>
 
         template< class Rep, class Period >
-        void sleep_for( chrono::duration< Rep, Period > const& rel_time);
+        void sleep_for( std::chrono::duration< Rep, Period > const& rel_time);
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time duration specified by
 `rel_time` has elapsed.]]
-[[Throws:] [Nothing if operations of chrono::duration<Rep, Period> do not throw
+[[Throws:] [Nothing if operations of std::chrono::duration<Rep, Period> do not throw
 exceptions. __fiber_interrupted__ if the current fiber is interrupted.]]
 [[Note:] [`sleep_for()` is one of the predefined __interruption_points__.]]
 [[Note:][The current fiber will not resume before `rel_time` has elapsed, but
@@ -868,8 +722,7 @@ __interruption_requested__ both return `true`.]]
 
         #include <boost/fiber/interruption.hpp>
 
-        class disable_interruption
-        {
+        class disable_interruption {
         public:
             disable_interruption() noexcept;
             ~disable_interruption() noexcept;
@@ -908,8 +761,7 @@ value stored by the constructor of `*this`.]]
 
         #include <boost/fiber/interruption.hpp>
 
-        class restore_interruption
-        {
+        class restore_interruption {
         public:
             explicit restore_interruption(disable_interruption& disabler) noexcept;
             ~restore_interruption() noexcept;
@@ -944,8 +796,7 @@ constructed.]]
 [[Throws:] [Nothing.]]
 ]
 
-        void foo()
-        {
+        void foo() {
             // interruption is enabled
             {
                 boost::this_fiber::disable_interruption di;

@@ -17,17 +17,12 @@ import toolset ;
 project boost/fiber/example
     : requirements
       <library>../build//boost_fiber
-      <library>/boost/atomic//boost_atomic
-      <library>/boost/coroutine//boost_coroutine
-      <library>/boost/system//boost_system
-      <library>/boost/thread//boost_thread
-      <toolset>gcc-4.7,<segmented-stacks>on:<cxxflags>-fsplit-stack
-      <toolset>gcc-4.7,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
-      <toolset>gcc-4.8,<segmented-stacks>on:<cxxflags>-fsplit-stack
-      <toolset>gcc-4.8,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
+      <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
+      <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
+      <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
+      <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <link>static
       <threading>multi
-#      <define>BOOST_ASIO_ENABLE_HANDLER_TRACKING
     ;
 
 exe barrier : barrier.cpp ;
@@ -38,10 +33,6 @@ exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp ;
-#exe migrate_fibers
-#    : migrate_fibers.cpp
-#      workstealing_round_robin.cpp
-#    ;
 
 exe asio/daytime_client : asio/daytime_client.cpp ;
 exe asio/daytime_client2 : asio/daytime_client2.cpp ;
@@ -49,7 +40,6 @@ exe asio/echo_client : asio/echo_client.cpp ;
 exe asio/echo_client2 : asio/echo_client2.cpp ;
 exe asio/echo_server : asio/echo_server.cpp ;
 exe asio/echo_server2 : asio/echo_server2.cpp ;
-
-exe asio/publish_subscribe/server : asio/publish_subscribe/server.cpp ;
 exe asio/publish_subscribe/publisher : asio/publish_subscribe/publisher.cpp ;
+exe asio/publish_subscribe/server : asio/publish_subscribe/server.cpp ;
 exe asio/publish_subscribe/subscriber : asio/publish_subscribe/subscriber.cpp ;

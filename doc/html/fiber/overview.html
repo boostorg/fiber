@@ -41,9 +41,9 @@
       using a sort of cooperative scheduling (versus threads, which are preemptively
       scheduled). The running fiber decides explicitly when it should yield to allow
       another fiber to run (context switching). <span class="bold"><strong>Boost.Fiber</strong></span>
-      internally uses coroutines from <a href="../../../../../libs/coroutine/index.html" target="_top">Boost.Coroutine</a>;
+      internally uses <span class="emphasis"><em>execution_context</em></span> from <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>;
       the classes in this library manage, schedule and, when needed, synchronize
-      those coroutines. A context switch between threads usually costs thousands
+      those execution contexts. A context switch between threads usually costs thousands
       of CPU cycles on x86, compared to a fiber switch with a few hundred cycles.
       A fiber can only run on a single thread at any point in time.
     </p>
@@ -143,9 +143,11 @@
 </table></div>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> depends upon <a href="../../../../../libs/chrono/index.html" target="_top">Boost.Chrono</a>,
-      <a href="../../../../../libs/coroutine/index.html" target="_top">Boost.Coroutine</a> and
-      <a href="../../../../../libs/move/index.html" target="_top">Boost.Move</a>. Boost version
-      1.55.0 or greater is required.
+      <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a> and <a href="../../../../../libs/move/index.html" target="_top">Boost.Move</a>. Boost version 1.55.0
+      or greater is required.
+    </p>
+<p>
+      [info This library is C++14-only!]
     </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

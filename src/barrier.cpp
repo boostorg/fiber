@@ -6,10 +6,10 @@
 
 #include "boost/fiber/barrier.hpp"
 
-#include <boost/exception/all.hpp>
+#include <mutex>
+#include <system_error>
 
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/operations.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -23,33 +23,26 @@ barrier::barrier( std::size_t initial) :
 	current_( initial_),
 	cycle_( true),
 	mtx_(),
-	cond_()
-{
-    if ( 0 == initial)
-        boost::throw_exception(
-            invalid_argument(
-                system::errc::invalid_argument,
-                "boost fiber: zero initial barrier count") );
+	cond_() {
+    if ( 0 == initial) {
+        throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
+                                "boost fiber: zero initial barrier count");
+    }
 }
 
 bool
-barrier::wait()
-{
-	mutex::scoped_lock lk( mtx_);
+barrier::wait() {
+	std::unique_lock< mutex > lk( mtx_);
 	bool cycle( cycle_);
-	if ( 0 == --current_)
-	{
+	if ( 0 == --current_) {
 		cycle_ = ! cycle_;
 		current_ = initial_;
 		cond_.notify_all();
 		return true;
-	}
-	else
-	{
-		while ( cycle == cycle_)
-            //FIXME: what happend if fiber is interrupted?
-            // ++current_ ?
+	} else {
+		while ( cycle == cycle_) {
 			cond_.wait( lk);
+        }
 	}
 	return false;
 }

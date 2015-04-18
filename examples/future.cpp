@@ -1,9 +1,8 @@
 #include <cstdlib>
+#include <exception>
+#include <functional>
 #include <iostream>
 #include <string>
-
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
 
 #include <boost/fiber/all.hpp>
 
@@ -23,7 +22,7 @@ void start()
 {
     boost::fibers::future< int > fi(
         boost::fibers::async(
-            boost::bind( fn, "abc", 5) ) );
+            std::bind( fn, "abc", 5) ) );
     fi.wait();
     std::cout << "fn() returned " << fi.get() << std::endl;
 }

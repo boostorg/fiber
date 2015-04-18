@@ -14,8 +14,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/coroutine/stack_allocator.hpp>
-#include <boost/coroutine/stack_context.hpp>
+#include <boost/context/stack_context.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 
@@ -26,23 +25,31 @@
 class preallocated_stack_allocator
 {
 private:
-    boost::coroutines::stack_context    stack_ctx_;
+    typedef std::vector< boost::context::stack_context > cont_t;
+    cont_t      stacks_;
+    std::size_t idx_;
 
 public:
-    preallocated_stack_allocator() :
-        stack_ctx_()
+    preallocated_stack_allocator( std::size_t size = 1) :
+        stacks_(), idx_( 0)
     {
-        boost::coroutines::standard_stack_allocator allocator;
-        allocator.allocate( stack_ctx_, boost::coroutines::stack_allocator::traits_type::default_size() ); 
+        boost::context::fixedsize_stack allocator;
+        for ( std::size_t i = 0; i < size; ++i)
+        {
+            stacks_.push_back( allocator.allocate() );
+        }
     }
 
-    void allocate( boost::coroutines::stack_context & ctx, std::size_t size)
+    boost::context::stack_context allocate()
     {
-        ctx.sp = stack_ctx_.sp;
-        ctx.size = stack_ctx_.size;
+        boost::context::stack_context ctx;
+        ctx.sp = stacks_[idx_].sp;
+        ctx.size = stacks_[idx_].size;
+        ++idx_;
+        return ctx;
     }
 
-    void deallocate( boost::coroutines::stack_context & ctx)
+    void deallocate( boost::context::stack_context & ctx)
     {
     }
 };

@@ -7,7 +7,7 @@
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="prev" href="synchronization/futures/packaged_task.html" title="Template packaged_task&lt;&gt;">
-<link rel="next" href="asio.html" title="Asynchronous network I/O (boost.asio)">
+<link rel="next" href="asio.html" title="Example: asynchronous network I/O (boost.asio)">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -60,8 +60,7 @@
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fss</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">fiber_specific_ptr</span>
-<span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">fiber_specific_ptr</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">typedef</span> <span class="identifier">T</span>   <span class="identifier">element_type</span><span class="special">;</span>
 

@@ -10,12 +10,9 @@
 #include <algorithm>
 #include <cstddef>
 
-#include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -23,53 +20,37 @@
 
 namespace boost {
 namespace fibers {
+
+class fiber_context;
+
 namespace detail {
 
-class fifo : private noncopyable
-{
+class fifo {
 public:
-    fifo() BOOST_NOEXCEPT :
-        head_( 0),
-        tail_( 0)
-    {}
-
-    bool empty() const BOOST_NOEXCEPT
-    { return 0 == head_; }
-
-    void push( worker_fiber * item) BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->next() );
-
-        if ( empty() )
-            head_ = tail_ = item;
-        else
-        {
-            tail_->next( item);
-            tail_ = item;
-        }
+    fifo() noexcept :
+        head_( nullptr),
+        tail_( & head_) {
     }
 
-    worker_fiber * pop() BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( ! empty() );
+    fifo( fifo const&) = delete;
+    fifo & operator=( fifo const&) = delete;
 
-        worker_fiber * item = head_;
-        head_ = head_->next();
-        if ( 0 == head_) tail_ = 0;
-        item->next_reset();
-        return item;
+    bool empty() const noexcept {
+        return nullptr == head_;
     }
 
-    void swap( fifo & other)
-    {
+    void push( fiber_context * item) noexcept;
+
+    fiber_context * pop() noexcept;
+
+    void swap( fifo & other) {
         std::swap( head_, other.head_);
         std::swap( tail_, other.tail_);
     }
 
 private:
-    worker_fiber    *  head_;
-    worker_fiber    *  tail_;
+    fiber_context   *   head_;
+    fiber_context   **  tail_;
 };
 
 }}}

@@ -5,10 +5,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <iostream>
+#include <thread>
 
 #include <boost/assert.hpp>
 #include <boost/fiber/all.hpp>
-#include <boost/thread.hpp>
 
 int count = 384;
 
@@ -45,12 +45,11 @@ void thread_fn()
     {
         boost::fibers::fiber f(
 #if defined(BOOST_USE_SEGMENTED_STACKS)
-                                std::allocator_arg,
-                                boost::fibers::segmented_stack(
-                                    boost::fibers::segmented_stack::traits_type::default_size() ),
+				std::allocator_arg,
+				boost::fibers::segmented_stack(
+					boost::fibers::segmented_stack::traits_type::default_size() ),
 #endif
                                 foo);
-
         f.join();
     }
 }
@@ -58,16 +57,18 @@ void thread_fn()
 int main( int argc, char * argv[])
 {
 #if defined(BOOST_USE_SEGMENTED_STACKS)
-    std::cout << "using segmented stacks: allocates " << count << " * 4kB == " << 4 * count << "kB on stack, ";
-    std::cout << "initial stack size = " << boost::coroutines::stack_allocator::default_stacksize() / 1024 << "kB" << std::endl;
+    std::cout << "using segmented_stack stacks: allocates " << count << " * 4kB == " << 4 * count << "kB on stack, ";
+    std::cout << "initial stack size = " << boost::fibers::segmented_stack::traits_type::default_size() / 1024 << "kB" << std::endl;
     std::cout << "application should not fail" << std::endl;
 #else
     std::cout << "using standard stacks: allocates " << count << " * 4kB == " << 4 * count << "kB on stack, ";
-    std::cout << "initial stack size = " << boost::coroutines::stack_allocator::traits_type::default_size() / 1024 << "kB" << std::endl;
+    std::cout << "initial stack size = " << boost::fibers::fixedsize_stack::traits_type::default_size() / 1024 << "kB" << std::endl;
     std::cout << "application might fail" << std::endl;
 #endif
 
-    boost::thread( thread_fn).join();
+    std::thread( thread_fn).join();
+
+	std::cout << "done." << std::endl;
 
     return 0;
 }

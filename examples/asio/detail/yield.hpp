@@ -43,7 +43,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base       *   fiber_;
+    boost::fibers::fiber_context       *   fiber_;
     boost::system::error_code               *   ec_;
     T                                       *   value_;
 };
@@ -71,7 +71,7 @@ public:
     }
 
 //private:
-    boost::fibers::detail::fiber_base     *   fiber_;
+    boost::fibers::fiber_context     *   fiber_;
     boost::system::error_code             *   ec_;
 };
 
@@ -99,7 +99,7 @@ public:
     type get()
     {
         fibers::detail::spinlock splk;
-        unique_lock< fibers::detail::spinlock > lk( splk);
+        std::unique_lock< fibers::detail::spinlock > lk( splk);
         boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );
@@ -127,7 +127,7 @@ public:
     void get()
     {
         fibers::detail::spinlock splk;
-        unique_lock< fibers::detail::spinlock > lk( splk);
+        std::unique_lock< fibers::detail::spinlock > lk( splk);
         boost::fibers::detail::scheduler::instance()->wait(lk);
         if ( ! out_ec_ && ec_)
             throw_exception( boost::system::system_error( ec_) );

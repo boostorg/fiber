@@ -2,8 +2,6 @@
 #include <iostream>
 #include <string>
 
-#include <boost/bind.hpp>
-
 #include <boost/fiber/all.hpp>
 
 struct condition_test_data
@@ -18,7 +16,7 @@ struct condition_test_data
 
 void condition_test_fiber(condition_test_data* data)
 {
-    boost::unique_lock<boost::fibers::mutex> lock(data->mutex);
+    std::unique_lock<boost::fibers::mutex> lock(data->mutex);
     while (!(data->notified > 0))
         data->condition.wait(lock);
     data->awoken++;
@@ -27,7 +25,7 @@ void condition_test_fiber(condition_test_data* data)
 int main()
 {
     condition_test_data data;
-    boost::fibers::fiber f(boost::bind(&condition_test_fiber, &data));
+    boost::fibers::fiber f( & condition_test_fiber, & data);
 
     f.interrupt();
     try

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <thread>
 #include <vector>
 
 #include <boost/atomic.hpp>
@@ -25,22 +26,22 @@
 
 #include <boost/fiber/all.hpp>
 
-typedef boost::chrono::nanoseconds  ns;
-typedef boost::chrono::milliseconds ms;
+typedef std::chrono::nanoseconds  ns;
+typedef std::chrono::milliseconds ms;
 
 boost::atomic< int > value;
 
 void notify_one_fn( boost::barrier & b, boost::fibers::condition & cond)
 {
     b.wait();
-    boost::this_thread::sleep_for( ms( 250) );
+    std::this_thread::sleep_for( ms( 250) );
 	cond.notify_one();
 }
 
 void notify_all_fn( boost::barrier & b, boost::fibers::condition & cond)
 {
     b.wait();
-    boost::this_thread::sleep_for( ms( 250) );
+    std::this_thread::sleep_for( ms( 250) );
 	cond.notify_all();
 }
 
@@ -50,7 +51,7 @@ void wait_fn(
 	boost::fibers::condition & cond)
 {
     b.wait();
-	boost::fibers::mutex::scoped_lock lk( mtx);
+	std::unique_lock< boost::fibers::mutex > lk( mtx);
 	cond.wait( lk);
 	++value;
 }
@@ -58,29 +59,29 @@ void wait_fn(
 void fn1( boost::barrier & b, boost::fibers::mutex & mtx, boost::fibers::condition & cond)
 {
     boost::fibers::fiber(
-            boost::bind(
+            std::bind(
                 wait_fn,
-                boost::ref( b),
-                boost::ref( mtx),
-                boost::ref( cond) ) ).join();
+                std::ref( b),
+                std::ref( mtx),
+                std::ref( cond) ) ).join();
 }
 
 void fn2( boost::barrier & b, boost::fibers::condition & cond)
 {
 	boost::fibers::fiber(
-            boost::bind(
+            std::bind(
                 notify_one_fn,
-                boost::ref( b),
-                boost::ref( cond) ) ).join();
+                std::ref( b),
+                std::ref( cond) ) ).join();
 }
 
 void fn3( boost::barrier & b, boost::fibers::condition & cond)
 {
 	boost::fibers::fiber(
-            boost::bind(
+            std::bind(
                 notify_all_fn,
-                boost::ref( b),
-                boost::ref( cond) ) ).join();
+                std::ref( b),
+                std::ref( cond) ) ).join();
 }
 
 void test_one_waiter_notify_one()
@@ -93,8 +94,8 @@ void test_one_waiter_notify_one()
 
 	BOOST_CHECK( 0 == value);
 
-    boost::thread t1(boost::bind( fn1, boost::ref( b), boost::ref( mtx), boost::ref( cond) ) );
-    boost::thread t2(boost::bind( fn2, boost::ref( b), boost::ref( cond) ) );
+    std::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond) ) );
+    std::thread t2(std::bind( fn2, std::ref( b), std::ref( cond) ) );
 
 	BOOST_CHECK( 0 == value);
 
@@ -114,9 +115,9 @@ void test_two_waiter_notify_all()
 
 	BOOST_CHECK( 0 == value);
 
-    boost::thread t1(boost::bind( fn1, boost::ref( b), boost::ref( mtx), boost::ref( cond) ) );
-    boost::thread t2(boost::bind( fn1, boost::ref( b), boost::ref( mtx), boost::ref( cond) ) );
-    boost::thread t3(boost::bind( fn3, boost::ref( b), boost::ref( cond) ) );
+    std::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond) ) );
+    std::thread t2(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond) ) );
+    std::thread t3(std::bind( fn3, std::ref( b), std::ref( cond) ) );
 
 	BOOST_CHECK( 0 == value);
 

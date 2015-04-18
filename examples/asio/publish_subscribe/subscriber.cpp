@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     for (;;)
     {
         char reply[max_length];
-        size_t reply_length = boost::asio::read(s,
+        size_t reply_length = s.read_some(
                 boost::asio::buffer(reply, max_length));
         std::cout << "published: ";
         std::cout.write(reply, reply_length);

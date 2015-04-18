@@ -9,8 +9,10 @@
 //
 //
 
+#include <cstddef>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include <iostream>
 #include <string>
 
@@ -18,6 +20,8 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 
@@ -29,9 +33,10 @@
 
 using boost::asio::ip::tcp;
 
-const int max_length = 1024;
+const std::size_t max_length = 1024;
 
 class subscriber_session;
+typedef boost::shared_ptr<subscriber_session> subscriber_session_ptr;
 
 // a channel has n subscribers (subscriptions)
 // this class holds a list of subcribers for one channel
@@ -41,47 +46,36 @@ public:
     ~subscriptions();
 
     // subscribe to this channel
-    void subscribe( boost::shared_ptr< subscriber_session > const& s)
-    { subscribers_.push_back( s); }
+    void subscribe( subscriber_session_ptr const& s)
+    { subscribers_.insert( s); }
 
     // unsubscribe from this channel
-    void unsubscribe( boost::shared_ptr< subscriber_session > const& s)
-    {
-        std::vector< boost::shared_ptr< subscriber_session > >::iterator e = subscribers_.end();
-        for (
-            std::vector< boost::shared_ptr< subscriber_session > >::iterator i = subscribers_.begin();
-            i != e;
-            ++i)
-        {
-            if ( * i == s)
-            {
-                subscribers_.erase( i);
-                break;
-            }
-        }
-    }
+    void unsubscribe( subscriber_session_ptr const& s)
+    { subscribers_.erase(s); }
 
     // publish a message, e.g. push this message to all subscribers
     void publish( std::string const& msg);
 
 private:
     // list of subscribers
-    std::vector< boost::shared_ptr< subscriber_session > >  subscribers_;
+    std::set<subscriber_session_ptr> subscribers_;
 };
 
 // a class to register channels and to subsribe clients to this channels
 class registry : private boost::noncopyable
 {
 private:
-    boost::fibers::mutex                                            mtx_;
-    std::map< std::string, boost::shared_ptr< subscriptions > >     channels_;
+    typedef std::map< std::string, boost::shared_ptr< subscriptions > > channels_cont;
+    typedef channels_cont::iterator channels_iter;
+
+    boost::fibers::mutex    mtx_;
+    channels_cont           channels_;
 
     void register_channel_( std::string const& channel)
     {
         if ( channels_.end() != channels_.find( channel) )
             throw std::runtime_error("channel already exists");
-        channels_[channel] = boost::shared_ptr< subscriptions >(
-                new subscriptions() );
+        channels_[channel] = boost::make_shared< subscriptions >();
         std::cout << "new channel '" << channel << "' registered" << std::endl;
     }
 
@@ -91,24 +85,28 @@ private:
         std::cout << "channel '" << channel << "' unregistered" << std::endl;
     }
 
-    void subscribe_( std::string const& channel, boost::shared_ptr< subscriber_session > s)
+    void subscribe_( std::string const& channel, subscriber_session_ptr s)
     {
-        if ( channels_.end() == channels_.find( channel) )
+        channels_iter iter = channels_.find( channel);
+        if ( channels_.end() == iter )
             throw std::runtime_error("channel does not exist");
-        channels_.find( channel)->second->subscribe( s);
+        iter->second->subscribe( s);
         std::cout << "new subscription to channel '" << channel << "'" << std::endl;
     }
 
-    void unsubscribe_( std::string const& channel, boost::shared_ptr< subscriber_session > s)
+    void unsubscribe_( std::string const& channel, subscriber_session_ptr s)
     {
-        if ( channels_.end() != channels_.find( channel) )
-            channels_.find( channel)->second->unsubscribe( s);
+        channels_iter iter = channels_.find( channel);
+        if ( channels_.end() != iter )
+            iter->second->unsubscribe( s);
     }
 
     void publish_( std::string const& channel, std::string const& msg)
     {
-        BOOST_ASSERT( channels_.end() != channels_.find( channel) );
-        channels_.find( channel)->second->publish( msg);
+        channels_iter iter = channels_.find( channel);
+        if ( channels_.end() == iter )
+            throw std::runtime_error("channel does not exist");
+        iter->second->publish( msg);
         std::cout << "message '" << msg << "' to publish on channel '" << channel << "'" << std::endl;
     }
 
@@ -116,35 +114,35 @@ public:
     // add a channel to registry
     void register_channel( std::string const& channel)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        std::unique_lock< boost::fibers::mutex > lk( mtx_);
         register_channel_( channel);
     }
 
     // remove a channel from registry
     void unregister_channel( std::string const& channel)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        std::unique_lock< boost::fibers::mutex > lk( mtx_);
         unregister_channel_( channel);
     }
 
     // subscribe to a channel
-    void subscribe( std::string const& channel, boost::shared_ptr< subscriber_session > s)
+    void subscribe( std::string const& channel, subscriber_session_ptr s)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        std::unique_lock< boost::fibers::mutex > lk( mtx_);
         subscribe_( channel, s);
     }
 
     // unsubscribe from a channel
-    void unsubscribe( std::string const& channel, boost::shared_ptr< subscriber_session > s)
+    void unsubscribe( std::string const& channel, subscriber_session_ptr s)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        std::unique_lock< boost::fibers::mutex > lk( mtx_);
         unsubscribe_( channel, s);
     }
 
     // publish a message to all subscribers registerd to the channel
     void publish( std::string const& channel, std::string const& msg)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        std::unique_lock< boost::fibers::mutex > lk( mtx_);
         publish_( channel, msg);
     }
 };
@@ -192,11 +190,14 @@ public:
                 // the fiber will be suspended until the condtion
                 // becomes true and the fiber is resumed
                 // published message is stored in buffer 'data_'
-                boost::fibers::mutex::scoped_lock lk( mtx_);
+                std::unique_lock< boost::fibers::mutex > lk( mtx_);
                 cond_.wait( lk);
+                std::string data( data_);
+                lk.unlock();
+                std::cout << "subscriber::run(): '" << data << std::endl;
                 
                 // message '<fini>' terminates subscription
-                if ( "<fini>" == std::string( data_) ) break;
+                if ( "<fini>" == data) break;
 
                 // async. write message to socket connected with
                 // subscriber
@@ -204,9 +205,13 @@ public:
                 // the fiber is suspended in the meanwhile
                 boost::asio::async_write(
                         socket_,
-                        boost::asio::buffer( data_, max_length),
+                        boost::asio::buffer( data, data.size() ),
                         yield[ec]);
-                if ( ec) throw std::runtime_error("publishing message failed");
+                if ( ec == boost::asio::error::eof)
+                    break; //connection closed cleanly by peer
+                else if ( ec)
+                    throw boost::system::system_error( ec); //some other error
+                std::cout << "subscriber::run(): '" << data << " written" << std::endl;
             }
         }
         catch ( std::exception const& e)
@@ -221,9 +226,9 @@ public:
     // called from publisher_session (running in other fiber)
     void publish( std::string const& msg)
     {
-        boost::fibers::mutex::scoped_lock lk( mtx_);
+        std::unique_lock< boost::fibers::mutex > lk( mtx_);
         std::memset(data_, '\0', sizeof( data_));
-        std::memcpy(data_, msg.c_str(), msg.size());
+        std::memcpy(data_, msg.c_str(), (std::min)(max_length, msg.size()));
         cond_.notify_one();
     }
 
@@ -239,14 +244,14 @@ private:
 
 subscriptions::~subscriptions()
 {
-    BOOST_FOREACH( boost::shared_ptr< subscriber_session > s, subscribers_)
+    BOOST_FOREACH( subscriber_session_ptr s, subscribers_)
     { s->publish("<fini>"); } 
 }
 
 void
 subscriptions::publish( std::string const& msg)
 {
-    BOOST_FOREACH( boost::shared_ptr< subscriber_session > s, subscribers_)
+    BOOST_FOREACH( subscriber_session_ptr s, subscribers_)
     { s->publish( msg); }
 }
 
@@ -323,6 +328,8 @@ private:
     registry        &   reg_;
 };
 
+typedef boost::shared_ptr< publisher_session > publisher_session_ptr;
+
 // function accepts connections requests from clients acting as a publisher
 void accept_publisher( boost::asio::io_service& io_service,
                         unsigned short port,
@@ -338,7 +345,8 @@ void accept_publisher( boost::asio::io_service& io_service,
         boost::system::error_code ec;
         // create new publisher-session
         // this instance will be associated with one publisher
-        boost::shared_ptr< publisher_session > new_publisher_session( new publisher_session( io_service, reg) );
+        publisher_session_ptr new_publisher_session = 
+            boost::make_shared<publisher_session>( boost::ref( io_service), boost::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (publisher)
@@ -369,7 +377,8 @@ void accept_subscriber( boost::asio::io_service& io_service,
         boost::system::error_code ec;
         // create new subscriber-session
         // this instance will be associated with one subscriber
-        boost::shared_ptr< subscriber_session > new_subscriber_session( new subscriber_session( io_service, reg) );
+        subscriber_session_ptr new_subscriber_session = 
+            boost::make_shared<subscriber_session>( boost::ref( io_service), boost::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (subscriber)

@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <thread>
 
 #include <boost/bind.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -17,15 +19,29 @@ void fn( std::string const& str, int n)
 	}
 }
 
+void foo() {
+    try
+    {
+        boost::fibers::fiber f1( fn, "abc", 5);
+        std::cerr << "f1 : " << f1.get_id() << std::endl;
+        boost::fibers::fiber f2( std::allocator_arg, boost::fibers::fixedsize_stack(),
+                                 fn, std::string("xyz"), 8);
+        std::cerr << "f2 : " << f2.get_id() << std::endl;
+
+        f1.join();
+        f2.join();
+    }
+	catch ( std::exception const& e)
+	{ std::cerr << "exception: " << e.what() << std::endl; }
+	catch (...)
+	{ std::cerr << "unhandled exception" << std::endl; }
+}
+
 int main()
 {
     try
     {
-        boost::fibers::fiber f1( boost::bind( fn, "abc", 5) );
-        boost::fibers::fiber f2( boost::bind( fn, "xyz", 7) );
-
-        f1.join();
-        f2.join();
+        std::thread( foo).join();
 
         std::cout << "done." << std::endl;
 
