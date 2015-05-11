@@ -251,7 +251,7 @@ fiber_manager::wait_interval() noexcept {
 }
 
 bool
-fiber_manager::preserve_fpu() {
+fiber_manager::preserve_fpu() const {
     return preserve_fpu_;
 }
 

@@ -94,6 +94,7 @@ public:
 
     std::chrono::high_resolution_clock::duration wait_interval() noexcept;
 
+    bool preserve_fpu() const;
     void preserve_fpu( bool);
 };
 
