@@ -119,7 +119,7 @@ public:
     template <class PROPS>
     PROPS& properties()
     {
-        return detail::scheduler::instance()->properties<PROPS>(impl_.get());
+        return dynamic_cast<PROPS&>(*impl_->get_properties());
     }
 };
 

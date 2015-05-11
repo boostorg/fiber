@@ -10,6 +10,7 @@
 
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/fiber_context.hpp>
  
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -17,7 +18,6 @@
 
 namespace boost {
 namespace fibers {
-class fiber_context;
 
 struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}

@@ -44,7 +44,7 @@ public:
     fiber_context * top() const noexcept {
         BOOST_ASSERT( ! empty() );
 
-        return static_cast<worker_fiber*>(head_); 
+        return head_; 
     }
 
     void move_to( sched_algorithm *);

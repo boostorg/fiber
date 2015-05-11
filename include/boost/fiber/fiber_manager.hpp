@@ -94,21 +94,6 @@ public:
 
     std::chrono::high_resolution_clock::duration wait_interval() noexcept;
 
-    // implementation for fiber::properties<PROPS>()
-    template < class PROPS >
-    PROPS& properties( fiber_context * f )
-    {
-        return dynamic_cast<sched_algorithm_with_properties<PROPS>&>(*get_sched_algo_())
-               .properties(f);
-    }
-
-    // implementation for this_fiber::properties<PROPS>()
-    template < class PROPS >
-    PROPS& properties()
-    {
-        return properties<PROPS>(active());
-    }
-
     void preserve_fpu( bool);
 };
 
