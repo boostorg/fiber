@@ -98,5 +98,13 @@ could be transformed into 'serve one client with one fiber'.
 
 [heading Integration]
 
+The code for integrating boost.fiber int boost.asio can be found in the example
+directory. THe author believes, that a better, more tight integration is
+possible but requires input of boost.asio's author and maybe some changes in the
+boost.asio framework.
+
+The current integration pattern requires to runn __io_service__ in
+__run_service__ (separate fiber).
+
 
 [endsect]
