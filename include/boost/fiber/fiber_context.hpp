@@ -153,9 +153,6 @@ public:
     private:
         fiber_context  *   impl_;
 
-        // support sched_algorithm_with_properties::properties(fiber::id)
-        friend fiber_context* detail::extract_base(id);
-
     public:
         id() noexcept :
             impl_( nullptr) {

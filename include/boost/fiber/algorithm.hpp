@@ -10,7 +10,6 @@
 
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_context.hpp>
  
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -18,6 +17,7 @@
 
 namespace boost {
 namespace fibers {
+class fiber_context;
 
 struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}
@@ -27,23 +27,22 @@ struct BOOST_FIBERS_DECL sched_algorithm {
     virtual fiber_context * pick_next() = 0;
 };
 
-namespace detail {
-// support sched_algorithm_with_properties::properties(fiber::id)
-inline
-fiber_context* extract_context(fiber_context::id id) { return id.impl_; }
-} // detail
-
-struct BOOST_FIBERS_DECL sched_algorithm_with_properties_base: public sched_algorithm
+class BOOST_FIBERS_DECL sched_algorithm_with_properties_base: public sched_algorithm
 {
+public:
     // called by fiber_properties::notify() -- don't directly call
     virtual void property_change_( fiber_context *f, fiber_properties* props ) = 0;
+
+protected:
+    static fiber_properties* get_properties(fiber_context* f) noexcept;
+    static void set_properties(fiber_context* f, fiber_properties* p) noexcept;
 };
 
 template <class PROPS>
 struct sched_algorithm_with_properties:
         public sched_algorithm_with_properties_base
 {
-    typedef sched_algorithm_with_properties<PROPS> super;
+    typedef sched_algorithm_with_properties_base super;
 
     // Mark this override 'final': sched_algorithm_with_properties subclasses
     // must override awakened_props() instead. Otherwise you'd have to
@@ -51,19 +50,21 @@ struct sched_algorithm_with_properties:
     // sched_algorithm_with_properties<PROPS>::awakened(fb);
     virtual void awakened( fiber_context *f) final
     {
-        if (! f->get_properties())
+        fiber_properties* props = super::get_properties(f);
+        if (! props)
         {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
-            f->set_properties(new PROPS(f));
+            props = new PROPS(f);
+            super::set_properties(f, props);
         }
         // Set sched_algo_ again every time this fiber becomes READY. That
         // handles the case of a fiber migrating to a new thread with a new
         // sched_algorithm subclass instance.
-        f->get_properties()->set_sched_algorithm(this);
+        props->set_sched_algorithm(this);
 
         // Okay, now forward the call to subclass override.
-        awakened_props(fb);
+        awakened_props(f);
     }
 
     // subclasses override this method instead of the original awakened()
@@ -72,14 +73,7 @@ struct sched_algorithm_with_properties:
     // used for all internal calls
     PROPS& properties(fiber_context* f)
     {
-        return static_cast<PROPS&>(*f->get_properties());
-    }
-
-    // public-facing properties(fiber::id) method in case consumer retains a
-    // pointer to supplied sched_algorithm_with_properties<PROPS> subclass
-    PROPS& properties(fiber::id id)
-    {
-        return properties(detail::extract_context(id));
+        return static_cast<PROPS&>(*super::get_properties(f));
     }
 
     // override this to be notified by PROPS::notify()

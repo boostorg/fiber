@@ -25,7 +25,8 @@ project boost/fiber
     ;
 
 lib boost_fiber
-    : barrier.cpp
+    : algorithm.cpp
+      barrier.cpp
       condition.cpp
       detail/fifo.cpp
       detail/spinlock.cpp
