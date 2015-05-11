@@ -13,7 +13,7 @@ class priority_props: public boost::fibers::fiber_properties
 public:
     priority_props(boost::fibers::fiber_properties::back_ptr p):
         fiber_properties(p),
-        priority_(0)
+        priority_(nullptr)
     {}
 
     int get_priority() const { return priority_; }
@@ -48,16 +48,16 @@ private:
     // Much as we would like, we don't use std::priority_queue because it
     // doesn't appear to provide any way to alter the priority (and hence
     // queue position) of a particular item.
-    boost::fibers::fiber_base* head_;
+    boost::fibers::fiber_context* head_;
 
 public:
     priority_scheduler():
-        head_(0)
+        head_(nullptr)
     {}
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
     // override awakened_props(), NOT awakened().
-    virtual void awakened_props(boost::fibers::fiber_base* f)
+    virtual void awakened_props(boost::fibers::fiber_context* f)
     {
         int f_priority = properties(f).get_priority();
         // With this scheduler, fibers with higher priority values are
@@ -66,35 +66,35 @@ public:
         // we're handed a new fiber_base, put it at the end of the fibers with
         // that same priority. In other words: search for the first fiber in
         // the queue with LOWER priority, and insert before that one.
-        boost::fibers::fiber_base** fp = &head_;
-        for ( ; *fp; fp = &(*fp)->nxt_)
+        boost::fibers::fiber_context** fp = &head_;
+        for ( ; *fp; fp = &(*fp)->nxt)
             if (properties(*fp).get_priority() < f_priority)
                 break;
         // It doesn't matter whether we hit the end of the list or found
         // another fiber with lower priority. Either way, insert f here.
-        f->nxt_ = *fp;
+        f->nxt = *fp;
         *fp = f;
 
         std::cout << "awakened(" << properties(f).name << "): ";
         describe_ready_queue();
     }
 
-    virtual boost::fibers::fiber_base* pick_next()
+    virtual boost::fibers::fiber_context* pick_next()
     {
         // if ready queue is empty, just tell caller
         if (! head_)
-            return 0;
+            return nullptr;
         // Here we have at least one ready fiber. Unlink and return that.
-        boost::fibers::fiber_base* f = head_;
-        head_ = f->nxt_;
-        f->nxt_ = 0;
+        boost::fibers::fiber_context* f = head_;
+        head_ = f->nxt;
+        f->nxt = nullptr;
 
         std::cout << "pick_next() resuming " << properties(f).name << ": ";
         describe_ready_queue();
         return f;
     }
 
-    virtual void property_change(boost::fibers::fiber_base* f, priority_props& props)
+    virtual void property_change(boost::fibers::fiber_context* f, priority_props& props)
     {
         // Although our priority_props class defines multiple properties, only
         // one of them (priority) actually calls notify() when changed. The
@@ -107,15 +107,15 @@ public:
         // over the queue to find both the existing item and the new desired
         // insertion point.
         bool found = false;
-        boost::fibers::fiber_base **insert = 0, **fp = &head_;
-        for ( ; *fp; fp = &(*fp)->nxt_)
+        boost::fibers::fiber_context **insert = nullptr, **fp = &head_;
+        for ( ; *fp; fp = &(*fp)->nxt)
         {
             if (*fp == f)
             {
                 // found the passed fiber in our list -- unlink it
                 found = true;
-                *fp = (*fp)->nxt_;
-                f->nxt_ = 0;
+                *fp = (*fp)->nxt;
+                f->nxt = nullptr;
                 // If that was the last item in the list, stop.
                 if (! *fp)
                     break;
@@ -161,7 +161,7 @@ public:
             where = "to end";
         }
         // Insert f at the new insertion point in the queue.
-        f->nxt_ = *insert;
+        f->nxt = *insert;
         *insert = f;
 
         std::cout << "moving " << where << ": ";
@@ -175,7 +175,7 @@ public:
         else
         {
             const char* delim = "";
-            for (boost::fibers::fiber_base *f = head_; f; f = f->nxt_)
+            for (boost::fibers::fiber_context *f = head_; f; f = f->nxt)
             {
                 priority_props& props(properties(f));
                 std::cout << delim << props.name << '(' << props.get_priority() << ')';

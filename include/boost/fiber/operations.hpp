@@ -52,8 +52,7 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 template < class PROPS >
 PROPS& properties()
 {
-    // fibers::detail::scheduler::instance()->active()->... ?
-    return fibers::fm_properties<PROPS>();
+    return fibers::detail::scheduler::instance()->active()->properties<PROPS>();
 }
 
 } // this_fiber

@@ -50,8 +50,6 @@ public:
 
     virtual ~fiber_manager() noexcept;
 
-    sched_algorithm* get_sched_algo_();
-
     std::chrono::high_resolution_clock::time_point next_wakeup();
 
     void spawn( fiber_context *);
@@ -83,6 +81,8 @@ public:
 
     fiber_context * active() noexcept;
 
+    sched_algorithm* get_sched_algo_();
+
     void set_sched_algo( sched_algorithm *);
 
     void wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
@@ -94,16 +94,14 @@ public:
 
     std::chrono::high_resolution_clock::duration wait_interval() noexcept;
 
-#error FIX ME
     // implementation for fiber::properties<PROPS>()
     template < class PROPS >
-    PROPS& properties( detail::worker_fiber * f )
+    PROPS& properties( fiber_context * f )
     {
         return dynamic_cast<sched_algorithm_with_properties<PROPS>&>(*get_sched_algo_())
                .properties(f);
     }
 
-#error FIX ME
     // implementation for this_fiber::properties<PROPS>()
     template < class PROPS >
     PROPS& properties()

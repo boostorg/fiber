@@ -34,7 +34,7 @@ fiber::join() {
 
     if ( boost::this_fiber::get_id() == get_id() ) {
         throw fiber_resource_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
-                                    "boost fiber: trying joining itself");
+                                    "boost fiber: trying to join itself");
     }
 
     if ( ! joinable() ) {
