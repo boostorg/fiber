@@ -6,12 +6,8 @@
 #ifndef BOOST_FIBERS_DETAIL_TASK_BASE_H
 #define BOOST_FIBERS_DETAIL_TASK_BASE_H
 
-#include <cstddef>
-
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/throw_exception.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/future/detail/shared_state.hpp>
@@ -24,14 +20,14 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-template< typename R >
-struct task_base : public shared_state< R >
-{
+template< typename R, typename ... Args >
+struct task_base : public shared_state< R > {
     typedef intrusive_ptr< task_base >  ptr_t;
 
-    virtual ~task_base() {}
+    virtual ~task_base() noexcept {
+    }
 
-    virtual void run() = 0;
+    virtual void run( Args && ... args) = 0;
 };
 
 }}}

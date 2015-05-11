@@ -6,118 +6,115 @@
 #ifndef BOOST_FIBERS_FIBER_MANAGER_H
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
-#include <boost/assert.hpp>
-#include <boost/chrono/system_clocks.hpp>
-#include <boost/config.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread/lock_types.hpp> 
-#include <boost/utility.hpp>
+#include <chrono>
+#include <mutex>
 
-#include <boost/fiber/algorithm.hpp>
+#include <boost/assert.hpp>
+#include <boost/config.hpp>
+
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/main_fiber.hpp>
+#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
-//#include <boost/fiber/fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
 
-struct fiber_manager : private noncopyable
-{
-    fiber_manager() BOOST_NOEXCEPT;
+class fiber_context;
+struct sched_algorithm;
 
-    virtual ~fiber_manager() BOOST_NOEXCEPT;
+struct fiber_manager {
+private:
+    typedef detail::waiting_queue                   wqueue_t;
+    typedef detail::fifo                            tqueue_t;
 
-    typedef detail::waiting_queue   wqueue_t;
+    sched_algorithm                             *   sched_algo_;
+    fiber_context                               *   active_fiber_;
+    wqueue_t                                        wqueue_;
+    tqueue_t                                        tqueue_;
+    bool                                            preserve_fpu_;
+    std::chrono::high_resolution_clock::duration    wait_interval_;
 
-    scoped_ptr< sched_algorithm >   def_algo_;
-    sched_algorithm             *   sched_algo_;
-    wqueue_t                        wqueue_;
+    void resume_( fiber_context *);
 
-    chrono::high_resolution_clock::duration            wait_interval_;
-    detail::worker_fiber        *   active_fiber_;
+public:
+    fiber_manager() noexcept;
+
+    fiber_manager( fiber_manager const&) = delete;
+    fiber_manager & operator=( fiber_manager const&) = delete;
+
+    virtual ~fiber_manager() noexcept;
+
+    sched_algorithm* get_sched_algo_();
+
+    std::chrono::high_resolution_clock::time_point next_wakeup();
+
+    void spawn( fiber_context *);
+
+    void run();
+
+    void wait( std::unique_lock< detail::spinlock > &);
+
+    bool wait_until( std::chrono::high_resolution_clock::time_point const&,
+                        std::unique_lock< detail::spinlock > &);
+
+    template< typename Clock, typename Duration >
+    bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
+                        std::unique_lock< detail::spinlock > & lk) {
+        std::chrono::high_resolution_clock::time_point timeout_time(
+                detail::convert_tp( timeout_time_) );
+        return wait_until( timeout_time, lk);
+    }
+
+    template< typename Rep, typename Period >
+    bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
+                      std::unique_lock< detail::spinlock > & lk) {
+        return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration, lk);
+    }
+
+    void yield();
+
+    void join( fiber_context *);
+
+    fiber_context * active() noexcept;
+
+    void set_sched_algo( sched_algorithm *);
+
+    void wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
+
+    template< typename Rep, typename Period >
+    void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
+        wait_interval( wait_interval);
+    }
+
+    std::chrono::high_resolution_clock::duration wait_interval() noexcept;
+
+#error FIX ME
+    // implementation for fiber::properties<PROPS>()
+    template < class PROPS >
+    PROPS& properties( detail::worker_fiber * f )
+    {
+        return dynamic_cast<sched_algorithm_with_properties<PROPS>&>(*get_sched_algo_())
+               .properties(f);
+    }
+
+#error FIX ME
+    // implementation for this_fiber::properties<PROPS>()
+    template < class PROPS >
+    PROPS& properties()
+    {
+        return properties<PROPS>(active());
+    }
+
+    void preserve_fpu( bool);
 };
 
-void fm_resume_( detail::worker_fiber *);
-
-void fm_set_sched_algo( sched_algorithm *);
-
-sched_algorithm* fm_get_sched_algo_();
-
-void fm_spawn( detail::worker_fiber *);
-
-void fm_wait_interval( chrono::high_resolution_clock::duration const&) BOOST_NOEXCEPT;
-template< typename Rep, typename Period >
-void fm_wait_interval( chrono::duration< Rep, Period > const& wait_interval) BOOST_NOEXCEPT
-{ fm_wait_interval( wait_interval); }
-
-chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT;
-
-void fm_join( detail::worker_fiber *);
-
-detail::worker_fiber * fm_active() BOOST_NOEXCEPT;
-
-void fm_run();
-
-void fm_wait( unique_lock< detail::spinlock > &);
-
-bool fm_wait_until( chrono::high_resolution_clock::time_point const&,
-                    unique_lock< detail::spinlock > &);
-
-template< typename Clock, typename Duration >
-bool fm_wait_until( chrono::time_point< Clock, Duration > const& timeout_time_,
-                    unique_lock< detail::spinlock > & lk)
-{
-    chrono::high_resolution_clock::time_point timeout_time(
-            detail::convert_tp( timeout_time_) );
-    return fm_wait_until( timeout_time, lk);
-}
-
-template< typename Rep, typename Period >
-bool fm_wait_for( chrono::duration< Rep, Period > const& timeout_duration,
-                  unique_lock< detail::spinlock > & lk)
-{
-    return wait_until( chrono::high_resolution_clock::now() + timeout_duration, lk);
-}
-
-void fm_yield();
-
-chrono::high_resolution_clock::time_point fm_next_wakeup();
-
-void fm_migrate( detail::worker_fiber *);
-
-// implementation for fiber::properties<PROPS>()
-template < class PROPS >
-PROPS& fm_properties( detail::worker_fiber * f )
-{
-    return dynamic_cast<sched_algorithm_with_properties<PROPS>&>(*fm_get_sched_algo_())
-           .properties(f);
-}
-
-// implementation for this_fiber::properties<PROPS>()
-template < class PROPS >
-PROPS& fm_properties()
-{
-    return fm_properties<PROPS>(fm_active());
-}
-
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

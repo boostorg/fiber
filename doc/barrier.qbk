@@ -19,8 +19,7 @@ barrier is reset.
 
     #include <boost/fiber/barrier.hpp>
 
-    class barrier
-    {
+    class barrier {
     public:
         barrier( unsigned int initial);
 

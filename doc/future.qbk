@@ -14,8 +14,7 @@ A future provides a mechanism to access the result of an asynchronous operation.
 
 Timed wait-operations (__wait_for__ and __wait_until__) return the state of the future.
 
-        enum class future_status
-        {
+        enum class future_status {
             ready,
             timeout,
             deferred  // not supported yet
@@ -45,8 +44,7 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 A __future__ contains a shared state which is not shared with any other future.
 
         template< typename R >
-        class future
-        {
+        class future {
         public:
             future() noexcept;
 
@@ -77,10 +75,10 @@ A __future__ contains a shared state which is not shared with any other future.
             void wait() const;
 
             template< class Rep, class Period >
-            future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
+            future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const;
 
             template< typename Clock, typename Duration >
-            future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
+            future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const;
         };
 
 [heading Default constructor]
@@ -192,7 +190,7 @@ After construction is `false == other.valid()`]]
 [template_member_heading future..wait_for]
 
         template< class Rep, class Period >
-        future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
+        future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const;
 
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_duration` has passed.]]
@@ -203,7 +201,7 @@ After construction is `false == other.valid()`]]
 [member_heading future..wait_until]
 
         template< typename Clock, typename Duration >
-        future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
+        future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const;
 
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
@@ -217,8 +215,7 @@ After construction is `false == other.valid()`]]
 A __shared_future__ contains a shared state which might be shared with other futures.
 
         template< typename R >
-        class shared_future
-        {
+        class shared_future {
         public:
             shared_future() noexcept;
 
@@ -251,10 +248,10 @@ A __shared_future__ contains a shared state which might be shared with other fut
             void wait() const;
 
             template< class Rep, class Period >
-            future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
+            future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const;
 
             template< typename Clock, typename Duration >
-            future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
+            future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const;
         };
 
 [heading Default constructor]
@@ -374,7 +371,7 @@ return * this;
 [template_member_heading shared_future..wait_for]
 
         template< class Rep, class Period >
-        future_status wait_for( chrono::duration< Rep, Period > const& timeout_duration) const;
+        future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const;
 
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_duration` has passed.]]
@@ -385,7 +382,7 @@ return * this;
 [member_heading shared_future..wait_until]
 
         template< typename Clock, typename Duration >
-        future_status wait_until( chrono::time_point< Clock, Duration > const& timeout_time) const;
+        future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const;
 
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]

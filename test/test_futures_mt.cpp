@@ -8,32 +8,42 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
-#include <boost/bind.hpp>
 #include <boost/fiber/all.hpp>
-#include <boost/move/move.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
 
-typedef boost::shared_ptr< boost::fibers::packaged_task< int() > >  packaged_task_t;
+template< typename T >
+class rref {
+public:
+    rref( T && t_) :
+        t( std::move( t_) ) {
+    }
+
+    rref( rref & other) :
+        t( std::move( other.t) ) {
+    }
+
+    rref( rref && other) :
+        t( std::move( other.t) ) {
+    }
+
+    rref( rref const& other) = delete;
+    rref & operator=( rref const& other) = delete;
+
+    T  t;
+};
 
 int fn( int i)
 { return i; }
 
-void exec( packaged_task_t pt)
-{
-    boost::fibers::fiber( boost::move( * pt) ).join();
-}
-
 boost::fibers::future< int > async( int i)
 {
-    packaged_task_t pt(
-        new boost::fibers::packaged_task< int() >(
-            boost::bind( fn, i) ) );
-    boost::fibers::future< int > f( pt->get_future() );
-    boost::thread( boost::bind( exec, pt) ).detach();
-    return boost::move( f);
+    boost::fibers::packaged_task< int() > pt( std::bind( fn, i) );
+    boost::fibers::future< int > f( pt.get_future() );
+    rref< boost::fibers::packaged_task< int() > > rr( std::move( pt) );
+    std::thread( [=] () mutable { boost::fibers::fiber( std::move( rr.t) ).join(); } ).detach();
+    return std::move( f);
 }
 
 void test_async()

@@ -7,7 +7,8 @@
 #ifndef BOOST_FIBERS_DETAIL_CONVERT_H
 #define BOOST_FIBERS_DETAIL_CONVERT_H
 
-#include <boost/chrono/system_clocks.hpp>
+#include <chrono>
+
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -21,13 +22,13 @@ namespace fibers {
 namespace detail {
 
 inline
-chrono::high_resolution_clock::time_point convert_tp( chrono::high_resolution_clock::time_point const& timeout_time)
-{ return timeout_time; }
+std::chrono::high_resolution_clock::time_point convert_tp( std::chrono::high_resolution_clock::time_point const& timeout_time) noexcept {
+    return timeout_time;
+}
 
 template< typename Clock, typename Duration >
-chrono::high_resolution_clock::time_point convert_tp( chrono::time_point< Clock, Duration > const& timeout_time)
-{
-    return chrono::high_resolution_clock::now() + ( timeout_time - Clock::now() );
+std::chrono::high_resolution_clock::time_point convert_tp( std::chrono::time_point< Clock, Duration > const& timeout_time) {
+    return std::chrono::high_resolution_clock::now() + ( timeout_time - Clock::now() );
 }
 
 }}}

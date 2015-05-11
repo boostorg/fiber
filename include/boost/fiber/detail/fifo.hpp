@@ -10,12 +10,9 @@
 #include <algorithm>
 #include <cstddef>
 
-#include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -23,56 +20,41 @@
 
 namespace boost {
 namespace fibers {
+
+class fiber_context;
+
 namespace detail {
 
-class fifo : private noncopyable
-{
+class fifo {
 public:
-    fifo() BOOST_NOEXCEPT :
-        head_( 0),
-        tail_( &head_)
-    {}
-
-    bool empty() const BOOST_NOEXCEPT
-    { return 0 == head_; }
-
-    void push( fiber_base * item) BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( 0 != item);
-        BOOST_ASSERT( 0 == item->nxt_ );
-
-        // *tail_ holds the null marking the end of the fifo. So we can extend
-        // the fifo by assigning to *tail_.
-        *tail_ = item;
-        // Advance tail_ to point to the new end marker.
-        tail_ = &item->nxt_;
+    fifo() noexcept :
+        head_( nullptr),
+        tail_( & head_) {
     }
 
-    fiber_base * pop() BOOST_NOEXCEPT
-    {
-        BOOST_ASSERT( ! empty() );
+    fifo( fifo const&) = delete;
+    fifo & operator=( fifo const&) = delete;
 
-        fiber_base * item = head_;
-        head_ = head_->nxt_;
-        if ( 0 == head_) tail_ = &head_;
-        item->nxt_ = 0;
-        return item;
+    bool empty() const noexcept {
+        return nullptr == head_;
     }
 
-    void swap( fifo & other)
-    {
+    void push( fiber_context * item) noexcept;
+
+    fiber_context * pop() noexcept;
+
+    void swap( fifo & other) {
         std::swap( head_, other.head_);
         std::swap( tail_, other.tail_);
     }
 
 private:
-    // head_ points to the head item, or is null
-    fiber_base    *  head_;
-    // tail_ points to the nxt_ field that contains the null that marks the
-    // end of the fifo. When the fifo is empty, tail_ points to head_. tail_
-    // must never be null: it always points to a real fiber_base*. However, in
+    fiber_context   *   head_;
+    // tail_ points to the nxt field that contains the null that marks the end
+    // of the fifo. When the fifo is empty, tail_ points to head_. tail_ must
+    // never be null: it always points to a real fiber_context*. However, in
     // normal use, (*tail_) is always null.
-    fiber_base   **  tail_;
+    fiber_context   **  tail_;
 };
 
 }}}

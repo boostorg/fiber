@@ -11,9 +11,8 @@
 A __packaged_task__ wraps a callable target that returns a value so that the
 return value can be computed asynchronously.
 
-        template< class R >
-        class packaged_task< R() >
-        {
+        template< class R, typename ... Args >
+        class packaged_task< R( Args ... ) > {
         public:
             packaged_task() noexcept;
 
@@ -21,7 +20,7 @@ return value can be computed asynchronously.
             explicit packaged_task( Fn && fn);
 
             template< typename Fn, typename Allocator >
-            explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn && fn);
+            explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn);
 
             packaged_task( packaged_task && other) noexcept;
 
@@ -43,7 +42,7 @@ return value can be computed asynchronously.
 
             future< R > get_future();
 
-            void operator()();
+            void operator()( Args && ... args);
 
             void reset();
         };
@@ -63,7 +62,7 @@ return value can be computed asynchronously.
         explicit packaged_task( Fn && fn);
         
         template< typename Fn, typename Allocator >
-        explicit packaged_task( boost::allocator_arg_t, Allocator const& alloc, Fn && fn);
+        explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn);
 
 [variablelist
 [[Effects:] [Constructs an object of class `packaged_task` with a shared state
@@ -149,7 +148,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 
 [operator_heading packaged_task..operator_apply..operator()]
 
-        void operator()();
+        void operator()( Args && ... args);
 
 [variablelist
 [[Effects:] [Invokes the stored callable target. Any exception thrown by the

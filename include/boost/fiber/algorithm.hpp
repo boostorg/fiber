@@ -7,70 +7,50 @@
 #define BOOST_FIBERS_ALGORITHM_H
 
 #include <boost/config.hpp>
-#include <boost/utility.hpp>
 
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/worker_fiber.hpp>
-
-#ifndef BOOST_FINAL
-#  ifdef BOOST_NO_CXX11_FINAL
-#    define BOOST_FINAL
-#  else
-#    define BOOST_FINAL final
-#  endif
-#endif
  
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-# if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable:4251 4275)
-# endif
-
 namespace boost {
 namespace fibers {
+class fiber_context;
 
-// hoist fiber_base out of detail namespace into boost::fibers
-typedef detail::fiber_base fiber_base;
-
-struct sched_algorithm
-{
+struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}
 
-    virtual void awakened( fiber_base *) = 0;
+    virtual void awakened( fiber_context *) = 0;
 
-    virtual fiber_base * pick_next() = 0;
+    virtual fiber_context * pick_next() = 0;
 };
 
 namespace detail {
 // support sched_algorithm_with_properties::properties(fiber::id)
 inline
-fiber_base* extract_base(fiber_base::id id) { return id.impl_; }
+fiber_context* extract_context(fiber_context::id id) { return id.impl_; }
 } // detail
 
-struct sched_algorithm_with_properties_base: public sched_algorithm
+struct BOOST_FIBERS_DECL sched_algorithm_with_properties_base: public sched_algorithm
 {
     // called by fiber_properties::notify() -- don't directly call
-    virtual void property_change_( fiber_base *f, fiber_properties* props ) = 0;
+    virtual void property_change_( fiber_context *f, fiber_properties* props ) = 0;
 };
 
 template <class PROPS>
 struct sched_algorithm_with_properties:
         public sched_algorithm_with_properties_base
 {
-public:
     typedef sched_algorithm_with_properties<PROPS> super;
 
-    // On C++11 compilers, mark this override 'final': subclasses must
-    // override awakened_props() instead. Otherwise you'd have to remember to
-    // start every subclass awakened() override with:
+    // Mark this override 'final': sched_algorithm_with_properties subclasses
+    // must override awakened_props() instead. Otherwise you'd have to
+    // remember to start every subclass awakened() override with:
     // sched_algorithm_with_properties<PROPS>::awakened(fb);
-    virtual void awakened( fiber_base *fb) BOOST_FINAL
+    virtual void awakened( fiber_context *f) final
     {
-        detail::worker_fiber* f = static_cast<detail::worker_fiber*>(fb);
         if (! f->get_properties())
         {
             // TODO: would be great if PROPS could be allocated on the new
@@ -87,43 +67,32 @@ public:
     }
 
     // subclasses override this method instead of the original awakened()
-    virtual void awakened_props( fiber_base *fb) {}
+    virtual void awakened_props( fiber_context *) = 0;
 
     // used for all internal calls
-    PROPS& properties(fiber_base* f)
+    PROPS& properties(fiber_context* f)
     {
-        return static_cast<PROPS&>(*static_cast<detail::worker_fiber*>(f)->get_properties());
+        return static_cast<PROPS&>(*f->get_properties());
     }
 
     // public-facing properties(fiber::id) method in case consumer retains a
     // pointer to supplied sched_algorithm_with_properties<PROPS> subclass
-    PROPS& properties(detail::worker_fiber::id id)
+    PROPS& properties(fiber::id id)
     {
-        return properties(extract(id));
+        return properties(detail::extract_context(id));
     }
 
     // override this to be notified by PROPS::notify()
-    virtual void property_change( fiber_base* f, PROPS& props) {}
+    virtual void property_change( fiber_context* f, PROPS& props) {}
 
     // implementation for sched_algorithm_with_properties_base method
-    void property_change_( fiber_base *f, fiber_properties* props )
+    void property_change_( fiber_context *f, fiber_properties* props ) final
     {
         property_change(f, *static_cast<PROPS*>(props));
-    }
-
-private:
-    // support sched_algorithm_with_properties::properties(fiber::id)
-    detail::worker_fiber* extract(detail::worker_fiber::id id)
-    {
-        return static_cast<detail::worker_fiber*>(detail::extract_base(id));
     }
 };
 
 }}
-
-# if defined(BOOST_MSVC)
-# pragma warning(pop)
-# endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

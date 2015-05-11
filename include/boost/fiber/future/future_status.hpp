@@ -8,20 +8,17 @@
 #define BOOST_FIBERS_FUTURE_STATUS_HPP
 
 #include <boost/config.hpp>
-#include <boost/detail/scoped_enum_emulation.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
 namespace boost {
 namespace fibers {
 
-BOOST_SCOPED_ENUM_DECLARE_BEGIN(future_status)
-{
+enum class future_status {
     ready = 1,
     timeout,
     deferred
-}
-BOOST_SCOPED_ENUM_DECLARE_END(future_status)
+};
 
 }}
 
