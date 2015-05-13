@@ -75,15 +75,6 @@ fiber_manager::resume_( fiber_context * f) {
     active_fiber_->resume();
 }
 
-#error FIX ME
-sched_algorithm* fm_get_sched_algo_()
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-    return fm->sched_algo_;
-}
-
 std::chrono::high_resolution_clock::time_point
 fiber_manager::next_wakeup() {
     if ( wqueue_.empty() ) {
@@ -105,26 +96,6 @@ fiber_manager::spawn( fiber_context * f) {
     BOOST_ASSERT( f != active_fiber_);
 
     sched_algo_->awakened( f);
-}
-
-#error FIX ME
-void fm_wait_interval( chrono::high_resolution_clock::duration const& wait_interval) BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    fm->wait_interval_ = wait_interval;
-}
-
-#error FIX ME
-chrono::high_resolution_clock::duration fm_wait_interval() BOOST_NOEXCEPT
-{
-    fiber_manager * fm = detail::scheduler::instance();
-
-    BOOST_ASSERT( 0 != fm);
-
-    return fm->wait_interval_;
 }
 
 void
