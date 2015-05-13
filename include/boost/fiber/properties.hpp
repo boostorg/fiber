@@ -54,7 +54,7 @@ public:
     // We need a virtual destructor (hence a vtable) because fiber_properties
     // is stored polymorphically (as fiber_properties*) in fiber_context, and
     // destroyed via that pointer.
-    ~fiber_properties() {}
+    virtual ~fiber_properties() {}
 
     // not really intended for public use, but sched_algorithm_with_properties
     // must be able to call this
