@@ -13,7 +13,7 @@ class priority_props: public boost::fibers::fiber_properties
 public:
     priority_props(boost::fibers::fiber_properties::back_ptr p):
         fiber_properties(p),
-        priority_(nullptr)
+        priority_(0)
     {}
 
     int get_priority() const { return priority_; }
