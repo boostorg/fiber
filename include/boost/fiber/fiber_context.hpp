@@ -298,9 +298,7 @@ public:
     void resume() {
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
-        // FIXME: post-1.58 boost::context::execution_context has an
-        // operator()() method. This statement originally called that.
-        ctx_.resume();
+        ctx_();
     }
 
     std::chrono::high_resolution_clock::time_point const& time_point() const noexcept {

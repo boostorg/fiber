@@ -288,5 +288,7 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     }
 
-    return 0;
+    std::cout << "done." << std::endl;
+
+    return EXIT_SUCCESS;
 }
