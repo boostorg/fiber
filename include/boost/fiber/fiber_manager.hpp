@@ -81,6 +81,8 @@ public:
 
     fiber_context * active() noexcept;
 
+    sched_algorithm* get_sched_algo_();
+
     void set_sched_algo( sched_algorithm *);
 
     void wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
@@ -92,8 +94,7 @@ public:
 
     std::chrono::high_resolution_clock::duration wait_interval() noexcept;
 
-    bool preserve_fpu();
-
+    bool preserve_fpu() const;
     void preserve_fpu( bool);
 };
 

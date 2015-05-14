@@ -50,6 +50,10 @@ public:
 
 private:
     fiber_context   *   head_;
+    // tail_ points to the nxt field that contains the null that marks the end
+    // of the fifo. When the fifo is empty, tail_ points to head_. tail_ must
+    // never be null: it always points to a real fiber_context*. However, in
+    // normal use, (*tail_) is always null.
     fiber_context   **  tail_;
 };
 

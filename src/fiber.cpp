@@ -28,27 +28,13 @@ fiber::start_() {
     detail::scheduler::instance()->spawn( impl_.get() );
 }
 
-bool
-fiber::thread_affinity() const noexcept {
-    BOOST_ASSERT( impl_);
-
-    return impl_->thread_affinity();
-}
-
-void
-fiber::thread_affinity( bool req) noexcept {
-    BOOST_ASSERT( impl_);
-
-    impl_->thread_affinity( req);
-}
-
 void
 fiber::join() {
     BOOST_ASSERT( impl_);
 
     if ( boost::this_fiber::get_id() == get_id() ) {
         throw fiber_resource_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
-                                    "boost fiber: trying joining itself");
+                                    "boost fiber: trying to join itself");
     }
 
     if ( ! joinable() ) {

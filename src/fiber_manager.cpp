@@ -101,7 +101,7 @@ fiber_manager::spawn( fiber_context * f) {
 void
 fiber_manager::run() {
     for (;;) {
-        // move all fibers witch are ready (state_ready)
+        // move all fibers which are ready (state_ready)
         // from waiting-queue to the runnable-queue
         wqueue_.move_to( sched_algo_);
 
@@ -222,7 +222,7 @@ fiber_manager::wait_interval() noexcept {
 }
 
 bool
-fiber_manager::preserve_fpu() {
+fiber_manager::preserve_fpu() const {
     return preserve_fpu_;
 }
 

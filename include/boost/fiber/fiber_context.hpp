@@ -36,6 +36,8 @@
 namespace boost {
 namespace fibers {
 
+class fiber_properties;
+
 class BOOST_FIBERS_DECL fiber_context {
 private:
     enum class fiber_status {
@@ -49,8 +51,7 @@ private:
         flag_main_fiber             = 1 << 1,
         flag_interruption_blocked   = 1 << 2,
         flag_interruption_requested = 1 << 3,
-        flag_thread_affinity        = 1 << 4,
-        flag_detached               = 1 << 5
+        flag_detached               = 1 << 4
     };
 
     struct BOOST_FIBERS_DECL fss_data {
@@ -85,6 +86,7 @@ private:
     std::vector< fiber_context * >                  waiting_;
     std::exception_ptr                              except_;
     std::chrono::high_resolution_clock::time_point  tp_;
+    fiber_properties                            *   properties_;
 
     // main fiber
     fiber_context() :
@@ -92,10 +94,11 @@ private:
         ctx_( context::execution_context::current() ),
         fss_data_(),
         state_( fiber_status::running),
-        flags_( flag_main_fiber | flag_thread_affinity),
+        flags_( flag_main_fiber),
         waiting_(),
         except_(),
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        properties_( nullptr),
         nxt() {
     }
 
@@ -137,6 +140,7 @@ private:
         waiting_(),
         except_(),
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        properties_( nullptr),
         nxt( nullptr) {
     }
 
@@ -215,9 +219,7 @@ public:
                        std::index_sequence_for< Args ... >() ) {
     }
 
-    virtual ~fiber_context() {
-        BOOST_ASSERT( waiting_.empty() );
-    }
+    virtual ~fiber_context();
 
     id get_id() const noexcept {
         return id( const_cast< fiber_context * >( this) );
@@ -236,12 +238,6 @@ public:
     }
 
     void request_interruption( bool req) noexcept;
-
-    bool thread_affinity() const noexcept {
-        return 0 != ( flags_.load() & flag_thread_affinity);
-    }
-
-    void thread_affinity( bool req) noexcept;
 
     bool is_terminated() const noexcept {
         return fiber_status::terminated == state_;
@@ -302,7 +298,9 @@ public:
     void resume() {
         BOOST_ASSERT( is_running() ); // set by the scheduler-algorithm
 
-        ctx_();
+        // FIXME: post-1.58 boost::context::execution_context has an
+        // operator()() method. This statement originally called that.
+        ctx_.resume();
     }
 
     std::chrono::high_resolution_clock::time_point const& time_point() const noexcept {
@@ -315,6 +313,13 @@ public:
 
     void time_point_reset() {
         tp_ = (std::chrono::high_resolution_clock::time_point::max)();
+    }
+
+    void set_properties( fiber_properties* props);
+
+    fiber_properties* get_properties() const
+    {
+        return properties_;
     }
 
     void release();
