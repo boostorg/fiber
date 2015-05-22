@@ -21,7 +21,7 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/mutex.hpp>
-#include <boost/fiber/queue_op_status.hpp>
+#include <boost/fiber/channel_op_status.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -94,21 +94,21 @@ private:
         return ! head_;
     }
 
-    queue_op_status push_( typename node::ptr const& new_node,
+    channel_op_status push_( typename node::ptr const& new_node,
                            std::unique_lock< boost::fibers::mutex >& lk) {
         if ( is_closed_() ) {
-            return queue_op_status::closed;
+            return channel_op_status::closed;
         }
 
         return push_and_notify_( new_node);
     }
 
-    queue_op_status push_and_notify_( typename node::ptr const& new_node) {
+    channel_op_status push_and_notify_( typename node::ptr const& new_node) {
         try {
             push_tail_( new_node);
             not_empty_cond_.notify_one();
 
-            return queue_op_status::success;
+            return channel_op_status::success;
         } catch (...) {
             close_();
             throw;
@@ -173,14 +173,14 @@ public:
         return is_empty_();
     }
 
-    queue_op_status push( value_type && va) {
+    channel_op_status push( value_type && va) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk);
     }
 
-    queue_op_status pop( value_type & va) {
+    channel_op_status pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
 
         while ( ! is_closed_() && is_empty_() ) {
@@ -188,11 +188,11 @@ public:
         }
 
         if ( is_closed_() && is_empty_() ) {
-            return queue_op_status::closed;
+            return channel_op_status::closed;
         }
 
         std::swap( va, value_pop_() );
-        return queue_op_status::success;
+        return channel_op_status::success;
     }
 
     value_type value_pop() {
@@ -209,43 +209,43 @@ public:
         return value_pop_();
     }
 
-    queue_op_status try_pop( value_type & va) {
+    channel_op_status try_pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() && is_empty_() ) {
-            return queue_op_status::closed;
+            return channel_op_status::closed;
         }
 
         if ( is_empty_() ) {
-            return queue_op_status::empty;
+            return channel_op_status::empty;
         }
 
         std::swap( va, value_pop_() );
-        return queue_op_status::success;
+        return channel_op_status::success;
     }
 
     template< typename Rep, typename Period >
-    queue_op_status pop_wait_for( value_type & va,
+    channel_op_status pop_wait_for( value_type & va,
                                   std::chrono::duration< Rep, Period > const& timeout_duration) {
         return pop_wait_until( va, std::chrono::high_resolution_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
-    queue_op_status pop_wait_until( value_type & va,
+    channel_op_status pop_wait_until( value_type & va,
                                     std::chrono::time_point< Clock, Duration > const& timeout_time) {
         std::unique_lock< mutex > lk( mtx_);
 
         while ( ! is_closed_() && is_empty_() ) {
             if ( cv_status::timeout == not_empty_cond_.wait_until( lk, timeout_time) )
-                return queue_op_status::timeout;
+                return channel_op_status::timeout;
         }
 
         if ( is_closed_() && is_empty_() ) {
-            return queue_op_status::closed;
+            return channel_op_status::closed;
         }
 
         std::swap( va, value_pop_() );
-        return queue_op_status::success;
+        return channel_op_status::success;
     }
 };
 
