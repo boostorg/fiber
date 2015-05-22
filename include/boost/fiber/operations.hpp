@@ -49,10 +49,9 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
     sleep_until( std::chrono::high_resolution_clock::now() + timeout_duration);
 }
 
-template < class PROPS >
-PROPS& properties()
-{
-    return dynamic_cast<PROPS&>(*fibers::detail::scheduler::instance()->active()->get_properties());
+template< typename PROPS >
+PROPS & properties() {
+    return dynamic_cast< PROPS & >( * fibers::detail::scheduler::instance()->active()->get_properties() );
 }
 
 } // this_fiber

@@ -18,17 +18,15 @@ namespace boost {
 namespace fibers {
 
 //static
-fiber_properties*
-sched_algorithm_with_properties_base::get_properties(fiber_context* f) noexcept
-{
+fiber_properties *
+sched_algorithm_with_properties_base::get_properties( fiber_context * f) noexcept {
     return f->get_properties();
 }
 
 //static
 void
-sched_algorithm_with_properties_base::set_properties(fiber_context* f, fiber_properties* props) noexcept
-{
-    f->set_properties(props);
+sched_algorithm_with_properties_base::set_properties( fiber_context * f, fiber_properties * props) noexcept {
+    f->set_properties( props);
 }
 
 }}

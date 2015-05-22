@@ -27,13 +27,12 @@ namespace fibers {
 struct sched_algorithm;
 class fiber_context;
 
-class fiber_properties
-{
+class fiber_properties {
 protected:
     // initialized by constructor
-    fiber_context* fiber_;
+    fiber_context   *   fiber_;
     // set every time this fiber becomes READY
-    sched_algorithm* sched_algo_;
+    sched_algorithm *   sched_algo_;
 
     // Inform the relevant sched_algorithm instance that something important
     // has changed, so it can (presumably) adjust its data structures
@@ -43,12 +42,13 @@ protected:
 public:
     // fiber_properties, and by implication every subclass, must accept a back
     // pointer to its fiber_context.
-    typedef fiber_context* back_ptr;
+    typedef fiber_context   *   back_ptr;
+
     // Any specific property setter method, after updating the relevant
     // instance variable, can/should call notify().
-    fiber_properties(back_ptr f):
-        fiber_(f),
-        sched_algo_(nullptr)
+    fiber_properties( back_ptr f):
+        fiber_( f),
+        sched_algo_( nullptr)
     {}
 
     // We need a virtual destructor (hence a vtable) because fiber_properties
@@ -58,8 +58,7 @@ public:
 
     // not really intended for public use, but sched_algorithm_with_properties
     // must be able to call this
-    void set_sched_algorithm(sched_algorithm* algo)
-    {
+    void set_sched_algorithm( sched_algorithm * algo) {
         sched_algo_ = algo;
     }
 };

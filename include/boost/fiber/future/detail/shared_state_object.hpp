@@ -21,8 +21,7 @@ namespace fibers {
 namespace detail {
 
 template< typename R, typename Allocator >
-class shared_state_object : public shared_state< R >
-{
+class shared_state_object : public shared_state< R > {
 public:
     typedef typename Allocator::template rebind<
         shared_state_object< R, Allocator >

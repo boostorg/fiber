@@ -27,8 +27,7 @@
 namespace boost {
 namespace fibers {
 
-class BOOST_FIBERS_DECL recursive_timed_mutex
-{
+class BOOST_FIBERS_DECL recursive_timed_mutex {
 private:
     enum class mutex_status {
         locked = 0,

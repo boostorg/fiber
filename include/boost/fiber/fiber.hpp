@@ -122,10 +122,9 @@ public:
 
     void interrupt() noexcept;
 
-    template <class PROPS>
-    PROPS& properties()
-    {
-        return dynamic_cast<PROPS&>(*impl_->get_properties());
+    template< typename PROPS >
+    PROPS & properties() {
+        return dynamic_cast< PROPS & >( * impl_->get_properties() );
     }
 };
 

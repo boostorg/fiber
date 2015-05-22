@@ -125,8 +125,7 @@ fiber_context::set_fss_data( void const * vp,
 }
 
 void
-fiber_context::set_properties( fiber_properties* props)
-{
+fiber_context::set_properties( fiber_properties * props) {
     delete properties_;
     properties_ = props;
 }
