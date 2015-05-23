@@ -129,4 +129,8 @@ This class implements __algo__ and schedules fibers in round-robin fashion
 (work-stealing) between threads (different schedulers).]
 
 
+< TODO >
+[heading customized scheduler]
+
+
 [endsect]

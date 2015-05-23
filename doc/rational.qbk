@@ -33,13 +33,6 @@ be replaced by __transaction_atomic{} statements surrounding the critical
 sections. 
 
 
-[heading `fiber_manager`with free-functions]
-
-Some compiler store the `this`-pointer on the stack so that the fiber, which has
-been migrated to another scheduler (thread), access the invalid instance if it
-will be resumed from  `fiber_manager::run()`.
-
-
 [heading synchronization between fibers running in different threads]
 
 Synchronization classes from __boost_thread__ do block the entire thread. In
@@ -49,28 +42,6 @@ meantime.
 The synchronization classes from __boost_fiber__ are designed to be thread-safe,
 e.g. it is possible to synchronize fibers running in different schedulers
 (different threads) or running int the same scheduler (same thread).
-
-
-[heading migrating fibers between threads]
-
-Fibers can be migrated between different schedulers, e.g. threads. The library
-contains an example demonstrating how a scheduler could be implemented to allow
-the migration of fibers. The example allows to move fibers from the ready-queue
-(fibers with state READY, e.g. ready to be executed) of scheduler `X` to the
-ready-queue of scheduler `Y`. It is important that this operation is 
-thread-safe. If the fiber is put to the ready-queue of scheduler `Y` it might be
-selected for resumtion in the next step, e.g. the fiber will be executed in the
-context of the thread running scheudler `Y`.
-
-
-[heading variadric template args for async()/packaged_task<>]
-
-Variadric template args for `asnyc()` implies variadic args support for
-`packaged_task<>`. Because C++03 does not provide variadric template args the author
-desided not to support this featrure for `asnyc()` and `packaged_task<>` otherwise
-the template signature would be look different btween C++03 and C++11.
-In further versions of this library variadric template args will be supported
-for C++03 with the usage of pre-processor macros and template specialization.
 
 
 [endsect]
