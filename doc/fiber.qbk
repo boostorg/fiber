@@ -21,6 +21,8 @@
         void swap( fiber & l, fiber & r) noexcept;
 
         struct sched_algorithm;
+        template< typename PROPS >
+        struct sched_algorithm_with_properties;
         class round_robin;
         void set_scheduling_algorithm( sched_algorithm * al)
 
@@ -34,8 +36,8 @@
         void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
         void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration); 
-        bool thread_affinity() noexcept;
-        void thread_affinity( bool) noexcept;
+        template< typename PROPS >
+        PROPS & properties();
 
         void interruption_point();
         bool interruption_requested() noexcept;
@@ -83,9 +85,7 @@ that the referenced object outlives the newly-created fiber.
         } // x is destroyed, but the newly-created fiber still has a reference
           // this leads to undefined behaviour
 
-Control is immediately transferred to the spawned __fiber__ at
-construction. When the constructor returns, the __fiber__ might be complete or
-might have suspended.
+The spawned __fiber__ is enqueued in the list of ready-to-run fibers at construction.
 
 
 [heading Exceptions]
@@ -224,7 +224,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
             fiber & operator=( fiber && other) noexcept;
 
-            operator bool() const noexcept;
+            explicit operator bool() const noexcept;
 
             bool operator!() const noexcept;
 
@@ -234,15 +234,14 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
             id get_id() const noexcept;
 
-            bool thread_affinity() const noexcept;
-
-            void thread_affinity( bool) noexcept;
-
             void detach() noexcept;
 
             void join();
 
             void interrupt() noexcept;
+
+            template< typename PROPS >
+            PROPS & properties();
         };
 
         bool operator<( fiber const& l, fiber const& r) noexcept;
@@ -383,38 +382,23 @@ interruption enabled.]]
 [[Throws:] [Nothing]]
 ]
 
-[#fiber_thread_affinity]
-[heading Member function `thread_affinity( bool)`]
+< TODO >
+[#fiber_properties]
+[heading Member function `template< typename PROPS > PROPS & properties()`]
 
-        void thread_affinity( bool) noexcept;
-
-[variablelist
-[[Preconditions:] [`*this` refers to a fiber of execution.]]
-[[Effects:] [Set thread affinity for the fiber referenced by `*this`.]]
-[[Throws:] [Nothing]]
-[[Note:] ["Thread affinity" is only meaningful for certain scheduler
-algorithms, such as [class_link round_robin_ws]. Many schedulers ignore this
-fiber attribute. With a scheduler that might potentially migrate a fiber from
-its initial thread to another, the value `true` prevents migration: the fiber
-will always run on its current thread. The default is `false`: normally, with
-an applicable scheduler, a fiber is allowed to migrate across threads.]]
-[[See also:] [[ns_function_link this_fiber..thread_affinity]]]
-]
-
-[heading Member function `thread_affinity()`]
-
-        bool thread_affinity() const noexcept;
+        template< typename PROPS >
+        PROPS & properties();
 
 [variablelist
 [[Preconditions:] [`*this` refers to a fiber of execution.]]
-[[Returns:] [thread affinity for the fiber referenced by `*this`.]]
-[[Throws:] [Nothing]]
-[[See also:] [[ns_function_link this_fiber..thread_affinity]]]
+[[Effects:] []]
+[[Throws:] []]
+[[Note:] []
 ]
 
 [member_heading fiber..operator bool]
 
-        operator bool() const noexcept;
+        explicit operator bool() const noexcept;
 
 [variablelist
 [[Returns:] [`true` if `*this` refers to a fiber of execution which has not
@@ -601,8 +585,8 @@ implementation-defined total order of `fiber::id` values places `*this` before
         void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
         template< typename Rep, typename Period >
         void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration);
-        bool thread_affinity() noexcept;
-        void thread_affinity( bool req) noexcept;
+        template< typename PROPS >
+        PROPS & properties();
 
         void interruption_point();
         bool interruption_requested() noexcept;
@@ -668,24 +652,25 @@ there are no guarantees about how soon after that it might resume.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
 ]
 
-[ns_function_heading this_fiber..thread_affinity]
+< TODO >
+[ns_function_heading this_fiber..properties]
 
         #include <boost/fiber/operations.hpp>
 
-        bool thread_affinity() noexcept;
-        void thread_affinity( bool req) noexcept;
+        template< typename PROPS >
+        PROPS & properties();
 
 [variablelist
-[[Effects:] [Set or report [member_link fiber..thread_affinity] for the currently
-running fiber.]]
-[[Throws:] [Nothing.]]
-[[Note:] [[member_link fiber..thread_affinity] is `false` by default.]]
+[[Effects:] []]
+[[Throws:] []]
+[[Note:] []]
 ]
 
 [ns_function_heading this_fiber..interruption_point]
 
         #include <boost/fiber/interruption.hpp>
-void interruption_point();
+
+        void interruption_point();
 
 [variablelist
 [[Effects:] [Check to see if the current fiber has been interrupted.]]
@@ -810,6 +795,16 @@ constructed.]]
         }
 
 [endsect] [/ section Namespace this_fiber]
+
+
+[section:winfibers Using WinFiber-API]
+
+Because the TIB (thread information block) is not fully described in the MSDN,
+it might be possible that not all required TIB-parts are swapped.
+With compiler flag `BOOST_USE_WINFIBERS` `fiber` uses internally the
+Windows Fiber API.
+
+[endsect]
 
 
 [endsect] [/ section Fiber Management]

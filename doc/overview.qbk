@@ -95,8 +95,8 @@ different thread is an advanced topic.
 
 [warning This library is ['not] an official Boost library]
 
-__boost_fiber__ depends upon __boost_chrono__, __boost_context__ and __boost_move__.
-Boost version 1.55.0 or greater is required.
+__boost_fiber__ depends upon __boost_context__.
+Boost version 1.58.0 or greater is required.
 
 [info This library is C++14-only!]
 

@@ -17,7 +17,7 @@
 namespace boost {
 namespace fibers {
 
-enum class queue_op_status {
+enum class channel_op_status {
     success = 0,
     empty,
     full,

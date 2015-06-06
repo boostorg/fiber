@@ -61,6 +61,65 @@ fiber which is to be resumed next.]]
 ]
 
 
+To prevent the library from heap-allocating a default scheduler for a given
+thread, that thread must call [function_link set_scheduling_algorithm] before
+any other __boost_fiber__ entry point.
+
+        void thread_fn()
+        {
+            my_fiber_scheduler mfs;
+            boost::fibers::set_scheduling_algorithm( & mfs);
+            ...
+        }
+
+A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides one
+scheduler: [class_link round_robin].
+
+You are explicitly permitted to code your own __algo__ subclass, and to pass
+it to [function_link set_scheduling_algorithm].
+
+
+[class_heading sched_algorithm]
+
+        #include <boost/fiber/algorithm.hpp>
+
+        struct sched_algorithm
+        {
+            virtual ~sched_algorithm() {}
+
+            virtual void awakened( detail::worker_fiber *) = 0;
+
+            virtual detail::worker_fiber * pick_next() = 0;
+
+            virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+        };
+
+[member_heading sched_algorithm..awakened]
+
+        virtual void awakened( detail::worker_fiber * f) = 0;
+
+[variablelist
+[[Effects:] [Marks fiber `f`, to be ready to run.]]
+]
+
+[member_heading sched_algorithm..pick_next]
+
+        virtual detail::worker_fiber * pick_next() = 0;
+
+[variablelist
+[[Effects:] [Depending on the scheduling algorithm, this function returns the
+fiber which is to be resumed next.]]
+]
+
+[member_heading sched_algorithm..priority]
+
+        virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+
+[variablelist
+[[Effects:] [Resets the priority of fiber `f`.]]
+]
+
+
 [class_heading round_robin]
 
 This class implements __algo__ and schedules fibers in round-robin fashion
@@ -68,6 +127,10 @@ This class implements __algo__ and schedules fibers in round-robin fashion
 
 [info The example section provides a scheduler used for migrating fibers
 (work-stealing) between threads (different schedulers).]
+
+
+< TODO >
+[heading customized scheduler]
 
 
 [endsect]

@@ -20,6 +20,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/detail/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -27,11 +28,6 @@
 
 namespace boost {
 namespace fibers {
-namespace detail {
-
-struct scheduler;
-
-}
 
 class fiber_context;
 
@@ -51,7 +47,7 @@ private:
         // reserve space for control structure
         std::size_t size = sctx.size - sizeof( fiber_context);
         void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_context);
-        // placement new of worker_fiber on top of fiber's stack
+        // placement new of fiber_context on top of fiber's stack
         return ptr_t( 
             new ( sp) fiber_context( context::preallocated( sp, size, sctx), salloc,
                                      std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
@@ -120,15 +116,16 @@ public:
         return impl_ ? impl_->get_id() : id();
     }
 
-    bool thread_affinity() const noexcept;
-
-    void thread_affinity( bool) noexcept;
-
     void detach() noexcept;
 
     void join();
 
     void interrupt() noexcept;
+
+    template< typename PROPS >
+    PROPS & properties() {
+        return dynamic_cast< PROPS & >( * impl_->get_properties() );
+    }
 };
 
 inline

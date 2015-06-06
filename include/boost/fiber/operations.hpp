@@ -49,17 +49,12 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
     sleep_until( std::chrono::high_resolution_clock::now() + timeout_duration);
 }
 
-inline
-bool thread_affinity() noexcept {
-    return fibers::detail::scheduler::instance()->active()->thread_affinity();
+template< typename PROPS >
+PROPS & properties() {
+    return dynamic_cast< PROPS & >( * fibers::detail::scheduler::instance()->active()->get_properties() );
 }
 
-inline
-void thread_affinity( bool req) noexcept {
-    fibers::detail::scheduler::instance()->active()->thread_affinity( req);
-}
-
-}
+} // this_fiber
 
 namespace fibers {
 

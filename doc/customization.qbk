@@ -16,8 +16,7 @@ In order to use a custom scheduler for a given thread, that thread must call
 [function_link set_scheduling_algorithm] before any other __boost_fiber__ entry
 point.
 
-        void thread_fn()
-        {
+        void thread_fn() {
             my_fiber_scheduler mfs;
             boost::fibers::set_scheduling_algorithm( & mfs);
             ...
@@ -66,6 +65,8 @@ fiber which has to be resumed next.]]
 [variablelist
 [[Effects:] [Registers `a` as scheduling algorithm.]]
 ]
+
+< TODO >
 
 
 [endsect]

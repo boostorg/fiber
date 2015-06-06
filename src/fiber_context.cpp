@@ -10,6 +10,7 @@
 
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/properties.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -17,6 +18,11 @@
 
 namespace boost {
 namespace fibers {
+
+fiber_context::~fiber_context() {
+    BOOST_ASSERT( waiting_.empty() );
+    delete properties_;
+}
 
 fiber_context *
 fiber_context::main_fiber() {
@@ -79,18 +85,6 @@ fiber_context::request_interruption( bool req) noexcept {
     }
 }
 
-void
-fiber_context::thread_affinity( bool req) noexcept {
-    // BOOST_ASSERT( 0 == ( flags_.load() & flag_main_fiber) );
-    if ( 0 == ( flags_.load() & flag_main_fiber) ) {
-        if ( req) {
-            flags_ |= flag_thread_affinity;
-        } else {
-            flags_ &= ~flag_thread_affinity;
-        }
-    }
-}
-
 void *
 fiber_context::get_fss_data( void const * vp) const {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
@@ -128,6 +122,12 @@ fiber_context::set_fss_data( void const * vp,
                 key,
                 fss_data( data, cleanup_fn) ) );
     }
+}
+
+void
+fiber_context::set_properties( fiber_properties * props) {
+    delete properties_;
+    properties_ = props;
 }
 
 }}
