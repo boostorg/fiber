@@ -57,7 +57,7 @@ fiber::join() {
 }
 
 void
-fiber::detach() noexcept {
+fiber::detach() {
     BOOST_ASSERT( impl_);
 
     if ( ! joinable() ) {

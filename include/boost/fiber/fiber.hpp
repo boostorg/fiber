@@ -129,7 +129,7 @@ public:
         return impl_ ? impl_->get_id() : id();
     }
 
-    void detach() noexcept;
+    void detach();
 
     void join();
 
