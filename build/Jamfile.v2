@@ -32,6 +32,7 @@ lib boost_fiber
       condition.cpp
       detail/fifo.cpp
       detail/spinlock.cpp
+      detail/terminated_queue.cpp
       detail/waiting_queue.cpp
       fiber.cpp
       fiber_context.cpp
