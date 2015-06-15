@@ -393,7 +393,7 @@ interruption enabled.]]
 [[Preconditions:] [`*this` refers to a fiber of execution.]]
 [[Effects:] []]
 [[Throws:] []]
-[[Note:] []
+[[Note:] []]
 ]
 
 [member_heading fiber..operator bool]
