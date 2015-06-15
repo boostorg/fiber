@@ -111,23 +111,13 @@ fiber_manager::run() {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
 
             // destroy terminated fibers from tqueue_
-            while ( ! tqueue_.empty() ) {
-                fiber_context * f_( tqueue_.pop() );
-                BOOST_ASSERT( nullptr != f_);
-                BOOST_ASSERT( f_->is_terminated() );
-                intrusive_ptr_release( f_);
-            }
+            tqueue_.clear();
 
             // resume fiber f
             resume_( f);
 
             // destroy terminated fibers from tqueue_
-            while ( ! tqueue_.empty() ) {
-                fiber_context * f_( tqueue_.pop() );
-                BOOST_ASSERT( nullptr != f_);
-                BOOST_ASSERT( f_->is_terminated() );
-                intrusive_ptr_release( f_);
-            }
+            tqueue_.clear();
 
             return;
         } else {

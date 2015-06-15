@@ -14,8 +14,8 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/terminated_queue.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -31,7 +31,7 @@ struct sched_algorithm;
 struct fiber_manager {
 private:
     typedef detail::waiting_queue                   wqueue_t;
-    typedef detail::fifo                            tqueue_t;
+    typedef detail::terminated_queue                tqueue_t;
 
     sched_algorithm                             *   sched_algo_;
     fiber_context                               *   active_fiber_;

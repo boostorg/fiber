@@ -44,9 +44,22 @@ private:
     template< typename StackAlloc, typename Fn, typename ... Args >
     static ptr_t create( StackAlloc salloc, Fn && fn, Args && ... args) {
         context::stack_context sctx( salloc.allocate() );
+#if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
         // reserve space for control structure
         std::size_t size = sctx.size - sizeof( fiber_context);
         void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_context);
+#else
+        constexpr std::size_t func_alignment = 64; // alignof( fiber_context);
+        constexpr std::size_t func_size = sizeof( fiber_context);
+        // reserve space on stack
+        void * sp = static_cast< char * >( sctx.sp) - func_size - func_alignment;
+        // align sp pointer
+        std::size_t space = func_size + func_alignment;
+        sp = std::align( func_alignment, func_size, sp, space);
+        BOOST_ASSERT( nullptr != sp);
+        // calculate remaining size
+        std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
+#endif
         // placement new of fiber_context on top of fiber's stack
         return ptr_t( 
             new ( sp) fiber_context( context::preallocated( sp, size, sctx), salloc,
@@ -116,7 +129,7 @@ public:
         return impl_ ? impl_->get_id() : id();
     }
 
-    void detach() noexcept;
+    void detach();
 
     void join();
 
