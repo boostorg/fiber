@@ -14,7 +14,9 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
+#if defined(BOOST_FIBERS_THREADSAFE)
+# include <boost/fiber/detail/spinlock.hpp>
+#endif
 #include <boost/fiber/fiber_context.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -31,7 +33,9 @@ private:
         unlocked
     };
 
+#if defined(BOOST_FIBERS_THREADSAFE)
     detail::spinlock                splk_;
+#endif
     mutex_status                    state_;
     fiber_context::id               owner_;
     std::deque< fiber_context * >   waiting_;

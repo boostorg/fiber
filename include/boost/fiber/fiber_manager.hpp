@@ -14,7 +14,9 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/spinlock.hpp>
+#if defined(BOOST_FIBERS_THREADSAFE)
+# include <boost/fiber/detail/spinlock.hpp>
+#endif
 #include <boost/fiber/detail/terminated_queue.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 
@@ -56,6 +58,7 @@ public:
 
     void run();
 
+#if defined(BOOST_FIBERS_THREADSAFE)
     void wait( std::unique_lock< detail::spinlock > &);
 
     bool wait_until( std::chrono::high_resolution_clock::time_point const&,
@@ -63,7 +66,7 @@ public:
 
     template< typename Clock, typename Duration >
     bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
-                        std::unique_lock< detail::spinlock > & lk) {
+                     std::unique_lock< detail::spinlock > & lk) {
         std::chrono::high_resolution_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
         return wait_until( timeout_time, lk);
@@ -71,9 +74,26 @@ public:
 
     template< typename Rep, typename Period >
     bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
-                      std::unique_lock< detail::spinlock > & lk) {
+                   std::unique_lock< detail::spinlock > & lk) {
         return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration, lk);
     }
+#else
+    void wait();
+
+    bool wait_until( std::chrono::high_resolution_clock::time_point const&);
+
+    template< typename Clock, typename Duration >
+    bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+        std::chrono::high_resolution_clock::time_point timeout_time(
+                detail::convert_tp( timeout_time_) );
+        return wait_until( timeout_time);
+    }
+
+    template< typename Rep, typename Period >
+    bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
+        return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration);
+    }
+#endif
 
     void yield();
 

@@ -54,13 +54,19 @@ void test_async()
     BOOST_CHECK_EQUAL( i, result);
 }
 
+void test_dummy() {}
+
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
 {
     boost::unit_test_framework::test_suite* test =
         BOOST_TEST_SUITE("Boost.Fiber: futures-mt test suite");
 
+#if defined(BOOST_FIBERS_THREADSAFE)
     for ( int i = 0; i < 50; ++i)
     { test->add(BOOST_TEST_CASE(test_async)); }
+#else
+    test->add(BOOST_TEST_CASE(test_dummy));
+#endif
 
     return test;
 }

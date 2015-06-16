@@ -35,9 +35,13 @@ fiber_context::release() {
     std::vector< fiber_context * > waiting;
 
     // get all waiting fibers
+#if defined(BOOST_FIBERS_THREADSAFE)
     splk_.lock();
     waiting.swap( waiting_);
     splk_.unlock();
+#else
+    waiting.swap( waiting_);
+#endif
 
     // notify all waiting fibers
     for ( fiber_context * f : waiting) {
@@ -57,7 +61,9 @@ bool
 fiber_context::join( fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
 
+#if defined(BOOST_FIBERS_THREADSAFE)
     std::unique_lock< detail::spinlock > lk( splk_);
+#endif
     if ( is_terminated() ) {
         return false;
     }
