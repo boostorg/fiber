@@ -4,13 +4,13 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/fiber/detail/spinlock.hpp>
+#include "boost/fiber/detail/spinlock.hpp"
 
 #include <boost/assert.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
-#include <boost/fiber/fiber_context.hpp>
-#include <boost/fiber/fiber_manager.hpp>
+#include "boost/fiber/detail/scheduler.hpp"
+#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/fiber_manager.hpp"
 
 namespace boost {
 namespace fibers {

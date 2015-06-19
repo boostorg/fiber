@@ -28,7 +28,7 @@ namespace fibers {
 class fiber_context;
 struct sched_algorithm;
 
-struct fiber_manager {
+struct BOOST_FIBERS_DECL fiber_manager {
 private:
     typedef detail::waiting_queue                   wqueue_t;
     typedef detail::terminated_queue                tqueue_t;

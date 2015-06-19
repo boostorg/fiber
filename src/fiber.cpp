@@ -9,7 +9,6 @@
 #include <system_error>
 
 #include <boost/assert.hpp>
-#include <boost/system/error_code.hpp>
 
 #include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/exceptions.hpp"

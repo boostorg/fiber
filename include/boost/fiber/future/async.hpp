@@ -21,7 +21,7 @@ namespace fibers {
 
 template< typename Fn, typename ... Args >
 future< typename std::result_of< Fn( Args ... ) >::type >
-async( Fn fn, Args && ... args) {
+async( Fn && fn, Args && ... args) {
     typedef typename std::result_of< Fn( Args ... ) >::type result_type;
 
     packaged_task< result_type( Args ... ) > pt( std::forward< Fn >( fn) );
@@ -32,7 +32,7 @@ async( Fn fn, Args && ... args) {
 
 template< typename StackAllocator, typename Fn, typename ... Args >
 future< typename std::result_of< Fn( Args ... ) >::type >
-async( StackAllocator salloc, Fn fn, Args && ... args) {
+async( StackAllocator salloc, Fn && fn, Args && ... args) {
     typedef typename std::result_of< Fn( Args ... ) >::type result_type;
 
     packaged_task< result_type( Args ... ) > pt(

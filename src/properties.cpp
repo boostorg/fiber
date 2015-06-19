@@ -3,8 +3,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/assert.hpp>
 #include "boost/fiber/properties.hpp"
+
+#include <boost/assert.hpp>
+
 #include "boost/fiber/algorithm.hpp"
 #include "boost/fiber/fiber_manager.hpp"
 #include "boost/fiber/fiber_context.hpp"

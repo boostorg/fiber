@@ -25,7 +25,7 @@ class fiber_context;
 
 namespace detail {
 
-class terminated_queue {
+class BOOST_FIBERS_DECL terminated_queue {
 public:
     terminated_queue() noexcept :
         head_( nullptr),

@@ -8,7 +8,7 @@
 
 #include <boost/assert.hpp>
 
-#include <boost/fiber/fiber_context.hpp>
+#include "boost/fiber/fiber_context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX

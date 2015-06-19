@@ -50,10 +50,13 @@ public:
     restore_interruption & operator=( restore_interruption const&) = delete;
 };
 
+BOOST_FIBERS_DECL
 bool interruption_enabled() noexcept;
 
+BOOST_FIBERS_DECL
 bool interruption_requested() noexcept;
 
+BOOST_FIBERS_DECL
 void interruption_point();
 
 }}

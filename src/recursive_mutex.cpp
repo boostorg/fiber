@@ -7,7 +7,6 @@
 #include "boost/fiber/recursive_mutex.hpp"
 
 #include <algorithm>
-#include <mutex>
 
 #include <boost/assert.hpp>
 
