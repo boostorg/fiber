@@ -17,7 +17,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
 # include <boost/fiber/detail/spinlock.hpp>
 #endif
 #include <boost/fiber/interruption.hpp>
@@ -40,7 +40,7 @@ enum class cv_status {
 
 class BOOST_FIBERS_DECL condition {
 private:
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     detail::spinlock                    splk_;
 #endif
     std::deque< fiber_context * >       waiting_;
@@ -68,7 +68,7 @@ public:
     void wait( LockType & lt) {
         fiber_context * f( detail::scheduler::instance()->active() );
         try {
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
             // lock spinlock
             std::unique_lock< detail::spinlock > lk( splk_);
 #endif
@@ -82,7 +82,7 @@ public:
             lt.unlock();
 
             // suspend this fiber
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
             // locked spinlock will be released if this fiber
             // was stored inside schedulers's waiting-queue
             detail::scheduler::instance()->wait( lk);
@@ -97,7 +97,7 @@ public:
             // lock external again before returning
             lt.lock();
         } catch (...) {
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
             std::unique_lock< detail::spinlock > lk( splk_);
 #endif
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
@@ -116,7 +116,7 @@ public:
 
         fiber_context * f( detail::scheduler::instance()->active() );
         try {
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
             // lock spinlock
             std::unique_lock< detail::spinlock > lk( splk_);
 #endif
@@ -131,13 +131,13 @@ public:
             // suspend this fiber
             // locked spinlock will be released if this fiber
             // was stored inside schedulers's waiting-queue
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
             if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
 #else
             if ( ! detail::scheduler::instance()->wait_until( timeout_time) ) {
 #endif
                 // this fiber was not notified before timeout
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
                 // lock spinlock again
                 std::unique_lock< detail::spinlock > lk( splk_);
 #endif
@@ -156,7 +156,7 @@ public:
             // lock external again before returning
             lt.lock();
         } catch (...) {
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
             std::unique_lock< detail::spinlock > lk( splk_);
 #endif
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );

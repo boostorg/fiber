@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/03/12 18:51:54 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/06/19 19:37:04 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -139,10 +139,8 @@
       </para>
     </warning>
     <para>
-      <emphasis role="bold">Boost.Fiber</emphasis> depends upon <ulink url="boost:/libs/chrono/index.html">Boost.Chrono</ulink>,
-      <ulink url="boost:/libs/context/index.html">Boost.Context</ulink> and <ulink
-      url="boost:/libs/move/index.html">Boost.Move</ulink>. Boost version 1.55.0
-      or greater is required.
+      <emphasis role="bold">Boost.Fiber</emphasis> depends upon <ulink url="boost:/libs/context/index.html">Boost.Context</ulink>.
+      Boost version 1.58.0 or greater is required.
     </para>
     <para>
       [info This library is C++14-only!]
@@ -163,6 +161,8 @@
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm_with_properties</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">*</phrase> <phrase role="identifier">al</phrase><phrase role="special">)</phrase>
 
@@ -176,8 +176,8 @@
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">sleep_time</phrase><phrase role="special">)</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
-<phrase role="keyword">bool</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">interruption_point</phrase><phrase role="special">();</phrase>
 <phrase role="keyword">bool</phrase> <phrase role="identifier">interruption_requested</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -228,9 +228,8 @@
   <phrase role="comment">// this leads to undefined behaviour</phrase>
 </programlisting>
     <para>
-      Control is immediately transferred to the spawned <link linkend="class_fiber"> <code>fiber</code></link> at construction.
-      When the constructor returns, the <link linkend="class_fiber"> <code>fiber</code></link> might be complete or might
-      have suspended.
+      The spawned <link linkend="class_fiber"> <code>fiber</code></link> is enqueued in the list of ready-to-run fibers
+      at construction.
     </para>
     <bridgehead renderas="sect3" id="fiber.fiber_mgmt.h3">
       <phrase id="fiber.fiber_mgmt.exceptions"/><link linkend="fiber.fiber_mgmt.exceptions">Exceptions</link>
@@ -428,7 +427,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">operator</phrase><phrase role="special">=(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">operator</phrase> <phrase role="keyword">bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="keyword">operator</phrase> <phrase role="keyword">bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">!()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
@@ -438,15 +437,14 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="identifier">id</phrase> <phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-
-    <phrase role="keyword">void</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-
     <phrase role="keyword">void</phrase> <phrase role="identifier">detach</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">();</phrase>
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">interrupt</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -904,14 +902,20 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           </listitem>
         </varlistentry>
       </variablelist>
-      <anchor id="fiber_thread_affinity"/>
+      <para>
+        &lt; TODO &gt; <anchor id="fiber_properties"/>
+      </para>
       <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber.h5">
-        <phrase id="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special_____phrase___phrase_role__keyword__bool__phrase__phrase_role__special_____phrase___code_"/><link
-        linkend="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special_____phrase___phrase_role__keyword__bool__phrase__phrase_role__special_____phrase___code_">Member
-        function <code><phrase role="identifier">thread_affinity</phrase><phrase
-        role="special">(</phrase> <phrase role="keyword">bool</phrase><phrase role="special">)</phrase></code></link>
+        <phrase id="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__keyword__template__phrase__phrase_role__special___lt___phrase___phrase_role__keyword__typename__phrase___phrase_role__identifier__props__phrase___phrase_role__special___gt___phrase___phrase_role__identifier__props__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__properties__phrase__phrase_role__special______phrase___code_"/><link
+        linkend="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__keyword__template__phrase__phrase_role__special___lt___phrase___phrase_role__keyword__typename__phrase___phrase_role__identifier__props__phrase___phrase_role__special___gt___phrase___phrase_role__identifier__props__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__properties__phrase__phrase_role__special______phrase___code_">Member
+        function <code><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase>
+        <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase>
+        <phrase role="special">&gt;</phrase> <phrase role="identifier">PROPS</phrase>
+        <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase
+        role="special">()</phrase></code></link>
       </bridgehead>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -927,86 +931,16 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
-            <para>
-              Set thread affinity for the fiber referenced by <code><phrase role="special">*</phrase><phrase
-              role="keyword">this</phrase></code>.
-            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Throws:</term>
           <listitem>
-            <para>
-              Nothing
-            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Note:</term>
           <listitem>
-            <para>
-              &quot;Thread affinity&quot; is only meaningful for certain scheduler
-              algorithms, such as <link linkend="class_round_robin_ws"> <code>round_robin_ws</code></link>. Many schedulers
-              ignore this fiber attribute. With a scheduler that might potentially
-              migrate a fiber from its initial thread to another, the value <code><phrase
-              role="keyword">true</phrase></code> prevents migration: the fiber will
-              always run on its current thread. The default is <code><phrase role="keyword">false</phrase></code>:
-              normally, with an applicable scheduler, a fiber is allowed to migrate
-              across threads.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>See also:</term>
-          <listitem>
-            <para>
-              <link linkend="this_fiber_thread_affinity"> <code>this_fiber::thread_affinity()</code></link>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber.h6">
-        <phrase id="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special______phrase___code_"/><link
-        linkend="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special______phrase___code_">Member
-        function <code><phrase role="identifier">thread_affinity</phrase><phrase
-        role="special">()</phrase></code></link>
-      </bridgehead>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Preconditions:</term>
-          <listitem>
-            <para>
-              <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
-              refers to a fiber of execution.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              thread affinity for the fiber referenced by <code><phrase role="special">*</phrase><phrase
-              role="keyword">this</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>See also:</term>
-          <listitem>
-            <para>
-              <link linkend="this_fiber_thread_affinity"> <code>this_fiber::thread_affinity()</code></link>
-            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -1017,7 +951,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         function <code>operator bool</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">operator</phrase> <phrase role="keyword">bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">explicit</phrase> <phrase role="keyword">operator</phrase> <phrase role="keyword">bool</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1504,8 +1438,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">sleep_time</phrase><phrase role="special">)</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
-<phrase role="keyword">bool</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">req</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">interruption_point</phrase><phrase role="special">();</phrase>
 <phrase role="keyword">bool</phrase> <phrase role="identifier">interruption_requested</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -1684,43 +1618,35 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         </varlistentry>
       </variablelist>
       <para>
-        <bridgehead renderas="sect4" id="this_fiber_thread_affinity_bridgehead">
-  <phrase id="this_fiber_thread_affinity"/>
-  <link linkend="this_fiber_thread_affinity">Non-member
-        function <code>this_fiber::thread_affinity()</code></link>
+        &lt; TODO &gt;
+      </para>
+      <para>
+        <bridgehead renderas="sect4" id="this_fiber_properties_bridgehead">
+  <phrase id="this_fiber_properties"/>
+  <link linkend="this_fiber_properties">Non-member
+        function <code>this_fiber::properties()</code></link>
 </bridgehead>
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">bool</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">thread_affinity</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">req</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
 </programlisting>
       <variablelist>
         <title></title>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
-            <para>
-              Set or report <link linkend="fiber_thread_affinity"> <code>fiber::thread_affinity()</code></link> for the
-              currently running fiber.
-            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Throws:</term>
           <listitem>
-            <para>
-              Nothing.
-            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Note:</term>
           <listitem>
-            <para>
-              <link linkend="fiber_thread_affinity"> <code>fiber::thread_affinity()</code></link> is <code><phrase role="keyword">false</phrase></code>
-              by default.
-            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -1732,10 +1658,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 </bridgehead>
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">interruption</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">void</phrase> <phrase role="identifier">interruption_point</phrase><phrase role="special">();</phrase>
 </programlisting>
-      <para>
-        void interruption_point();
-      </para>
       <variablelist>
         <title></title>
         <varlistentry>
@@ -2044,6 +1969,16 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="special">}</phrase>
 </programlisting>
     </section>
+    <section id="fiber.fiber_mgmt.winfibers">
+      <title><link linkend="fiber.fiber_mgmt.winfibers">Using WinFiber-API</link></title>
+      <para>
+        Because the TIB (thread information block) is not fully described in the
+        MSDN, it might be possible that not all required TIB-parts are swapped. With
+        compiler flag <code><phrase role="identifier">BOOST_USE_WINFIBERS</phrase></code>
+        <code><phrase role="identifier">fiber</phrase></code> uses internally the
+        Windows Fiber API.
+      </para>
+    </section>
   </section>
   <section id="fiber.scheduling">
     <title><link linkend="fiber.scheduling">Scheduling</link></title>
@@ -2144,6 +2079,108 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       </varlistentry>
     </variablelist>
     <para>
+      To prevent the library from heap-allocating a default scheduler for a given
+      thread, that thread must call <link linkend="set_scheduling_algorithm"> <code>set_scheduling_algorithm()</code></link> before
+      any other <emphasis role="bold">Boost.Fiber</emphasis> entry point.
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread_fn</phrase><phrase role="special">()</phrase>
+<phrase role="special">{</phrase>
+    <phrase role="identifier">my_fiber_scheduler</phrase> <phrase role="identifier">mfs</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">mfs</phrase><phrase role="special">);</phrase>
+    <phrase role="special">...</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    <para>
+      A fiber-scheduler must implement interface <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link>.
+      <emphasis role="bold">Boost.Fiber</emphasis> provides one scheduler: <link linkend="class_round_robin"> <code>round_robin</code></link>.
+    </para>
+    <para>
+      You are explicitly permitted to code your own <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link> subclass,
+      and to pass it to <link linkend="set_scheduling_algorithm"> <code>set_scheduling_algorithm()</code></link>.
+    </para>
+    <para>
+      <bridgehead renderas="sect4" id="class_sched_algorithm_bridgehead">
+  <phrase id="class_sched_algorithm"/>
+  <link linkend="class_sched_algorithm">Class
+      <code>sched_algorithm</code></link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase>
+<phrase role="special">{</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">sched_algorithm</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
+    <para>
+      <bridgehead renderas="sect4" id="sched_algorithm_awakened_bridgehead">
+  <phrase id="sched_algorithm_awakened"/>
+  <link linkend="sched_algorithm_awakened">Member
+      function <code>awakened</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Marks fiber <code><phrase role="identifier">f</phrase></code>, to be
+            ready to run.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="sched_algorithm_pick_next_bridgehead">
+  <phrase id="sched_algorithm_pick_next"/>
+  <link linkend="sched_algorithm_pick_next">Member
+      function <code>pick_next</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Depending on the scheduling algorithm, this function returns the fiber
+            which is to be resumed next.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="sched_algorithm_priority_bridgehead">
+  <phrase id="sched_algorithm_priority"/>
+  <link linkend="sched_algorithm_priority">Member
+      function <code>priority</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">worker_fiber</phrase> <phrase role="special">*,</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Resets the priority of fiber <code><phrase role="identifier">f</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
       <bridgehead renderas="sect4" id="class_round_robin_bridgehead">
   <phrase id="class_round_robin"/>
   <link linkend="class_round_robin">Class <code>round_robin</code></link>
@@ -2159,6 +2196,13 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       [info The example section provides a scheduler used for migrating fibers (work-stealing)
       between threads (different schedulers).]
     </para>
+    <para>
+      &lt; TODO &gt;
+    </para>
+    <bridgehead renderas="sect3" id="fiber.scheduling.h0">
+      <phrase id="fiber.scheduling.customized_scheduler"/><link linkend="fiber.scheduling.customized_scheduler">customized
+      scheduler</link>
+    </bridgehead>
   </section>
   <section id="fiber.stack">
     <title><link linkend="fiber.stack">Stack allocation</link></title>
@@ -3452,8 +3496,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">();</phrase>
 
-    <phrase role="keyword">void</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-    <phrase role="keyword">void</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
@@ -3595,8 +3638,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         function <code>push</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -6914,133 +6956,6 @@ are
       </varlistentry>
     </variablelist>
   </section>
-  <section id="fiber.asio">
-    <title><link linkend="fiber.asio">Example: asynchronous network I/O (boost.asio)</link></title>
-    <para>
-      In the past, code using asio's <emphasis>asynchronous operations</emphasis>
-      was scattered by callbacks. <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>
-      provides with its new <emphasis>asynchronous result</emphasis> feature a new
-      way to simplify the code and make it easier to read. <emphasis>boost::asio::yield_context</emphasis>
-      internally uses __boost_coroutine__:
-    </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">echo</phrase><phrase role="special">(</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">ip</phrase><phrase role="special">::</phrase><phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">socket</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">socket</phrase><phrase role="special">,</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_context</phrase> <phrase role="identifier">yield</phrase><phrase role="special">){</phrase>
-    <phrase role="keyword">char</phrase> <phrase role="identifier">data</phrase><phrase role="special">[</phrase><phrase role="number">128</phrase><phrase role="special">];</phrase>
-    <phrase role="comment">// read asynchronous data from socket</phrase>
-    <phrase role="comment">// execution context will be suspended until</phrase>
-    <phrase role="comment">// some bytes are read from socket</phrase>
-    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">n</phrase><phrase role="special">=</phrase><phrase role="identifier">socket</phrase><phrase role="special">.</phrase><phrase role="identifier">async_read_some</phrase><phrase role="special">(</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">buffer</phrase><phrase role="special">(</phrase><phrase role="identifier">data</phrase><phrase role="special">),</phrase><phrase role="identifier">yield</phrase><phrase role="special">);</phrase>
-    <phrase role="comment">// write some bytes asynchronously</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">async_write</phrase><phrase role="special">(</phrase><phrase role="identifier">socket</phrase><phrase role="special">,</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">buffer</phrase><phrase role="special">(</phrase><phrase role="identifier">data</phrase><phrase role="special">,</phrase><phrase role="identifier">n</phrase><phrase role="special">),</phrase><phrase role="identifier">yield</phrase><phrase role="special">);</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
-    <para>
-      Unfortunately __boost_coroutine__ (<emphasis>boost::asio::yield_context</emphasis>)
-      does not provide primitives to synchronize different coroutines (execution
-      contexts).
-    </para>
-    <para>
-      <emphasis role="bold">Boost.Fiber</emphasis> provides an example how <code><phrase
-      role="identifier">fibers</phrase></code> could be integrated into <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>
-      so that <emphasis>asynchronous operations</emphasis> from <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>
-      can be used together with fibers, synchronized by primitives provided by <emphasis
-      role="bold">Boost.Fiber</emphasis>.
-    </para>
-    <para>
-      The example section contains a complete publish-subscribe application demonstrating
-      the use of fibers with asio's <emphasis>asynchronous operations</emphasis>.
-      <emphasis>boost::fibers::asio::yield_context</emphasis> abstracts the fiber
-      in asio's context.
-    </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">subscriber</phrase><phrase role="special">::</phrase><phrase role="identifier">run</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_fiber</phrase> <phrase role="identifier">yield</phrase><phrase role="special">)</phrase>
-<phrase role="special">{</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="identifier">ec</phrase><phrase role="special">;</phrase>
-
-    <phrase role="comment">// read first message == channel name</phrase>
-    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">channel</phrase><phrase role="special">;</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">async_read</phrase><phrase role="special">(</phrase>
-            <phrase role="identifier">socket_</phrase><phrase role="special">,</phrase>
-            <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">buffer</phrase><phrase role="special">(</phrase> <phrase role="identifier">channel</phrase><phrase role="special">),</phrase>
-            <phrase role="identifier">yield</phrase><phrase role="special">[</phrase><phrase role="identifier">ec</phrase><phrase role="special">]);</phrase>
-    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="keyword">throw</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">runtime_error</phrase><phrase role="special">(</phrase><phrase role="string">&quot;no channel from subscriber&quot;</phrase><phrase role="special">);</phrase>
-
-    <phrase role="comment">// register new channel</phrase>
-    <phrase role="identifier">reg_</phrase><phrase role="special">.</phrase><phrase role="identifier">subscribe</phrase><phrase role="special">(</phrase> <phrase role="identifier">channel</phrase><phrase role="special">,</phrase> <phrase role="identifier">shared_from_this</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
-
-    <phrase role="keyword">for</phrase> <phrase role="special">(;;)</phrase>
-    <phrase role="special">{</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">mutex</phrase><phrase role="special">::</phrase><phrase role="identifier">scoped_lock</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_</phrase><phrase role="special">);</phrase>
-        <phrase role="comment">// wait for published messages</phrase>
-        <phrase role="comment">// fiber gets suspended and will be woken up if a</phrase>
-        <phrase role="comment">// new message has to be published to subscriber</phrase>
-        <phrase role="identifier">cond_</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">);</phrase>
-
-        <phrase role="comment">// '&lt;fini&gt;' terminates subscriber</phrase>
-        <phrase role="comment">// data_ is a private member of subscriber and</phrase>
-        <phrase role="comment">// gets filled by the publisher</phrase>
-        <phrase role="comment">// notification of available data via condition_var cond_</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="string">&quot;&lt;fini&gt;&quot;</phrase> <phrase role="special">==</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase><phrase role="special">(</phrase> <phrase role="identifier">data_</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
-
-        <phrase role="comment">// write message asynchronously to subscriber</phrase>
-        <phrase role="comment">// fiber gets suspended until message was written</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">async_write</phrase><phrase role="special">(</phrase>
-                <phrase role="identifier">socket_</phrase><phrase role="special">,</phrase>
-                <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">buffer</phrase><phrase role="special">(</phrase> <phrase role="identifier">data_</phrase><phrase role="special">,</phrase> <phrase role="identifier">max_length</phrase><phrase role="special">),</phrase>
-                <phrase role="identifier">yield</phrase><phrase role="special">[</phrase><phrase role="identifier">ec</phrase><phrase role="special">]);</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="keyword">throw</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">runtime_error</phrase><phrase role="special">(</phrase><phrase role="string">&quot;publishing message failed&quot;</phrase><phrase role="special">);</phrase>
-    <phrase role="special">}</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
-    <bridgehead renderas="sect3" id="fiber.asio.h0">
-      <phrase id="fiber.asio.c10k_problem"/><link linkend="fiber.asio.c10k_problem">C10K
-      problem</link>
-    </bridgehead>
-    <para>
-      The C10K-website <footnote id="fiber.asio.f0">
-      <para>
-        <ulink url="http://www.kegel.com/c10k.html">'The C10K problem', Dan Kegel</ulink>
-      </para>
-      </footnote> from Dan Kegel describes the problem of handling ten thousand clients
-      simultaneously and which strategies are possible.
-    </para>
-    <para>
-      <emphasis role="bold">Boost.Fiber</emphasis> and <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>
-      support the strategy 'serve many clients with each server thread, and use asynchronous
-      I/O' without scattering the logic across many callbacks (as was asio's previous
-      strategy) and overloading the operating system with too many threads. (Beyond
-      a certain number of threads, the overhead of the kernel scheduler starts to
-      swamp the available cores.)
-    </para>
-    <para>
-      Because <emphasis role="bold">Boost.Fiber</emphasis> contains synchronization
-      primitives, it is easy to synchronize different fibers and use asynchronous
-      network I/O at the same time.
-    </para>
-    <para>
-      <emphasis role="bold">Boost.Fiber</emphasis> provides the same classes and
-      interfaces as <ulink url="boost:/libs/thread/index.html">Boost.Thread</ulink>.
-      Therefore developers are able to use patterns familiar from multi-threaded
-      programming. For instance the strategy 'serve one client with one thread' could
-      be transformed into 'serve one client with one fiber'.
-    </para>
-    <bridgehead renderas="sect3" id="fiber.asio.h1">
-      <phrase id="fiber.asio.integration"/><link linkend="fiber.asio.integration">Integration</link>
-    </bridgehead>
-    <para>
-      The code for integrating boost.fiber int boost.asio can be found in the example
-      directory. THe author believes, that a better, more tight integration is possible
-      but requires input of boost.asio's author and maybe some changes in the boost.asio
-      framework.
-    </para>
-    <para>
-      The current integration pattern requires to runn <code><phrase role="identifier">boost</phrase><phrase
-      role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase
-      role="identifier">io_service</phrase></code> in <code><phrase role="identifier">boost</phrase><phrase
-      role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase
-      role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase
-      role="identifier">run_service</phrase><phrase role="special">()</phrase></code>
-      (separate fiber).
-    </para>
-  </section>
   <section id="fiber.performance">
     <title><link linkend="fiber.performance">Performance</link></title>
     <para>
@@ -7090,7 +7005,7 @@ are
             </entry>
             <entry>
               <para>
-                3 &#xb5;s
+                955 ns
               </para>
             </entry>
             <entry>
@@ -7128,12 +7043,12 @@ are
           <row>
             <entry>
               <para>
-                16 &#xb5;s
+                20 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                3 &#xb5;s
+                3.2 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7161,12 +7076,12 @@ are
           <row>
             <entry>
               <para>
-                32 &#xb5;s
+                38 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                3 &#xb5;s
+                1.1 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7199,7 +7114,7 @@ are
             </entry>
             <entry>
               <para>
-                4 &#xb5;s
+                2.4 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7237,12 +7152,12 @@ are
             </entry>
             <entry>
               <para>
-                32.90 &#xb5;s
+                50.65 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                3.769 &#xb5;s
+                3.76 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7254,12 +7169,12 @@ are
             </entry>
             <entry>
               <para>
-                32.71 &#xb5;s
+                52.99 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                2.789 &#xb5;s
+                2.78 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7271,12 +7186,12 @@ are
             </entry>
             <entry>
               <para>
-                39.84 &#xb5;s
+                50.44 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                2.450 &#xb5;s
+                2.45 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7288,12 +7203,12 @@ are
             </entry>
             <entry>
               <para>
-                49.78 &#xb5;s
+                45.19 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                2.919 &#xb5;s
+                2.91 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7305,12 +7220,12 @@ are
             </entry>
             <entry>
               <para>
-                55.95 &#xb5;s
+                42.59 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                3.607 &#xb5;s
+                3.60 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7322,12 +7237,12 @@ are
             </entry>
             <entry>
               <para>
-                42.88 &#xb5;s
+                42.30 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                4.579 &#xb5;s
+                4.57 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7339,12 +7254,312 @@ are
             </entry>
             <entry>
               <para>
-                47.13 &#xb5;s
+                41.07 &#xb5;s
               </para>
             </entry>
             <entry>
               <para>
-                4.219 &#xb5;s
+                4.21 &#xb5;s
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para>
+      Using internally atomics by applying BOOST_FIBER_USE_ATOMICS.
+    </para>
+    <table frame="all" id="fiber.performance.overhead_of_creating_and_joinin0">
+      <title>Overhead of creating and joining</title>
+      <tgroup cols="4">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+            <entry>
+              <para>
+                tbb
+              </para>
+            </entry>
+            <entry>
+              <para>
+                qthread
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                31 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                1.1 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                570 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                620 ns
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.overhead_of_detach0">
+      <title>Overhead of detach</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                20 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                3.2 &#xb5;s
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.overhead_of_yield0">
+      <title>Overhead of yield</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                38 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                1.3 &#xb5;s
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.overhead_of_waiting_on_a_future0">
+      <title>Overhead of waiting on a future</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                32 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                3.0 &#xb5;s
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table frame="all" id="fiber.performance.scaling_of_creating_and_joining0">
+      <title>Scaling of creating and joining</title>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                average of
+              </para>
+            </entry>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                10
+              </para>
+            </entry>
+            <entry>
+              <para>
+                50.65 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                4.83 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                50
+              </para>
+            </entry>
+            <entry>
+              <para>
+                52.99 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                4.84 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                100
+              </para>
+            </entry>
+            <entry>
+              <para>
+                50.44 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                5.24 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                500
+              </para>
+            </entry>
+            <entry>
+              <para>
+                45.19 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                4.86 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                1000
+              </para>
+            </entry>
+            <entry>
+              <para>
+                42.59 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                5.04 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                5000
+              </para>
+            </entry>
+            <entry>
+              <para>
+                42.30 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                5.07 &#xb5;s
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                10000
+              </para>
+            </entry>
+            <entry>
+              <para>
+                41.07 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                5.12 &#xb5;s
               </para>
             </entry>
           </row>
@@ -7390,18 +7605,6 @@ are
       sections.
     </para>
     <bridgehead renderas="sect3" id="fiber.rational.h2">
-      <phrase id="fiber.rational._code__phrase_role__identifier__fiber_manager__phrase___code_with_free_functions"/><link
-      linkend="fiber.rational._code__phrase_role__identifier__fiber_manager__phrase___code_with_free_functions"><code><phrase
-      role="identifier">fiber_manager</phrase></code>with free-functions</link>
-    </bridgehead>
-    <para>
-      Some compiler store the <code><phrase role="keyword">this</phrase></code>-pointer
-      on the stack so that the fiber, which has been migrated to another scheduler
-      (thread), access the invalid instance if it will be resumed from <code><phrase
-      role="identifier">fiber_manager</phrase><phrase role="special">::</phrase><phrase
-      role="identifier">run</phrase><phrase role="special">()</phrase></code>.
-    </para>
-    <bridgehead renderas="sect3" id="fiber.rational.h3">
       <phrase id="fiber.rational.synchronization_between_fibers_running_in_different_threads"/><link
       linkend="fiber.rational.synchronization_between_fibers_running_in_different_threads">synchronization
       between fibers running in different threads</link>
@@ -7415,39 +7618,6 @@ are
       are designed to be thread-safe, e.g. it is possible to synchronize fibers running
       in different schedulers (different threads) or running int the same scheduler
       (same thread).
-    </para>
-    <bridgehead renderas="sect3" id="fiber.rational.h4">
-      <phrase id="fiber.rational.migrating_fibers_between_threads"/><link linkend="fiber.rational.migrating_fibers_between_threads">migrating
-      fibers between threads</link>
-    </bridgehead>
-    <para>
-      Fibers can be migrated between different schedulers, e.g. threads. The library
-      contains an example demonstrating how a scheduler could be implemented to allow
-      the migration of fibers. The example allows to move fibers from the ready-queue
-      (fibers with state READY, e.g. ready to be executed) of scheduler <code><phrase
-      role="identifier">X</phrase></code> to the ready-queue of scheduler <code><phrase
-      role="identifier">Y</phrase></code>. It is important that this operation is
-      thread-safe. If the fiber is put to the ready-queue of scheduler <code><phrase
-      role="identifier">Y</phrase></code> it might be selected for resumtion in the
-      next step, e.g. the fiber will be executed in the context of the thread running
-      scheudler <code><phrase role="identifier">Y</phrase></code>.
-    </para>
-    <bridgehead renderas="sect3" id="fiber.rational.h5">
-      <phrase id="fiber.rational.variadric_template_args_for_async___packaged_task_lt__gt_"/><link
-      linkend="fiber.rational.variadric_template_args_for_async___packaged_task_lt__gt_">variadric
-      template args for async()/packaged_task&lt;&gt;</link>
-    </bridgehead>
-    <para>
-      Variadric template args for <code><phrase role="identifier">asnyc</phrase><phrase
-      role="special">()</phrase></code> implies variadic args support for <code><phrase
-      role="identifier">packaged_task</phrase><phrase role="special">&lt;&gt;</phrase></code>.
-      Because C++03 does not provide variadric template args the author desided not
-      to support this featrure for <code><phrase role="identifier">asnyc</phrase><phrase
-      role="special">()</phrase></code> and <code><phrase role="identifier">packaged_task</phrase><phrase
-      role="special">&lt;&gt;</phrase></code> otherwise the template signature would
-      be look different btween C++03 and C++11. In further versions of this library
-      variadric template args will be supported for C++03 with the usage of pre-processor
-      macros and template specialization.
     </para>
   </section>
   <section id="fiber.custom">
@@ -7463,8 +7633,7 @@ are
       <link linkend="set_scheduling_algorithm"> <code>set_scheduling_algorithm()</code></link> before any other <emphasis
       role="bold">Boost.Fiber</emphasis> entry point.
     </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread_fn</phrase><phrase role="special">()</phrase>
-<phrase role="special">{</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread_fn</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">my_fiber_scheduler</phrase> <phrase role="identifier">mfs</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">mfs</phrase><phrase role="special">);</phrase>
     <phrase role="special">...</phrase>
@@ -7556,11 +7725,14 @@ are
         </listitem>
       </varlistentry>
     </variablelist>
+    <para>
+      &lt; TODO &gt;
+    </para>
   </section>
   <section id="fiber.acknowledgements">
     <title><link linkend="fiber.acknowledgements">Acknowledgments</link></title>
     <para>
-      I'd like to thank Eugene Yakubovich and Nat Goodspeed.
+      I'd like to thank Eugene Yakubovich and especially Nat Goodspeed.
     </para>
   </section>
 </library>

@@ -4,6 +4,7 @@ fiber/fiber_mgmt.html
 fiber/fiber_mgmt/fiber.html
 fiber/fiber_mgmt/id.html
 fiber/fiber_mgmt/this_fiber.html
+fiber/fiber_mgmt/winfibers.html
 fiber/scheduling.html
 fiber/stack.html
 fiber/synchronization.html
@@ -16,7 +17,6 @@ fiber/synchronization/futures/future.html
 fiber/synchronization/futures/promise.html
 fiber/synchronization/futures/packaged_task.html
 fiber/fls.html
-fiber/asio.html
 fiber/performance.html
 fiber/rational.html
 fiber/custom.html

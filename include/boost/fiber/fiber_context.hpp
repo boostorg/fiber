@@ -24,7 +24,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fss.hpp>
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
 # include <boost/fiber/detail/spinlock.hpp>
 #endif
 #include <boost/fiber/detail/scheduler.hpp>
@@ -79,7 +79,7 @@ private:
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     std::atomic< std::size_t >                      use_count_;
     std::atomic< fiber_status >                     state_;
     std::atomic< int >                              flags_;
@@ -101,7 +101,7 @@ private:
         use_count_( 1), // allocated on stack
         state_( fiber_status::running),
         flags_( flag_main_fiber),
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         splk_(),
 #endif
         ctx_( context::execution_context::current() ),
@@ -121,7 +121,7 @@ private:
         use_count_( 1), // allocated on stack
         state_( fiber_status::ready),
         flags_( 0),
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         splk_(),
 #endif
         ctx_( palloc, salloc,
@@ -271,7 +271,7 @@ public:
 
     void set_terminated() noexcept {
         // TODO
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::terminated);
 #else
         fiber_status previous = state_;
@@ -283,7 +283,7 @@ public:
 
     void set_ready() noexcept {
         // TODO
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::ready);
 #else
         fiber_status previous = state_;
@@ -295,7 +295,7 @@ public:
 
     void set_running() noexcept {
         // TODO
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::running);
 #else
         fiber_status previous = state_;
@@ -307,7 +307,7 @@ public:
 
     void set_waiting() noexcept {
         // TODO
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::waiting);
 #else
         fiber_status previous = state_;

@@ -16,7 +16,7 @@ namespace boost {
 namespace fibers {
 
 condition::condition() :
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     splk_(),
 #endif
     waiting_() {
@@ -30,7 +30,7 @@ void
 condition::notify_one() {
     fiber_context * f( nullptr);
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     std::unique_lock< detail::spinlock > lk( splk_);
     // get one waiting fiber
     if ( ! waiting_.empty() ) {
@@ -56,7 +56,7 @@ void
 condition::notify_all() {
     std::deque< fiber_context * > waiting;
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     std::unique_lock< detail::spinlock > lk( splk_);
     // get all waiting fibers
     waiting.swap( waiting_);

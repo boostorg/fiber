@@ -128,7 +128,7 @@ fiber_manager::run() {
     }
 }
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
 void
 fiber_manager::wait( std::unique_lock< detail::spinlock > & lk) {
     wait_until(

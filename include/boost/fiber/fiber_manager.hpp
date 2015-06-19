@@ -14,7 +14,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
 # include <boost/fiber/detail/spinlock.hpp>
 #endif
 #include <boost/fiber/detail/terminated_queue.hpp>
@@ -58,7 +58,7 @@ public:
 
     void run();
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     void wait( std::unique_lock< detail::spinlock > &);
 
     bool wait_until( std::chrono::high_resolution_clock::time_point const&,

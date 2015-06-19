@@ -34,7 +34,7 @@ mutex::lock_if_unlocked_() {
 }
 
 mutex::mutex() :
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     splk_(),
 #endif
 	state_( mutex_status::unlocked),
@@ -52,7 +52,7 @@ mutex::lock() {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         std::unique_lock< detail::spinlock > lk( splk_);
 #endif
 
@@ -64,7 +64,7 @@ mutex::lock() {
         BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
         waiting_.push_back( f);
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
         // suspend this fiber
         detail::scheduler::instance()->wait( lk);
 #else
@@ -76,7 +76,7 @@ mutex::lock() {
 
 bool
 mutex::try_lock() {
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     std::unique_lock< detail::spinlock > lk( splk_);
 #endif
 
@@ -84,7 +84,7 @@ mutex::try_lock() {
         return true;
     }
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     lk.unlock();
 #endif
     // let other fiber release the lock
@@ -97,7 +97,7 @@ mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     std::unique_lock< detail::spinlock > lk( splk_);
 #endif
     fiber_context * f( nullptr);
@@ -108,7 +108,7 @@ mutex::unlock() {
     }
     owner_ = fiber_context::id();
 	state_ = mutex_status::unlocked;
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     lk.unlock();
 #endif
     if ( nullptr != f) {

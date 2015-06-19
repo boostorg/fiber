@@ -12,7 +12,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
 # include <boost/fiber/detail/spinlock.hpp>
 #endif
 #include <boost/fiber/fiber_context.hpp>
@@ -31,7 +31,7 @@ private:
         unlocked
     };
 
-#if defined(BOOST_FIBERS_THREADSAFE)
+#if defined(BOOST_FIBERS_USE_ATOMICS)
     detail::spinlock                splk_;
 #endif
     mutex_status                    state_;

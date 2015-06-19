@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="prev" href="asio.html" title="Example: asynchronous network I/O (boost.asio)">
+<link rel="prev" href="fls.html" title="Fiber local storage">
 <link rel="next" href="rational.html" title="Rational">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="asio.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rational.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="fls.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rational.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -29,7 +29,7 @@
 <p>
       Performance measurements were taken using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">highresolution_clock</span></code>,
       with overhead corrections. The code was compiled using the build options: variant
-      = release, optimization = speed <sup>[<a name="fiber.performance.f0" href="#ftn.fiber.performance.f0" class="footnote">2</a>]</sup>.
+      = release, optimization = speed <sup>[<a name="fiber.performance.f0" href="#ftn.fiber.performance.f0" class="footnote">1</a>]</sup>.
     </p>
 <div class="table">
 <a name="fiber.performance.overhead_of_creating_and_joining"></a><p class="title"><b>Table&#160;1.1.&#160;Overhead of creating and joining</b></p>
@@ -70,7 +70,7 @@
             </td>
 <td>
               <p>
-                3 &#181;s
+                955 ns
               </p>
             </td>
 <td>
@@ -108,12 +108,12 @@
 <tbody><tr>
 <td>
               <p>
-                16 &#181;s
+                20 &#181;s
               </p>
             </td>
 <td>
               <p>
-                3 &#181;s
+                3.2 &#181;s
               </p>
             </td>
 </tr></tbody>
@@ -141,12 +141,12 @@
 <tbody><tr>
 <td>
               <p>
-                32 &#181;s
+                38 &#181;s
               </p>
             </td>
 <td>
               <p>
-                3 &#181;s
+                1.1 &#181;s
               </p>
             </td>
 </tr></tbody>
@@ -179,7 +179,7 @@
             </td>
 <td>
               <p>
-                4 &#181;s
+                2.4 &#181;s
               </p>
             </td>
 </tr></tbody>
@@ -219,12 +219,12 @@
             </td>
 <td>
               <p>
-                32.90 &#181;s
+                50.65 &#181;s
               </p>
             </td>
 <td>
               <p>
-                3.769 &#181;s
+                3.76 &#181;s
               </p>
             </td>
 </tr>
@@ -236,12 +236,12 @@
             </td>
 <td>
               <p>
-                32.71 &#181;s
+                52.99 &#181;s
               </p>
             </td>
 <td>
               <p>
-                2.789 &#181;s
+                2.78 &#181;s
               </p>
             </td>
 </tr>
@@ -253,12 +253,12 @@
             </td>
 <td>
               <p>
-                39.84 &#181;s
+                50.44 &#181;s
               </p>
             </td>
 <td>
               <p>
-                2.450 &#181;s
+                2.45 &#181;s
               </p>
             </td>
 </tr>
@@ -270,12 +270,12 @@
             </td>
 <td>
               <p>
-                49.78 &#181;s
+                45.19 &#181;s
               </p>
             </td>
 <td>
               <p>
-                2.919 &#181;s
+                2.91 &#181;s
               </p>
             </td>
 </tr>
@@ -287,12 +287,12 @@
             </td>
 <td>
               <p>
-                55.95 &#181;s
+                42.59 &#181;s
               </p>
             </td>
 <td>
               <p>
-                3.607 &#181;s
+                3.60 &#181;s
               </p>
             </td>
 </tr>
@@ -304,12 +304,12 @@
             </td>
 <td>
               <p>
-                42.88 &#181;s
+                42.30 &#181;s
               </p>
             </td>
 <td>
               <p>
-                4.579 &#181;s
+                4.57 &#181;s
               </p>
             </td>
 </tr>
@@ -321,12 +321,317 @@
             </td>
 <td>
               <p>
-                47.13 &#181;s
+                41.07 &#181;s
               </p>
             </td>
 <td>
               <p>
-                4.219 &#181;s
+                4.21 &#181;s
+              </p>
+            </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>
+      Using internally atomics by applying BOOST_FIBER_USE_ATOMICS.
+    </p>
+<div class="table">
+<a name="fiber.performance.overhead_of_creating_and_joinin0"></a><p class="title"><b>Table&#160;1.6.&#160;Overhead of creating and joining</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of creating and joining">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+<th>
+              <p>
+                tbb
+              </p>
+            </th>
+<th>
+              <p>
+                qthread
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                31 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                1.1 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                570 ns
+              </p>
+            </td>
+<td>
+              <p>
+                620 ns
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_detach0"></a><p class="title"><b>Table&#160;1.7.&#160;Overhead of detach</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of detach">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                20 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.2 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_yield0"></a><p class="title"><b>Table&#160;1.8.&#160;Overhead of yield</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of yield">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                38 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                1.3 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_waiting_on_a_future0"></a><p class="title"><b>Table&#160;1.9.&#160;Overhead of waiting on a future</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of waiting on a future">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                32 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.0 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.scaling_of_creating_and_joining0"></a><p class="title"><b>Table&#160;1.10.&#160;Scaling of creating and joining</b></p>
+<div class="table-contents"><table class="table" summary="Scaling of creating and joining">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                average of
+              </p>
+            </th>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+              <p>
+                10
+              </p>
+            </td>
+<td>
+              <p>
+                50.65 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.83 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                50
+              </p>
+            </td>
+<td>
+              <p>
+                52.99 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.84 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                100
+              </p>
+            </td>
+<td>
+              <p>
+                50.44 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                5.24 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                500
+              </p>
+            </td>
+<td>
+              <p>
+                45.19 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.86 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                1000
+              </p>
+            </td>
+<td>
+              <p>
+                42.59 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                5.04 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                5000
+              </p>
+            </td>
+<td>
+              <p>
+                42.30 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                5.07 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                10000
+              </p>
+            </td>
+<td>
+              <p>
+                41.07 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                5.12 &#181;s
               </p>
             </td>
 </tr>
@@ -335,7 +640,7 @@
 </div>
 <br class="table-break"><div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.performance.f0" href="#fiber.performance.f0" class="para">2</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.performance.f0" href="#fiber.performance.f0" class="para">1</a>] </sup>
         Intel Core2 Q6700, x86_64, 3GHz
       </p></div>
 </div>
@@ -350,7 +655,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="asio.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rational.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="fls.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rational.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

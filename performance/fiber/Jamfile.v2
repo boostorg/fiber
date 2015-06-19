@@ -44,3 +44,7 @@ exe overhead_yield
 exe overhead_future
    : overhead_future.cpp
    ;
+
+exe scale_join
+   : scale_join.cpp
+   ;

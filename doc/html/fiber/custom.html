@@ -36,8 +36,7 @@
       In order to use a custom scheduler for a given thread, that thread must call
       <a class="link" href="fiber_mgmt/fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a> before any other <span class="bold"><strong>Boost.Fiber</strong></span> entry point.
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_fn</span><span class="special">()</span>
-<span class="special">{</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_fn</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">my_fiber_scheduler</span> <span class="identifier">mfs</span><span class="special">;</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="special">&amp;</span> <span class="identifier">mfs</span><span class="special">);</span>
     <span class="special">...</span>
@@ -135,6 +134,9 @@
           </p></dd>
 </dl>
 </div>
+<p>
+      &lt; TODO &gt;
+    </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
