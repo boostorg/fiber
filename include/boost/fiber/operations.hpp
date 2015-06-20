@@ -10,6 +10,7 @@
 #include <mutex> // std::unique_lock
 
 #include <boost/config.hpp> 
+#include <boost/assert.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
@@ -51,7 +52,10 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 
 template< typename PROPS >
 PROPS & properties() {
-    return dynamic_cast< PROPS & >( * fibers::detail::scheduler::instance()->active()->get_properties() );
+    fibers::fiber_properties* props =
+        fibers::detail::scheduler::instance()->active()->get_properties();
+    BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+    return dynamic_cast< PROPS & >( * props );
 }
 
 } // this_fiber
