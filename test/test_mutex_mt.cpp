@@ -137,7 +137,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: multithreaded mutex test suite");
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     test->add( BOOST_TEST_CASE( & test_mutex) );
     test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
     test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );

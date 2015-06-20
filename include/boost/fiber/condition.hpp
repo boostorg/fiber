@@ -17,9 +17,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-# include <boost/fiber/detail/spinlock.hpp>
-#endif
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
@@ -40,9 +38,7 @@ enum class cv_status {
 
 class BOOST_FIBERS_DECL condition {
 private:
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     detail::spinlock                    splk_;
-#endif
     std::deque< fiber_context * >       waiting_;
 
 public:
@@ -68,10 +64,8 @@ public:
     void wait( LockType & lt) {
         fiber_context * f( detail::scheduler::instance()->active() );
         try {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
             // lock spinlock
-            std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+            detail::spinlock_lock lk( splk_);
 
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
             // store this fiber in waiting-queue
@@ -82,13 +76,9 @@ public:
             lt.unlock();
 
             // suspend this fiber
-#if defined(BOOST_FIBERS_USE_ATOMICS)
             // locked spinlock will be released if this fiber
             // was stored inside schedulers's waiting-queue
             detail::scheduler::instance()->wait( lk);
-#else
-            detail::scheduler::instance()->wait();
-#endif
 
             // this fiber was notified and resumed
             // check if fiber was interrupted
@@ -97,9 +87,7 @@ public:
             // lock external again before returning
             lt.lock();
         } catch (...) {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-            std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+            detail::spinlock_lock lk( splk_);
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
@@ -116,10 +104,8 @@ public:
 
         fiber_context * f( detail::scheduler::instance()->active() );
         try {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
             // lock spinlock
-            std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+            detail::spinlock_lock lk( splk_);
 
             // store this fiber in waiting-queue
             // in order notify (resume) this fiber later
@@ -131,16 +117,10 @@ public:
             // suspend this fiber
             // locked spinlock will be released if this fiber
             // was stored inside schedulers's waiting-queue
-#if defined(BOOST_FIBERS_USE_ATOMICS)
             if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
-#else
-            if ( ! detail::scheduler::instance()->wait_until( timeout_time) ) {
-#endif
                 // this fiber was not notified before timeout
-#if defined(BOOST_FIBERS_USE_ATOMICS)
                 // lock spinlock again
-                std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+                detail::spinlock_lock lk( splk_);
                 std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
                 if ( waiting_.end() != i) {
                     // remove fiber from waiting-list
@@ -156,9 +136,7 @@ public:
             // lock external again before returning
             lt.lock();
         } catch (...) {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-            std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+            detail::spinlock_lock lk( splk_);
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list

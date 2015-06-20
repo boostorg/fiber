@@ -38,9 +38,7 @@ recursive_mutex::lock_if_unlocked_() {
 }
 
 recursive_mutex::recursive_mutex() :
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     splk_(),
-#endif
 	state_( mutex_status::unlocked),
     owner_(),
     count_( 0),
@@ -58,9 +56,7 @@ recursive_mutex::lock() {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-        std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+        detail::spinlock_lock lk( splk_);
 
         if ( lock_if_unlocked_() ) {
             return;
@@ -70,29 +66,21 @@ recursive_mutex::lock() {
         BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
         waiting_.push_back( f);
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
         // suspend this fiber
         detail::scheduler::instance()->wait( lk);
-#else
-        // suspend this fiber
-        detail::scheduler::instance()->wait();
-#endif
     }
 }
 
 bool
 recursive_mutex::try_lock() {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-    std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+    detail::spinlock_lock lk( splk_);
 
     if ( lock_if_unlocked_() ) {
         return true;
     }
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     lk.unlock();
-#endif
+
     // let other fiber release the lock
     this_fiber::yield();
     return false;
@@ -103,9 +91,7 @@ recursive_mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-    std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+    detail::spinlock_lock lk( splk_);
     fiber_context * f( nullptr);
     if ( 0 == --count_) {
         if ( ! waiting_.empty() ) {
@@ -115,9 +101,8 @@ recursive_mutex::unlock() {
         }
         owner_ = fiber_context::id();
         state_ = mutex_status::unlocked;
-#if defined(BOOST_FIBERS_USE_ATOMICS)
         lk.unlock();
-#endif
+
         if ( nullptr != f) {
             BOOST_ASSERT( ! f->is_terminated() );
             f->set_ready();

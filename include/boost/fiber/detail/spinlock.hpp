@@ -10,6 +10,7 @@
 #define BOOST_FIBERS_SPINLOCK_H
 
 #include <atomic>
+#include <mutex>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -17,25 +18,49 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class BOOST_FIBERS_DECL spinlock {
+class BOOST_FIBERS_DECL atomic_spinlock {
 private:
-    enum class spinlock_status {
+    enum class atomic_spinlock_status {
         locked = 0,
         unlocked
     };
 
-    std::atomic< spinlock_status >  state_;
+    std::atomic< atomic_spinlock_status >  state_;
 
 public:
-    spinlock() noexcept;
+    atomic_spinlock() noexcept;
 
-    spinlock( spinlock const&) = delete;
-    spinlock & operator=( spinlock const&) = delete;
+    atomic_spinlock( atomic_spinlock const&) = delete;
+    atomic_spinlock & operator=( atomic_spinlock const&) = delete;
 
     void lock();
 
     void unlock() noexcept;
 };
+
+struct non_spinlock {
+    non_spinlock() noexcept {}
+
+    void lock() {}
+
+    void unlock() noexcept {}
+};
+
+struct non_lock {
+    non_lock( non_spinlock) {}
+
+    void lock() {}
+
+    void unlock() {}
+};
+
+#if ! defined(BOOST_FIBES_NO_ATOMICS) 
+typedef atomic_spinlock spinlock;
+using spinlock_lock = std::unique_lock< spinlock >;
+#else
+typedef non_spinlock    spinlock;
+using spinlock_lock = non_lock;
+#endif
 
 }}}
 

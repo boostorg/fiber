@@ -128,9 +128,8 @@ fiber_manager::run() {
     }
 }
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
 void
-fiber_manager::wait( std::unique_lock< detail::spinlock > & lk) {
+fiber_manager::wait( detail::spinlock_lock & lk) {
     wait_until(
         std::chrono::high_resolution_clock::time_point(
             (std::chrono::high_resolution_clock::duration::max)() ),
@@ -139,7 +138,7 @@ fiber_manager::wait( std::unique_lock< detail::spinlock > & lk) {
 
 bool
 fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time,
-                           std::unique_lock< detail::spinlock > & lk) {
+                           detail::spinlock_lock & lk) {
     BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active-fiber to state_waiting
@@ -155,30 +154,6 @@ fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const&
 
     return std::chrono::high_resolution_clock::now() < timeout_time;
 }
-#else
-void
-fiber_manager::wait() {
-    wait_until(
-        std::chrono::high_resolution_clock::time_point(
-            (std::chrono::high_resolution_clock::duration::max)() ) );
-}
-
-bool
-fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) {
-    BOOST_ASSERT( active_fiber_->is_running() );
-
-    // set active-fiber to state_waiting
-    active_fiber_->set_waiting();
-    // push active-fiber to wqueue_
-    active_fiber_->time_point( timeout_time);
-    wqueue_.push( active_fiber_);
-    // switch to another fiber
-    run();
-    // fiber is resumed
-
-    return std::chrono::high_resolution_clock::now() < timeout_time;
-}
-#endif
 
 void
 fiber_manager::yield() {

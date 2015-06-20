@@ -34,9 +34,7 @@ timed_mutex::lock_if_unlocked_() {
 }
 
 timed_mutex::timed_mutex() :
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     splk_(),
-#endif
 	state_( mutex_status::unlocked),
     owner_(),
     waiting_() {
@@ -52,9 +50,7 @@ timed_mutex::lock() {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-        std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+        detail::spinlock_lock lk( splk_);
 
         if ( lock_if_unlocked_() ) {
             return;
@@ -64,29 +60,21 @@ timed_mutex::lock() {
         BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
         waiting_.push_back( f);
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
         // suspend this fiber
         detail::scheduler::instance()->wait( lk);
-#else
-        // suspend this fiber
-        detail::scheduler::instance()->wait();
-#endif
     }
 }
 
 bool
 timed_mutex::try_lock() {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-    std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+    detail::spinlock_lock lk( splk_);
 
     if ( lock_if_unlocked_() ) {
         return true;
     }
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     lk.unlock();
-#endif
+
     // let other fiber release the lock
     this_fiber::yield();
     return false;
@@ -97,9 +85,7 @@ timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_point cons
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-        std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+        detail::spinlock_lock lk( splk_);
 
         if ( std::chrono::high_resolution_clock::now() > timeout_time) {
             return false;
@@ -113,7 +99,6 @@ timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_point cons
         BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
         waiting_.push_back( f);
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
         // suspend this fiber until notified or timed-out
         if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
             lk.lock();
@@ -125,17 +110,6 @@ timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_point cons
             lk.unlock();
             return false;
         }
-#else
-        // suspend this fiber until notified or timed-out
-        if ( ! detail::scheduler::instance()->wait_until( timeout_time) ) {
-            std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
-            if ( waiting_.end() != i) {
-                // remove fiber from waiting-list
-                waiting_.erase( i);
-            }
-            return false;
-        }
-#endif
     }
 }
 
@@ -144,9 +118,7 @@ timed_mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-    std::unique_lock< detail::spinlock > lk( splk_);
-#endif
+    detail::spinlock_lock lk( splk_);
     fiber_context * f( nullptr);
     if ( ! waiting_.empty() ) {
         f = waiting_.front();
@@ -155,9 +127,8 @@ timed_mutex::unlock() {
     }
     owner_ = fiber_context::id();
     state_ = mutex_status::unlocked;
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     lk.unlock();
-#endif
+
     if ( nullptr != f) {
         BOOST_ASSERT( ! f->is_terminated() );
         f->set_ready();

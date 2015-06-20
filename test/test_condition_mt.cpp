@@ -135,7 +135,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: multithreaded condition test suite");
 
-#if defined(BOOST_FIBERS_USE_ATOMICS)
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
 #else

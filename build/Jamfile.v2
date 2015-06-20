@@ -18,7 +18,6 @@ project boost/fiber
       <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
       <define>BOOST_FIBERS_SOURCE
-      <define>BOOST_FIBERS_USE_ATOMICS
       <threading>multi
     : usage-requirements
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1

@@ -13,9 +13,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
-#if defined(BOOST_FIBERS_USE_ATOMICS)
-# include <boost/fiber/detail/spinlock.hpp>
-#endif
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/interruption.hpp>
 
@@ -38,13 +36,9 @@ void yield() {
 
 template< typename Clock, typename Duration >
 void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time) {
-#if defined(BOOST_FIBERS_USE_ATOMICS)
     fibers::detail::spinlock splk;
     std::unique_lock< fibers::detail::spinlock > lk( splk);
     fibers::detail::scheduler::instance()->wait_until( sleep_time, lk);
-#else
-    fibers::detail::scheduler::instance()->wait_until( sleep_time);
-#endif
 
     // check if fiber was interrupted
     interruption_point();
