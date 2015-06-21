@@ -24,7 +24,8 @@ future< typename std::result_of< Fn( Args ... ) >::type >
 async( Fn && fn, Args && ... args) {
     typedef typename std::result_of< Fn( Args ... ) >::type result_type;
 
-    packaged_task< result_type( Args ... ) > pt( std::forward< Fn >( fn) );
+    packaged_task< result_type( Args ... ) > pt(
+        std::forward< Fn >( fn), std::forward< Args >( args) ... );
     future< result_type > f( pt.get_future() );
     fiber( std::move( pt), std::forward< Args >( args) ... ).detach();
     return std::move( f);
