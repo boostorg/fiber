@@ -70,7 +70,7 @@
             </td>
 <td>
               <p>
-                955 ns
+                1.1 &#181;s
               </p>
             </td>
 <td>
@@ -146,7 +146,7 @@
             </td>
 <td>
               <p>
-                1.1 &#181;s
+                1.3 &#181;s
               </p>
             </td>
 </tr></tbody>
@@ -179,311 +179,6 @@
             </td>
 <td>
               <p>
-                2.4 &#181;s
-              </p>
-            </td>
-</tr></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="fiber.performance.scaling_of_creating_and_joining"></a><p class="title"><b>Table&#160;1.5.&#160;Scaling of creating and joining</b></p>
-<div class="table-contents"><table class="table" summary="Scaling of creating and joining">
-<colgroup>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>
-              <p>
-                average of
-              </p>
-            </th>
-<th>
-              <p>
-                thread
-              </p>
-            </th>
-<th>
-              <p>
-                fiber
-              </p>
-            </th>
-</tr></thead>
-<tbody>
-<tr>
-<td>
-              <p>
-                10
-              </p>
-            </td>
-<td>
-              <p>
-                50.65 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                3.76 &#181;s
-              </p>
-            </td>
-</tr>
-<tr>
-<td>
-              <p>
-                50
-              </p>
-            </td>
-<td>
-              <p>
-                52.99 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                2.78 &#181;s
-              </p>
-            </td>
-</tr>
-<tr>
-<td>
-              <p>
-                100
-              </p>
-            </td>
-<td>
-              <p>
-                50.44 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                2.45 &#181;s
-              </p>
-            </td>
-</tr>
-<tr>
-<td>
-              <p>
-                500
-              </p>
-            </td>
-<td>
-              <p>
-                45.19 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                2.91 &#181;s
-              </p>
-            </td>
-</tr>
-<tr>
-<td>
-              <p>
-                1000
-              </p>
-            </td>
-<td>
-              <p>
-                42.59 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                3.60 &#181;s
-              </p>
-            </td>
-</tr>
-<tr>
-<td>
-              <p>
-                5000
-              </p>
-            </td>
-<td>
-              <p>
-                42.30 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                4.57 &#181;s
-              </p>
-            </td>
-</tr>
-<tr>
-<td>
-              <p>
-                10000
-              </p>
-            </td>
-<td>
-              <p>
-                41.07 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                4.21 &#181;s
-              </p>
-            </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<br class="table-break"><p>
-      Using internally atomics by applying BOOST_FIBER_USE_ATOMICS.
-    </p>
-<div class="table">
-<a name="fiber.performance.overhead_of_creating_and_joinin0"></a><p class="title"><b>Table&#160;1.6.&#160;Overhead of creating and joining</b></p>
-<div class="table-contents"><table class="table" summary="Overhead of creating and joining">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>
-              <p>
-                thread
-              </p>
-            </th>
-<th>
-              <p>
-                fiber
-              </p>
-            </th>
-<th>
-              <p>
-                tbb
-              </p>
-            </th>
-<th>
-              <p>
-                qthread
-              </p>
-            </th>
-</tr></thead>
-<tbody><tr>
-<td>
-              <p>
-                31 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                1.1 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                570 ns
-              </p>
-            </td>
-<td>
-              <p>
-                620 ns
-              </p>
-            </td>
-</tr></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="fiber.performance.overhead_of_detach0"></a><p class="title"><b>Table&#160;1.7.&#160;Overhead of detach</b></p>
-<div class="table-contents"><table class="table" summary="Overhead of detach">
-<colgroup>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>
-              <p>
-                thread
-              </p>
-            </th>
-<th>
-              <p>
-                fiber
-              </p>
-            </th>
-</tr></thead>
-<tbody><tr>
-<td>
-              <p>
-                20 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                3.2 &#181;s
-              </p>
-            </td>
-</tr></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="fiber.performance.overhead_of_yield0"></a><p class="title"><b>Table&#160;1.8.&#160;Overhead of yield</b></p>
-<div class="table-contents"><table class="table" summary="Overhead of yield">
-<colgroup>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>
-              <p>
-                thread
-              </p>
-            </th>
-<th>
-              <p>
-                fiber
-              </p>
-            </th>
-</tr></thead>
-<tbody><tr>
-<td>
-              <p>
-                38 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
-                1.3 &#181;s
-              </p>
-            </td>
-</tr></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="fiber.performance.overhead_of_waiting_on_a_future0"></a><p class="title"><b>Table&#160;1.9.&#160;Overhead of waiting on a future</b></p>
-<div class="table-contents"><table class="table" summary="Overhead of waiting on a future">
-<colgroup>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>
-              <p>
-                thread
-              </p>
-            </th>
-<th>
-              <p>
-                fiber
-              </p>
-            </th>
-</tr></thead>
-<tbody><tr>
-<td>
-              <p>
-                32 &#181;s
-              </p>
-            </td>
-<td>
-              <p>
                 3.0 &#181;s
               </p>
             </td>
@@ -491,7 +186,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="fiber.performance.scaling_of_creating_and_joining0"></a><p class="title"><b>Table&#160;1.10.&#160;Scaling of creating and joining</b></p>
+<a name="fiber.performance.scaling_of_creating_and_joining"></a><p class="title"><b>Table&#160;1.5.&#160;Scaling of creating and joining</b></p>
 <div class="table-contents"><table class="table" summary="Scaling of creating and joining">
 <colgroup>
 <col>
@@ -632,6 +327,311 @@
 <td>
               <p>
                 5.12 &#181;s
+              </p>
+            </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>
+      Using internally atomics by applying BOOST_FIBER_NO_ATOMICS.
+    </p>
+<div class="table">
+<a name="fiber.performance.overhead_of_creating_and_joinin0"></a><p class="title"><b>Table&#160;1.6.&#160;Overhead of creating and joining</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of creating and joining">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+<th>
+              <p>
+                tbb
+              </p>
+            </th>
+<th>
+              <p>
+                qthread
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                31 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                955 ns
+              </p>
+            </td>
+<td>
+              <p>
+                570 ns
+              </p>
+            </td>
+<td>
+              <p>
+                620 ns
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_detach0"></a><p class="title"><b>Table&#160;1.7.&#160;Overhead of detach</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of detach">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                20 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.2 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_yield0"></a><p class="title"><b>Table&#160;1.8.&#160;Overhead of yield</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of yield">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                38 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                1.1 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.overhead_of_waiting_on_a_future0"></a><p class="title"><b>Table&#160;1.9.&#160;Overhead of waiting on a future</b></p>
+<div class="table-contents"><table class="table" summary="Overhead of waiting on a future">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                32 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.4 &#181;s
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="fiber.performance.scaling_of_creating_and_joining0"></a><p class="title"><b>Table&#160;1.10.&#160;Scaling of creating and joining</b></p>
+<div class="table-contents"><table class="table" summary="Scaling of creating and joining">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                average of
+              </p>
+            </th>
+<th>
+              <p>
+                thread
+              </p>
+            </th>
+<th>
+              <p>
+                fiber
+              </p>
+            </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+              <p>
+                10
+              </p>
+            </td>
+<td>
+              <p>
+                50.65 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.76 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                50
+              </p>
+            </td>
+<td>
+              <p>
+                52.99 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.78 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                100
+              </p>
+            </td>
+<td>
+              <p>
+                50.44 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.45 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                500
+              </p>
+            </td>
+<td>
+              <p>
+                45.19 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                2.91 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                1000
+              </p>
+            </td>
+<td>
+              <p>
+                42.59 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                3.60 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                5000
+              </p>
+            </td>
+<td>
+              <p>
+                42.30 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.57 &#181;s
+              </p>
+            </td>
+</tr>
+<tr>
+<td>
+              <p>
+                10000
+              </p>
+            </td>
+<td>
+              <p>
+                41.07 &#181;s
+              </p>
+            </td>
+<td>
+              <p>
+                4.21 &#181;s
               </p>
             </td>
 </tr>

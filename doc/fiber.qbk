@@ -176,8 +176,11 @@ __interruption_enabled__.
 * __cond_wait__
 * __cond_wait_for__
 * __cond_wait_until__
+* __mutex_lock__ (__recursive_mutex__, __recursive_timed_mutex__, __timed_mutex__)
+* __mutex_try_lock__ (__recursive_mutex__, __recursive_timed_mutex__, __timed_mutex__)
 * __sleep_for__
 * __sleep_until__
+* __yield__
 * __interruption_point__
 
 [#class_fiber_id]

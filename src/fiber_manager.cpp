@@ -12,9 +12,10 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/algorithm.hpp"
-#include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/interruption.hpp"
 #include "boost/fiber/round_robin.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -152,6 +153,10 @@ fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const&
     run();
     // fiber is resumed
 
+    // this fiber was notified and resumed
+    // check if fiber was interrupted
+    this_fiber::interruption_point();
+
     return std::chrono::high_resolution_clock::now() < timeout_time;
 }
 
@@ -166,6 +171,10 @@ fiber_manager::yield() {
     // switch to another fiber
     run();
     // fiber is resumed
+
+    // this fiber was notified and resumed
+    // check if fiber was interrupted
+    this_fiber::interruption_point();
 }
 
 void
@@ -187,6 +196,10 @@ fiber_manager::join( fiber_context * f) {
     // switch to another fiber
     run();
     // fiber is resumed
+
+    // this fiber was notified and resumed
+    // check if fiber was interrupted
+    this_fiber::interruption_point();
 
     BOOST_ASSERT( f->is_terminated() );
 }

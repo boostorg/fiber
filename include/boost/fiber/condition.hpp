@@ -80,10 +80,6 @@ public:
             // was stored inside schedulers's waiting-queue
             detail::scheduler::instance()->wait( lk);
 
-            // this fiber was notified and resumed
-            // check if fiber was interrupted
-            this_fiber::interruption_point();
-
             // lock external again before returning
             lt.lock();
         } catch (...) {
@@ -129,9 +125,6 @@ public:
 
                 status = cv_status::timeout;
             }
-
-            // check if fiber was interrupted
-            this_fiber::interruption_point();
 
             // lock external again before returning
             lt.lock();
