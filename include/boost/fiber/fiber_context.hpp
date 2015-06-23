@@ -24,6 +24,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fss.hpp>
+#include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber_manager.hpp>
@@ -122,7 +123,7 @@ private:
               [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable {
                 try {
                     BOOST_ASSERT( is_running() );
-                    fn(
+                    detail::invoke( fn,
                         // std::tuple_element<> does not perfect forwarding
                         std::forward< decltype( std::get< I >( std::declval< Tpl >() ) ) >(
                             std::get< I >( std::forward< Tpl >( tpl) ) ) ... );
