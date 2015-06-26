@@ -28,7 +28,7 @@ namespace fibers {
 class fiber_context;
 struct sched_algorithm;
 
-struct fiber_manager {
+struct BOOST_FIBERS_DECL fiber_manager {
 private:
     typedef detail::waiting_queue                   wqueue_t;
     typedef detail::terminated_queue                tqueue_t;
@@ -56,14 +56,14 @@ public:
 
     void run();
 
-    void wait( std::unique_lock< detail::spinlock > &);
+    void wait( detail::spinlock_lock &);
 
     bool wait_until( std::chrono::high_resolution_clock::time_point const&,
-                        std::unique_lock< detail::spinlock > &);
+                        detail::spinlock_lock &);
 
     template< typename Clock, typename Duration >
     bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
-                        std::unique_lock< detail::spinlock > & lk) {
+                     detail::spinlock_lock & lk) {
         std::chrono::high_resolution_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
         return wait_until( timeout_time, lk);
@@ -71,7 +71,7 @@ public:
 
     template< typename Rep, typename Period >
     bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
-                      std::unique_lock< detail::spinlock > & lk) {
+                   detail::spinlock_lock & lk) {
         return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration, lk);
     }
 

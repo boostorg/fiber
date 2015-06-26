@@ -7,7 +7,6 @@
 #include "boost/fiber/recursive_mutex.hpp"
 
 #include <algorithm>
-#include <mutex>
 
 #include <boost/assert.hpp>
 
@@ -57,7 +56,7 @@ recursive_mutex::lock() {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
-        std::unique_lock< detail::spinlock > lk( splk_);
+        detail::spinlock_lock lk( splk_);
 
         if ( lock_if_unlocked_() ) {
             return;
@@ -74,13 +73,14 @@ recursive_mutex::lock() {
 
 bool
 recursive_mutex::try_lock() {
-    std::unique_lock< detail::spinlock > lk( splk_);
+    detail::spinlock_lock lk( splk_);
 
     if ( lock_if_unlocked_() ) {
         return true;
     }
 
     lk.unlock();
+
     // let other fiber release the lock
     this_fiber::yield();
     return false;
@@ -91,7 +91,7 @@ recursive_mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
-    std::unique_lock< detail::spinlock > lk( splk_);
+    detail::spinlock_lock lk( splk_);
     fiber_context * f( nullptr);
     if ( 0 == --count_) {
         if ( ! waiting_.empty() ) {
@@ -102,6 +102,7 @@ recursive_mutex::unlock() {
         owner_ = fiber_context::id();
         state_ = mutex_status::unlocked;
         lk.unlock();
+
         if ( nullptr != f) {
             BOOST_ASSERT( ! f->is_terminated() );
             f->set_ready();

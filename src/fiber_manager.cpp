@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/fiber/fiber_manager.hpp>
+#include "boost/fiber/fiber_manager.hpp"
 
 #include <cmath>
 #include <thread> // std::this_thread::sleep_until()
@@ -12,9 +12,10 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/algorithm.hpp"
-#include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/interruption.hpp"
 #include "boost/fiber/round_robin.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -80,7 +81,6 @@ fiber_manager::next_wakeup() {
     if ( wqueue_.empty() ) {
         return std::chrono::high_resolution_clock::now() + wait_interval_;
     } else {
-        //FIXME: search for the closest time_point to now() in waiting-queue
         std::chrono::high_resolution_clock::time_point wakeup( wqueue_.top()->time_point() );
         if ( (std::chrono::high_resolution_clock::time_point::max)() == wakeup) {
             return std::chrono::high_resolution_clock::now() + wait_interval_;
@@ -130,15 +130,16 @@ fiber_manager::run() {
 }
 
 void
-fiber_manager::wait( std::unique_lock< detail::spinlock > & lk) {
+fiber_manager::wait( detail::spinlock_lock & lk) {
     wait_until(
-        std::chrono::high_resolution_clock::time_point( (std::chrono::high_resolution_clock::duration::max)() ),
+        std::chrono::high_resolution_clock::time_point(
+            (std::chrono::high_resolution_clock::duration::max)() ),
         lk);
 }
 
 bool
 fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time,
-                    std::unique_lock< detail::spinlock > & lk) {
+                           detail::spinlock_lock & lk) {
     BOOST_ASSERT( active_fiber_->is_running() );
 
     // set active-fiber to state_waiting
@@ -151,6 +152,10 @@ fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const&
     // switch to another fiber
     run();
     // fiber is resumed
+
+    // this fiber was notified and resumed
+    // check if fiber was interrupted
+    this_fiber::interruption_point();
 
     return std::chrono::high_resolution_clock::now() < timeout_time;
 }
@@ -166,6 +171,10 @@ fiber_manager::yield() {
     // switch to another fiber
     run();
     // fiber is resumed
+
+    // this fiber was notified and resumed
+    // check if fiber was interrupted
+    this_fiber::interruption_point();
 }
 
 void
@@ -187,6 +196,10 @@ fiber_manager::join( fiber_context * f) {
     // switch to another fiber
     run();
     // fiber is resumed
+
+    // this fiber was notified and resumed
+    // check if fiber was interrupted
+    this_fiber::interruption_point();
 
     BOOST_ASSERT( f->is_terminated() );
 }

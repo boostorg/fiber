@@ -7,7 +7,6 @@
 #include "boost/fiber/detail/fifo.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/config.hpp>
 
 #include <boost/fiber/fiber_context.hpp>
 

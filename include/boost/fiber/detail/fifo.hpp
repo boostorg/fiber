@@ -25,7 +25,7 @@ class fiber_context;
 
 namespace detail {
 
-class fifo {
+class BOOST_FIBERS_DECL fifo {
 public:
     fifo() noexcept :
         head_( nullptr),

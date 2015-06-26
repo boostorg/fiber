@@ -24,6 +24,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fss.hpp>
+#include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber_manager.hpp>
@@ -77,12 +78,18 @@ private:
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                      use_count_;
-    context::execution_context                      ctx_;
-    fss_data_t                                      fss_data_;
     std::atomic< fiber_status >                     state_;
     std::atomic< int >                              flags_;
+#else
+    std::size_t                                     use_count_;
+    fiber_status                                    state_;
+    int                                             flags_;
+#endif
     detail::spinlock                                splk_;
+    context::execution_context                      ctx_;
+    fss_data_t                                      fss_data_;
     std::vector< fiber_context * >                  waiting_;
     std::exception_ptr                              except_;
     std::chrono::high_resolution_clock::time_point  tp_;
@@ -91,15 +98,16 @@ private:
     // main fiber
     fiber_context() :
         use_count_( 1), // allocated on stack
-        ctx_( context::execution_context::current() ),
-        fss_data_(),
         state_( fiber_status::running),
         flags_( flag_main_fiber),
+        splk_(),
+        ctx_( context::execution_context::current() ),
+        fss_data_(),
         waiting_(),
         except_(),
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
         properties_( nullptr),
-        nxt() {
+        nxt( nullptr) {
     }
 
     // worker fiber
@@ -108,11 +116,14 @@ private:
                    Fn && fn_, Tpl && tpl_,
                    std::index_sequence< I ... >) :
         use_count_( 1), // allocated on stack
+        state_( fiber_status::ready),
+        flags_( 0),
+        splk_(),
         ctx_( palloc, salloc,
               [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable {
                 try {
                     BOOST_ASSERT( is_running() );
-                    fn(
+                    detail::invoke( fn,
                         // std::tuple_element<> does not perfect forwarding
                         std::forward< decltype( std::get< I >( std::declval< Tpl >() ) ) >(
                             std::get< I >( std::forward< Tpl >( tpl) ) ) ... );
@@ -135,8 +146,6 @@ private:
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
         fss_data_(),
-        state_( fiber_status::ready),
-        flags_( 0),
         waiting_(),
         except_(),
         tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
@@ -228,13 +237,13 @@ public:
     bool join( fiber_context *);
 
     bool interruption_blocked() const noexcept {
-        return 0 != ( flags_.load() & flag_interruption_blocked);
+        return 0 != ( flags_ & flag_interruption_blocked);
     }
 
     void interruption_blocked( bool blck) noexcept;
 
     bool interruption_requested() const noexcept {
-        return 0 != ( flags_.load() & flag_interruption_requested);
+        return 0 != ( flags_ & flag_interruption_requested);
     }
 
     void request_interruption( bool req) noexcept;
@@ -256,25 +265,49 @@ public:
     }
 
     void set_terminated() noexcept {
+        // TODO
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::terminated);
+#else
+        fiber_status previous = state_;
+        state_ = fiber_status::terminated;
+#endif
         BOOST_ASSERT( fiber_status::running == previous);
         (void)previous;
     }
 
     void set_ready() noexcept {
+        // TODO
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::ready);
+#else
+        fiber_status previous = state_;
+        state_ = fiber_status::ready;
+#endif
         BOOST_ASSERT( fiber_status::waiting == previous || fiber_status::running == previous || fiber_status::ready == previous);
         (void)previous;
     }
 
     void set_running() noexcept {
+        // TODO
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::running);
+#else
+        fiber_status previous = state_;
+        state_ = fiber_status::running;
+#endif
         BOOST_ASSERT( fiber_status::ready == previous);
         (void)previous;
     }
 
     void set_waiting() noexcept {
+        // TODO
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::waiting);
+#else
+        fiber_status previous = state_;
+        state_ = fiber_status::waiting;
+#endif
         BOOST_ASSERT( fiber_status::running == previous);
         (void)previous;
     }

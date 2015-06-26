@@ -166,7 +166,8 @@ enum class future_errc {
     no_state
 };
 
-BOOST_FIBERS_DECL std::error_category const& future_category() noexcept;
+BOOST_FIBERS_DECL
+std::error_category const& future_category() noexcept;
 
 }}
 

@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <memory>
 #include <mutex>
-#include <system_error>
 #include <utility>
 
 #include <boost/config.hpp>

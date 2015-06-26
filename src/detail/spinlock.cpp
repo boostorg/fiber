@@ -4,29 +4,29 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/fiber/detail/spinlock.hpp>
+#include "boost/fiber/detail/spinlock.hpp"
 
 #include <boost/assert.hpp>
 
-#include <boost/fiber/detail/scheduler.hpp>
-#include <boost/fiber/fiber_context.hpp>
-#include <boost/fiber/fiber_manager.hpp>
+#include "boost/fiber/detail/scheduler.hpp"
+#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/fiber_manager.hpp"
 
 namespace boost {
 namespace fibers {
 namespace detail {
 
-spinlock::spinlock() noexcept :
-    state_( spinlock_status::unlocked) {
+atomic_spinlock::atomic_spinlock() noexcept :
+    state_( atomic_spinlock_status::unlocked) {
 }
 
 void
-spinlock::lock() {
+atomic_spinlock::lock() {
     do {
         // access to CPU's cache
         // first access to state_ -> cache miss
         // sucessive acccess to state_ -> cache hit
-        while ( spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
+        while ( atomic_spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
             // busy-wait
             scheduler::instance()->yield();
         }
@@ -34,13 +34,13 @@ spinlock::lock() {
         // cached copies are invalidated -> cache miss
         // test-and-set signaled over the bus 
     }
-    while ( spinlock_status::unlocked != state_.exchange( spinlock_status::locked, std::memory_order_acquire) );
+    while ( atomic_spinlock_status::unlocked != state_.exchange( atomic_spinlock_status::locked, std::memory_order_acquire) );
 }
 
 void
-spinlock::unlock() noexcept {
-    BOOST_ASSERT( spinlock_status::locked == state_);
-    state_ = spinlock_status::unlocked;
+atomic_spinlock::unlock() noexcept {
+    BOOST_ASSERT( atomic_spinlock_status::locked == state_);
+    state_ = atomic_spinlock_status::unlocked;
 }
 
 }}}

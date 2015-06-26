@@ -6,8 +6,6 @@
 
 #include "boost/fiber/fiber_context.hpp"
 
-#include <mutex>
-
 #include "boost/fiber/detail/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/properties.hpp"
@@ -59,7 +57,7 @@ bool
 fiber_context::join( fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
 
-    std::unique_lock< detail::spinlock > lk( splk_);
+    detail::spinlock_lock lk( splk_);
     if ( is_terminated() ) {
         return false;
     }

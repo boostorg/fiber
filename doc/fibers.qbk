@@ -139,6 +139,8 @@
 [def __interrupt__ [member_link fiber..interrupt]]
 [def __io_service__ `boost::asio::io_service`]
 [def __join__ [member_link fiber..join]]
+[def __mutex_lock__ [member_link mutex..lock]]
+[def __mutex_try_lock__ [member_link mutex..try_lock]]
 [def __run_service__ `boost::fibers::asio::run_service()`]
 [def __shared_future_get__ [member_link shared_future..get]]
 [def __sleep_for__ [ns_function_link this_fiber..sleep_for]]

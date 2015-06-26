@@ -51,7 +51,7 @@
 
     <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -61,15 +61,14 @@
 
     <span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
     <span class="keyword">void</span> <span class="identifier">detach</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">void</span> <span class="identifier">join</span><span class="special">();</span>
 
     <span class="keyword">void</span> <span class="identifier">interrupt</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
+    <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
 <span class="special">};</span>
 
 <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -400,12 +399,19 @@
             </p></dd>
 </dl>
 </div>
-<a name="fiber_thread_affinity"></a><h5>
+<p>
+        &lt; TODO &gt; <a name="fiber_properties"></a>
+      </p>
+<h5>
 <a name="fiber.fiber_mgmt.fiber.h5"></a>
-        <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special_____phrase___phrase_role__keyword__bool__phrase__phrase_role__special_____phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special_____phrase___phrase_role__keyword__bool__phrase__phrase_role__special_____phrase___code_">Member
-        function <code class="computeroutput"><span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span></code></a>
+        <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__keyword__template__phrase__phrase_role__special___lt___phrase___phrase_role__keyword__typename__phrase___phrase_role__identifier__props__phrase___phrase_role__special___gt___phrase___phrase_role__identifier__props__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__properties__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__keyword__template__phrase__phrase_role__special___lt___phrase___phrase_role__keyword__typename__phrase___phrase_role__identifier__props__phrase___phrase_role__special___gt___phrase___phrase_role__identifier__props__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__properties__phrase__phrase_role__special______phrase___code_">Member
+        function <code class="computeroutput"><span class="keyword">template</span><span class="special">&lt;</span>
+        <span class="keyword">typename</span> <span class="identifier">PROPS</span>
+        <span class="special">&gt;</span> <span class="identifier">PROPS</span>
+        <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">()</span></code></a>
       </h5>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_affinity</span><span class="special">(</span> <span class="keyword">bool</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
+<span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -416,56 +422,11 @@
               refers to a fiber of execution.
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd><p>
-              Set thread affinity for the fiber referenced by <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-            </p></dd>
+<dd></dd>
 <dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
+<dd></dd>
 <dt><span class="term">Note:</span></dt>
-<dd><p>
-              "Thread affinity" is only meaningful for certain scheduler
-              algorithms, such as <a class="link" href="../../"> <code class="computeroutput">round_robin_ws</code></a>. Many schedulers
-              ignore this fiber attribute. With a scheduler that might potentially
-              migrate a fiber from its initial thread to another, the value <code class="computeroutput"><span class="keyword">true</span></code> prevents migration: the fiber will
-              always run on its current thread. The default is <code class="computeroutput"><span class="keyword">false</span></code>:
-              normally, with an applicable scheduler, a fiber is allowed to migrate
-              across threads.
-            </p></dd>
-<dt><span class="term">See also:</span></dt>
-<dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_thread_affinity"> <code class="computeroutput">this_fiber::thread_affinity()</code></a>
-            </p></dd>
-</dl>
-</div>
-<h5>
-<a name="fiber.fiber_mgmt.fiber.h6"></a>
-        <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__identifier__thread_affinity__phrase__phrase_role__special______phrase___code_">Member
-        function <code class="computeroutput"><span class="identifier">thread_affinity</span><span class="special">()</span></code></a>
-      </h5>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">thread_affinity</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Preconditions:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution.
-            </p></dd>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              thread affinity for the fiber referenced by <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
-<dt><span class="term">See also:</span></dt>
-<dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_thread_affinity"> <code class="computeroutput">this_fiber::thread_affinity()</code></a>
-            </p></dd>
+<dd></dd>
 </dl>
 </div>
 <p>
@@ -478,7 +439,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>

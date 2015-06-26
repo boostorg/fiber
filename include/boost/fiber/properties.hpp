@@ -27,7 +27,7 @@ namespace fibers {
 struct sched_algorithm;
 class fiber_context;
 
-class fiber_properties {
+class BOOST_FIBERS_DECL fiber_properties {
 protected:
     // initialized by constructor
     fiber_context   *   fiber_;

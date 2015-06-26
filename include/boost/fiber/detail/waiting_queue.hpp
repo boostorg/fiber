@@ -26,7 +26,7 @@ struct sched_algorithm;
 
 namespace detail {
 
-class waiting_queue {
+class BOOST_FIBERS_DECL waiting_queue {
 public:
     waiting_queue() noexcept :
         head_( nullptr) {
