@@ -108,7 +108,7 @@ private:
     }
 
     channel_op_status push_( typename node::ptr const& new_node,
-                           std::unique_lock< boost::fibers::mutex >& lk ) {
+                             std::unique_lock< boost::fibers::mutex > & lk ) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -134,8 +134,8 @@ private:
 
     template< typename Clock, typename Duration >
     channel_op_status push_wait_until_( typename node::ptr const& new_node,
-                                      std::chrono::time_point< Clock, Duration > const& timeout_time,
-                                      std::unique_lock< boost::fibers::mutex >& lk) {
+                                        std::chrono::time_point< Clock, Duration > const& timeout_time,
+                                        std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }

@@ -95,7 +95,7 @@ private:
     }
 
     channel_op_status push_( typename node::ptr const& new_node,
-                           std::unique_lock< boost::fibers::mutex >& lk) {
+                             std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -135,10 +135,10 @@ private:
     typename node::ptr pop_head_() {
         typename node::ptr old_head = head_;
         head_ = old_head->nxt;
-        if ( nullptr == head_) {
+        if ( ! head_) {
             tail_ = & head_;
         }
-        old_head->nxt = nullptr;
+        old_head->nxt.reset();
         return old_head;
     }
 
