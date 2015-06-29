@@ -120,7 +120,7 @@ private:
         flags_( 0),
         splk_(),
         ctx_( palloc, salloc,
-              [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable {
+              [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable -> decltype( auto) {
                 try {
                     BOOST_ASSERT( is_running() );
                     detail::invoke( fn,
