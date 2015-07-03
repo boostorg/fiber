@@ -224,6 +224,11 @@ fiber_manager::wait_interval() noexcept {
     return wait_interval_;
 }
 
+std::size_t
+fiber_manager::ready_fibers() const noexcept {
+    return sched_algo_->ready_fibers();
+}
+
 bool
 fiber_manager::preserve_fpu() const {
     return preserve_fpu_;

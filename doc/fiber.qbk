@@ -25,6 +25,7 @@
         struct sched_algorithm_with_properties;
         class round_robin;
         void set_scheduling_algorithm( sched_algorithm * al)
+        std::size_t ready_fibers();
 
         }
 
@@ -464,6 +465,15 @@ passed `sched_algorithm*`: __boost_fiber__ does not claim responsibility for the
 lifespan of the referenced `scheduler` object. The caller must eventually
 destroy the passed `scheduler`, just as it must allocate it in the first
 place.]]
+[[Throws:] [Nothing]]
+]
+
+[function_heading ready_fibers]
+
+    std::size_t ready_fibers();
+
+[variablelist
+[[Returns:] [Returns the amount of fibers ready to run.]]
 [[Throws:] [Nothing]]
 ]
 

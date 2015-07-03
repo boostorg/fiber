@@ -6,6 +6,8 @@
 #ifndef BOOST_FIBERS_ALGORITHM_H
 #define BOOST_FIBERS_ALGORITHM_H
 
+#include <cstddef>
+
 #include <boost/config.hpp>
 
 #include <boost/fiber/properties.hpp>
@@ -26,6 +28,8 @@ struct BOOST_FIBERS_DECL sched_algorithm {
     virtual void awakened( fiber_context *) = 0;
 
     virtual fiber_context * pick_next() = 0;
+
+    virtual std::size_t ready_fibers() const noexcept = 0;
 };
 
 class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {

@@ -36,6 +36,8 @@ it to [function_link set_scheduling_algorithm].
             virtual void awakened( fiber_context *) = 0;
 
             virtual fiber_context * pick_next() = 0;
+
+            virtual std::size_t ready_fibers() const noexcept = 0
         };
 
         void set_scheduling_algorithm( sched_algorithm *);
@@ -55,6 +57,15 @@ it to [function_link set_scheduling_algorithm].
 [variablelist
 [[Effects:] [Depending on the scheduling algorithm, this function returns the
 fiber which has to be resumed next.]]
+]
+
+[member_heading algorithm..ready_fibers]
+
+        virtual std::size_t ready_fibers() const noexcept = 0;
+
+[variablelist
+[[Effects:] [Returns `false` if scheduling algorithm has fibers ready to run,
+otherwise `true`.]]
 ]
 
 

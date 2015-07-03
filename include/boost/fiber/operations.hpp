@@ -6,6 +6,7 @@
 #ifndef BOOST_THIS_FIBER_OPERATIONS_H
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
+#include <cstddef>
 #include <chrono>
 #include <mutex> // std::unique_lock
 
@@ -76,6 +77,11 @@ void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) n
 template< typename Rep, typename Period >
 std::chrono::duration< Rep, Period > wait_interval() noexcept {
     return detail::scheduler::instance()->wait_interval< Rep, Period >();
+}
+
+inline
+std::size_t ready_fibers() {
+    return detail::scheduler::instance()->ready_fibers();
 }
 
 inline

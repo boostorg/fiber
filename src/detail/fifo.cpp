@@ -28,6 +28,7 @@ fifo::push( fiber_context * item) noexcept {
     * tail_ = item;
     // Advance tail_ to point to the new end marker.
     tail_ = & item->nxt;
+    ++size_;
 }
 
 fiber_context *
@@ -40,6 +41,7 @@ fifo::pop() noexcept {
         tail_ = & head_;
     }
     item->nxt = nullptr;
+    --size_;
     return item;
 }
 
