@@ -46,6 +46,7 @@ to `allocate()` results in undefined behaviour.]
 [note The memory for the stack is not required to be aligned; alignment takes
 place inside __econtext__.]
 
+See also [@boost:/libs/context/doc/html/context/stack.html Boost.Context stack allocation].
 
 [class_heading protected_fixedsize_stack]
 

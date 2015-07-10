@@ -7,14 +7,28 @@
 
 [section:scheduling Scheduling]
 
-Fibers are managed by a scheduler which coordinates the sequence of fibers
-running or waiting.
-Each thread is required to have its own scheduler. By default, __boost_fiber__
-creates for each thread a scheduler ([class_link round_robin]).
+The fibers in a thread are coordinated by a fiber manager. Fibers trade
+control cooperatively, rather than preemptively: the currently-running fiber
+retains control until it invokes some operation that passes control to the
+manager. Each time a fiber suspends (or yields), the fiber manager consults a
+scheduler to determine which fiber will run next.
 
-A fiber-scheduler must implement interface __algo__.
+__boost_fiber__ provides the fiber manager, but the scheduler is a
+customization point. (See [link custom].)
+
+Each thread has its own scheduler. By default, __boost_fiber__ implicitly
+instantiates [class_link round_robin] for each thread.
+
+To prevent the library from heap-allocating the default scheduler for a given
+thread, that thread must call [function_link set_scheduling_algorithm] before
+any other __boost_fiber__ entry point.
+
 You are explicitly permitted to code your own __algo__ subclass, and to pass
 it to [function_link set_scheduling_algorithm].
+
+A scheduler class must implement interface __algo__. __boost_fiber__ provides
+one scheduler: [class_link round_robin].
+
 
         void thread_fn() {
             my_fiber_scheduler mfs;
@@ -25,9 +39,13 @@ it to [function_link set_scheduling_algorithm].
 
 [class_heading sched_algorithm]
 
+`sched_algorithm` is the abstract base class defining the interface that a
+fiber scheduler must implement.
+
         #include <boost/fiber/algorithm.hpp>
 
-        struct sched_algorithm {
+        struct sched_algorithm
+        {
             virtual ~sched_algorithm() {}
 
             virtual void awakened( fiber_context *) = 0;
@@ -40,7 +58,9 @@ it to [function_link set_scheduling_algorithm].
         virtual void awakened( fiber_context * f) = 0;
 
 [variablelist
-[[Effects:] [Marks fiber `f`, to be ready to run.]]
+[[Effects:] [Informs the scheduler that fiber `f` is ready to run.]]
+[[Note:] [A typical scheduler implementation places `f` into a queue.]]
+[[See also:] [[class_link round_robin]]]
 ]
 
 [member_heading sched_algorithm..pick_next]
@@ -48,89 +68,51 @@ it to [function_link set_scheduling_algorithm].
         virtual fiber_context * pick_next() = 0;
 
 [variablelist
-[[Effects:] [Depending on the scheduling algorithm, this function returns the
-fiber which is to be resumed next.]]
-]
-
-[member_heading sched_algorithm..priority]
-
-        virtual void priority( fiber_context *, int) noexcept = 0;
-
-[variablelist
-[[Effects:] [Resets the priority of fiber `f`.]]
-]
-
-
-To prevent the library from heap-allocating a default scheduler for a given
-thread, that thread must call [function_link set_scheduling_algorithm] before
-any other __boost_fiber__ entry point.
-
-        void thread_fn()
-        {
-            my_fiber_scheduler mfs;
-            boost::fibers::set_scheduling_algorithm( & mfs);
-            ...
-        }
-
-A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides one
-scheduler: [class_link round_robin].
-
-You are explicitly permitted to code your own __algo__ subclass, and to pass
-it to [function_link set_scheduling_algorithm].
-
-
-[class_heading sched_algorithm]
-
-        #include <boost/fiber/algorithm.hpp>
-
-        struct sched_algorithm
-        {
-            virtual ~sched_algorithm() {}
-
-            virtual void awakened( detail::worker_fiber *) = 0;
-
-            virtual detail::worker_fiber * pick_next() = 0;
-
-            virtual void priority( detail::worker_fiber *, int) noexcept = 0;
-        };
-
-[member_heading sched_algorithm..awakened]
-
-        virtual void awakened( detail::worker_fiber * f) = 0;
-
-[variablelist
-[[Effects:] [Marks fiber `f`, to be ready to run.]]
-]
-
-[member_heading sched_algorithm..pick_next]
-
-        virtual detail::worker_fiber * pick_next() = 0;
-
-[variablelist
-[[Effects:] [Depending on the scheduling algorithm, this function returns the
-fiber which is to be resumed next.]]
-]
-
-[member_heading sched_algorithm..priority]
-
-        virtual void priority( detail::worker_fiber *, int) noexcept = 0;
-
-[variablelist
-[[Effects:] [Resets the priority of fiber `f`.]]
+[[Returns:] [the fiber which is to be resumed next, or nullptr if there is no
+ready fiber.]]
+[[Note:] [A typical scheduler implementation chooses the head of the ready queue.]]
+[[See also:] [[class_link round_robin]]]
 ]
 
 
 [class_heading round_robin]
 
-This class implements __algo__ and schedules fibers in round-robin fashion
-(ignores `fiber::priority()`).
+This class implements __algo__ and schedules fibers in round-robin fashion.
 
-[info The example section provides a scheduler used for migrating fibers
-(work-stealing) between threads (different schedulers).]
+        #include <boost/fiber/round_robin.hpp>
+
+        class round_robin: public sched_algorithm
+        {
+            virtual void awakened( fiber_context *);
+
+            virtual fiber_context * pick_next();
+        };
+
+        void set_scheduling_algorithm( sched_algorithm *);
+
+[member_heading round_robin..awakened]
+
+        virtual void awakened( fiber_context * f);
+
+[variablelist
+[[Effects:] [Enqueues fiber `f` onto a ready queue.]]
+]
+
+[member_heading round_robin..pick_next]
+
+        virtual fiber_context * pick_next();
+
+[variablelist
+[[Returns:] [the fiber at the head of the ready queue, or 0 if the queue is
+empty.]]
+[[Note:] [Placing ready fibers onto a queue, and returning them from the head
+of that queue, shares control between ready fibers in round-robin fashion.]]
+]
 
 
-< TODO >
 [heading customized scheduler]
-
+[/ sched_algorithm_with_properties]
+[/ fiber_properties]
+[/ allude to fiber_context?]
 
 [endsect]
