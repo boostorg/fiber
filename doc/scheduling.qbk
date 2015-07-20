@@ -52,6 +52,8 @@ fiber scheduler must implement.
             virtual void awakened( fiber_context *) = 0;
 
             virtual fiber_context * pick_next() = 0;
+
+            virtual std::size_t ready_fibers() const noexcept = 0;
         };
 
 [member_heading sched_algorithm..awakened]
@@ -79,6 +81,15 @@ ready fiber.]]
 run next. A typical scheduler implementation chooses the head of the ready
 queue.]]
 [[See also:] [[class_link round_robin]]]
+]
+
+[member_heading sched_algorithm..ready_fibers]
+
+        virtual std::size_t ready_fibers() const noexcept = 0;
+
+[variablelist
+[[Effects:] [Returns 0 if scheduling algorithm has fibers ready to run,
+otherwise nonzero.]]
 ]
 
 

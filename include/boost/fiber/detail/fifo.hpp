@@ -28,6 +28,7 @@ namespace detail {
 class BOOST_FIBERS_DECL fifo {
 public:
     fifo() noexcept :
+        size_( 0),
         head_( nullptr),
         tail_( & head_) {
     }
@@ -37,6 +38,10 @@ public:
 
     bool empty() const noexcept {
         return nullptr == head_;
+    }
+
+    std::size_t size() const noexcept {
+        return size_;
     }
 
     void push( fiber_context * item) noexcept;
@@ -49,6 +54,7 @@ public:
     }
 
 private:
+    std::size_t         size_;
     fiber_context   *   head_;
     // tail_ points to the nxt field that contains the null that marks the end
     // of the fifo. When the fifo is empty, tail_ points to head_. tail_ must

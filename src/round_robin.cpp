@@ -34,6 +34,11 @@ round_robin::pick_next() {
     return victim;
 }
 
+std::size_t
+round_robin::ready_fibers() const noexcept {
+    return rqueue_.empty();
+}
+
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS

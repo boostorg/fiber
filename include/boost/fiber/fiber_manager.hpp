@@ -6,6 +6,7 @@
 #ifndef BOOST_FIBERS_FIBER_MANAGER_H
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
+#include <cstddef>
 #include <chrono>
 #include <mutex>
 
@@ -80,6 +81,8 @@ public:
     void join( fiber_context *);
 
     fiber_context * active() noexcept;
+
+    std::size_t ready_fibers() const noexcept;
 
     sched_algorithm* get_sched_algo_();
 
