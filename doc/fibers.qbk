@@ -64,6 +64,11 @@
 ]
 [template static_member_link[class_name method_name] [member_link [class_name]..[method_name]]]
 
+[template data_member_heading[class_name member_name]
+[hding [class_name]_[member_name]..Data member [`[member_name]]]
+]
+[template data_member_link[class_name member_name] [member_link [class_name]..[member_name]]]
+
 [template function_heading[function_name]
 [hding [function_name]..Non-member function [`[function_name]()]]
 ]
@@ -87,7 +92,7 @@
 [def __barrier__ [class_link barrier]]
 [def __condition__ [class_link condition_variable]]
 [def __disable_interruption__ [class_link disable_interruption]]
-[def __econtext__ ['execution_context]]
+[def __econtext__ [@boost:/libs/context/doc/html/context/econtext.html ['execution_context]]]
 [def __fiber__ [class_link fiber]]
 [def __fiber_exception__ `fiber_exception`]
 [def __fiber_group__ [class_link fiber_group]]
@@ -111,8 +116,9 @@
 [def __segmented_stack__ [class_link segmented_stack]]
 [def __segmented_stack_stack__ ['segmented_stack-stack]]
 [def __shared_future__ [template_link shared_future]]
+[def __stack_allocator__ ['stack_allocator]]
 [def __stack_allocator_concept__ [link stack_allocator_concept ['stack-allocator concept]]]
-[def __stack_context__ [class_link stack_context]]
+[def __stack_context__ [@boost:/libs/context/doc/html/context/stack/stack_context.html `stack_context`]]
 [def __timed_mutex__ [class_link timed_mutex]]
 [def __wait_for__ [member_link future..wait_for]]
 [def __wait__ [member_link future..wait]]
@@ -160,7 +166,16 @@
 [include fiber.qbk]
 [include scheduling.qbk]
 [include stack.qbk]
+[#synchronization]
 [section:synchronization Synchronization]
+
+In general, __boost_fiber__ synchronization objects can neither be moved nor
+copied. A synchronization object acts as a mutually-agreed rendezvous point
+between different fibers. If such an object were copied somewhere else, the
+new copy would have no consumers. If such an object were ['moved] somewhere
+else, leaving the original instance in an unspecified state, existing
+consumers would behave strangely.
+
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]

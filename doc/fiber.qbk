@@ -52,7 +52,7 @@
 [heading Tutorial]
 
 Each __fiber__ represents a micro-thread which will be launched and managed
-cooperatively by a scheduler. Objects of type __fiber__ are only moveable.
+cooperatively by a scheduler. Objects of type __fiber__ are move-only.
 
         boost::fibers::fiber f1; // not-a-fiber
 
@@ -91,7 +91,7 @@ The spawned __fiber__ is enqueued in the list of ready-to-run fibers at construc
 
 [heading Exceptions]
 
-A exception thrown by the function or callable object passed to the __fiber__
+An exception escaping from the function or callable object passed to the __fiber__
 constructor calls `std::terminate()`.
 If you need to know which exception was thrown, use __future__ and
 __packaged_task__.
@@ -183,6 +183,18 @@ __interruption_enabled__.
 * __sleep_until__
 * __yield__
 * __interruption_point__
+* [member_link bounded_channel..push]
+* [member_link bounded_channel..pop]
+* [member_link bounded_channel..value_pop]
+* [member_link unbounded_channel..push]
+* [member_link unbounded_channel..pop]
+* [member_link unbounded_channel..value_pop]
+* [member_link future..wait]
+* [member_link future..get]
+* [member_link future..get_exception_ptr]
+* [member_link shared_future..wait]
+* [member_link shared_future..get]
+* [member_link shared_future..get_exception_ptr]
 
 [#class_fiber_id]
 [heading Fiber IDs]
@@ -273,11 +285,13 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
-[[Effects:] [`fn` is copied into internal storage for access by the new fiber.]]
+[[Effects:] [`fn` is copied or moved into internal storage for access by the new fiber.]]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_exception__ if an error occurs.]]
 [[Note:] [StackAllocator is required to allocate a stack for the internal
-__econtext__.]]
+__econtext__. If StackAllocator is not explicitly passed, a
+__fixedsize_stack__ is used by default.]]
+[[See also:] [[link stack]]]
 ]
 
 [heading Move constructor]
@@ -314,7 +328,7 @@ value of `other.get_id()` prior to the assignment.]]
 [[Throws:] [Nothing.]]
 [[Note:] [The programmer must ensure that the destructor is never executed while
 the fiber is still __joinable__. Even if you know (by calling
-[member_link fiber..operator safe_bool]) that the fiber has completed, you must
+[member_link fiber..operator bool]) that the fiber has completed, you must
 still call either __join__ or  __detach__ before destroying the `fiber` object.]]
 ]
 
@@ -326,7 +340,7 @@ still call either __join__ or  __detach__ before destroying the `fiber` object.]
 [[Returns:] [`true` if `*this` refers to a fiber of execution, which may or
 may not have completed; otherwise `false`.]]
 [[Throws:] [Nothing]]
-[[See also:] [[member_link fiber..operator safe_bool]]]
+[[See also:] [[member_link fiber..operator bool]]]
 ]
 
 [member_heading fiber..join]
@@ -386,18 +400,26 @@ interruption enabled.]]
 [[Throws:] [Nothing]]
 ]
 
-< TODO >
-[#fiber_properties]
-[heading Member function `template< typename PROPS > PROPS & properties()`]
+[template_member_heading fiber..properties]
 
         template< typename PROPS >
         PROPS & properties();
 
 [variablelist
-[[Preconditions:] [`*this` refers to a fiber of execution.]]
-[[Effects:] []]
-[[Throws:] []]
-[[Note:] []]
+[[Preconditions:] [`*this` refers to a fiber of execution. [function_link
+set_scheduling_algorithm] has been called from this thread with a pointer to a
+(subclass) instance of [template_link sched_algorithm_with_properties] with the
+same template argument `PROPS`. `*this` has been scheduled for execution at
+least once.]]
+[[Returns:] [a reference to the scheduler properties instance for `*this`.]]
+[[Throws:] [`std::bad_cast` if `set_scheduling_algorithm()` was passed a
+pointer to a `sched_algorithm_with_properties` subclass with some other
+template parameter than `PROPS`.]]
+[[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
+user-coded scheduler to associate extended properties, such as priority, with
+a fiber instance. This method allows access to those user-provided properties
+-- but only after this fiber has been scheduled for the first time.]]
+[[See also:] [[link custom]]]
 ]
 
 [member_heading fiber..operator bool]
@@ -420,7 +442,7 @@ distinguish whether the referenced fiber of execution is still running.]]
 [[Returns:] [`true` if `*this` does not refer to a fiber of execution or if
 its fiber of execution has terminated, `false` otherwise.]]
 [[Throws:] [Nothing]]
-[[See also:] [[member_link fiber..operator safe_bool], __joinable__]]
+[[See also:] [[member_link fiber..operator bool], __joinable__]]
 ]
 
 [member_heading fiber..swap]
@@ -453,8 +475,6 @@ prior to the call.]]
 [[Effects:] [Directs __boost_fiber__ to use `scheduler`, which must be a
 concrete subclass of __algo__, as the scheduling algorithm for all fibers in
 the current thread.]]
-[[Returns:] [Previous __algo__ instance set for the current thread, 0 if this
-is the first __boost_fiber__ entry point called by the current thread.]]
 [[Note:] [If you want a given thread to use a non-default scheduling
 algorithm, make that thread call `set_scheduling_algorithm()` before any other
 __boost_fiber__ entry point. If no scheduler has been set for the current
@@ -466,6 +486,7 @@ lifespan of the referenced `scheduler` object. The caller must eventually
 destroy the passed `scheduler`, just as it must allocate it in the first
 place.]]
 [[Throws:] [Nothing]]
+[[See also:] [[link scheduling], [link custom]]]
 ]
 
 [function_heading ready_fibers]
@@ -530,7 +551,7 @@ or both represent __not_a_fiber__, `false` otherwise.]]
         bool operator!=( id const& other) const noexcept;
 
 [variablelist
-[[Returns:] [`! (other == * this)]]
+[[Returns:] [[`! (other == * this)]]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -595,7 +616,7 @@ implementation-defined total order of `fiber::id` values places `*this` before
         fibers::fiber::id get_id() noexcept;
         void yield();
         template< typename Clock, typename Duration >
-        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& abs_time)
         template< typename Rep, typename Period >
         void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename PROPS >
@@ -626,7 +647,7 @@ executing fiber.]]
         #include <boost/fiber/operations.hpp>
 
         template< typename Clock, typename Duration >
-        void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time)
+        void sleep_until( std::chrono::time_point< Clock, Duration > const& abs_time)
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time point specified by
@@ -647,8 +668,8 @@ guarantees about how soon after `abs_time` it might resume.]]
 [variablelist
 [[Effects:] [Suspends the current fiber until the time duration specified by
 `rel_time` has elapsed.]]
-[[Throws:] [Nothing if operations of std::chrono::duration<Rep, Period> do not throw
-exceptions. __fiber_interrupted__ if the current fiber is interrupted.]]
+[[Throws:] [Any exceptions thrown by operations of `std::chrono::duration<Rep,
+Period>`. __fiber_interrupted__ if the current fiber is interrupted.]]
 [[Note:] [`sleep_for()` is one of the predefined __interruption_points__.]]
 [[Note:][The current fiber will not resume before `rel_time` has elapsed, but
 there are no guarantees about how soon after that it might resume.]]
@@ -663,9 +684,11 @@ there are no guarantees about how soon after that it might resume.]]
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
+[[Note:] [`yield()` is ['not] an interruption point. A fiber that calls
+`yield()` is not suspended: it is immediately passed to the scheduler as ready
+to run.]]
 ]
 
-< TODO >
 [ns_function_heading this_fiber..properties]
 
         #include <boost/fiber/operations.hpp>
@@ -674,9 +697,19 @@ there are no guarantees about how soon after that it might resume.]]
         PROPS & properties();
 
 [variablelist
-[[Effects:] []]
-[[Throws:] []]
-[[Note:] []]
+[[Preconditions:] [[function_link set_scheduling_algorithm] has been called
+from this thread with a pointer to a (subclass) instance of [template_link
+sched_algorithm_with_properties] with the same template argument `PROPS`.]]
+[[Returns:] [a reference to the scheduler properties instance for the
+currently running fiber.]]
+[[Throws:] [`std::bad_cast` if `set_scheduling_algorithm()` was passed a
+pointer to a `sched_algorithm_with_properties` subclass with some other
+template parameter than `PROPS`.]]
+[[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
+user-coded scheduler to associate extended properties, such as priority, with
+a fiber instance. This function allows access to those user-provided
+properties.]]
+[[See also:] [[link custom]]]
 ]
 
 [ns_function_heading this_fiber..interruption_point]

@@ -95,10 +95,11 @@ channel operations return the state of the channel.
         channel_op_status try_pop( value_type & va);
         template< typename Rep, typename Period >
         channel_op_status pop_wait_for( value_type & va,
-                                      std::chrono::duration< Rep, Period > const& timeout_duration);
+                                        std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename Clock, typename Duration >
         channel_op_status pop_wait_until( value_type & va,
-                                        std::chrono::time_point< Clock, Duration > const& timeout_time);
+                                          std::chrono::time_point< Clock,
+                                                                   Duration > const& timeout_time);
     };
 
 [member_heading unbounded_channel..is_closed]
@@ -118,7 +119,8 @@ channel operations return the state of the channel.
 [variablelist
 [[Effects:] [Deactivates the channel. No values can be put after calling
 `this->close()`. Fibers blocked in `this->pop()`, `this->pop_wait_for()`
-or `this->pop_wait_until()` will return `closed`.]]
+or `this->pop_wait_until()` will return `closed`. Fibers blocked in
+`this->value_pop()` will receive an exception.]]
 [[Throws:] [Nothing.]]
 [[Note:] [`close()` is like closing a pipe. It informs waiting consumers
 that no more values will arrive.]]
@@ -140,7 +142,7 @@ non-empty.]]
         channel_op_status push( value_type && va);
 
 [variablelist
-[[Effects:] [Enchannels the value in the channel and wakes up a fiber blocked on
+[[Effects:] [Enqueues the value in the channel and wakes up a fiber blocked on
 `this->pop()`, `this->pop_wait_for()` or `this->pop_wait_until()`.]]
 [[Throws:] [Nothing.]]
 ]
@@ -150,9 +152,9 @@ non-empty.]]
         channel_op_status pop( value_type & va);
 
 [variablelist
-[[Effects:] [Dechannels a value from the channel. If the channel `is_empty()`, the
+[[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
 fiber gets suspended until at least one new item is `push()`ed (return value
-`success` and `va` contains dechanneld value) or the channel gets `close()`d
+`success` and `va` contains dequeued value) or the channel gets `close()`d
 (return value `closed`).]]
 [[Throws:] [__fiber_interrupted__]]
 ]

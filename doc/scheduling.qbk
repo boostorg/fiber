@@ -5,16 +5,28 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[#scheduling]
 [section:scheduling Scheduling]
 
-Fibers are managed by a scheduler which coordinates the sequence of fibers
-running or waiting.
-Each thread is required to have its own scheduler. By default, __boost_fiber__
-creates for each thread a scheduler ([class_link round_robin]).
+The fibers in a thread are coordinated by a fiber manager. Fibers trade
+control cooperatively, rather than preemptively: the currently-running fiber
+retains control until it invokes some operation that passes control to the
+manager. Each time a fiber suspends (or yields), the fiber manager consults a
+scheduler to determine which fiber will run next.
 
-A fiber-scheduler must implement interface __algo__.
+__boost_fiber__ provides the fiber manager, but the scheduler is a
+customization point. (See [link custom].)
+
+Each thread has its own scheduler. By default, __boost_fiber__ implicitly
+instantiates [class_link round_robin] as the scheduler for each thread.
+
+To prevent the library from heap-allocating the default scheduler for a given
+thread, that thread must call [function_link set_scheduling_algorithm] before
+any other __boost_fiber__ entry point.
+
 You are explicitly permitted to code your own __algo__ subclass, and to pass
 it to [function_link set_scheduling_algorithm].
+
 
         void thread_fn() {
             my_fiber_scheduler mfs;
@@ -22,64 +34,14 @@ it to [function_link set_scheduling_algorithm].
             ...
         }
 
-
-[class_heading sched_algorithm]
-
-        #include <boost/fiber/algorithm.hpp>
-
-        struct sched_algorithm {
-            virtual ~sched_algorithm() {}
-
-            virtual void awakened( fiber_context *) = 0;
-
-            virtual fiber_context * pick_next() = 0;
-        };
-
-[member_heading sched_algorithm..awakened]
-
-        virtual void awakened( fiber_context * f) = 0;
-
-[variablelist
-[[Effects:] [Marks fiber `f`, to be ready to run.]]
-]
-
-[member_heading sched_algorithm..pick_next]
-
-        virtual fiber_context * pick_next() = 0;
-
-[variablelist
-[[Effects:] [Depending on the scheduling algorithm, this function returns the
-fiber which is to be resumed next.]]
-]
-
-[member_heading sched_algorithm..priority]
-
-        virtual void priority( fiber_context *, int) noexcept = 0;
-
-[variablelist
-[[Effects:] [Resets the priority of fiber `f`.]]
-]
-
-
-To prevent the library from heap-allocating a default scheduler for a given
-thread, that thread must call [function_link set_scheduling_algorithm] before
-any other __boost_fiber__ entry point.
-
-        void thread_fn()
-        {
-            my_fiber_scheduler mfs;
-            boost::fibers::set_scheduling_algorithm( & mfs);
-            ...
-        }
-
-A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides one
-scheduler: [class_link round_robin].
-
-You are explicitly permitted to code your own __algo__ subclass, and to pass
-it to [function_link set_scheduling_algorithm].
+A scheduler class must implement interface __algo__. __boost_fiber__ provides
+one scheduler: [class_link round_robin].
 
 
 [class_heading sched_algorithm]
+
+`sched_algorithm` is the abstract base class defining the interface that a
+fiber scheduler must implement.
 
         #include <boost/fiber/algorithm.hpp>
 
@@ -87,50 +49,280 @@ it to [function_link set_scheduling_algorithm].
         {
             virtual ~sched_algorithm() {}
 
-            virtual void awakened( detail::worker_fiber *) = 0;
+            virtual void awakened( fiber_context *) = 0;
 
-            virtual detail::worker_fiber * pick_next() = 0;
+            virtual fiber_context * pick_next() = 0;
 
-            virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+            virtual std::size_t ready_fibers() const noexcept = 0;
         };
 
 [member_heading sched_algorithm..awakened]
 
-        virtual void awakened( detail::worker_fiber * f) = 0;
+        virtual void awakened( fiber_context * f) = 0;
 
 [variablelist
-[[Effects:] [Marks fiber `f`, to be ready to run.]]
+[[Effects:] [Informs the scheduler that fiber `f` is ready to run. Fiber `f`
+might be newly launched, or it might have been blocked but has just been
+awakened, or it might have called [ns_function_link this_fiber..yield].]]
+[[Note:] [This method advises the scheduler to add fiber `f` to its collection
+of fibers ready to run. A typical scheduler implementation places `f` into a
+queue.]]
+[[See also:] [[class_link round_robin]]]
 ]
 
 [member_heading sched_algorithm..pick_next]
 
-        virtual detail::worker_fiber * pick_next() = 0;
+        virtual fiber_context * pick_next() = 0;
 
 [variablelist
-[[Effects:] [Depending on the scheduling algorithm, this function returns the
-fiber which is to be resumed next.]]
+[[Returns:] [the fiber which is to be resumed next, or `nullptr` if there is no
+ready fiber.]]
+[[Note:] [This is where the scheduler actually specifies the fiber which is to
+run next. A typical scheduler implementation chooses the head of the ready
+queue.]]
+[[See also:] [[class_link round_robin]]]
 ]
 
-[member_heading sched_algorithm..priority]
+[member_heading sched_algorithm..ready_fibers]
 
-        virtual void priority( detail::worker_fiber *, int) noexcept = 0;
+        virtual std::size_t ready_fibers() const noexcept = 0;
 
 [variablelist
-[[Effects:] [Resets the priority of fiber `f`.]]
+[[Effects:] [Returns 0 if scheduling algorithm has fibers ready to run,
+otherwise nonzero.]]
 ]
 
 
 [class_heading round_robin]
 
-This class implements __algo__ and schedules fibers in round-robin fashion
-(ignores `fiber::priority()`).
+This class implements __algo__, scheduling fibers in round-robin fashion.
 
-[info The example section provides a scheduler used for migrating fibers
-(work-stealing) between threads (different schedulers).]
+        #include <boost/fiber/round_robin.hpp>
+
+        class round_robin: public sched_algorithm
+        {
+            virtual void awakened( fiber_context *);
+
+            virtual fiber_context * pick_next();
+        };
+
+[member_heading round_robin..awakened]
+
+        virtual void awakened( fiber_context * f);
+
+[variablelist
+[[Effects:] [Enqueues fiber `f` onto a ready queue.]]
+]
+
+[member_heading round_robin..pick_next]
+
+        virtual fiber_context * pick_next();
+
+[variablelist
+[[Returns:] [the fiber at the head of the ready queue, or 0 if the queue is
+empty.]]
+[[Note:] [Placing ready fibers onto a queue, and returning them from the head
+of that queue, shares the thread between ready fibers in round-robin fashion.]]
+]
 
 
-< TODO >
-[heading customized scheduler]
+[heading Custom Scheduler Fiber Properties]
 
+A scheduler class directly derived from __algo__ can use any information
+available from [class_link fiber_context] to implement the `sched_algorithm`
+interface. But a custom scheduler might need to track additional properties
+for a fiber. For instance, a priority-based scheduler would need to track a
+fiber's priority.
+
+__boost_fiber__ provides a mechanism by which your custom scheduler can
+associate custom properties with each fiber.
+
+[class_heading fiber_properties]
+
+A custom fiber properties class must be derived from `fiber_properties`.
+
+        #include <boost/fiber/properties.hpp>
+
+        class fiber_properties
+        {
+        public:
+            fiber_properties( back_ptr f );
+
+            virtual ~fiber_properties() {}
+
+        protected:
+            void notify();
+        };
+
+[heading Constructor]
+
+        fiber_properties( back_ptr f );
+
+[variablelist
+[[Effects:] [Constructs base-class component of custom subclass.]]
+[[Note:] [Your subclass constructor must accept a `back_ptr` and pass it to
+the base-class `fiber_properties` constructor.]]
+]
+
+[member_heading fiber_properties..notify]
+
+        void notify();
+
+[variablelist
+[[Effects:] [Pass control to the custom [template_link
+sched_algorithm_with_properties] subclass's [member_link
+sched_algorithm_with_properties..property_change] method.]]
+[[Note:] [A custom scheduler's [member_link
+sched_algorithm_with_properties..pick_next] method might dynamically select
+from the ready fibers, or [member_link
+sched_algorithm_with_properties..awakened] might instead insert each ready
+fiber into some form of ready queue for `pick_next()`. In the latter case, if
+application code modifies a fiber property (e.g. priority) that should affect
+that fiber's relationship to other ready fibers, the custom scheduler must be
+given the opportunity to reorder its ready queue. The custom property subclass
+should implement an access method to modify such a property; that access
+method should call `notify()` once the new property value has been stored.
+This passes control to the custom scheduler's `property_change()` method,
+allowing the custom scheduler to reorder its ready queue appropriately. Use at
+your discretion. Of course, if you define a property which does not affect the
+behavior of the `pick_next()` method, you need not call `notify()` when that
+property is modified.]]
+]
+
+[template_heading sched_algorithm_with_properties]
+
+A custom scheduler that depends on a custom properties class `PROPS` should be
+derived from `sched_algorithm_with_properties<PROPS>`. `PROPS` should be
+derived from [class_link fiber_properties].
+
+        #include <boost/fiber/algorithm.hpp>
+
+        template< typename PROPS >
+        struct sched_algorithm_with_properties
+        {
+            // override this method instead of sched_algorithm::awakened()
+            virtual void awakened( fiber_context * f, PROPS& properties ) = 0;
+
+            virtual fiber_context * pick_next();
+
+            // obtain f's associated PROPS instance
+            PROPS& properties( fiber_context * f);
+
+            // override this to be notified by PROPS::notify()
+            virtual void property_change( fiber_context * f, PROPS & properties);
+
+            // Override this to customize instantiation of PROPS, e.g. use a different
+            // allocator. Each PROPS instance is associated with a particular
+            // fiber_context.
+            virtual fiber_properties * new_properties( fiber_context * f);
+        };
+
+[member_heading sched_algorithm_with_properties..awakened]
+
+        virtual void awakened( fiber_context * f, PROPS& properties );
+
+[variablelist
+[[Effects:] [Informs the scheduler that fiber `f` is ready to run, like
+[member_link sched_algorithm..awakened]. Passes the fiber's associated `PROPS`
+instance.]]
+[[Note:] [A `sched_algorithm_with_properties<>` subclass must override this
+method instead of `sched_algorithm::awakened()`.]]
+]
+
+[member_heading sched_algorithm_with_properties..pick_next]
+
+        virtual fiber_context * pick_next();
+
+[variablelist
+[[Returns:] [the fiber which is to be resumed next, or `nullptr` if there is no
+ready fiber.]]
+[[Note:] [same as [member_link sched_algorithm..pick_next]]]
+]
+
+[member_heading sched_algorithm_with_properties..properties]
+
+        PROPS& properties( fiber_context * f);
+
+[variablelist
+[[Returns:] [the `PROPS` instance associated with fiber `f`.]]
+[[Note:] [The fiber's associated `PROPS` instance is already passed to
+`awakened()` and `property_change()`. However, every [class_link
+sched_algorithm] subclass is expected to track a collection of ready
+[class_link fiber_context] instances. This method allows your custom scheduler
+to retrieve the [class_link fiber_properties] subclass instance for any
+`fiber_context` in its collection.]]
+]
+
+[member_heading sched_algorithm_with_properties..property_change]
+
+        virtual void property_change( fiber_context * f, PROPS & properties);
+
+[variablelist
+[[Effects:] [Notify the custom scheduler of a possibly-relevant change to a
+property belonging to fiber `f`. `properties` contains the new values of
+all relevant properties.]]
+[[Note:] [This method is only called when a custom [class_link
+fiber_properties] subclass explicitly calls [member_link
+fiber_properties..notify].]]
+]
+
+[member_heading sched_algorithm_with_properties..new_properties]
+
+        virtual fiber_properties * new_properties( fiber_context * f);
+
+[variablelist
+[[Returns:] [A new instance of [class_link fiber_properties] subclass
+`PROPS`.]]
+[[Note:] [By default, `sched_algorithm_with_properties<>::new_properties()`
+simply returns `new PROPS(f)`, placing the `PROPS` instance on the heap.
+Override this method to allocate `PROPS` some other way. The returned
+`fiber_properties` pointer must point to the `PROPS` instance to be associated
+with fiber `f`.]]
+]
+
+[class_heading fiber_context]
+
+While you are free to treat `fiber_context*` as an opaque token, certain
+`fiber_context` members may be useful to a custom scheduler implementation.
+
+(Most `fiber_context` members are implementation details; most of interest are
+implementations of [class_link fiber] methods.)
+
+        #include <boost/fiber/fiber_context.hpp>
+
+        class fiber_context
+        {
+        public:
+
+            fiber_context   *   nxt;
+
+            static fiber_context * main_fiber();
+
+        };
+
+[data_member_heading fiber_context..nxt]
+
+        fiber_context   *   nxt;
+
+[variablelist
+[[Note:] [This link pointer may be used to help implement a custom scheduler's
+ready queue. It is overwritten by the fiber manager every time this
+`fiber_context` is returned by [member_link sched_algorithm..pick_next], but
+between the time the fiber manager passes this `fiber_context` to [member_link
+sched_algorithm..awakened] (or [member_link
+sched_algorithm_with_properties..awakened]) and the time your `pick_next()`
+returns it to the fiber manager, it is available for use by your custom
+scheduler.]]
+]
+
+[static_member_heading fiber_context..main_fiber]
+
+        static fiber_context * main_fiber();
+
+[variablelist
+[[Returns:] [the `fiber_context` associated with the "main" fiber of the
+thread: the one implicitly created by the thread itself, rather than one
+explicitly created by __boost_fiber__.]]
+]
 
 [endsect]

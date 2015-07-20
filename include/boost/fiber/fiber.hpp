@@ -137,7 +137,9 @@ public:
 
     template< typename PROPS >
     PROPS & properties() {
-        return dynamic_cast< PROPS & >( * impl_->get_properties() );
+        fiber_properties* props = impl_->get_properties();
+        BOOST_ASSERT_MSG(props, "fiber::properties not set");
+        return dynamic_cast< PROPS & >( * props );
     }
 };
 

@@ -9,6 +9,7 @@
 #include <cstddef>
 
 #include <boost/config.hpp>
+#include <boost/assert.hpp>
 
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -47,15 +48,20 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     typedef sched_algorithm_with_properties_base super;
 
     // Mark this override 'final': sched_algorithm_with_properties subclasses
-    // must override awakened_props() instead. Otherwise you'd have to
-    // remember to start every subclass awakened() override with:
-    // sched_algorithm_with_properties<PROPS>::awakened(fb);
+    // must override awakened() with properties parameter instead. Otherwise
+    // you'd have to remember to start every subclass awakened() override
+    // with: sched_algorithm_with_properties<PROPS>::awakened(fb);
     virtual void awakened( fiber_context * f) final {
         fiber_properties * props = super::get_properties( f);
         if ( ! props) {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
-            props = new PROPS( f);
+            props = new_properties( f);
+            // It is not good for new_properties() to return 0.
+            BOOST_ASSERT_MSG(props, "new_properties() must return non-NULL");
+            // new_properties() must return instance of (a subclass of) PROPS
+            BOOST_ASSERT_MSG(dynamic_cast<PROPS*>(props),
+                             "new_properties() must return properties class");
             super::set_properties( f, props);
         }
         // Set sched_algo_ again every time this fiber becomes READY. That
@@ -64,11 +70,11 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
         props->set_sched_algorithm( this);
 
         // Okay, now forward the call to subclass override.
-        awakened_props( f);
+        awakened( f, properties(f) );
     }
 
     // subclasses override this method instead of the original awakened()
-    virtual void awakened_props( fiber_context *) = 0;
+    virtual void awakened( fiber_context *, PROPS& ) = 0;
 
     // used for all internal calls
     PROPS& properties( fiber_context * f) {
@@ -82,6 +88,14 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     // implementation for sched_algorithm_with_properties_base method
     void property_change_( fiber_context * f, fiber_properties * props ) final {
         property_change( f, * static_cast< PROPS * >( props) );
+    }
+
+    // Override this to customize instantiation of PROPS, e.g. use a different
+    // allocator. Each PROPS instance is associated with a particular
+    // fiber_context.
+    virtual fiber_properties * new_properties( fiber_context * f)
+    {
+        return new PROPS( f);
     }
 };
 
