@@ -249,7 +249,7 @@ After construction is `false == other.valid()`.]]
 
 [heading Copy constructor]
 
-        shared_future( shared_future cosnt& other) noexcept;
+        shared_future( shared_future const& other) noexcept;
 
 [variablelist
 [[Effects:] [Constructs a future with the shared state of other.

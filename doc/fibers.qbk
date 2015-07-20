@@ -116,6 +116,7 @@
 [def __segmented_stack__ [class_link segmented_stack]]
 [def __segmented_stack_stack__ ['segmented_stack-stack]]
 [def __shared_future__ [template_link shared_future]]
+[def __stack_allocator__ ['stack_allocator]]
 [def __stack_allocator_concept__ [link stack_allocator_concept ['stack-allocator concept]]]
 [def __stack_context__ [@boost:/libs/context/doc/html/context/stack/stack_context.html `stack_context`]]
 [def __timed_mutex__ [class_link timed_mutex]]
@@ -167,6 +168,14 @@
 [include stack.qbk]
 [#synchronization]
 [section:synchronization Synchronization]
+
+In general, __boost_fiber__ synchronization objects can neither be moved nor
+copied. A synchronization object acts as a mutually-agreed rendezvous point
+between different fibers. If such an object were copied somewhere else, the
+new copy would have no consumers. If such an object were ['moved] somewhere
+else, leaving the original instance in an unspecified state, existing
+consumers would behave strangely.
+
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]

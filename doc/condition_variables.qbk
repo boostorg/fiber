@@ -18,7 +18,7 @@
         class condition_variable;
         class condition_variable_any;
 
-The class `condition_variable` provides a mechanism for one fiber to wait for
+The class `condition_variable` provides a mechanism for a fiber to wait for
 notification on `condition_variable`. When the fiber awakens from the wait, then
 it checks to see if the appropriate condition is now true, and continues if so.
 If the condition is not true, then the fiber calls `wait` again to resume
@@ -26,7 +26,7 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     boost::fibers::condition_variable cond;
     boost::fibers::mutex mtx;
-    bool data_ready;
+    bool data_ready = false;
 
     void process_data();
 
@@ -107,16 +107,22 @@ optimize as described for `boost::thread::condition_variable`.
         void wait( LockType & lk, Pred predicate);
 
         template< typename LockType, typename Clock, typename Duration >
-        cv_status wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time);
+        cv_status wait_until( LockType & lk,
+                              std::chrono::time_point< Clock, Duration > const& timeout_time);
 
         template< typename LockType, typename Clock, typename Duration, typename Pred >
-        bool wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
+        bool wait_until( LockType & lk,
+                         std::chrono::time_point< Clock, Duration > const& timeout_time,
+                         Pred pred);
 
         template< typename LockType, typename Rep, typename Period >
-        cv_status wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration);
+        cv_status wait_for( LockType & lk,
+                            std::chrono::duration< Rep, Period > const& timeout_duration);
 
         template< typename LockType, typename Rep, typename Period, typename Pred >
-        bool wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+        bool wait_for( LockType & lk,
+                       std::chrono::duration< Rep, Period > const& timeout_duration,
+                       Pred pred);
     };
 
     typedef condition_variable condition_variable_any;
@@ -204,36 +210,39 @@ fibers calling `wait` on `*this` must wait on `lk` objects governing the
 ['same] `mutex`. Three distinct objects are involved in any
 `condition_variable::wait()` call: the `condition_variable` itself, the
 `mutex` coordinating access between fibers and a lock object (e.g.
-`mutex::scoped_lock`). In some sense it would be nice if the
+`std::lock_guard`). In some sense it would be nice if the
 `condition_variable`'s constructor could accept the related `mutex` object,
 enforcing agreement across all `wait()` calls; but the existing APIs prevent
 that. Instead we must require the `wait()` call to accept a reference to the
 local lock object. It is an error to reuse a given `condition_variable`
 instance with lock objects that reference ['different] underlying `mutex`
-objects. It would be like a road intersection with traffic lights disconnected
-from one another: sooner or later a collision will result.]]
+objects. It would be like a road intersection with traffic lights independent
+of one another: sooner or later a collision will result.]]
 ]
 
 [template_member_heading condition_variable..wait_until]
 
         template< typename LockType, typename Clock, typename Duration >
-        cv_status wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time);
+        cv_status wait_until( LockType & lk,
+                              std::chrono::time_point< Clock, Duration > const& timeout_time);
 
         template< typename LockType, typename Clock, typename Duration, typename Pred >
-        bool wait_until( LockType & lk, std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred);
+        bool wait_until( LockType & lk,
+                         std::chrono::time_point< Clock, Duration > const& timeout_time,
+                         Pred pred);
 
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
 fiber is currently waiting on `*this`, or the execution of the `mutex()` member
 function on the `lk` objects supplied in the calls to `wait`, `wait_for` or
 `wait_until` in all the fibers currently waiting on `*this` would return the
-same value as `lk->mutex()` for this call to `wait`.]]
+same value as `lk.mutex()` for this call to `wait_until`.]]
 [[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
 fiber will unblock when notified by a call to `this->notify_one()` or
-`this->notify_all()`, when the time as reported by `clock_type::now()`
+`this->notify_all()`, when the system time
 would be equal to or later than the specified `timeout_time`, or spuriously.
 When the fiber is unblocked (for whatever reason), the lock is reacquired by
-invoking `lk.lock()` before the call to `wait` returns. The lock is also
+invoking `lk.lock()` before the call to `wait_until` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
 
@@ -253,27 +262,30 @@ __interrupt__ on the __fiber__ object associated with the current fiber of
 execution.]]
 [[Returns:] [The overload without `pred` returns `cv_status::no_timeout` if
 awakened by `notify_one()` or `notify_all()`, or `cv_status::timeout` if
-awakened because `clock_type::now()` is past `timeout_time`.]]
+awakened because the system time is past `timeout_time`.]]
 [[Returns:] [The overload accepting `pred` returns `false` if the call is
 returning because the time specified by `timeout_time` was reached and the
 predicate returns `false`, `true` otherwise.]]
-[[Note:] [See [*Note] for `wait()`.]]
+[[Note:] [See [*Note] for [member_link condition_variable..wait].]]
 ]
 
 [template_member_heading condition_variable..wait_for]
 
         template< typename LockType, typename Rep, typename Period >
-        cv_status wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration);
+        cv_status wait_for( LockType & lk,
+                            std::chrono::duration< Rep, Period > const& timeout_duration);
 
         template< typename LockType, typename Rep, typename Period, typename Pred >
-        bool wait_for( LockType & lk, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred);
+        bool wait_for( LockType & lk,
+                       std::chrono::duration< Rep, Period > const& timeout_duration,
+                       Pred pred);
 
 [variablelist
 [[Precondition:] [`lk` is locked by the current fiber, and either no other
 fiber is currently waiting on `*this`, or the execution of the `mutex()` member
 function on the `lk` objects supplied in the calls to `wait`, `wait_for` or
 `wait_until` in all the fibers currently waiting on `*this` would return the
-same value as `lk->mutex()` for this call to `wait`.]]
+same value as `lk.mutex()` for this call to `wait_for`.]]
 [[Effects:] [Atomically call `lk.unlock()` and blocks the current fiber. The
 fiber will unblock when notified by a call to `this->notify_one()` or
 `this->notify_all()`, when a time interval equal to or greater than the
@@ -281,7 +293,7 @@ specified `timeout_duration` has elapsed, or spuriously. When the fiber is
 unblocked (for whatever reason), the lock is reacquired by invoking
 `lk.lock()` before the call to `wait` returns. The lock is also reacquired by
 invoking `lk.lock()` if the function exits with an exception.
-The member function accepting `pred` is shorthand for: ``
+The `wait_for()` member function accepting `pred` is shorthand for: ``
 
 while ( ! pred() ) {
     if ( cv_status::timeout == wait_for( lk, timeout_duration) ) {
@@ -303,7 +315,7 @@ awakened because at least `timeout_duration` has elapsed.]]
 [[Returns:] [The overload accepting `pred` returns `false` if the call is
 returning because at least `timeout_duration` has elapsed and the predicate
 returns `false`, `true` otherwise.]]
-[[Note:] [See [*Note] for `wait()`.]]
+[[Note:] [See [*Note] for [member_link condition_variable..wait].]]
 ]
 
 [endsect]
