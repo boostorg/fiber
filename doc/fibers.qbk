@@ -64,6 +64,11 @@
 ]
 [template static_member_link[class_name method_name] [member_link [class_name]..[method_name]]]
 
+[template data_member_heading[class_name member_name]
+[hding [class_name]_[member_name]..Data member [`[member_name]]]
+]
+[template data_member_link[class_name member_name] [member_link [class_name]..[member_name]]]
+
 [template function_heading[function_name]
 [hding [function_name]..Non-member function [`[function_name]()]]
 ]
@@ -160,6 +165,7 @@
 [include fiber.qbk]
 [include scheduling.qbk]
 [include stack.qbk]
+[#synchronization]
 [section:synchronization Synchronization]
 [include mutexes.qbk]
 [include condition_variables.qbk]

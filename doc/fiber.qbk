@@ -674,7 +674,7 @@ there are no guarantees about how soon after that it might resume.]]
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
-[[Note:] [`yield()` is 'not an interruption point. A fiber that calls
+[[Note:] [`yield()` is ['not] an interruption point. A fiber that calls
 `yield()` is not suspended: it is immediately passed to the scheduler as ready
 to run.]]
 ]

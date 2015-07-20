@@ -5,6 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[#stack]
 [section:stack Stack allocation]
 
 A __fiber__ uses internally a __econtext__ which manages a set of registers and a stack.

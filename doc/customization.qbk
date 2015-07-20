@@ -5,6 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[#custom]
 [section:custom Customization]
 
 __boost_fiber__ allows to customize the scheduling algorithm by a user-defined
