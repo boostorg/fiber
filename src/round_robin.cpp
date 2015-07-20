@@ -36,7 +36,7 @@ round_robin::pick_next() {
 
 std::size_t
 round_robin::ready_fibers() const noexcept {
-    return rqueue_.empty();
+    return rqueue_.size();
 }
 
 }}
