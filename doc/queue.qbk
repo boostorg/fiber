@@ -160,7 +160,7 @@ non-empty.]]
 [[Throws:] [Nothing.]]
 ]
 
-[template xchannel_pop[cls]
+[template xchannel_pop[cls unblocking]
 [member_heading [cls]..pop]
 
         channel_op_status pop( value_type & va);
@@ -169,13 +169,13 @@ non-empty.]]
 [[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
 fiber gets suspended until at least one new item is `push()`ed (return value
 `success` and `va` contains dequeued value) or the channel gets `close()`d
-(return value `closed`).]]
+(return value `closed`)[unblocking]]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 ]
-[xchannel_pop unbounded_channel]
+[xchannel_pop unbounded_channel .]
 
-[template xchannel_value_pop[cls]
+[template xchannel_value_pop[cls unblocking]
 [member_heading [cls]..value_pop]
 
         value_type value_pop();
@@ -183,13 +183,13 @@ fiber gets suspended until at least one new item is `push()`ed (return value
 [variablelist
 [[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
 fiber gets suspended until at least one new item is `push()`ed or the channel
-gets `close()`d (which throws an exception).]]
+gets `close()`d (which throws an exception)[unblocking]]]
 [[Throws:] [`logic_error` if `*this` is closed; __fiber_interrupted__]]
 ]
 ]
-[xchannel_value_pop unbounded_channel]
+[xchannel_value_pop unbounded_channel .]
 
-[template xchannel_try_pop[cls]
+[template xchannel_try_pop[cls unblocking]
 [member_heading [cls]..try_pop]
 
         channel_op_status try_pop( value_type & va);
@@ -197,20 +197,20 @@ gets `close()`d (which throws an exception).]]
 [variablelist
 [[Effects:] [If `this->is_empty()`, returns `empty`. If `this->is_closed()`,
 returns `closed`. Otherwise it returns `success` and `va` contains the
-dequeued value.]]
+dequeued value[unblocking]]]
 [[Throws:] [Nothing.]]
 ]
 ]
-[xchannel_try_pop unbounded_channel]
+[xchannel_try_pop unbounded_channel .]
 
-[template xchannel_pop_wait_until_effects[endtime] If `(! this->is_empty())`,
-immediately dequeues a value from the channel. Otherwise the fiber gets
-suspended until at least one new item is `push()`ed (return value `success`
-and `va` contains dequeued value), or the channel gets `close()`d (return
-value `closed`), or the system time reaches [endtime] (return value
-`timeout`).]
+[template xchannel_pop_wait_until_effects[endtime unblocking] If `(!
+this->is_empty())`, immediately dequeues a value from the channel. Otherwise
+the fiber gets suspended until at least one new item is `push()`ed (return
+value `success` and `va` contains dequeued value), or the channel gets
+`close()`d (return value `closed`), or the system time reaches [endtime]
+(return value `timeout`)[unblocking]]
 
-[template xchannel_pop_wait_for[cls]
+[template xchannel_pop_wait_for[cls unblocking]
 [member_heading [cls]..pop_wait_for]
 
         template< typename Rep, typename Period >
@@ -219,14 +219,14 @@ value `closed`), or the system time reaches [endtime] (return value
 
 [variablelist
 [[Effects:] [Accepts `std::chrono::duration` and internally computes a timeout
-time as `(`system time + `timeout_duration)`.
-[xchannel_pop_wait_until_effects the computed timeout time]]]
+time as (system time + `timeout_duration`).
+[xchannel_pop_wait_until_effects the computed timeout time..[unblocking]]]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 ]
-[xchannel_pop_wait_for unbounded_channel]
+[xchannel_pop_wait_for unbounded_channel .]
 
-[template xchannel_pop_wait_until[cls]
+[template xchannel_pop_wait_until[cls unblocking]
 [member_heading [cls]..pop_wait_until]
 
         template< typename Clock, typename Duration >
@@ -235,11 +235,11 @@ time as `(`system time + `timeout_duration)`.
 
 [variablelist
 [[Effects:] [Accepts a `std::chrono::time_point< Clock, Duration >`.
-[xchannel_pop_wait_until_effects the passed `time_point`]]]
+[xchannel_pop_wait_until_effects the passed `time_point`..[unblocking]]]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 ]
-[xchannel_pop_wait_until unbounded_channel]
+[xchannel_pop_wait_until unbounded_channel .]
 
 
 [template_heading bounded_channel]
@@ -357,8 +357,8 @@ the number of values drops below `lwm`.]]
 ]
 
 [template bounded_channel_push_effects[or] [xchannel_push_effects If `(!
-this->is_full())`, enqueues] Otherwise the fiber gets suspended until the
-number of values in the channel drops below `lwm` (return value
+this->is_full())`, enqueues] Otherwise the calling fiber is suspended until
+the number of values in the channel drops below `lwm` (return value
 `success`)[or] the channel is `close()`d (return value `closed`)]
 
 [member_heading bounded_channel..push]
@@ -384,7 +384,7 @@ number of values in the channel drops below `lwm` (return value
 
 [variablelist
 [[Effects:] [Accepts `std::chrono::duration` and internally computes a
-time_point as `(`system time + `timeout_duration)`.
+time_point as (system time + `timeout_duration`).
 [bounded_channel_push_effects ,], or the system time reaches the computed
 time_point (return value `timeout`).]]
 [[Throws:] [__fiber_interrupted__]]
@@ -419,75 +419,14 @@ time_point (return value `timeout`).]]
 [[Throws:] [__fiber_interrupted__]]
 ]
 
-[member_heading bounded_channel..pop]
+[template bounded_pop_unblocking[] Once the number of items remaining in the
+channel drops below `lwm`, any fibers blocked on `push()`, `push_wait_for()`
+or `push_wait_until()` may resume.]
 
-        channel_op_status pop( value_type & va);
-
-[variablelist
-[[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
-fiber gets suspended until at least one new item is `push()`ed (return value
-`success` and `va` contains dequeued value) or the channel gets `close()`d
-(return value `closed`). Once the number of items remaining in the channel
-drops below `lwm`, any fibers blocked on `push()`, `push_wait_for()` or
-`push_wait_until()` may resume.]]
-[[Throws:] [__fiber_interrupted__]]
-]
-
-[member_heading bounded_channel..value_pop]
-
-        value_type value_pop();
-
-[variablelist
-[[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
-fiber gets suspended until at least one new item is `push()`ed or the channel
-gets `close()`d (which throws an exception). Once the number of items
-remaining in the channel drops below `lwm`, any fibers blocked on `push()`,
-`push_wait_for()` or `push_wait_until()` may resume.]]
-[[Throws:] [`logic_error` if `*this` is closed; __fiber_interrupted__]]
-]
-
-[member_heading bounded_channel..try_pop]
-
-        channel_op_status try_pop( value_type & va);
-
-[variablelist
-[[Effects:] [If `this->is_empty()`, returns `empty`. If `this->is_closed()`,
-returns `closed`. Otherwise it returns `success` and `va` contains the
-dequeued value.]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading bounded_channel..pop_wait_for]
-
-        template< typename Rep, typename Period >
-        channel_op_status pop_wait_for( value_type & va,
-                                      std::chrono::duration< Rep, Period > const& timeout_duration)
-
-[variablelist
-[[Effects:] [Accepts `std::chrono::duration` and internally computes a time_point
-as `(now() + timeout_duration)`. If `(! this->is_empty())`, immediately
-dequeues a value from the channel. Otherwise the calling fiber gets suspended
-until at least one new item is `push()`ed (return value `success` and `va`
-contains dequeued value), or the channel gets `close()`d (return value
-`closed`), or the time as reported by `now()` reaches the computed time_point
-(return value `timeout`).]]
-[[Throws:] [__fiber_interrupted__]]
-]
-
-[member_heading bounded_channel..pop_wait_until]
-
-        template< typename Clock, typename Duration >
-        channel_op_status pop_wait_until( value_type & va,
-                                        std::chrono::time_point< Clock, Duration > const& timeout_time);
-
-[variablelist
-[[Effects:] [Accepts an absolute `timeout_time` in any supported time_point
-type. If `(! this->is_empty())`, immediately dequeues a value from the channel.
-Otherwise the calling fiber gets suspended until at least one new item is
-`push()`ed (return value `success` and `va` contains dequeued value), or the
-channel gets `close()`d (return value `closed`), or the time as reported by
-`now()` reaches the passed time_point (return value `timeout`).]]
-[[Throws:] [__fiber_interrupted__]]
-]
+[xchannel_pop bounded_channel... [bounded_pop_unblocking]]
+[xchannel_value_pop bounded_channel... [bounded_pop_unblocking]]
+[xchannel_try_pop bounded_channel... [bounded_pop_unblocking]]
+[xchannel_pop_wait_for bounded_channel... [bounded_pop_unblocking]]
+[xchannel_pop_wait_until bounded_channel... [bounded_pop_unblocking]]
 
 [endsect]
