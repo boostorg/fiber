@@ -88,7 +88,7 @@ queue.]]
         virtual std::size_t ready_fibers() const noexcept = 0;
 
 [variablelist
-[[Effects:] [Returns 0 if scheduling algorithm has fibers ready to run,
+[[Effects:] [Returns 0 if scheduling algorithm has no fibers ready to run,
 otherwise nonzero.]]
 ]
 
