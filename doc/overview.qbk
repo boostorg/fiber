@@ -68,10 +68,10 @@ A fiber launched on a particular thread will always run on that thread. A
 fiber can count on thread-local storage; however that storage will be shared
 among all fibers running on the same thread.
 
-The fiber synchronization objects provided by this library will not, by
-default, safely synchronize fibers running on different threads. However, they
-can be coerced to provide that safety by building the library with
-`BOOST_FIBERS_THREADSAFE` defined. Please see [link synchronization].
+The fiber synchronization objects provided by this library will, by default,
+safely synchronize fibers running on different threads. However, they safety can
+be removed (for performance) by building the library with
+BOOST_FIBERS_NO_ATOMICS defined. Please see [link synchronization].
 
 For fiber-local storage, please see __fsp__.
 
