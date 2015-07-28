@@ -41,8 +41,7 @@ fiber scheduler must implement.
 
         #include <boost/fiber/algorithm.hpp>
 
-        struct sched_algorithm
-        {
+        struct sched_algorithm {
             virtual ~sched_algorithm() {}
 
             virtual void awakened( fiber_context *) = 0;
@@ -95,8 +94,7 @@ This class implements __algo__, scheduling fibers in round-robin fashion.
 
         #include <boost/fiber/round_robin.hpp>
 
-        class round_robin: public sched_algorithm
-        {
+        class round_robin: public sched_algorithm {
             virtual void awakened( fiber_context *);
 
             virtual fiber_context * pick_next();
@@ -139,10 +137,9 @@ A custom fiber properties class must be derived from `fiber_properties`.
 
         #include <boost/fiber/properties.hpp>
 
-        class fiber_properties
-        {
+        class fiber_properties {
         public:
-            fiber_properties( back_ptr f );
+            fiber_properties( back_ptr f);
 
             virtual ~fiber_properties() {}
 
@@ -152,7 +149,7 @@ A custom fiber properties class must be derived from `fiber_properties`.
 
 [heading Constructor]
 
-        fiber_properties( back_ptr f );
+        fiber_properties( back_ptr f);
 
 [variablelist
 [[Effects:] [Constructs base-class component of custom subclass.]]
@@ -194,10 +191,9 @@ derived from [class_link fiber_properties].
         #include <boost/fiber/algorithm.hpp>
 
         template< typename PROPS >
-        struct sched_algorithm_with_properties
-        {
+        struct sched_algorithm_with_properties {
             // override this method instead of sched_algorithm::awakened()
-            virtual void awakened( fiber_context * f, PROPS& properties ) = 0;
+            virtual void awakened( fiber_context * f, PROPS & properties) = 0;
 
             virtual fiber_context * pick_next();
 
@@ -215,7 +211,7 @@ derived from [class_link fiber_properties].
 
 [member_heading sched_algorithm_with_properties..awakened]
 
-        virtual void awakened( fiber_context * f, PROPS& properties );
+        virtual void awakened( fiber_context * f, PROPS & properties);
 
 [variablelist
 [[Effects:] [Informs the scheduler that fiber `f` is ready to run, like
@@ -286,10 +282,8 @@ implementations of [class_link fiber] methods.)
 
         #include <boost/fiber/fiber_context.hpp>
 
-        class fiber_context
-        {
+        class fiber_context {
         public:
-
             fiber_context   *   nxt;
 
             static fiber_context * main_fiber();
