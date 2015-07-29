@@ -94,10 +94,12 @@ This class implements __algo__, scheduling fibers in round-robin fashion.
 
         #include <boost/fiber/round_robin.hpp>
 
-        class round_robin: public sched_algorithm {
+        class round_robin : public sched_algorithm {
             virtual void awakened( fiber_context *);
 
             virtual fiber_context * pick_next();
+
+            virtual std::size_t ready_fibers() const noexcept;
         };
 
 [member_heading round_robin..awakened]
@@ -117,6 +119,15 @@ This class implements __algo__, scheduling fibers in round-robin fashion.
 empty.]]
 [[Note:] [Placing ready fibers onto a queue, and returning them from the head
 of that queue, shares the thread between ready fibers in round-robin fashion.]]
+]
+
+[member_heading round_robin..ready_fibers]
+
+        virtual std::size_t ready_fibers() const noexcept;
+
+[variablelist
+[[Returns:] [0 if scheduling algorithm has no fibers ready to run, otherwise
+nonzero.]]
 ]
 
 
@@ -197,6 +208,8 @@ derived from [class_link fiber_properties].
 
             virtual fiber_context * pick_next();
 
+            virtual std::size_t ready_fibers() const noexcept;
+
             // obtain f's associated PROPS instance
             PROPS& properties( fiber_context * f);
 
@@ -229,6 +242,16 @@ method instead of `sched_algorithm::awakened()`.]]
 [[Returns:] [the fiber which is to be resumed next, or `nullptr` if there is no
 ready fiber.]]
 [[Note:] [same as [member_link sched_algorithm..pick_next]]]
+]
+
+[member_heading sched_algorithm_with_properties..ready_fibers]
+
+        virtual std::size_t ready_fibers() const noexcept;
+
+[variablelist
+[[Returns:] [0 if scheduling algorithm has no fibers ready to run, otherwise
+nonzero.]]
+[[Note:] [same as [member_link sched_algorithm..ready_fibers]]]
 ]
 
 [member_heading sched_algorithm_with_properties..properties]
