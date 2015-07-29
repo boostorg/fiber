@@ -93,8 +93,7 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     // Override this to customize instantiation of PROPS, e.g. use a different
     // allocator. Each PROPS instance is associated with a particular
     // fiber_context.
-    virtual fiber_properties * new_properties( fiber_context * f)
-    {
+    virtual fiber_properties * new_properties( fiber_context * f) {
         return new PROPS( f);
     }
 };
