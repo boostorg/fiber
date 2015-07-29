@@ -179,7 +179,7 @@ consumers would behave strangely.
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
-[include queue.qbk]
+[include channel.qbk]
 [include futures.qbk]
 [endsect]
 [include fls.qbk]
