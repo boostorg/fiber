@@ -38,7 +38,6 @@ private:
     fiber_context                               *   active_fiber_;
     wqueue_t                                        wqueue_;
     tqueue_t                                        tqueue_;
-    bool                                            preserve_fpu_;
     std::chrono::high_resolution_clock::duration    wait_interval_;
 
     void resume_( fiber_context *);
@@ -96,9 +95,6 @@ public:
     }
 
     std::chrono::high_resolution_clock::duration wait_interval() noexcept;
-
-    bool preserve_fpu() const;
-    void preserve_fpu( bool);
 };
 
 }}

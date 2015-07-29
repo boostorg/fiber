@@ -88,16 +88,6 @@ std::size_t ready_fibers() {
     return detail::scheduler::instance()->ready_fibers();
 }
 
-inline
-bool preserve_fpu() {
-    return detail::scheduler::instance()->preserve_fpu();
-}
-
-inline
-void preserve_fpu( bool preserve) {
-    return detail::scheduler::instance()->preserve_fpu( preserve);
-}
-
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS

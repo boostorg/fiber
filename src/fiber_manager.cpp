@@ -35,7 +35,6 @@ fiber_manager::fiber_manager() noexcept :
     active_fiber_( fiber_context::main_fiber() ),
     wqueue_(),
     tqueue_(),
-    preserve_fpu_( false),
     wait_interval_( std::chrono::milliseconds( 10) ) {
 }
 
@@ -227,16 +226,6 @@ fiber_manager::wait_interval() noexcept {
 std::size_t
 fiber_manager::ready_fibers() const noexcept {
     return sched_algo_->ready_fibers();
-}
-
-bool
-fiber_manager::preserve_fpu() const {
-    return preserve_fpu_;
-}
-
-void
-fiber_manager::preserve_fpu( bool preserve) {
-    preserve_fpu_ = preserve;
 }
 
 }}
