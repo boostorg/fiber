@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 08:56:10 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 09:17:41 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -174,6 +174,11 @@
 <phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">*</phrase> <phrase role="identifier">al</phrase><phrase role="special">)</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">();</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="special">}</phrase>
 
@@ -477,16 +482,6 @@ method.
       </listitem>
       <listitem>
         <simpara>
-          <link linkend="future_wait_for"> <code>future::wait_for()</code></link>
-        </simpara>
-      </listitem>
-      <listitem>
-        <simpara>
-          <link linkend="future_wait_until"> <code>future::wait_until()</code></link>
-        </simpara>
-      </listitem>
-      <listitem>
-        <simpara>
           <link linkend="future_get"> <code>future::get()</code></link>
         </simpara>
       </listitem>
@@ -498,16 +493,6 @@ method.
       <listitem>
         <simpara>
           <link linkend="shared_future_wait"> <code>shared_future::wait()</code></link>
-        </simpara>
-      </listitem>
-      <listitem>
-        <simpara>
-          <link linkend="shared_future_wait_for"> <code>shared_future::wait_for()</code></link>
-        </simpara>
-      </listitem>
-      <listitem>
-        <simpara>
-          <link linkend="shared_future_wait_until"> <code>shared_future::wait_until()</code></link>
         </simpara>
       </listitem>
       <listitem>
@@ -1364,6 +1349,37 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               Returns the amount of fibers ready to run.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        <bridgehead renderas="sect4" id="wait_interval_bridgehead">
+  <phrase id="wait_interval"/>
+  <link linkend="wait_interval">Non-member function <code>wait_interval()</code></link>
+</bridgehead>
+      </para>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Returns:</term>
+          <listitem>
+            <para>
+              Sets/returns the wait interval used to suspend the thread if no fibers
+              ready to run are available.
             </para>
           </listitem>
         </varlistentry>

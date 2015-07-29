@@ -53,6 +53,11 @@
 <span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">();</span>
 
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">wait_interval</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">wait_interval</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="identifier">wait_interval</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
 <span class="special">}</span>
 
 <span class="keyword">namespace</span> <span class="identifier">this_fiber</span> <span class="special">{</span>
@@ -305,12 +310,6 @@ method.
           <a class="link" href="synchronization/futures/future.html#future_wait"> <code class="computeroutput">future::wait()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="synchronization/futures/future.html#future_wait_for"> <code class="computeroutput">future::wait_for()</code></a>
-        </li>
-<li class="listitem">
-          <a class="link" href="synchronization/futures/future.html#future_wait_until"> <code class="computeroutput">future::wait_until()</code></a>
-        </li>
-<li class="listitem">
           <a class="link" href="synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>
         </li>
 <li class="listitem">
@@ -318,12 +317,6 @@ method.
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/futures/future.html#shared_future_wait"> <code class="computeroutput">shared_future::wait()</code></a>
-        </li>
-<li class="listitem">
-          <a class="link" href="synchronization/futures/future.html#shared_future_wait_for"> <code class="computeroutput">shared_future::wait_for()</code></a>
-        </li>
-<li class="listitem">
-          <a class="link" href="synchronization/futures/future.html#shared_future_wait_until"> <code class="computeroutput">shared_future::wait_until()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/futures/future.html#shared_future_get"> <code class="computeroutput">shared_future::get()</code></a>
