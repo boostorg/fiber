@@ -171,9 +171,8 @@ fiber_manager::yield() {
     run();
     // fiber is resumed
 
-    // this fiber was notified and resumed
-    // check if fiber was interrupted
-    this_fiber::interruption_point();
+    // do not check if fiber was interrupted
+    // yield() should not be an interruption point
 }
 
 void

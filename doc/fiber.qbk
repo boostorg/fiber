@@ -185,7 +185,6 @@ __interruption_enabled__.
 * __mutex_try_lock__ (__recursive_mutex__, __recursive_timed_mutex__, __timed_mutex__)
 * __sleep_for__
 * __sleep_until__
-* __yield__
 * __interruption_point__
 * [member_link bounded_channel..push]
 * [member_link bounded_channel..try_push]
@@ -710,7 +709,7 @@ there are no guarantees about how soon after that it might resume.]]
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
-[[Note:] [`yield()` is an interruption point. A fiber that calls
+[[Note:] [`yield()` is not an interruption point. A fiber that calls
 `yield()` is suspended, but it is immediately passed to the scheduler as ready
 to run.]]
 ]
