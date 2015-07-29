@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 09:17:41 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 09:34:31 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -2423,10 +2423,12 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">round_robin</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">{</phrase>
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*);</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
     <para>
@@ -2475,6 +2477,26 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <para>
             Placing ready fibers onto a queue, and returning them from the head of
             that queue, shares the thread between ready fibers in round-robin fashion.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="round_robin_ready_fibers_bridgehead">
+  <phrase id="round_robin_ready_fibers"/>
+  <link linkend="round_robin_ready_fibers">Member
+      function <code>ready_fibers</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            0 if scheduling algorithm has no fibers ready to run, otherwise nonzero.
           </para>
         </listitem>
       </varlistentry>
@@ -2612,6 +2634,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
 
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
     <phrase role="comment">// obtain f's associated PROPS instance</phrase>
     <phrase role="identifier">PROPS</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 
@@ -2684,6 +2708,34 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <listitem>
           <para>
             same as <link linkend="sched_algorithm_pick_next"> <code>sched_algorithm::pick_next()</code></link>
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_ready_fibers_bridgehead">
+  <phrase id="sched_algorithm_with_properties_ready_fibers"/>
+  <link linkend="sched_algorithm_with_properties_ready_fibers">Member
+      function <code>ready_fibers</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            0 if scheduling algorithm has no fibers ready to run, otherwise nonzero.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            same as <link linkend="sched_algorithm_ready_fibers"> <code>sched_algorithm::ready_fibers()</code></link>
           </para>
         </listitem>
       </varlistentry>
@@ -3086,6 +3138,15 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       else, the new copy would have no consumers. If such an object were <emphasis>moved</emphasis>
       somewhere else, leaving the original instance in an unspecified state, existing
       consumers would behave strangely.
+    </para>
+    <para>
+      The fiber synchronization objects provided by this library will, by default,
+      safely synchronize fibers running on different threads. However, this level
+      of synchronization can be removed (for performance) by building the library
+      with <code><phrase role="identifier">BOOST_FIBERS_NO_ATOMICS</phrase></code>
+      defined. When the library is built with that macro, you must ensure that all
+      the fibers referencing a particular synchronization object are running in the
+      same thread.
     </para>
     <section id="fiber.synchronization.mutex_types">
       <title><link linkend="fiber.synchronization.mutex_types">Mutex Types</link></title>

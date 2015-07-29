@@ -48,6 +48,15 @@
       somewhere else, leaving the original instance in an unspecified state, existing
       consumers would behave strangely.
     </p>
+<p>
+      The fiber synchronization objects provided by this library will, by default,
+      safely synchronize fibers running on different threads. However, this level
+      of synchronization can be removed (for performance) by building the library
+      with <code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code>
+      defined. When the library is built with that macro, you must ensure that all
+      the fibers referencing a particular synchronization object are running in the
+      same thread.
+    </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

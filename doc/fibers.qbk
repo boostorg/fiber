@@ -176,6 +176,13 @@ new copy would have no consumers. If such an object were ['moved] somewhere
 else, leaving the original instance in an unspecified state, existing
 consumers would behave strangely.
 
+The fiber synchronization objects provided by this library will, by default,
+safely synchronize fibers running on different threads. However, this level of
+synchronization can be removed (for performance) by building the library with
+`BOOST_FIBERS_NO_ATOMICS` defined. When the library is built with that macro,
+you must ensure that all the fibers referencing a particular synchronization
+object are running in the same thread.
+
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
