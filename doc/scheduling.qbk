@@ -211,7 +211,7 @@ derived from [class_link fiber_properties].
             virtual std::size_t ready_fibers() const noexcept;
 
             // obtain f's associated PROPS instance
-            PROPS& properties( fiber_context * f);
+            PROPS & properties( fiber_context * f);
 
             // override this to be notified by PROPS::notify()
             virtual void property_change( fiber_context * f, PROPS & properties);

@@ -45,8 +45,10 @@ fiber releases the lock by calling __unlock__.
         bool try_lock();
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Precondition:] [The calling fiber doesn't owns the mutex if the mutex is not recursive.]]
+[[Effects:] [Attempt to obtain the ownership for the current fiber.]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 [member_heading mutex..unlock]
