@@ -144,7 +144,7 @@ After construction is `false == other.valid()`]]
 [[Precondition:] [`true == valid()`]]
 [[Returns:] [the result. If result not yet set, waits.]]
 [[Postcondition:] [`false == valid()`]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading future..get_exception_ptr]
@@ -154,6 +154,7 @@ After construction is `false == other.valid()`]]
 [variablelist
 [[Precondition:] [`true == valid()`]]
 [[Returns:] [the exception pointer, if set. If no result is set, waits.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading future..wait]
@@ -162,7 +163,7 @@ After construction is `false == other.valid()`]]
 
 [variablelist
 [[Effects:] [Waits for the result will become available.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [template_member_heading future..wait_for]
@@ -173,7 +174,7 @@ After construction is `false == other.valid()`]]
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_duration` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading future..wait_until]
@@ -184,7 +185,7 @@ After construction is `false == other.valid()`]]
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 
@@ -301,7 +302,7 @@ return * this;
 [[Precondition:] [`true == valid()`]]
 [[Effects:] [Returns the result.]]
 [[Postcondition:] [`false == valid()`]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading shared_future..get_exception_ptr]
@@ -311,6 +312,7 @@ return * this;
 [variablelist
 [[Precondition:] [`true == valid()`]]
 [[Returns:] [the exception pointer, if set. If no result is set, waits.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading shared_future..wait]
@@ -319,7 +321,7 @@ return * this;
 
 [variablelist
 [[Effects:] [Waits for the result will become available.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [template_member_heading shared_future..wait_for]
@@ -330,7 +332,7 @@ return * this;
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_duration` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading shared_future..wait_until]
@@ -341,7 +343,8 @@ return * this;
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+]
 ]
 
 [ns_function_heading fibers..async]
