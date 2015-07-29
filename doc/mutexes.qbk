@@ -37,7 +37,10 @@ fiber releases the lock by calling __unlock__.
         void lock();
 
 [variablelist
-[[Effects:] []]
+[[Precondition:] [The calling fiber doesn't own the mutex if the mutex is not
+recursive.]]
+[[Effects:] [The current fiber blocks until ownership can be obtained.]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading mutex..try_lock]
@@ -45,9 +48,12 @@ fiber releases the lock by calling __unlock__.
         bool try_lock();
 
 [variablelist
-[[Precondition:] [The calling fiber doesn't owns the mutex if the mutex is not recursive.]]
-[[Effects:] [Attempt to obtain the ownership for the current fiber.]]
-[[Returns:] [`true` if ownership was obtained for the current fiber, `false`otherwise.]]
+[[Precondition:] [The calling fiber doesn't own the mutex if the mutex is not
+recursive.]]
+[[Effects:] [Attempt to obtain the ownership for the current fiber without
+blocking.]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -56,7 +62,9 @@ fiber releases the lock by calling __unlock__.
         void unlock();
 
 [variablelist
-[[Effects:] []]
+[[Precondition:] [The current fiber owns `*this`.]]
+[[Effects:] [Releases a lock on `*this` by the current fiber.]]
+[[Throws:] [Nothing.]]
 ]
 
 
@@ -92,7 +100,10 @@ __unlock__ shall be permitted.
         void lock();
 
 [variablelist
-[[Effects:] []]
+[[Precondition:] [The calling fiber doesn't own the mutex if the mutex is not
+recursive.]]
+[[Effects:] [The current fiber blocks until ownership can be obtained.]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading timed_mutex..try_lock]
@@ -100,8 +111,13 @@ __unlock__ shall be permitted.
         bool try_lock();
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Precondition:] [The calling fiber doesn't own the mutex if the mutex is not
+recursive.]]
+[[Effects:] [Attempt to obtain the ownership for the current fiber without
+blocking.]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 [member_heading timed_mutex..unlock]
@@ -109,7 +125,9 @@ __unlock__ shall be permitted.
         void unlock();
 
 [variablelist
-[[Effects:] []]
+[[Precondition:] [The current fiber owns `*this`.]]
+[[Effects:] [Releases a lock on `*this` by the current fiber.]]
+[[Throws:] [Nothing.]]
 ]
 
 [template_member_heading timed_mutex..try_lock_until]
@@ -118,8 +136,14 @@ __unlock__ shall be permitted.
         bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Precondition:] [The calling fiber doesn't own the mutex if the mutex is not
+recursive.]]
+[[Effects:] [Attempt to obtain ownership for the current fiber. Blocks until
+ownership can be obtained, or the specified time is reached. If the specified
+time has already passed, behaves as [member_link timed_mutex..try_lock].]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 [template_member_heading timed_mutex..try_lock_for]
@@ -128,8 +152,14 @@ __unlock__ shall be permitted.
         bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Precondition:] [The calling fiber doesn't own the mutex if the mutex is not
+recursive.]]
+[[Effects:] [Attempt to obtain ownership for the current fiber. Blocks until
+ownership can be obtained, or the specified time is reached. If the specified
+time has already passed, behaves as [member_link timed_mutex..try_lock].]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 
@@ -164,7 +194,8 @@ acquired by another fiber.
         void lock();
 
 [variablelist
-[[Effects:] []]
+[[Effects:] [The current fiber blocks until ownership can be obtained.]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading recursive_mutex..try_lock]
@@ -172,8 +203,11 @@ acquired by another fiber.
         bool try_lock();
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Effects:] [Attempt to obtain the ownership for the current fiber without
+blocking.]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 [member_heading recursive_mutex..unlock]
@@ -181,7 +215,8 @@ acquired by another fiber.
         void unlock();
 
 [variablelist
-[[Effects:] []]
+[[Effects:] [Releases a lock on `*this` by the current fiber.]]
+[[Throws:] [Nothing.]]
 ]
 
 
@@ -223,7 +258,8 @@ fiber.
         void lock();
 
 [variablelist
-[[Effects:] []]
+[[Effects:] [The current fiber blocks until ownership can be obtained.]]
+[[Throws:] [__fiber_interrupted__]]
 ]
 
 [member_heading recursive_timed_mutex..try_lock]
@@ -231,8 +267,11 @@ fiber.
         bool try_lock();
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Effects:] [Attempt to obtain the ownership for the current fiber without
+blocking.]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 [member_heading recursive_timed_mutex..unlock]
@@ -240,7 +279,8 @@ fiber.
         void unlock();
 
 [variablelist
-[[Effects:] []]
+[[Effects:] [Releases a lock on `*this` by the current fiber.]]
+[[Throws:] [Nothing.]]
 ]
 
 [template_member_heading recursive_timed_mutex..try_lock_until]
@@ -249,8 +289,12 @@ fiber.
         bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Effects:] [Attempt to obtain ownership for the current fiber. Blocks until
+ownership can be obtained, or the specified time is reached. If the specified
+time has already passed, behaves as [member_link timed_mutex..try_lock].]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 [template_member_heading recursive_timed_mutex..try_lock_for]
@@ -259,8 +303,12 @@ fiber.
         bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
 
 [variablelist
-[[Effects:] []]
-[[Returns:] []]
+[[Effects:] [Attempt to obtain ownership for the current fiber. Blocks until
+ownership can be obtained, or the specified time is reached. If the specified
+time has already passed, behaves as [member_link timed_mutex..try_lock].]]
+[[Returns:] [`true` if ownership was obtained for the current fiber, `false`
+otherwise.]]
+[[Throws:] [Nothing.]]
 ]
 
 

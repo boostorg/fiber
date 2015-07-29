@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 09:34:31 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 10:13:15 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -388,11 +388,6 @@ method.
       <listitem>
         <simpara>
           <link linkend="this_fiber_sleep_until"> <code>this_fiber::sleep_until()</code></link>
-        </simpara>
-      </listitem>
-      <listitem>
-        <simpara>
-          <link linkend="this_fiber_yield"> <code>this_fiber::yield()</code></link>
         </simpara>
       </listitem>
       <listitem>
@@ -1853,7 +1848,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               <code><phrase role="identifier">yield</phrase><phrase role="special">()</phrase></code>
-              is an interruption point. A fiber that calls <code><phrase role="identifier">yield</phrase><phrase
+              is not an interruption point. A fiber that calls <code><phrase role="identifier">yield</phrase><phrase
               role="special">()</phrase></code> is suspended, but it is immediately
               passed to the scheduler as ready to run.
             </para>
@@ -2637,7 +2632,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="comment">// obtain f's associated PROPS instance</phrase>
-    <phrase role="identifier">PROPS</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 
     <phrase role="comment">// override this to be notified by PROPS::notify()</phrase>
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
@@ -3196,8 +3191,27 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              The current fiber blocks until ownership can be obtained.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">fiber_interrupted</phrase></code>
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3212,13 +3226,37 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3233,8 +3271,29 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The current fiber owns <code><phrase role="special">*</phrase><phrase
+              role="keyword">this</phrase></code>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Releases a lock on <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+              by the current fiber.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3286,8 +3345,27 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              The current fiber blocks until ownership can be obtained.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">fiber_interrupted</phrase></code>
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3303,13 +3381,37 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3325,8 +3427,29 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The current fiber owns <code><phrase role="special">*</phrase><phrase
+              role="keyword">this</phrase></code>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Releases a lock on <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+              by the current fiber.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3343,13 +3466,39 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <link linkend="timed_mutex_try_lock"> <code>timed_mutex::try_lock()</code></link>.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3366,13 +3515,39 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <variablelist>
         <title></title>
         <varlistentry>
+          <term>Precondition:</term>
+          <listitem>
+            <para>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <link linkend="timed_mutex_try_lock"> <code>timed_mutex::try_lock()</code></link>.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3426,6 +3601,17 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              The current fiber blocks until ownership can be obtained.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">fiber_interrupted</phrase></code>
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3443,11 +3629,27 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3465,6 +3667,18 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Releases a lock on <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+              by the current fiber.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3528,6 +3742,17 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              The current fiber blocks until ownership can be obtained.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">fiber_interrupted</phrase></code>
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3545,11 +3770,27 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3567,6 +3808,18 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Releases a lock on <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+              by the current fiber.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3585,11 +3838,29 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <link linkend="timed_mutex_try_lock"> <code>timed_mutex::try_lock()</code></link>.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3608,11 +3879,29 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <varlistentry>
           <term>Effects:</term>
           <listitem>
+            <para>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <link linkend="timed_mutex_try_lock"> <code>timed_mutex::try_lock()</code></link>.
+            </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Returns:</term>
           <listitem>
+            <para>
+              <code><phrase role="keyword">true</phrase></code> if ownership was
+              obtained for the current fiber, <code><phrase role="keyword">false</phrase></code>
+              otherwise.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Throws:</term>
+          <listitem>
+            <para>
+              Nothing.
+            </para>
           </listitem>
         </varlistentry>
       </variablelist>

@@ -73,8 +73,18 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              The current fiber blocks until ownership can be obtained.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -91,10 +101,24 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -111,8 +135,19 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The current fiber owns <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Releases a lock on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              by the current fiber.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -164,8 +199,18 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              The current fiber blocks until ownership can be obtained.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -183,10 +228,24 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -204,8 +263,19 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The current fiber owns <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Releases a lock on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              by the current fiber.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -224,10 +294,26 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <a class="link" href="mutex_types.html#timed_mutex_try_lock"> <code class="computeroutput">timed_mutex::try_lock()</code></a>.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -246,10 +332,26 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+              The calling fiber doesn't own the mutex if the mutex is not recursive.
+            </p></dd>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <a class="link" href="mutex_types.html#timed_mutex_try_lock"> <code class="computeroutput">timed_mutex::try_lock()</code></a>.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -303,7 +405,13 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              The current fiber blocks until ownership can be obtained.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -322,9 +430,19 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -343,7 +461,14 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Releases a lock on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              by the current fiber.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -409,7 +534,13 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              The current fiber blocks until ownership can be obtained.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -428,9 +559,19 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain the ownership for the current fiber without blocking.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -449,7 +590,14 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Releases a lock on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              by the current fiber.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -469,9 +617,21 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <a class="link" href="mutex_types.html#timed_mutex_try_lock"> <code class="computeroutput">timed_mutex::try_lock()</code></a>.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -491,9 +651,21 @@
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dd><p>
+              Attempt to obtain ownership for the current fiber. Blocks until ownership
+              can be obtained, or the specified time is reached. If the specified
+              time has already passed, behaves as <a class="link" href="mutex_types.html#timed_mutex_try_lock"> <code class="computeroutput">timed_mutex::try_lock()</code></a>.
+            </p></dd>
 <dt><span class="term">Returns:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if ownership was
+              obtained for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 </div>
