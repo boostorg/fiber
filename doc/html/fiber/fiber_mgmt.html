@@ -151,8 +151,7 @@ constructor
       In order to wait for a fiber to finish, the <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> member function
       of the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object can be used. <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> will block
       until the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object has completed. If the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> has
-      already completed, or the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object represents <span class="emphasis"><em>not-a-fiber</em></span>,
-      then <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> returns immediately.
+      already completed then <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> returns immediately.
     </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">some_fn</span><span class="special">()</span> <span class="special">{</span>
     <span class="special">...</span>
@@ -261,10 +260,28 @@ method.
           <a class="link" href="synchronization/channels.html#bounded_channel_push"> <code class="computeroutput">bounded_channel::push()</code></a>
         </li>
 <li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_try_push"> <code class="computeroutput">bounded_channel::try_push()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_push_wait_for"> <code class="computeroutput">bounded_channel::push_wait_for()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_push_wait_until"> <code class="computeroutput">bounded_channel::push_wait_until()</code></a>
+        </li>
+<li class="listitem">
           <a class="link" href="synchronization/channels.html#bounded_channel_pop"> <code class="computeroutput">bounded_channel::pop()</code></a>
         </li>
 <li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_try_pop"> <code class="computeroutput">bounded_channel::try_pop()</code></a>
+        </li>
+<li class="listitem">
           <a class="link" href="synchronization/channels.html#bounded_channel_value_pop"> <code class="computeroutput">bounded_channel::value_pop()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_pop_wait_for"> <code class="computeroutput">bounded_channel::pop_wait_for()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_pop_wait_until"> <code class="computeroutput">bounded_channel::pop_wait_until()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/channels.html#unbounded_channel_push"> <code class="computeroutput">unbounded_channel::push()</code></a>
@@ -273,10 +290,25 @@ method.
           <a class="link" href="synchronization/channels.html#unbounded_channel_pop"> <code class="computeroutput">unbounded_channel::pop()</code></a>
         </li>
 <li class="listitem">
+          <a class="link" href="synchronization/channels.html#unbounded_channel_try_pop"> <code class="computeroutput">unbounded_channel::try_pop()</code></a>
+        </li>
+<li class="listitem">
           <a class="link" href="synchronization/channels.html#unbounded_channel_value_pop"> <code class="computeroutput">unbounded_channel::value_pop()</code></a>
         </li>
 <li class="listitem">
+          <a class="link" href="synchronization/channels.html#unbounded_channel_pop_wait_for"> <code class="computeroutput">unbounded_channel::pop_wait_for()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#unbounded_channel_pop_wait_until"> <code class="computeroutput">unbounded_channel::pop_wait_until()</code></a>
+        </li>
+<li class="listitem">
           <a class="link" href="synchronization/futures/future.html#future_wait"> <code class="computeroutput">future::wait()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#future_wait_for"> <code class="computeroutput">future::wait_for()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#future_wait_until"> <code class="computeroutput">future::wait_until()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>
@@ -286,6 +318,12 @@ method.
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/futures/future.html#shared_future_wait"> <code class="computeroutput">shared_future::wait()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#shared_future_wait_for"> <code class="computeroutput">shared_future::wait_for()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#shared_future_wait_until"> <code class="computeroutput">shared_future::wait_until()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/futures/future.html#shared_future_get"> <code class="computeroutput">shared_future::get()</code></a>

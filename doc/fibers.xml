@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 07:31:07 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 08:56:10 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -269,8 +269,7 @@ constructor
       In order to wait for a fiber to finish, the <link linkend="fiber_join"> <code>fiber::join()</code></link> member function
       of the <link linkend="class_fiber"> <code>fiber</code></link> object can be used. <link linkend="fiber_join"> <code>fiber::join()</code></link> will block
       until the <link linkend="class_fiber"> <code>fiber</code></link> object has completed. If the <link linkend="class_fiber"> <code>fiber</code></link> has
-      already completed, or the <link linkend="class_fiber"> <code>fiber</code></link> object represents <emphasis>not-a-fiber</emphasis>,
-      then <link linkend="fiber_join"> <code>fiber::join()</code></link> returns immediately.
+      already completed then <link linkend="fiber_join"> <code>fiber::join()</code></link> returns immediately.
     </para>
 <programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">some_fn</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
     <phrase role="special">...</phrase>
@@ -403,12 +402,42 @@ method.
       </listitem>
       <listitem>
         <simpara>
+          <link linkend="bounded_channel_try_push"> <code>bounded_channel::try_push()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="bounded_channel_push_wait_for"> <code>bounded_channel::push_wait_for()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="bounded_channel_push_wait_until"> <code>bounded_channel::push_wait_until()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
           <link linkend="bounded_channel_pop"> <code>bounded_channel::pop()</code></link>
         </simpara>
       </listitem>
       <listitem>
         <simpara>
+          <link linkend="bounded_channel_try_pop"> <code>bounded_channel::try_pop()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
           <link linkend="bounded_channel_value_pop"> <code>bounded_channel::value_pop()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="bounded_channel_pop_wait_for"> <code>bounded_channel::pop_wait_for()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="bounded_channel_pop_wait_until"> <code>bounded_channel::pop_wait_until()</code></link>
         </simpara>
       </listitem>
       <listitem>
@@ -423,12 +452,37 @@ method.
       </listitem>
       <listitem>
         <simpara>
+          <link linkend="unbounded_channel_try_pop"> <code>unbounded_channel::try_pop()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
           <link linkend="unbounded_channel_value_pop"> <code>unbounded_channel::value_pop()</code></link>
         </simpara>
       </listitem>
       <listitem>
         <simpara>
+          <link linkend="unbounded_channel_pop_wait_for"> <code>unbounded_channel::pop_wait_for()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="unbounded_channel_pop_wait_until"> <code>unbounded_channel::pop_wait_until()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
           <link linkend="future_wait"> <code>future::wait()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="future_wait_for"> <code>future::wait_for()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="future_wait_until"> <code>future::wait_until()</code></link>
         </simpara>
       </listitem>
       <listitem>
@@ -444,6 +498,16 @@ method.
       <listitem>
         <simpara>
           <link linkend="shared_future_wait"> <code>shared_future::wait()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="shared_future_wait_for"> <code>shared_future::wait_for()</code></link>
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          <link linkend="shared_future_wait_until"> <code>shared_future::wait_until()</code></link>
         </simpara>
       </listitem>
       <listitem>
@@ -4260,10 +4324,11 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           </listitem>
         </varlistentry>
         <varlistentry>
-          <term>Note:</term>
+          <term>Notes:</term>
           <listitem>
             <para>
-              interruption point
+              <code><phrase role="identifier">wait</phrase><phrase role="special">()</phrase></code>
+              is one of the predefined <link linkend="interruption"><emphasis>interruption-points</emphasis></link>.
             </para>
           </listitem>
         </varlistentry>
@@ -4819,29 +4884,19 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 
-    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                         <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
                                          <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                       <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                           <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
                                            <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
-    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 
-    <phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
@@ -5149,8 +5204,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         function <code>push</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -5198,10 +5252,6 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 </bridgehead>
       </para>
 <programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                     <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
                                      <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
@@ -5258,10 +5308,6 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 </bridgehead>
       </para>
 <programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                   <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                       <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
                                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
                                        <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
@@ -5314,8 +5360,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         function <code>try_push</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -6008,7 +6053,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6041,6 +6087,17 @@ are
               </para>
             </listitem>
           </varlistentry>
+          <varlistentry>
+            <term>Throws:</term>
+            <listitem>
+              <para>
+                <code><phrase role="identifier">future_error</phrase></code> with
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
+              </para>
+            </listitem>
+          </varlistentry>
         </variablelist>
         <para>
           <bridgehead renderas="sect4" id="future_wait_bridgehead">
@@ -6066,7 +6123,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6107,7 +6165,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6148,7 +6207,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6415,7 +6475,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6448,6 +6509,17 @@ are
               </para>
             </listitem>
           </varlistentry>
+          <varlistentry>
+            <term>Throws:</term>
+            <listitem>
+              <para>
+                <code><phrase role="identifier">future_error</phrase></code> with
+                error condition <code><phrase role="identifier">future_errc</phrase><phrase
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
+              </para>
+            </listitem>
+          </varlistentry>
         </variablelist>
         <para>
           <bridgehead renderas="sect4" id="shared_future_wait_bridgehead">
@@ -6474,7 +6546,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6515,7 +6588,8 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -6556,11 +6630,15 @@ are
               <para>
                 <code><phrase role="identifier">future_error</phrase></code> with
                 error condition <code><phrase role="identifier">future_errc</phrase><phrase
-                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>.
+                role="special">::</phrase><phrase role="identifier">no_state</phrase></code>
+                or <code><phrase role="identifier">fiber_interrupted</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
         </variablelist>
+        <para>
+          ]
+        </para>
         <para>
           <bridgehead renderas="sect4" id="fibers_async_bridgehead">
   <phrase id="fibers_async"/>
