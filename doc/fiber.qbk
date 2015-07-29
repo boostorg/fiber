@@ -27,6 +27,11 @@
         void set_scheduling_algorithm( sched_algorithm * al)
         std::size_t ready_fibers();
 
+        template< typename Rep, typename Period >
+        void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept;
+        template< typename Rep, typename Period >
+        std::chrono::duration< Rep, Period > wait_interval() noexcept; 
+
         }
 
         namespace this_fiber {
@@ -506,6 +511,19 @@ place.]]
 
 [variablelist
 [[Returns:] [Returns the amount of fibers ready to run.]]
+[[Throws:] [Nothing]]
+]
+
+[function_heading wait_interval]
+
+    template< typename Rep, typename Period >
+    void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept;
+    template< typename Rep, typename Period >
+    std::chrono::duration< Rep, Period > wait_interval() noexcept; 
+
+[variablelist
+[[Returns:] [Sets/returns the wait interval used to suspend the thread if no
+fibers ready to run are available.]]
 [[Throws:] [Nothing]]
 ]
 
