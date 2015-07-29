@@ -48,12 +48,12 @@ this description].)
 
 [heading support for Boost.Asio]
 
-The support for Boot.Asio's __async_result__ is not part of the official API
+The support for Boost.Asio's __async_result__ is not part of the official API
 (implementation provided in example section).
-__async_result__ does not reflect that __boost_fiber__ uses an internal scheudler
-by itself ( especially fibers not in touch with code using __boost_asio__, for
+__async_result__ does not reflect that __boost_fiber__ itself uses an internal
+scheduler (especially fibers not in touch with code using __boost_asio__, for
 instance a sleeping fiber will not be launched explicitly by __boost_asio__).
-The intergration of __boost_fiber__ into __boost_asio__ requires some investigation
+The integration of __boost_fiber__ into __boost_asio__ requires some investigation
 from both authors.
 
 
