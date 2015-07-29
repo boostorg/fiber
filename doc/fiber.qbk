@@ -519,8 +519,12 @@ place.]]
 
 [variablelist
 [[Returns:] [Sets/returns the wait interval used to suspend the thread if no
-fibers ready to run are available.]]
+fibers are ready to run.]]
 [[Throws:] [Nothing]]
+[[Notes:] [This setting can be used to adjust the "niceness" of an idle
+thread: a thread whose fibers are all currently blocked for various reasons. A
+longer `wait_interval()` causes an idle thread to use less CPU. The default
+for each thread, if not specified, is `std::chrono::milliseconds(10)`.]]
 ]
 
 
@@ -709,8 +713,8 @@ there are no guarantees about how soon after that it might resume.]]
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
 [[Throws:] [__fiber_resource_error__ if an error occurs.]]
-[[Note:] [`yield()` is not an interruption point. A fiber that calls
-`yield()` is suspended, but it is immediately passed to the scheduler as ready
+[[Note:] [`yield()` is ['not] an interruption point. A fiber that calls
+`yield()` is not suspended: it is immediately passed to the scheduler as ready
 to run.]]
 ]
 
