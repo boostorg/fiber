@@ -32,7 +32,7 @@
 <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">();</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">sleep_time</span><span class="special">)</span>
+<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">)</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
@@ -87,7 +87,7 @@
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">sleep_time</span><span class="special">)</span>
+<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">)</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -138,8 +138,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing if operations of std::chrono::duration&lt;Rep, Period&gt; do
-              not throw exceptions. <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+              Any exceptions thrown by operations of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span><span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span><span class="special">&gt;</span></code>. <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
               if the current fiber is interrupted.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
@@ -181,11 +180,14 @@
               <code class="computeroutput"><span class="identifier">fiber_resource_error</span></code>
               if an error occurs.
             </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
+              is an interruption point. A fiber that calls <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code> is suspended, but it is immediately
+              passed to the scheduler as ready to run.
+            </p></dd>
 </dl>
 </div>
-<p>
-        &lt; TODO &gt;
-      </p>
 <p>
         </p>
 <h5>
@@ -204,12 +206,33 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
-<dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+              <a class="link" href="fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a> has been called from
+              this thread with a pointer to a (subclass) instance of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+            </p></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              a reference to the scheduler properties instance for the currently
+              running fiber.
+            </p></dd>
 <dt><span class="term">Throws:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> was passed a pointer to a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code> subclass
+              with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+            </p></dd>
 <dt><span class="term">Note:</span></dt>
-<dd></dd>
+<dd><p>
+              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
+              a way for a user-coded scheduler to associate extended properties,
+              such as priority, with a fiber instance. This function allows access
+              to those user-provided properties.
+            </p></dd>
+<dt><span class="term">See also:</span></dt>
+<dd><p>
+              <a class="link" href="../custom.html#custom">custom</a>
+            </p></dd>
 </dl>
 </div>
 <p>

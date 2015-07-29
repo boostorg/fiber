@@ -69,8 +69,9 @@
       so that the thread is able to schedule and run other fibers in the meantime.
       The synchronization classes from <span class="bold"><strong>Boost.Fiber</strong></span>
       are designed to be thread-safe, e.g. it is possible to synchronize fibers running
-      in different schedulers (different threads) or running int the same scheduler
-      (same thread).
+      in different schedulers (different threads) or running in the same scheduler
+      (same thread). (However, there is a build option to disable that support; see
+      <a class="link" href="overview.html#cross_thread_sync">this description</a>.)
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">

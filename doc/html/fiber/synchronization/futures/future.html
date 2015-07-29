@@ -127,12 +127,6 @@
 
     <span class="identifier">future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">future</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">operator</span> <span class="identifier">safe_bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
     <span class="keyword">bool</span> <span class="identifier">valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">shared_future</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="identifier">share</span><span class="special">();</span>
@@ -140,6 +134,8 @@
     <span class="identifier">R</span> <span class="identifier">get</span><span class="special">();</span>    <span class="comment">// member only of generic future template</span>
     <span class="identifier">R</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">();</span>  <span class="comment">// member only of future&lt; R &amp; &gt; template specialization</span>
     <span class="keyword">void</span> <span class="identifier">get</span><span class="special">();</span> <span class="comment">// member only of future&lt; void &gt; template specialization</span>
+
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span> <span class="identifier">get_exception_ptr</span><span class="special">();</span>
 
     <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 
@@ -241,81 +237,6 @@
 <p>
           </p>
 <h5>
-<a name="future_swap_bridgehead"></a>
-  <span><a name="future_swap"></a></span>
-  <a class="link" href="future.html#future_swap">Member function <code class="computeroutput">swap</code>()</a>
-</h5>
-<p>
-        </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">future</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-                Swaps the shared state between other and <code class="computeroutput"><span class="keyword">this</span></code>.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
-</dl>
-</div>
-<p>
-          </p>
-<h5>
-<a name="future_operator%20safe_bool_bridgehead"></a>
-  <span><a name="future_operator%20safe_bool"></a></span>
-  <a class="link" href="future.html#future_operator%20safe_bool">Member function <code class="computeroutput">operator safe_bool</code>()</a>
-</h5>
-<p>
-        </p>
-<pre class="programlisting"><span class="keyword">operator</span> <span class="identifier">safe_bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-                Returns <code class="computeroutput"><span class="keyword">true</span></code> if future
-                is valid.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
-</dl>
-</div>
-<p>
-          </p>
-<h5>
-<a name="future_operator_not_bridgehead"></a>
-  <span><a name="future_operator_not"></a></span>
-  <a class="link" href="future.html#future_operator_not">Member
-          function <code class="computeroutput">operator!</code>()</a>
-</h5>
-<p>
-        </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-                Returns <code class="computeroutput"><span class="keyword">false</span></code> if future
-                is valid.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
-</dl>
-</div>
-<p>
-          </p>
-<h5>
 <a name="future_valid_bridgehead"></a>
   <span><a name="future_valid"></a></span>
   <a class="link" href="future.html#future_valid">Member function <code class="computeroutput">valid</code>()</a>
@@ -384,9 +305,9 @@
                 <code class="computeroutput"><span class="keyword">true</span> <span class="special">==</span>
                 <span class="identifier">valid</span><span class="special">()</span></code>
               </p></dd>
-<dt><span class="term">Effects:</span></dt>
+<dt><span class="term">Returns:</span></dt>
 <dd><p>
-                Returns the result.
+                the result. If result not yet set, waits.
               </p></dd>
 <dt><span class="term">Postcondition:</span></dt>
 <dd><p>
@@ -397,6 +318,32 @@
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>.
+              </p></dd>
+</dl>
+</div>
+<p>
+          </p>
+<h5>
+<a name="future_get_exception_ptr_bridgehead"></a>
+  <span><a name="future_get_exception_ptr"></a></span>
+  <a class="link" href="future.html#future_get_exception_ptr">Member
+          function <code class="computeroutput">get_exception_ptr</code>()</a>
+</h5>
+<p>
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span> <span class="identifier">get_exception_ptr</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+                <code class="computeroutput"><span class="keyword">true</span> <span class="special">==</span>
+                <span class="identifier">valid</span><span class="special">()</span></code>
+              </p></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+                the exception pointer, if set. If no result is set, waits.
               </p></dd>
 </dl>
 </div>
@@ -524,12 +471,6 @@
 
     <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">shared_future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">operator</span> <span class="identifier">safe_bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
     <span class="keyword">bool</span> <span class="identifier">valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">R</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">get</span><span class="special">();</span> <span class="comment">// member only of generic shared_future template</span>
@@ -592,7 +533,7 @@
 <a name="fiber.synchronization.futures.future.h9"></a>
           <span><a name="fiber.synchronization.futures.future.copy_constructor"></a></span><a class="link" href="future.html#fiber.synchronization.futures.future.copy_constructor">Copy constructor</a>
         </h6>
-<pre class="programlisting"><span class="identifier">shared_future</span><span class="special">(</span> <span class="identifier">shared_future</span> <span class="identifier">cosnt</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">shared_future</span><span class="special">(</span> <span class="identifier">shared_future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -666,82 +607,6 @@
 <p>
           </p>
 <h5>
-<a name="shared_future_swap_bridgehead"></a>
-  <span><a name="shared_future_swap"></a></span>
-  <a class="link" href="future.html#shared_future_swap">Member
-          function <code class="computeroutput">swap</code>()</a>
-</h5>
-<p>
-        </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-                Swaps the shared state between other and <code class="computeroutput"><span class="keyword">this</span></code>.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
-</dl>
-</div>
-<p>
-          </p>
-<h5>
-<a name="shared_future_operator%20safe_bool_bridgehead"></a>
-  <span><a name="shared_future_operator%20safe_bool"></a></span>
-  <a class="link" href="future.html#shared_future_operator%20safe_bool">Member function <code class="computeroutput">operator safe_bool</code>()</a>
-</h5>
-<p>
-        </p>
-<pre class="programlisting"><span class="keyword">operator</span> <span class="identifier">safe_bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-                Returns <code class="computeroutput"><span class="keyword">true</span></code> if future
-                is valid.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
-</dl>
-</div>
-<p>
-          </p>
-<h5>
-<a name="shared_future_operator_not_bridgehead"></a>
-  <span><a name="shared_future_operator_not"></a></span>
-  <a class="link" href="future.html#shared_future_operator_not">Member
-          function <code class="computeroutput">operator!</code>()</a>
-</h5>
-<p>
-        </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-                Returns <code class="computeroutput"><span class="keyword">false</span></code> if future
-                is valid.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
-</dl>
-</div>
-<p>
-          </p>
-<h5>
 <a name="shared_future_valid_bridgehead"></a>
   <span><a name="shared_future_valid"></a></span>
   <a class="link" href="future.html#shared_future_valid">Member
@@ -800,6 +665,32 @@
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>.
+              </p></dd>
+</dl>
+</div>
+<p>
+          </p>
+<h5>
+<a name="shared_future_get_exception_ptr_bridgehead"></a>
+  <span><a name="shared_future_get_exception_ptr"></a></span>
+  <a class="link" href="future.html#shared_future_get_exception_ptr">Member
+          function <code class="computeroutput">get_exception_ptr</code>()</a>
+</h5>
+<p>
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span> <span class="identifier">get_exception_ptr</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+                <code class="computeroutput"><span class="keyword">true</span> <span class="special">==</span>
+                <span class="identifier">valid</span><span class="special">()</span></code>
+              </p></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+                the exception pointer, if set. If no result is set, waits.
               </p></dd>
 </dl>
 </div>

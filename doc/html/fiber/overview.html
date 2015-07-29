@@ -38,13 +38,14 @@
       A fiber can save the current execution state, including all registers and CPU
       flags, the instruction pointer, and the stack pointer and later restore this
       state. The idea is to have multiple execution paths running on a single thread
-      using a sort of cooperative scheduling (versus threads, which are preemptively
-      scheduled). The running fiber decides explicitly when it should yield to allow
-      another fiber to run (context switching). <span class="bold"><strong>Boost.Fiber</strong></span>
-      internally uses <span class="emphasis"><em>execution_context</em></span> from <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>;
-      the classes in this library manage, schedule and, when needed, synchronize
-      those execution contexts. A context switch between threads usually costs thousands
-      of CPU cycles on x86, compared to a fiber switch with a few hundred cycles.
+      using cooperative scheduling (versus threads, which are preemptively scheduled).
+      The running fiber decides explicitly when it should yield to allow another
+      fiber to run (context switching). <span class="bold"><strong>Boost.Fiber</strong></span>
+      internally uses <a href="../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
+      from <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>; the
+      classes in this library manage, schedule and, when needed, synchronize those
+      execution contexts. A context switch between threads usually costs thousands
+      of CPU cycles on x86, compared to a fiber switch with less than a hundred cycles.
       A fiber can only run on a single thread at any point in time.
     </p>
 <p>
@@ -100,6 +101,15 @@
       all fibers running on the same thread.
     </p>
 <p>
+      <a name="cross_thread_sync"></a>The fiber synchronization objects provided
+      by this library will, by default, safely synchronize fibers running on different
+      threads. However, this level of synchronization can be removed (for performance)
+      by building the library with <code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code>
+      defined. When the library is built with that macro, you must ensure that all
+      the fibers referencing a particular synchronization object are running in the
+      same thread. Please see <a class="link" href="synchronization.html#synchronization">synchronization</a>.
+    </p>
+<p>
       For fiber-local storage, please see <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>.
     </p>
 <a name="blocking"></a><h4>
@@ -128,26 +138,28 @@
       supports fibers; other asynchronous I/O operations can straightforwardly be
       adapted for <span class="bold"><strong>Boost.Fiber</strong></span>.
     </p>
-<p>
-      Synchronization between a fiber running on one thread and a fiber running on
-      a different thread is an advanced topic.
-    </p>
 <div class="warning"><table border="0" summary="Warning">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="../../../../../doc/src/images/warning.png"></td>
 <th align="left">Warning</th>
 </tr>
 <tr><td align="left" valign="top"><p>
-        This library is <span class="emphasis"><em>not</em></span> an official Boost library
+        This library is <span class="emphasis"><em>not</em></span> an official Boost library.
       </p></td></tr>
 </table></div>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> depends upon <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>.
       Boost version 1.58.0 or greater is required.
     </p>
-<p>
-      [info This library is C++14-only!]
-    </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        This library is C++14-only!
+      </p></td></tr>
+</table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

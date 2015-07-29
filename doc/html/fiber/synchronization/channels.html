@@ -166,10 +166,11 @@
     <span class="identifier">channel_op_status</span> <span class="identifier">try_pop</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+                                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                      <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span>
+                                                               <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -221,6 +222,7 @@
 <dd><p>
               Deactivates the channel. No values can be put after calling <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">close</span><span class="special">()</span></code>.
               Fibers blocked in <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> will return <code class="computeroutput"><span class="identifier">closed</span></code>.
+              Fibers blocked in <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code> will receive an exception.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -281,10 +283,13 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Enchannels the value in the channel and wakes up a fiber blocked on
-              <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>,
+              If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>,
+              returns <code class="computeroutput"><span class="identifier">closed</span></code>. Otherwise
+              enqueues the value in the channel, wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>,
+              <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code>,
               <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code>
-              or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code>.
+              or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code>
+              and returns <code class="computeroutput"><span class="identifier">success</span></code>.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -309,9 +314,9 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Dechannels a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
+              Dequeues a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
               least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
-              and <code class="computeroutput"><span class="identifier">va</span></code> contains dechanneld
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value) or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
@@ -337,7 +342,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Dechannels a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
+              Dequeues a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
               least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d
               (which throws an exception).
             </p></dd>
@@ -371,7 +376,7 @@
               returns <code class="computeroutput"><span class="identifier">closed</span></code>. Otherwise
               it returns <code class="computeroutput"><span class="identifier">success</span></code>
               and <code class="computeroutput"><span class="identifier">va</span></code> contains the
-              dechanneld value.
+              dequeued value.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -391,7 +396,7 @@
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                              <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+                                <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -399,13 +404,15 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Accepts <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span></code> and internally computes
-              a <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> as <code class="computeroutput"><span class="special">(</span><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>. If <code class="computeroutput"><span class="special">(!</span>
-              <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>,
-              immediately dechannels a value from the channel. Otherwise the fiber
-              gets suspended until at least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
-              and <code class="computeroutput"><span class="identifier">va</span></code> contains dechanneld
+              a timeout time as (system time + <code class="computeroutput"><span class="identifier">timeout_duration</span></code>).
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dequeues a value from
+              the channel. Otherwise the fiber gets suspended until at least one
+              new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed
+              (return value <code class="computeroutput"><span class="identifier">success</span></code>
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value), or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span></code> reaches the computed <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the system time reaches the computed timeout time (return value
+              <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -425,7 +432,7 @@
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+                                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -435,12 +442,14 @@
               Accepts a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span>
               <span class="identifier">Clock</span><span class="special">,</span>
               <span class="identifier">Duration</span> <span class="special">&gt;</span></code>.
-              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dechannels a value
-              from the channel. Otherwise the fiber gets suspended until at least
-              one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
-              and <code class="computeroutput"><span class="identifier">va</span></code> contains dechanneld
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dequeues a value from
+              the channel. Otherwise the fiber gets suspended until at least one
+              new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed
+              (return value <code class="computeroutput"><span class="identifier">success</span></code>
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value), or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">now</span><span class="special">()</span></code> reaches the passed <code class="computeroutput"><span class="identifier">clock_type</span><span class="special">::</span><span class="identifier">time_point</span></code> (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the system time reaches the passed <code class="computeroutput"><span class="identifier">time_point</span></code>
+              (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -484,16 +493,20 @@
     <span class="identifier">channel_op_status</span> <span class="identifier">push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                   <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+                                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                         <span class="identifier">timeout_duration</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                   <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+                                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                         <span class="identifier">timeout_duration</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                       <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                           <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                       <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                           <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">try_push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">try_push</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">);</span>
 
@@ -501,10 +514,12 @@
     <span class="identifier">channel_op_status</span> <span class="identifier">pop</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+                                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                        <span class="identifier">timeout_duration</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                      <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                          <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="identifier">channel_op_status</span> <span class="identifier">try_pop</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
@@ -652,6 +667,7 @@
 <dd><p>
               Deactivates the channel. No values can be put after calling <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">close</span><span class="special">()</span></code>.
               Fibers blocked in <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> will return <code class="computeroutput"><span class="identifier">closed</span></code>.
+              Fibers blocked in <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code> will receive an exception.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -675,7 +691,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_empty</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">is_empty</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -749,12 +765,12 @@
 <dd><p>
               If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>,
               returns <code class="computeroutput"><span class="identifier">closed</span></code>. If
-              <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enchannels the value in the channel,
-              wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
-              Otherwise the fiber gets suspended until the number of values in the
-              channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
-              (return value <code class="computeroutput"><span class="identifier">success</span></code>),
-              or the channel is <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>).
+              <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the channel,
+              wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
+              Otherwise the calling fiber is suspended until the number of values
+              in the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
+              (return value <code class="computeroutput"><span class="identifier">success</span></code>)or
+              the channel is <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -774,10 +790,12 @@
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                               <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+                                 <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                     <span class="identifier">timeout_duration</span><span class="special">);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                               <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+                                 <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                     <span class="identifier">timeout_duration</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -785,17 +803,16 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Accepts <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span></code> and internally computes
-              a time_point as <code class="computeroutput"><span class="special">(</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>.
+              a time_point as (system time + <code class="computeroutput"><span class="identifier">timeout_duration</span></code>).
               If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>,
               returns <code class="computeroutput"><span class="identifier">closed</span></code>. If
-              <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enchannels the value in the channel,
-              wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code> <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
+              <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the channel,
+              wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
               Otherwise the calling fiber is suspended until the number of values
               in the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
               (return value <code class="computeroutput"><span class="identifier">success</span></code>),
               the channel is <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the computed time_point (return
-              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the system time reaches the computed time_point (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -815,10 +832,12 @@
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                 <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                   <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                       <span class="identifier">timeout_time</span><span class="special">);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">push_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                 <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                   <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span>
+                                       <span class="identifier">timeout_time</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -827,14 +846,13 @@
 <dd><p>
               Accepts an absolute <code class="computeroutput"><span class="identifier">timeout_time</span></code>
               in any supported time_point type. If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>, returns <code class="computeroutput"><span class="identifier">closed</span></code>.
-              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enchannels the value in the channel,
-              wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">())</span></code>, enqueues the value in the channel,
+              wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code>, <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code> and returns <code class="computeroutput"><span class="identifier">success</span></code>.
               Otherwise the calling fiber is suspended until the number of values
               in the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>
               (return value <code class="computeroutput"><span class="identifier">success</span></code>),
               the channel is <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the passed time_point (return
-              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the system time reaches the passed time_point (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -863,7 +881,8 @@
               If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_full</span><span class="special">()</span></code>,
               returns <code class="computeroutput"><span class="identifier">full</span></code>. If <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_closed</span><span class="special">()</span></code>,
               returns <code class="computeroutput"><span class="identifier">closed</span></code>. Otherwise
-              enchannels the value in the channel, wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>,
+              enqueues the value in the channel, wakes up a fiber blocked on <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">()</span></code>,
+              <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span></code>,
               <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code>
               or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code>
               and returns <code class="computeroutput"><span class="identifier">success</span></code>.
@@ -891,9 +910,9 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Dechannels a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
+              Dequeues a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
               least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
-              and <code class="computeroutput"><span class="identifier">va</span></code> contains dechanneld
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value) or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>).
               Once the number of items remaining in the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>, any fibers blocked on <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>,
               <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code>
@@ -922,7 +941,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Dechannels a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
+              Dequeues a value from the channel. If the channel <code class="computeroutput"><span class="identifier">is_empty</span><span class="special">()</span></code>, the fiber gets suspended until at
               least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d
               (which throws an exception). Once the number of items remaining in
               the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>,
@@ -958,7 +977,11 @@
               returns <code class="computeroutput"><span class="identifier">closed</span></code>. Otherwise
               it returns <code class="computeroutput"><span class="identifier">success</span></code>
               and <code class="computeroutput"><span class="identifier">va</span></code> contains the
-              dechanneld value.
+              dequeued value. Once the number of items remaining in the channel drops
+              below <code class="computeroutput"><span class="identifier">lwm</span></code>, any fibers
+              blocked on <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>,
+              <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code>
+              or <code class="computeroutput"><span class="identifier">push_wait_until</span><span class="special">()</span></code> may resume.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -978,7 +1001,7 @@
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_for</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                              <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+                                <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -986,14 +1009,18 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Accepts <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span></code> and internally computes
-              a time_point as <code class="computeroutput"><span class="special">(</span><span class="identifier">now</span><span class="special">()</span> <span class="special">+</span> <span class="identifier">timeout_duration</span><span class="special">)</span></code>.
-              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dechannels a value
-              from the channel. Otherwise the calling fiber gets suspended until
-              at least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
-              and <code class="computeroutput"><span class="identifier">va</span></code> contains dechanneld
+              a timeout time as (system time + <code class="computeroutput"><span class="identifier">timeout_duration</span></code>).
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dequeues a value from
+              the channel. Otherwise the fiber gets suspended until at least one
+              new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed
+              (return value <code class="computeroutput"><span class="identifier">success</span></code>
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value), or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the computed time_point (return
-              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the system time reaches the computed timeout time (return value
+              <code class="computeroutput"><span class="identifier">timeout</span></code>). Once the
+              number of items remaining in the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>, any fibers blocked on <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>,
+              <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code>
+              or <code class="computeroutput"><span class="identifier">push_wait_until</span><span class="special">()</span></code> may resume.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -1013,22 +1040,27 @@
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
 <span class="identifier">channel_op_status</span> <span class="identifier">pop_wait_until</span><span class="special">(</span> <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
-                                <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
+                                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Accepts an absolute <code class="computeroutput"><span class="identifier">timeout_time</span></code>
-              in any supported time_point type. If <code class="computeroutput"><span class="special">(!</span>
-              <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>,
-              immediately dechannels a value from the channel. Otherwise the calling
-              fiber gets suspended until at least one new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed (return value <code class="computeroutput"><span class="identifier">success</span></code>
-              and <code class="computeroutput"><span class="identifier">va</span></code> contains dechanneld
+              Accepts a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span>
+              <span class="identifier">Clock</span><span class="special">,</span>
+              <span class="identifier">Duration</span> <span class="special">&gt;</span></code>.
+              If <code class="computeroutput"><span class="special">(!</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_empty</span><span class="special">())</span></code>, immediately dequeues a value from
+              the channel. Otherwise the fiber gets suspended until at least one
+              new item is <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>ed
+              (return value <code class="computeroutput"><span class="identifier">success</span></code>
+              and <code class="computeroutput"><span class="identifier">va</span></code> contains dequeued
               value), or the channel gets <code class="computeroutput"><span class="identifier">close</span><span class="special">()</span></code>d (return value <code class="computeroutput"><span class="identifier">closed</span></code>),
-              or the time as reported by <code class="computeroutput"><span class="identifier">now</span><span class="special">()</span></code> reaches the passed time_point (return
-              value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              or the system time reaches the passed <code class="computeroutput"><span class="identifier">time_point</span></code>
+              (return value <code class="computeroutput"><span class="identifier">timeout</span></code>).
+              Once the number of items remaining in the channel drops below <code class="computeroutput"><span class="identifier">lwm</span></code>, any fibers blocked on <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>,
+              <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code>
+              or <code class="computeroutput"><span class="identifier">push_wait_until</span><span class="special">()</span></code> may resume.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>

@@ -24,7 +24,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="fiber.custom"></a><a class="link" href="custom.html" title="Customization">Customization</a>
+<a name="fiber.custom"></a><a name="custom"></a><a class="link" href="custom.html" title="Customization">Customization</a>
 </h2></div></div></div>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> allows to customize the scheduling
@@ -32,110 +32,19 @@
       interface <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>. <span class="bold"><strong>Boost.Fiber</strong></span>
       provides scheduler <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a>.
     </p>
-<p>
-      In order to use a custom scheduler for a given thread, that thread must call
-      <a class="link" href="fiber_mgmt/fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a> before any other <span class="bold"><strong>Boost.Fiber</strong></span> entry point.
-    </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_fn</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">my_fiber_scheduler</span> <span class="identifier">mfs</span><span class="special">;</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="special">&amp;</span> <span class="identifier">mfs</span><span class="special">);</span>
     <span class="special">...</span>
 <span class="special">}</span>
 </pre>
+<h4>
+<a name="fiber.custom.h0"></a>
+      <span><a name="fiber.custom.fiber_context"></a></span><a class="link" href="custom.html#fiber.custom.fiber_context">fiber_context</a>
+    </h4>
 <p>
-      You are explicitly permitted to code your own <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass,
-      and to pass it to <a class="link" href="fiber_mgmt/fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a>.
-    </p>
-<p>
-      </p>
-<h5>
-<a name="class_sched_algorithm_bridgehead"></a>
-  <span><a name="class_sched_algorithm"></a></span>
-  <a class="link" href="scheduling.html#class_sched_algorithm">Class
-      <code class="computeroutput">sched_algorithm</code></a>
-</h5>
-<p>
-    </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algorithm</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-
-<span class="keyword">struct</span> <span class="identifier">sched_algorithm</span> <span class="special">{</span>
-    <span class="keyword">virtual</span> <span class="special">~</span><span class="identifier">sched_algorithm</span><span class="special">()</span> <span class="special">{}</span>
-
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-
-    <span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-<span class="special">};</span>
-
-<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*);</span>
-</pre>
-<p>
-      </p>
-<h5>
-<a name="algorithm_awakened_bridgehead"></a>
-  <span><a name="algorithm_awakened"></a></span>
-  <a class="link" href="custom.html#algorithm_awakened">Member function
-      <code class="computeroutput">awakened</code>()</a>
-</h5>
-<p>
-    </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-            Marks fiber <code class="computeroutput"><span class="identifier">f</span></code>, to be
-            ready to run.
-          </p></dd>
-</dl>
-</div>
-<p>
-      </p>
-<h5>
-<a name="algorithm_pick_next_bridgehead"></a>
-  <span><a name="algorithm_pick_next"></a></span>
-  <a class="link" href="custom.html#algorithm_pick_next">Member
-      function <code class="computeroutput">pick_next</code>()</a>
-</h5>
-<p>
-    </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-            Depending on the scheduling algorithm, this function returns the fiber
-            which has to be resumed next.
-          </p></dd>
-</dl>
-</div>
-<p>
-      </p>
-<h5>
-<a name="fibers_set_scheduling_algorithm_bridgehead"></a>
-  <span><a name="fibers_set_scheduling_algorithm"></a></span>
-  <a class="link" href="custom.html#fibers_set_scheduling_algorithm">Non-member
-      function <code class="computeroutput">fibers::set_scheduling_algorithm()</code></a>
-</h5>
-<p>
-    </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">a</span><span class="special">);</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-            Registers <code class="computeroutput"><span class="identifier">a</span></code> as scheduling
-            algorithm.
-          </p></dd>
-</dl>
-</div>
-<p>
-      &lt; TODO &gt;
+      The fiber_context class is mostly supposed to be opaque. However, certain members
+      are available for use by a custom scheduling algorithm.
     </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

@@ -111,8 +111,7 @@ __not_a_fiber__. The fiber object may then safely be destroyed.
 In order to wait for a fiber to finish, the __join__ member function of the
 __fiber__ object can be used. __join__ will block until the __fiber__ object
 has completed.
-If the __fiber__ has already completed, or the __fiber__ object represents
-__not_a_fiber__, then __join__ returns immediately.
+If the __fiber__ has already completed then __join__ returns immediately.
 
         void some_fn() {
             ...

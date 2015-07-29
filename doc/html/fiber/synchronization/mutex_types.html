@@ -62,6 +62,62 @@
 <p>
         </p>
 <h5>
+<a name="mutex_lock_bridgehead"></a>
+  <span><a name="mutex_lock"></a></span>
+  <a class="link" href="mutex_types.html#mutex_lock">Member function <code class="computeroutput">lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="mutex_try_lock_bridgehead"></a>
+  <span><a name="mutex_try_lock"></a></span>
+  <a class="link" href="mutex_types.html#mutex_try_lock">Member function <code class="computeroutput">try_lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="mutex_unlock_bridgehead"></a>
+  <span><a name="mutex_unlock"></a></span>
+  <a class="link" href="mutex_types.html#mutex_unlock">Member function <code class="computeroutput">unlock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
 <a name="class_timed_mutex_bridgehead"></a>
   <span><a name="class_timed_mutex"></a></span>
   <a class="link" href="mutex_types.html#class_timed_mutex">Class <code class="computeroutput">timed_mutex</code></a>
@@ -93,6 +149,109 @@
         one fiber can own the lock on a given instance of <a class="link" href="mutex_types.html#class_timed_mutex"> <code class="computeroutput">timed_mutex</code></a> at
         any time. Multiple concurrent calls to <code class="computeroutput"><span class="identifier">lock</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">try_lock</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">try_lock_until</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">try_lock_for</span><span class="special">()</span></code> and <code class="computeroutput"><span class="identifier">unlock</span><span class="special">()</span></code> shall be permitted.
       </p>
+<p>
+        </p>
+<h5>
+<a name="timed_mutex_lock_bridgehead"></a>
+  <span><a name="timed_mutex_lock"></a></span>
+  <a class="link" href="mutex_types.html#timed_mutex_lock">Member function
+        <code class="computeroutput">lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="timed_mutex_try_lock_bridgehead"></a>
+  <span><a name="timed_mutex_try_lock"></a></span>
+  <a class="link" href="mutex_types.html#timed_mutex_try_lock">Member
+        function <code class="computeroutput">try_lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="timed_mutex_unlock_bridgehead"></a>
+  <span><a name="timed_mutex_unlock"></a></span>
+  <a class="link" href="mutex_types.html#timed_mutex_unlock">Member function
+        <code class="computeroutput">unlock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="timed_mutex_try_lock_until_bridgehead"></a>
+  <span><a name="timed_mutex_try_lock_until"></a></span>
+  <a class="link" href="mutex_types.html#timed_mutex_try_lock_until">Templated
+        member function <code class="computeroutput">try_lock_until</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="timed_mutex_try_lock_for_bridgehead"></a>
+  <span><a name="timed_mutex_try_lock_for"></a></span>
+  <a class="link" href="mutex_types.html#timed_mutex_try_lock_for">Templated
+        member function <code class="computeroutput">try_lock_for</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
 <p>
         </p>
 <h5>
@@ -128,6 +287,65 @@
         to acquire an additional level of ownership of the mutex. <code class="computeroutput"><span class="identifier">unlock</span><span class="special">()</span></code> must be called once for each level of ownership
         acquired by a single fiber before ownership can be acquired by another fiber.
       </p>
+<p>
+        </p>
+<h5>
+<a name="recursive_mutex_lock_bridgehead"></a>
+  <span><a name="recursive_mutex_lock"></a></span>
+  <a class="link" href="mutex_types.html#recursive_mutex_lock">Member
+        function <code class="computeroutput">lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="recursive_mutex_try_lock_bridgehead"></a>
+  <span><a name="recursive_mutex_try_lock"></a></span>
+  <a class="link" href="mutex_types.html#recursive_mutex_try_lock">Member
+        function <code class="computeroutput">try_lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="recursive_mutex_unlock_bridgehead"></a>
+  <span><a name="recursive_mutex_unlock"></a></span>
+  <a class="link" href="mutex_types.html#recursive_mutex_unlock">Member
+        function <code class="computeroutput">unlock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
 <p>
         </p>
 <h5>
@@ -175,6 +393,109 @@
         to acquire an additional level of ownership of the mutex. <code class="computeroutput"><span class="identifier">unlock</span><span class="special">()</span></code> must be called once for each level of ownership
         acquired by a single fiber before ownership can be acquired by another fiber.
       </p>
+<p>
+        </p>
+<h5>
+<a name="recursive_timed_mutex_lock_bridgehead"></a>
+  <span><a name="recursive_timed_mutex_lock"></a></span>
+  <a class="link" href="mutex_types.html#recursive_timed_mutex_lock">Member
+        function <code class="computeroutput">lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="recursive_timed_mutex_try_lock_bridgehead"></a>
+  <span><a name="recursive_timed_mutex_try_lock"></a></span>
+  <a class="link" href="mutex_types.html#recursive_timed_mutex_try_lock">Member
+        function <code class="computeroutput">try_lock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="recursive_timed_mutex_unlock_bridgehead"></a>
+  <span><a name="recursive_timed_mutex_unlock"></a></span>
+  <a class="link" href="mutex_types.html#recursive_timed_mutex_unlock">Member
+        function <code class="computeroutput">unlock</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="recursive_timed_mutex_try_lock_until_bridgehead"></a>
+  <span><a name="recursive_timed_mutex_try_lock_until"></a></span>
+  <a class="link" href="mutex_types.html#recursive_timed_mutex_try_lock_until">Templated
+        member function <code class="computeroutput">try_lock_until</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="recursive_timed_mutex_try_lock_for_bridgehead"></a>
+  <span><a name="recursive_timed_mutex_try_lock_for"></a></span>
+  <a class="link" href="mutex_types.html#recursive_timed_mutex_try_lock_for">Templated
+        member function <code class="computeroutput">try_lock_for</code>()</a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd></dd>
+</dl>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

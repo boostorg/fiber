@@ -51,6 +51,7 @@
 <span class="keyword">struct</span> <span class="identifier">sched_algorithm_with_properties</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">();</span>
 
 <span class="special">}</span>
 
@@ -79,7 +80,7 @@
     </h4>
 <p>
       Each <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> represents a micro-thread which will be launched and managed
-      cooperatively by a scheduler. Objects of type <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> are only moveable.
+      cooperatively by a scheduler. Objects of type <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> are move-only.
     </p>
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f1</span><span class="special">;</span> <span class="comment">// not-a-fiber</span>
 
@@ -124,7 +125,7 @@
       <span><a name="fiber.fiber_mgmt.exceptions"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.exceptions">Exceptions</a>
     </h4>
 <p>
-      A exception thrown by the function or callable object passed to the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a>
+      An exception escaping from the function or callable object passed to the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a>
 constructor
       calls <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span><span class="special">()</span></code>.
       If you need to know which exception was thrown, use <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> and
@@ -237,11 +238,11 @@ method.
           <a class="link" href="synchronization/conditions.html#condition_variable_wait_until"> <code class="computeroutput">condition_variable::wait_until()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">mutex::lock()</code></a> ( <a class="link" href="synchronization/mutex_types.html#class_recursive_mutex"> <code class="computeroutput">recursive_mutex</code></a>, <a class="link" href="synchronization/mutex_types.html#class_recursive_timed_mutex"> <code class="computeroutput">recursive_timed_mutex</code></a>,
+          <a class="link" href="synchronization/mutex_types.html#mutex_lock"> <code class="computeroutput">mutex::lock()</code></a> ( <a class="link" href="synchronization/mutex_types.html#class_recursive_mutex"> <code class="computeroutput">recursive_mutex</code></a>, <a class="link" href="synchronization/mutex_types.html#class_recursive_timed_mutex"> <code class="computeroutput">recursive_timed_mutex</code></a>,
           <a class="link" href="synchronization/mutex_types.html#class_timed_mutex"> <code class="computeroutput">timed_mutex</code></a>)
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">mutex::try_lock()</code></a> ( <a class="link" href="synchronization/mutex_types.html#class_recursive_mutex"> <code class="computeroutput">recursive_mutex</code></a>,
+          <a class="link" href="synchronization/mutex_types.html#mutex_try_lock"> <code class="computeroutput">mutex::try_lock()</code></a> ( <a class="link" href="synchronization/mutex_types.html#class_recursive_mutex"> <code class="computeroutput">recursive_mutex</code></a>,
           <a class="link" href="synchronization/mutex_types.html#class_recursive_timed_mutex"> <code class="computeroutput">recursive_timed_mutex</code></a>, <a class="link" href="synchronization/mutex_types.html#class_timed_mutex"> <code class="computeroutput">timed_mutex</code></a>)
         </li>
 <li class="listitem">
@@ -255,6 +256,42 @@ method.
         </li>
 <li class="listitem">
           <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_interruption_point"> <code class="computeroutput">this_fiber::interruption_point()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_push"> <code class="computeroutput">bounded_channel::push()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_pop"> <code class="computeroutput">bounded_channel::pop()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#bounded_channel_value_pop"> <code class="computeroutput">bounded_channel::value_pop()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#unbounded_channel_push"> <code class="computeroutput">unbounded_channel::push()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#unbounded_channel_pop"> <code class="computeroutput">unbounded_channel::pop()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/channels.html#unbounded_channel_value_pop"> <code class="computeroutput">unbounded_channel::value_pop()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#future_wait"> <code class="computeroutput">future::wait()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#future_get_exception_ptr"> <code class="computeroutput">future::get_exception_ptr()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#shared_future_wait"> <code class="computeroutput">shared_future::wait()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#shared_future_get"> <code class="computeroutput">shared_future::get()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/futures/future.html#shared_future_get_exception_ptr"> <code class="computeroutput">shared_future::get_exception_ptr()</code></a>
         </li>
 </ul></div>
 <a name="class_fiber_id"></a><h4>

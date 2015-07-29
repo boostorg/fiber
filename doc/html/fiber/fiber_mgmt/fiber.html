@@ -120,8 +120,8 @@
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fn</span></code> is copied into internal
-              storage for access by the new fiber.
+              <code class="computeroutput"><span class="identifier">fn</span></code> is copied or moved
+              into internal storage for access by the new fiber.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
@@ -135,7 +135,13 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              StackAllocator is required to allocate a stack for the internal <span class="emphasis"><em>execution_context</em></span>.
+              StackAllocator is required to allocate a stack for the internal <a href="../../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
+              If StackAllocator is not explicitly passed, a <a class="link" href="../stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> is
+              used by default.
+            </p></dd>
+<dt><span class="term">See also:</span></dt>
+<dd><p>
+              <a class="link" href="../stack.html#stack">stack</a>
             </p></dd>
 </dl>
 </div>
@@ -215,8 +221,8 @@
 <dd><p>
               The programmer must ensure that the destructor is never executed while
               the fiber is still <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. Even if you know
-              (by calling <a class="link" href="../../"> <code class="computeroutput">fiber::operator safe_bool()</code></a>) that
-              the fiber has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
+              (by calling <a class="link" href="fiber.html#fiber_operator%20bool"> <code class="computeroutput">fiber::operator bool()</code></a>) that the fiber
+              has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
               <a class="link" href="fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a> before destroying the <code class="computeroutput"><span class="identifier">fiber</span></code>
               object.
             </p></dd>
@@ -248,7 +254,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="../../"> <code class="computeroutput">fiber::operator safe_bool()</code></a>
+              <a class="link" href="fiber.html#fiber_operator%20bool"> <code class="computeroutput">fiber::operator bool()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -400,16 +406,15 @@
 </dl>
 </div>
 <p>
-        &lt; TODO &gt; <a name="fiber_properties"></a>
-      </p>
+        </p>
 <h5>
-<a name="fiber.fiber_mgmt.fiber.h5"></a>
-        <span><a name="fiber.fiber_mgmt.fiber.member_function__code__phrase_role__keyword__template__phrase__phrase_role__special___lt___phrase___phrase_role__keyword__typename__phrase___phrase_role__identifier__props__phrase___phrase_role__special___gt___phrase___phrase_role__identifier__props__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__properties__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.member_function__code__phrase_role__keyword__template__phrase__phrase_role__special___lt___phrase___phrase_role__keyword__typename__phrase___phrase_role__identifier__props__phrase___phrase_role__special___gt___phrase___phrase_role__identifier__props__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__properties__phrase__phrase_role__special______phrase___code_">Member
-        function <code class="computeroutput"><span class="keyword">template</span><span class="special">&lt;</span>
-        <span class="keyword">typename</span> <span class="identifier">PROPS</span>
-        <span class="special">&gt;</span> <span class="identifier">PROPS</span>
-        <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">()</span></code></a>
-      </h5>
+<a name="fiber_properties_bridgehead"></a>
+  <span><a name="fiber_properties"></a></span>
+  <a class="link" href="fiber.html#fiber_properties">Templated member
+        function <code class="computeroutput">properties</code>()</a>
+</h5>
+<p>
+      </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
 <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
 </pre>
@@ -419,14 +424,34 @@
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution.
+              refers to a fiber of execution. <a class="link" href="fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a> has
+              been called from this thread with a pointer to a (subclass) instance
+              of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              has been scheduled for execution at least once.
             </p></dd>
-<dt><span class="term">Effects:</span></dt>
-<dd></dd>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              a reference to the scheduler properties instance for <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+            </p></dd>
 <dt><span class="term">Throws:</span></dt>
-<dd></dd>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> was passed a pointer to a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code> subclass
+              with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+            </p></dd>
 <dt><span class="term">Note:</span></dt>
-<dd></dd>
+<dd><p>
+              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
+              a way for a user-coded scheduler to associate extended properties,
+              such as priority, with a fiber instance. This method allows access
+              to those user-provided properties -- but only after this fiber has
+              been scheduled for the first time.
+            </p></dd>
+<dt><span class="term">See also:</span></dt>
+<dd><p>
+              <a class="link" href="../custom.html#custom">custom</a>
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -489,7 +514,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="../../"> <code class="computeroutput">fiber::operator safe_bool()</code></a>, <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>
+              <a class="link" href="fiber.html#fiber_operator%20bool"> <code class="computeroutput">fiber::operator bool()</code></a>, <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -566,12 +591,6 @@
               subclass of <a class="link" href="../scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>, as the scheduling
               algorithm for all fibers in the current thread.
             </p></dd>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              Previous <a class="link" href="../scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> instance set for the current
-              thread, 0 if this is the first <span class="bold"><strong>Boost.Fiber</strong></span>
-              entry point called by the current thread.
-            </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               If you want a given thread to use a non-default scheduling algorithm,
@@ -588,6 +607,34 @@
               does not claim responsibility for the lifespan of the referenced <code class="computeroutput"><span class="identifier">scheduler</span></code> object. The caller must
               eventually destroy the passed <code class="computeroutput"><span class="identifier">scheduler</span></code>,
               just as it must allocate it in the first place.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing
+            </p></dd>
+<dt><span class="term">See also:</span></dt>
+<dd><p>
+              <a class="link" href="../scheduling.html#scheduling">scheduling</a>, <a class="link" href="../custom.html#custom">custom</a>
+            </p></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="ready_fibers_bridgehead"></a>
+  <span><a name="ready_fibers"></a></span>
+  <a class="link" href="fiber.html#ready_fibers">Non-member function <code class="computeroutput">ready_fibers()</code></a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">();</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              Returns the amount of fibers ready to run.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
