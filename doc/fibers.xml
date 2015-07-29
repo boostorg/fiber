@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 10:13:15 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 10:23:48 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -8893,6 +8893,21 @@ are
       in different schedulers (different threads) or running in the same scheduler
       (same thread). (However, there is a build option to disable that support; see
       <link linkend="cross_thread_sync">this description</link>.)
+    </para>
+    <bridgehead renderas="sect3" id="fiber.rational.h3">
+      <phrase id="fiber.rational.support_for_boost_asio"/><link linkend="fiber.rational.support_for_boost_asio">support
+      for Boost.Asio</link>
+    </bridgehead>
+    <para>
+      The support for Boot.Asio's <emphasis>async-result</emphasis> is not part of
+      the official API (implementation provided in example section). <emphasis>async-result</emphasis>
+      does not reflect that <emphasis role="bold">Boost.Fiber</emphasis> uses an
+      internal scheudler by itself ( especially fibers not in touch with code using
+      <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>, for instance a
+      sleeping fiber will not be launched explicitly by <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>).
+      The intergration of <emphasis role="bold">Boost.Fiber</emphasis> into <ulink
+      url="boost:/libs/asio/index.html">Boost.Asio</ulink> requires some investigation
+      from both authors.
     </para>
   </section>
   <section id="fiber.custom">

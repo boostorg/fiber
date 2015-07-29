@@ -73,6 +73,21 @@
       (same thread). (However, there is a build option to disable that support; see
       <a class="link" href="overview.html#cross_thread_sync">this description</a>.)
     </p>
+<h4>
+<a name="fiber.rational.h3"></a>
+      <span><a name="fiber.rational.support_for_boost_asio"></a></span><a class="link" href="rational.html#fiber.rational.support_for_boost_asio">support
+      for Boost.Asio</a>
+    </h4>
+<p>
+      The support for Boot.Asio's <span class="emphasis"><em>async-result</em></span> is not part of
+      the official API (implementation provided in example section). <span class="emphasis"><em>async-result</em></span>
+      does not reflect that <span class="bold"><strong>Boost.Fiber</strong></span> uses an
+      internal scheudler by itself ( especially fibers not in touch with code using
+      <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>, for instance a
+      sleeping fiber will not be launched explicitly by <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>).
+      The intergration of <span class="bold"><strong>Boost.Fiber</strong></span> into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a> requires some investigation
+      from both authors.
+    </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
 <div class="footnote"><p><sup>[<a name="ftn.fiber.rational.f0" href="#fiber.rational.f0" class="para">2</a>] </sup>
