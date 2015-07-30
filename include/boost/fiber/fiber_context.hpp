@@ -176,22 +176,21 @@ public:
     static fiber_context * main_fiber();
 
     // worker fiber
-    template< typename StackAlloc, typename Fn, typename Tpl, std::size_t ... I >
-    fiber_context( context::preallocated palloc, StackAlloc salloc,
-                   Fn && fn_, Tpl && tpl_,
-                   std::index_sequence< I ... >) :
+    template< typename StackAlloc, typename Fn, typename ... Args >
+    fiber_context( context::preallocated palloc,
+                   StackAlloc salloc,
+                   Fn && fn,
+                   Args && ... args) :
         use_count_( 1), // allocated on stack
         state_( fiber_status::ready),
         flags_( 0),
         splk_(),
         ctx_( palloc, salloc,
-              [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable -> decltype( auto) {
+              // general lambda with moveable
+              [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> decltype( auto) {
                 try {
                     BOOST_ASSERT( is_running() );
-                    detail::invoke( fn,
-                        // std::tuple_element<> does not perfect forwarding
-                        std::forward< decltype( std::get< I >( std::declval< Tpl >() ) ) >(
-                            std::get< I >( std::forward< Tpl >( tpl) ) ) ... );
+                    detail::invoke_helper( std::move( fn), std::move( tpl) );
                     BOOST_ASSERT( is_running() );
                 } catch( fiber_interrupted const&) {
                     except_ = std::current_exception();

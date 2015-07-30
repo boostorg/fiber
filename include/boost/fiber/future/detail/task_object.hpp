@@ -39,7 +39,7 @@ public:
 
     void run( Args && ... args) {
         try {
-            this->set_value( invoke( fn_, std::forward< Args >( args) ... ) );
+            this->set_value( invoke_helper( std::move( fn_), std::make_tuple( std::forward< Args >( args) ... ) ) );
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
@@ -75,7 +75,7 @@ public:
 
     void run( Args && ... args) {
         try {
-            invoke( fn_, std::forward< Args >( args) ... );
+            invoke_helper( std::move( fn_), std::make_tuple( std::forward< Args >( args) ... ) );
             this->set_value();
         } catch (...) {
             this->set_exception( std::current_exception() );
