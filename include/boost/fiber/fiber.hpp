@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <exception>
 #include <memory>
+#include <tuple>
 #include <utility>
 
 #include <boost/assert.hpp>
@@ -63,7 +64,9 @@ private:
         // placement new of fiber_context on top of fiber's stack
         return ptr_t( 
             new ( sp) fiber_context( context::preallocated( sp, size, sctx), salloc,
-                                     std::forward< Fn >( fn), std::forward< Args >( args) ... ) );
+                                     std::forward< Fn >( fn),
+                                     std::make_tuple( std::forward< Args >( args) ... ),
+                                     std::index_sequence_for< Args ... >() ) );
     }
 
 public:

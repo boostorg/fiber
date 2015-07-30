@@ -110,49 +110,6 @@ private:
         nxt( nullptr) {
     }
 
-    // worker fiber
-    template< typename StackAlloc, typename Fn, typename Tpl, std::size_t ... I >
-    fiber_context( context::preallocated palloc, StackAlloc salloc,
-                   Fn && fn_, Tpl && tpl_,
-                   std::index_sequence< I ... >) :
-        use_count_( 1), // allocated on stack
-        state_( fiber_status::ready),
-        flags_( 0),
-        splk_(),
-        ctx_( palloc, salloc,
-              [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable -> decltype( auto) {
-                try {
-                    BOOST_ASSERT( is_running() );
-                    detail::invoke( fn,
-                        // std::tuple_element<> does not perfect forwarding
-                        std::forward< decltype( std::get< I >( std::declval< Tpl >() ) ) >(
-                            std::get< I >( std::forward< Tpl >( tpl) ) ) ... );
-                    BOOST_ASSERT( is_running() );
-                } catch( fiber_interrupted const&) {
-                    except_ = std::current_exception();
-                } catch( ... ) {
-                    std::terminate();
-                }
-
-                // mark fiber as terminated
-                set_terminated();
-
-                // notify waiting (joining) fibers
-                release();
-
-                // switch to another fiber
-                detail::scheduler::instance()->run();
-
-                BOOST_ASSERT_MSG( false, "fiber already terminated");
-              }),
-        fss_data_(),
-        waiting_(),
-        except_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
-        properties_( nullptr),
-        nxt( nullptr) {
-    }
-
 protected:
     virtual void deallocate() {
     }
@@ -219,13 +176,46 @@ public:
     static fiber_context * main_fiber();
 
     // worker fiber
-    template< typename StackAlloc, typename Fn, typename ... Args >
-    explicit fiber_context( context::preallocated palloc, StackAlloc salloc,
-                            Fn && fn, Args && ... args) :
-        fiber_context( palloc, salloc,
-                       std::forward< Fn >( fn),
-                       std::make_tuple( std::forward< Args >( args) ... ),
-                       std::index_sequence_for< Args ... >() ) {
+    template< typename StackAlloc, typename Fn, typename Tpl, std::size_t ... I >
+    fiber_context( context::preallocated palloc, StackAlloc salloc,
+                   Fn && fn_, Tpl && tpl_,
+                   std::index_sequence< I ... >) :
+        use_count_( 1), // allocated on stack
+        state_( fiber_status::ready),
+        flags_( 0),
+        splk_(),
+        ctx_( palloc, salloc,
+              [=,fn=std::forward< Fn >( fn_),tpl=std::forward< Tpl >( tpl_)] () mutable -> decltype( auto) {
+                try {
+                    BOOST_ASSERT( is_running() );
+                    detail::invoke( fn,
+                        // std::tuple_element<> does not perfect forwarding
+                        std::forward< decltype( std::get< I >( std::declval< Tpl >() ) ) >(
+                            std::get< I >( std::forward< Tpl >( tpl) ) ) ... );
+                    BOOST_ASSERT( is_running() );
+                } catch( fiber_interrupted const&) {
+                    except_ = std::current_exception();
+                } catch( ... ) {
+                    std::terminate();
+                }
+
+                // mark fiber as terminated
+                set_terminated();
+
+                // notify waiting (joining) fibers
+                release();
+
+                // switch to another fiber
+                detail::scheduler::instance()->run();
+
+                BOOST_ASSERT_MSG( false, "fiber already terminated");
+              }),
+        fss_data_(),
+        waiting_(),
+        except_(),
+        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        properties_( nullptr),
+        nxt( nullptr) {
     }
 
     virtual ~fiber_context();
