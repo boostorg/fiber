@@ -1130,9 +1130,9 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_1));
     test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_2));
 
-//  test->add(BOOST_TEST_CASE(test_shared_future_move));
-//  test->add(BOOST_TEST_CASE(test_shared_future_move_ref));
-//  test->add(BOOST_TEST_CASE(test_shared_future_move_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_move));
+    test->add(BOOST_TEST_CASE(test_shared_future_move_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_move_void));
 
     test->add(BOOST_TEST_CASE(test_packaged_task_create));
     test->add(BOOST_TEST_CASE(test_packaged_task_create_void));
