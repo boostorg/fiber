@@ -32,7 +32,7 @@ async( Fn && fn, Args && ... args) {
 
 template< typename StackAllocator, typename Fn, typename ... Args >
 future< typename std::result_of< Fn&&( Args && ... ) >::type >
-async( StackAllocator salloc, Fn && fn, Args && ... args) {
+async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
     typedef typename std::result_of< Fn&&( Args && ... ) >::type result_type;
 
     packaged_task< result_type( Args ... ) > pt(

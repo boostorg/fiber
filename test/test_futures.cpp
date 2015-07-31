@@ -957,6 +957,29 @@ void test_packaged_task_exec()
     //TODO: packaged_task returns a moveable-only as return type
 }
 
+void test_packaged_task_exec_param()
+{
+    // promise takes a copyable as return type
+    boost::fibers::packaged_task< int( int) > t1( fn8);
+    BOOST_CHECK( t1.valid() );
+    boost::fibers::future< int > f1 = t1.get_future();
+    BOOST_CHECK( f1.valid() );
+
+    // exec
+    t1( 3);
+    BOOST_CHECK( 3 == f1.get() );
+
+    // exec a second time
+    bool thrown = false;
+    try
+    { t1( 7); }
+    catch ( boost::fibers::promise_already_satisfied const&)
+    { thrown = true; }
+    BOOST_CHECK( thrown);
+
+    //TODO: packaged_task returns a moveable-only as return type
+}
+
 void test_packaged_task_exec_ref()
 {
     // promise takes a copyable as return type
@@ -1145,6 +1168,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[])
     test->add(BOOST_TEST_CASE(test_packaged_task_get_future));
     test->add(BOOST_TEST_CASE(test_packaged_task_get_future_void));
     test->add(BOOST_TEST_CASE(test_packaged_task_exec));
+    test->add(BOOST_TEST_CASE(test_packaged_task_exec_param));
     test->add(BOOST_TEST_CASE(test_packaged_task_exec_ref));
     test->add(BOOST_TEST_CASE(test_packaged_task_exec_void));
     test->add(BOOST_TEST_CASE(test_packaged_task_exception));
