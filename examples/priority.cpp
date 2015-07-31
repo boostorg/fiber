@@ -94,6 +94,16 @@ public:
         return f;
     }
 
+    virtual std::size_t ready_fibers() const noexcept
+    {
+        std::size_t count = 0;
+        for (boost::fibers::fiber_context* f = head_; f; f=f->nxt)
+        {
+            ++count;
+        }
+        return count;
+    }
+
     virtual void property_change(boost::fibers::fiber_context* f, priority_props& props)
     {
         // Although our priority_props class defines multiple properties, only
