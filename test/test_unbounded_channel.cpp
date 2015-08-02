@@ -13,7 +13,38 @@
 
 #include <boost/fiber/all.hpp>
 
-bool value1 = false;
+struct moveable {
+    bool    state;
+    int     value;
+
+    moveable() :
+        state( false),
+        value( -1)
+    {}
+
+    moveable( int v) :
+        state( true),
+        value( v)
+    {}
+
+    moveable( moveable && other) :
+        state( other.state),
+        value( other.value)
+    {
+        other.state = false;
+        other.value = -1;
+    }
+
+    moveable & operator=( moveable && other)
+    {
+        if ( this == & other) return * this;
+        state = other.state;
+        other.state = false;
+        value = other.value;
+        other.value = -1;
+        return * this;
+    }
+};
 
 void test_push()
 {
@@ -307,6 +338,24 @@ void test_pop_wait_until_timeout()
     f.join();
 }
 
+void test_moveable()
+{
+    boost::fibers::unbounded_channel< moveable > c;
+    BOOST_CHECK( c.is_empty() );
+    moveable m1( 3), m2;
+    BOOST_CHECK( m1.state);
+    BOOST_CHECK( ! m2.state);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( std::move( m1) ) );
+    BOOST_CHECK( ! m1.state);
+    BOOST_CHECK( ! m2.state);
+    BOOST_CHECK( ! c.is_empty() );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( m2) );
+    BOOST_CHECK( ! m1.state);
+    BOOST_CHECK( m2.state);
+    BOOST_CHECK_EQUAL( 3, m2.value);
+    BOOST_CHECK( c.is_empty() );
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
@@ -331,6 +380,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
      test->add( BOOST_TEST_CASE( & test_pop_wait_until_closed) );
      test->add( BOOST_TEST_CASE( & test_pop_wait_until_success) );
      test->add( BOOST_TEST_CASE( & test_pop_wait_until_timeout) );
+     test->add( BOOST_TEST_CASE( & test_moveable) );
 
     return test;
 }
