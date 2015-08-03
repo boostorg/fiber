@@ -24,7 +24,6 @@
     boost::fibers::fiber( std::allocator_arg, stack_alloc, worker).detach();
 
 bool prealloc = false;
-bool preserve = false;
 
 void worker() {}
 
@@ -65,7 +64,6 @@ int main( int argc, char * argv[])
         boost::program_options::options_description desc("allowed options");
         desc.add_options()
             ("help", "help message")
-            ("preserve", boost::program_options::value< bool >( & preserve), "preserve FPU")
             ("prealloc", boost::program_options::value< bool >( & prealloc), "use preallocated stack");
 
         boost::program_options::variables_map vm;
@@ -81,8 +79,6 @@ int main( int argc, char * argv[])
             std::cout << desc << std::endl;
             return EXIT_SUCCESS;
         }
-
-        boost::fibers::preserve_fpu( preserve);
 
         duration_type overhead = overhead_clock();
         std::cout << "overhead " << overhead.count() << " nano seconds" << std::endl;
