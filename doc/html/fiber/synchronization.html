@@ -24,7 +24,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="fiber.synchronization"></a><a class="link" href="synchronization.html" title="Synchronization">Synchronization</a>
+<a name="fiber.synchronization"></a><a name="synchronization"></a><a class="link" href="synchronization.html" title="Synchronization">Synchronization</a>
 </h2></div></div></div>
 <div class="toc"><dl>
 <dt><span class="section"><a href="synchronization/mutex_types.html">Mutex Types</a></span></dt>
@@ -40,6 +40,23 @@
         <code class="computeroutput"><span class="identifier">packaged_task</span><span class="special">&lt;&gt;</span></code></a></span></dt>
 </dl></dd>
 </dl></div>
+<p>
+      In general, <span class="bold"><strong>Boost.Fiber</strong></span> synchronization objects
+      can neither be moved nor copied. A synchronization object acts as a mutually-agreed
+      rendezvous point between different fibers. If such an object were copied somewhere
+      else, the new copy would have no consumers. If such an object were <span class="emphasis"><em>moved</em></span>
+      somewhere else, leaving the original instance in an unspecified state, existing
+      consumers would behave strangely.
+    </p>
+<p>
+      The fiber synchronization objects provided by this library will, by default,
+      safely synchronize fibers running on different threads. However, this level
+      of synchronization can be removed (for performance) by building the library
+      with <code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code>
+      defined. When the library is built with that macro, you must ensure that all
+      the fibers referencing a particular synchronization object are running in the
+      same thread.
+    </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

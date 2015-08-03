@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <memory>
 #include <mutex>
-#include <system_error>
 #include <utility>
 
 #include <boost/config.hpp>
@@ -45,6 +44,13 @@ private:
         allocator_type  &   alloc;
         T                   va;
         ptr                 nxt;
+
+        explicit node( T const& t, allocator_type & alloc_) :
+            use_count( 0),
+            alloc( alloc_),
+            va( t),
+            nxt() {
+        }
 
         explicit node( T && t, allocator_type & alloc_) :
             use_count( 0),
@@ -109,7 +115,7 @@ private:
     }
 
     channel_op_status push_( typename node::ptr const& new_node,
-                           std::unique_lock< boost::fibers::mutex >& lk ) {
+                             std::unique_lock< boost::fibers::mutex > & lk ) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -135,8 +141,8 @@ private:
 
     template< typename Clock, typename Duration >
     channel_op_status push_wait_until_( typename node::ptr const& new_node,
-                                      std::chrono::time_point< Clock, Duration > const& timeout_time,
-                                      std::unique_lock< boost::fibers::mutex >& lk) {
+                                        std::chrono::time_point< Clock, Duration > const& timeout_time,
+                                        std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -168,7 +174,7 @@ private:
         ++count_;
     }
 
-    value_type value_pop_() {
+    value_type & value_pop_() {
         BOOST_ASSERT( ! is_empty_() );
 
         try {
@@ -182,7 +188,7 @@ private:
                     not_full_cond_.notify_all();
                 }
             }
-            return std::move( old_head->va);
+            return old_head->va;
         } catch (...) {
             close_();
             throw;
@@ -218,6 +224,10 @@ public:
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: high-watermark is less than low-watermark for bounded_channel");
         }
+        if ( 0 == hwm) {
+            throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
+                                    "boost fiber: high-watermark is zero");
+        }
     }
 
     bounded_channel( std::size_t wm,
@@ -232,6 +242,10 @@ public:
         not_full_cond_(),
         hwm_( wm),
         lwm_( wm) {
+        if ( 0 == wm) {
+            throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
+                                    "boost fiber: watermark is zero");
+        }
     }
 
     bounded_channel( bounded_channel const&) = delete;
@@ -265,12 +279,25 @@ public:
         return is_full_();
     }
 
-    channel_op_status push( value_type && va)
-    {
+    channel_op_status push( value_type const& va) {
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        std::unique_lock< mutex > lk( mtx_);
+        return push_( new_node, lk);
+    }
+
+    channel_op_status push( value_type && va) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return push_( new_node, lk);
+    }
+
+    template< typename Rep, typename Period >
+    channel_op_status push_wait_for( value_type const& va,
+                                   std::chrono::duration< Rep, Period > const& timeout_duration) {
+        return push_wait_until( va,
+                                std::chrono::high_resolution_clock::now() + timeout_duration);
     }
 
     template< typename Rep, typename Period >
@@ -281,12 +308,28 @@ public:
     }
 
     template< typename Clock, typename Duration >
+    channel_op_status push_wait_until( value_type const& va,
+                                     std::chrono::time_point< Clock, Duration > const& timeout_time) {
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        std::unique_lock< mutex > lk( mtx_);
+        return push_wait_until_( new_node, timeout_time, lk);
+    }
+
+    template< typename Clock, typename Duration >
     channel_op_status push_wait_until( value_type && va,
                                      std::chrono::time_point< Clock, Duration > const& timeout_time) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return push_wait_until_( new_node, timeout_time, lk);
+    }
+
+    channel_op_status try_push( value_type const& va) {
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        std::unique_lock< mutex > lk( mtx_);
+        return try_push_( new_node);
     }
 
     channel_op_status try_push( value_type && va) {
@@ -329,10 +372,16 @@ public:
         std::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() && is_empty_() ) {
+            // let other fibers run
+            lk.unlock();
+            this_fiber::yield();
             return channel_op_status::closed;
         }
 
         if ( is_empty_() ) {
+            // let other fibers run
+            lk.unlock();
+            this_fiber::yield();
             return channel_op_status::empty;
         }
 

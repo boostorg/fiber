@@ -56,10 +56,10 @@ public:
     {}
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
-    // override awakened_props(), NOT awakened().
-    virtual void awakened_props(boost::fibers::fiber_context* f)
+    // override the correct awakened() overload.
+    virtual void awakened(boost::fibers::fiber_context* f, priority_props& props)
     {
-        int f_priority = properties(f).get_priority();
+        int f_priority = props.get_priority();
         // With this scheduler, fibers with higher priority values are
         // preferred over fibers with lower priority values. But fibers with
         // equal priority values are processed in round-robin fashion. So when
@@ -75,7 +75,7 @@ public:
         f->nxt = *fp;
         *fp = f;
 
-        std::cout << "awakened(" << properties(f).name << "): ";
+        std::cout << "awakened(" << props.name << "): ";
         describe_ready_queue();
     }
 
@@ -92,6 +92,16 @@ public:
         std::cout << "pick_next() resuming " << properties(f).name << ": ";
         describe_ready_queue();
         return f;
+    }
+
+    virtual std::size_t ready_fibers() const noexcept
+    {
+        std::size_t count = 0;
+        for (boost::fibers::fiber_context* f = head_; f; f=f->nxt)
+        {
+            ++count;
+        }
+        return count;
     }
 
     virtual void property_change(boost::fibers::fiber_context* f, priority_props& props)

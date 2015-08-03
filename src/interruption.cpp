@@ -45,14 +45,17 @@ restore_interruption::~restore_interruption() noexcept {
     }
 }
 
+BOOST_FIBERS_DECL
 bool interruption_enabled() noexcept { 
     return ! fibers::detail::scheduler::instance()->active()->interruption_blocked(); 
 } 
  
+BOOST_FIBERS_DECL
 bool interruption_requested() noexcept { 
     return fibers::detail::scheduler::instance()->active()->interruption_requested(); 
 }
 
+BOOST_FIBERS_DECL
 void interruption_point() {
     if ( interruption_requested() && interruption_enabled() ) {
         fibers::detail::scheduler::instance()->active()->request_interruption( false);

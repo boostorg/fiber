@@ -65,7 +65,7 @@ public:
         fiber_context * f( detail::scheduler::instance()->active() );
         try {
             // lock spinlock
-            std::unique_lock< detail::spinlock > lk( splk_);
+            detail::spinlock_lock lk( splk_);
 
             BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
             // store this fiber in waiting-queue
@@ -80,14 +80,10 @@ public:
             // was stored inside schedulers's waiting-queue
             detail::scheduler::instance()->wait( lk);
 
-            // this fiber was notified and resumed
-            // check if fiber was interrupted
-            this_fiber::interruption_point();
-
             // lock external again before returning
             lt.lock();
         } catch (...) {
-            std::unique_lock< detail::spinlock > lk( splk_);
+            detail::spinlock_lock lk( splk_);
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
@@ -105,7 +101,7 @@ public:
         fiber_context * f( detail::scheduler::instance()->active() );
         try {
             // lock spinlock
-            std::unique_lock< detail::spinlock > lk( splk_);
+            detail::spinlock_lock lk( splk_);
 
             // store this fiber in waiting-queue
             // in order notify (resume) this fiber later
@@ -120,7 +116,7 @@ public:
             if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
                 // this fiber was not notified before timeout
                 // lock spinlock again
-                std::unique_lock< detail::spinlock > lk( splk_);
+                detail::spinlock_lock lk( splk_);
                 std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
                 if ( waiting_.end() != i) {
                     // remove fiber from waiting-list
@@ -130,13 +126,10 @@ public:
                 status = cv_status::timeout;
             }
 
-            // check if fiber was interrupted
-            this_fiber::interruption_point();
-
             // lock external again before returning
             lt.lock();
         } catch (...) {
-            std::unique_lock< detail::spinlock > lk( splk_);
+            detail::spinlock_lock lk( splk_);
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list

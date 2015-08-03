@@ -18,10 +18,11 @@
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 
-#include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/condition.hpp>
-#include <boost/fiber/mutex.hpp>
 #include <boost/fiber/channel_op_status.hpp>
+#include <boost/fiber/condition.hpp>
+#include <boost/fiber/exceptions.hpp>
+#include <boost/fiber/mutex.hpp>
+#include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -44,6 +45,13 @@ private:
         allocator_type  &   alloc;
         T                   va;
         ptr                 nxt;
+
+        explicit node( T const& t, allocator_type & alloc_) :
+            use_count( 0),
+            alloc( alloc_),
+            va( t),
+            nxt() {
+        }
 
         explicit node( T && t, allocator_type & alloc_) :
             use_count( 0),
@@ -95,7 +103,7 @@ private:
     }
 
     channel_op_status push_( typename node::ptr const& new_node,
-                           std::unique_lock< boost::fibers::mutex >& lk) {
+                             std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -120,12 +128,12 @@ private:
         tail_ = & new_node->nxt;
     }
 
-    value_type value_pop_() {
+    value_type & value_pop_() {
         BOOST_ASSERT( ! is_empty_() );
 
         try {
             typename node::ptr old_head = pop_head_();
-            return std::move( old_head->va);
+            return old_head->va;
         } catch (...) {
             close_();
             throw;
@@ -135,10 +143,10 @@ private:
     typename node::ptr pop_head_() {
         typename node::ptr old_head = head_;
         head_ = old_head->nxt;
-        if ( nullptr == head_) {
+        if ( ! head_) {
             tail_ = & head_;
         }
-        old_head->nxt = nullptr;
+        old_head->nxt.reset();
         return old_head;
     }
 
@@ -171,6 +179,13 @@ public:
         std::unique_lock< mutex > lk( mtx_);
 
         return is_empty_();
+    }
+
+    channel_op_status push( value_type const& va) {
+        typename node::ptr new_node(
+            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        std::unique_lock< mutex > lk( mtx_);
+        return push_( new_node, lk);
     }
 
     channel_op_status push( value_type && va) {
@@ -213,10 +228,16 @@ public:
         std::unique_lock< mutex > lk( mtx_);
 
         if ( is_closed_() && is_empty_() ) {
+            // let other fibers run
+            lk.unlock();
+            this_fiber::yield();
             return channel_op_status::closed;
         }
 
         if ( is_empty_() ) {
+            // let other fibers run
+            lk.unlock();
+            this_fiber::yield();
             return channel_op_status::empty;
         }
 

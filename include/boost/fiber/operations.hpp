@@ -6,10 +6,12 @@
 #ifndef BOOST_THIS_FIBER_OPERATIONS_H
 #define BOOST_THIS_FIBER_OPERATIONS_H
 
+#include <cstddef>
 #include <chrono>
 #include <mutex> // std::unique_lock
 
 #include <boost/config.hpp> 
+#include <boost/assert.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/scheduler.hpp>
@@ -51,7 +53,10 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 
 template< typename PROPS >
 PROPS & properties() {
-    return dynamic_cast< PROPS & >( * fibers::detail::scheduler::instance()->active()->get_properties() );
+    fibers::fiber_properties* props =
+        fibers::detail::scheduler::instance()->active()->get_properties();
+    BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+    return dynamic_cast< PROPS & >( * props );
 }
 
 } // this_fiber
@@ -79,13 +84,8 @@ std::chrono::duration< Rep, Period > wait_interval() noexcept {
 }
 
 inline
-bool preserve_fpu() {
-    return detail::scheduler::instance()->preserve_fpu();
-}
-
-inline
-void preserve_fpu( bool preserve) {
-    return detail::scheduler::instance()->preserve_fpu( preserve);
+std::size_t ready_fibers() {
+    return detail::scheduler::instance()->ready_fibers();
 }
 
 }}

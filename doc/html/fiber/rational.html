@@ -43,7 +43,7 @@
       When a coroutine yields, it passes control directly to its caller (or, in the
       case of symmetric coroutines, a designated other coroutine). When a fiber blocks,
       it implicitly passes control to the fiber scheduler. Coroutines have no scheduler
-      because they need no scheduler. <sup>[<a name="fiber.rational.f0" href="#ftn.fiber.rational.f0" class="footnote">3</a>]</sup>.
+      because they need no scheduler. <sup>[<a name="fiber.rational.f0" href="#ftn.fiber.rational.f0" class="footnote">2</a>]</sup>.
     </p>
 <h4>
 <a name="fiber.rational.h1"></a>
@@ -59,15 +59,6 @@
     </p>
 <h4>
 <a name="fiber.rational.h2"></a>
-      <span><a name="fiber.rational._code__phrase_role__identifier__fiber_manager__phrase___code_with_free_functions"></a></span><a class="link" href="rational.html#fiber.rational._code__phrase_role__identifier__fiber_manager__phrase___code_with_free_functions"><code class="computeroutput"><span class="identifier">fiber_manager</span></code>with free-functions</a>
-    </h4>
-<p>
-      Some compiler store the <code class="computeroutput"><span class="keyword">this</span></code>-pointer
-      on the stack so that the fiber, which has been migrated to another scheduler
-      (thread), access the invalid instance if it will be resumed from <code class="computeroutput"><span class="identifier">fiber_manager</span><span class="special">::</span><span class="identifier">run</span><span class="special">()</span></code>.
-    </p>
-<h4>
-<a name="fiber.rational.h3"></a>
       <span><a name="fiber.rational.synchronization_between_fibers_running_in_different_threads"></a></span><a class="link" href="rational.html#fiber.rational.synchronization_between_fibers_running_in_different_threads">synchronization
       between fibers running in different threads</a>
     </h4>
@@ -78,39 +69,28 @@
       so that the thread is able to schedule and run other fibers in the meantime.
       The synchronization classes from <span class="bold"><strong>Boost.Fiber</strong></span>
       are designed to be thread-safe, e.g. it is possible to synchronize fibers running
-      in different schedulers (different threads) or running int the same scheduler
-      (same thread).
+      in different schedulers (different threads) or running in the same scheduler
+      (same thread). (However, there is a build option to disable that support; see
+      <a class="link" href="overview.html#cross_thread_sync">this description</a>.)
     </p>
 <h4>
-<a name="fiber.rational.h4"></a>
-      <span><a name="fiber.rational.migrating_fibers_between_threads"></a></span><a class="link" href="rational.html#fiber.rational.migrating_fibers_between_threads">migrating
-      fibers between threads</a>
+<a name="fiber.rational.h3"></a>
+      <span><a name="fiber.rational.support_for_boost_asio"></a></span><a class="link" href="rational.html#fiber.rational.support_for_boost_asio">support
+      for Boost.Asio</a>
     </h4>
 <p>
-      Fibers can be migrated between different schedulers, e.g. threads. The library
-      contains an example demonstrating how a scheduler could be implemented to allow
-      the migration of fibers. The example allows to move fibers from the ready-queue
-      (fibers with state READY, e.g. ready to be executed) of scheduler <code class="computeroutput"><span class="identifier">X</span></code> to the ready-queue of scheduler <code class="computeroutput"><span class="identifier">Y</span></code>. It is important that this operation is
-      thread-safe. If the fiber is put to the ready-queue of scheduler <code class="computeroutput"><span class="identifier">Y</span></code> it might be selected for resumtion in the
-      next step, e.g. the fiber will be executed in the context of the thread running
-      scheudler <code class="computeroutput"><span class="identifier">Y</span></code>.
-    </p>
-<h4>
-<a name="fiber.rational.h5"></a>
-      <span><a name="fiber.rational.variadric_template_args_for_async___packaged_task_lt__gt_"></a></span><a class="link" href="rational.html#fiber.rational.variadric_template_args_for_async___packaged_task_lt__gt_">variadric
-      template args for async()/packaged_task&lt;&gt;</a>
-    </h4>
-<p>
-      Variadric template args for <code class="computeroutput"><span class="identifier">asnyc</span><span class="special">()</span></code> implies variadic args support for <code class="computeroutput"><span class="identifier">packaged_task</span><span class="special">&lt;&gt;</span></code>.
-      Because C++03 does not provide variadric template args the author desided not
-      to support this featrure for <code class="computeroutput"><span class="identifier">asnyc</span><span class="special">()</span></code> and <code class="computeroutput"><span class="identifier">packaged_task</span><span class="special">&lt;&gt;</span></code> otherwise the template signature would
-      be look different btween C++03 and C++11. In further versions of this library
-      variadric template args will be supported for C++03 with the usage of pre-processor
-      macros and template specialization.
+      The support for Boot.Asio's <span class="emphasis"><em>async-result</em></span> is not part of
+      the official API (implementation provided in example section). <span class="emphasis"><em>async-result</em></span>
+      does not reflect that <span class="bold"><strong>Boost.Fiber</strong></span> uses an
+      internal scheudler by itself ( especially fibers not in touch with code using
+      <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>, for instance a
+      sleeping fiber will not be launched explicitly by <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>).
+      The intergration of <span class="bold"><strong>Boost.Fiber</strong></span> into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a> requires some investigation
+      from both authors.
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.rational.f0" href="#fiber.rational.f0" class="para">3</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rational.f0" href="#fiber.rational.f0" class="para">2</a>] </sup>
         <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4024.pdf" target="_top">'N4024:
         Distinguishing coroutines and fibers'</a>
       </p></div>

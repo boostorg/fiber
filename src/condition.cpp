@@ -28,7 +28,7 @@ void
 condition::notify_one() {
     fiber_context * f( nullptr);
 
-    std::unique_lock< detail::spinlock > lk( splk_);
+    detail::spinlock_lock lk( splk_);
     // get one waiting fiber
     if ( ! waiting_.empty() ) {
         f = waiting_.front();
@@ -46,7 +46,7 @@ void
 condition::notify_all() {
     std::deque< fiber_context * > waiting;
 
-    std::unique_lock< detail::spinlock > lk( splk_);
+    detail::spinlock_lock lk( splk_);
     // get all waiting fibers
     waiting.swap( waiting_);
     lk.unlock();

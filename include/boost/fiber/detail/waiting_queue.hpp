@@ -26,10 +26,11 @@ struct sched_algorithm;
 
 namespace detail {
 
-class waiting_queue {
+class BOOST_FIBERS_DECL waiting_queue {
 public:
     waiting_queue() noexcept :
-        head_( nullptr) {
+        head_( nullptr),
+        tail_( nullptr) {
     }
 
     waiting_queue( waiting_queue const&) = delete;
@@ -51,10 +52,12 @@ public:
 
     void swap( waiting_queue & other) noexcept {
         std::swap( head_, other.head_);
+        std::swap( tail_, other.tail_);
     }
 
 private:
     fiber_context   *   head_;
+    fiber_context   *   tail_;
 };
 
 }}}

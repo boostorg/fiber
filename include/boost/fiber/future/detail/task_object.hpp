@@ -13,6 +13,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/future/detail/task_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -38,7 +39,7 @@ public:
 
     void run( Args && ... args) {
         try {
-            this->set_value( fn_( std::forward< Args >( args) ... ) );
+            this->set_value( invoke_helper( std::move( fn_), std::make_tuple( std::forward< Args >( args) ... ) ) );
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
@@ -74,7 +75,7 @@ public:
 
     void run( Args && ... args) {
         try {
-            fn_( std::forward< Args >( args) ... );
+            invoke_helper( std::move( fn_), std::make_tuple( std::forward< Args >( args) ... ) );
             this->set_value();
         } catch (...) {
             this->set_exception( std::current_exception() );

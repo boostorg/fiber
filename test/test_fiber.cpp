@@ -137,6 +137,22 @@ void interruption_point_join( boost::fibers::fiber & f)
     f.join();
 }
 
+struct X {
+    int value;
+
+    void foo( int i) {
+        value = i;
+    }
+};
+
+void test_memfn()
+{
+    X x = {0};
+    BOOST_CHECK_EQUAL( x.value, 0);
+    boost::fibers::fiber( & X::foo, std::ref( x), 3).join();
+    BOOST_CHECK_EQUAL( x.value, 3);
+}
+
 void test_move()
 {
     {
@@ -336,6 +352,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
 
+     test->add( BOOST_TEST_CASE( & test_memfn) );
      test->add( BOOST_TEST_CASE( & test_move) );
      test->add( BOOST_TEST_CASE( & test_id) );
      test->add( BOOST_TEST_CASE( & test_detach) );

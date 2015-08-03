@@ -5,6 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[#custom]
 [section:custom Customization]
 
 __boost_fiber__ allows to customize the scheduling algorithm by a user-defined
@@ -12,61 +13,16 @@ implementation.
 A fiber-scheduler must implement interface __algo__. __boost_fiber__ provides 
 scheduler [class_link round_robin].
 
-In order to use a custom scheduler for a given thread, that thread must call
-[function_link set_scheduling_algorithm] before any other __boost_fiber__ entry
-point.
-
         void thread_fn() {
             my_fiber_scheduler mfs;
             boost::fibers::set_scheduling_algorithm( & mfs);
             ...
         }
 
-You are explicitly permitted to code your own __algo__ subclass, and to pass
-it to [function_link set_scheduling_algorithm].
+[heading fiber_context]
 
-
-[class_heading sched_algorithm]
-
-        #include <boost/fiber/algorithm.hpp>
-
-        struct sched_algorithm {
-            virtual ~sched_algorithm() {}
-
-            virtual void awakened( fiber_context *) = 0;
-
-            virtual fiber_context * pick_next() = 0;
-        };
-
-        void set_scheduling_algorithm( sched_algorithm *);
-
-[member_heading algorithm..awakened]
-
-        virtual void awakened( fiber_context * f) = 0;
-
-[variablelist
-[[Effects:] [Marks fiber `f`, to be ready to run.]]
-]
-
-[member_heading algorithm..pick_next]
-
-        virtual fiber_context * pick_next() = 0;
-
-[variablelist
-[[Effects:] [Depending on the scheduling algorithm, this function returns the
-fiber which has to be resumed next.]]
-]
-
-
-[ns_function_heading fibers..set_scheduling_algorithm]
-
-        void set_scheduling_algorithm( sched_algorithm * a);
-
-[variablelist
-[[Effects:] [Registers `a` as scheduling algorithm.]]
-]
-
-< TODO >
+The fiber_context class is mostly supposed to be opaque. However, certain
+members are available for use by a custom scheduling algorithm.
 
 
 [endsect]

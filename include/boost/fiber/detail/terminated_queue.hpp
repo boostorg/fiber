@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_FIFO_H
-#define BOOST_FIBERS_DETAIL_FIFO_H
+#ifndef BOOST_FIBERS_DETAIL_TERMINATED_QUEUE_H
+#define BOOST_FIBERS_DETAIL_TERMINATED_QUEUE_H
 
 #include <algorithm>
 #include <cstddef>
@@ -25,39 +25,29 @@ class fiber_context;
 
 namespace detail {
 
-class BOOST_FIBERS_DECL fifo {
+class BOOST_FIBERS_DECL terminated_queue {
 public:
-    fifo() noexcept :
-        size_( 0),
+    terminated_queue() noexcept :
         head_( nullptr),
         tail_( & head_) {
     }
 
-    fifo( fifo const&) = delete;
-    fifo & operator=( fifo const&) = delete;
-
-    bool empty() const noexcept {
-        return nullptr == head_;
-    }
-
-    std::size_t size() const noexcept {
-        return size_;
-    }
+    terminated_queue( terminated_queue const&) = delete;
+    terminated_queue & operator=( terminated_queue const&) = delete;
 
     void push( fiber_context * item) noexcept;
 
-    fiber_context * pop() noexcept;
+    void clear() noexcept;
 
-    void swap( fifo & other) {
+    void swap( terminated_queue & other) {
         std::swap( head_, other.head_);
         std::swap( tail_, other.tail_);
     }
 
 private:
-    std::size_t         size_;
     fiber_context   *   head_;
     // tail_ points to the nxt field that contains the null that marks the end
-    // of the fifo. When the fifo is empty, tail_ points to head_. tail_ must
+    // of the terminated_queue. When the terminated_queue is empty, tail_ points to head_. tail_ must
     // never be null: it always points to a real fiber_context*. However, in
     // normal use, (*tail_) is always null.
     fiber_context   **  tail_;
@@ -69,4 +59,4 @@ private:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_FIFO_H
+#endif // BOOST_FIBERS_DETAIL_TERMINATED_QUEUE_H

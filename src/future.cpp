@@ -63,6 +63,7 @@ public:
     }
 };
 
+BOOST_FIBERS_DECL
 std::error_category const& future_category() noexcept {
     static fibers::future_error_category cat;
     return cat;

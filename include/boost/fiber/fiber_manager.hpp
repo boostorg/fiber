@@ -6,6 +6,7 @@
 #ifndef BOOST_FIBERS_FIBER_MANAGER_H
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
+#include <cstddef>
 #include <chrono>
 #include <mutex>
 
@@ -14,8 +15,8 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
-#include <boost/fiber/detail/fifo.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/terminated_queue.hpp>
 #include <boost/fiber/detail/waiting_queue.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -28,16 +29,15 @@ namespace fibers {
 class fiber_context;
 struct sched_algorithm;
 
-struct fiber_manager {
+struct BOOST_FIBERS_DECL fiber_manager {
 private:
     typedef detail::waiting_queue                   wqueue_t;
-    typedef detail::fifo                            tqueue_t;
+    typedef detail::terminated_queue                tqueue_t;
 
     sched_algorithm                             *   sched_algo_;
     fiber_context                               *   active_fiber_;
     wqueue_t                                        wqueue_;
     tqueue_t                                        tqueue_;
-    bool                                            preserve_fpu_;
     std::chrono::high_resolution_clock::duration    wait_interval_;
 
     void resume_( fiber_context *);
@@ -56,14 +56,14 @@ public:
 
     void run();
 
-    void wait( std::unique_lock< detail::spinlock > &);
+    void wait( detail::spinlock_lock &);
 
     bool wait_until( std::chrono::high_resolution_clock::time_point const&,
-                        std::unique_lock< detail::spinlock > &);
+                        detail::spinlock_lock &);
 
     template< typename Clock, typename Duration >
     bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
-                        std::unique_lock< detail::spinlock > & lk) {
+                     detail::spinlock_lock & lk) {
         std::chrono::high_resolution_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
         return wait_until( timeout_time, lk);
@@ -71,7 +71,7 @@ public:
 
     template< typename Rep, typename Period >
     bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
-                      std::unique_lock< detail::spinlock > & lk) {
+                   detail::spinlock_lock & lk) {
         return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration, lk);
     }
 
@@ -80,6 +80,8 @@ public:
     void join( fiber_context *);
 
     fiber_context * active() noexcept;
+
+    std::size_t ready_fibers() const noexcept;
 
     sched_algorithm* get_sched_algo_();
 
@@ -93,9 +95,6 @@ public:
     }
 
     std::chrono::high_resolution_clock::duration wait_interval() noexcept;
-
-    bool preserve_fpu() const;
-    void preserve_fpu( bool);
 };
 
 }}

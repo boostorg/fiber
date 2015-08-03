@@ -24,7 +24,7 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-class BOOST_FIBERS_DECL fss_cleanup_function {
+class fss_cleanup_function {
 private:
     std::atomic< std::size_t >  use_count_;
 

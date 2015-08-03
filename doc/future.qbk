@@ -58,12 +58,6 @@ A __future__ contains a shared state which is not shared with any other future.
 
             future & operator=( future const& other) = delete;
 
-            void swap( future & other) noexcept;
-
-            operator safe_bool() const noexcept;
-
-            bool operator!() const noexcept;
-
             bool valid() const noexcept;
 
             shared_future< R > share();
@@ -71,6 +65,8 @@ A __future__ contains a shared state which is not shared with any other future.
             R get();    // member only of generic future template
             R & get();  // member only of future< R & > template specialization
             void get(); // member only of future< void > template specialization
+
+            std::exception_ptr get_exception_ptr();
 
             void wait() const;
 
@@ -120,33 +116,6 @@ After construction is `false == other.valid()`]]
 [[Throws:] [Nothing.]]
 ]
 
-[member_heading future..swap]
-
-        void swap( future & other) noexcept;
-
-[variablelist
-[[Effects:] [Swaps the shared state between other and `this`.]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading future..operator safe_bool]
-
-        operator safe_bool() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `true` if future is valid.]]
-[[Throws:] [Nothing.]]
-]
-
-[operator_heading future..operator_not..operator!]
-
-        bool operator!() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `false` if future is valid.]]
-[[Throws:] [Nothing.]]
-]
-
 [member_heading future..valid]
 
         bool valid() const noexcept;
@@ -173,9 +142,19 @@ After construction is `false == other.valid()`]]
 
 [variablelist
 [[Precondition:] [`true == valid()`]]
-[[Effects:] [Returns the result.]]
+[[Returns:] [the result. If result not yet set, waits.]]
 [[Postcondition:] [`false == valid()`]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+]
+
+[member_heading future..get_exception_ptr]
+
+        std::exception_ptr get_exception_ptr();
+
+[variablelist
+[[Precondition:] [`true == valid()`]]
+[[Returns:] [the exception pointer, if set. If no result is set, waits.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading future..wait]
@@ -184,7 +163,7 @@ After construction is `false == other.valid()`]]
 
 [variablelist
 [[Effects:] [Waits for the result will become available.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [template_member_heading future..wait_for]
@@ -195,7 +174,7 @@ After construction is `false == other.valid()`]]
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_duration` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading future..wait_until]
@@ -206,7 +185,7 @@ After construction is `false == other.valid()`]]
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 
@@ -232,12 +211,6 @@ A __shared_future__ contains a shared state which might be shared with other fut
             shared_future & operator=( future && other) noexcept;
 
             shared_future & operator=( shared_future const& other) noexcept;
-
-            void swap( shared_future & other) noexcept;
-
-            operator safe_bool() const noexcept;
-
-            bool operator!() const noexcept;
 
             bool valid() const noexcept;
 
@@ -277,7 +250,7 @@ After construction is `false == other.valid()`.]]
 
 [heading Copy constructor]
 
-        shared_future( shared_future cosnt& other) noexcept;
+        shared_future( shared_future const& other) noexcept;
 
 [variablelist
 [[Effects:] [Constructs a future with the shared state of other.
@@ -310,33 +283,6 @@ return * this;
 [[Throws:] [Nothing.]]
 ]
 
-[member_heading shared_future..swap]
-
-        void swap( shared_future & other) noexcept;
-
-[variablelist
-[[Effects:] [Swaps the shared state between other and `this`.]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading shared_future..operator safe_bool]
-
-        operator safe_bool() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `true` if future is valid.]]
-[[Throws:] [Nothing.]]
-]
-
-[operator_heading shared_future..operator_not..operator!]
-
-        bool operator!() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `false` if future is valid.]]
-[[Throws:] [Nothing.]]
-]
-
 [member_heading shared_future..valid]
 
         bool valid() const noexcept;
@@ -356,7 +302,17 @@ return * this;
 [[Precondition:] [`true == valid()`]]
 [[Effects:] [Returns the result.]]
 [[Postcondition:] [`false == valid()`]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+]
+
+[member_heading shared_future..get_exception_ptr]
+
+        std::exception_ptr get_exception_ptr();
+
+[variablelist
+[[Precondition:] [`true == valid()`]]
+[[Returns:] [the exception pointer, if set. If no result is set, waits.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading shared_future..wait]
@@ -365,7 +321,7 @@ return * this;
 
 [variablelist
 [[Effects:] [Waits for the result will become available.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [template_member_heading shared_future..wait_for]
@@ -376,7 +332,7 @@ return * this;
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_duration` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
 ]
 
 [member_heading shared_future..wait_until]
@@ -387,7 +343,8 @@ return * this;
 [variablelist
 [[Effects:] [Waits for the result will become available or `timeout_time` has passed.]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+]
 ]
 
 [ns_function_heading fibers..async]

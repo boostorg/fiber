@@ -9,7 +9,6 @@
 #include <system_error>
 
 #include <boost/assert.hpp>
-#include <boost/system/error_code.hpp>
 
 #include "boost/fiber/fiber_context.hpp"
 #include "boost/fiber/exceptions.hpp"
@@ -57,7 +56,7 @@ fiber::join() {
 }
 
 void
-fiber::detach() noexcept {
+fiber::detach() {
     BOOST_ASSERT( impl_);
 
     if ( ! joinable() ) {

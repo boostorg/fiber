@@ -6,6 +6,8 @@
 #ifndef BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
 #define BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
 
+#include <cstddef>
+
 #include <boost/config.hpp>
 
 #include <boost/fiber/algorithm.hpp>
@@ -31,6 +33,8 @@ public:
     virtual void awakened( fiber_context *);
 
     virtual fiber_context * pick_next();
+
+    virtual std::size_t ready_fibers() const noexcept;
 };
 
 }}

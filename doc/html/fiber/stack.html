@@ -24,24 +24,24 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="fiber.stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
+<a name="fiber.stack"></a><a name="stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
 </h2></div></div></div>
 <p>
-      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally a <span class="emphasis"><em>execution_context</em></span>
+      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally a <a href="../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
       which manages a set of registers and a stack. The memory used by the stack
-      is allocated/deallocated via a __stack_allocator__ which is required to model
-      a <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator concept</em></span></a>.
+      is allocated/deallocated via a <span class="emphasis"><em>stack_allocator</em></span> which is
+      required to model a <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
+      concept</em></span></a>.
     </p>
 <a name="stack_allocator_concept"></a><h4>
 <a name="fiber.stack.h0"></a>
       <span><a name="fiber.stack._link_linkend__stack_allocator_concept___emphasis_stack_allocator_concept__emphasis___link_"></a></span><a class="link" href="stack.html#fiber.stack._link_linkend__stack_allocator_concept___emphasis_stack_allocator_concept__emphasis___link_"><a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator concept</em></span></a></a>
     </h4>
 <p>
-      A __stack_allocator__ must satisfy the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
+      A <span class="emphasis"><em>stack_allocator</em></span> must satisfy the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
       concept</em></span></a> requirements shown in the following table, in which
-      <code class="computeroutput"><span class="identifier">a</span></code> is an object of a __stack_allocator__
-      type, <code class="computeroutput"><span class="identifier">sctx</span></code> is a <code class="computeroutput"><span class="identifier">stack_context</span></code>, and <code class="computeroutput"><span class="identifier">size</span></code>
-      is a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span></code>:
+      <code class="computeroutput"><span class="identifier">a</span></code> is an object of a <span class="emphasis"><em>stack_allocator</em></span>
+      type, <code class="computeroutput"><span class="identifier">sctx</span></code> is a <a href="../../../../../libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>, and <code class="computeroutput"><span class="identifier">size</span></code> is a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span></code>:
     </p>
 <div class="informaltable"><table class="table">
 <colgroup>
@@ -89,7 +89,7 @@
             </td>
 <td>
               <p>
-                <code class="computeroutput"><span class="identifier">stack_context</span></code>
+                <a href="../../../../../libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>
               </p>
             </td>
 <td>
@@ -136,8 +136,9 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         Calling <code class="computeroutput"><span class="identifier">deallocate</span><span class="special">()</span></code>
-        with a <code class="computeroutput"><span class="identifier">stack_context</span></code> not
-        previously passed to <code class="computeroutput"><span class="identifier">allocate</span><span class="special">()</span></code> results in undefined behaviour.
+        with a <a href="../../../../../libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a> not obtained from
+        <code class="computeroutput"><span class="identifier">allocate</span><span class="special">()</span></code>
+        results in undefined behaviour.
       </p></td></tr>
 </table></div>
 <div class="note"><table border="0" summary="Note">
@@ -147,9 +148,13 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         The memory for the stack is not required to be aligned; alignment takes place
-        inside <span class="emphasis"><em>execution_context</em></span>.
+        inside <a href="../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
       </p></td></tr>
 </table></div>
+<p>
+      See also <a href="../../../../../libs/context/doc/html/context/stack.html" target="_top">Boost.Context
+      stack allocation</a>.
+    </p>
 <p>
       </p>
 <h5>
@@ -175,8 +180,9 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         Using <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> is expensive.
-        That is, launching a new fiber with a new stack is expensive; the allocated
-        stack is just as efficient to use as any other stack.
+        Launching a new fiber with a stack of this type incurs the overhead of setting
+        the memory protection; once allocated, this stack is just as efficient to
+        use as <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a>.
       </p></td></tr>
 </table></div>
 <div class="note"><table border="0" summary="Note">
@@ -220,8 +226,8 @@
     </p>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> supports usage of a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a>,
-      e. g. the size of the stack grows on demand. The fiber is created with a minimal
-      stack size and will be increased as required. Class <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> models
+      i.e. the stack grows on demand. The fiber is created with a minimal stack size
+      which will be increased as required. Class <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> models
       the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator concept</em></span></a>.
       In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> and
       <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> it creates a stack which grows on demand.
@@ -231,20 +237,15 @@
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../doc/src/images/note.png"></td>
 <th align="left">Note</th>
 </tr>
-<tr><td align="left" valign="top">
-<p>
+<tr><td align="left" valign="top"><p>
         Segmented stacks are currently only supported by <span class="bold"><strong>gcc</strong></span>
-        from version <span class="bold"><strong>4.7</strong></span> <span class="bold"><strong>clang</strong></span>
+        from version <span class="bold"><strong>4.7</strong></span> and <span class="bold"><strong>clang</strong></span>
         from version <span class="bold"><strong>3.4</strong></span> onwards. In order to use
-        a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> <span class="bold"><strong>Boost.Fiber</strong></span>
+        a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a>, <span class="bold"><strong>Boost.Fiber</strong></span>
         must be built with property <code class="computeroutput"><span class="identifier">segmented</span><span class="special">-</span><span class="identifier">stacks</span></code>,
         e.g. <span class="bold"><strong>toolset=gcc segmented-stacks=on</strong></span> at
         b2/bjam command line.
-      </p>
-<p>
-        [endsect
-      </p>
-</td></tr>
+      </p></td></tr>
 </table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

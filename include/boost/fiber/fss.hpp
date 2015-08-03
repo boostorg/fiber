@@ -9,7 +9,6 @@
 #ifndef BOOST_FIBERS_FSS_H
 #define BOOST_FIBERS_FSS_H
 
-#include <atomic>
 #include <cstddef>
 
 #include <boost/assert.hpp>

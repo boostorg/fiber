@@ -17,14 +17,14 @@ Each fiber has its own stack.
 A fiber can save the current execution state, including all registers
 and CPU flags, the instruction pointer, and the stack pointer and later restore
 this state.
-The idea is to have multiple execution paths running on a single thread using a
-sort of cooperative scheduling (versus threads, which are preemptively scheduled). The
+The idea is to have multiple execution paths running on a single thread using
+cooperative scheduling (versus threads, which are preemptively scheduled). The
 running fiber decides explicitly when it should yield to allow another fiber to
 run (context switching).
 __boost_fiber__ internally uses __econtext__ from __boost_context__; the classes in
 this library manage, schedule and, when needed, synchronize those execution contexts.
 A context switch between threads usually costs thousands of CPU cycles on x86,
-compared to a fiber switch with a few hundred cycles.
+compared to a fiber switch with less than a hundred cycles.
 A fiber can only run on a single thread at any point in time.
 
 In order to use the classes and functions described here, you can either include
@@ -68,6 +68,14 @@ A fiber launched on a particular thread will always run on that thread. A
 fiber can count on thread-local storage; however that storage will be shared
 among all fibers running on the same thread.
 
+[#cross_thread_sync]
+The fiber synchronization objects provided by this library will, by default,
+safely synchronize fibers running on different threads. However, this level of
+synchronization can be removed (for performance) by building the library with
+`BOOST_FIBERS_NO_ATOMICS` defined. When the library is built with that macro,
+you must ensure that all the fibers referencing a particular synchronization
+object are running in the same thread. Please see [link synchronization].
+
 For fiber-local storage, please see __fsp__.
 
 [#blocking]
@@ -90,15 +98,12 @@ entire thread. Fiber authors are encouraged to consistently use asynchronous
 I/O. __boost_asio__ explicitly supports fibers; other asynchronous I/O
 operations can straightforwardly be adapted for __boost_fiber__.
 
-Synchronization between a fiber running on one thread and a fiber running on a
-different thread is an advanced topic.
-
-[warning This library is ['not] an official Boost library]
+[warning This library is ['not] an official Boost library.]
 
 __boost_fiber__ depends upon __boost_context__.
 Boost version 1.58.0 or greater is required.
 
-[info This library is C++14-only!]
+[note This library is C++14-only!]
 
 
 [endsect]
