@@ -56,9 +56,16 @@ instance a sleeping fiber will not be launched explicitly by __boost_asio__).
 The integration of __boost_fiber__ into __boost_asio__ requires some investigation
 from both authors.
 
+
 [heading tested compilers]
 
 The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
+
+
+[heading supported architectures]
+
+__boost_fiber__ depends on __boost_context__ - the list of supported architectures
+can be found [@boost:/libs/context/doc/html/context/architectures.html here].
 
 
 [endsect]
