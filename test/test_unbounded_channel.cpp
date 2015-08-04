@@ -344,13 +344,16 @@ void test_moveable()
     BOOST_CHECK( c.is_empty() );
     moveable m1( 3), m2;
     BOOST_CHECK( m1.state);
+    BOOST_CHECK_EQUAL( 3, m1.value);
     BOOST_CHECK( ! m2.state);
+    BOOST_CHECK_EQUAL( -1, m2.value);
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( std::move( m1) ) );
     BOOST_CHECK( ! m1.state);
     BOOST_CHECK( ! m2.state);
     BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( m2) );
     BOOST_CHECK( ! m1.state);
+    BOOST_CHECK_EQUAL( -1, m1.value);
     BOOST_CHECK( m2.state);
     BOOST_CHECK_EQUAL( 3, m2.value);
     BOOST_CHECK( c.is_empty() );

@@ -174,7 +174,7 @@ private:
         ++count_;
     }
 
-    value_type & value_pop_() {
+    value_type value_pop_() {
         BOOST_ASSERT( ! is_empty_() );
 
         try {
@@ -188,7 +188,7 @@ private:
                     not_full_cond_.notify_all();
                 }
             }
-            return old_head->va;
+            return std::move( old_head->va);
         } catch (...) {
             close_();
             throw;
@@ -350,7 +350,7 @@ public:
             return channel_op_status::closed;
         }
 
-        std::swap( va, value_pop_() );
+        va = value_pop_();
         return channel_op_status::success;
     }
 
@@ -385,7 +385,7 @@ public:
             return channel_op_status::empty;
         }
 
-        std::swap( va, value_pop_() );
+        va = value_pop_();
         return channel_op_status::success;
     }
 
@@ -411,7 +411,7 @@ public:
             return channel_op_status::closed;
         }
 
-        std::swap( va, value_pop_() );
+        va = value_pop_();
         return channel_op_status::success;
     }
 };
