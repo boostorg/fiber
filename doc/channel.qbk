@@ -110,7 +110,9 @@ channel operations return the state of the channel.
 [variablelist
 [[Returns:] [`true` if channel has been closed.]]
 [[Throws:] [Nothing.]]
-[[Note:] [The channel is not closed by default.]]
+[[Note:] [The channel is not closed by default. `is_closed()` returns `true`
+when `close()` has been called, whether or not there are pending values in the
+channel. The channel is not exhausted until `is_closed() && is_empty()`.]]
 ]
 ]
 [xchannel_is_closed unbounded_channel]
