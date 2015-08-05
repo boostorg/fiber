@@ -101,7 +101,7 @@ void test_try_push()
 {
     boost::fibers::bounded_channel< int > c( 1);
     BOOST_CHECK( c.is_empty() );
-    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
     BOOST_CHECK( ! c.is_empty() );
 }
 
