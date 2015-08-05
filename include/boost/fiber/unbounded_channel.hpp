@@ -169,18 +169,6 @@ public:
         close_();
     }
 
-    bool is_closed() const {
-        std::unique_lock< mutex > lk( mtx_);
-
-        return is_closed_();
-    }
-
-    bool is_empty() const {
-        std::unique_lock< mutex > lk( mtx_);
-
-        return is_empty_();
-    }
-
     channel_op_status push( value_type const& va) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( va, alloc_) );

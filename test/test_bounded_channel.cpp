@@ -83,92 +83,68 @@ void test_hwm_less_lwm()
 void test_push()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
-    BOOST_CHECK( ! c.is_empty() );
 }
 
 void test_push_closed()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.push( 1) );
 }
 
 void test_try_push()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
-    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( ! c.is_empty() );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 }
 
 void test_try_push_closed()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( ! c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.try_push( 2) );
 }
 
 void test_try_push_full()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::full == c.try_push( 2) );
 }
 
 void test_push_wait_for()
 {
     boost::fibers::bounded_channel< int > c( 2);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
-    BOOST_CHECK( ! c.is_empty() );
 }
 
 void test_push_wait_for_closed()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_for_timeout()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_until()
 {
     boost::fibers::bounded_channel< int > c( 2);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-    BOOST_CHECK( ! c.is_empty() );
 }
 
 void test_push_wait_until_closed()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
 }
@@ -176,10 +152,8 @@ void test_push_wait_until_closed()
 void test_push_wait_until_timeout()
 {
     boost::fibers::bounded_channel< int > c( 1);
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
 }
@@ -187,27 +161,19 @@ void test_push_wait_until_timeout()
 void test_pop()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_closed()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.pop( v2) );
 }
@@ -215,47 +181,34 @@ void test_pop_closed()
 void test_pop_success()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     boost::fibers::fiber f1([&c,&v2](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
-        BOOST_CHECK( c.is_empty() );
     });
     boost::fibers::fiber f2([&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-        BOOST_CHECK( ! c.is_empty() );
     });
     f1.join();
-    BOOST_CHECK( c.is_empty() );
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_value_pop()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
     v2 = c.value_pop();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_value_pop_closed()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     v2 = c.value_pop();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
     bool thrown = false;
     try {
@@ -269,47 +222,34 @@ void test_value_pop_closed()
 void test_value_pop_success()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     boost::fibers::fiber f1([&c,&v2](){
         v2 = c.value_pop();
-        BOOST_CHECK( c.is_empty() );
     });
     boost::fibers::fiber f2([&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-        BOOST_CHECK( ! c.is_empty() );
     });
     f1.join();
-    BOOST_CHECK( c.is_empty() );
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_try_pop()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_pop( v2) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_try_pop_closed()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_pop( v2) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.try_pop( v2) );
 }
@@ -317,47 +257,34 @@ void test_try_pop_closed()
 void test_try_pop_success()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     boost::fibers::fiber f1([&c,&v2](){
         while ( boost::fibers::channel_op_status::success != c.try_pop( v2) );
-        BOOST_CHECK( c.is_empty() );
     });
     boost::fibers::fiber f2([&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-        BOOST_CHECK( ! c.is_empty() );
     });
     f1.join();
-    BOOST_CHECK( c.is_empty() );
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_for()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_for_closed()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
 }
@@ -365,31 +292,24 @@ void test_pop_wait_for_closed()
 void test_pop_wait_for_success()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     boost::fibers::fiber f1([&c,&v2](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
-        BOOST_CHECK( c.is_empty() );
     });
     boost::fibers::fiber f2([&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-        BOOST_CHECK( ! c.is_empty() );
     });
     f1.join();
-    BOOST_CHECK( c.is_empty() );
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_for_timeout()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v = 0;
     boost::fibers::fiber f([&c,&v](){
         BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.pop_wait_for( v, std::chrono::seconds( 1) ) );
-        BOOST_CHECK( c.is_empty() );
     });
     f.join();
 }
@@ -397,29 +317,21 @@ void test_pop_wait_for_timeout()
 void test_pop_wait_until()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
             std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_until_closed()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( ! c.is_empty() );
-    BOOST_CHECK( ! c.is_closed() );
     c.close();
-    BOOST_CHECK( c.is_closed() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
             std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
     BOOST_CHECK( boost::fibers::channel_op_status::closed == c.pop_wait_until( v2,
             std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
@@ -428,33 +340,26 @@ void test_pop_wait_until_closed()
 void test_pop_wait_until_success()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v1 = 2, v2 = 0;
     boost::fibers::fiber f1([&c,&v2](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-        BOOST_CHECK( c.is_empty() );
     });
     boost::fibers::fiber f2([&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
-        BOOST_CHECK( ! c.is_empty() );
     });
     f1.join();
-    BOOST_CHECK( c.is_empty() );
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_until_timeout()
 {
     boost::fibers::bounded_channel< int > c( 10);
-    BOOST_CHECK( c.is_empty() );
     int v = 0;
     boost::fibers::fiber f([&c,&v](){
         BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.pop_wait_until( v,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-        BOOST_CHECK( c.is_empty() );
     });
     f.join();
 }
@@ -462,61 +367,46 @@ void test_pop_wait_until_timeout()
 void test_wm_1()
 {
     boost::fibers::bounded_channel< int > c( 3);
-    BOOST_CHECK( c.is_empty() );
     std::vector< boost::fibers::fiber::id > ids;
     boost::fibers::fiber f1([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 2) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 3) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 4) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 5) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 1 == c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 2 == c.value_pop() );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_full() );
         BOOST_CHECK( 3 == c.value_pop() );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_empty() );
         BOOST_CHECK( 4 == c.value_pop() );
-        BOOST_CHECK( c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_empty() );
         // would block because channel is empty
         BOOST_CHECK( 5 == c.value_pop() );
-        BOOST_CHECK( c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -524,7 +414,6 @@ void test_wm_1()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( 12 == ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
@@ -543,63 +432,48 @@ void test_wm_1()
 void test_wm_2()
 {
     boost::fibers::bounded_channel< int > c( 3);
-    BOOST_CHECK( c.is_empty() );
     std::vector< boost::fibers::fiber::id > ids;
     boost::fibers::fiber f1([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 2) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 3) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 4) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 5) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 1 == c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 2 == c.value_pop() );
-        BOOST_CHECK( ! c.is_full() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 3 == c.value_pop() );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_empty() );
         BOOST_CHECK( 4 == c.value_pop() );
-        BOOST_CHECK( ! c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_empty() );
         BOOST_CHECK( 5 == c.value_pop() );
-        BOOST_CHECK( c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -607,7 +481,6 @@ void test_wm_2()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( 12 == ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
@@ -626,62 +499,47 @@ void test_wm_2()
 void test_wm_3()
 {
     boost::fibers::bounded_channel< int > c( 3, 1);
-    BOOST_CHECK( c.is_empty() );
     std::vector< boost::fibers::fiber::id > ids;
     boost::fibers::fiber f1([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 2) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 3) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 4) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 5) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 1 == c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_full() );
         BOOST_CHECK( 2 == c.value_pop() );
-        BOOST_CHECK( ! c.is_full() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 3 == c.value_pop() );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_empty() );
         BOOST_CHECK( 4 == c.value_pop() );
-        BOOST_CHECK( ! c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_empty() );
         BOOST_CHECK( 5 == c.value_pop() );
-        BOOST_CHECK( c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -689,7 +547,6 @@ void test_wm_3()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( 12 == ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
@@ -708,56 +565,45 @@ void test_wm_3()
 void test_wm_4()
 {
     boost::fibers::bounded_channel< int > c( 3, 1);
-    BOOST_CHECK( c.is_empty() );
     std::vector< boost::fibers::fiber::id > ids;
     boost::fibers::fiber f1([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 2) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 3) );
-        BOOST_CHECK( c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 4) );
-        BOOST_CHECK( ! c.is_full() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( c.is_full() );
         BOOST_CHECK( 1 == c.value_pop() );
 
         // let potential other fibers run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_full() );
         BOOST_CHECK( 2 == c.value_pop() );
 
         // let potential other fibers run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_full() );
         BOOST_CHECK( 3 == c.value_pop() );
 
         // let potential other fibers run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( ! c.is_full() );
-        BOOST_CHECK( ! c.is_empty() );
         // would block because channel is empty
         BOOST_CHECK( 4 == c.value_pop() );
-        BOOST_CHECK( c.is_empty() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -765,7 +611,6 @@ void test_wm_4()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( c.is_empty() );
     BOOST_CHECK( 10 == ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
@@ -782,7 +627,6 @@ void test_wm_4()
 void test_moveable()
 {
     boost::fibers::bounded_channel< moveable > c( 10);
-    BOOST_CHECK( c.is_empty() );
     moveable m1( 3), m2;
     BOOST_CHECK( m1.state);
     BOOST_CHECK_EQUAL( 3, m1.value);
@@ -791,13 +635,11 @@ void test_moveable()
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( std::move( m1) ) );
     BOOST_CHECK( ! m1.state);
     BOOST_CHECK( ! m2.state);
-    BOOST_CHECK( ! c.is_empty() );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( m2) );
     BOOST_CHECK( ! m1.state);
     BOOST_CHECK_EQUAL( -1, m1.value);
     BOOST_CHECK( m2.state);
     BOOST_CHECK_EQUAL( 3, m2.value);
-    BOOST_CHECK( c.is_empty() );
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
