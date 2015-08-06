@@ -276,6 +276,15 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
         void swap( fiber & l, fiber & r) noexcept;
 
+        void set_scheduling_algorithm( sched_algorithm * al)
+
+        std::size_t ready_fibers();
+
+        template< typename Rep, typename Period >
+        void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept;
+        template< typename Rep, typename Period >
+        std::chrono::duration< Rep, Period > wait_interval() noexcept; 
+
 
 [heading Default constructor]
 
