@@ -633,6 +633,7 @@ future< R & >::share() {
 inline
 shared_future< void >
 future< void >::share() {
+    if ( ! valid() ) {
         throw future_uninitialized();
     }
     return shared_future< void >( std::move( * this) );
