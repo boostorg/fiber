@@ -116,9 +116,9 @@ that no more values will arrive.]]
 ]
 [xchannel_close unbounded_channel]
 
-[template xchannel_push_effects[enqueues] If channel is not closed,
-[enqueues] the value in the channel, wakes up a fiber blocked on
-`this->pop()`, `this->value_pop()`, `this->pop_wait_for()` or
+[template xchannel_push_effects[enqueues] If channel is closed, returns
+`closed`. Otherwise [enqueues] the value in the channel, wakes up a fiber
+blocked on `this->pop()`, `this->value_pop()`, `this->pop_wait_for()` or
 `this->pop_wait_until()` and returns `success`.]
 
 [member_heading unbounded_channel..push]
@@ -175,7 +175,7 @@ dequeued value[unblocking]]]
 [xchannel_try_pop unbounded_channel .]
 
 [template xchannel_pop_wait_until_effects[endtime unblocking] If channel
-iss not _empty, immediately dequeues a value from the channel. Otherwise
+is not empty, immediately dequeues a value from the channel. Otherwise
 the fiber gets suspended until at least one new item is `push()`ed (return
 value `success` and `va` contains dequeued value), or the channel gets
 `close()`d (return value `closed`), or the system time reaches [endtime]
@@ -302,7 +302,7 @@ in the channel is less than `hwm`.]]
 [xchannel_close bounded_channel]
 
 [template bounded_channel_push_effects[or] [xchannel_push_effects If channel
-is not full, [enqueues] Otherwise the calling fiber is suspended until
+is not full, enqueues] Otherwise the calling fiber is suspended until
 the number of values in the channel drops below `lwm` (return value
 `success`)[or] the channel is `close()`d (return value `closed`)]
 
@@ -355,7 +355,7 @@ time_point (return value `timeout`).]]
         channel_op_status try_push( value_type && va);
 
 [variablelist
-[[Effects:] [If is full, returns `full`.
+[[Effects:] [If channel is full, returns `full`.
 [xchannel_push_effects Otherwise enqueues]]]
 [[Throws:] [__fiber_interrupted__]]
 ]
