@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/07/29 10:23:48 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/08/12 17:39:56 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -580,6 +580,15 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="keyword">void</phrase> <phrase role="identifier">set_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">*</phrase> <phrase role="identifier">al</phrase><phrase role="special">)</phrase>
+
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">();</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber.h0">
         <phrase id="fiber.fiber_mgmt.fiber.default_constructor"/><link linkend="fiber.fiber_mgmt.fiber.default_constructor">Default
@@ -1374,7 +1383,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               Sets/returns the wait interval used to suspend the thread if no fibers
-              ready to run are available.
+              are ready to run.
             </para>
           </listitem>
         </varlistentry>
@@ -1383,6 +1392,22 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               Nothing
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Notes:</term>
+          <listitem>
+            <para>
+              This setting can be used to adjust the &quot;niceness&quot; of an idle
+              thread: a thread whose fibers are all currently blocked for various
+              reasons. A longer <code><phrase role="identifier">wait_interval</phrase><phrase
+              role="special">()</phrase></code> causes an idle thread to use less
+              CPU. The default for each thread, if not specified, is <code><phrase
+              role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">milliseconds</phrase><phrase role="special">(</phrase><phrase
+              role="number">10</phrase><phrase role="special">)</phrase></code>.
             </para>
           </listitem>
         </varlistentry>
@@ -1848,9 +1873,10 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <listitem>
             <para>
               <code><phrase role="identifier">yield</phrase><phrase role="special">()</phrase></code>
-              is not an interruption point. A fiber that calls <code><phrase role="identifier">yield</phrase><phrase
-              role="special">()</phrase></code> is suspended, but it is immediately
-              passed to the scheduler as ready to run.
+              is <emphasis>not</emphasis> an interruption point. A fiber that calls
+              <code><phrase role="identifier">yield</phrase><phrase role="special">()</phrase></code>
+              is not suspended: it is immediately passed to the scheduler as ready
+              to run.
             </para>
           </listitem>
         </varlistentry>
@@ -3194,7 +3220,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Precondition:</term>
           <listitem>
             <para>
-              The calling fiber doesn't own the mutex if the mutex is not recursive.
+              The calling fiber doesn't own the mutex.
             </para>
           </listitem>
         </varlistentry>
@@ -3229,7 +3255,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Precondition:</term>
           <listitem>
             <para>
-              The calling fiber doesn't own the mutex if the mutex is not recursive.
+              The calling fiber doesn't own the mutex.
             </para>
           </listitem>
         </varlistentry>
@@ -3237,7 +3263,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              Attempt to obtain the ownership for the current fiber without blocking.
+              Attempt to obtain ownership for the current fiber without blocking.
             </para>
           </listitem>
         </varlistentry>
@@ -3348,7 +3374,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Precondition:</term>
           <listitem>
             <para>
-              The calling fiber doesn't own the mutex if the mutex is not recursive.
+              The calling fiber doesn't own the mutex.
             </para>
           </listitem>
         </varlistentry>
@@ -3384,7 +3410,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Precondition:</term>
           <listitem>
             <para>
-              The calling fiber doesn't own the mutex if the mutex is not recursive.
+              The calling fiber doesn't own the mutex.
             </para>
           </listitem>
         </varlistentry>
@@ -3392,7 +3418,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              Attempt to obtain the ownership for the current fiber without blocking.
+              Attempt to obtain ownership for the current fiber without blocking.
             </para>
           </listitem>
         </varlistentry>
@@ -3469,7 +3495,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Precondition:</term>
           <listitem>
             <para>
-              The calling fiber doesn't own the mutex if the mutex is not recursive.
+              The calling fiber doesn't own the mutex.
             </para>
           </listitem>
         </varlistentry>
@@ -3518,7 +3544,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Precondition:</term>
           <listitem>
             <para>
-              The calling fiber doesn't own the mutex if the mutex is not recursive.
+              The calling fiber doesn't own the mutex.
             </para>
           </listitem>
         </varlistentry>
@@ -3630,7 +3656,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              Attempt to obtain the ownership for the current fiber without blocking.
+              Attempt to obtain ownership for the current fiber without blocking.
             </para>
           </listitem>
         </varlistentry>
@@ -3771,7 +3797,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              Attempt to obtain the ownership for the current fiber without blocking.
+              Attempt to obtain ownership for the current fiber without blocking.
             </para>
           </listitem>
         </varlistentry>
@@ -3841,7 +3867,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
             <para>
               Attempt to obtain ownership for the current fiber. Blocks until ownership
               can be obtained, or the specified time is reached. If the specified
-              time has already passed, behaves as <link linkend="timed_mutex_try_lock"> <code>timed_mutex::try_lock()</code></link>.
+              time has already passed, behaves as <link linkend="recursive_timed_mutex_try_lock"> <code>recursive_timed_mutex::try_lock()</code></link>.
             </para>
           </listitem>
         </varlistentry>
@@ -3882,7 +3908,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
             <para>
               Attempt to obtain ownership for the current fiber. Blocks until ownership
               can be obtained, or the specified time is reached. If the specified
-              time has already passed, behaves as <link linkend="timed_mutex_try_lock"> <code>timed_mutex::try_lock()</code></link>.
+              time has already passed, behaves as <link linkend="recursive_timed_mutex_try_lock"> <code>recursive_timed_mutex::try_lock()</code></link>.
             </para>
           </listitem>
         </varlistentry>
@@ -4843,11 +4869,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="identifier">unbounded_channel</phrase><phrase role="special">(</phrase> <phrase role="identifier">unbounded_channel</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">unbounded_channel</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">operator</phrase><phrase role="special">=(</phrase> <phrase role="identifier">unbounded_channel</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_closed</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">close</phrase><phrase role="special">();</phrase>
 
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">();</phrase>
-
+    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
@@ -4858,47 +4882,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
                                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase>
-                                                               <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
-      <para>
-        <bridgehead renderas="sect4" id="unbounded_channel_is_closed_bridgehead">
-  <phrase id="unbounded_channel_is_closed"/>
-  <link linkend="unbounded_channel_is_closed">Member
-        function <code>is_closed</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_closed</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              <code><phrase role="keyword">true</phrase></code> if channel has been
-              closed.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              The channel is not closed by default.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
       <para>
         <bridgehead renderas="sect4" id="unbounded_channel_close_bridgehead">
   <phrase id="unbounded_channel_close"/>
@@ -4950,51 +4936,14 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         </varlistentry>
       </variablelist>
       <para>
-        <bridgehead renderas="sect4" id="unbounded_channel_is_empty_bridgehead">
-  <phrase id="unbounded_channel_is_empty"/>
-  <link linkend="unbounded_channel_is_empty">Member
-        function <code>is_empty</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Returns <code><phrase role="keyword">true</phrase></code> if the channel
-              currently contains no data.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              This condition is transient. An <code><phrase role="identifier">is_empty</phrase><phrase
-              role="special">()</phrase></code> channel can become non-empty.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
         <bridgehead renderas="sect4" id="unbounded_channel_push_bridgehead">
   <phrase id="unbounded_channel_push"/>
   <link linkend="unbounded_channel_push">Member
         function <code>push</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -5002,19 +4951,16 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. Otherwise
-              enqueues the value in the channel, wakes up a fiber blocked on <code><phrase
-              role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">pop</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">value_pop</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">pop_wait_for</phrase><phrase role="special">()</phrase></code>
-              or <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">pop_wait_until</phrase><phrase role="special">()</phrase></code>
-              and returns <code><phrase role="identifier">success</phrase></code>.
+              If channel is not closed, Otherwise enqueues the value in the channel,
+              wakes up a fiber blocked on <code><phrase role="keyword">this</phrase><phrase
+              role="special">-&gt;</phrase><phrase role="identifier">pop</phrase><phrase
+              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
+              role="special">-&gt;</phrase><phrase role="identifier">value_pop</phrase><phrase
+              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
+              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_for</phrase><phrase
+              role="special">()</phrase></code> or <code><phrase role="keyword">this</phrase><phrase
+              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_until</phrase><phrase
+              role="special">()</phrase></code> and returns <code><phrase role="identifier">success</phrase></code>.
             </para>
           </listitem>
         </varlistentry>
@@ -5042,9 +4988,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              Dequeues a value from the channel. If the channel <code><phrase role="identifier">is_empty</phrase><phrase
-              role="special">()</phrase></code>, the fiber gets suspended until at
-              least one new item is <code><phrase role="identifier">push</phrase><phrase
+              Dequeues a value from the channel. If the channel is empty, the fiber
+              gets suspended until at least one new item is <code><phrase role="identifier">push</phrase><phrase
               role="special">()</phrase></code>ed (return value <code><phrase role="identifier">success</phrase></code>
               and <code><phrase role="identifier">va</phrase></code> contains dequeued
               value) or the channel gets <code><phrase role="identifier">close</phrase><phrase
@@ -5076,9 +5021,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              Dequeues a value from the channel. If the channel <code><phrase role="identifier">is_empty</phrase><phrase
-              role="special">()</phrase></code>, the fiber gets suspended until at
-              least one new item is <code><phrase role="identifier">push</phrase><phrase
+              Dequeues a value from the channel. If the channel is empty, the fiber
+              gets suspended until at least one new item is <code><phrase role="identifier">push</phrase><phrase
               role="special">()</phrase></code>ed or the channel gets <code><phrase
               role="identifier">close</phrase><phrase role="special">()</phrase></code>d
               (which throws an exception).
@@ -5111,13 +5055,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <term>Effects:</term>
           <listitem>
             <para>
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_empty</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">empty</phrase></code>. If
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. Otherwise
-              it returns <code><phrase role="identifier">success</phrase></code>
+              If channel is empty, returns <code><phrase role="identifier">empty</phrase></code>.
+              If channel is closed, returns <code><phrase role="identifier">closed</phrase></code>.
+              Otherwise it returns <code><phrase role="identifier">success</phrase></code>
               and <code><phrase role="identifier">va</phrase></code> contains the
               dequeued value.
             </para>
@@ -5153,11 +5093,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
               role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
               role="identifier">duration</phrase></code> and internally computes
               a timeout time as (system time + <code><phrase role="identifier">timeout_duration</phrase></code>).
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_empty</phrase><phrase
-              role="special">())</phrase></code>, immediately dequeues a value from
-              the channel. Otherwise the fiber gets suspended until at least one
-              new item is <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
+              If channel iss not _empty, immediately dequeues a value from the channel.
+              Otherwise the fiber gets suspended until at least one new item is
+              <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
               (return value <code><phrase role="identifier">success</phrase></code>
               and <code><phrase role="identifier">va</phrase></code> contains dequeued
               value), or the channel gets <code><phrase role="identifier">close</phrase><phrase
@@ -5198,11 +5136,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
               role="identifier">time_point</phrase><phrase role="special">&lt;</phrase>
               <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase>
               <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase></code>.
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_empty</phrase><phrase
-              role="special">())</phrase></code>, immediately dequeues a value from
-              the channel. Otherwise the fiber gets suspended until at least one
-              new item is <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
+              If channel iss not _empty, immediately dequeues a value from the channel.
+              Otherwise the fiber gets suspended until at least one new item is
+              <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
               (return value <code><phrase role="identifier">success</phrase></code>
               and <code><phrase role="identifier">va</phrase></code> contains dequeued
               value), or the channel gets <code><phrase role="identifier">close</phrase><phrase
@@ -5244,33 +5180,32 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">upper_bound</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">lower_bound</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_closed</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">close</phrase><phrase role="special">();</phrase>
 
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
-
+    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
+                                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                         <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+                                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
+                                       <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                       <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                           <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                       <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                        <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
+                                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                          <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
+                                      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
@@ -5331,8 +5266,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
               a state in which <code><phrase role="identifier">push</phrase><phrase
               role="special">()</phrase></code>, <code><phrase role="identifier">push_wait_for</phrase><phrase
               role="special">()</phrase></code> or <code><phrase role="identifier">push_wait_until</phrase><phrase
-              role="special">()</phrase></code> calls will block (<code><phrase role="identifier">is_full</phrase><phrase
-              role="special">()</phrase></code> returns <code><phrase role="keyword">true</phrase></code>)
+              role="special">()</phrase></code> calls will block (channel is full)
               even though the number of values in the channel is less than <code><phrase
               role="identifier">hwm</phrase></code>.
             </para>
@@ -5398,43 +5332,6 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         </varlistentry>
       </variablelist>
       <para>
-        <bridgehead renderas="sect4" id="bounded_channel_is_closed_bridgehead">
-  <phrase id="bounded_channel_is_closed"/>
-  <link linkend="bounded_channel_is_closed">Member
-        function <code>is_closed</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_closed</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Returns:</term>
-          <listitem>
-            <para>
-              <code><phrase role="keyword">true</phrase></code> if channel has been
-              closed.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              The channel is not closed by default.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
         <bridgehead renderas="sect4" id="bounded_channel_close_bridgehead">
   <phrase id="bounded_channel_close"/>
   <link linkend="bounded_channel_close">Member
@@ -5485,505 +5382,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         </varlistentry>
       </variablelist>
       <para>
-        <bridgehead renderas="sect4" id="bounded_channel_is_empty_bridgehead">
-  <phrase id="bounded_channel_is_empty"/>
-  <link linkend="bounded_channel_is_empty">Member
-        function <code>is_empty</code>()</link>
-</bridgehead>
+        ]
       </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_empty</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Returns <code><phrase role="keyword">true</phrase></code> if the channel
-              currently contains no data.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              This condition is transient. An <code><phrase role="identifier">is_empty</phrase><phrase
-              role="special">()</phrase></code> channel can become non-empty.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_is_full_bridgehead">
-  <phrase id="bounded_channel_is_full"/>
-  <link linkend="bounded_channel_is_full">Member
-        function <code>is_full</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">bool</phrase> <phrase role="identifier">is_full</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Returns <code><phrase role="keyword">true</phrase></code> if the channel
-              cannot accept more data at present. This happens when the number of
-              values in the channel reaches <code><phrase role="identifier">wm</phrase></code>
-              or <code><phrase role="identifier">hwm</phrase></code>. Once the channel
-              becomes full, however, it continues refusing new values until the number
-              of values drops below <code><phrase role="identifier">lwm</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Note:</term>
-          <listitem>
-            <para>
-              This condition is transient.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_push_bridgehead">
-  <phrase id="bounded_channel_push"/>
-  <link linkend="bounded_channel_push">Member
-        function <code>push</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. If
-              <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_full</phrase><phrase
-              role="special">())</phrase></code>, enqueues the value in the channel,
-              wakes up a fiber blocked on <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">value_pop</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_for</phrase><phrase
-              role="special">()</phrase></code> or <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_until</phrase><phrase
-              role="special">()</phrase></code> and returns <code><phrase role="identifier">success</phrase></code>.
-              Otherwise the calling fiber is suspended until the number of values
-              in the channel drops below <code><phrase role="identifier">lwm</phrase></code>
-              (return value <code><phrase role="identifier">success</phrase></code>)or
-              the channel is <code><phrase role="identifier">close</phrase><phrase
-              role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>).
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_push_wait_for_bridgehead">
-  <phrase id="bounded_channel_push_wait_for"/>
-  <link linkend="bounded_channel_push_wait_for">Member
-        function <code>push_wait_for</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                     <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Accepts <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">duration</phrase></code> and internally computes
-              a time_point as (system time + <code><phrase role="identifier">timeout_duration</phrase></code>).
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. If
-              <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_full</phrase><phrase
-              role="special">())</phrase></code>, enqueues the value in the channel,
-              wakes up a fiber blocked on <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">value_pop</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_for</phrase><phrase
-              role="special">()</phrase></code> or <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_until</phrase><phrase
-              role="special">()</phrase></code> and returns <code><phrase role="identifier">success</phrase></code>.
-              Otherwise the calling fiber is suspended until the number of values
-              in the channel drops below <code><phrase role="identifier">lwm</phrase></code>
-              (return value <code><phrase role="identifier">success</phrase></code>),
-              the channel is <code><phrase role="identifier">close</phrase><phrase
-              role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the system time reaches the computed time_point (return value <code><phrase
-              role="identifier">timeout</phrase></code>).
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_push_wait_until_bridgehead">
-  <phrase id="bounded_channel_push_wait_until"/>
-  <link linkend="bounded_channel_push_wait_until">Member
-        function <code>push_wait_until</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">push_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                   <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase>
-                                       <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Accepts an absolute <code><phrase role="identifier">timeout_time</phrase></code>
-              in any supported time_point type. If <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_closed</phrase><phrase
-              role="special">()</phrase></code>, returns <code><phrase role="identifier">closed</phrase></code>.
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_full</phrase><phrase
-              role="special">())</phrase></code>, enqueues the value in the channel,
-              wakes up a fiber blocked on <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">value_pop</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_for</phrase><phrase
-              role="special">()</phrase></code> or <code><phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">pop_wait_until</phrase><phrase
-              role="special">()</phrase></code> and returns <code><phrase role="identifier">success</phrase></code>.
-              Otherwise the calling fiber is suspended until the number of values
-              in the channel drops below <code><phrase role="identifier">lwm</phrase></code>
-              (return value <code><phrase role="identifier">success</phrase></code>),
-              the channel is <code><phrase role="identifier">close</phrase><phrase
-              role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the system time reaches the passed time_point (return value <code><phrase
-              role="identifier">timeout</phrase></code>).
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_try_push_bridgehead">
-  <phrase id="bounded_channel_try_push"/>
-  <link linkend="bounded_channel_try_push">Member
-        function <code>try_push</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_push</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_full</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">full</phrase></code>. If <code><phrase
-              role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. Otherwise
-              enqueues the value in the channel, wakes up a fiber blocked on <code><phrase
-              role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">pop</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">value_pop</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">pop_wait_for</phrase><phrase role="special">()</phrase></code>
-              or <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">pop_wait_until</phrase><phrase role="special">()</phrase></code>
-              and returns <code><phrase role="identifier">success</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_pop_bridgehead">
-  <phrase id="bounded_channel_pop"/>
-  <link linkend="bounded_channel_pop">Member
-        function <code>pop</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Dequeues a value from the channel. If the channel <code><phrase role="identifier">is_empty</phrase><phrase
-              role="special">()</phrase></code>, the fiber gets suspended until at
-              least one new item is <code><phrase role="identifier">push</phrase><phrase
-              role="special">()</phrase></code>ed (return value <code><phrase role="identifier">success</phrase></code>
-              and <code><phrase role="identifier">va</phrase></code> contains dequeued
-              value) or the channel gets <code><phrase role="identifier">close</phrase><phrase
-              role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>).
-              Once the number of items remaining in the channel drops below <code><phrase
-              role="identifier">lwm</phrase></code>, any fibers blocked on <code><phrase
-              role="identifier">push</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="identifier">push_wait_for</phrase><phrase role="special">()</phrase></code>
-              or <code><phrase role="identifier">push_wait_until</phrase><phrase
-              role="special">()</phrase></code> may resume.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_value_pop_bridgehead">
-  <phrase id="bounded_channel_value_pop"/>
-  <link linkend="bounded_channel_value_pop">Member
-        function <code>value_pop</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="identifier">value_type</phrase> <phrase role="identifier">value_pop</phrase><phrase role="special">();</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Dequeues a value from the channel. If the channel <code><phrase role="identifier">is_empty</phrase><phrase
-              role="special">()</phrase></code>, the fiber gets suspended until at
-              least one new item is <code><phrase role="identifier">push</phrase><phrase
-              role="special">()</phrase></code>ed or the channel gets <code><phrase
-              role="identifier">close</phrase><phrase role="special">()</phrase></code>d
-              (which throws an exception). Once the number of items remaining in
-              the channel drops below <code><phrase role="identifier">lwm</phrase></code>,
-              any fibers blocked on <code><phrase role="identifier">push</phrase><phrase
-              role="special">()</phrase></code>, <code><phrase role="identifier">push_wait_for</phrase><phrase
-              role="special">()</phrase></code> or <code><phrase role="identifier">push_wait_until</phrase><phrase
-              role="special">()</phrase></code> may resume.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">logic_error</phrase></code> if <code><phrase
-              role="special">*</phrase><phrase role="keyword">this</phrase></code>
-              is closed; <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_try_pop_bridgehead">
-  <phrase id="bounded_channel_try_pop"/>
-  <link linkend="bounded_channel_try_pop">Member
-        function <code>try_pop</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              If <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_empty</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">empty</phrase></code>. If
-              <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
-              role="identifier">is_closed</phrase><phrase role="special">()</phrase></code>,
-              returns <code><phrase role="identifier">closed</phrase></code>. Otherwise
-              it returns <code><phrase role="identifier">success</phrase></code>
-              and <code><phrase role="identifier">va</phrase></code> contains the
-              dequeued value. Once the number of items remaining in the channel drops
-              below <code><phrase role="identifier">lwm</phrase></code>, any fibers
-              blocked on <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="identifier">push_wait_for</phrase><phrase role="special">()</phrase></code>
-              or <code><phrase role="identifier">push_wait_until</phrase><phrase
-              role="special">()</phrase></code> may resume.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              Nothing.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_pop_wait_for_bridgehead">
-  <phrase id="bounded_channel_pop_wait_for"/>
-  <link linkend="bounded_channel_pop_wait_for">Member
-        function <code>pop_wait_for</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop_wait_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">)</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Accepts <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">duration</phrase></code> and internally computes
-              a timeout time as (system time + <code><phrase role="identifier">timeout_duration</phrase></code>).
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_empty</phrase><phrase
-              role="special">())</phrase></code>, immediately dequeues a value from
-              the channel. Otherwise the fiber gets suspended until at least one
-              new item is <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
-              (return value <code><phrase role="identifier">success</phrase></code>
-              and <code><phrase role="identifier">va</phrase></code> contains dequeued
-              value), or the channel gets <code><phrase role="identifier">close</phrase><phrase
-              role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the system time reaches the computed timeout time (return value
-              <code><phrase role="identifier">timeout</phrase></code>). Once the
-              number of items remaining in the channel drops below <code><phrase
-              role="identifier">lwm</phrase></code>, any fibers blocked on <code><phrase
-              role="identifier">push</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="identifier">push_wait_for</phrase><phrase role="special">()</phrase></code>
-              or <code><phrase role="identifier">push_wait_until</phrase><phrase
-              role="special">()</phrase></code> may resume.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>
-        <bridgehead renderas="sect4" id="bounded_channel_pop_wait_until_bridgehead">
-  <phrase id="bounded_channel_pop_wait_until"/>
-  <link linkend="bounded_channel_pop_wait_until">Member
-        function <code>pop_wait_until</code>()</link>
-</bridgehead>
-      </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">pop_wait_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
-                                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">)</phrase>
-</programlisting>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Accepts a <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">time_point</phrase><phrase role="special">&lt;</phrase>
-              <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase>
-              <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase></code>.
-              If <code><phrase role="special">(!</phrase> <phrase role="keyword">this</phrase><phrase
-              role="special">-&gt;</phrase><phrase role="identifier">is_empty</phrase><phrase
-              role="special">())</phrase></code>, immediately dequeues a value from
-              the channel. Otherwise the fiber gets suspended until at least one
-              new item is <code><phrase role="identifier">push</phrase><phrase role="special">()</phrase></code>ed
-              (return value <code><phrase role="identifier">success</phrase></code>
-              and <code><phrase role="identifier">va</phrase></code> contains dequeued
-              value), or the channel gets <code><phrase role="identifier">close</phrase><phrase
-              role="special">()</phrase></code>d (return value <code><phrase role="identifier">closed</phrase></code>),
-              or the system time reaches the passed <code><phrase role="identifier">time_point</phrase></code>
-              (return value <code><phrase role="identifier">timeout</phrase></code>).
-              Once the number of items remaining in the channel drops below <code><phrase
-              role="identifier">lwm</phrase></code>, any fibers blocked on <code><phrase
-              role="identifier">push</phrase><phrase role="special">()</phrase></code>,
-              <code><phrase role="identifier">push_wait_for</phrase><phrase role="special">()</phrase></code>
-              or <code><phrase role="identifier">push_wait_until</phrase><phrase
-              role="special">()</phrase></code> may resume.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Throws:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">fiber_interrupted</phrase></code>
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
     </section>
     <section id="fiber.synchronization.futures">
       <title><link linkend="fiber.synchronization.futures">Futures</link></title>
@@ -8845,7 +8245,7 @@ are
     <title><link linkend="fiber.rational">Rational</link></title>
     <bridgehead renderas="sect3" id="fiber.rational.h0">
       <phrase id="fiber.rational.distinction_between_coroutines_and_fibers"/><link
-      linkend="fiber.rational.distinction_between_coroutines_and_fibers">Distinction
+      linkend="fiber.rational.distinction_between_coroutines_and_fibers">distinction
       between coroutines and fibers</link>
     </bridgehead>
     <para>
@@ -8885,7 +8285,7 @@ are
     </bridgehead>
     <para>
       Synchronization classes from <ulink url="boost:/libs/thread/index.html">Boost.Thread</ulink>
-      do block the entire thread. In contrast to this the synchronization clases
+      do block the entire thread. In contrast to this the synchronization classes
       from <emphasis role="bold">Boost.Fiber</emphasis> do block only the fiber,
       so that the thread is able to schedule and run other fibers in the meantime.
       The synchronization classes from <emphasis role="bold">Boost.Fiber</emphasis>
@@ -8899,15 +8299,45 @@ are
       for Boost.Asio</link>
     </bridgehead>
     <para>
-      The support for Boot.Asio's <emphasis>async-result</emphasis> is not part of
-      the official API (implementation provided in example section). <emphasis>async-result</emphasis>
-      does not reflect that <emphasis role="bold">Boost.Fiber</emphasis> uses an
-      internal scheudler by itself ( especially fibers not in touch with code using
-      <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>, for instance a
-      sleeping fiber will not be launched explicitly by <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>).
-      The intergration of <emphasis role="bold">Boost.Fiber</emphasis> into <ulink
+      The support for Boost.Asio's <emphasis>async-result</emphasis> is not part
+      of the official API (implementation provided in example section). <emphasis>async-result</emphasis>
+      does not reflect that <emphasis role="bold">Boost.Fiber</emphasis> itself uses
+      an internal scheduler (especially fibers not in touch with code using <ulink
+      url="boost:/libs/asio/index.html">Boost.Asio</ulink>, for instance a sleeping
+      fiber will not be launched explicitly by <ulink url="boost:/libs/asio/index.html">Boost.Asio</ulink>).
+      The integration of <emphasis role="bold">Boost.Fiber</emphasis> into <ulink
       url="boost:/libs/asio/index.html">Boost.Asio</ulink> requires some investigation
       from both authors.
+    </para>
+    <bridgehead renderas="sect3" id="fiber.rational.h4">
+      <phrase id="fiber.rational.tested_compilers"/><link linkend="fiber.rational.tested_compilers">tested
+      compilers</link>
+    </bridgehead>
+    <para>
+      The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
+    </para>
+    <bridgehead renderas="sect3" id="fiber.rational.h5">
+      <phrase id="fiber.rational.supported_architectures"/><link linkend="fiber.rational.supported_architectures">supported
+      architectures</link>
+    </bridgehead>
+    <para>
+      <emphasis role="bold">Boost.Fiber</emphasis> depends on <ulink url="boost:/libs/context/index.html">Boost.Context</ulink>
+      - the list of supported architectures can be found <ulink url="boost:/libs/context/doc/html/context/architectures.html">here</ulink>.
+    </para>
+    <bridgehead renderas="sect3" id="fiber.rational.h6">
+      <phrase id="fiber.rational.migrating_fibers_between_threads"/><link linkend="fiber.rational.migrating_fibers_between_threads">migrating
+      fibers between threads</link>
+    </bridgehead>
+    <para>
+      The support for migrating fibers between threads was removed. Especially in
+      the case of NUMA-architectures it is not always advised to migrate data between
+      threads. Suppose fiber <emphasis>f</emphasis> is running on logical CPU <emphasis>cpu0</emphasis>
+      which belongs to NUMA node <emphasis>node0</emphasis>. The data of <emphasis>f</emphasis>
+      are allocated on the physical memory located at <emphasis>node0</emphasis>.
+      Migrating the fiber from <emphasis>cpu0</emphasis> to another logical CPU
+      <emphasis>cpuX</emphasis> which is part of NUMA node <emphasis>nodeX</emphasis>
+      will reduce the performance of the application because of increased latency
+      of memory access.
     </para>
   </section>
   <section id="fiber.custom">
