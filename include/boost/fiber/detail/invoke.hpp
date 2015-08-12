@@ -24,7 +24,7 @@ namespace detail {
 template< typename Fn, typename... Args >
 typename std::enable_if<
     std::is_member_pointer< typename std::decay< Fn >::type >::value,
-    typename std::result_of< Fn( Args ...) >::type
+    typename std::result_of< Fn&&( Args && ...) >::type
 >::type
 invoke_( Fn && fn, Args && ... args) {
     return std::mem_fn( fn)( std::forward< Args >( args) ...);
@@ -33,7 +33,7 @@ invoke_( Fn && fn, Args && ... args) {
 template< typename Fn, typename ... Args >
 typename std::enable_if<
     ! std::is_member_pointer< typename std::decay< Fn >::type >::value,
-    typename std::result_of< Fn( Args ...) >::type
+    typename std::result_of< Fn&&( Args && ...) >::type
 >::type
 invoke_( Fn && fn, Args && ... args) {
     return fn( std::forward< Args >( args) ...);
