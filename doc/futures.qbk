@@ -33,7 +33,8 @@ __shared_future__, thus transferring ownership of the associated asynchronous
 result, but not vice-versa.
 
 __async__ is a simple way of running asynchronous tasks. A call to __async__
-returns a __future__ that will deliver the result of the task.
+spawns a fiber and returns a __future__ that will deliver the result of the
+fiber function.
 
 
 [heading Creating asynchronous values]
