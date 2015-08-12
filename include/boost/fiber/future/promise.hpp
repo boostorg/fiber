@@ -33,9 +33,6 @@ public:
     promise() :
         obtained_( false),
         future_() {
-        // TODO: constructs the promise with an empty shared state
-        //       the shared state is allocated using alloc
-        //       alloc must meet the requirements of Allocator
         typedef detail::shared_state_object<
             R, std::allocator< promise< R > >
         >                                               object_t;
@@ -50,9 +47,6 @@ public:
     promise( std::allocator_arg_t, Allocator alloc) :
         obtained_( false),
         future_() {
-        // TODO: constructs the promise with an empty shared state
-        //       the shared state is allocated using alloc
-        //       alloc must meet the requirements of Allocator
         typedef detail::shared_state_object< R, Allocator >  object_t;
         typename object_t::allocator_t a( alloc);
         future_ = ptr_t(
@@ -61,7 +55,6 @@ public:
     }
 
     ~promise() {
-        //TODO: abandon ownership if any
         if ( future_) {
             future_->owner_destroyed();
         }
@@ -73,16 +66,10 @@ public:
     promise( promise && other) noexcept :
         obtained_( other.obtained_),
         future_( std::move( other.future_) ) {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
         other.obtained_ = false;
     }
 
     promise & operator=( promise && other) noexcept {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
         if ( this != & other) {
             obtained_ = other.obtained_;
             other.obtained_ = false;
@@ -92,15 +79,11 @@ public:
     }
 
     void swap( promise & other) noexcept {
-        //TODO: exchange the shared states of two promises
         std::swap( obtained_, other.obtained_);
         future_.swap( other.future_);
     }
 
     future< R > get_future() {
-        //TODO: returns a future object associated with the same shared state
-        //      exception is thrown if *this has no shared state or get_future
-        //      has already been called. 
         if ( obtained_) {
             throw future_already_retrieved();
         }
@@ -112,11 +95,6 @@ public:
     }
 
     void set_value( R const& value) {
-        //TODO: store the value into the shared state and make the state ready
-        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }
@@ -124,11 +102,6 @@ public:
     }
 
     void set_value( R && value) {
-        //TODO: store the value into the shared state and make the state ready
-        //      rhe operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }
@@ -136,11 +109,6 @@ public:
     }
 
     void set_exception( std::exception_ptr p) {
-        //TODO: store the exception pointer p into the shared state and make the state ready
-        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }
@@ -160,9 +128,6 @@ public:
     promise() :
         obtained_( false),
         future_() {
-        // TODO: constructs the promise with an empty shared state
-        //       the shared state is allocated using alloc
-        //       alloc must meet the requirements of Allocator
         typedef detail::shared_state_object<
             R &, std::allocator< promise< R & > >
         >                                               object_t;
@@ -177,9 +142,6 @@ public:
     promise( std::allocator_arg_t, Allocator alloc) :
         obtained_( false),
         future_() {
-        // TODO: constructs the promise with an empty shared state
-        //       the shared state is allocated using alloc
-        //       alloc must meet the requirements of Allocator
         typedef detail::shared_state_object< R &, Allocator >  object_t;
         typename object_t::allocator_t a( alloc);
         future_ = ptr_t(
@@ -188,7 +150,6 @@ public:
     }
 
     ~promise() {
-        //TODO: abandon ownership if any
         if ( future_) {
             future_->owner_destroyed();
         }
@@ -200,16 +161,10 @@ public:
     promise( promise && other) noexcept :
         obtained_( other.obtained_),
         future_( std::move( other.future_) ) {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
         other.obtained_ = false;
     }
 
     promise & operator=( promise && other) noexcept {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
         if ( this != & other) {
             obtained_ = other.obtained_;
             other.obtained_ = false;
@@ -219,15 +174,11 @@ public:
     }
 
     void swap( promise & other) noexcept {
-        //TODO: exchange the shared states of two promises
         std::swap( obtained_, other.obtained_);
         future_.swap( other.future_);
     }
 
     future< R & > get_future() {
-        //TODO: returns a future object associated with the same shared state
-        //      exception is thrown if *this has no shared state or get_future
-        //      has already been called.
         if ( obtained_) {
             throw future_already_retrieved();
         }
@@ -239,11 +190,6 @@ public:
     }
 
     void set_value( R & value) {
-        //TODO: store the value into the shared state and make the state ready
-        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }
@@ -251,11 +197,6 @@ public:
     }
 
     void set_exception( std::exception_ptr p) {
-        //TODO: store the exception pointer p into the shared state and make the state ready
-        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }
@@ -275,9 +216,6 @@ public:
     promise() :
         obtained_( false),
         future_() {
-        // TODO: constructs the promise with an empty shared state
-        //       the shared state is allocated using alloc
-        //       alloc must meet the requirements of Allocator
         typedef detail::shared_state_object<
             void, std::allocator< promise< void > >
         >                                               object_t;
@@ -292,9 +230,6 @@ public:
     promise( std::allocator_arg_t, Allocator alloc) :
         obtained_( false),
         future_() {
-        // TODO: constructs the promise with an empty shared state
-        //       the shared state is allocated using alloc
-        //       alloc must meet the requirements of Allocator
         typedef detail::shared_state_object< void, Allocator >  object_t;
         typename object_t::allocator_t a( alloc);
         future_ = ptr_t(
@@ -303,7 +238,6 @@ public:
     }
 
     ~promise() {
-        //TODO: abandon ownership if any
         if ( future_) {
             future_->owner_destroyed();
         }
@@ -316,17 +250,11 @@ public:
     promise( promise && other) noexcept :
         obtained_( other.obtained_),
         future_( std::move( other.future_) ) {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
         other.obtained_ = false;
     }
 
     inline
     promise & operator=( promise && other) noexcept {
-        //TODO: take over ownership
-        //      other is valid before but in
-        //      undefined state afterwards
         if ( this != & other) {
             obtained_ = other.obtained_;
             other.obtained_ = false;
@@ -337,16 +265,12 @@ public:
 
     inline
     void swap( promise & other) noexcept {
-        //TODO: exchange the shared states of two promises
         std::swap( obtained_, other.obtained_);
         future_.swap( other.future_);
     }
 
     inline
     future< void > get_future() {
-        //TODO: returns a future object associated with the same shared state
-        //      exception is thrown if *this has no shared state or get_future
-        //      has already been called. 
         if ( obtained_) {
             throw future_already_retrieved();
         }
@@ -359,11 +283,6 @@ public:
 
     inline
     void set_value() {
-        //TODO: store the value into the shared state and make the state ready
-        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }
@@ -372,11 +291,6 @@ public:
 
     inline
     void set_exception( std::exception_ptr p) {
-        //TODO: store the exception pointer p into the shared state and make the state ready
-        //      the operation is atomic, i.e. it behaves as though they acquire a single mutex
-        //      associated with the promise object while updating the promise object
-        //      an exception is thrown if there is no shared state or the shared state already
-        //      stores a value or exception
         if ( ! future_) {
             throw promise_uninitialized();
         }

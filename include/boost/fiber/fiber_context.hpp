@@ -256,7 +256,6 @@ public:
     }
 
     void set_terminated() noexcept {
-        // TODO
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::terminated);
 #else
@@ -268,7 +267,6 @@ public:
     }
 
     void set_ready() noexcept {
-        // TODO
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::ready);
 #else
@@ -280,7 +278,6 @@ public:
     }
 
     void set_running() noexcept {
-        // TODO
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::running);
 #else
@@ -292,7 +289,6 @@ public:
     }
 
     void set_waiting() noexcept {
-        // TODO
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
         fiber_status previous = state_.exchange( fiber_status::waiting);
 #else

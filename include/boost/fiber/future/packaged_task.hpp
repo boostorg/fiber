@@ -36,15 +36,9 @@ public:
     packaged_task() noexcept :
         obtained_( false),
         task_() {
-        //TODO: constructs a packaged_task object with
-        //       no task and no shared state
     }
 
     ~packaged_task() {
-        //TODO: abandons the shared state and destroys the stored task object
-        //      a usual, if the shared state is abandoned before it was made
-        //      ready, an std::future_error exception is stored with the error
-        //      code future_errc::broken_promise
         if ( task_) {
             task_->owner_destroyed();
         }
@@ -54,9 +48,6 @@ public:
     explicit packaged_task( Fn && fn) :
         obtained_( false),
         task_() {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with std::forward< Fn >( fn)
         typedef detail::task_object<
             Fn,
             std::allocator< packaged_task< R() > >,
@@ -74,11 +65,6 @@ public:
     explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) :
         obtained_( false),
         task_() {
-        //TODO: constructs a std::packaged_task object
-        //       with a shared state and a copy of the task,
-        //       initialized with std::forward< Fn >( fn)
-        //       uses the provided allocator to allocate
-        //       memory necessary to store the task
         typedef detail::task_object<
             Fn,
             Allocator,
@@ -96,18 +82,10 @@ public:
     packaged_task( packaged_task && other) noexcept :
         obtained_( other.obtained_),
         task_( std::move( other.task_) ) {
-        //TODO: constructs a std::packaged_task with thes
-        //       shared state and task formerly owned by rhs,
-        //       leaving rhs with no shared state and a moved-from task
         other.obtained_ = false;
     }
 
     packaged_task & operator=( packaged_task && other) noexcept {
-        //TODO: releases the shared state, if any, destroys the
-        //       previously-held task, and moves the shared state
-        //       and the task owned by rhs into *this
-        //       rhs is left without a shared state and with a
-        //       moved-from task
         if ( this != & other) {
             obtained_ = other.obtained_;
             other.obtained_ = false;
@@ -117,19 +95,15 @@ public:
     }
 
     void swap( packaged_task & other) noexcept {
-        //TODO: exchange the shared states of two packaged_task
         std::swap( obtained_, other.obtained_);
         task_.swap( other.task_);
     }
 
     bool valid() const noexcept {
-        //TODO: checks whether *this has a shared state
         return nullptr != task_.get();
     }
 
     future< R > get_future() {
-        //TODO: returns a future which shares the same shared state as *this
-        //      get_future can be called only once for each packaged_task
         if ( obtained_) {
             throw future_already_retrieved();
         }
@@ -142,11 +116,6 @@ public:
     }
 
     void operator()( Args && ... args) {
-        //TODO: calls the stored task with args as the arguments
-        //      the return value of the task or any exceptions thrown are
-        //      stored in the shared state
-        //      the shared state is made ready and any threads waiting for
-        //      this are unblocked
         if ( ! valid() ) {
             throw packaged_task_uninitialized();
         }
@@ -154,10 +123,6 @@ public:
     }
 
     void reset() {
-        //TODO: resets the state abandoning the results of previous executions
-        //      new shared state is constructed
-        //      equivalent to *this = packaged_task(std::move(f)), where f is
-        //      the stored task
         if ( ! valid() ) {
             throw packaged_task_uninitialized();
         }

@@ -7,7 +7,7 @@
 
 [section:rational Rational]
 
-[heading Distinction between coroutines and fibers]
+[heading distinction between coroutines and fibers]
 
 The fiber library extends the coroutine library by adding a scheduler and
 synchronization mechanisms.
@@ -36,7 +36,7 @@ sections.
 [heading synchronization between fibers running in different threads]
 
 Synchronization classes from __boost_thread__ do block the entire thread. In
-contrast to this the synchronization clases from __boost_fiber__ do block only
+contrast to this the synchronization classes from __boost_fiber__ do block only
 the fiber, so that the thread is able to schedule and run other fibers in the
 meantime.
 The synchronization classes from __boost_fiber__ are designed to be thread-safe,
@@ -55,6 +55,28 @@ scheduler (especially fibers not in touch with code using __boost_asio__, for
 instance a sleeping fiber will not be launched explicitly by __boost_asio__).
 The integration of __boost_fiber__ into __boost_asio__ requires some investigation
 from both authors.
+
+
+[heading tested compilers]
+
+The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
+
+
+[heading supported architectures]
+
+__boost_fiber__ depends on __boost_context__ - the list of supported architectures
+can be found [@boost:/libs/context/doc/html/context/architectures.html here].
+
+
+[heading migrating fibers between threads]
+
+The support for migrating fibers between threads was removed.
+Especially in the case of NUMA-architectures it is not always advised to migrate
+data between threads. Suppose fiber ['f] is running on logical CPU ['cpu0] which
+belongs to NUMA node ['node0]. The data of ['f] are allocated on the physical
+memory located at ['node0]. Migrating the fiber from ['cpu0] to another logical
+CPU ['cpuX] which is part of NUMA node ['nodeX] will reduce the performance of
+the application because of increased latency of memory access.
 
 
 [endsect]

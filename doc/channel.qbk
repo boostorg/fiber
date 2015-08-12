@@ -83,10 +83,7 @@ channel operations return the state of the channel.
         unbounded_channel( unbounded_channel const& other) = delete;
         unbounded_channel & operator=( unbounded_channel const& other) = delete;
 
-        bool is_closed() const;
         void close();
-
-        bool is_empty();
 
         channel_op_status push( value_type const& va);
         channel_op_status push( value_type && va);
@@ -101,19 +98,6 @@ channel operations return the state of the channel.
         channel_op_status pop_wait_until( value_type & va,
                                           std::chrono::time_point< Clock, Duration > const& timeout_time);
     };
-
-[template xchannel_is_closed[cls]
-[member_heading [cls]..is_closed]
-
-        bool is_closed() const;
-
-[variablelist
-[[Returns:] [`true` if channel has been closed.]]
-[[Throws:] [Nothing.]]
-[[Note:] [The channel is not closed by default.]]
-]
-]
-[xchannel_is_closed unbounded_channel]
 
 [template xchannel_close[cls]
 [member_heading [cls]..close]
@@ -132,22 +116,8 @@ that no more values will arrive.]]
 ]
 [xchannel_close unbounded_channel]
 
-[template xchannel_is_empty[cls]
-[member_heading [cls]..is_empty]
-
-        bool is_empty();
-
-[variablelist
-[[Effects:] [Returns `true` if the channel currently contains no data.]]
-[[Throws:] [Nothing.]]
-[[Note:] [This condition is transient. An `is_empty()` channel can become
-non-empty.]]
-]
-]
-[xchannel_is_empty unbounded_channel]
-
-[template xchannel_push_effects[enqueues] If `this->is_closed()`, returns
-`closed`. [enqueues] the value in the channel, wakes up a fiber blocked on
+[template xchannel_push_effects[enqueues] If channel is not closed,
+[enqueues] the value in the channel, wakes up a fiber blocked on
 `this->pop()`, `this->value_pop()`, `this->pop_wait_for()` or
 `this->pop_wait_until()` and returns `success`.]
 
@@ -167,7 +137,7 @@ non-empty.]]
         channel_op_status pop( value_type & va);
 
 [variablelist
-[[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
+[[Effects:] [Dequeues a value from the channel. If the channel is empty, the
 fiber gets suspended until at least one new item is `push()`ed (return value
 `success` and `va` contains dequeued value) or the channel gets `close()`d
 (return value `closed`)[unblocking]]]
@@ -182,7 +152,7 @@ fiber gets suspended until at least one new item is `push()`ed (return value
         value_type value_pop();
 
 [variablelist
-[[Effects:] [Dequeues a value from the channel. If the channel `is_empty()`, the
+[[Effects:] [Dequeues a value from the channel. If the channel is empty, the
 fiber gets suspended until at least one new item is `push()`ed or the channel
 gets `close()`d (which throws an exception)[unblocking]]]
 [[Throws:] [`logic_error` if `*this` is closed; __fiber_interrupted__]]
@@ -196,7 +166,7 @@ gets `close()`d (which throws an exception)[unblocking]]]
         channel_op_status try_pop( value_type & va);
 
 [variablelist
-[[Effects:] [If `this->is_empty()`, returns `empty`. If `this->is_closed()`,
+[[Effects:] [If channel is empty, returns `empty`. If channel is closed,
 returns `closed`. Otherwise it returns `success` and `va` contains the
 dequeued value[unblocking]]]
 [[Throws:] [Nothing.]]
@@ -204,8 +174,8 @@ dequeued value[unblocking]]]
 ]
 [xchannel_try_pop unbounded_channel .]
 
-[template xchannel_pop_wait_until_effects[endtime unblocking] If `(!
-this->is_empty())`, immediately dequeues a value from the channel. Otherwise
+[template xchannel_pop_wait_until_effects[endtime unblocking] If channel
+iss not _empty, immediately dequeues a value from the channel. Otherwise
 the fiber gets suspended until at least one new item is `push()`ed (return
 value `success` and `va` contains dequeued value), or the channel gets
 `close()`d (return value `closed`), or the system time reaches [endtime]
@@ -261,11 +231,7 @@ time as (system time + `timeout_duration`).
         std::size_t upper_bound() const;
         std::size_t lower_bound() const;
 
-        bool is_closed() const;
         void close();
-
-        bool is_empty() const;
-        bool is_full() const;
 
         channel_op_status push( value_type const& va);
         channel_op_status push( value_type && va);
@@ -311,7 +277,7 @@ with one argument effectively sets both `hwm` and `lwm` to the same value
 `push()`, `push_wait_for()` or `push_wait_until()` will block until the number
 of values in the channel has dropped below `lwm`. That is, if `lwm < hwm`, the
 channel can be in a state in which `push()`, `push_wait_for()` or `push_wait_until()`
-calls will block (`is_full()` returns `true`) even though the number of values
+calls will block (channel is full) even though the number of values
 in the channel is less than `hwm`.]]
 ]
 
@@ -333,25 +299,10 @@ in the channel is less than `hwm`.]]
 [[Throws:] [Nothing.]]
 ]
 
-[xchannel_is_closed bounded_channel]
 [xchannel_close bounded_channel]
-[xchannel_is_empty bounded_channel]
 
-[member_heading bounded_channel..is_full]
-
-        bool is_full() const;
-
-[variablelist
-[[Effects:] [Returns `true` if the channel cannot accept more data at present.
-This happens when the number of values in the channel reaches `wm` or `hwm`.
-Once the channel becomes full, however, it continues refusing new values until
-the number of values drops below `lwm`.]]
-[[Throws:] [Nothing.]]
-[[Note:] [This condition is transient.]]
-]
-
-[template bounded_channel_push_effects[or] [xchannel_push_effects If `(!
-this->is_full())`, enqueues] Otherwise the calling fiber is suspended until
+[template bounded_channel_push_effects[or] [xchannel_push_effects If channel
+is not full, [enqueues] Otherwise the calling fiber is suspended until
 the number of values in the channel drops below `lwm` (return value
 `success`)[or] the channel is `close()`d (return value `closed`)]
 
@@ -404,7 +355,7 @@ time_point (return value `timeout`).]]
         channel_op_status try_push( value_type && va);
 
 [variablelist
-[[Effects:] [If `this->is_full()`, returns `full`.
+[[Effects:] [If is full, returns `full`.
 [xchannel_push_effects Otherwise enqueues]]]
 [[Throws:] [__fiber_interrupted__]]
 ]
