@@ -28,7 +28,7 @@
 </h2></div></div></div>
 <h4>
 <a name="fiber.rational.h0"></a>
-      <span><a name="fiber.rational.distinction_between_coroutines_and_fibers"></a></span><a class="link" href="rational.html#fiber.rational.distinction_between_coroutines_and_fibers">Distinction
+      <span><a name="fiber.rational.distinction_between_coroutines_and_fibers"></a></span><a class="link" href="rational.html#fiber.rational.distinction_between_coroutines_and_fibers">distinction
       between coroutines and fibers</a>
     </h4>
 <p>
@@ -64,7 +64,7 @@
     </h4>
 <p>
       Synchronization classes from <a href="../../../../../libs/thread/index.html" target="_top">Boost.Thread</a>
-      do block the entire thread. In contrast to this the synchronization clases
+      do block the entire thread. In contrast to this the synchronization classes
       from <span class="bold"><strong>Boost.Fiber</strong></span> do block only the fiber,
       so that the thread is able to schedule and run other fibers in the meantime.
       The synchronization classes from <span class="bold"><strong>Boost.Fiber</strong></span>
@@ -79,14 +79,46 @@
       for Boost.Asio</a>
     </h4>
 <p>
-      The support for Boot.Asio's <span class="emphasis"><em>async-result</em></span> is not part of
-      the official API (implementation provided in example section). <span class="emphasis"><em>async-result</em></span>
-      does not reflect that <span class="bold"><strong>Boost.Fiber</strong></span> uses an
-      internal scheudler by itself ( especially fibers not in touch with code using
-      <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>, for instance a
-      sleeping fiber will not be launched explicitly by <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>).
-      The intergration of <span class="bold"><strong>Boost.Fiber</strong></span> into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a> requires some investigation
+      The support for Boost.Asio's <span class="emphasis"><em>async-result</em></span> is not part
+      of the official API (implementation provided in example section). <span class="emphasis"><em>async-result</em></span>
+      does not reflect that <span class="bold"><strong>Boost.Fiber</strong></span> itself uses
+      an internal scheduler (especially fibers not in touch with code using <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>, for instance a sleeping
+      fiber will not be launched explicitly by <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a>).
+      The integration of <span class="bold"><strong>Boost.Fiber</strong></span> into <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a> requires some investigation
       from both authors.
+    </p>
+<h4>
+<a name="fiber.rational.h4"></a>
+      <span><a name="fiber.rational.tested_compilers"></a></span><a class="link" href="rational.html#fiber.rational.tested_compilers">tested
+      compilers</a>
+    </h4>
+<p>
+      The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
+    </p>
+<h4>
+<a name="fiber.rational.h5"></a>
+      <span><a name="fiber.rational.supported_architectures"></a></span><a class="link" href="rational.html#fiber.rational.supported_architectures">supported
+      architectures</a>
+    </h4>
+<p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> depends on <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>
+      - the list of supported architectures can be found <a href="../../../../../libs/context/doc/html/context/architectures.html" target="_top">here</a>.
+    </p>
+<h4>
+<a name="fiber.rational.h6"></a>
+      <span><a name="fiber.rational.migrating_fibers_between_threads"></a></span><a class="link" href="rational.html#fiber.rational.migrating_fibers_between_threads">migrating
+      fibers between threads</a>
+    </h4>
+<p>
+      The support for migrating fibers between threads was removed. Especially in
+      the case of NUMA-architectures it is not always advised to migrate data between
+      threads. Suppose fiber <span class="emphasis"><em>f</em></span> is running on logical CPU <span class="emphasis"><em>cpu0</em></span>
+      which belongs to NUMA node <span class="emphasis"><em>node0</em></span>. The data of <span class="emphasis"><em>f</em></span>
+      are allocated on the physical memory located at <span class="emphasis"><em>node0</em></span>.
+      Migrating the fiber from <span class="emphasis"><em>cpu0</em></span> to another logical CPU
+      <span class="emphasis"><em>cpuX</em></span> which is part of NUMA node <span class="emphasis"><em>nodeX</em></span>
+      will reduce the performance of the application because of increased latency
+      of memory access.
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
