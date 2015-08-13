@@ -8,8 +8,9 @@
 [#class_promise]
 [section:promise Template `promise<>`]
 
-A __promise__ provides a mechanism to store a value that can later be accessed
-asynchronously by a __future__ object.
+A __promise__ provides a mechanism to store a value (or exception) that can
+later be retrieved from the corresponding __future__ object. `promise<>` and
+`future<>` communicate via their underlying [link shared_state shared state].
 
         template< typename R >
         class promise {
@@ -31,17 +32,13 @@ asynchronously by a __future__ object.
 
             void swap( promise & other) noexcept;
 
-            operator safe_bool() const noexcept;
-
-            bool operator!() const noexcept;
-
             future< R > get_future();
 
             void set_value( R const& value);
 
             void set_value( R && value);
 
-            void set_exception( exception_ptr p);
+            void set_exception( std::exception_ptr p);
         };
 
 [heading Default constructor]
@@ -102,24 +99,6 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [Nothing.]]
 ]
 
-[member_heading promise..operator safe_bool]
-
-        operator safe_bool() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `true` if `*this` contains a non-empty [link shared_state shared state].]]
-[[Throws:] [Nothing.]]
-]
-
-[operator_heading promise..operator_not..operator!]
-
-        bool operator!() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `true` if `*this` contains an empty [link shared_state shared state].]]
-[[Throws:] [Nothing.]]
-]
-
 [member_heading promise..get_future]
 
         future< R > get_future();
@@ -141,7 +120,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 
 [member_heading promise..set_exception]
 
-        void set_exception( exception_ptr);
+        void set_exception( std::exception_ptr);
 
 [variablelist
 [[Effects:] [Store an exception pointer in the [link shared_state shared state] and marks the state as ready.]]
