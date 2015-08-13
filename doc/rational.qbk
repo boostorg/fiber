@@ -48,17 +48,18 @@ this description].)
 
 [heading migrating fibers between threads]
 
-The support for migrating fibers between threads was removed.
-Especially in the case of NUMA-architectures it is not always advised to migrate
-data between threads. Suppose fiber ['f] is running on logical CPU ['cpu0] which
-belongs to NUMA node ['node0]. The data of ['f] are allocated on the physical
-memory located at ['node0]. Migrating the fiber from ['cpu0] to another logical
-CPU ['cpuX] which is part of NUMA node ['nodeX] will reduce the performance of
-the application because of increased latency of memory access.
+Support for migrating fibers between threads was removed.
+Especially in the case of NUMA-architectures, it is not always advisable to
+migrate data between threads. Suppose fiber ['f] is running on logical CPU
+['cpu0] which belongs to NUMA node ['node0]. The data of ['f] are allocated on
+the physical memory located at ['node0]. Migrating the fiber from ['cpu0] to
+another logical CPU ['cpuX] which is part of a different NUMA node ['nodeX]
+will reduce the performance of the application because of increased latency of
+memory access.
 
-A more [*important] apsect is the problem with thread-local-storage([*TLS]).
-Compilers might, as an optimization, reuse a previously computed address of an
-TLS variable, instead to recomputing the address again
+A more [*important] aspect is the problem with thread-local-storage ([*TLS]).
+Instead of recomputing the address of a TLS variable, a compiler might, as an
+optimization, reuse its previously-computed address
 [footnote dicussed in [@http://www.crystalclearsoftware.com/soc/coroutine/coroutine/coroutine_thread.html
 'Interaction between coroutines and threads' by Giovanni P. Deretta,
 [@https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/3g6ZIWedGJ8
