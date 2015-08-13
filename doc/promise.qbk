@@ -8,8 +8,9 @@
 [#class_promise]
 [section:promise Template `promise<>`]
 
-A __promise__ provides a mechanism to store a value that can later be accessed
-asynchronously by a __future__ object.
+A __promise__ provides a mechanism to store a value (or exception) that can
+later be retrieved from the corresponding __future__ object. `promise<>` and
+`future<>` communicate via their underlying [link shared_state shared state].
 
         template< typename R >
         class promise {
@@ -31,17 +32,13 @@ asynchronously by a __future__ object.
 
             void swap( promise & other) noexcept;
 
-            operator safe_bool() const noexcept;
-
-            bool operator!() const noexcept;
-
             future< R > get_future();
 
             void set_value( R const& value);
 
             void set_value( R && value);
 
-            void set_exception( exception_ptr p);
+            void set_exception( std::exception_ptr p);
         };
 
 [heading Default constructor]
@@ -49,7 +46,7 @@ asynchronously by a __future__ object.
         promise();
 
 [variablelist
-[[Effects:] [Creates a promise with an empty shared state.]]
+[[Effects:] [Creates a promise with an empty [link shared_state shared state].]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -59,7 +56,7 @@ asynchronously by a __future__ object.
         promise( std::allocator_arg_t, Allocator alloc);
 
 [variablelist
-[[Effects:] [Creates a promise with an empty shared state by using `alloc`.]]
+[[Effects:] [Creates a promise with an empty [link shared_state shared state] by using `alloc`.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -68,7 +65,7 @@ asynchronously by a __future__ object.
         promise( promise && other) noexcept;
 
 [variablelist
-[[Effects:] [Creates a promise by moving the shared state from `other`.]]
+[[Effects:] [Creates a promise by moving the [link shared_state shared state] from `other`.]]
 [[Postcondition:] [`other` contains no valid shared state.]]
 [[Throws:] [Nothing.]]
 ]
@@ -78,7 +75,7 @@ asynchronously by a __future__ object.
         ~promise();
 
 [variablelist
-[[Effects:] [Destroys `*this` and abandons the shared state if shared state is
+[[Effects:] [Destroys `*this` and abandons the [link shared_state shared state] if shared state is
 ready; otherwise stores __future_error__ with error condition __broken_promise__.]]
 [[Throws:] [Nothing.]]
 ]
@@ -88,7 +85,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
         promise & operator=( promise && other) noexcept;
 
 [variablelist
-[[Effects:] [Transfers the ownership of shared state to `*this`.]]
+[[Effects:] [Transfers the ownership of [link shared_state shared state] to `*this`.]]
 [[Postcondition:] [`other` contains no valid shared state.]]
 [[Throws:] [Nothing.]]
 ]
@@ -98,25 +95,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
         void swap( promise & other) noexcept;
 
 [variablelist
-[[Effects:] [Swaps the shared state between other and `*this`.]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading promise..operator safe_bool]
-
-        operator safe_bool() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `true` if `*this` contains a non-empty shared state.]]
-[[Throws:] [Nothing.]]
-]
-
-[operator_heading promise..operator_not..operator!]
-
-        bool operator!() const noexcept;
-
-[variablelist
-[[Effects:] [Returns `true` if `*this` contains an empty shared state.]]
+[[Effects:] [Swaps the [link shared_state shared state] between other and `*this`.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -125,7 +104,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
         future< R > get_future();
 
 [variablelist
-[[Returns:] [A __future__ with the same shared state.]]
+[[Returns:] [A __future__ with the same [link shared_state shared state].]]
 [[Throws:] [__future_error__ with __already_retrieved__ or __no_state__.]]
 ]
 
@@ -135,16 +114,16 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
         void set_value( R && value);
 
 [variablelist
-[[Effects:] [Store the result in the shared state and marks the state as ready.]]
+[[Effects:] [Store the result in the [link shared_state shared state] and marks the state as ready.]]
 [[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
 ]
 
 [member_heading promise..set_exception]
 
-        void set_exception( exception_ptr);
+        void set_exception( std::exception_ptr);
 
 [variablelist
-[[Effects:] [Store an exception pointer in the shared state and marks the state as ready.]]
+[[Effects:] [Store an exception pointer in the [link shared_state shared state] and marks the state as ready.]]
 [[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
 ]
 
