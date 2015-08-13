@@ -46,6 +46,26 @@ there is a build option to disable that support; see [link cross_thread_sync
 this description].)
 
 
+[heading migrating fibers between threads]
+
+Support for migrating fibers between threads was removed.
+Especially in the case of NUMA-architectures, it is not always advisable to
+migrate data between threads. Suppose fiber ['f] is running on logical CPU
+['cpu0] which belongs to NUMA node ['node0]. The data of ['f] are allocated on
+the physical memory located at ['node0]. Migrating the fiber from ['cpu0] to
+another logical CPU ['cpuX] which is part of a different NUMA node ['nodeX]
+will reduce the performance of the application because of increased latency of
+memory access.
+
+A more [*important] aspect is the problem with thread-local-storage ([*TLS]).
+Instead of recomputing the address of a TLS variable, a compiler might, as an
+optimization, reuse its previously-computed address
+[footnote dicussed in [@http://www.crystalclearsoftware.com/soc/coroutine/coroutine/coroutine_thread.html
+'Interaction between coroutines and threads' by Giovanni P. Deretta,
+[@https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/3g6ZIWedGJ8
+'A proposal to add coroutines to C++']]].
+
+
 [heading support for Boost.Asio]
 
 The support for Boost.Asio's __async_result__ is not part of the official API
@@ -66,17 +86,6 @@ The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
 
 __boost_fiber__ depends on __boost_context__ - the list of supported architectures
 can be found [@boost:/libs/context/doc/html/context/architectures.html here].
-
-
-[heading migrating fibers between threads]
-
-The support for migrating fibers between threads was removed.
-Especially in the case of NUMA-architectures it is not always advised to migrate
-data between threads. Suppose fiber ['f] is running on logical CPU ['cpu0] which
-belongs to NUMA node ['node0]. The data of ['f] are allocated on the physical
-memory located at ['node0]. Migrating the fiber from ['cpu0] to another logical
-CPU ['cpuX] which is part of NUMA node ['nodeX] will reduce the performance of
-the application because of increased latency of memory access.
 
 
 [endsect]
