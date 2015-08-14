@@ -77,11 +77,11 @@ will be used to destroy the fiber-local objects.]]
 [[Effects:] [Calls `this->reset()` to clean up the associated value for the
 current fiber, and destroys `*this`.]]
 [[Throws:] [Nothing.]]
-[[Remarks:] [The requirement is due to the fact that in order to delete all
-these instances, the implementation should be forced to maintain a list of all
-the fibers having an associated specific ptr, which is against the goal of
-fiber specific data. In general, a __fsp__ should outlive the fibers that use
-it.]]
+[[Remarks:] [The requirement is an implementation restriction. If the
+destructor promised to delete instances for all fibers, the implementation
+would be forced to maintain a list of all the fibers having an associated
+specific ptr, which is against the goal of fiber specific data. In general, a
+__fsp__ should outlive the fibers that use it.]]
 ]
 [note Care needs to be taken to ensure that any fibers still running after an
 instance of __fsp__ has been destroyed do not call any member functions on that
@@ -95,7 +95,7 @@ instance.]
 [[Returns:] [The pointer associated with the current fiber.]]
 [[Throws:] [Nothing.]]
 ]
-[note The initial value associated with an instance of __fsp__ is `NULL` for
+[note The initial value associated with an instance of __fsp__ is `nullptr` for
 each fiber.]
 
 [operator_heading fiber_specific_ptr..operator_arrow..operator->]
@@ -112,7 +112,7 @@ each fiber.]
         T& operator*() const;
 
 [variablelist
-[[Requires:] [`this->get` is not `NULL`.]]
+[[Requires:] [`this->get()` is not `nullptr`.]]
 [[Returns:] [`*(this->get())`]]
 [[Throws:] [Nothing.]]
 ]
@@ -122,7 +122,7 @@ each fiber.]
         T* release();
 
 [variablelist
-[[Effects:] [Return `this->get()` and store `NULL` as the pointer associated
+[[Effects:] [Return `this->get()` and store `nullptr` as the pointer associated
 with the current fiber without invoking the cleanup function.]]
 [[Postcondition:] [`this->get()==0`]]
 [[Throws:] [Nothing.]]
@@ -133,7 +133,7 @@ with the current fiber without invoking the cleanup function.]]
         void reset(T* new_value=0);
 
 [variablelist
-[[Effects:] [If `this->get()!=new_value` and `this->get()` is non-`NULL`,
+[[Effects:] [If `this->get()!=new_value` and `this->get()` is not `nullptr`,
 invoke `delete this->get()` or `fn(this->get())` as appropriate. Store
 `new_value` as the pointer associated with the current fiber.]]
 [[Postcondition:] [`this->get()==new_value`]]
