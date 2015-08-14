@@ -161,6 +161,7 @@
 
 
 [include overview.qbk]
+[include rationale.qbk]
 [include fiber.qbk]
 [include scheduling.qbk]
 [include stack.qbk]
@@ -190,6 +191,5 @@ object are running in the same thread.
 [include fls.qbk]
 [/[include asio.qbk]]
 [include performance.qbk]
-[include rational.qbk]
 [include customization.qbk]
 [include acknowledgements.qbk]
