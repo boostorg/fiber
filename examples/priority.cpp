@@ -11,7 +11,7 @@
 class priority_props: public boost::fibers::fiber_properties
 {
 public:
-    priority_props(boost::fibers::fiber_properties::back_ptr p):
+    priority_props(boost::fibers::fiber_context* p):
         fiber_properties(p),
         priority_(0)
     {}
