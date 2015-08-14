@@ -40,13 +40,12 @@ protected:
     void notify();
 
 public:
-    // fiber_properties, and by implication every subclass, must accept a back
-    // pointer to its fiber_context.
-    typedef fiber_context   *   back_ptr;
-
     // Any specific property setter method, after updating the relevant
     // instance variable, can/should call notify().
-    fiber_properties( back_ptr f):
+
+    // fiber_properties, and by implication every subclass, must accept a back
+    // pointer to its fiber_context.
+    fiber_properties( fiber_context* f):
         fiber_( f),
         sched_algo_( nullptr)
     {}
