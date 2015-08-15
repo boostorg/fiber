@@ -80,6 +80,17 @@ void test_hwm_less_lwm()
     BOOST_CHECK( thrown);
 }
 
+void test_hwm_equal_lwm()
+{
+    bool thrown = false;
+    try {
+        boost::fibers::bounded_channel< int > c( 3, 3);
+    } catch ( boost::fibers::fiber_exception const&) {
+        thrown = true;
+    }
+    BOOST_CHECK( thrown);
+}
+
 void test_push()
 {
     boost::fibers::bounded_channel< int > c( 10);
@@ -655,6 +666,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
      test->add( BOOST_TEST_CASE( & test_zero_wm_1) );
      test->add( BOOST_TEST_CASE( & test_zero_wm_2) );
      test->add( BOOST_TEST_CASE( & test_hwm_less_lwm) );
+     test->add( BOOST_TEST_CASE( & test_hwm_equal_lwm) );
      test->add( BOOST_TEST_CASE( & test_push) );
      test->add( BOOST_TEST_CASE( & test_push_closed) );
      test->add( BOOST_TEST_CASE( & test_try_push) );
