@@ -440,7 +440,7 @@ template parameter than `PROPS`.]]
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This method allows access to those user-provided properties
 -- but only after this fiber has been scheduled for the first time.]]
-[[See also:] [[link custom]]]
+[[See also:] [[link custom Customization]]]
 ]
 
 [member_heading fiber..operator bool]
@@ -507,7 +507,7 @@ lifespan of the referenced `scheduler` object. The caller must eventually
 destroy the passed `scheduler`, just as it must allocate it in the first
 place.]]
 [[Throws:] [Nothing]]
-[[See also:] [[link scheduling], [link custom]]]
+[[See also:] [[link scheduling Scheduling], [link custom Customization]]]
 ]
 
 [function_heading ready_fibers]
@@ -515,7 +515,7 @@ place.]]
     std::size_t ready_fibers();
 
 [variablelist
-[[Returns:] [Returns the amount of fibers ready to run.]]
+[[Returns:] [Returns the number of fibers ready to run.]]
 [[Throws:] [Nothing]]
 ]
 
@@ -531,9 +531,17 @@ place.]]
 fibers are ready to run.]]
 [[Throws:] [Nothing]]
 [[Notes:] [This setting can be used to adjust the "niceness" of an idle
-thread: a thread whose fibers are all currently blocked for various reasons. A
-longer `wait_interval()` causes an idle thread to use less CPU. The default
-for each thread, if not specified, is `std::chrono::milliseconds(10)`.]]
+thread: a thread whose fibers are all currently blocked for various reasons.
+The default for each thread, if not specified, is
+`std::chrono::milliseconds(10)`. A longer `wait_interval()` causes an idle
+thread to use less CPU. A shorter `wait_interval()` is more responsive to
+fibers becoming ready. When a fiber becomes ready to resume, e.g. a mutex on
+which it is blocked becomes available, control is not immediately passed to
+that fiber; instead it is marked "ready to run." It won't actually resume
+until the fiber manager wakes up to consult the scheduler. It could take as
+long as `wait_interval()` before the fiber manager notices the fiber's
+readiness. It is likely that the optimal setting for `wait_interval()` is
+application-specific.]]
 ]
 
 
@@ -747,7 +755,7 @@ template parameter than `PROPS`.]]
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This function allows access to those user-provided
 properties.]]
-[[See also:] [[link custom]]]
+[[See also:] [[link custom Customization]]]
 ]
 
 [ns_function_heading this_fiber..interruption_point]
