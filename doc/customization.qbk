@@ -5,6 +5,7 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
+[/ import path is relative to this .qbk file]
 [import ../examples/priority.cpp]
 
 [#custom]
@@ -30,8 +31,9 @@ fiber priority. We will implement it such that a fiber with higher priority is
 preferred over a fiber with lower priority. Any fibers with equal priority
 values are serviced on a round-robin basis.
 
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
 The full source code for the examples below is found in
-[@boost:/libs/fiber/examples/priority.cpp priority.cpp].
+[@../../examples/priority.cpp priority.cpp].
 
 [heading Custom Property Class]
 
