@@ -8,19 +8,28 @@
 #include <boost/ref.hpp>
 #include <iostream>
 
+//[priority_props
 class priority_props: public boost::fibers::fiber_properties
 {
 public:
     priority_props(boost::fibers::fiber_context* p):
-        fiber_properties(p),
+        fiber_properties(p), /*< Your subclass constructor must accept a 
+                                 [^[class_link fiber_context]*] and pass it to
+                                 the `fiber_properties` constructor. >*/
         priority_(0)
     {}
 
-    int get_priority() const { return priority_; }
+    int get_priority() const { return priority_; } /*< Provide read access
+                                                       methods at your own
+                                                       discretion. >*/
 
     // Call this method to alter priority, because we must notify
     // priority_scheduler of any change.
-    void set_priority(int p)
+    void set_priority(int p) /*< It's important to call notify() on any
+                                 change in a property that can affect the
+                                 scheduler's behavior. Therefore, such
+                                 modifications should only be performed
+                                 through an access method. >*/
     {
         // Of course, it's only worth reshuffling the queue and all if we're
         // actually changing the priority.
@@ -35,12 +44,15 @@ public:
     // program; it has nothing to do with implementing scheduler priority.
     // This is a public data member -- not requiring set/get access methods --
     // because we need not inform the scheduler of any change.
-    std::string name;
+    std::string name; /*< A property that does not affect the scheduler does
+                          not need access methods. >*/
 
 private:
     int priority_;
 };
+//]
 
+//[priority_scheduler
 class priority_scheduler:
     public boost::fibers::sched_algorithm_with_properties<priority_props>
 {
@@ -57,9 +69,14 @@ public:
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
     // override the correct awakened() overload.
+    /*<< You must override the [member_link sched_algorithm_with_properties..awakened]
+         method. This is how your scheduler receives notification of a
+         fiber that has become ready to run. >>*/
     virtual void awakened(boost::fibers::fiber_context* f, priority_props& props)
     {
-        int f_priority = props.get_priority();
+        int f_priority = props.get_priority(); /*< `props` is the instance of
+                                                   priority_props associated
+                                                   with the passed fiber `f`. >*/
         // With this scheduler, fibers with higher priority values are
         // preferred over fibers with lower priority values. But fibers with
         // equal priority values are processed in round-robin fashion. So when
@@ -68,17 +85,24 @@ public:
         // the queue with LOWER priority, and insert before that one.
         boost::fibers::fiber_context** fp = &head_;
         for ( ; *fp; fp = &(*fp)->nxt)
-            if (properties(*fp).get_priority() < f_priority)
+            if (properties(*fp).get_priority() < f_priority) /*< Use the
+                [member_link sched_algorithm_with_properties..properties]
+                method to access properties for any ['other] fiber. >*/
                 break;
         // It doesn't matter whether we hit the end of the list or found
         // another fiber with lower priority. Either way, insert f here.
-        f->nxt = *fp;
+        f->nxt = *fp; /*< Note use of the [data_member_link fiber_context..nxt] member. >*/
         *fp = f;
+//<-
 
         std::cout << "awakened(" << props.name << "): ";
         describe_ready_queue();
+//->
     }
 
+    /*<< You must override the [member_link sched_algorithm_with_properties..pick_next]
+         method. This is how your scheduler actually advises the fiber manager
+         of the next fiber to run. >>*/
     virtual boost::fibers::fiber_context* pick_next()
     {
         // if ready queue is empty, just tell caller
@@ -89,11 +113,15 @@ public:
         head_ = f->nxt;
         f->nxt = nullptr;
 
+//<-
         std::cout << "pick_next() resuming " << properties(f).name << ": ";
         describe_ready_queue();
+//->
         return f;
     }
 
+    /*<< You must override [member_link sched_algorithm_with_properties..ready_fibers]
+      to inform the fiber manager of the size of your ready queue. >>*/
     virtual std::size_t ready_fibers() const noexcept
     {
         std::size_t count = 0;
@@ -104,14 +132,20 @@ public:
         return count;
     }
 
+    /*<< Overriding [member_link sched_algorithm_with_properties..property_change]
+         is optional. This override handles the case in which the running
+         fiber changes the priority of another ready fiber: a fiber already in
+         our queue. In that case, move the updated fiber within the queue. >>*/
     virtual void property_change(boost::fibers::fiber_context* f, priority_props& props)
     {
         // Although our priority_props class defines multiple properties, only
         // one of them (priority) actually calls notify() when changed. The
         // point of a property_change() override is to reshuffle the ready
         // queue according to the updated priority value.
+//<-
         std::cout << "property_change(" << props.name << '(' << props.get_priority()
                   << ")): ";
+//->
 
         // Despite the added complexity of the loop body, make a single pass
         // over the queue to find both the existing item and the new desired
@@ -152,31 +186,44 @@ public:
         // possible to get a property_change() call for a fiber that
         // is_ready() but is not yet on our ready queue. If it's not there, no
         // action required: we'll handle it next time it hits awakened().
-        if (! found)
+        if (! found) /*< Your `property_change()` override must be able to
+                         handle the case in which the passed `f` is not in
+                         your ready queue. It might be running, or it might be
+                         blocked. >*/
         {
+//<-
             // hopefully user will distinguish this case by noticing that
             // the fiber with which we were called does not appear in the
             // ready queue at all
             describe_ready_queue();
+//->
             return;
         }
         // There might not be any ready fibers with lower priority. In that
         // case, append to the end of the queue.
+        /*=if (! insert)*/
+//<-
         std::string where;
         if (insert)
             where = std::string("before ") + properties(*insert).name;
         else
+//->
         {
             insert = fp;
+//<-
             where = "to end";
+//->
         }
         // Insert f at the new insertion point in the queue.
         f->nxt = *insert;
         *insert = f;
+//<-
 
         std::cout << "moving " << where << ": ";
         describe_ready_queue();
+//->
     }
+//<-
 
     void describe_ready_queue()
     {
@@ -194,14 +241,18 @@ public:
         }
         std::cout << std::endl;
     }
+//->
 };
+//]
 
+//[init
 void init(const std::string& name, int priority)
 {
     priority_props& props(boost::this_fiber::properties<priority_props>());
     props.name = name;
     props.set_priority(priority);
 }
+//]
 
 void yield_fn(const std::string& name, int priority)
 {
@@ -225,13 +276,16 @@ void barrier_fn(const std::string& name, int priority, boost::fibers::barrier& b
     std::cout << "fiber " << name << " done" << std::endl;
 }
 
+//[change_fn
 void change_fn(const std::string& name, int priority,
                boost::fibers::fiber& other, int other_priority,
                boost::fibers::barrier& barrier)
 {
     init(name, priority);
 
+//<-
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
+//->
     barrier.wait();
     // We assume a couple things about 'other':
     // - that it was also waiting on the same barrier
@@ -239,17 +293,26 @@ void change_fn(const std::string& name, int priority,
     // If both are true, 'other' is now ready to run but is sitting in
     // priority_scheduler's ready queue. Change its priority.
     priority_props& other_props(other.properties<priority_props>());
+//<-
     std::cout << "fiber " << name << " changing priority of " << other_props.name
               << " to " << other_priority << std::endl;
+//->
     other_props.set_priority(other_priority);
+//<-
     std::cout << "fiber " << name << " done" << std::endl;
+//->
 }
+//]
 
+//[main
 int main(int argc, char *argv[])
 {
     // make sure we use our priority_scheduler rather than default round_robin
     priority_scheduler psched;
     boost::fibers::set_scheduling_algorithm(&psched);
+/*=    ...*/
+/*=}*/
+//]
 
     {
         // verify that high-priority fiber always gets scheduled first
