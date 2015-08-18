@@ -15,7 +15,7 @@ manager. Each time a fiber suspends (or yields), the fiber manager consults a
 scheduler to determine which fiber will run next.
 
 __boost_fiber__ provides the fiber manager, but the scheduler is a
-customization point. (See [link custom].)
+customization point. (See [link custom Customization].)
 
 Each thread has its own scheduler. By default, __boost_fiber__ implicitly
 instantiates [class_link round_robin] as the scheduler for each thread.
@@ -83,8 +83,7 @@ queue.]]
         virtual std::size_t ready_fibers() const noexcept = 0;
 
 [variablelist
-[[Effects:] [Returns 0 if scheduling algorithm has no fibers ready to run,
-otherwise nonzero.]]
+[[Effects:] [Returns the number of fibers ready to run.]]
 ]
 
 
@@ -126,8 +125,7 @@ of that queue, shares the thread between ready fibers in round-robin fashion.]]
         virtual std::size_t ready_fibers() const noexcept;
 
 [variablelist
-[[Returns:] [0 if scheduling algorithm has no fibers ready to run, otherwise
-nonzero.]]
+[[Returns:] [Returns the number of fibers ready to run.]]
 ]
 
 
@@ -150,7 +148,7 @@ A custom fiber properties class must be derived from `fiber_properties`.
 
         class fiber_properties {
         public:
-            fiber_properties( back_ptr f);
+            fiber_properties( fiber_context* f);
 
             virtual ~fiber_properties() {}
 
@@ -160,12 +158,12 @@ A custom fiber properties class must be derived from `fiber_properties`.
 
 [heading Constructor]
 
-        fiber_properties( back_ptr f);
+        fiber_properties( fiber_context* f);
 
 [variablelist
 [[Effects:] [Constructs base-class component of custom subclass.]]
-[[Note:] [Your subclass constructor must accept a `back_ptr` and pass it to
-the base-class `fiber_properties` constructor.]]
+[[Note:] [Your subclass constructor must accept a `fiber_context*` and pass it
+to the base-class `fiber_properties` constructor.]]
 ]
 
 [member_heading fiber_properties..notify]

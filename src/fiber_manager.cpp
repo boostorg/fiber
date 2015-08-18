@@ -75,19 +75,6 @@ fiber_manager::resume_( fiber_context * f) {
     active_fiber_->resume();
 }
 
-std::chrono::high_resolution_clock::time_point
-fiber_manager::next_wakeup() {
-    if ( wqueue_.empty() ) {
-        return std::chrono::high_resolution_clock::now() + wait_interval_;
-    } else {
-        std::chrono::high_resolution_clock::time_point wakeup( wqueue_.top()->time_point() );
-        if ( (std::chrono::high_resolution_clock::time_point::max)() == wakeup) {
-            return std::chrono::high_resolution_clock::now() + wait_interval_;
-        }
-        return wakeup;
-    }
-}
-
 void
 fiber_manager::spawn( fiber_context * f) {
     BOOST_ASSERT( nullptr != f);
@@ -121,9 +108,8 @@ fiber_manager::run() {
             return;
         } else {
             // no fibers ready to run; the thread should sleep
-            // until earliest fiber is scheduled to run
-            std::chrono::high_resolution_clock::time_point wakeup( next_wakeup() );
-            std::this_thread::sleep_until( wakeup);
+            std::this_thread::sleep_until(
+                std::chrono::high_resolution_clock::now() + wait_interval_);
         }
     }
 }

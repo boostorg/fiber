@@ -5,16 +5,15 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:rational Rational]
+[section:rationale Rationale]
 
 [heading distinction between coroutines and fibers]
 
 The fiber library extends the coroutine library by adding a scheduler and
 synchronization mechanisms.
 
-    * a coroutine yields
-
-    * a fiber blocks
+* a coroutine yields
+* a fiber blocks
 
 When a coroutine yields, it passes control directly to its caller (or, in the
 case of symmetric coroutines, a designated other coroutine).
@@ -26,24 +25,24 @@ Coroutines have no scheduler because they need no scheduler.
 
 [heading what about transactional memory]
 
-GCC support transactional memory since version 4.7. Unfortunately testes showed
-that transactional memory is slower (ca. 4x) than using spinlocks using atomics.
-If transactional memory will be improved (supporting hybrid tm), spinlocks will
+GCC supports transactional memory since version 4.7. Unfortunately tests show
+that transactional memory is slower (ca. 4x) than spinlocks using atomics.
+Once transactional memory is improved (supporting hybrid tm), spinlocks will
 be replaced by __transaction_atomic{} statements surrounding the critical
-sections. 
+sections.
 
 
 [heading synchronization between fibers running in different threads]
 
-Synchronization classes from __boost_thread__ do block the entire thread. In
-contrast to this the synchronization classes from __boost_fiber__ do block only
-the fiber, so that the thread is able to schedule and run other fibers in the
-meantime.
-The synchronization classes from __boost_fiber__ are designed to be thread-safe,
-e.g. it is possible to synchronize fibers running in different schedulers
-(different threads) or running in the same scheduler (same thread). (However,
-there is a build option to disable that support; see [link cross_thread_sync
-this description].)
+Synchronization classes from __boost_thread__ block the entire thread. In
+contrast, the synchronization classes from __boost_fiber__ block only specific
+fibers, so that the scheduler can still keep the thread busy running other
+fibers in the meantime.
+The synchronization classes from __boost_fiber__ are designed to be
+thread-safe, i.e. it is possible to synchronize fibers running in different
+threads as well as fibers running in the same thread. (However, there is a
+build option to disable cross-thread fiber synchronization support; see [link
+cross_thread_sync this description].)
 
 
 [heading migrating fibers between threads]
@@ -85,7 +84,7 @@ The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
 [heading supported architectures]
 
 __boost_fiber__ depends on __boost_context__ - the list of supported architectures
-can be found [@boost:/libs/context/doc/html/context/architectures.html here].
+can be found [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/architectures.html here].
 
 
 [endsect]

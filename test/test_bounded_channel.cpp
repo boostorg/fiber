@@ -80,9 +80,22 @@ void test_hwm_less_lwm()
     BOOST_CHECK( thrown);
 }
 
+void test_hwm_equal_lwm()
+{
+    bool thrown = false;
+    try {
+        boost::fibers::bounded_channel< int > c( 3, 3);
+    } catch ( boost::fibers::fiber_exception const&) {
+        thrown = true;
+    }
+    BOOST_CHECK( thrown);
+}
+
 void test_push()
 {
     boost::fibers::bounded_channel< int > c( 10);
+    BOOST_CHECK_EQUAL( c.upper_bound(), 10u );
+    BOOST_CHECK_EQUAL( c.lower_bound(), 9u );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 }
 
@@ -110,6 +123,7 @@ void test_try_push_closed()
 void test_try_push_full()
 {
     boost::fibers::bounded_channel< int > c( 1);
+    BOOST_CHECK_EQUAL( c.lower_bound(), 0u );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
     BOOST_CHECK( boost::fibers::channel_op_status::full == c.try_push( 2) );
 }
@@ -390,23 +404,23 @@ void test_wm_1()
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 1 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 2 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 2, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 3 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 3, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 4 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 4, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
         // would block because channel is empty
-        BOOST_CHECK( 5 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 5, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -414,7 +428,7 @@ void test_wm_1()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( 12 == ids.size() );
+    BOOST_CHECK_EQUAL( 12u, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
     BOOST_CHECK_EQUAL( id1, ids[2]); // f1 pushes 3
@@ -455,25 +469,25 @@ void test_wm_2()
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 1 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 2 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 2, c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 3 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 3, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 4 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 4, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 5 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 5, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -481,7 +495,7 @@ void test_wm_2()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( 12 == ids.size() );
+    BOOST_CHECK_EQUAL( 12u, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
     BOOST_CHECK_EQUAL( id1, ids[2]); // f1 pushes 3
@@ -499,6 +513,8 @@ void test_wm_2()
 void test_wm_3()
 {
     boost::fibers::bounded_channel< int > c( 3, 1);
+    BOOST_CHECK_EQUAL( c.upper_bound(), 3u );
+    BOOST_CHECK_EQUAL( c.lower_bound(), 1u );
     std::vector< boost::fibers::fiber::id > ids;
     boost::fibers::fiber f1([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
@@ -521,25 +537,25 @@ void test_wm_3()
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 1 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 2 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 2, c.value_pop() );
 
         // let other fiber run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 3 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 3, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 4 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 4, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 5 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 5, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -547,7 +563,7 @@ void test_wm_3()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( 12 == ids.size() );
+    BOOST_CHECK_EQUAL( 12u, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
     BOOST_CHECK_EQUAL( id1, ids[2]); // f1 pushes 3
@@ -584,26 +600,26 @@ void test_wm_4()
     });
     boost::fibers::fiber f2([&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 1 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
         // let potential other fibers run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 2 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 2, c.value_pop() );
 
         // let potential other fibers run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
-        BOOST_CHECK( 3 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 3, c.value_pop() );
 
         // let potential other fibers run
         boost::this_fiber::yield();
 
         ids.push_back( boost::this_fiber::get_id() );
         // would block because channel is empty
-        BOOST_CHECK( 4 == c.value_pop() );
+        BOOST_CHECK_EQUAL( 4, c.value_pop() );
 
         ids.push_back( boost::this_fiber::get_id() );
     });
@@ -611,7 +627,7 @@ void test_wm_4()
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK( 10 == ids.size() );
+    BOOST_CHECK_EQUAL( 10u, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]); // f1 pushes 1
     BOOST_CHECK_EQUAL( id1, ids[1]); // f1 pushes 2
     BOOST_CHECK_EQUAL( id1, ids[2]); // f1 pushes 3
@@ -650,6 +666,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
      test->add( BOOST_TEST_CASE( & test_zero_wm_1) );
      test->add( BOOST_TEST_CASE( & test_zero_wm_2) );
      test->add( BOOST_TEST_CASE( & test_hwm_less_lwm) );
+     test->add( BOOST_TEST_CASE( & test_hwm_equal_lwm) );
      test->add( BOOST_TEST_CASE( & test_push) );
      test->add( BOOST_TEST_CASE( & test_push_closed) );
      test->add( BOOST_TEST_CASE( & test_try_push) );
