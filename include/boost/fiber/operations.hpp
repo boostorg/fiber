@@ -78,6 +78,11 @@ void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) n
     detail::scheduler::instance()->wait_interval( wait_interval);
 }
 
+inline
+std::chrono::high_resolution_clock::duration wait_interval() noexcept {
+    return detail::scheduler::instance()->wait_interval();
+}
+
 template< typename Rep, typename Period >
 std::chrono::duration< Rep, Period > wait_interval() noexcept {
     return detail::scheduler::instance()->wait_interval< Rep, Period >();

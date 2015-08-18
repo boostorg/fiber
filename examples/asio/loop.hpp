@@ -22,8 +22,8 @@ namespace fibers {
 namespace asio {
 
 inline void timer_handler( boost::asio::high_resolution_timer & timer) {
-    boost::fibers::detail::scheduler::instance()->yield();
-    timer.expires_at( boost::fibers::detail::scheduler::instance()->next_wakeup() );
+    boost::this_fiber::yield();
+    timer.expires_from_now( boost::fibers::wait_interval() );
     timer.async_wait( std::bind( timer_handler, std::ref( timer) ) );
 }
 

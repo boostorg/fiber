@@ -50,8 +50,6 @@ public:
 
     virtual ~fiber_manager() noexcept;
 
-    std::chrono::high_resolution_clock::time_point next_wakeup();
-
     void spawn( fiber_context *);
 
     void run();
