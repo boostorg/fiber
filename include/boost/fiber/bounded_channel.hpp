@@ -220,9 +220,9 @@ public:
         not_full_cond_(),
         hwm_( hwm),
         lwm_( lwm) {
-        if ( hwm_ < lwm_) {
+        if ( hwm_ <= lwm_) {
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
-                                    "boost fiber: high-watermark is less than low-watermark for bounded_channel");
+                                    "boost fiber: high-watermark is less than or equal to low-watermark for bounded_channel");
         }
         if ( 0 == hwm) {
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
@@ -241,11 +241,12 @@ public:
         not_empty_cond_(),
         not_full_cond_(),
         hwm_( wm),
-        lwm_( wm) {
+        lwm_() {
         if ( 0 == wm) {
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: watermark is zero");
         }
+        lwm_ = hwm_ - 1;
     }
 
     bounded_channel( bounded_channel const&) = delete;
