@@ -79,9 +79,7 @@ int main( int argc, char* argv[])
             boost::bind( get_daytime,
                 boost::ref( io_service), argv[1]) );
         
-        boost::fibers::fiber f(
-            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
-        f.join();
+        boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception& e)
     {
