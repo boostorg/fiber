@@ -414,10 +414,8 @@ int main( int argc, char* argv[])
         boost::fibers::asio::spawn( io_service,
             boost::bind( accept_subscriber,
                 boost::ref( io_service), 9998, boost::ref( reg), _1) );
-                
-        boost::fibers::fiber f(
-            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
-        f.join();
+        
+        boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }

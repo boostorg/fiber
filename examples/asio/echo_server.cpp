@@ -19,7 +19,6 @@
 #include <boost/fiber/all.hpp>
 
 #include "loop.hpp"
-#include "spawn.hpp"
 #include "yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -94,9 +93,7 @@ int main( int argc, char* argv[])
         boost::fibers::fiber(
             boost::bind( server, boost::ref( io_service), atoi( argv[1]) ) ).detach();
         
-        boost::fibers::fiber f(
-            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
-        f.join();
+        boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }

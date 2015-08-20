@@ -1,0 +1,96 @@
+[/
+      Copyright Oliver Kowalke, Nat Goodspeed 2015.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[/ import path is relative to this .qbk file]
+[import ../examples/asio/loop.hpp]
+
+[#integration]
+[section:integration Sharing a Thread with Another Main Loop]
+
+[heading Overview]
+
+As always with cooperative concurrency, it is important not to let any one
+fiber monopolize the processor too long: that could "starve" other ready
+fibers. This section discusses a couple of solutions.
+
+[heading Event-Driven Program]
+
+Consider a classic event-driven program, organized around a main loop that
+fetches and dispatches incoming I/O events. You are introducing
+__boost_fiber__ because certain asynchronous I/O sequences are logically
+sequential, and for those you want to write and maintain code that looks and
+acts sequential.
+
+You are launching fibers on the application's main thread because certain of
+their actions will affect its user interface, and the application's UI
+framework permits UI operations only on the main thread. Or perhaps those
+fibers need access to main-thread data, and it would be too expensive in
+runtime (or development time) to robustly defend every such data item with
+thread synchronization primitives.
+
+You must ensure that the application's main loop ['itself] doesn't monopolize
+the processor: that the fibers it launches will get the CPU cycles they need.
+
+The solution is the same as for any fiber that might claim the CPU for an
+extended time: introduce calls to [ns_function_link this_fiber..yield]. The
+most straightforward approach is to call `yield()` on every iteration of your
+existing main loop. In effect, this unifies the application's main loop with
+__boost_fiber__'s internal main loop. `yield()` allows the fiber manager to
+run any fibers that have become ready since the previous iteration of the
+application's main loop. When these fibers have had a turn, control passes to
+the thread's main fiber, which returns from `yield()` and resumes the
+application's main loop.
+
+[heading Integrating with __boost_asio__]
+
+More challenging is when the application's main loop is embedded in some other
+library or framework. Such an application will typically, after performing all
+necessary setup, pass control to some form of `run()` function from which
+control does not return until application shutdown.
+
+A __boost_asio__ program might call
+[@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html
+`io_service::run()`] in this way.
+
+The trick here is to arrange to pass control to [ns_function_link
+this_fiber..yield] frequently. You can use an
+[@http://www.boost.org/doc/libs/1_59_0/doc/html/boost_asio/reference/high_resolution_timer.html
+Asio timer] for this purpose. Instantiate the timer, arranging to call a
+handler function when the timer expires:
+
+[run_service]
+
+The handler function calls `yield()`, then resets the timer and arranges to
+wake up again on expiration:
+
+[timer_handler]
+
+Then instead of directly calling `io_service::run()`, your application would
+call the above `run_service(io_service&)` wrapper.
+
+Note the use of [function_link wait_interval] to reset the timer. This
+replicates the default behavior of the fiber manager: when all fibers on the
+current thread are blocked, the fiber manager sleeps for `wait_interval()` to
+permit real work to proceed on other threads.
+
+Since, in this example, we always pass control to the fiber manager via
+`yield()`, the calling fiber is never blocked. Therefore there is always at
+least one ready fiber. Therefore the fiber manager never sleeps.
+
+Using `std::chrono::seconds(0)` for ['every] timer interval would be
+unfriendly to other threads. When all I/O is pending and all fibers are
+blocked, the io_service and the fiber manager would simply spin the CPU,
+passing control back and forth to each other. Resetting the timer for
+`wait_interval()` allows tuning the responsiveness of this thread relative to
+others in the same way as when __boost_fiber__ is running without
+__boost_asio__.
+
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
+The source code above is found in
+[@../../examples/asio/loop.hpp loop.hpp].
+
+[endsect]

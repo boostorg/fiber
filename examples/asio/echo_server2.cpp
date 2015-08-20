@@ -129,9 +129,7 @@ int main( int argc, char* argv[])
             boost::bind( do_accept,
                 boost::ref( io_service), atoi( argv[1]), _1) );
 
-        boost::fibers::fiber f(
-            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
-        f.join();
+        boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }
