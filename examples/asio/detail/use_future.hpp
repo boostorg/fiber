@@ -7,120 +7,43 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-// modified by Oliver Kowalke
+// modified by Oliver Kowalke and Nat Goodspeed
 //
 
 #ifndef BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
 #define BOOST_FIBERS_ASIO_DETAIL_USE_FUTURE_HPP
 
-#include <exception>
-#include <memory>
-
 #include <boost/asio/async_result.hpp>
-#include <boost/asio/detail/config.hpp>
 #include <boost/asio/handler_type.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/thread/detail/memory.hpp>
+#include <boost/asio/handler_invoke_hook.hpp>
 
 #include <boost/fiber/all.hpp>
+
+#include "promise_handler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
 namespace boost {
+namespace fibers {
 namespace asio {
 namespace detail {
 
-// Completion handler to adapt a promise as a completion handler.
+// use_future_handler is just an alias for promise_handler -- but we must
+// distinguish this case to specialize async_result below.
+template < typename T >
+using use_future_handler = promise_handler<T>;
+
+} // detail
+} // asio
+} // fibers
+
+namespace asio {
+
+// Handler traits specialisation for use_future_handler.
 template< typename T >
-class promise_handler
-{
-public:
-    // Construct from use_future special value.
-    template< typename Allocator >
-    promise_handler( boost::fibers::asio::use_future_t< Allocator > uf) :
-        promise_( new boost::fibers::promise< T >( std::allocator_arg, uf.get_allocator() ) )
-    {}
-
-    void operator()( T t)
-    {
-        promise_->set_value( t);
-        //boost::fibers::detail::scheduler::instance()->run();
-    }
-
-    void operator()( boost::system::error_code const& ec, T t)
-    {
-        if (ec)
-            promise_->set_exception(
-                    std::make_exception_ptr(
-                        boost::system::system_error( ec) ) );
-        else
-            promise_->set_value( t);
-
-        // scheduler::run() resumes a ready fiber
-        // invoke scheduler::run() until no fiber was resumed
-        //boost::fibers::detail::scheduler::instance()->run();
-    }
-
-    //private:
-    boost::shared_ptr< boost::fibers::promise< T > >    promise_;
-};
-
-// Completion handler to adapt a void promise as a completion handler.
-template<>
-class promise_handler< void >
-{
-public:
-    // Construct from use_future special value. Used during rebinding.
-    template< typename Allocator >
-    promise_handler( boost::fibers::asio::use_future_t< Allocator > uf) :
-        promise_( new boost::fibers::promise< void > >( std::allocator_arg, uf.get_allocator() ) )
-    {}
-
-    void operator()()
-    {
-        promise_->set_value();
-        //boost::fibers::detail::scheduler::instance()->run();
-    }
-
-    void operator()( boost::system::error_code const& ec)
-    {
-        if ( ec)
-            promise_->set_exception(
-                    std::make_exception_ptr(
-                        boost::system::system_error( ec) ) );
-        else
-            promise_->set_value();
-
-        // scheduler::run() resumes a ready fiber
-        // invoke scheduler::run() until no fiber was resumed
-        //boost::fibers::detail::scheduler::instance()->run();
-    }
-
-    //private:
-    boost::shared_ptr< boost::fibers::promise< void > > promise_;
-};
-
-// Ensure any exceptions thrown from the handler are propagated back to the
-// caller via the future.
-template< typename Function, typename T >
-void asio_handler_invoke( Function f, promise_handler< T > * h)
-{
-    boost::shared_ptr< boost::fibers::promise< T > > p( h->promise_);
-    try
-    { f(); }
-    catch (...)
-    { p->set_exception( std::current_exception() ); }
-}
-
-} // namespace detail
-
-#if !defined(GENERATING_DOCUMENTATION)
-
-// Handler traits specialisation for promise_handler.
-template< typename T >
-class async_result< detail::promise_handler< T > >
+class async_result< fibers::asio::detail::use_future_handler< T > >
 {
 public:
     // The initiating function will return a future.
@@ -128,8 +51,8 @@ public:
 
     // Constructor creates a new promise for the async operation, and obtains the
     // corresponding future.
-    explicit async_result( detail::promise_handler< T > & h)
-    { value_ = h.promise_->get_future(); }
+    explicit async_result( fibers::asio::detail::use_future_handler< T > & h)
+    { value_ = h.get_promise()->get_future(); }
 
     // Obtain the future to be returned from the initiating function.
     type get()
@@ -139,39 +62,43 @@ private:
     type    value_;
 };
 
-// Handler type specialisation for use_future.
+// Handler type specialisation for use_future for a nullary callback.
 template< typename Allocator, typename ReturnType >
 struct handler_type<
     boost::fibers::asio::use_future_t< Allocator>,
     ReturnType()
 >
-{ typedef detail::promise_handler< void >   type; };
+{ typedef fibers::asio::detail::use_future_handler< void >   type; };
 
-// Handler type specialisation for use_future.
+// Handler type specialisation for use_future for a single-argument callback.
 template< typename Allocator, typename ReturnType, typename Arg1 >
 struct handler_type<
     boost::fibers::asio::use_future_t< Allocator >,
     ReturnType( Arg1)
 >
-{ typedef detail::promise_handler< Arg1 > type; };
+{ typedef fibers::asio::detail::use_future_handler< Arg1 > type; };
 
-// Handler type specialisation for use_future.
+// Handler type specialisation for use_future for a callback passed only
+// boost::system::error_code. Note the use of use_future_handler<void>: an
+// error_code indicating error will be conveyed to consumer code via
+// set_exception().
 template< typename Allocator, typename ReturnType >
 struct handler_type<
     boost::fibers::asio::use_future_t< Allocator >,
     ReturnType( boost::system::error_code)
 >
-{ typedef detail::promise_handler< void >   type; };
+{ typedef fibers::asio::detail::use_future_handler< void >   type; };
 
-// Handler type specialisation for use_future.
+// Handler type specialisation for use_future for a callback passed
+// boost::system::error_code plus an arbitrary value. Note the use of a
+// single-argument use_future_handler: an error_code indicating error will be
+// conveyed to consumer code via set_exception().
 template< typename Allocator, typename ReturnType, typename Arg2 >
 struct handler_type<
     boost::fibers::asio::use_future_t< Allocator >,
     ReturnType( boost::system::error_code, Arg2)
 >
-{ typedef detail::promise_handler< Arg2 >   type; };
-
-#endif // !defined(GENERATING_DOCUMENTATION)
+{ typedef fibers::asio::detail::use_future_handler< Arg2 >   type; };
 
 } // namespace asio
 } // namespace boost

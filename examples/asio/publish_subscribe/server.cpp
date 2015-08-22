@@ -28,7 +28,6 @@
 #include <boost/fiber/all.hpp>
 
 #include "../loop.hpp"
-#include "../spawn.hpp"
 #include "../yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -160,7 +159,7 @@ public:
     { return socket_; }
 
     // this function is executed inside the fiber
-    void run( boost::fibers::asio::yield_context yield)
+    void run()
     {
         std::string channel;
         try
@@ -174,7 +173,7 @@ public:
             boost::asio::async_read(
                     socket_,
                     boost::asio::buffer( data_),
-                    yield[ec]);
+                    boost::fibers::asio::yield[ec]);
             if ( ec) throw std::runtime_error("no channel from subscriber");
             // first message ist equal to the channel name the publisher
             // publishes to
@@ -206,7 +205,7 @@ public:
                 boost::asio::async_write(
                         socket_,
                         boost::asio::buffer( data, data.size() ),
-                        yield[ec]);
+                        boost::fibers::asio::yield[ec]);
                 if ( ec == boost::asio::error::eof)
                     break; //connection closed cleanly by peer
                 else if ( ec)
@@ -269,7 +268,7 @@ public:
     { return socket_; }
 
     // this function is executed inside the fiber
-    void run( boost::fibers::asio::yield_context yield)
+    void run()
     {
         std::string channel;
         try
@@ -286,7 +285,7 @@ public:
             boost::asio::async_read(
                     socket_,
                     boost::asio::buffer( data),
-                    yield[ec]);
+                    boost::fibers::asio::yield[ec]);
             if ( ec) throw std::runtime_error("no channel from publisher");
             // first message ist equal to the channel name the publisher
             // publishes to
@@ -304,7 +303,7 @@ public:
                 boost::asio::async_read(
                         socket_,
                         boost::asio::buffer( data),
-                        yield[ec]); 
+                        boost::fibers::asio::yield[ec]); 
                 if ( ec == boost::asio::error::eof)
                     break; //connection closed cleanly by peer
                 else if ( ec)
@@ -333,8 +332,7 @@ typedef boost::shared_ptr< publisher_session > publisher_session_ptr;
 // function accepts connections requests from clients acting as a publisher
 void accept_publisher( boost::asio::io_service& io_service,
                         unsigned short port,
-                        registry & reg,
-                        boost::fibers::asio::yield_context yield)
+                        registry & reg)
 {
     // create TCP-acceptor
     tcp::acceptor acceptor( io_service, tcp::endpoint( tcp::v4(), port) );
@@ -353,11 +351,11 @@ void accept_publisher( boost::asio::io_service& io_service,
         // is connected
         acceptor.async_accept(
                 new_publisher_session->socket(), 
-                yield[ec]);
+                boost::fibers::asio::yield[ec]);
         if ( ! ec) {
             // run the new publisher in its own fiber (one fiber for one client)
-            boost::fibers::asio::spawn( io_service,
-                boost::bind( & publisher_session::run, new_publisher_session, _1) );
+            boost::fibers::fiber(
+                boost::bind( & publisher_session::run, new_publisher_session) ).detach();
         }
     }
 }
@@ -365,8 +363,7 @@ void accept_publisher( boost::asio::io_service& io_service,
 // function accepts connections requests from clients acting as a subscriber
 void accept_subscriber( boost::asio::io_service& io_service,
                         unsigned short port,
-                        registry & reg,
-                        boost::fibers::asio::yield_context yield)
+                        registry & reg)
 {
     // create TCP-acceptor
     tcp::acceptor acceptor( io_service, tcp::endpoint( tcp::v4(), port) );
@@ -385,11 +382,11 @@ void accept_subscriber( boost::asio::io_service& io_service,
         // is connected
         acceptor.async_accept(
                 new_subscriber_session->socket(), 
-                yield[ec]);
+                boost::fibers::asio::yield[ec]);
         if ( ! ec) {
             // run the new subscriber in its own fiber (one fiber for one client)
-            boost::fibers::asio::spawn( io_service,
-                boost::bind( & subscriber_session::run, new_subscriber_session, _1) );
+            boost::fibers::fiber(
+                boost::bind( & subscriber_session::run, new_subscriber_session) ).detach();
         }
     }
 }
@@ -406,18 +403,16 @@ int main( int argc, char* argv[])
         registry reg;
 
         // create an acceptor for publishers, run it as fiber
-        boost::fibers::asio::spawn( io_service,
+        boost::fibers::fiber(
             boost::bind( accept_publisher,
-                boost::ref( io_service), 9997, boost::ref( reg), _1) );
+                boost::ref( io_service), 9997, boost::ref( reg)) ).detach();
 
-        // create an acceptor for subscribersm, run it as fiber
-        boost::fibers::asio::spawn( io_service,
+        // create an acceptor for subscribers, run it as fiber
+        boost::fibers::fiber(
             boost::bind( accept_subscriber,
-                boost::ref( io_service), 9998, boost::ref( reg), _1) );
+                boost::ref( io_service), 9998, boost::ref( reg)) ).detach();
                 
-        boost::fibers::fiber f(
-            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
-        f.join();
+        boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }

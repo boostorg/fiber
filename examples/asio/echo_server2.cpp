@@ -21,7 +21,6 @@
 #include <boost/fiber/all.hpp>
 
 #include "loop.hpp"
-#include "spawn.hpp"
 #include "yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -42,16 +41,16 @@ public:
 
     void go()
     {
-        boost::fibers::asio::spawn(strand_,
+        boost::fibers::fiber(
                 boost::bind(&session::echo,
-                    shared_from_this(), _1));
-        boost::fibers::asio::spawn(strand_,
+                    shared_from_this())).detach();
+        boost::fibers::fiber(
                 boost::bind(&session::timeout,
-                    shared_from_this(), _1));
+                    shared_from_this())).detach();
     }
 
 private:
-    void echo( boost::fibers::asio::yield_context yield)
+    void echo()
     {
         try
         {
@@ -76,7 +75,7 @@ private:
         }
     }
 
-    void timeout( boost::fibers::asio::yield_context yield)
+    void timeout()
     {
         while ( socket_.is_open() )
         {
@@ -95,7 +94,7 @@ private:
 };
 
 void do_accept(boost::asio::io_service& io_service,
-    unsigned short port, boost::fibers::asio::yield_context yield)
+    unsigned short port)
 {
     tcp::acceptor acceptor( io_service, tcp::endpoint( tcp::v4(), port) );
 
@@ -125,13 +124,11 @@ int main( int argc, char* argv[])
         boost::asio::io_service io_service;
 
         using namespace std; // For atoi.
-        boost::fibers::asio::spawn( io_service,
+        boost::fibers::fiber(
             boost::bind( do_accept,
-                boost::ref( io_service), atoi( argv[1]), _1) );
+                boost::ref( io_service), atoi( argv[1])) ).detach();
 
-        boost::fibers::fiber f(
-            boost::bind( boost::fibers::asio::run_service, boost::ref( io_service) ) );
-        f.join();
+        boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }
