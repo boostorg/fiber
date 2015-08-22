@@ -15,7 +15,6 @@
 
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/handler_type.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 
 #include <boost/fiber/all.hpp>
 

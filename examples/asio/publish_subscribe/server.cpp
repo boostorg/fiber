@@ -411,7 +411,7 @@ int main( int argc, char* argv[])
         boost::fibers::fiber(
             boost::bind( accept_subscriber,
                 boost::ref( io_service), 9998, boost::ref( reg)) ).detach();
-                
+
         boost::fibers::asio::run_service( io_service);
     }
     catch ( std::exception const& e)
