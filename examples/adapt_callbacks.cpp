@@ -167,14 +167,17 @@ int main(int argc, char *argv[])
     // successful write(): prime AsyncAPI with some data
     write(api, "abcd");
     // successful read(): retrieve it
-    assert(read(api) == "abcd");
+    std::string data(read(api));
+    assert(data == "abcd");
 
     // successful write_ec()
-    assert(write_ec(api, "efgh") == 0);
+    AsyncAPI::errorcode ec(write_ec(api, "efgh"));
+    assert(ec == 0);
 
     // write_ec() with error
     api.inject_error(1);
-    assert(write_ec(api, "ijkl") == 1);
+    ec = write_ec(api, "ijkl");
+    assert(ec == 1);
 
     // write() with error
     std::string thrown;
@@ -190,8 +193,6 @@ int main(int argc, char *argv[])
     assert(thrown == make_exception("write", 2).what());
 
     // successful read_ec()
-    AsyncAPI::errorcode ec;
-    std::string data;
     std::tie(ec, data) = read_ec(api);
     assert(! ec);
     assert(data == "efgh");         // last successful write_ec()

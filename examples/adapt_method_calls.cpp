@@ -153,10 +153,11 @@ int main(int argc, char *argv[])
     AsyncAPI api("abcd");
 
     // successful read(): retrieve it
-    assert(read(api) == "abcd");
+    std::string data(read(api));
+    assert(data == "abcd");
 
     // read() with error
-    std::string data, thrown;
+    std::string thrown;
     api.inject_error(1);
     try
     {
