@@ -21,7 +21,6 @@
 #include <boost/fiber/all.hpp>
 
 #include "loop.hpp"
-#include "spawn.hpp"
 #include "yield.hpp"
 
 using boost::asio::ip::udp;
@@ -75,9 +74,9 @@ int main( int argc, char* argv[])
             return 1;
         }
 
-        boost::fibers::asio::spawn( io_service,
+        boost::fibers::fiber(
             boost::bind( get_daytime,
-                boost::ref( io_service), argv[1]) );
+                boost::ref( io_service), argv[1]) ).detach();
         
         boost::fibers::asio::run_service( io_service);
     }
