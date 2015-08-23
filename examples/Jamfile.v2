@@ -26,6 +26,7 @@ project boost/fiber/example
     ;
 
 exe adapt_callbacks : adapt_callbacks.cpp ;
+exe adapt_method_calls : adapt_method_calls.cpp ;
 exe barrier : barrier.cpp ;
 exe future : future.cpp ;
 exe futures_mt : futures_mt.cpp ;

@@ -34,6 +34,7 @@ public:
     // ... other operations ...
     void inject_error(errorcode ec);
 
+private:
     std::string data_;
     errorcode injected_;
 };
