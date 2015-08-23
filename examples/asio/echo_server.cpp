@@ -18,7 +18,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#include "loop.hpp"
+#include "loop.hpp"                 // run_service()
 #include "yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -40,7 +40,7 @@ void session( socket_ptr sock)
                     boost::asio::buffer( data),
                     boost::fibers::asio::yield[ec]);
             if ( ec == boost::asio::error::eof)
-                break; //connection closed cleanlyby peer
+                break; //connection closed cleanly by peer
             else if ( ec)
                 throw boost::system::system_error( ec); //some other error
 
@@ -49,7 +49,7 @@ void session( socket_ptr sock)
                     boost::asio::buffer( data, length),
                     boost::fibers::asio::yield[ec]);
             if ( ec == boost::asio::error::eof)
-                break; //connection closed cleanlyby peer
+                break; //connection closed cleanly by peer
             else if ( ec)
                 throw boost::system::system_error( ec); //some other error
         }
@@ -83,15 +83,14 @@ int main( int argc, char* argv[])
     {
         if ( argc != 2)
         {
-            std::cerr << "Usage: blocking_tcp_echo_server <port>\n";
+            std::cerr << "Usage: echo_server <port>\n";
             return 1;
         }
 
         boost::asio::io_service io_service;
 
-        using namespace std; // For atoi.
         boost::fibers::fiber(
-            boost::bind( server, boost::ref( io_service), atoi( argv[1]) ) ).detach();
+            boost::bind( server, boost::ref( io_service), std::atoi( argv[1]) ) ).detach();
         
         boost::fibers::asio::run_service( io_service);
     }
