@@ -35,11 +35,4 @@
 # include <boost/config/auto_link.hpp>
 #endif
 
-#if defined(BOOST_USE_SEGMENTED_STACKS)
-# if ! (defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 6)
-#  error "compiler does not support segmented_stack stacks"
-# endif
-# define BOOST_FIBERS_SEGMENTS 10
-#endif
-
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H
