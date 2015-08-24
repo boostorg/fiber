@@ -48,6 +48,7 @@ namespace asio {
  * allocator.</dd>
  * </dl>
  */
+//[fibers_asio_promise_completion_token
 template< typename Allocator >
 class promise_completion_token
 {
@@ -76,6 +77,7 @@ public:
 private:
     Allocator allocator_;
 };
+//]
 
 } // namespace asio
 } // namespace fibers

@@ -190,6 +190,7 @@ object are running in the same thread.
 [endsect]
 [include fls.qbk]
 [/[include asio.qbk]]
+[include callbacks.qbk]
 [include integration.qbk]
 [include performance.qbk]
 [include customization.qbk]

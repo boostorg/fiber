@@ -30,6 +30,7 @@ namespace asio {
 namespace detail {
 
 // Completion handler to adapt a promise as a completion handler.
+//[fibers_asio_promise_handler_base
 template< typename T >
 class promise_handler_base
 {
@@ -39,8 +40,10 @@ public:
     // Construct from any promise_completion_token subclass special value.
     template< typename Allocator >
     promise_handler_base( const boost::fibers::asio::promise_completion_token< Allocator >& pct) :
-        promise_( new boost::fibers::promise< T >( std::allocator_arg, pct.get_allocator() ) ),
-        ecp_( pct.ec_)
+        promise_( new boost::fibers::promise< T >( std::allocator_arg, pct.get_allocator() ) )
+//<-
+        , ecp_( pct.ec_)
+//->
     {}
 
     bool should_set_value( boost::system::error_code const& ec)
@@ -51,6 +54,7 @@ public:
             return true;
         }
 
+//<-
         // ec indicates error
         if (ecp_)
         {
@@ -63,7 +67,7 @@ public:
             // anyway.
             return true;
         }
-
+//->
         // no bound error_code: cause promise_ to throw an exception
         promise_->set_exception(
             std::make_exception_ptr(
@@ -77,15 +81,21 @@ public:
 
 private:
     promise_ptr                 promise_;
+//<-
     boost::system::error_code * ecp_;
+//->
 };
+//]
 
 // generic promise_handler for arbitrary value
+//[fibers_asio_promise_handler
 template< typename T >
 class promise_handler: public promise_handler_base<T>
 {
+//<-
     using promise_handler_base<T>::should_set_value;
 
+//->
 public:
     // Construct from any promise_completion_token subclass special value.
     template< typename Allocator >
@@ -93,19 +103,22 @@ public:
         promise_handler_base<T>( pct)
     {}
 
+//<-
     void operator()( T t)
     {
         get_promise()->set_value( t);
     }
-
+//->
     void operator()( boost::system::error_code const& ec, T t)
     {
         if (should_set_value(ec))
             get_promise()->set_value( t);
     }
-
+//<-
     using promise_handler_base<T>::get_promise;
+//->
 };
+//]
 
 // specialize promise_handler for void
 template<>

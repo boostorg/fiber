@@ -78,6 +78,7 @@ namespace asio {
  * boost::fibers::asio::yield.with(alloc_instance)[ec]
  * @endcode
  */
+//[fibers_asio_yield_t
 template< typename Allocator = std::allocator< void > >
 class yield_t: public promise_completion_token<Allocator>
 {
@@ -85,6 +86,9 @@ public:
     /// Construct with default-constructed allocator.
     BOOST_CONSTEXPR yield_t()
     {}
+/*=    // ... ways to use an alternate allocator or bind an error_code ...*/
+/*=};*/
+//]
 
     /// Construct using specified allocator.
     explicit yield_t( Allocator const& allocator) :
@@ -109,8 +113,10 @@ public:
     }
 };
 
+//[fibers_asio_yield
 /// A special value, similar to std::nothrow.
 BOOST_CONSTEXPR_OR_CONST yield_t<> yield;
+//]
 
 }}}
 
