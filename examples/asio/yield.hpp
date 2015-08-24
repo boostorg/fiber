@@ -80,30 +80,29 @@ namespace asio {
  */
 //[fibers_asio_yield_t
 template< typename Allocator = std::allocator< void > >
-class yield_t: public promise_completion_token<Allocator>
-{
+class yield_t: public promise_completion_token< Allocator > {
 public:
     /// Construct with default-constructed allocator.
-    BOOST_CONSTEXPR yield_t()
-    {}
+    BOOST_CONSTEXPR yield_t() {
+    }
 /*=    // ... ways to use an alternate allocator or bind an error_code ...*/
 /*=};*/
 //]
 
     /// Construct using specified allocator.
     explicit yield_t( Allocator const& allocator) :
-        promise_completion_token<Allocator>( allocator)
-    {}
+        promise_completion_token<Allocator>( allocator) {
+    }
 
     /// Specify an alternate allocator.
     template< typename OtherAllocator >
     yield_t< OtherAllocator >
-    with( OtherAllocator const& allocator) const
-    { return yield_t< OtherAllocator >( allocator); }
+    with( OtherAllocator const& allocator) const {
+        return yield_t< OtherAllocator >( allocator);
+    }
 
     /// Bind an error_code to suppress error exception.
-    yield_t operator[]( boost::system::error_code & ec) const
-    {
+    yield_t operator[]( boost::system::error_code & ec) const {
         // Return a copy because typical usage will be on our canonical
         // instance. Don't leave the canonical instance with a dangling
         // binding to a transient error_code!

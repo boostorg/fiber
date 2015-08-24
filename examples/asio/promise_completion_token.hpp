@@ -50,38 +50,36 @@ namespace asio {
  */
 //[fibers_asio_promise_completion_token
 template< typename Allocator >
-class promise_completion_token
-{
+class promise_completion_token {
 public:
     typedef Allocator allocator_type;
 
     /// Construct using default-constructed allocator.
     BOOST_CONSTEXPR promise_completion_token() :
-        ec_( nullptr)
-    {}
+        ec_( nullptr) {
+    }
 
     /// Construct using specified allocator.
     explicit promise_completion_token( Allocator const& allocator) :
         ec_( nullptr),
-        allocator_( allocator)
-    {}
+        allocator_( allocator) {
+    }
 
     /// Obtain allocator.
-    allocator_type get_allocator() const
-    { return allocator_; }
+    allocator_type get_allocator() const {
+        return allocator_;
+    }
 
 //private:
     // used by some subclasses to bind an error_code to suppress exceptions
     boost::system::error_code   *   ec_;
 
 private:
-    Allocator allocator_;
+    Allocator   allocator_;
 };
 //]
 
-} // namespace asio
-} // namespace fibers
-} // namespace boost
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
