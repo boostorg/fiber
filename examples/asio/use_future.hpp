@@ -42,31 +42,29 @@ namespace asio {
  * system_error and passed back to the caller via the future.
  */
 template< typename Allocator = std::allocator< void > >
-class use_future_t: public promise_completion_token<Allocator>
-{
+class use_future_t : public promise_completion_token< Allocator > {
 public:
     /// Construct using default-constructed allocator.
-    BOOST_CONSTEXPR use_future_t()
-    {}
+    BOOST_CONSTEXPR use_future_t() {
+    }
 
     /// Construct using specified allocator.
     explicit use_future_t( Allocator const& allocator) :
-        promise_completion_token<Allocator>( allocator)
-    {}
+        promise_completion_token<Allocator>( allocator) {
+    }
 
     /// Specify an alternate allocator.
     template< typename OtherAllocator >
     use_future_t< OtherAllocator >
-    operator[]( OtherAllocator const& allocator) const
-    { return use_future_t< OtherAllocator >( allocator); }
+    operator[]( OtherAllocator const& allocator) const {
+        return use_future_t< OtherAllocator >( allocator);
+    }
 };
 
 /// A special value, similar to std::nothrow.
 BOOST_CONSTEXPR_OR_CONST use_future_t<> use_future;
 
-} // namespace asio
-} // namespace fibers
-} // namespace boost
+}}} // namespace asio
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

@@ -32,8 +32,7 @@ namespace detail {
 // Completion handler to adapt a promise as a completion handler.
 //[fibers_asio_promise_handler_base
 template< typename T >
-class promise_handler_base
-{
+class promise_handler_base {
     typedef boost::shared_ptr< boost::fibers::promise< T > > promise_ptr;
 
 public:
@@ -46,18 +45,15 @@ public:
 //->
     {}
 
-    bool should_set_value( boost::system::error_code const& ec)
-    {
-        if (! ec)
-        {
+    bool should_set_value( boost::system::error_code const& ec) {
+        if ( ! ec) {
             // whew, success
             return true;
         }
 
 //<-
         // ec indicates error
-        if (ecp_)
-        {
+        if ( ecp_) {
             // promise_completion_token bound an error_code variable: set it
             *ecp_ = ec;
             // This is the odd case: although there's an error, user code
@@ -76,8 +72,9 @@ public:
         return false;
     }
 
-    promise_ptr get_promise() const
-    { return promise_; }
+    promise_ptr get_promise() const {
+        return promise_;
+    }
 
 private:
     promise_ptr                 promise_;
@@ -90,66 +87,60 @@ private:
 // generic promise_handler for arbitrary value
 //[fibers_asio_promise_handler
 template< typename T >
-class promise_handler: public promise_handler_base<T>
-{
+class promise_handler : public promise_handler_base< T > {
 //<-
-    using promise_handler_base<T>::should_set_value;
+    using promise_handler_base< T >::should_set_value;
 
 //->
 public:
     // Construct from any promise_completion_token subclass special value.
     template< typename Allocator >
-    promise_handler( const boost::fibers::asio::promise_completion_token< Allocator >& pct) :
-        promise_handler_base<T>( pct)
-    {}
+    promise_handler( boost::fibers::asio::promise_completion_token< Allocator > const& pct) :
+        promise_handler_base< T >( pct) {
+    }
 
 //<-
-    void operator()( T t)
-    {
+    void operator()( T t) {
         get_promise()->set_value( t);
     }
 //->
-    void operator()( boost::system::error_code const& ec, T t)
-    {
-        if (should_set_value(ec))
+    void operator()( boost::system::error_code const& ec, T t) {
+        if ( should_set_value( ec) ) {
             get_promise()->set_value( t);
+        }
     }
 //<-
-    using promise_handler_base<T>::get_promise;
+    using promise_handler_base< T >::get_promise;
 //->
 };
 //]
 
 // specialize promise_handler for void
 template<>
-class promise_handler< void >: public promise_handler_base<void>
-{
-    using promise_handler_base<void>::should_set_value;
+class promise_handler< void > : public promise_handler_base< void > {
+    using promise_handler_base< void >::should_set_value;
 
 public:
     // Construct from any promise_completion_token subclass special value.
     template< typename Allocator >
-    promise_handler( const boost::fibers::asio::promise_completion_token< Allocator >& pct) :
-        promise_handler_base<void>( pct)
-    {}
+    promise_handler( boost::fibers::asio::promise_completion_token< Allocator > const& pct) :
+        promise_handler_base< void >( pct) {
+    }
 
-    void operator()()
-    {
+    void operator()() {
         get_promise()->set_value();
     }
 
-    void operator()( boost::system::error_code const& ec)
-    {
-        if (should_set_value( ec))
+    void operator()( boost::system::error_code const& ec) {
+        if ( should_set_value( ec) ) {
             get_promise()->set_value();
+        }
     }
 
-    using promise_handler_base<void>::get_promise;
+    using promise_handler_base< void >::get_promise;
 };
 
-} // namespace detail
-} // namespace asio
-} // namespace fibers
+}}}
 
 namespace asio {
 namespace detail {
@@ -157,18 +148,16 @@ namespace detail {
 // Specialize asio_handler_invoke hook to ensure that any exceptions thrown
 // from the handler are propagated back to the caller via the future.
 template< typename Function, typename T >
-void asio_handler_invoke( Function f, fibers::asio::detail::promise_handler< T > * h)
-{
-    boost::shared_ptr< boost::fibers::promise< T > > p( h->get_promise());
-    try
-    { f(); }
-    catch (...)
-    { p->set_exception( std::current_exception() ); }
+void asio_handler_invoke( Function f, fibers::asio::detail::promise_handler< T > * h) {
+    boost::shared_ptr< boost::fibers::promise< T > > p( h->get_promise() );
+    try {
+        f();
+    } catch (...) {
+        p->set_exception( std::current_exception() );
+    }
 }
 
-} // namespace detail
-} // namespace asio
-} // namespace boost
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
