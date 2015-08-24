@@ -15,6 +15,7 @@
 /*****************************************************************************
 *   example async API
 *****************************************************************************/
+//[AsyncAPI
 class AsyncAPI
 {
 public:
@@ -32,12 +33,15 @@ public:
     void init_read(const std::function<void(errorcode, const std::string&)>&);
 
     // ... other operations ...
+//<-
     void inject_error(errorcode ec);
 
 private:
     std::string data_;
     errorcode injected_;
+//->
 };
+//]
 
 /*****************************************************************************
 *   fake AsyncAPI implementation... pay no attention to the little man behind
@@ -94,6 +98,7 @@ void AsyncAPI::init_read(const std::function<void(errorcode, const std::string&)
 // helper function used in a couple of the adapters
 std::runtime_error make_exception(const std::string& desc, AsyncAPI::errorcode);
 
+//[callbacks_write_ec
 AsyncAPI::errorcode write_ec(AsyncAPI& api, const std::string& data)
 {
     boost::fibers::promise<AsyncAPI::errorcode> promise;
@@ -108,14 +113,18 @@ AsyncAPI::errorcode write_ec(AsyncAPI& api, const std::string& data)
         });
     return future.get();
 }
+//]
 
+//[callbacks_write
 void write(AsyncAPI& api, const std::string& data)
 {
     AsyncAPI::errorcode ec = write_ec(api, data);
     if (ec)
         throw make_exception("write", ec);
 }
+//]
 
+//[callbacks_read_ec
 std::pair<AsyncAPI::errorcode, std::string>
 read_ec(AsyncAPI& api)
 {
@@ -130,7 +139,9 @@ read_ec(AsyncAPI& api)
         });
     return future.get();
 }
+//]
 
+//[callbacks_read
 std::string read(AsyncAPI& api)
 {
     boost::fibers::promise<std::string> promise;
@@ -146,6 +157,7 @@ std::string read(AsyncAPI& api)
         });
     return future.get();
 }
+//]
 
 /*****************************************************************************
 *   helpers
@@ -193,7 +205,9 @@ int main(int argc, char *argv[])
     assert(thrown == make_exception("write", 2).what());
 
     // successful read_ec()
+//[callbacks_read_ec_call
     std::tie(ec, data) = read_ec(api);
+//]
     assert(! ec);
     assert(data == "efgh");         // last successful write_ec()
 

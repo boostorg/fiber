@@ -22,6 +22,7 @@ struct AsyncAPIBase
     typedef int errorcode;
 };
 
+//[Response
 // every async operation receives a subclass instance of this abstract base
 // class through which to communicate its result
 struct Response
@@ -34,6 +35,7 @@ struct Response
     // called if the operation fails
     virtual void error(AsyncAPIBase::errorcode ec) = 0;
 };
+//]
 
 // the actual async API
 class AsyncAPI: public AsyncAPIBase
@@ -42,8 +44,10 @@ public:
     // constructor acquires some resource that can be read
     AsyncAPI(const std::string& data);
 
+//[method_init_read
     // derive Response subclass, instantiate, pass Response::ptr
     void init_read(Response::ptr);
+//]
 
     // ... other operations ...
     void inject_error(errorcode ec);
@@ -98,6 +102,7 @@ void AsyncAPI::init_read(Response::ptr response)
 // helper function
 std::runtime_error make_exception(const std::string& desc, AsyncAPI::errorcode);
 
+//[PromiseResponse
 class PromiseResponse: public Response
 {
 public:
@@ -121,7 +126,9 @@ public:
 private:
     boost::fibers::promise<std::string> promise_;
 };
+//]
 
+//[method_read
 std::string read(AsyncAPI& api)
 {
     // Because init_read() requires a shared_ptr, we must allocate our
@@ -133,6 +140,7 @@ std::string read(AsyncAPI& api)
     api.init_read(promisep);
     return future.get();
 }
+//]
 
 /*****************************************************************************
 *   helpers

@@ -31,8 +31,10 @@ namespace detail {
 
 // yield_handler is just an alias for promise_handler -- but we must
 // distinguish this case to specialize async_result below.
+//[fibers_asio_yield_handler
 template < typename T >
 using yield_handler = promise_handler<T>;
+//]
 
 } // detail
 } // asio
@@ -94,12 +96,14 @@ struct handler_type<
 // single-argument yield_handler: an error_code indicating error will be
 // conveyed to consumer code via an exception. Normal return implies (!
 // error_code).
+//[asio_handler_type
 template< typename Allocator, typename ReturnType, typename Arg2 >
 struct handler_type<
     boost::fibers::asio::yield_t< Allocator>,
     ReturnType( boost::system::error_code, Arg2)
 >
 { typedef fibers::asio::detail::yield_handler< Arg2 >    type; };
+//]
 
 } // namespace asio
 } // namespace boost

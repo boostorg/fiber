@@ -1,0 +1,214 @@
+[/
+      Copyright Oliver Kowalke, Nat Goodspeed 2015.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[/ import path is relative to this .qbk file]
+[import ../examples/adapt_callbacks.cpp]
+[import ../examples/adapt_method_calls.cpp]
+
+[#callbacks]
+[section:callbacks Integrating Fibers with Asynchronous Callbacks]
+
+[heading Overview]
+
+One of the primary benefits of __boost_fiber__ is the ability to use
+asynchronous operations for efficiency, while at the same time structuring the
+calling code ['as if] the operations were synchronous. Asynchronous operations
+provide completion notification in a variety of ways, but most involve a
+callback function of some kind. This section discusses tactics for interfacing
+__boost_fiber__ with an arbitrary async operation.
+
+For purposes of illustration, consider the following hypothetical API:
+
+[AsyncAPI]
+
+The significant points about each of `init_write()` and `init_read()` are:
+
+* The `AsyncAPI` method only initiates the operation. It returns immediately,
+  while the requested operation is still pending.
+* The method accepts a callback. When the operation completes, the callback is
+  called with relevant parameters (error code, data if applicable).
+
+We would like to wrap these asynchronous methods in functions that appear
+synchronous by blocking the calling fiber until the operation completes. This
+lets us use the wrapper function's return value to deliver relevant data.
+
+[tip [template_link promise] and [template_link future] are your friends here.]
+
+[heading Return Errorcode]
+
+The `AsyncAPI::init_write()` callback passes only an `errorcode`. If we simply
+want the blocking wrapper to return that `errorcode`, this is an extremely
+straightforward use of [template_link promise] and [template_link future]:
+
+[callbacks_write_ec]
+
+All we have to do is:
+
+# Instantiate a `promise<>` of correct type.
+# Obtain its `future<>`.
+# Arrange for the callback to call [member_link promise..set_value].
+# Block on [member_link future..get].
+
+[note This tactic for resuming a pending fiber works even if the callback is
+called on a different thread than the one on which the initiating fiber is
+running. In fact, the example program's dummy `AsyncAPI` implementation
+illustrates that: it simulates async I/O by launching a new thread that sleeps
+briefly and then calls the relevant callback.]
+
+[heading Success or Exception]
+
+A wrapper more aligned with modern C++ practice would use an exception, rather
+than an `errorcode`, to communicate failure to its caller. This is
+straightforward to code in terms of `write_ec()`:
+
+[callbacks_write]
+
+The point is that since each fiber has its own stack, you need not repeat
+messy boilerplate: normal encapsulation works.
+
+[heading Return Errorcode or Data]
+
+Things get a bit more interesting when the async operation's callback passes
+multiple data items of interest. One approach would be to use `std::pair<>` to
+capture both:
+
+[callbacks_read_ec]
+
+Once you bundle the interesting data in `std::pair<>`, the code is effectively
+identical to `write_ec()`. You can call it like this:
+
+[callbacks_read_ec_call]
+
+[heading Data or Exception]
+
+But a more natural API for a function that obtains data is to return only the
+data on success, throwing an exception on error.
+
+As with `write()` above, it's certainly possible to code a `read()` wrapper in
+terms of `read_ec()`. But since a given application is unlikely to need both,
+let's code `read()` from scratch, leveraging [member_link
+promise..set_exception]:
+
+[callbacks_read]
+
+[member_link future..get] will do the right thing, either returning
+`std::string` or throwing an exception.
+
+[heading Success/Error Virtual Methods]
+
+One classic approach to completion notification is to define an abstract base
+class with `success()` and `error()` methods. Code wishing to perform async
+I/O must derive a subclass, override each of these methods and pass the async
+operation a pointer to a subclass instance. The abstract base class might look
+like this:
+
+[Response]
+
+Now the `AsyncAPI` operation might look more like this:
+
+[method_init_read]
+
+We can address this by writing a one-size-fits-all `PromiseResponse`:
+
+[PromiseResponse]
+
+Now we can simply obtain the `future<>` from that `PromiseResponse` and wait
+on its `get()`:
+
+[method_read]
+
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
+The source code above is found in
+[@../../examples/adapt_callbacks.cpp adapt_callbacks.cpp]
+and
+[@../../examples/adapt_method_calls.cpp adapt_method_calls.cpp].
+
+[heading Then There's __boost_asio__]
+
+[import ../examples/asio/yield.hpp]
+[import ../examples/asio/promise_completion_token.hpp]
+[import ../examples/asio/detail/yield.hpp]
+[import ../examples/asio/detail/promise_handler.hpp]
+
+Since the simplest form of Boost.Asio asynchronous operation completion token
+is a callback function, we could apply the same tactics for Asio as for our
+hypothetical `AsyncAPI` asynchronous operations.
+
+Fortunately we need not. Boost.Asio incorporates a mechanism by which the
+caller can customize the notification behavior of every async operation.
+Therefore we can construct a ['completion token] which, when passed to a
+__boost_asio__ async operation, requests blocking for the calling fiber. The
+underlying implementation uses the same mechanism as described above.
+
+`boost::fibers::asio::yield` is such a completion token. `yield` is an
+instance of `yield_t`:
+
+[fibers_asio_yield]
+
+which isa `promise_completion_token`:
+
+[fibers_asio_yield_t]
+
+`promise_completion_token` is common to both `yield` and `use_future`. (The
+interested reader is encouraged to learn more about `use_future` in
+[@../../examples/asio/use_future.hpp example source code].)
+
+`promise_completion_token` is in fact only a placeholder, a way to trigger
+Boost.Asio customization. It can bind a custom allocator or
+[@http://www.boost.org/doc/libs/release/libs/system/doc/reference.html#Class-error_code
+`boost::system::error_code`]
+for use by the actual handler.
+
+[fibers_asio_promise_completion_token]
+
+Asio customization is engaged by specializing
+[@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/handler_type.html
+`boost::asio::handler_type<>`]
+for `yield_t`:
+
+[asio_handler_type]
+
+(There are actually four different specializations in
+[@../../examples/asio/detail/yield.hpp detail/yield.hpp],
+one for each of the four Asio async callback signatures we expect to have to
+support.)
+
+The above directs Asio to use `yield_handler` as the actual handler for an
+async operation to which `yield` is passed.
+
+`yield_handler` is simply an alias for `promise_handler`, because
+`promise_handler` is shared with the `use_future` machinery:
+
+[fibers_asio_yield_handler]
+
+`promise_handler` isa `promise_handler_base`:
+
+[fibers_asio_promise_handler_base]
+
+As promised, `promise_handler_base` binds a [template_link promise] of
+appropriate type. (We store a `shared_ptr<promise<T>>` because the
+`promise_handler` instance is copied on its way into underlying Asio
+machinery.)
+
+Asio, having consulted the `yield_handler` traits specialization, instantiates
+a `yield_handler` (aka `promise_handler`) as the async operation's callback:
+
+[fibers_asio_promise_handler]
+
+Like the lambda callback in our `read(AsyncAPI&)` presented earlier,
+`promise_handler::operator()()` either calls [member_link promise..set_value]
+or [member_link promise..set_exception] (via
+`promise_handler_base::should_set_value()`).
+
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
+The source code above is found in
+[@../../examples/asio/yield.hpp yield.hpp],
+[@../../examples/asio/promise_completion_token.hpp promise_completion_token.hpp],
+[@../../examples/asio/detail/yield.hpp detail/yield.hpp] and
+[@../../examples/asio/detail/promise_handler.hpp detail/promise_handler.hpp].
+
+[endsect]
