@@ -894,7 +894,7 @@ constructed.]]
 Because the TIB (thread information block) is not fully described in the MSDN,
 it might be possible that not all required TIB-parts are swapped.
 With compiler flag `BOOST_USE_WINFIBERS` `fiber` uses internally the
-Windows Fiber API (see also [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext/winfibers.html BoostContext WinFiber support]).
+Windows Fiber API (see also [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext/winfibers.html Boost.Context WinFiber support]).
 
 [endsect]
 
