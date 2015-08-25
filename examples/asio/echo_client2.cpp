@@ -1,8 +1,13 @@
 //
-// blocking_tcp_echo_client.cpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// echo_client2.cpp
+// ~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// This source is almost identical to
+// http://www.boost.org/doc/libs/release/doc/html/boost_asio/example/cpp03/echo/blocking_tcp_echo_client.cpp
+// save that it deliberately introduces a timeout.
+// It does not use Boost.Fiber. It is copied here only for completeness. A
+// server needs a client.
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -26,7 +31,7 @@ int main(int argc, char* argv[])
   {
     if (argc != 3)
     {
-      std::cerr << "Usage: blocking_tcp_echo_client <host> <port>\n";
+      std::cerr << "Usage: echo_client2 <host> <port>\n";
       return 1;
     }
 
