@@ -32,6 +32,10 @@ public:
         tail_( & head_) {
     }
 
+    ~terminated_queue() {
+        clear();
+    }
+
     terminated_queue( terminated_queue const&) = delete;
     terminated_queue & operator=( terminated_queue const&) = delete;
 

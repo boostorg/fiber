@@ -335,8 +335,7 @@ public:
 
     void set_properties( fiber_properties* props);
 
-    fiber_properties* get_properties() const
-    {
+    fiber_properties* get_properties() const {
         return properties_;
     }
 
