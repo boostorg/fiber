@@ -44,8 +44,36 @@ fiber_manager::~fiber_manager() noexcept {
     // therefore destructing wqueue_ && rqueue_
     // will destroy the fibers in this scheduler
     // if not referenced on other places
-    while ( ! wqueue_.empty() ) {
-        run();
+    for (;;) {
+        // move all fibers which are ready (state_ready)
+        // from waiting-queue to the runnable-queue
+        wqueue_.move_to( sched_algo_);
+
+        // pop new fiber from ready-queue
+        fiber_context * f( sched_algo_->pick_next() );
+        if ( f) {
+            BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
+
+            // destroy terminated fibers from tqueue_
+            tqueue_.clear();
+
+            // in the dtor we have to yield main.fiber in order to
+            // let return the last fiber to main-fiber
+            if ( f != active_fiber_ && active_fiber_ == fiber_context::main_fiber() ) {
+                // set active-fiber to state_waiting
+                active_fiber_->set_ready();
+                // push active-fiber to wqueue_
+                wqueue_.push( active_fiber_);
+            }
+
+            // resume fiber f
+            resume_( f);
+
+            // destroy terminated fibers from tqueue_
+            tqueue_.clear();
+        } else if ( wqueue_.empty() ) {
+            break;
+        }
     }
     active_fiber_ = nullptr;
 }
