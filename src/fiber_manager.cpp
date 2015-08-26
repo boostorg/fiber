@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <thread> // std::this_thread::sleep_until()
+#include <utility>
 
 #include <boost/assert.hpp>
 
@@ -25,13 +26,8 @@
 namespace boost {
 namespace fibers {
 
-sched_algorithm * default_algorithm() {
-    static thread_local round_robin rr;
-    return & rr;
-}
-
 fiber_manager::fiber_manager() noexcept :
-    sched_algo_( default_algorithm() ),
+    sched_algo_( new round_robin() ),
     active_fiber_( fiber_context::main_fiber() ),
     wqueue_(),
     tqueue_(),
@@ -201,8 +197,8 @@ fiber_manager::active() noexcept {
 }
 
 void
-fiber_manager::set_sched_algo( sched_algorithm * algo) {
-    sched_algo_ = algo;
+fiber_manager::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+    sched_algo_ = std::move( algo);
 }
 
 void

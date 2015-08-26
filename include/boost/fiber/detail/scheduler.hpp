@@ -6,9 +6,13 @@
 #ifndef BOOST_FIBERS_DETAIL_SCHEDULER_H
 #define BOOST_FIBERS_DETAIL_SCHEDULER_H
 
+#include <memory>
+#include <utility>
+
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
+#include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber_manager.hpp>
 
@@ -20,8 +24,6 @@ namespace boost {
 namespace fibers {
 
 class fiber_context;
-struct fiber_manager;
-struct sched_algorithm;
 
 namespace detail {
 
@@ -39,10 +41,10 @@ struct scheduler {
         return & mgr;
     }
 
-    static void replace( sched_algorithm * other) {
+    static void replace( std::unique_ptr< sched_algorithm > other) {
         BOOST_ASSERT( nullptr != other);
 
-        instance()->set_sched_algo( other);
+        instance()->set_sched_algo( std::move( other) );
     }
 };
 

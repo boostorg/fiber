@@ -304,13 +304,11 @@ void change_fn(const std::string& name, int priority,
 }
 //]
 
-priority_scheduler psched;
-
 //[main
 int main(int argc, char *argv[])
 {
     // make sure we use our priority_scheduler rather than default round_robin
-    boost::fibers::set_scheduling_algorithm(&psched);
+    boost::fibers::use_scheduling_algorithm< priority_scheduler >();
 /*=    ...*/
 /*=}*/
 //]
