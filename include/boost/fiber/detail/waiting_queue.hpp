@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_DETAIL_WAITING_QUEUE_H
 
 #include <algorithm>
+#include <memory>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -48,7 +49,9 @@ public:
         return head_; 
     }
 
-    void move_to( sched_algorithm *);
+    void move_to( std::unique_ptr< sched_algorithm > &);
+
+    void interrupt_all() noexcept;
 
     void swap( waiting_queue & other) noexcept {
         std::swap( head_, other.head_);
