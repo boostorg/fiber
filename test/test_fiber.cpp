@@ -234,11 +234,10 @@ void test_detach()
     }
 }
 
-boost::fibers::round_robin ds;
 
 void test_replace()
 {
-    boost::fibers::set_scheduling_algorithm( & ds);
+    boost::fibers::use_scheduling_algorithm< boost::fibers::round_robin >();
     boost::fibers::fiber s1( f1);
     BOOST_CHECK( s1);
     boost::fibers::fiber s2( f2);

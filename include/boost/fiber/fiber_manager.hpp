@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <chrono>
+#include <memory>
 #include <mutex>
 
 #include <boost/assert.hpp>
@@ -34,7 +35,7 @@ private:
     typedef detail::waiting_queue                   wqueue_t;
     typedef detail::terminated_queue                tqueue_t;
 
-    sched_algorithm                             *   sched_algo_;
+    std::unique_ptr< sched_algorithm >              sched_algo_;
     fiber_context                               *   active_fiber_;
     wqueue_t                                        wqueue_;
     tqueue_t                                        tqueue_;
@@ -83,7 +84,7 @@ public:
 
     sched_algorithm* get_sched_algo_();
 
-    void set_sched_algo( sched_algorithm *);
+    void set_sched_algo( std::unique_ptr< sched_algorithm >);
 
     void wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
 

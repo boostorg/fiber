@@ -40,7 +40,7 @@ waiting_queue::push( fiber_context * item) noexcept {
 }
 
 void
-waiting_queue::move_to( sched_algorithm * sched_algo) {
+waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
     BOOST_ASSERT( nullptr != sched_algo);
 
     std::chrono::high_resolution_clock::time_point now(
