@@ -50,6 +50,8 @@ public:
 
     void move_to( sched_algorithm *);
 
+    void interrupt_all() noexcept;
+
     void swap( waiting_queue & other) noexcept {
         std::swap( head_, other.head_);
         std::swap( tail_, other.tail_);
