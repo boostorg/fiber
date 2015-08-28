@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <chrono>
+#include <memory>
 #include <mutex> // std::unique_lock
 
 #include <boost/config.hpp> 
@@ -68,9 +69,10 @@ void migrate( fiber const& f) {
     detail::scheduler::instance()->spawn( detail::scheduler::extract( f) );
 }
 
-inline
-void set_scheduling_algorithm( sched_algorithm * al) {
-    detail::scheduler::replace( al);
+template< typename SchedAlgo, typename ... Args >
+void use_scheduling_algorithm( Args && ... args) {
+    detail::scheduler::replace(
+        std::make_unique< SchedAlgo >( std::forward< Args >( args) ... ) );
 }
 
 template< typename Rep, typename Period >
