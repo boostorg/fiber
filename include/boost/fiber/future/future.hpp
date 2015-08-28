@@ -44,10 +44,10 @@ public:
         state_() {
     }
 
-
     explicit future( ptr_t const& p) noexcept :
         state_( p) {
     }
+
     ~future() noexcept {
     }
 
