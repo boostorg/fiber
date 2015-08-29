@@ -191,6 +191,8 @@ object are running in the same thread.
 [include fls.qbk]
 [/[include asio.qbk]]
 [include callbacks.qbk]
+[include nonblocking.qbk]
+[include when_any.qbk]
 [include integration.qbk]
 [include performance.qbk]
 [include customization.qbk]

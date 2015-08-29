@@ -82,6 +82,7 @@ struct Example
 /*****************************************************************************
 *   example task functions
 *****************************************************************************/
+//[wait_sleeper
 template <typename T>
 T sleeper_impl(T item, int ms, bool thrw=false)
 {
@@ -96,6 +97,7 @@ T sleeper_impl(T item, int ms, bool thrw=false)
         throw std::runtime_error(desc);
     return item;
 }
+//]
 
 inline
 std::string sleeper(const std::string& item, int ms, bool thrw=false)
@@ -118,6 +120,7 @@ int sleeper(int item, int ms, bool thrw=false)
 /*****************************************************************************
 *   Done
 *****************************************************************************/
+//[wait_done
 // Wrap canonical pattern for condition_variable + bool flag
 struct Done
 {
@@ -145,10 +148,12 @@ public:
         cond.notify_one();
     }
 };
+//]
 
 /*****************************************************************************
 *   when_any, simple completion
 *****************************************************************************/
+//[wait_first_simple_impl
 // Degenerate case: when there are no functions to wait for, return
 // immediately.
 void wait_first_simple_impl(Done::ptr)
@@ -165,8 +170,10 @@ void wait_first_simple_impl(Done::ptr done, Fn && function, Fns&& ... functions)
     }).detach();
     wait_first_simple_impl(done, std::forward<Fns>(functions)...);
 }
+//]
 
 // interface function: instantiate Done, launch tasks, wait for Done
+//[wait_first_simple
 template < typename... Fns >
 void wait_first_simple(Fns&& ... functions)
 {
@@ -176,12 +183,15 @@ void wait_first_simple(Fns&& ... functions)
     wait_first_simple_impl(done, std::forward<Fns>(functions)...);
     done->wait();
 }
+//]
 
 // example usage
 Example wfs(runner, "wait_first_simple()", [](){
+//[wait_first_simple_ex
     wait_first_simple([](){ sleeper("wfs_long",   150); },
                       [](){ sleeper("wfs_medium", 100); },
                       [](){ sleeper("wfs_short",   50); });
+//]
 });
 
 /*****************************************************************************

@@ -1,0 +1,126 @@
+[/
+      Copyright Oliver Kowalke, Nat Goodspeed 2015.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[/ import path is relative to this .qbk file]
+[import ../examples/wait_stuff.cpp]
+
+[#when_any]
+[section:when_any when_any / when_all functionality]
+
+[heading Overview]
+
+A bit of wisdom from the early days of computing still holds true today:
+prefer to model program state using the instruction pointer rather than with
+Boolean flags. In other words, if the program must "do something" and then
+do something almost the same, but with minor changes... perhaps parts of that
+something should be broken out as smaller separate functions, rather than
+introducing flags to alter the internal behavior of a monolithic function.
+
+To that we would add: prefer to describe control flow using C++ native
+constructs such as function calls, `if`, `while`, `for`, `do` et al.
+rather than as chains of callbacks.
+
+One of the great strengths of __boost_fiber__ is the flexibility it confers on
+the coder to restructure an application from chains of callbacks to
+straightforward C++ statement sequence, even when code in that fiber is
+in fact interleaved with code running in other fibers.
+
+There has been much recent discussion about the benefits of when_any and
+when_all functionality. When dealing with asynchronous and possibly unreliable
+services, these are valuable idioms. But of course when_any and when_all are
+closely tied to the use of chains of callbacks.
+
+This section presents recipes for achieving the same ends, in the context of a
+fiber that wants to "do something" when one or more other independent
+activities have completed. Accordingly, these are `wait_something()`
+functions rather than `when_something()` functions. The expectation is that
+the calling fiber asks to launch those independent activities, then waits for
+them, then sequentially proceeds with whatever processing depends on those
+results.
+
+The function names shown (e.g. `wait_first_simple()`) are for illustrative
+purposes only, because all these functions have been bundled into a single
+source file. Presumably, if (say) `wait_first_success()` best suits your
+application needs, you could introduce that variant with the name
+`wait_any()`.
+
+[note The functions presented in this section accept variadic argument lists
+of task functions. Corresponding `wait_something()` functions accepting a
+container of task functions are left as an exercise for the interested reader.
+Those should actually be simpler. Most of the complexity would arise from
+overloading the same name for both purposes.]
+
+[heading Example Task Function]
+
+We found it convenient to model an asynchronous task using this function:
+
+[wait_sleeper]
+
+with type-specific "front ends" for `std::string`, `double` and `int`.
+
+`Verbose` simply prints a message to `std::cout` on construction and
+destruction.
+
+Basically:
+
+# `sleeper()` prints a start message;
+# sleeps for the specified number of milliseconds;
+# if `thrw` is passed as `true`, throws a string description of the passed
+  `item`;
+# else returns the passed `item`.
+# On the way out, `sleeper()` produces a stop message.
+
+This function will feature in the example calls to the various functions
+presented below.
+
+[heading when_any, simple completion]
+
+The simplest case is when you only need to know that the first of a set of
+asynchronous tasks has completed -- but you don't need to obtain a return
+value, and you're confident that they will not throw exceptions.
+
+For this we introduce a `Done` class to wrap a `bool` variable with a
+[class_link condition_variable] and a [class_link mutex]:
+
+[wait_done]
+
+The pattern we follow throughout this section is to pass a
+[@http://www.cplusplus.com/reference/memory/shared_ptr/ `std::shared_ptr<>`]
+to the relevant synchronization object to the various tasks' fiber functions.
+This eliminates nagging questions about the lifespan of the synchronization
+object relative to the last of the fibers.
+
+`wait_first_simple()` uses that tactic for `Done`:
+
+[wait_first_simple]
+
+`wait_first_simple_impl()` is an ordinary recursion over the argument pack,
+capturing `Done::ptr` for each new fiber:
+
+[wait_first_simple_impl]
+
+The body of the fiber's lambda is extremely simple, as promised: call the
+function, notify `Done` when it returns. The first fiber to do so allows
+`wait_first_simple()` to return -- which is why it's useful to have
+`std::shared_ptr<Done>` manage the lifespan of our `Done` object rather than
+declaring it as a stack variable in `wait_first_simple()`.
+
+This is how you might call it:
+
+[wait_first_simple_ex]
+
+In this example, control resumes after `wait_first_simple()` when
+`sleeper("wfs_short", 50)` completes -- even though the other two `sleeper()`
+fibers are still running.
+
+[heading when_all functionality]
+
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
+The source code above is found in
+[@../../examples/wait_stuff.cpp wait_stuff.cpp].
+
+[endsect]
