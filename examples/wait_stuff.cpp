@@ -881,18 +881,27 @@ Example wace(runner, "wait_all_collect_errors()", [](){
 *****************************************************************************/
 // Explicitly pass Result. This can be any type capable of being initialized
 // from the results of the passed functions, such as a struct.
+template < typename Result, typename... Futures >
+Result
+wait_all_members_get(Futures&& ... futures)
+{
+    // Fetch the results from the passed futures into Result's initializer
+    // list. It's true that the get() calls here will block the implicit
+    // iteration over futures -- but that doesn't matter because we won't be
+    // done until the slowest of them finishes anyway. As results are
+    // processed in argument-list order rather than order of completion, the
+    // leftmost get() to throw an exception will cause that exception to
+    // propagate to the caller.
+    return Result{ futures.get()... };
+}
+
 template < typename Result, typename... Fns >
 Result
 wait_all_members(Fns&& ... functions)
 {
-    // Run each of the passed functions on a separate fiber, fetching their
-    // results into Result's initializer list. It's true that the get() calls
-    // here will block the implicit iteration over functions -- but that
-    // doesn't matter because we won't be done until the slowest of them
-    // finishes anyway. As function results are processed in argument-list
-    // order rather than order of completion, the leftmost one to throw an
-    // exception will cause that exception to propagate to the caller.
-    return Result{ boost::fibers::async(functions).get()... };
+    // Run each of the passed functions on a separate fiber, passing all their
+    // futures to helper function for processing.
+    return wait_all_members_get<Result>(boost::fibers::async(functions)...);
 }
 
 // used by following example
@@ -955,8 +964,6 @@ Example wam(runner, "wait_all_members()", [](){
 int main( int argc, char *argv[]) {
 
     //=> What happens to exception in detached fiber?
-    //=> What happens when consumer calls get() (unblocking one producer) and then
-    // calls close()?
 
     runner.run();
 
