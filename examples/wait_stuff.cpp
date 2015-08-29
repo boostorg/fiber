@@ -22,6 +22,37 @@
 // based on chains of callbacks. With Fiber, we can do better.
 
 /*****************************************************************************
+*   Done
+*****************************************************************************/
+// Wrap canonical pattern for condition_variable + bool flag
+struct Done
+{
+private:
+    boost::fibers::condition_variable cond;
+    boost::fibers::mutex mutex;
+    bool ready = false;
+
+public:
+    typedef std::shared_ptr<Done> ptr;
+
+    void wait()
+    {
+        std::unique_lock<boost::fibers::mutex> lock(mutex);
+        while (! ready)
+            cond.wait(lock);
+    }
+
+    void notify()
+    {
+        {
+            std::unique_lock<boost::fibers::mutex> lock(mutex);
+            ready = true;
+        } // release mutex
+        cond.notify_one();
+    }
+};
+
+/*****************************************************************************
 *   Verbose
 *****************************************************************************/
 class Verbose: boost::noncopyable
@@ -47,33 +78,30 @@ private:
 *****************************************************************************/
 // Degenerate case: when there are no functions to wait for, return
 // immediately.
-void wait_first_simple_impl(std::shared_ptr<boost::fibers::barrier>)
+void wait_first_simple_impl(Done::ptr)
 {}
 
 // When there's at least one function to wait for, launch it and recur to
 // process the rest.
 template <typename Fn, typename... Fns>
-void wait_first_simple_impl(std::shared_ptr<boost::fibers::barrier> barrier,
-                            Fn && function, Fns&& ... functions)
+void wait_first_simple_impl(Done::ptr done, Fn && function, Fns&& ... functions)
 {
-    boost::fibers::fiber([barrier, function](){
+    boost::fibers::fiber([done, function](){
         function();
-        barrier->wait();
+        done->notify();
     }).detach();
-    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
+    wait_first_simple_impl(done, std::forward<Fns>(functions)...);
 }
 
-// interface function: instantiate barrier, launch tasks, wait for barrier
+// interface function: instantiate Done, launch tasks, wait for Done
 template < typename... Fns >
 void wait_first_simple(Fns&& ... functions)
 {
-    // Initialize a barrier(2) because we'll immediately wait on it. We want
-    // to wake up as soon as one more fiber waits on it. Use shared_ptr
-    // because each fiber will bind it separately, and we're going to return
-    // before the last of them completes.
-    auto barrier(std::make_shared<boost::fibers::barrier>(2));
-    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
-    barrier->wait();
+    // Use shared_ptr because each function's fiber will bind it separately,
+    // and we're going to return before the last of them completes.
+    auto done(std::make_shared<Done>());
+    wait_first_simple_impl(done, std::forward<Fns>(functions)...);
+    done->wait();
 }
 
 /*****************************************************************************
