@@ -22,6 +22,100 @@
 // based on chains of callbacks. With Fiber, we can do better.
 
 /*****************************************************************************
+*   Verbose
+*****************************************************************************/
+class Verbose: boost::noncopyable
+{
+public:
+    Verbose(const std::string& d):
+        desc(d)
+    {
+        std::cout << desc << " start" << std::endl;
+    }
+
+    ~Verbose()
+    {
+        std::cout << desc << " stop" << std::endl;
+    }
+
+private:
+    const std::string desc;
+};
+
+/*****************************************************************************
+*   Runner and Example
+*****************************************************************************/
+// collect and ultimately run every Example
+class Runner
+{
+    typedef std::vector<std::pair<std::string, std::function<void()>>> function_list;
+public:
+    void add(const std::string& desc, const std::function<void()>& func)
+    {
+        functions_.push_back(function_list::value_type(desc, func));
+    }
+
+    void run()
+    {
+        for (const function_list::value_type& pair : functions_)
+        {
+            Verbose v(pair.first);
+            pair.second();
+        }
+    }
+
+private:
+    function_list functions_;
+};
+
+Runner runner;
+
+// Example allows us to embed Runner::add() calls at module scope
+struct Example
+{
+    Example(Runner& runner, const std::string& desc, const std::function<void()>& func)
+    {
+        runner.add(desc, func);
+    }
+};
+
+/*****************************************************************************
+*   example task functions
+*****************************************************************************/
+template <typename T>
+T sleeper_impl(T item, int ms, bool thrw=false)
+{
+    std::ostringstream descb, funcb;
+    descb << item;
+    std::string desc(descb.str());
+    funcb << "  sleeper(" << item << ")";
+    Verbose v(funcb.str());
+
+    boost::this_fiber::sleep_for(std::chrono::milliseconds(ms));
+    if (thrw)
+        throw std::runtime_error(desc);
+    return item;
+}
+
+inline
+std::string sleeper(const std::string& item, int ms, bool thrw=false)
+{
+    return sleeper_impl(item, ms, thrw);
+}
+
+inline
+double sleeper(double item, int ms, bool thrw=false)
+{
+    return sleeper_impl(item, ms, thrw);
+}
+
+inline
+int sleeper(int item, int ms, bool thrw=false)
+{
+    return sleeper_impl(item, ms, thrw);
+}
+
+/*****************************************************************************
 *   Done
 *****************************************************************************/
 // Wrap canonical pattern for condition_variable + bool flag
@@ -50,27 +144,6 @@ public:
         } // release mutex
         cond.notify_one();
     }
-};
-
-/*****************************************************************************
-*   Verbose
-*****************************************************************************/
-class Verbose: boost::noncopyable
-{
-public:
-    Verbose(const std::string& d):
-        desc(d)
-    {
-        std::cout << desc << " start" << std::endl;
-    }
-
-    ~Verbose()
-    {
-        std::cout << desc << " stop" << std::endl;
-    }
-
-private:
-    const std::string desc;
 };
 
 /*****************************************************************************
@@ -103,6 +176,13 @@ void wait_first_simple(Fns&& ... functions)
     wait_first_simple_impl(done, std::forward<Fns>(functions)...);
     done->wait();
 }
+
+// example usage
+Example wfs(runner, "wait_first_simple()", [](){
+    wait_first_simple([](){ sleeper("wfs_long",   150); },
+                      [](){ sleeper("wfs_medium", 100); },
+                      [](){ sleeper("wfs_short",   50); });
+});
 
 /*****************************************************************************
 *   when_any, return value
@@ -153,6 +233,16 @@ wait_first_value(Fn && function, Fns && ... functions)
     channelp->close();
     return value;
 }
+
+// example usage
+Example wfv(runner, "wait_first_value()", [](){
+    std::string result =
+        wait_first_value([](){ return sleeper("wfv_third",  150); },
+                         [](){ return sleeper("wfv_second", 100); },
+                         [](){ return sleeper("wfv_first",   50); });
+    std::cout << "wait_first_value() => " << result << std::endl;
+    assert(result == "wfv_first");
+});
 
 /*****************************************************************************
 *   when_any, produce first outcome, whether result or exception
@@ -215,6 +305,31 @@ wait_first_outcome(Fn && function, Fns && ... functions)
     // either return value or throw exception
     return future.get();
 }
+
+// example usage
+Example wfo(runner, "wait_first_outcome()", [](){
+    std::string result =
+        wait_first_outcome([](){ return sleeper("wfos_first",   50); },
+                           [](){ return sleeper("wfos_second", 100); },
+                           [](){ return sleeper("wfos_third",  150); });
+    std::cout << "wait_first_outcome(success) => " << result << std::endl;
+    assert(result == "wfos_first");
+
+    std::string thrown;
+    try
+    {
+        result =
+            wait_first_outcome([](){ return sleeper("wfof_first",   50, true); },
+                               [](){ return sleeper("wfof_second", 100); },
+                               [](){ return sleeper("wfof_third",  150); });
+    }
+    catch (const std::exception& e)
+    {
+        thrown = e.what();
+    }
+    std::cout << "wait_first_outcome(fail) threw '" << thrown << "'" << std::endl;
+    assert(thrown == "wfof_first");
+});
 
 /*****************************************************************************
 *   when_any, collect exceptions until success; throw exception_list if no
@@ -291,6 +406,39 @@ wait_first_success(Fn && function, Fns && ... functions)
     throw exceptions;
 }
 
+// example usage
+Example wfss(runner, "wait_first_success()", [](){
+    std::string result =
+        wait_first_success([](){ return sleeper("wfss_first",   50, true); },
+                           [](){ return sleeper("wfss_second", 100); },
+                           [](){ return sleeper("wfss_third",  150); });
+    std::cout << "wait_first_success(success) => " << result << std::endl;
+    assert(result == "wfss_second");
+
+    std::string thrown;
+    std::size_t count = 0;
+    try
+    {
+        result =
+            wait_first_success([](){ return sleeper("wfsf_first",   50, true); },
+                               [](){ return sleeper("wfsf_second", 100, true); },
+                               [](){ return sleeper("wfsf_third",  150, true); });
+    }
+    catch (const exception_list& e)
+    {
+        thrown = e.what();
+        count = e.size();
+    }
+    catch (const std::exception& e)
+    {
+        thrown = e.what();
+    }
+    std::cout << "wait_first_success(fail) threw '" << thrown << "': "
+              << count << " errors" << std::endl;
+    assert(thrown == "wait_first_success() produced only errors");
+    assert(count == 3);
+});
+
 /*****************************************************************************
 *   when_any, heterogeneous
 *****************************************************************************/
@@ -316,6 +464,16 @@ wait_first_value_het(Fns && ... functions)
     channelp->close();
     return value;
 }
+
+// example usage
+Example wfvh(runner, "wait_first_value_het()", [](){
+    boost::variant<std::string, double, int> result =
+        wait_first_value_het([](){ return sleeper("wfvh_third",  150); },
+                             [](){ return sleeper(3.14,          100); },
+                             [](){ return sleeper(17,             50); });
+    std::cout << "wait_first_value_het() => " << result << std::endl;
+    assert(boost::get<int>(result) == 17);
+});
 
 /*****************************************************************************
 *   when_all, simple completion
@@ -352,6 +510,13 @@ void wait_all_simple(Fns&& ... functions)
     barrier->wait();
 }
 
+// example usage
+Example was(runner, "wait_all_simple()", [](){
+    wait_all_simple([](){ sleeper("was_long",   150); },
+                    [](){ sleeper("was_medium", 100); },
+                    [](){ sleeper("was_short",   50); });
+});
+
 /*****************************************************************************
 *   when_all, return values
 *****************************************************************************/
@@ -381,146 +546,15 @@ void wait_all_simple(Fns&& ... functions)
 // interchangeable, each must go in its own slot. First exception propagates.
 
 /*****************************************************************************
-*   example task functions
-*****************************************************************************/
-template <typename T>
-T sleeper_impl(T item, int ms, bool thrw=false)
-{
-    std::ostringstream descb, funcb;
-    descb << item;
-    std::string desc(descb.str());
-    funcb << "  sleeper(" << item << ")";
-    Verbose v(funcb.str());
-
-    boost::this_fiber::sleep_for(std::chrono::milliseconds(ms));
-    if (thrw)
-        throw std::runtime_error(desc);
-    return item;
-}
-
-inline
-std::string sleeper(const std::string& item, int ms, bool thrw=false)
-{
-    return sleeper_impl(item, ms, thrw);
-}
-
-inline
-double sleeper(double item, int ms, bool thrw=false)
-{
-    return sleeper_impl(item, ms, thrw);
-}
-
-inline
-int sleeper(int item, int ms, bool thrw=false)
-{
-    return sleeper_impl(item, ms, thrw);
-}
-
-/*****************************************************************************
-*   driving logic
+*   main()
 *****************************************************************************/
 int main( int argc, char *argv[]) {
-    /*-------------------------- wait_first_simple ---------------------------*/
-    {
-        Verbose v("wait_first_simple()");
-        wait_first_simple([](){ sleeper("wfs_long",   150); },
-                          [](){ sleeper("wfs_medium", 100); },
-                          [](){ sleeper("wfs_short",   50); });
-    }
 
     //=> What happens to exception in detached fiber?
     //=> What happens when consumer calls get() (unblocking one producer) and then
     // calls close()?
 
-    /*--------------------------- wait_first_value ---------------------------*/
-    {
-        Verbose v("wait_first_value()");
-        std::string result =
-            wait_first_value([](){ return sleeper("wfv_third",  150); },
-                             [](){ return sleeper("wfv_second", 100); },
-                             [](){ return sleeper("wfv_first",   50); });
-        std::cout << "wait_first_value() => " << result << std::endl;
-        assert(result == "wfv_first");
-    }
-
-    /*------------------------- wait_first_outcome -------------------------*/
-    {
-        Verbose v("wait_first_outcome()");
-        std::string result =
-            wait_first_outcome([](){ return sleeper("wfos_first",   50); },
-                               [](){ return sleeper("wfos_second", 100); },
-                               [](){ return sleeper("wfos_third",  150); });
-        std::cout << "wait_first_outcome(success) => " << result << std::endl;
-        assert(result == "wfos_first");
-
-        std::string thrown;
-        try
-        {
-            result =
-                wait_first_outcome([](){ return sleeper("wfof_first",   50, true); },
-                                   [](){ return sleeper("wfof_second", 100); },
-                                   [](){ return sleeper("wfof_third",  150); });
-        }
-        catch (const std::exception& e)
-        {
-            thrown = e.what();
-        }
-        std::cout << "wait_first_outcome(fail) threw '" << thrown << "'" << std::endl;
-        assert(thrown == "wfof_first");
-    }
-
-    /*------------------------- wait_first_success -------------------------*/
-    {
-        Verbose v("wait_first_success()");
-        std::string result =
-            wait_first_success([](){ return sleeper("wfss_first",   50, true); },
-                               [](){ return sleeper("wfss_second", 100); },
-                               [](){ return sleeper("wfss_third",  150); });
-        std::cout << "wait_first_success(success) => " << result << std::endl;
-        assert(result == "wfss_second");
-
-        std::string thrown;
-        std::size_t count = 0;
-        try
-        {
-            result =
-                wait_first_success([](){ return sleeper("wfsf_first",   50, true); },
-                                   [](){ return sleeper("wfsf_second", 100, true); },
-                                   [](){ return sleeper("wfsf_third",  150, true); });
-        }
-        catch (const exception_list& e)
-        {
-            thrown = e.what();
-            count = e.size();
-        }
-        catch (const std::exception& e)
-        {
-            thrown = e.what();
-        }
-        std::cout << "wait_first_success(fail) threw '" << thrown << "': "
-                  << count << " errors" << std::endl;
-        assert(thrown == "wait_first_success() produced only errors");
-        assert(count == 3);
-    }
-
-    /*------------------------ wait_first_value_het ------------------------*/
-    {
-        Verbose v("wait_first_value_het()");
-        boost::variant<std::string, double, int> result =
-            wait_first_value_het([](){ return sleeper("wfvh_third",  150); },
-                                 [](){ return sleeper(3.14,          100); },
-                                 [](){ return sleeper(17,             50); });
-        std::cout << "wait_first_value_het() => " << result << std::endl;
-        assert(boost::get<int>(result) == 17);
-    }
-
-    /*-------------------------- wait_all_simple ---------------------------*/
-    {
-        Verbose v("wait_all_simple()");
-        wait_all_simple([](){ sleeper("was_long",   150); },
-                        [](){ sleeper("was_medium", 100); },
-                        [](){ sleeper("was_short",   50); });
-    }
+    runner.run();
 
     return EXIT_SUCCESS;
 }
