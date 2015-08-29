@@ -5,7 +5,9 @@
 
 #include <boost/fiber/all.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/variant.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
+#include <type_traits>              // std::result_of
 #include <iostream>
 #include <sstream>
 #include <memory>                   // std::shared_ptr
@@ -293,14 +295,26 @@ wait_first_success(Fn && function, Fns && ... functions)
 *   when_any, heterogeneous
 *****************************************************************************/
 // No need to break out the first Fn for interface function: let the compiler
-// complain if empty boost::variant<>.
-// Have to expand std::result_of<>::type for each function in parameter pack.
-// That boost::variant becomes the T passed to wait_any_value_het_impl functions.
+// complain if empty.
+// Our functions have different return types, and we might have to return any
+// of them. Use a variant, expanding std::result_of<Fn()>::type for each Fn in
+// parameter pack.
 template < typename... Fns >
-typename boost::variant< typename std::result_of<Fns>::type... >
-wait_any_value_het(Fns && ... functions)
+boost::variant< typename std::result_of<Fns()>::type... >
+wait_first_value_het(Fns && ... functions)
 {
-    // Use bounded_channel<future<boost::variant<T1, T2, ...>>>.
+    // Use bounded_channel<boost::variant<T1, T2, ...>>; see remarks above.
+    typedef boost::variant< typename std::result_of<Fns()>::type... > return_t;
+    typedef boost::fibers::bounded_channel<return_t> channel_t;
+    // bounded_channel of size 1: only store the first value
+    auto channelp(std::make_shared<channel_t>(1));
+    // launch all the relevant fibers
+    wait_first_value_impl<return_t>(channelp, std::forward<Fns>(functions)...);
+    // retrieve the first value
+    return_t value(channelp->value_pop());
+    // close the channel: no subsequent push() has to succeed
+    channelp->close();
+    return value;
 }
 
 /*****************************************************************************
@@ -457,6 +471,17 @@ int main( int argc, char *argv[]) {
                   << count << " errors" << std::endl;
         assert(thrown == "wait_first_success() produced only errors");
         assert(count == 3);
+    }
+
+    /*------------------------ wait_first_value_het ------------------------*/
+    {
+        Verbose v("wait_first_value_het()");
+        boost::variant<std::string, double, int> result =
+            wait_first_value_het([](){ return sleeper("wfvh_third",  150); },
+                                 [](){ return sleeper(3.14,          100); },
+                                 [](){ return sleeper(17,             50); });
+        std::cout << "wait_first_value_het() => " << result << std::endl;
+        assert(boost::get<int>(result) == 17);
     }
 
     return EXIT_SUCCESS;
