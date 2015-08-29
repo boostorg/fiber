@@ -879,10 +879,75 @@ Example wace(runner, "wait_all_collect_errors()", [](){
 /*****************************************************************************
 *   when_all, heterogeneous
 *****************************************************************************/
-// Accept a struct template argument, return that struct! Use initializer list
-// populated from arg pack to populate. Assuming unequal types, there's no
-// point in processing the first result to arrive: results aren't
-// interchangeable, each must go in its own slot. First exception propagates.
+// Explicitly pass Result. This can be any type capable of being initialized
+// from the results of the passed functions, such as a struct.
+template < typename Result, typename... Fns >
+Result
+wait_all_members(Fns&& ... functions)
+{
+    // Run each of the passed functions on a separate fiber, fetching their
+    // results into Result's initializer list. It's true that the get() calls
+    // here will block the implicit iteration over functions -- but that
+    // doesn't matter because we won't be done until the slowest of them
+    // finishes anyway. As function results are processed in argument-list
+    // order rather than order of completion, the leftmost one to throw an
+    // exception will cause that exception to propagate to the caller.
+    return Result{ boost::fibers::async(functions).get()... };
+}
+
+// used by following example
+struct Data
+{
+    std::string str;
+    double inexact;
+    int exact;
+
+    friend std::ostream& operator<<(std::ostream& out, const Data& data)
+    {
+        return out << "Data{str='" << data.str << "', inexact=" << data.inexact
+                   << ", exact=" << data.exact << "}";
+    }
+};
+
+// example usage
+Example wam(runner, "wait_all_members()", [](){
+    Data data(
+        wait_all_members<Data>([](){ return sleeper("wams_left", 100); },
+                               [](){ return sleeper(3.14, 150); },
+                               [](){ return sleeper(17, 50); }));
+    std::cout << "wait_all_members<Data>(success) => " << data << std::endl;
+
+    std::string thrown;
+    try
+    {
+        data =
+            wait_all_members<Data>([](){ return sleeper("wamf_left", 100, true); },
+                                   [](){ return sleeper(3.14, 150); },
+                                   [](){ return sleeper(17, 50, true); });
+        std::cout << "wait_all_members<Data>(fail) => " << data << std::endl;
+    }
+    catch (const std::exception& e)
+    {
+        thrown = e.what();
+    }
+    std::cout << "wait_all_members<Data>(fail) threw '" << thrown
+              << '"' << std::endl;
+
+    // If we don't care about obtaining results as soon as they arrive, and we
+    // prefer a result vector in passed argument order rather than completion
+    // order, wait_all_members() is another possible implementation of
+    // wait_all_until_error().
+    auto strings(wait_all_members<std::vector<std::string>>(
+                     [](){ return sleeper("wamv_left",   150); },
+                     [](){ return sleeper("wamv_middle", 100); },
+                     [](){ return sleeper("wamv_right",   50); }));
+    std::cout << "wait_all_members<vector>() =>";
+    for (const std::string& str : strings)
+    {
+        std::cout << " '" << str << "'";
+    }
+    std::cout << std::endl;
+});
 
 /*****************************************************************************
 *   main()
