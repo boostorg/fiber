@@ -249,7 +249,9 @@ Example wfv(runner, "wait_first_value()", [](){
 *****************************************************************************/
 // When there's only one function, call this overload.
 template < typename T, typename Fn >
-void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boost::fibers::future<T>>> channel,
+void wait_first_outcome_impl(std::shared_ptr<
+                                 boost::fibers::bounded_channel<
+                                     boost::fibers::future<T>>> channel,
                              Fn && function)
 {
     boost::fibers::fiber([channel, function](){
@@ -268,7 +270,8 @@ void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boos
 
 // When there are two or more functions, call this overload
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
-void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boost::fibers::future<T>>> channel,
+void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<
+                                 boost::fibers::future<T>>> channel,
                              Fn0 && function0,
                              Fn1 && function1,
                              Fns && ... functions)
@@ -628,9 +631,9 @@ wait_all_values(Fn && function, Fns && ... functions)
 
 Example wav(runner, "wait_all_values()", [](){
     std::shared_ptr<boost::fibers::unbounded_channel<std::string>> channel(
-        wait_all_values_source([](){ return sleeper("wav_third",  150); },
-                               [](){ return sleeper("wav_second", 100); },
-                               [](){ return sleeper("wav_first",   50); }));
+        wait_all_values_source([](){ return sleeper("wavs_third",  150); },
+                               [](){ return sleeper("wavs_second", 100); },
+                               [](){ return sleeper("wavs_first",   50); }));
     std::string value;
     while (channel->pop(value) == boost::fibers::channel_op_status::success)
         std::cout << "wait_all_values_source() => '" << value << "'" << std::endl;
@@ -650,8 +653,147 @@ Example wav(runner, "wait_all_values()", [](){
 /*****************************************************************************
 *   when_all, throw first exception
 *****************************************************************************/
-// wait_all_source() returns shared_ptr<unbounded_channel<future<T>>>.
-// If wait_all() just calls get(), first exception propagates.
+// When there's only one function, call this overload
+template < typename T, typename Fn >
+void wait_all_until_error_impl(std::shared_ptr<nchannel<boost::fibers::future<T>>> channel,
+                               Fn && function)
+{
+    boost::fibers::fiber([channel, function](){
+        // Instantiate a packaged_task to capture any exception thrown by
+        // function.
+        boost::fibers::packaged_task<T()> task(function);
+        // Immediately run this packaged_task on same fiber. We want
+        // function() to have completed BEFORE we push the future.
+        task();
+        // Pass the corresponding future to consumer.
+        channel->push(task.get_future());
+    }).detach();
+}
+
+// When there are two or more functions, call this overload
+template < typename T, typename Fn0, typename Fn1, typename... Fns >
+void wait_all_until_error_impl(std::shared_ptr<nchannel<boost::fibers::future<T>>> channel,
+                               Fn0 && function0,
+                               Fn1 && function1,
+                               Fns && ... functions)
+{
+    // process the first function using the single-function overload
+    wait_all_until_error_impl<T>(channel, std::forward<Fn0>(function0));
+    // then recur to process the rest
+    wait_all_until_error_impl<T>(channel, std::forward<Fn1>(function1),
+                                 std::forward<Fns>(functions)...);
+}
+
+// Return a shared_ptr<unbounded_channel<future<T>>> from which the caller can
+// get() each new result as it arrives, until 'closed'.
+template < typename Fn, typename... Fns >
+std::shared_ptr<
+    boost::fibers::unbounded_channel<
+        boost::fibers::future<
+            typename std::result_of<Fn()>::type>>>
+wait_all_until_error_source(Fn && function, Fns && ... functions)
+{
+    std::size_t count(1 + sizeof...(functions));
+    typedef typename std::result_of<Fn()>::type return_t;
+    typedef boost::fibers::future<return_t> future_t;
+    typedef boost::fibers::unbounded_channel<future_t> channel_t;
+    // make the channel
+    auto channelp(std::make_shared<channel_t>());
+    // and make an nchannel facade to close it after 'count' items
+    auto ncp(std::make_shared<nchannel<future_t>>(channelp, count));
+    // pass that nchannel facade to all the relevant fibers
+    wait_all_until_error_impl<return_t>(ncp, std::forward<Fn>(function),
+                                        std::forward<Fns>(functions)...);
+    // then return the channel for consumer
+    return channelp;
+}
+
+// When all passed functions have completed, return vector<T> containing
+// collected results, or throw the first exception thrown by any of the passed
+// functions. Assume that all passed functions have the same return type. It
+// is simply invalid to pass NO functions.
+template < typename Fn, typename... Fns >
+std::vector<typename std::result_of<Fn()>::type>
+wait_all_until_error(Fn && function, Fns && ... functions)
+{
+    std::size_t count(1 + sizeof...(functions));
+    typedef typename std::result_of<Fn()>::type return_t;
+    typedef typename boost::fibers::future<return_t> future_t;
+    typedef std::vector<return_t> vector_t;
+    vector_t results;
+    results.reserve(count);
+
+    // get channel
+    std::shared_ptr<
+        boost::fibers::unbounded_channel<future_t>> channel(
+            wait_all_until_error_source(std::forward<Fn>(function),
+                                        std::forward<Fns>(functions)...));
+    // fill results vector
+    future_t future;
+    while (channel->pop(future) == boost::fibers::channel_op_status::success)
+    {
+        results.push_back(future.get());
+    }
+    // return vector to caller
+    return results;
+}
+
+Example waue(runner, "wait_all_until_error()", [](){
+    typedef boost::fibers::future<std::string> future_t;
+    std::shared_ptr<boost::fibers::unbounded_channel<future_t>> channel(
+        wait_all_until_error_source([](){ return sleeper("wauess_third",  150); },
+                                    [](){ return sleeper("wauess_second", 100); },
+                                    [](){ return sleeper("wauess_first",   50); }));
+    future_t future;
+    while (channel->pop(future) == boost::fibers::channel_op_status::success)
+    {
+        std::string value(future.get());
+        std::cout << "wait_all_until_error_source(success) => '" << value
+                  << "'" << std::endl;
+    }
+
+    channel =
+        wait_all_until_error_source([](){ return sleeper("wauesf_third",  150); },
+                                    [](){ return sleeper("wauesf_second", 100, true); },
+                                    [](){ return sleeper("wauesf_first",   50); });
+    std::string thrown;
+    try
+    {
+        while (channel->pop(future) == boost::fibers::channel_op_status::success)
+        {
+            std::string value(future.get());
+            std::cout << "wait_all_until_error_source(fail) => '" << value
+                      << "'" << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        thrown = e.what();
+    }
+    std::cout << "wait_all_until_error_source(fail) threw '" << thrown
+              << "'" << std::endl;
+
+    thrown.clear();
+    try
+    {
+        std::vector<std::string> values(
+            wait_all_until_error([](){ return sleeper("waue_late",   150); },
+                                 [](){ return sleeper("waue_middle", 100, true); },
+                                 [](){ return sleeper("waue_early",   50); }));
+        std::cout << "wait_all_until_error(fail) =>";
+        for (const std::string& v : values)
+        {
+            std::cout << " '" << v << "'";
+        }
+        std::cout << std::endl;
+    }
+    catch (const std::exception& e)
+    {
+        thrown = e.what();
+    }
+    std::cout << "wait_all_until_error(fail) threw '" << thrown
+              << "'" << std::endl;
+});
 
 /*****************************************************************************
 *   when_all, collect exceptions
