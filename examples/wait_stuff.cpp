@@ -5,8 +5,11 @@
 
 #include <boost/fiber/all.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/variant.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
+#include <type_traits>              // std::result_of
 #include <iostream>
+#include <sstream>
 #include <memory>                   // std::shared_ptr
 #include <chrono>
 #include <string>
@@ -17,37 +20,6 @@
 // sequencing using the processor's instruction pointer rather than chains of
 // callbacks. The future-oriented when_all() / when_any() functions are still
 // based on chains of callbacks. With Fiber, we can do better.
-
-/*****************************************************************************
-*   Done
-*****************************************************************************/
-// Wrap canonical pattern for condition_variable + bool flag
-struct Done
-{
-private:
-    boost::fibers::condition_variable cond;
-    boost::fibers::mutex mutex;
-    bool ready = false;
-
-public:
-    typedef std::shared_ptr<Done> ptr;
-
-    void wait()
-    {
-        std::unique_lock<boost::fibers::mutex> lock(mutex);
-        while (! ready)
-            cond.wait(lock);
-    }
-
-    void notify()
-    {
-        {
-            std::unique_lock<boost::fibers::mutex> lock(mutex);
-            ready = true;
-        } // release mutex
-        cond.notify_one();
-    }
-};
 
 /*****************************************************************************
 *   Verbose
@@ -71,43 +43,46 @@ private:
 };
 
 /*****************************************************************************
-*   wait_any, simple completion
+*   when_any, simple completion
 *****************************************************************************/
 // Degenerate case: when there are no functions to wait for, return
 // immediately.
-void wait_any_simple_impl(Done::ptr)
+void wait_first_simple_impl(std::shared_ptr<boost::fibers::barrier>)
 {}
 
 // When there's at least one function to wait for, launch it and recur to
 // process the rest.
 template <typename Fn, typename... Fns>
-void wait_any_simple_impl(Done::ptr done, Fn && function, Fns&& ... functions)
+void wait_first_simple_impl(std::shared_ptr<boost::fibers::barrier> barrier,
+                            Fn && function, Fns&& ... functions)
 {
-    boost::fibers::fiber([done, function](){
+    boost::fibers::fiber([barrier, function](){
         function();
-        done->notify();
+        barrier->wait();
     }).detach();
-    wait_any_simple_impl(done, std::forward<Fns>(functions)...);
+    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
 }
 
-// interface function: instantiate Done, launch tasks, wait for Done
+// interface function: instantiate barrier, launch tasks, wait for barrier
 template < typename... Fns >
-void wait_any_simple(Fns&& ... functions)
+void wait_first_simple(Fns&& ... functions)
 {
-    // Use shared_ptr because each function's fiber will bind it separately,
-    // and we're going to return before the last of them completes.
-    auto done(std::make_shared<Done>());
-    wait_any_simple_impl(done, std::forward<Fns>(functions)...);
-    done->wait();
+    // Initialize a barrier(2) because we'll immediately wait on it. We want
+    // to wake up as soon as one more fiber waits on it. Use shared_ptr
+    // because each fiber will bind it separately, and we're going to return
+    // before the last of them completes.
+    auto barrier(std::make_shared<boost::fibers::barrier>(2));
+    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
+    barrier->wait();
 }
 
 /*****************************************************************************
-*   wait_any, return value
+*   when_any, return value
 *****************************************************************************/
 // When there's only one function, call this overload
 template < typename T, typename Fn >
-void wait_any_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
-                         Fn && function)
+void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
+                           Fn && function)
 {
     boost::fibers::fiber([channel, function](){
         // Ignore channel_op_status returned by push(): might be closed, might
@@ -118,32 +93,32 @@ void wait_any_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> chan
 
 // When there are two or more functions, call this overload
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
-void wait_any_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
-                         Fn0 && function0,
-                         Fn1 && function1,
-                         Fns && ... functions)
+void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
+                           Fn0 && function0,
+                           Fn1 && function1,
+                           Fns && ... functions)
 {
     // process the first function using the single-function overload
-    wait_any_value_impl<T>(channel, function0);
+    wait_first_value_impl<T>(channel, function0);
     // then recur to process the rest
-    wait_any_value_impl<T>(channel, std::forward<Fn1>(function1),
-                           std::forward<Fns>(functions)...);
+    wait_first_value_impl<T>(channel, std::forward<Fn1>(function1),
+                             std::forward<Fns>(functions)...);
 }
 
 // Assume that all passed functions have the same return type. The return type
-// of wait_any_value() is the return type of the first passed function. It is
+// of wait_first_value() is the return type of the first passed function. It is
 // simply invalid to pass NO functions.
 template < typename Fn, typename... Fns >
 typename std::result_of<Fn()>::type
-wait_any_value(Fn && function, Fns && ... functions)
+wait_first_value(Fn && function, Fns && ... functions)
 {
     typedef typename std::result_of<Fn()>::type return_t;
     typedef boost::fibers::bounded_channel<return_t> channel_t;
     // bounded_channel of size 1: only store the first value
     auto channelp(std::make_shared<channel_t>(1));
     // launch all the relevant fibers
-    wait_any_value_impl<return_t>(channelp, std::forward<Fn>(function),
-                                  std::forward<Fns>(functions)...);
+    wait_first_value_impl<return_t>(channelp, std::forward<Fn>(function),
+                                    std::forward<Fns>(functions)...);
     // retrieve the first value
     return_t value(channelp->value_pop());
     // close the channel: no subsequent push() has to succeed
@@ -152,7 +127,7 @@ wait_any_value(Fn && function, Fns && ... functions)
 }
 
 /*****************************************************************************
-*   wait_any, produce first outcome, whether result or exception
+*   when_any, produce first outcome, whether result or exception
 *****************************************************************************/
 // When there's only one function, call this overload.
 template < typename T, typename Fn >
@@ -176,7 +151,7 @@ void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boos
 // When there are two or more functions, call this overload
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
 void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boost::fibers::future<T>>> channel,
-                         Fn0 && function0,
+                             Fn0 && function0,
                          Fn1 && function1,
                          Fns && ... functions)
 {
@@ -214,7 +189,7 @@ wait_first_outcome(Fn && function, Fns && ... functions)
 }
 
 /*****************************************************************************
-*   wait_any, collect exceptions until success; throw exception_list if no
+*   when_any, collect exceptions until success; throw exception_list if no
 *   success
 *****************************************************************************/
 // define an exception to aggregate exception_ptrs; prefer
@@ -289,46 +264,70 @@ wait_first_success(Fn && function, Fns && ... functions)
 }
 
 /*****************************************************************************
-*   wait_any, heterogeneous
+*   when_any, heterogeneous
 *****************************************************************************/
 // No need to break out the first Fn for interface function: let the compiler
-// complain if empty boost::variant<>.
-// Have to expand std::result_of<>::type for each function in parameter pack.
-// That boost::variant becomes the T passed to wait_any_value_het_impl functions.
+// complain if empty.
+// Our functions have different return types, and we might have to return any
+// of them. Use a variant, expanding std::result_of<Fn()>::type for each Fn in
+// parameter pack.
 template < typename... Fns >
-typename boost::variant< typename std::result_of<Fns>::type... >
-wait_any_value_het(Fns && ... functions)
+boost::variant< typename std::result_of<Fns()>::type... >
+wait_first_value_het(Fns && ... functions)
 {
-    // Use bounded_channel<future<boost::variant<T1, T2, ...>>>.
+    // Use bounded_channel<boost::variant<T1, T2, ...>>; see remarks above.
+    typedef boost::variant< typename std::result_of<Fns()>::type... > return_t;
+    typedef boost::fibers::bounded_channel<return_t> channel_t;
+    // bounded_channel of size 1: only store the first value
+    auto channelp(std::make_shared<channel_t>(1));
+    // launch all the relevant fibers
+    wait_first_value_impl<return_t>(channelp, std::forward<Fns>(functions)...);
+    // retrieve the first value
+    return_t value(channelp->value_pop());
+    // close the channel: no subsequent push() has to succeed
+    channelp->close();
+    return value;
 }
 
 /*****************************************************************************
-*   wait_all, simple completion
+*   when_all, simple completion
 *****************************************************************************/
-// Wait on barrier(n + 1). When the n tasks have finished, wakes up.
+// interface function: instantiate barrier, launch tasks, wait for barrier
+template < typename... Fns >
+void wait_all_simple(Fns&& ... functions)
+{
+    std::size_t count(sizeof...(functions));
+    // Initialize a barrier(count+1) because we'll immediately wait on it. We
+    // don't want to wake up until 'count' more fibers wait on it. Even though
+    // we'll stick around until the last of them completes, use shared_ptr
+    // anyway so we can reuse wait_first_simple_impl().
+    auto barrier(std::make_shared<boost::fibers::barrier>(count+1));
+    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
+    barrier->wait();
+}
 
 /*****************************************************************************
-*   wait_all, return values
+*   when_all, return values
 *****************************************************************************/
 // wait_all_source() returns shared_ptr<unbounded_channel<T>>. wait_all()
 // populates and returns vector<T> by looping over channel until closed. BUT
 // -- real code might prefer to consume each result as soon as available.
 
 /*****************************************************************************
-*   wait_all, throw first exception
+*   when_all, throw first exception
 *****************************************************************************/
 // wait_all_source() returns shared_ptr<unbounded_channel<future<T>>>.
 // If wait_all() just calls get(), first exception propagates.
 
 /*****************************************************************************
-*   wait_all, collect exceptions
+*   when_all, collect exceptions
 *****************************************************************************/
 // Like the previous, but introduce 'exceptions', a std::runtime_error
 // subclass with a vector of std::exception_ptr. wait_all() collects
 // exception_ptrs and throws if non-empty; else returns vector<T>.
 
 /*****************************************************************************
-*   wait_all, heterogeneous
+*   when_all, heterogeneous
 *****************************************************************************/
 // Accept a struct template argument, return that struct! Use initializer list
 // populated from arg pack to populate. Assuming unequal types, there's no
@@ -338,83 +337,110 @@ wait_any_value_het(Fns && ... functions)
 /*****************************************************************************
 *   example task functions
 *****************************************************************************/
-std::string sleeper(const std::string& desc, int ms, bool thrw=false)
+template <typename T>
+T sleeper_impl(T item, int ms, bool thrw=false)
 {
-    Verbose v(std::string("  ") + desc);
+    std::ostringstream descb, funcb;
+    descb << item;
+    std::string desc(descb.str());
+    funcb << "  sleeper(" << item << ")";
+    Verbose v(funcb.str());
+
     boost::this_fiber::sleep_for(std::chrono::milliseconds(ms));
     if (thrw)
         throw std::runtime_error(desc);
-    return desc;
+    return item;
+}
+
+inline
+std::string sleeper(const std::string& item, int ms, bool thrw=false)
+{
+    return sleeper_impl(item, ms, thrw);
+}
+
+inline
+double sleeper(double item, int ms, bool thrw=false)
+{
+    return sleeper_impl(item, ms, thrw);
+}
+
+inline
+int sleeper(int item, int ms, bool thrw=false)
+{
+    return sleeper_impl(item, ms, thrw);
 }
 
 /*****************************************************************************
 *   driving logic
 *****************************************************************************/
 int main( int argc, char *argv[]) {
-    /*-------------------------- wait_any_simple ---------------------------*/
+    /*-------------------------- wait_first_simple ---------------------------*/
     {
-        Verbose v("wait_any_simple()");
-        wait_any_simple([](){ sleeper("long",   150); },
-                        [](){ sleeper("medium", 100); },
-                        [](){ sleeper("short",   50); });
+        Verbose v("wait_first_simple()");
+        wait_first_simple([](){ sleeper("wfs_long",   150); },
+                          [](){ sleeper("wfs_medium", 100); },
+                          [](){ sleeper("wfs_short",   50); });
     }
 
     //=> What happens to exception in detached fiber?
     //=> What happens when consumer calls get() (unblocking one producer) and then
     // calls close()?
 
-    /*--------------------------- wait_any_value ---------------------------*/
+    /*--------------------------- wait_first_value ---------------------------*/
     {
+        Verbose v("wait_first_value()");
         std::string result =
-            wait_any_value([](){ return sleeper("third",  150); },
-                           [](){ return sleeper("second", 100); },
-                           [](){ return sleeper("first",   50); });
-        std::cout << "wait_any_value() => " << result << std::endl;
-        assert(result == "first");
+            wait_first_value([](){ return sleeper("wfv_third",  150); },
+                             [](){ return sleeper("wfv_second", 100); },
+                             [](){ return sleeper("wfv_first",   50); });
+        std::cout << "wait_first_value() => " << result << std::endl;
+        assert(result == "wfv_first");
     }
 
     /*------------------------- wait_first_outcome -------------------------*/
     {
+        Verbose v("wait_first_outcome()");
         std::string result =
-            wait_first_outcome([](){ return sleeper("first",   50); },
-                               [](){ return sleeper("second", 100); },
-                               [](){ return sleeper("third",  150); });
+            wait_first_outcome([](){ return sleeper("wfos_first",   50); },
+                               [](){ return sleeper("wfos_second", 100); },
+                               [](){ return sleeper("wfos_third",  150); });
         std::cout << "wait_first_outcome(success) => " << result << std::endl;
-        assert(result == "first");
+        assert(result == "wfos_first");
 
         std::string thrown;
         try
         {
             result =
-                wait_first_outcome([](){ return sleeper("first",   50, true); },
-                                   [](){ return sleeper("second", 100); },
-                                   [](){ return sleeper("third",  150); });
+                wait_first_outcome([](){ return sleeper("wfof_first",   50, true); },
+                                   [](){ return sleeper("wfof_second", 100); },
+                                   [](){ return sleeper("wfof_third",  150); });
         }
         catch (const std::exception& e)
         {
             thrown = e.what();
         }
         std::cout << "wait_first_outcome(fail) threw '" << thrown << "'" << std::endl;
-        assert(thrown == "first");
+        assert(thrown == "wfof_first");
     }
 
     /*------------------------- wait_first_success -------------------------*/
     {
+        Verbose v("wait_first_success()");
         std::string result =
-            wait_first_success([](){ return sleeper("first",   50, true); },
-                               [](){ return sleeper("second", 100); },
-                               [](){ return sleeper("third",  150); });
+            wait_first_success([](){ return sleeper("wfss_first",   50, true); },
+                               [](){ return sleeper("wfss_second", 100); },
+                               [](){ return sleeper("wfss_third",  150); });
         std::cout << "wait_first_success(success) => " << result << std::endl;
-        assert(result == "second");
+        assert(result == "wfss_second");
 
         std::string thrown;
         std::size_t count = 0;
         try
         {
             result =
-                wait_first_success([](){ return sleeper("first",   50, true); },
-                                   [](){ return sleeper("second", 100, true); },
-                                   [](){ return sleeper("third",  150, true); });
+                wait_first_success([](){ return sleeper("wfsf_first",   50, true); },
+                                   [](){ return sleeper("wfsf_second", 100, true); },
+                                   [](){ return sleeper("wfsf_third",  150, true); });
         }
         catch (const exception_list& e)
         {
@@ -429,6 +455,25 @@ int main( int argc, char *argv[]) {
                   << count << " errors" << std::endl;
         assert(thrown == "wait_first_success() produced only errors");
         assert(count == 3);
+    }
+
+    /*------------------------ wait_first_value_het ------------------------*/
+    {
+        Verbose v("wait_first_value_het()");
+        boost::variant<std::string, double, int> result =
+            wait_first_value_het([](){ return sleeper("wfvh_third",  150); },
+                                 [](){ return sleeper(3.14,          100); },
+                                 [](){ return sleeper(17,             50); });
+        std::cout << "wait_first_value_het() => " << result << std::endl;
+        assert(boost::get<int>(result) == 17);
+    }
+
+    /*-------------------------- wait_all_simple ---------------------------*/
+    {
+        Verbose v("wait_all_simple()");
+        wait_all_simple([](){ sleeper("was_long",   150); },
+                        [](){ sleeper("was_medium", 100); },
+                        [](){ sleeper("was_short",   50); });
     }
 
     return EXIT_SUCCESS;
