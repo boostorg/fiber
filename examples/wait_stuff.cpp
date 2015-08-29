@@ -320,6 +320,24 @@ wait_first_value_het(Fns && ... functions)
 /*****************************************************************************
 *   when_all, simple completion
 *****************************************************************************/
+// Degenerate case: when there are no functions to wait for, return
+// immediately.
+void wait_all_simple_impl(std::shared_ptr<boost::fibers::barrier>)
+{}
+
+// When there's at least one function to wait for, launch it and recur to
+// process the rest.
+template <typename Fn, typename... Fns>
+void wait_all_simple_impl(std::shared_ptr<boost::fibers::barrier> barrier,
+                          Fn && function, Fns&& ... functions)
+{
+    boost::fibers::fiber([barrier, function](){
+        function();
+        barrier->wait();
+    }).detach();
+    wait_all_simple_impl(barrier, std::forward<Fns>(functions)...);
+}
+
 // interface function: instantiate barrier, launch tasks, wait for barrier
 template < typename... Fns >
 void wait_all_simple(Fns&& ... functions)
@@ -330,7 +348,7 @@ void wait_all_simple(Fns&& ... functions)
     // we'll stick around until the last of them completes, use shared_ptr
     // anyway so we can reuse wait_first_simple_impl().
     auto barrier(std::make_shared<boost::fibers::barrier>(count+1));
-    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
+    wait_all_simple_impl(barrier, std::forward<Fns>(functions)...);
     barrier->wait();
 }
 
