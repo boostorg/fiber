@@ -290,32 +290,44 @@ wait_first_value_het(Fns && ... functions)
 }
 
 /*****************************************************************************
-*   wait_all, simple completion
+*   when_all, simple completion
 *****************************************************************************/
-// Wait on barrier(n + 1). When the n tasks have finished, wakes up.
+// interface function: instantiate barrier, launch tasks, wait for barrier
+template < typename... Fns >
+void wait_all_simple(Fns&& ... functions)
+{
+    std::size_t count(sizeof...(functions));
+    // Initialize a barrier(count+1) because we'll immediately wait on it. We
+    // don't want to wake up until 'count' more fibers wait on it. Even though
+    // we'll stick around until the last of them completes, use shared_ptr
+    // anyway so we can reuse wait_first_simple_impl().
+    auto barrier(std::make_shared<boost::fibers::barrier>(count+1));
+    wait_first_simple_impl(barrier, std::forward<Fns>(functions)...);
+    barrier->wait();
+}
 
 /*****************************************************************************
-*   wait_all, return values
+*   when_all, return values
 *****************************************************************************/
 // wait_all_source() returns shared_ptr<unbounded_channel<T>>. wait_all()
 // populates and returns vector<T> by looping over channel until closed. BUT
 // -- real code might prefer to consume each result as soon as available.
 
 /*****************************************************************************
-*   wait_all, throw first exception
+*   when_all, throw first exception
 *****************************************************************************/
 // wait_all_source() returns shared_ptr<unbounded_channel<future<T>>>.
 // If wait_all() just calls get(), first exception propagates.
 
 /*****************************************************************************
-*   wait_all, collect exceptions
+*   when_all, collect exceptions
 *****************************************************************************/
 // Like the previous, but introduce 'exceptions', a std::runtime_error
 // subclass with a vector of std::exception_ptr. wait_all() collects
 // exception_ptrs and throws if non-empty; else returns vector<T>.
 
 /*****************************************************************************
-*   wait_all, heterogeneous
+*   when_all, heterogeneous
 *****************************************************************************/
 // Accept a struct template argument, return that struct! Use initializer list
 // populated from arg pack to populate. Assuming unequal types, there's no
@@ -454,6 +466,14 @@ int main( int argc, char *argv[]) {
                                  [](){ return sleeper(17,             50); });
         std::cout << "wait_first_value_het() => " << result << std::endl;
         assert(boost::get<int>(result) == 17);
+    }
+
+    /*-------------------------- wait_all_simple ---------------------------*/
+    {
+        Verbose v("wait_all_simple()");
+        wait_all_simple([](){ sleeper("was_long",   150); },
+                        [](){ sleeper("was_medium", 100); },
+                        [](){ sleeper("was_short",   50); });
     }
 
     return EXIT_SUCCESS;
