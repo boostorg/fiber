@@ -798,9 +798,83 @@ Example waue(runner, "wait_all_until_error()", [](){
 /*****************************************************************************
 *   when_all, collect exceptions
 *****************************************************************************/
-// Like the previous, but introduce 'exceptions', a std::runtime_error
-// subclass with a vector of std::exception_ptr. wait_all() collects
-// exception_ptrs and throws if non-empty; else returns vector<T>.
+// When all passed functions have succeeded, return vector<T> containing
+// collected results, or throw exception_list containing all exceptions thrown
+// by any of the passed functions. Assume that all passed functions have the
+// same return type. It is simply invalid to pass NO functions.
+template < typename Fn, typename... Fns >
+std::vector<typename std::result_of<Fn()>::type>
+wait_all_collect_errors(Fn && function, Fns && ... functions)
+{
+    std::size_t count(1 + sizeof...(functions));
+    typedef typename std::result_of<Fn()>::type return_t;
+    typedef typename boost::fibers::future<return_t> future_t;
+    typedef std::vector<return_t> vector_t;
+    vector_t results;
+    results.reserve(count);
+    exception_list exceptions("wait_all_collect_errors() exceptions");
+
+    // get channel
+    std::shared_ptr<
+        boost::fibers::unbounded_channel<future_t>> channel(
+            wait_all_until_error_source(std::forward<Fn>(function),
+                                        std::forward<Fns>(functions)...));
+    // fill results and/or exceptions vectors
+    future_t future;
+    while (channel->pop(future) == boost::fibers::channel_op_status::success)
+    {
+        std::exception_ptr exp = future.get_exception_ptr();
+        if (! exp)
+            results.push_back(future.get());
+        else
+            exceptions.add(exp);
+    }
+    // if there were any exceptions, throw
+    if (exceptions.size())
+        throw exceptions;
+    // no exceptions: return vector to caller
+    return results;
+}
+
+Example wace(runner, "wait_all_collect_errors()", [](){
+    std::vector<std::string> values(
+        wait_all_collect_errors([](){ return sleeper("waces_late",   150); },
+                                [](){ return sleeper("waces_middle", 100); },
+                                [](){ return sleeper("waces_early",   50); }));
+    std::cout << "wait_all_collect_errors(success) =>";
+    for (const std::string& v : values)
+    {
+        std::cout << " '" << v << "'";
+    }
+    std::cout << std::endl;
+
+    std::string thrown;
+    std::size_t errors = 0;
+    try
+    {
+        values =
+            wait_all_collect_errors([](){ return sleeper("wacef_late",   150, true); },
+                                    [](){ return sleeper("wacef_middle", 100, true); },
+                                    [](){ return sleeper("wacef_early",   50); });
+        std::cout << "wait_all_collect_errors(fail) =>";
+        for (const std::string& v : values)
+        {
+            std::cout << " '" << v << "'";
+        }
+        std::cout << std::endl;
+    }
+    catch (const exception_list& e)
+    {
+        thrown = e.what();
+        errors = e.size();
+    }
+    catch (const std::exception& e)
+    {
+        thrown = e.what();
+    }
+    std::cout << "wait_all_collect_errors(fail) threw '" << thrown
+              << "': " << errors << " errors" << std::endl;
+});
 
 /*****************************************************************************
 *   when_all, heterogeneous
