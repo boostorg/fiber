@@ -207,7 +207,7 @@ void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> ch
                            Fns && ... functions)
 {
     // process the first function using the single-function overload
-    wait_first_value_impl<T>(channel, function0);
+    wait_first_value_impl<T>(channel, std::forward<Fn0>(function0));
     // then recur to process the rest
     wait_first_value_impl<T>(channel, std::forward<Fn1>(function1),
                              std::forward<Fns>(functions)...);
@@ -270,11 +270,11 @@ void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boos
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
 void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<boost::fibers::future<T>>> channel,
                              Fn0 && function0,
-                         Fn1 && function1,
-                         Fns && ... functions)
+                             Fn1 && function1,
+                             Fns && ... functions)
 {
     // process the first function using the single-function overload
-    wait_first_outcome_impl<T>(channel, function0);
+    wait_first_outcome_impl<T>(channel, std::forward<Fn0>(function0));
     // then recur to process the rest
     wait_first_outcome_impl<T>(channel, std::forward<Fn1>(function1),
                                std::forward<Fns>(functions)...);
@@ -504,7 +504,7 @@ void wait_all_simple(Fns&& ... functions)
     // Initialize a barrier(count+1) because we'll immediately wait on it. We
     // don't want to wake up until 'count' more fibers wait on it. Even though
     // we'll stick around until the last of them completes, use shared_ptr
-    // anyway so we can reuse wait_first_simple_impl().
+    // anyway because it's easier to be confident about lifespan issues.
     auto barrier(std::make_shared<boost::fibers::barrier>(count+1));
     wait_all_simple_impl(barrier, std::forward<Fns>(functions)...);
     barrier->wait();
@@ -520,9 +520,132 @@ Example was(runner, "wait_all_simple()", [](){
 /*****************************************************************************
 *   when_all, return values
 *****************************************************************************/
-// wait_all_source() returns shared_ptr<unbounded_channel<T>>. wait_all()
-// populates and returns vector<T> by looping over channel until closed. BUT
-// -- real code might prefer to consume each result as soon as available.
+// Introduce a channel facade that closes the channel once a specific number
+// of items has been pushed. This allows an arbitrary consumer to read until
+// 'closed' without itself having to count items.
+template < typename T >
+class nchannel
+{
+public:
+    nchannel(std::shared_ptr<boost::fibers::unbounded_channel<T>> cp,
+             std::size_t lm):
+        channel_(cp),
+        limit_(lm)
+    {
+        assert(channel_);
+        if (limit_ == 0)
+            channel_->close();
+    }
+
+    boost::fibers::channel_op_status push(T && va)
+    {
+        boost::fibers::channel_op_status ok =
+            channel_->push(std::forward<T>(va));
+        if (ok == boost::fibers::channel_op_status::success &&
+            --limit_ == 0)
+        {
+            // after the 'limit_'th successful push, close the channel
+            channel_->close();
+        }
+        return ok;
+    }
+
+private:
+    std::shared_ptr<boost::fibers::unbounded_channel<T>> channel_;
+    std::size_t limit_;
+};
+
+// When there's only one function, call this overload
+template < typename T, typename Fn >
+void wait_all_values_impl(std::shared_ptr<nchannel<T>> channel,
+                          Fn && function)
+{
+    boost::fibers::fiber([channel, function](){
+        channel->push(function());
+    }).detach();
+}
+
+// When there are two or more functions, call this overload
+template < typename T, typename Fn0, typename Fn1, typename... Fns >
+void wait_all_values_impl(std::shared_ptr<nchannel<T>> channel,
+                          Fn0 && function0,
+                          Fn1 && function1,
+                          Fns && ... functions)
+{
+    // process the first function using the single-function overload
+    wait_all_values_impl<T>(channel, std::forward<Fn0>(function0));
+    // then recur to process the rest
+    wait_all_values_impl<T>(channel, std::forward<Fn1>(function1),
+                            std::forward<Fns>(functions)...);
+}
+
+// Return a shared_ptr<unbounded_channel<T>> from which the caller can
+// retrieve each new result as it arrives, until 'closed'.
+template < typename Fn, typename... Fns >
+std::shared_ptr<boost::fibers::unbounded_channel<typename std::result_of<Fn()>::type>>
+wait_all_values_source(Fn && function, Fns && ... functions)
+{
+    std::size_t count(1 + sizeof...(functions));
+    typedef typename std::result_of<Fn()>::type return_t;
+    typedef boost::fibers::unbounded_channel<return_t> channel_t;
+    // make the channel
+    auto channelp(std::make_shared<channel_t>());
+    // and make an nchannel facade to close it after 'count' items
+    auto ncp(std::make_shared<nchannel<return_t>>(channelp, count));
+    // pass that nchannel facade to all the relevant fibers
+    wait_all_values_impl<return_t>(ncp, std::forward<Fn>(function),
+                                   std::forward<Fns>(functions)...);
+    // then return the channel for consumer
+    return channelp;
+}
+
+// When all passed functions have completed, return vector<T> containing
+// collected results. Assume that all passed functions have the same return
+// type. It is simply invalid to pass NO functions.
+template < typename Fn, typename... Fns >
+std::vector<typename std::result_of<Fn()>::type>
+wait_all_values(Fn && function, Fns && ... functions)
+{
+    std::size_t count(1 + sizeof...(functions));
+    typedef typename std::result_of<Fn()>::type return_t;
+    typedef std::vector<return_t> vector_t;
+    vector_t results;
+    results.reserve(count);
+
+    // get channel
+    std::shared_ptr<boost::fibers::unbounded_channel<return_t>> channel(
+        wait_all_values_source(std::forward<Fn>(function),
+                               std::forward<Fns>(functions)...));
+    // fill results vector
+    return_t value;
+    while (channel->pop(value) == boost::fibers::channel_op_status::success)
+    {
+        results.push_back(value);
+    }
+    // return vector to caller
+    return results;
+}
+
+Example wav(runner, "wait_all_values()", [](){
+    std::shared_ptr<boost::fibers::unbounded_channel<std::string>> channel(
+        wait_all_values_source([](){ return sleeper("wav_third",  150); },
+                               [](){ return sleeper("wav_second", 100); },
+                               [](){ return sleeper("wav_first",   50); }));
+    std::string value;
+    while (channel->pop(value) == boost::fibers::channel_op_status::success)
+        std::cout << "wait_all_values_source() => '" << value << "'" << std::endl;
+
+    std::vector<std::string> values(
+        wait_all_values([](){ return sleeper("wav_late",   150); },
+                        [](){ return sleeper("wav_middle", 100); },
+                        [](){ return sleeper("wav_early",   50); }));
+    std::cout << "wait_all_values() =>";
+    for (const std::string& v : values)
+    {
+        std::cout << " '" << v << "'";
+    }
+    std::cout << std::endl;
+});
 
 /*****************************************************************************
 *   when_all, throw first exception
