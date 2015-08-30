@@ -267,9 +267,32 @@ A call might look like this:
 [wait_first_success_ex]
 
 [endsect]
+[section when_any, heterogenous types]
+
+We would be remiss to ignore the case in which the various task functions have
+distinct return types. That means that the value returned by the first of them
+might have any one of those types. We can express that with
+[@http://www.boost.org/doc/libs/release/doc/html/variant.html Boost.Variant].
+
+To keep the example simple, we'll revert to pretending that none of them can
+throw an exception. That makes `wait_first_value_het()` strongly resemble
+`wait_first_value()`. We can actually reuse `wait_first_result_impl()`, merely
+passing `boost::variant<T0, T1, ...>` as the channel's value type rather than
+the common `T`!
+
+Naturally this could be extended to use `wait_first_success()` semantics
+instead.
+
+[wait_first_value_het]
+
+It might be called like this:
+
+[wait_first_value_het_ex]
+
 [endsect]
 
+[endsect][/ when_any]
 [section when_all functionality]
-[endsect]
+[endsect][/ when_all]
 
-[endsect]
+[endsect][/ outermost]

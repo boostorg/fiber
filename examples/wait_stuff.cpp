@@ -473,6 +473,7 @@ Example wfss(runner, "wait_first_success()", [](){
 /*****************************************************************************
 *   when_any, heterogeneous
 *****************************************************************************/
+//[wait_first_value_het
 // No need to break out the first Fn for interface function: let the compiler
 // complain if empty.
 // Our functions have different return types, and we might have to return any
@@ -495,15 +496,18 @@ wait_first_value_het(Fns && ... functions)
     channelp->close();
     return value;
 }
+//]
 
 // example usage
 Example wfvh(runner, "wait_first_value_het()", [](){
+//[wait_first_value_het_ex
     boost::variant<std::string, double, int> result =
         wait_first_value_het([](){ return sleeper("wfvh_third",  150); },
                              [](){ return sleeper(3.14,          100); },
                              [](){ return sleeper(17,             50); });
     std::cout << "wait_first_value_het() => " << result << std::endl;
     assert(boost::get<int>(result) == 17);
+//]
 });
 
 /*****************************************************************************
