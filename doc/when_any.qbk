@@ -54,6 +54,10 @@ container of task functions are left as an exercise for the interested reader.
 Those should actually be simpler. Most of the complexity would arise from
 overloading the same name for both purposes.]
 
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
+All the source code for this section is found in
+[@../../examples/wait_stuff.cpp wait_stuff.cpp].
+
 [heading Example Task Function]
 
 We found it convenient to model an asynchronous task using this function:
@@ -80,7 +84,7 @@ presented below.
 [heading when_any, simple completion]
 
 The simplest case is when you only need to know that the first of a set of
-asynchronous tasks has completed -- but you don't need to obtain a return
+asynchronous tasks has completed [mdash] but you don't need to obtain a return
 value, and you're confident that they will not throw exceptions.
 
 For this we introduce a `Done` class to wrap a `bool` variable with a
@@ -105,7 +109,7 @@ capturing `Done::ptr` for each new fiber:
 
 The body of the fiber's lambda is extremely simple, as promised: call the
 function, notify `Done` when it returns. The first fiber to do so allows
-`wait_first_simple()` to return -- which is why it's useful to have
+`wait_first_simple()` to return [mdash] which is why it's useful to have
 `std::shared_ptr<Done>` manage the lifespan of our `Done` object rather than
 declaring it as a stack variable in `wait_first_simple()`.
 
@@ -114,7 +118,7 @@ This is how you might call it:
 [wait_first_simple_ex]
 
 In this example, control resumes after `wait_first_simple()` when
-`sleeper("wfs_short", 50)` completes -- even though the other two `sleeper()`
+`sleeper("wfs_short", 50)` completes [mdash] even though the other two `sleeper()`
 fibers are still running.
 
 [heading when_any, return value]
@@ -145,10 +149,61 @@ result. You might call it like this:
 
 [wait_first_value_ex]
 
-[heading when_all functionality]
+[heading when_any, first outcome]
 
-[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
-The source code above is found in
-[@../../examples/wait_stuff.cpp wait_stuff.cpp].
+We may not be running in an environment in which we can guarantee no exception
+will be thrown by any of our task functions. In that case, the above
+implementations of `wait_first_something()` would be naïve: as mentioned in
+[link exceptions the section on Fiber Management], an uncaught exception in one
+of our task fibers would cause `std::terminate()` to be called.
+
+Let's at least ensure that such an exception would propagate to the fiber
+awaiting the first result. We can use [template_link future] to transport
+either a return value or an exception. Therefore, we will change
+`wait_first_value()`'s [template_link bounded_channel] to hold `future<T>`
+items instead of simply `T`.
+
+Once we have a `future<>` in hand, all we need do is call [member_link
+future..get], which will either return the value or rethrow the exception.
+
+[wait_first_outcome]
+
+So far so good [mdash] but there's a timing issue. How should we obtain the
+`future<>` to [member_link bounded_channel..push] on the channel?
+
+We could call [ns_function_link fibers..async]. That would certainly produce a
+`future<>` for the task function. The trouble is that it would return too
+quickly! We only want `future<>` items for ['completed] tasks on our
+`bounded_channel<>`. In fact, we only want the `future<>` for the one that
+completes first. If each fiber launched by `wait_first_outcome()` were to
+`push()` the result of calling `async()`, the channel would only ever report
+the result of the leftmost task item [mdash] ['not] the one that completes most
+quickly.
+
+Calling [member_link future..get] on the future returned by `async()` wouldn't
+be right. You can only call `get()` once per `future<>` instance! And if there
+were an exception, it would be rethrown inside the helper fiber at the
+producer end of the channel, rather than propagated to the consumer end.
+
+We could call [member_link future..wait]. That would block the helper fiber
+until the `future<>` became ready, at which point we could `push()` it to be
+retrieved by `wait_first_outcome()`.
+
+That would work [mdash] but there's a simpler tactic that avoids creating an extra
+fiber. We can wrap the task function in a [template_link packaged_task]. While
+one naturally thinks of passing a `packaged_task<>` to a new fiber [mdash] that is,
+in fact, what `async()` does [mdash] in this case, we're already running in the
+helper fiber at the producer end of the channel! We can simply ['call] the
+`packaged_task<>`. On return from that call, the task function has completed,
+meaning that the `future<>` obtained from the `packaged_task<>` is certain to
+be ready. At that point we can simply `push()` it to the channel.
+
+[wait_first_outcome_impl]
+
+Calling it might look like this:
+
+[wait_first_outcome_ex]
+
+[heading when_all functionality]
 
 [endsect]

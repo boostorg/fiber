@@ -264,6 +264,7 @@ Example wfv(runner, "wait_first_value()", [](){
 *   when_any, produce first outcome, whether result or exception
 *****************************************************************************/
 // When there's only one function, call this overload.
+//[wait_first_outcome_impl
 template < typename T, typename Fn >
 void wait_first_outcome_impl(std::shared_ptr<
                                  boost::fibers::bounded_channel<
@@ -283,6 +284,7 @@ void wait_first_outcome_impl(std::shared_ptr<
         channel->push(task.get_future());
     }).detach();
 }
+//]
 
 // When there are two or more functions, call this overload
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
@@ -302,6 +304,7 @@ void wait_first_outcome_impl(std::shared_ptr<boost::fibers::bounded_channel<
 // Assume that all passed functions have the same return type. The return type
 // of wait_first_outcome() is the return type of the first passed function. It is
 // simply invalid to pass NO functions.
+//[wait_first_outcome
 template < typename Fn, typename... Fns >
 typename std::result_of<Fn()>::type
 wait_first_outcome(Fn && function, Fns && ... functions)
@@ -324,9 +327,11 @@ wait_first_outcome(Fn && function, Fns && ... functions)
     // either return value or throw exception
     return future.get();
 }
+//]
 
 // example usage
 Example wfo(runner, "wait_first_outcome()", [](){
+//[wait_first_outcome_ex
     std::string result =
         wait_first_outcome([](){ return sleeper("wfos_first",   50); },
                            [](){ return sleeper("wfos_second", 100); },
@@ -348,6 +353,7 @@ Example wfo(runner, "wait_first_outcome()", [](){
     }
     std::cout << "wait_first_outcome(fail) threw '" << thrown << "'" << std::endl;
     assert(thrown == "wfof_first");
+//]
 });
 
 /*****************************************************************************
