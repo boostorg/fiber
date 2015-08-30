@@ -81,7 +81,8 @@ Basically:
 This function will feature in the example calls to the various functions
 presented below.
 
-[heading when_any, simple completion]
+[section when_any]
+[section when_any, simple completion]
 
 The simplest case is when you only need to know that the first of a set of
 asynchronous tasks has completed [mdash] but you don't need to obtain a return
@@ -121,7 +122,8 @@ In this example, control resumes after `wait_first_simple()` when
 `sleeper("wfs_short", 50)` completes [mdash] even though the other two `sleeper()`
 fibers are still running.
 
-[heading when_any, return value]
+[endsect]
+[section when_any, return value]
 
 It seems more useful to add the ability to capture the return value from the
 first of the task functions to complete. Again, we assume that none will throw
@@ -149,7 +151,8 @@ result. You might call it like this:
 
 [wait_first_value_ex]
 
-[heading when_any, produce first outcome, whether result or exception]
+[endsect]
+[section when_any, produce first outcome, whether result or exception]
 
 We may not be running in an environment in which we can guarantee no exception
 will be thrown by any of our task functions. In that case, the above
@@ -204,7 +207,8 @@ Calling it might look like this:
 
 [wait_first_outcome_ex]
 
-[heading when_any, produce first success]
+[endsect]
+[section when_any, produce first success]
 
 One scenario for "when_any" functionality is when we're redundantly contacting
 some number of possibly-unreliable web services. Not only might they be slow
@@ -262,6 +266,10 @@ A call might look like this:
 
 [wait_first_success_ex]
 
-[heading when_all functionality]
+[endsect]
+[endsect]
+
+[section when_all functionality]
+[endsect]
 
 [endsect]
