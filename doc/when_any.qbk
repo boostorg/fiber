@@ -117,6 +117,34 @@ In this example, control resumes after `wait_first_simple()` when
 `sleeper("wfs_short", 50)` completes -- even though the other two `sleeper()`
 fibers are still running.
 
+[heading when_any, return value]
+
+It seems more useful to add the ability to capture the return value from the
+first of the task functions to complete. Again, we assume that none will throw
+an exception.
+
+One tactic would be to adapt our `Done` class to store the first of the return
+values, rather than a simple `bool`. However, we choose instead to use a
+[template_link bounded_channel] of size 1. We only need to enqueue the first
+value. All subsequent [member_link bounded_channel..push] calls can return
+`full`.
+
+In fact, once we've retrieved the first (only) value from the
+`bounded_channel`, we even [member_link bounded_channel..close] it. We still
+have no need of any subsequent values. Subsequent `push()` calls will return
+`closed`.
+
+[wait_first_value]
+
+The meat of the `wait_first_value_impl()` function is as you might expect:
+
+[wait_first_value_impl]
+
+It calls the passed function, pushes its return value and ignores the `push()`
+result. You might call it like this:
+
+[wait_first_value_ex]
+
 [heading when_all functionality]
 
 [/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
