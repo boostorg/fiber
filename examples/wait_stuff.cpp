@@ -198,6 +198,7 @@ Example wfs(runner, "wait_first_simple()", [](){
 *   when_any, return value
 *****************************************************************************/
 // When there's only one function, call this overload
+//[wait_first_value_impl
 template < typename T, typename Fn >
 void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
                            Fn && function)
@@ -208,6 +209,7 @@ void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> ch
         channel->push(function());
     }).detach();
 }
+//]
 
 // When there are two or more functions, call this overload
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
@@ -223,6 +225,7 @@ void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> ch
                              std::forward<Fns>(functions)...);
 }
 
+//[wait_first_value
 // Assume that all passed functions have the same return type. The return type
 // of wait_first_value() is the return type of the first passed function. It is
 // simply invalid to pass NO functions.
@@ -243,15 +246,18 @@ wait_first_value(Fn && function, Fns && ... functions)
     channelp->close();
     return value;
 }
+//]
 
 // example usage
 Example wfv(runner, "wait_first_value()", [](){
+//[wait_first_value_ex
     std::string result =
         wait_first_value([](){ return sleeper("wfv_third",  150); },
                          [](){ return sleeper("wfv_second", 100); },
                          [](){ return sleeper("wfv_first",   50); });
     std::cout << "wait_first_value() => " << result << std::endl;
     assert(result == "wfv_first");
+//]
 });
 
 /*****************************************************************************
