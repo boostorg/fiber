@@ -33,6 +33,7 @@
 [def __rendezvous__ ['rendezvous]]
 
 [template mdash[] '''&mdash;''']
+[template superscript[exp] '''<superscript>'''[exp]'''</superscript>''']
 
 [template class_heading[class_name]
 [hding class_[class_name]..Class [`[class_name]]]

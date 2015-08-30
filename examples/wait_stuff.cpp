@@ -362,6 +362,7 @@ Example wfo(runner, "wait_first_outcome()", [](){
 *****************************************************************************/
 // define an exception to aggregate exception_ptrs; prefer
 // std::exception_list (N4407 et al.) once that becomes available
+//[exception_list
 class exception_list: public std::runtime_error
 {
 public:
@@ -383,10 +384,12 @@ public:
 private:
     bundle_t bundle_;
 };
+//]
 
 // Assume that all passed functions have the same return type. The return type
 // of wait_first_success() is the return type of the first passed function. It is
 // simply invalid to pass NO functions.
+//[wait_first_success
 template < typename Fn, typename... Fns >
 typename std::result_of<Fn()>::type
 wait_first_success(Fn && function, Fns && ... functions)
@@ -430,15 +433,18 @@ wait_first_success(Fn && function, Fns && ... functions)
     // Throw our collection to inform caller.
     throw exceptions;
 }
+//]
 
 // example usage
 Example wfss(runner, "wait_first_success()", [](){
+//[wait_first_success_ex
     std::string result =
         wait_first_success([](){ return sleeper("wfss_first",   50, true); },
                            [](){ return sleeper("wfss_second", 100); },
                            [](){ return sleeper("wfss_third",  150); });
     std::cout << "wait_first_success(success) => " << result << std::endl;
     assert(result == "wfss_second");
+//]
 
     std::string thrown;
     std::size_t count = 0;

@@ -149,7 +149,7 @@ result. You might call it like this:
 
 [wait_first_value_ex]
 
-[heading when_any, first outcome]
+[heading when_any, produce first outcome, whether result or exception]
 
 We may not be running in an environment in which we can guarantee no exception
 will be thrown by any of our task functions. In that case, the above
@@ -203,6 +203,64 @@ be ready. At that point we can simply `push()` it to the channel.
 Calling it might look like this:
 
 [wait_first_outcome_ex]
+
+[heading when_any, produce first success]
+
+One scenario for "when_any" functionality is when we're redundantly contacting
+some number of possibly-unreliable web services. Not only might they be slow
+[mdash] any one of them might produce a failure rather than the desired
+result.
+
+In such a case, `wait_first_outcome()` isn't the right approach. If one of the
+services produces an error quickly, while another follows up with a real
+answer, we don't want to prefer the error just because it arrived first!
+
+Given the `bounded_queue<future<T>>` we already constructed for
+`wait_first_outcome()`, though, we can readily recast the interface function
+to deliver the first ['successful] result.
+
+That does beg the question: what if ['all] the task functions throw an
+exception? In that case we'd probably better know about it.
+
+The
+[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4407.html#parallel.exceptions.synopsis
+C++ Parallelism Draft Technical Specification] proposes a
+`std::exception_list` exception capable of delivering a collection of
+`std::exception_ptr`s. Until that becomes universally available, let's fake up
+an `exception_list` of our own:
+
+[exception_list]
+
+Now we can build `wait_first_success()`. We must enlarge our
+`bounded_channel<>`: it might need to hold a `future<>` for every one of our
+task functions. (As noted in comments, we could use [template_link
+unbounded_channel], but this tactic allows us to reuse
+`wait_first_outcome_impl()`.)
+
+Instead of retrieving only the first `future<>` from the channel, we must now
+loop over `future<>` items. Of course we must limit that iteration! If we
+launch only `count` producer fibers, the `(count+1)`[superscript st]
+[member_link bounded_channel..pop] call would block forever.
+
+Given a ready `future<>`, we can distinguish failure by calling [member_link
+future..get_exception_ptr]. If the `future<>` in fact contains a result rather
+than an exception, `get_exception_ptr()` returns a `std::exception_ptr` which
+is `nullptr`. In that case, we can confidently call [member_link future..get]
+to return that result to our caller.
+
+If the `std::exception_ptr` is ['not] `nullptr`, though, we collect it into
+our pending `exception_list` and loop back for the next `future<>` from the
+channel.
+
+If we fall out of the loop [mdash] if every single task fiber threw an
+exception [mdash] we throw the `exception_list` exception into which we've
+been collecting those `std::exception_ptr`s.
+
+[wait_first_success]
+
+A call might look like this:
+
+[wait_first_success_ex]
 
 [heading when_all functionality]
 
