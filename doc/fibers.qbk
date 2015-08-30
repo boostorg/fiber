@@ -32,6 +32,8 @@
 [def __not_a_fiber__ ['not-a-fiber]]
 [def __rendezvous__ ['rendezvous]]
 
+[template mdash[] '''&mdash;''']
+
 [template class_heading[class_name]
 [hding class_[class_name]..Class [`[class_name]]]
 ]
