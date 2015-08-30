@@ -979,8 +979,6 @@ Example wam(runner, "wait_all_members()", [](){
 *****************************************************************************/
 int main( int argc, char *argv[]) {
 
-    //=> What happens to exception in detached fiber?
-
     runner.run();
 
     return EXIT_SUCCESS;
