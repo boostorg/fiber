@@ -279,7 +279,7 @@ A call might look like this:
 [wait_first_success_ex]
 
 [endsect]
-[section when_any, heterogenous types]
+[section when_any, heterogeneous types]
 
 We would be remiss to ignore the case in which the various task functions have
 distinct return types. That means that the value returned by the first of them
@@ -449,6 +449,59 @@ errors instead of presenting only the first:
 The implementation is a simple variation on [link wait_first_success
 `wait_first_success()`], using the same [link exception_list `exception_list`]
 exception class.
+
+[endsect]
+[section when_all, heterogeneous types]
+
+But what about the case when we must wait for all results of different types?
+
+We can present an API that is frankly quite cool. Consider a sample struct:
+
+[wait_Data]
+
+Let's fill its members from task functions all running concurrently:
+
+[wait_all_members_data_ex]
+
+Note that for this case, we abandon the notion of capturing the earliest
+result first, and so on: we must fill exactly the passed struct in
+left-to-right order.
+
+That permits a beautifully simple implementation:
+
+[wait_all_members]
+
+[wait_all_members_get]
+
+It is tempting to try to implement `wait_all_members()` as a one-liner like
+this:
+
+    return Result{ boost::fibers::async(functions).get()... };
+
+The trouble with this tactic is that it would serialize all the task
+functions. The runtime makes a single pass through `functions`, calling
+[ns_function_link fibers..async] for each and then immediately calling
+[member_link future..get] on its returned `future<>`. That blocks the implicit
+loop. The above is almost equivalent to writing:
+
+    return Result{ functions()... };
+
+in which, of course, there is no concurrency at all.
+
+Passing the argument pack through a function-call boundary
+(`wait_all_members_get()`) forces the runtime to make ['two] passes: one in
+`wait_all_members()` to collect the `future<>`s from all the `async()` calls,
+the second in `wait_all_members_get()` to fetch each of the results.
+
+As noted in comments, within the `wait_all_members_get()` parameter pack
+expansion pass, the blocking behavior of `get()` becomes irrelevant. Along the
+way, we will hit the `get()` for the slowest task function; after that every
+subsequent `get()` will complete in trivial time.
+
+By the way, we could also use this same API to fill a vector or other
+collection:
+
+[wait_all_members_vector_ex]
 
 [endsect]
 [endsect][/ when_all]

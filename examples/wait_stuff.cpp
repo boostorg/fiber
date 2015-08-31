@@ -945,8 +945,7 @@ Example wace(runner, "wait_all_collect_errors()", [](){
 /*****************************************************************************
 *   when_all, heterogeneous
 *****************************************************************************/
-// Explicitly pass Result. This can be any type capable of being initialized
-// from the results of the passed functions, such as a struct.
+//[wait_all_members_get
 template < typename Result, typename... Futures >
 Result
 wait_all_members_get(Futures&& ... futures)
@@ -960,7 +959,11 @@ wait_all_members_get(Futures&& ... futures)
     // propagate to the caller.
     return Result{ futures.get()... };
 }
+//]
 
+//[wait_all_members
+// Explicitly pass Result. This can be any type capable of being initialized
+// from the results of the passed functions, such as a struct.
 template < typename Result, typename... Fns >
 Result
 wait_all_members(Fns&& ... functions)
@@ -969,8 +972,10 @@ wait_all_members(Fns&& ... functions)
     // futures to helper function for processing.
     return wait_all_members_get<Result>(boost::fibers::async(functions)...);
 }
+//]
 
 // used by following example
+//[wait_Data
 struct Data
 {
     std::string str;
@@ -978,19 +983,25 @@ struct Data
     int exact;
 
     friend std::ostream& operator<<(std::ostream& out, const Data& data)
+/*=    ...*/
+//<-
     {
         return out << "Data{str='" << data.str << "', inexact=" << data.inexact
                    << ", exact=" << data.exact << "}";
     }
+//->
 };
+//]
 
 // example usage
 Example wam(runner, "wait_all_members()", [](){
+//[wait_all_members_data_ex
     Data data(
         wait_all_members<Data>([](){ return sleeper("wams_left", 100); },
                                [](){ return sleeper(3.14, 150); },
                                [](){ return sleeper(17, 50); }));
     std::cout << "wait_all_members<Data>(success) => " << data << std::endl;
+//]
 
     std::string thrown;
     try
@@ -1008,6 +1019,7 @@ Example wam(runner, "wait_all_members()", [](){
     std::cout << "wait_all_members<Data>(fail) threw '" << thrown
               << '"' << std::endl;
 
+//[wait_all_members_vector_ex
     // If we don't care about obtaining results as soon as they arrive, and we
     // prefer a result vector in passed argument order rather than completion
     // order, wait_all_members() is another possible implementation of
@@ -1022,6 +1034,7 @@ Example wam(runner, "wait_all_members()", [](){
         std::cout << " '" << str << "'";
     }
     std::cout << std::endl;
+//]
 });
 
 /*****************************************************************************
