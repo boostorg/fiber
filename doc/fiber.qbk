@@ -112,6 +112,13 @@ __not_a_fiber__. The fiber object may then safely be destroyed.
 
         boost::fibers::fiber( some_fn).detach();
 
+__boost_fiber__ provides a number of ways to wait for a running fiber to
+complete. You can coordinate even with a detached fiber using a [class_link
+mutex], or [class_link condition_variable], or any of the other [link
+synchronization synchronization objects] provided by the library.
+
+If a detached fiber is still running when the thread's main fiber terminates,
+that fiber will be [link interruption interrupted] and shut down.
 
 [heading Joining]
 
