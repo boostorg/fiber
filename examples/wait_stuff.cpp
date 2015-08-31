@@ -561,6 +561,7 @@ Example was(runner, "wait_all_simple()", [](){
 /*****************************************************************************
 *   when_all, return values
 *****************************************************************************/
+//[wait_nchannel
 // Introduce a channel facade that closes the channel once a specific number
 // of items has been pushed. This allows an arbitrary consumer to read until
 // 'closed' without itself having to count items.
@@ -595,8 +596,10 @@ private:
     std::shared_ptr<boost::fibers::unbounded_channel<T>> channel_;
     std::size_t limit_;
 };
+//]
 
 // When there's only one function, call this overload
+//[wait_all_values_impl
 template < typename T, typename Fn >
 void wait_all_values_impl(std::shared_ptr<nchannel<T>> channel,
                           Fn && function)
@@ -605,6 +608,7 @@ void wait_all_values_impl(std::shared_ptr<nchannel<T>> channel,
         channel->push(function());
     }).detach();
 }
+//]
 
 // When there are two or more functions, call this overload
 template < typename T, typename Fn0, typename Fn1, typename... Fns >
@@ -620,6 +624,7 @@ void wait_all_values_impl(std::shared_ptr<nchannel<T>> channel,
                             std::forward<Fns>(functions)...);
 }
 
+//[wait_all_values_source
 // Return a shared_ptr<unbounded_channel<T>> from which the caller can
 // retrieve each new result as it arrives, until 'closed'.
 template < typename Fn, typename... Fns >
@@ -639,10 +644,12 @@ wait_all_values_source(Fn && function, Fns && ... functions)
     // then return the channel for consumer
     return channelp;
 }
+//]
 
 // When all passed functions have completed, return vector<T> containing
 // collected results. Assume that all passed functions have the same return
 // type. It is simply invalid to pass NO functions.
+//[wait_all_values
 template < typename Fn, typename... Fns >
 std::vector<typename std::result_of<Fn()>::type>
 wait_all_values(Fn && function, Fns && ... functions)
@@ -666,8 +673,10 @@ wait_all_values(Fn && function, Fns && ... functions)
     // return vector to caller
     return results;
 }
+//]
 
 Example wav(runner, "wait_all_values()", [](){
+//[wait_all_values_source_ex
     std::shared_ptr<boost::fibers::unbounded_channel<std::string>> channel(
         wait_all_values_source([](){ return sleeper("wavs_third",  150); },
                                [](){ return sleeper("wavs_second", 100); },
@@ -675,11 +684,14 @@ Example wav(runner, "wait_all_values()", [](){
     std::string value;
     while (channel->pop(value) == boost::fibers::channel_op_status::success)
         std::cout << "wait_all_values_source() => '" << value << "'" << std::endl;
+//]
 
+//[wait_all_values_ex
     std::vector<std::string> values(
         wait_all_values([](){ return sleeper("wav_late",   150); },
                         [](){ return sleeper("wav_middle", 100); },
                         [](){ return sleeper("wav_early",   50); }));
+//]
     std::cout << "wait_all_values() =>";
     for (const std::string& v : values)
     {

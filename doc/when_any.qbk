@@ -60,9 +60,9 @@ All the source code for this section is found in
 
 [heading Example Task Function]
 
+[#wait_sleeper]
 We found it convenient to model an asynchronous task using this function:
 
-[#wait_sleeper]
 [wait_sleeper]
 
 with type-specific `sleeper()` "front ends" for `std::string`, `double` and
@@ -90,10 +90,10 @@ The simplest case is when you only need to know that the first of a set of
 asynchronous tasks has completed [mdash] but you don't need to obtain a return
 value, and you're confident that they will not throw exceptions.
 
+[#wait_done]
 For this we introduce a `Done` class to wrap a `bool` variable with a
 [class_link condition_variable] and a [class_link mutex]:
 
-[#wait_done]
 [wait_done]
 
 The pattern we follow throughout this section is to pass a
@@ -102,15 +102,15 @@ to the relevant synchronization object to the various tasks' fiber functions.
 This eliminates nagging questions about the lifespan of the synchronization
 object relative to the last of the fibers.
 
+[#wait_first_simple]
 `wait_first_simple()` uses that tactic for [link wait_done `Done`]:
 
-[#wait_first_simple]
 [wait_first_simple]
 
+[#wait_first_simple_impl]
 `wait_first_simple_impl()` is an ordinary recursion over the argument pack,
 capturing `Done::ptr` for each new fiber:
 
-[#wait_first_simple_impl]
 [wait_first_simple_impl]
 
 The body of the fiber's lambda is extremely simple, as promised: call the
@@ -148,9 +148,9 @@ have no need of any subsequent values. Subsequent `push()` calls will return
 [#wait_first_value]
 [wait_first_value]
 
+[#wait_first_value_impl]
 The meat of the `wait_first_value_impl()` function is as you might expect:
 
-[#wait_first_value_impl]
 [wait_first_value_impl]
 
 It calls the passed function, pushes its return value and ignores the `push()`
@@ -236,6 +236,7 @@ to deliver the first ['successful] result.
 That does beg the question: what if ['all] the task functions throw an
 exception? In that case we'd probably better know about it.
 
+[#exception_list]
 The
 [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4407.html#parallel.exceptions.synopsis
 C++ Parallelism Draft Technical Specification] proposes a
@@ -331,6 +332,69 @@ You might call it like this:
 
 Control will not return from the `wait_all_simple()` call until the last of
 its task functions has completed.
+
+[endsect]
+[section when_all, return values]
+
+As soon as we want to collect return values from all the task functions, we
+can see right away how to reuse [link wait_first_value `wait_first_value()`]'s
+channel<T> for the purpose. All we have to do is avoid closing it after the
+first value!
+
+But in fact, collecting multiple values raises an interesting question: do we
+['really] want to wait until the slowest of them has arrived? Wouldn't we
+rather process each result as soon as it becomes available?
+
+Fortunately we can present both APIs. Let's define `wait_all_values_source()`
+to return `shared_ptr<unbounded_channel<T>>`.[footnote We could have used
+either [template_link bounded_channel] or [template_link unbounded_channel].
+We chose `unbounded_channel<>` on the assumption that its simpler semantics
+imply a cheaper implementation.]
+
+[#wait_all_values]
+Given `wait_all_values_source()`, it's straightforward to implement
+`wait_all_values()`:
+
+[wait_all_values]
+
+It might be called like this:
+
+[wait_all_values_ex]
+
+As you can see from the loop in `wait_all_values()`, instead of requiring its
+caller to count values, we define `wait_all_values_source()` to [member_link
+unbounded_channel..close] the channel when done. But how do we do that? Each
+producer fiber is independent. It has no idea whether it is the last one to
+[member_link unbounded_channel..push] a value.
+
+[#wait_nchannel]
+We can address that problem with a counting façade for the
+`bounded_channel<>`. In fact, our façade need only support the producer end of
+the channel.
+
+[wait_nchannel]
+
+[#wait_all_values_source]
+Armed with `nchannel<>`, we can implement `wait_all_values_source()`. It
+starts just like [link wait_first_value `wait_first_value()`]. The difference
+is that we wrap the `unbounded_channel<T>` with an `nchannel<T>` to pass to
+the producer fibers.
+
+Then, of course, instead of popping the first value, closing the channel and
+returning it, we simply return the `shared_ptr<unbounded_channel<T>>`.
+
+[wait_all_values_source]
+
+For example:
+
+[wait_all_values_source_ex]
+
+[#wait_all_values_impl]
+`wait_all_values_impl()` really is just like [link wait_first_value_impl
+`wait_first_value_impl()`] except for the use of `nchannel<T>` rather than
+`bounded_channel<T>`:
+
+[wait_all_values_impl]
 
 [endsect]
 [endsect][/ when_all]
