@@ -866,6 +866,7 @@ Example waue(runner, "wait_all_until_error()", [](){
 // collected results, or throw exception_list containing all exceptions thrown
 // by any of the passed functions. Assume that all passed functions have the
 // same return type. It is simply invalid to pass NO functions.
+//[wait_all_collect_errors
 template < typename Fn, typename... Fns >
 std::vector<typename std::result_of<Fn()>::type>
 wait_all_collect_errors(Fn && function, Fns && ... functions)
@@ -899,6 +900,7 @@ wait_all_collect_errors(Fn && function, Fns && ... functions)
     // no exceptions: return vector to caller
     return results;
 }
+//]
 
 Example wace(runner, "wait_all_collect_errors()", [](){
     std::vector<std::string> values(

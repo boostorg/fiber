@@ -437,6 +437,20 @@ instead of `bounded_channel<>`.
 [wait_all_until_error_impl]
 
 [endsect]
+[section wait_all, collecting all exceptions]
+
+[#wait_all_collect_errors]
+Given [link wait_all_until_error_source `wait_all_until_error_source()`], it
+might be more reasonable to make a `wait_all_...()` that collects ['all]
+errors instead of presenting only the first:
+
+[wait_all_collect_errors]
+
+The implementation is a simple variation on [link wait_first_success
+`wait_first_success()`], using the same [link exception_list `exception_list`]
+exception class.
+
+[endsect]
 [endsect][/ when_all]
 
 [endsect][/ outermost]
