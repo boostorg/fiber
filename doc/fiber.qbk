@@ -94,6 +94,7 @@ that the referenced object outlives the newly-created fiber.
 The spawned __fiber__ is enqueued in the list of ready-to-run fibers at construction.
 
 
+[#exceptions]
 [heading Exceptions]
 
 An exception escaping from the function or callable object passed to the __fiber__
@@ -439,7 +440,7 @@ template parameter than `PROPS`.]]
 [[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This method allows access to those user-provided properties
--- but only after this fiber has been scheduled for the first time.]]
+[mdash] but only after this fiber has been scheduled for the first time.]]
 [[See also:] [[link custom Customization]]]
 ]
 
