@@ -520,6 +520,7 @@ void wait_all_simple_impl(std::shared_ptr<boost::fibers::barrier>)
 
 // When there's at least one function to wait for, launch it and recur to
 // process the rest.
+//[wait_all_simple_impl
 template <typename Fn, typename... Fns>
 void wait_all_simple_impl(std::shared_ptr<boost::fibers::barrier> barrier,
                           Fn && function, Fns&& ... functions)
@@ -530,8 +531,10 @@ void wait_all_simple_impl(std::shared_ptr<boost::fibers::barrier> barrier,
     }).detach();
     wait_all_simple_impl(barrier, std::forward<Fns>(functions)...);
 }
+//]
 
 // interface function: instantiate barrier, launch tasks, wait for barrier
+//[wait_all_simple
 template < typename... Fns >
 void wait_all_simple(Fns&& ... functions)
 {
@@ -544,12 +547,15 @@ void wait_all_simple(Fns&& ... functions)
     wait_all_simple_impl(barrier, std::forward<Fns>(functions)...);
     barrier->wait();
 }
+//]
 
 // example usage
 Example was(runner, "wait_all_simple()", [](){
+//[wait_all_simple_ex
     wait_all_simple([](){ sleeper("was_long",   150); },
                     [](){ sleeper("was_medium", 100); },
                     [](){ sleeper("was_short",   50); });
+//]
 });
 
 /*****************************************************************************

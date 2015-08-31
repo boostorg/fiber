@@ -93,6 +93,7 @@ value, and you're confident that they will not throw exceptions.
 For this we introduce a `Done` class to wrap a `bool` variable with a
 [class_link condition_variable] and a [class_link mutex]:
 
+[#wait_done]
 [wait_done]
 
 The pattern we follow throughout this section is to pass a
@@ -101,7 +102,7 @@ to the relevant synchronization object to the various tasks' fiber functions.
 This eliminates nagging questions about the lifespan of the synchronization
 object relative to the last of the fibers.
 
-`wait_first_simple()` uses that tactic for `Done`:
+`wait_first_simple()` uses that tactic for [link wait_done `Done`]:
 
 [#wait_first_simple]
 [wait_first_simple]
@@ -109,13 +110,14 @@ object relative to the last of the fibers.
 `wait_first_simple_impl()` is an ordinary recursion over the argument pack,
 capturing `Done::ptr` for each new fiber:
 
+[#wait_first_simple_impl]
 [wait_first_simple_impl]
 
 The body of the fiber's lambda is extremely simple, as promised: call the
-function, notify `Done` when it returns. The first fiber to do so allows
-`wait_first_simple()` to return [mdash] which is why it's useful to have
-`std::shared_ptr<Done>` manage the lifespan of our `Done` object rather than
-declaring it as a stack variable in `wait_first_simple()`.
+function, notify [link wait_done `Done`] when it returns. The first fiber to
+do so allows `wait_first_simple()` to return [mdash] which is why it's useful
+to have `std::shared_ptr<Done>` manage the lifespan of our `Done` object
+rather than declaring it as a stack variable in `wait_first_simple()`.
 
 This is how you might call it:
 
@@ -132,11 +134,11 @@ It seems more useful to add the ability to capture the return value from the
 first of the task functions to complete. Again, we assume that none will throw
 an exception.
 
-One tactic would be to adapt our `Done` class to store the first of the return
-values, rather than a simple `bool`. However, we choose instead to use a
-[template_link bounded_channel] of size 1. We only need to enqueue the first
-value. All subsequent [member_link bounded_channel..push] calls can return
-`full`.
+One tactic would be to adapt our [link wait_done `Done`] class to store the
+first of the return values, rather than a simple `bool`. However, we choose
+instead to use a [template_link bounded_channel] of size 1. We only need to
+enqueue the first value. All subsequent [member_link bounded_channel..push]
+calls can return `full`.
 
 In fact, once we've retrieved the first (only) value from the
 `bounded_channel`, we even [member_link bounded_channel..close] it. We still
@@ -300,9 +302,37 @@ It might be called like this:
 [wait_first_value_het_ex]
 
 [endsect]
-
 [endsect][/ when_any]
+
 [section when_all functionality]
+[section when_all, simple completion]
+
+For the case in which we must wait for ['all] task functions to complete
+[mdash] but we don't need results (or expect exceptions) from any of them
+[mdash] we can write `wait_all_simple()` that looks remarkably like [link
+wait_first_simple `wait_first_simple()`]. The difference is that instead of
+our [link wait_done `Done`] class, we instantiate a [class_link barrier] and
+call its [member_link barrier..wait].
+
+We initialize the `barrier` with `(count+1)` because we are launching `count`
+fibers, plus the `wait()` call within `wait_all_simple()` itself.
+
+[wait_all_simple]
+
+As stated above, the only difference between `wait_all_simple_impl()` and
+[link wait_first_simple_impl `wait_first_simple_impl()`] is that the former
+calls `barrier::wait()` rather than `Done::notify()`:
+
+[wait_all_simple_impl]
+
+You might call it like this:
+
+[wait_all_simple_ex]
+
+Control will not return from the `wait_all_simple()` call until the last of
+its task functions has completed.
+
+[endsect]
 [endsect][/ when_all]
 
 [endsect][/ outermost]
