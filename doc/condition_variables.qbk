@@ -32,7 +32,7 @@ waiting. In the simplest case, this condition is just a boolean variable:
 
     void wait_for_data_to_process() {
         {
-            std::lock_guard< boost::fibers::mutex > lk( mtx);
+            std::unique_lock< boost::fibers::mutex > lk( mtx);
             while ( ! data_ready) {
                 cond.wait( lk);
             }
@@ -58,7 +58,7 @@ one waiting fiber or all the waiting fibers respectively.
         retrieve_data();
         prepare_data();
         {
-            std::lock_guard< boost::fibers::mutex > lk( mtx);
+            std::unique_lock< boost::fibers::mutex > lk( mtx);
             data_ready = true;
         }
         cond.notify_one();
@@ -210,7 +210,7 @@ fibers calling `wait` on `*this` must wait on `lk` objects governing the
 ['same] `mutex`. Three distinct objects are involved in any
 `condition_variable::wait()` call: the `condition_variable` itself, the
 `mutex` coordinating access between fibers and a lock object (e.g.
-`std::lock_guard`). In some sense it would be nice if the
+`std::unique_lock`). In some sense it would be nice if the
 `condition_variable`'s constructor could accept the related `mutex` object,
 enforcing agreement across all `wait()` calls; but the existing APIs prevent
 that. Instead we must require the `wait()` call to accept a reference to the

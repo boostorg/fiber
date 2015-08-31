@@ -15,6 +15,13 @@ barrier they must wait until all `n` fibers have arrived. Once the `n`-th
 fiber has reached the barrier, all the waiting fibers can proceed, and the
 barrier is reset.
 
+[note It is unwise to tie the lifespan of a barrier to any one of its
+participating fibers. Although conceptually all waiting fibers awaken
+"simultaneously," because of the nature of fibers, in practice they will
+awaken one by one in indeterminate order. The rest of the waiting fibers will
+still be blocked in `wait()`, which must, before returning, access data
+members in the barrier object.]
+
 [class_heading barrier]
 
     #include <boost/fiber/barrier.hpp>

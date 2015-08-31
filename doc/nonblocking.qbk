@@ -1,0 +1,20 @@
+[/
+      Copyright Oliver Kowalke, Nat Goodspeed 2015.
+ Distributed under the Boost Software License, Version 1.0.
+    (See accompanying file LICENSE_1_0.txt or copy at
+          http://www.boost.org/LICENSE_1_0.txt
+]
+
+[/ import path is relative to this .qbk file]
+[import ../examples/adapt_nonblocking.cpp]
+
+[#nonblocking]
+[section:nonblocking Integrating Fibers with Nonblocking I/O]
+
+[heading Overview]
+
+[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
+The source code above is found in
+[@../../examples/adapt_nonblocking.cpp adapt_nonblocking.cpp].
+
+[endsect]
