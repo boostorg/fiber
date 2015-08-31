@@ -15,6 +15,7 @@
 /*****************************************************************************
 *   example nonblocking API
 *****************************************************************************/
+//[NonblockingAPI
 class NonblockingAPI {
 public:
     NonblockingAPI();
@@ -22,6 +23,8 @@ public:
     // nonblocking operation: may return EWOULDBLOCK
     int read(std::string& data, std::size_t desired);
 
+/*=    ...*/
+//<-
     // for simulating a real nonblocking API
     void set_data( std::string const& data, std::size_t chunksize);
     void inject_error( int ec);
@@ -31,7 +34,9 @@ private:
     int         injected_;
     unsigned    tries_;
     std::size_t chunksize_;
+//->
 };
+//]
 
 /*****************************************************************************
 *   fake NonblockingAPI implementation... pay no attention to the little man
@@ -93,6 +98,7 @@ int NonblockingAPI::read( std::string & data, std::size_t desired) {
 /*****************************************************************************
 *   adapters
 *****************************************************************************/
+//[nonblocking_read_chunk
 // guaranteed not to return EWOULDBLOCK
 int read_chunk( NonblockingAPI & api, std::string& data, std::size_t desired) {
     int error;
@@ -103,7 +109,9 @@ int read_chunk( NonblockingAPI & api, std::string& data, std::size_t desired) {
     }
     return error;
 }
+//]
 
+//[nonblocking_read_desired
 // keep reading until desired length, EOF or error
 // may return both partial data and nonzero error
 int read_desired( NonblockingAPI & api, std::string& data, std::size_t desired) {
@@ -117,7 +125,9 @@ int read_desired( NonblockingAPI & api, std::string& data, std::size_t desired) 
     }
     return error;
 }
+//]
 
+//[nonblocking_IncompleteRead
 // exception class augmented with both partially-read data and errorcode
 class IncompleteRead: public std::runtime_error {
 public:
@@ -139,7 +149,9 @@ private:
     std::string partial_;
     int         ec_;
 };
+//]
 
+//[nonblocking_read
 // read all desired data or throw IncompleteRead
 std::string read( NonblockingAPI & api, std::size_t desired) {
     std::string data;
@@ -156,6 +168,7 @@ std::string read( NonblockingAPI & api, std::size_t desired) {
         << data.length() << " of " << desired << " characters";
     throw IncompleteRead( msg.str(), data, ec);
 }
+//]
 
 int main( int argc, char *argv[]) {
     NonblockingAPI api;
