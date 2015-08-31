@@ -20,13 +20,12 @@ customization point. (See [link custom Customization].)
 Each thread has its own scheduler. By default, __boost_fiber__ implicitly
 instantiates [class_link round_robin] as the scheduler for each thread.
 
-You are explicitly permitted to code your own __algo__ subclass, and to pass
-it to [function_link set_scheduling_algorithm].
+You are explicitly permitted to code your own __algo__ subclass, and to
+specify it to [function_link use_scheduling_algorithm].
 
 
         void thread_fn() {
-            my_fiber_scheduler mfs;
-            boost::fibers::set_scheduling_algorithm( & mfs);
+            boost::fibers::use_scheduling_algorithm<my_fiber_scheduler>();
             ...
         }
 
