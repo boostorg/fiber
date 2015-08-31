@@ -84,6 +84,7 @@ This function will feature in the example calls to the various functions
 presented below.
 
 [section when_any]
+[#wait_first_simple_section]
 [section when_any, simple completion]
 
 The simplest case is when you only need to know that the first of a set of
