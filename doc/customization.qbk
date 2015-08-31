@@ -85,18 +85,11 @@ allocating `priority_props` instances on the heap.
 
 [heading Replace Default Scheduler]
 
-You must call [function_link set_scheduling_algorithm] at the start of each
+You must call [function_link use_scheduling_algorithm] at the start of each
 thread on which you want __boost_fiber__ to use your custom scheduler rather
 than its own default [class_link round_robin]. Specifically, you must call
-`set_scheduling_algorithm()` before performing any other __boost_fiber__
+`use_scheduling_algorithm()` before performing any other __boost_fiber__
 operations on that thread.
-
-It works to instantiate your custom [template_link
-sched_algorithm_with_properties] subclass on the stack at the start of your
-thread function, passing the instance pointer to `set_scheduling_algorithm()`.
-This ensures that your scheduler instance will live as long as the thread
-itself. (Of course `main()` is, in effect, the thread function for the
-application's main thread.)
 
 [main]
 

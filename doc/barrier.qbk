@@ -15,6 +15,27 @@ barrier they must wait until all `n` fibers have arrived. Once the `n`-th
 fiber has reached the barrier, all the waiting fibers can proceed, and the
 barrier is reset.
 
+The fact that the barrier automatically resets is significant. Consider a case
+in which you launch some number of fibers and want to wait only until the
+first of them has completed. You might be tempted to use a `barrier(2)` as the
+synchronization mechanism, making each new fiber call its [member_link
+barrier..wait] method, then calling `wait()` in the launching fiber to wait
+until the first other fiber completes.
+
+That will in fact unblock the launching fiber. The unfortunate part is that it
+will continue blocking the ['remaining] fibers.
+
+Consider the following scenario:
+
+# Fiber "main" launches fibers A, B, C and D, then calls `barrier::wait()`.
+# Fiber C finishes first and likewise calls `barrier::wait()`.
+# Fiber "main" is unblocked, as desired.
+# Fiber B calls `barrier::wait()`. Fiber B is ['blocked]!
+# Fiber A calls `barrier::wait()`. Fibers A and B are unblocked.
+# Fiber D calls `barrier::wait()`. Fiber D is blocked indefinitely.
+
+(See also [link wait_first_simple_section when_any, simple completion].)
+
 [note It is unwise to tie the lifespan of a barrier to any one of its
 participating fibers. Although conceptually all waiting fibers awaken
 "simultaneously," because of the nature of fibers, in practice they will

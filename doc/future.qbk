@@ -129,9 +129,21 @@ After construction [^[post_valid] == other.valid()]]]
 [variablelist
 [[Effects:] [Destroys the [xfuture]; ownership is abandoned[end]]]
 [[Throws:] [Nothing.]]
+[[Note:] [[`~[xfuture]()] does ['not] block the calling fiber.]]
 ]
 ]
 [future_dtor_variablelist future .]
+
+Consider a sequence such as:
+
+# instantiate [template_link promise]
+# obtain its `future<>` via [member_link promise..get_future]
+# launch [class_link fiber], capturing `promise<>`
+# destroy `future<>`
+# call [member_link promise..set_value]
+
+The final `set_value()` call succeeds, but the value is silently discarded: no
+additional `future<>` can be obtained from that `promise<>`.
 
 [operator_heading future..operator_assign..operator=]
 

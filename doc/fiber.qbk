@@ -24,7 +24,8 @@
         template< typename PROPS >
         struct sched_algorithm_with_properties;
         class round_robin;
-        void set_scheduling_algorithm( sched_algorithm * al)
+        template< typename SchedAlgo, typename ... Args >
+        void use_scheduling_algorithm( Args && ... args);
         std::size_t ready_fibers();
 
         template< typename Rep, typename Period >
@@ -111,6 +112,13 @@ __not_a_fiber__. The fiber object may then safely be destroyed.
 
         boost::fibers::fiber( some_fn).detach();
 
+__boost_fiber__ provides a number of ways to wait for a running fiber to
+complete. You can coordinate even with a detached fiber using a [class_link
+mutex], or [class_link condition_variable], or any of the other [link
+synchronization synchronization objects] provided by the library.
+
+If a detached fiber is still running when the thread's main fiber terminates,
+that fiber will be [link interruption interrupted] and shut down.
 
 [heading Joining]
 
@@ -277,7 +285,8 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
         void swap( fiber & l, fiber & r) noexcept;
 
-        void set_scheduling_algorithm( sched_algorithm * al)
+        template< typename SchedAlgo, typename ... Args >
+        void use_scheduling_algorithm( Args && ... args);
 
         std::size_t ready_fibers();
 
@@ -429,14 +438,13 @@ interruption enabled.]]
 
 [variablelist
 [[Preconditions:] [`*this` refers to a fiber of execution. [function_link
-set_scheduling_algorithm] has been called from this thread with a pointer to a
-(subclass) instance of [template_link sched_algorithm_with_properties] with the
-same template argument `PROPS`. `*this` has been scheduled for execution at
-least once.]]
+use_scheduling_algorithm] has been called from this thread with a subclass of
+[template_link sched_algorithm_with_properties] with the same template
+argument `PROPS`. `*this` has been scheduled for execution at least once.]]
 [[Returns:] [a reference to the scheduler properties instance for `*this`.]]
-[[Throws:] [`std::bad_cast` if `set_scheduling_algorithm()` was passed a
-pointer to a `sched_algorithm_with_properties` subclass with some other
-template parameter than `PROPS`.]]
+[[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with a
+`sched_algorithm_with_properties` subclass with some other template parameter
+than `PROPS`.]]
 [[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This method allows access to those user-provided properties
@@ -489,24 +497,21 @@ prior to the call.]]
 [[Effects:] [Same as `l.swap( r)`.]]
 ]
 
-[function_heading set_scheduling_algorithm]
+[function_heading use_scheduling_algorithm]
 
-    void set_scheduling_algorithm( sched_algorithm* scheduler );
+    template< typename SchedAlgo, typename ... Args >
+    void use_scheduling_algorithm( Args && ... args);
 
 [variablelist
-[[Effects:] [Directs __boost_fiber__ to use `scheduler`, which must be a
+[[Effects:] [Directs __boost_fiber__ to use `SchedAlgo`, which must be a
 concrete subclass of __algo__, as the scheduling algorithm for all fibers in
-the current thread.]]
+the current thread. Pass any required `SchedAlgo` constructor arguments as
+`args`.]]
 [[Note:] [If you want a given thread to use a non-default scheduling
-algorithm, make that thread call `set_scheduling_algorithm()` before any other
+algorithm, make that thread call `use_scheduling_algorithm()` before any other
 __boost_fiber__ entry point. If no scheduler has been set for the current
 thread by the time __boost_fiber__ needs to use it, the library will
 create a default [class_link round_robin] instance for this thread.]]
-[[Note:] [`set_scheduling_algorithm()` does ['not] take ownership of the
-passed `sched_algorithm*`: __boost_fiber__ does not claim responsibility for the
-lifespan of the referenced `scheduler` object. The caller must eventually
-destroy the passed `scheduler`, just as it must allocate it in the first
-place.]]
 [[Throws:] [Nothing]]
 [[See also:] [[link scheduling Scheduling], [link custom Customization]]]
 ]
@@ -744,14 +749,14 @@ to run.]]
         PROPS & properties();
 
 [variablelist
-[[Preconditions:] [[function_link set_scheduling_algorithm] has been called
-from this thread with a pointer to a (subclass) instance of [template_link
+[[Preconditions:] [[function_link use_scheduling_algorithm] has been called
+from this thread with a subclass of [template_link
 sched_algorithm_with_properties] with the same template argument `PROPS`.]]
 [[Returns:] [a reference to the scheduler properties instance for the
 currently running fiber.]]
-[[Throws:] [`std::bad_cast` if `set_scheduling_algorithm()` was passed a
-pointer to a `sched_algorithm_with_properties` subclass with some other
-template parameter than `PROPS`.]]
+[[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with a
+`sched_algorithm_with_properties` subclass with some other template parameter
+than `PROPS`.]]
 [[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This function allows access to those user-provided
