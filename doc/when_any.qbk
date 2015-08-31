@@ -42,11 +42,11 @@ the calling fiber asks to launch those independent activities, then waits for
 them, then sequentially proceeds with whatever processing depends on those
 results.
 
-The function names shown (e.g. `wait_first_simple()`) are for illustrative
-purposes only, because all these functions have been bundled into a single
-source file. Presumably, if (say) `wait_first_success()` best suits your
-application needs, you could introduce that variant with the name
-`wait_any()`.
+The function names shown (e.g. [link wait_first_simple `wait_first_simple()`])
+are for illustrative purposes only, because all these functions have been
+bundled into a single source file. Presumably, if (say) [link
+wait_first_success `wait_first_success()`] best suits your application needs,
+you could introduce that variant with the name `wait_any()`.
 
 [note The functions presented in this section accept variadic argument lists
 of task functions. Corresponding `wait_something()` functions accepting a
@@ -62,9 +62,11 @@ All the source code for this section is found in
 
 We found it convenient to model an asynchronous task using this function:
 
+[#wait_sleeper]
 [wait_sleeper]
 
-with type-specific "front ends" for `std::string`, `double` and `int`.
+with type-specific `sleeper()` "front ends" for `std::string`, `double` and
+`int`.
 
 `Verbose` simply prints a message to `std::cout` on construction and
 destruction.
@@ -101,6 +103,7 @@ object relative to the last of the fibers.
 
 `wait_first_simple()` uses that tactic for `Done`:
 
+[#wait_first_simple]
 [wait_first_simple]
 
 `wait_first_simple_impl()` is an ordinary recursion over the argument pack,
@@ -118,9 +121,9 @@ This is how you might call it:
 
 [wait_first_simple_ex]
 
-In this example, control resumes after `wait_first_simple()` when
-`sleeper("wfs_short", 50)` completes [mdash] even though the other two `sleeper()`
-fibers are still running.
+In this example, control resumes after `wait_first_simple()` when [link
+wait_sleeper `sleeper("wfs_short", 50)`] completes [mdash] even though the
+other two `sleeper()` fibers are still running.
 
 [endsect]
 [section when_any, return value]
@@ -140,10 +143,12 @@ In fact, once we've retrieved the first (only) value from the
 have no need of any subsequent values. Subsequent `push()` calls will return
 `closed`.
 
+[#wait_first_value]
 [wait_first_value]
 
 The meat of the `wait_first_value_impl()` function is as you might expect:
 
+[#wait_first_value_impl]
 [wait_first_value_impl]
 
 It calls the passed function, pushes its return value and ignores the `push()`
@@ -162,13 +167,14 @@ of our task fibers would cause `std::terminate()` to be called.
 
 Let's at least ensure that such an exception would propagate to the fiber
 awaiting the first result. We can use [template_link future] to transport
-either a return value or an exception. Therefore, we will change
-`wait_first_value()`'s [template_link bounded_channel] to hold `future<T>`
-items instead of simply `T`.
+either a return value or an exception. Therefore, we will change [link
+wait_first_value `wait_first_value()`]'s [template_link bounded_channel] to
+hold `future<T>` items instead of simply `T`.
 
 Once we have a `future<>` in hand, all we need do is call [member_link
 future..get], which will either return the value or rethrow the exception.
 
+[#wait_first_outcome]
 [wait_first_outcome]
 
 So far so good [mdash] but there's a timing issue. How should we obtain the
@@ -201,6 +207,7 @@ helper fiber at the producer end of the channel! We can simply ['call] the
 meaning that the `future<>` obtained from the `packaged_task<>` is certain to
 be ready. At that point we can simply `push()` it to the channel.
 
+[#wait_first_outcome_impl]
 [wait_first_outcome_impl]
 
 Calling it might look like this:
@@ -215,9 +222,10 @@ some number of possibly-unreliable web services. Not only might they be slow
 [mdash] any one of them might produce a failure rather than the desired
 result.
 
-In such a case, `wait_first_outcome()` isn't the right approach. If one of the
-services produces an error quickly, while another follows up with a real
-answer, we don't want to prefer the error just because it arrived first!
+In such a case, [link wait_first_outcome `wait_first_outcome()`] isn't the
+right approach. If one of the services produces an error quickly, while
+another follows up with a real answer, we don't want to prefer the error just
+because it arrived first!
 
 Given the `bounded_queue<future<T>>` we already constructed for
 `wait_first_outcome()`, though, we can readily recast the interface function
@@ -238,8 +246,8 @@ an `exception_list` of our own:
 Now we can build `wait_first_success()`. We must enlarge our
 `bounded_channel<>`: it might need to hold a `future<>` for every one of our
 task functions. (As noted in comments, we could use [template_link
-unbounded_channel], but this tactic allows us to reuse
-`wait_first_outcome_impl()`.)
+unbounded_channel], but this tactic allows us to reuse [link
+wait_first_outcome_impl `wait_first_outcome_impl()`].)
 
 Instead of retrieving only the first `future<>` from the channel, we must now
 loop over `future<>` items. Of course we must limit that iteration! If we
@@ -260,6 +268,7 @@ If we fall out of the loop [mdash] if every single task fiber threw an
 exception [mdash] we throw the `exception_list` exception into which we've
 been collecting those `std::exception_ptr`s.
 
+[#wait_first_success]
 [wait_first_success]
 
 A call might look like this:
@@ -276,12 +285,13 @@ might have any one of those types. We can express that with
 
 To keep the example simple, we'll revert to pretending that none of them can
 throw an exception. That makes `wait_first_value_het()` strongly resemble
-`wait_first_value()`. We can actually reuse `wait_first_result_impl()`, merely
-passing `boost::variant<T0, T1, ...>` as the channel's value type rather than
-the common `T`!
+[link wait_first_value `wait_first_value()`]. We can actually reuse [link
+wait_first_value_impl `wait_first_value_impl()`], merely passing
+`boost::variant<T0, T1, ...>` as the channel's value type rather than the
+common `T`!
 
-Naturally this could be extended to use `wait_first_success()` semantics
-instead.
+Naturally this could be extended to use [link wait_first_success
+`wait_first_success()`] semantics instead.
 
 [wait_first_value_het]
 
