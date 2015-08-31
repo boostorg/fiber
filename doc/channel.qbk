@@ -368,6 +368,5 @@ or `push_wait_until()` may resume.]
 [xchannel_try_pop bounded_channel... [bounded_pop_unblocking]]
 [xchannel_pop_wait_for bounded_channel... [bounded_pop_unblocking]]
 [xchannel_pop_wait_until bounded_channel... [bounded_pop_unblocking]]
-]
-]
+
 [endsect]

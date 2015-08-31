@@ -36,7 +36,7 @@ waiting. In the simplest case, this condition is just a boolean variable:
             while ( ! data_ready) {
                 cond.wait( lk);
             }
-        }                       // release lk
+        }   // release lk
         process_data();
     }
 
@@ -195,8 +195,8 @@ reason), the lock is reacquired by invoking `lk.lock()` before the call to
 `wait` returns. The lock is also reacquired by invoking `lk.lock()` if the
 function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
-while ( ! pred())
-{
+
+while ( ! pred() ) {
     wait( lk);
 }
 ``]]
@@ -246,8 +246,7 @@ invoking `lk.lock()` before the call to `wait_until` returns. The lock is also
 reacquired by invoking `lk.lock()` if the function exits with an exception.
 The member function accepting `pred` is shorthand for: ``
 
-while ( ! pred() )
-{
+while ( ! pred() ) {
     if ( cv_status::timeout == wait_until( lk, timeout_time) )
         return pred();
 }
