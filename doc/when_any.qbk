@@ -397,6 +397,46 @@ For example:
 [wait_all_values_impl]
 
 [endsect]
+[section when_all until first exception]
+
+Naturally, just as with [link wait_first_outcome `wait_first_outcome()`], we
+can elaborate [link wait_all_values `wait_all_values()`] and [link
+wait_all_values_source `wait_all_values_source()`] by passing `future<T>`
+instead of plain `T`.
+
+[#wait_all_until_error]
+`wait_all_until_error()` pops that `future<T>` and calls its [member_link
+future..get]:
+
+[wait_all_until_error]
+
+For example:
+
+[wait_all_until_error_ex]
+
+[#wait_all_until_error_source]
+Naturally this complicates the API for `wait_all_until_error_source()`. The
+caller must both retrieve a `future<T>` and call its `get()` method. It would,
+of course, be possible to return a façade over the consumer end of the
+channel that would implicitly perform the `get()` and return a simple `T` (or
+throw).
+
+The implementation is just as you would expect.
+
+[wait_all_until_error_source]
+
+For example:
+
+[wait_all_until_error_source_ex]
+
+[#wait_all_until_error_impl]
+`wait_all_until_error_impl()` is just like [link wait_first_outcome_impl
+`wait_first_outcome_impl()`], but using [link wait_nchannel `nchannel<>`]
+instead of `bounded_channel<>`.
+
+[wait_all_until_error_impl]
+
+[endsect]
 [endsect][/ when_all]
 
 [endsect][/ outermost]
