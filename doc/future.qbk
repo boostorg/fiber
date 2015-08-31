@@ -129,6 +129,7 @@ After construction [^[post_valid] == other.valid()]]]
 [variablelist
 [[Effects:] [Destroys the [xfuture]; ownership is abandoned[end]]]
 [[Throws:] [Nothing.]]
+[[Note:] [[`~[xfuture]()] does ['not] block the calling fiber.]]
 ]
 ]
 [future_dtor_variablelist future .]
