@@ -39,7 +39,10 @@ Consider the following scenario:
 [note It is unwise to tie the lifespan of a barrier to any one of its
 participating fibers. Although conceptually all waiting fibers awaken
 "simultaneously," because of the nature of fibers, in practice they will
-awaken one by one in indeterminate order. The rest of the waiting fibers will
+awaken one by one in indeterminate order.[footnote The current implementation
+wakes fibers in FIFO order: the first to call `wait()` wakes first, and so
+forth. But it is perilous to rely on the order in which the various fibers
+will reach the `wait()` call.] The rest of the waiting fibers will
 still be blocked in `wait()`, which must, before returning, access data
 members in the barrier object.]
 
