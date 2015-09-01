@@ -127,6 +127,7 @@ The source code above is found in
 and
 [@../../examples/adapt_method_calls.cpp adapt_method_calls.cpp].
 
+[#callbacks_asio]
 [heading Then There's __boost_asio__]
 
 [import ../examples/asio/yield.hpp]
@@ -149,7 +150,7 @@ instance of `yield_t`:
 
 [fibers_asio_yield]
 
-which isa `promise_completion_token`:
+which is a `promise_completion_token`:
 
 [fibers_asio_yield_t]
 
@@ -190,7 +191,7 @@ async operation to which `yield` is passed.
 [fibers_asio_promise_handler_base]
 
 As promised, `promise_handler_base` binds a [template_link promise] of
-appropriate type. (We store a `shared_ptr<promise<T>>` because the
+appropriate type. (We store a `shared_ptr< promise< T > >` because the
 `promise_handler` instance is copied on its way into underlying Asio
 machinery.)
 

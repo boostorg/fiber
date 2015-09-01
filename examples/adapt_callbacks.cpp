@@ -98,21 +98,21 @@ std::runtime_error make_exception( std::string const& desc, AsyncAPI::errorcode)
 //[callbacks_write_ec
 AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     boost::fibers::promise< AsyncAPI::errorcode > promise;
-    boost::fibers::future< AsyncAPI::errorcode > future(promise.get_future());
+    boost::fibers::future< AsyncAPI::errorcode > future( promise.get_future() );
     // We can confidently bind a reference to local variable 'promise' into
     // the lambda callback because we know for a fact we're going to suspend
     // (preserving the lifespan of both 'promise' and 'future') until the
     // callback has fired.
     api.init_write( data,
-        [&promise]( AsyncAPI::errorcode ec){
-            promise.set_value( ec);
-        });
+                    [&promise]( AsyncAPI::errorcode ec){
+                        promise.set_value( ec);
+                    });
     return future.get();
 }
 //]
 
 //[callbacks_write
-void write( AsyncAPI& api, std::string const& data) {
+void write( AsyncAPI & api, std::string const& data) {
     AsyncAPI::errorcode ec = write_ec( api, data);
     if ( ec) {
         throw make_exception("write", ec);
@@ -121,17 +121,15 @@ void write( AsyncAPI& api, std::string const& data) {
 //]
 
 //[callbacks_read_ec
-std::pair< AsyncAPI::errorcode, std::string >
-read_ec( AsyncAPI & api) {
+std::pair< AsyncAPI::errorcode, std::string > read_ec( AsyncAPI & api) {
     typedef std::pair< AsyncAPI::errorcode, std::string > result_pair;
     boost::fibers::promise< result_pair > promise;
     boost::fibers::future< result_pair > future( promise.get_future() );
     // We promise that both 'promise' and 'future' will survive until our
     // lambda has been called.
-    api.init_read(
-        [&promise]( AsyncAPI::errorcode ec, std::string const& data){
-            promise.set_value( result_pair( ec, data) );
-        });
+    api.init_read( [&promise]( AsyncAPI::errorcode ec, std::string const& data){
+                       promise.set_value( result_pair( ec, data) );
+                   });
     return future.get();
 }
 //]
@@ -142,15 +140,15 @@ std::string read( AsyncAPI & api) {
     boost::fibers::future< std::string > future( promise.get_future() );
     // Both 'promise' and 'future' will survive until our lambda has been
     // called.
-    api.init_read(
-        [&promise]( AsyncAPI::errorcode ec, std::string const& data){
-            if ( ! ec) {
-                promise.set_value( data);
-            } else {
-                promise.set_exception(
-                        std::make_exception_ptr( make_exception("read", ec) ) );
-            }
-        });
+    api.init_read( [&promise]( AsyncAPI::errorcode ec, std::string const& data){
+                       if ( ! ec) {
+                           promise.set_value( data);
+                       } else {
+                           promise.set_exception(
+                                   std::make_exception_ptr(
+                                       make_exception("read", ec) ) );
+                       }
+                   });
     return future.get();
 }
 //]

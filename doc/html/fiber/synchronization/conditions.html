@@ -54,11 +54,11 @@
 
 <span class="keyword">void</span> <span class="identifier">wait_for_data_to_process</span><span class="special">()</span> <span class="special">{</span>
     <span class="special">{</span>
-        <span class="identifier">std</span><span class="special">::</span><span class="identifier">lock_guard</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
         <span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">data_ready</span><span class="special">)</span> <span class="special">{</span>
             <span class="identifier">cond</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
         <span class="special">}</span>
-    <span class="special">}</span>                       <span class="comment">// release lk</span>
+    <span class="special">}</span>   <span class="comment">// release lk</span>
     <span class="identifier">process_data</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
@@ -85,7 +85,7 @@
     <span class="identifier">retrieve_data</span><span class="special">();</span>
     <span class="identifier">prepare_data</span><span class="special">();</span>
     <span class="special">{</span>
-        <span class="identifier">std</span><span class="special">::</span><span class="identifier">lock_guard</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
         <span class="identifier">data_ready</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
     <span class="special">}</span>
     <span class="identifier">cond</span><span class="special">.</span><span class="identifier">notify_one</span><span class="special">();</span>
@@ -101,10 +101,10 @@
       </p>
 <p>
         <span class="bold"><strong>Boost.Fiber</strong></span> provides both <code class="computeroutput"><span class="identifier">condition_variable</span></code> and <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>
-        because <a href="../../../../../../libs/thread/index.html" target="_top">Boost.Thread</a> provides
-        both. (<span class="bold"><strong>Boost.Fiber</strong></span> also provides the name
-        <code class="computeroutput"><span class="identifier">condition</span></code>, which has been
-        deprecated in <a href="../../../../../../libs/thread/index.html" target="_top">Boost.Thread</a>.)
+        because <a href="http://www.boost.org/doc/libs/release/libs/thread/index.html" target="_top">Boost.Thread</a>
+        provides both. (<span class="bold"><strong>Boost.Fiber</strong></span> also provides
+        the name <code class="computeroutput"><span class="identifier">condition</span></code>, which
+        has been deprecated in <a href="http://www.boost.org/doc/libs/release/libs/thread/index.html" target="_top">Boost.Thread</a>.)
         However, <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">condition_variable</span></code> and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">condition_variable_any</span></code>
         are the same class; like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">condition_variable_any</span></code>,
         its wait() method will accept any form of lock. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">condition_variable_any</span></code>
@@ -320,8 +320,7 @@
               The member function accepting <code class="computeroutput"><span class="identifier">pred</span></code>
               is shorthand for:
 </p>
-<pre class="programlisting"><span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">pred</span><span class="special">())</span>
-<span class="special">{</span>
+<pre class="programlisting"><span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">pred</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span>
     <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
@@ -348,7 +347,7 @@
               governing the <span class="emphasis"><em>same</em></span> <code class="computeroutput"><span class="identifier">mutex</span></code>.
               Three distinct objects are involved in any <code class="computeroutput"><span class="identifier">condition_variable</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code> call: the <code class="computeroutput"><span class="identifier">condition_variable</span></code>
               itself, the <code class="computeroutput"><span class="identifier">mutex</span></code> coordinating
-              access between fibers and a lock object (e.g. <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">lock_guard</span></code>).
+              access between fibers and a lock object (e.g. <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code>).
               In some sense it would be nice if the <code class="computeroutput"><span class="identifier">condition_variable</span></code>'s
               constructor could accept the related <code class="computeroutput"><span class="identifier">mutex</span></code>
               object, enforcing agreement across all <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> calls; but the existing APIs prevent
@@ -405,8 +404,7 @@
               The member function accepting <code class="computeroutput"><span class="identifier">pred</span></code>
               is shorthand for:
 </p>
-<pre class="programlisting"><span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">pred</span><span class="special">()</span> <span class="special">)</span>
-<span class="special">{</span>
+<pre class="programlisting"><span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">pred</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span>
     <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">cv_status</span><span class="special">::</span><span class="identifier">timeout</span> <span class="special">==</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">timeout_time</span><span class="special">)</span> <span class="special">)</span>
         <span class="keyword">return</span> <span class="identifier">pred</span><span class="special">();</span>
 <span class="special">}</span>

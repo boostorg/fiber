@@ -9,32 +9,30 @@
 #include <iostream>
 
 //[priority_props
-class priority_props: public boost::fibers::fiber_properties
-{
+class priority_props : public boost::fibers::fiber_properties {
 public:
-    priority_props(boost::fibers::fiber_context* p):
-        fiber_properties(p), /*< Your subclass constructor must accept a 
+    priority_props( boost::fibers::fiber_context * p):
+        fiber_properties( p), /*< Your subclass constructor must accept a 
                                  [^[class_link fiber_context]*] and pass it to
                                  the `fiber_properties` constructor. >*/
-        priority_(0)
-    {}
+        priority_( 0) {
+    }
 
-    int get_priority() const { return priority_; } /*< Provide read access
-                                                       methods at your own
-                                                       discretion. >*/
+    int get_priority() const {
+        return priority_; /*< Provide read access methods at your own discretion. >*/
+    }
 
     // Call this method to alter priority, because we must notify
     // priority_scheduler of any change.
-    void set_priority(int p) /*< It's important to call notify() on any
-                                 change in a property that can affect the
-                                 scheduler's behavior. Therefore, such
-                                 modifications should only be performed
-                                 through an access method. >*/
-    {
+    void set_priority( int p) {
+        /*< It's important to call notify() on any
+            change in a property that can affect the
+            scheduler's behavior. Therefore, such
+            modifications should only be performed
+            through an access method. >*/
         // Of course, it's only worth reshuffling the queue and all if we're
         // actually changing the priority.
-        if (p != priority_)
-        {
+        if ( p != priority_) {
             priority_ = p;
             notify();
         }
@@ -46,34 +44,30 @@ public:
     // because we need not inform the scheduler of any change.
     std::string name; /*< A property that does not affect the scheduler does
                           not need access methods. >*/
-
 private:
     int priority_;
 };
 //]
 
 //[priority_scheduler
-class priority_scheduler:
-    public boost::fibers::sched_algorithm_with_properties<priority_props>
-{
+class priority_scheduler : public boost::fibers::sched_algorithm_with_properties< priority_props > {
 private:
     // Much as we would like, we don't use std::priority_queue because it
     // doesn't appear to provide any way to alter the priority (and hence
     // queue position) of a particular item.
-    boost::fibers::fiber_context* head_;
+    boost::fibers::fiber_context    *   head_;
 
 public:
-    priority_scheduler():
-        head_(nullptr)
-    {}
+    priority_scheduler() :
+        head_( nullptr) {
+    }
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
     // override the correct awakened() overload.
     /*<< You must override the [member_link sched_algorithm_with_properties..awakened]
          method. This is how your scheduler receives notification of a
          fiber that has become ready to run. >>*/
-    virtual void awakened(boost::fibers::fiber_context* f, priority_props& props)
-    {
+    virtual void awakened( boost::fibers::fiber_context * f, priority_props & props) {
         int f_priority = props.get_priority(); /*< `props` is the instance of
                                                    priority_props associated
                                                    with the passed fiber `f`. >*/
@@ -83,16 +77,18 @@ public:
         // we're handed a new fiber_base, put it at the end of the fibers with
         // that same priority. In other words: search for the first fiber in
         // the queue with LOWER priority, and insert before that one.
-        boost::fibers::fiber_context** fp = &head_;
-        for ( ; *fp; fp = &(*fp)->nxt)
-            if (properties(*fp).get_priority() < f_priority) /*< Use the
+        boost::fibers::fiber_context ** fp = & head_;
+        for ( ; * fp; fp = & ( * fp)->nxt)
+            if ( properties( * fp).get_priority() < f_priority) {
+                /*< Use the
                 [member_link sched_algorithm_with_properties..properties]
                 method to access properties for any ['other] fiber. >*/
                 break;
+            }
         // It doesn't matter whether we hit the end of the list or found
         // another fiber with lower priority. Either way, insert f here.
-        f->nxt = *fp; /*< Note use of the [data_member_link fiber_context..nxt] member. >*/
-        *fp = f;
+        f->nxt = * fp; /*< Note use of the [data_member_link fiber_context..nxt] member. >*/
+        * fp = f;
 //<-
 
         std::cout << "awakened(" << props.name << "): ";

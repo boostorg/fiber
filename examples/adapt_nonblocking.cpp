@@ -21,7 +21,7 @@ public:
     NonblockingAPI();
 
     // nonblocking operation: may return EWOULDBLOCK
-    int read(std::string& data, std::size_t desired);
+    int read( std::string & data, std::size_t desired);
 
 /*=    ...*/
 //<-
@@ -43,10 +43,10 @@ private:
 *   behind the curtain...
 *****************************************************************************/
 NonblockingAPI::NonblockingAPI() :
-    injected_(0),
-    tries_(0),
-    chunksize_(9999)
-{}
+    injected_( 0),
+    tries_( 0),
+    chunksize_( 9999) {
+}
 
 void NonblockingAPI::set_data( std::string const& data, std::size_t chunksize) {
     data_ = data;
@@ -79,7 +79,7 @@ int NonblockingAPI::read( std::string & data, std::size_t desired) {
     }
 
     // tell caller there's nothing left
-    if ( data_.empty()) {
+    if ( data_.empty() ) {
         return EOF;
     }
 
@@ -102,7 +102,7 @@ int NonblockingAPI::read( std::string & data, std::size_t desired) {
 // guaranteed not to return EWOULDBLOCK
 int read_chunk( NonblockingAPI & api, std::string& data, std::size_t desired) {
     int error;
-    while ( ( error = api.read( data, desired) ) == EWOULDBLOCK) {
+    while ( EWOULDBLOCK == ( error = api.read( data, desired) ) ) {
         // not ready yet -- try again on the next iteration of the
         // application's main loop
         boost::this_fiber::yield();
@@ -114,7 +114,7 @@ int read_chunk( NonblockingAPI & api, std::string& data, std::size_t desired) {
 //[nonblocking_read_desired
 // keep reading until desired length, EOF or error
 // may return both partial data and nonzero error
-int read_desired( NonblockingAPI & api, std::string& data, std::size_t desired) {
+int read_desired( NonblockingAPI & api, std::string & data, std::size_t desired) {
     // we're going to accumulate results into 'data'
     data.clear();
     std::string chunk;
@@ -129,7 +129,7 @@ int read_desired( NonblockingAPI & api, std::string& data, std::size_t desired) 
 
 //[nonblocking_IncompleteRead
 // exception class augmented with both partially-read data and errorcode
-class IncompleteRead: public std::runtime_error {
+class IncompleteRead : public std::runtime_error {
 public:
     IncompleteRead( std::string const& what, std::string const& partial, int ec) :
         std::runtime_error( what),
@@ -158,7 +158,7 @@ std::string read( NonblockingAPI & api, std::size_t desired) {
     int ec( read_desired( api, data, desired) );
 
     // for present purposes, EOF isn't a failure
-    if ( ec == 0 || ec == EOF) {
+    if ( 0 == ec || EOF == ec) {
         return data;
     }
 

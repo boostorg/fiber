@@ -33,12 +33,13 @@ namespace detail {
 //[fibers_asio_promise_handler_base
 template< typename T >
 class promise_handler_base {
+private:
     typedef boost::shared_ptr< boost::fibers::promise< T > > promise_ptr;
 
 public:
     // Construct from any promise_completion_token subclass special value.
     template< typename Allocator >
-    promise_handler_base( const boost::fibers::asio::promise_completion_token< Allocator >& pct) :
+    promise_handler_base( boost::fibers::asio::promise_completion_token< Allocator > const& pct) :
         promise_( new boost::fibers::promise< T >( std::allocator_arg, pct.get_allocator() ) )
 //<-
         , ecp_( pct.ec_)
@@ -55,7 +56,7 @@ public:
         // ec indicates error
         if ( ecp_) {
             // promise_completion_token bound an error_code variable: set it
-            *ecp_ = ec;
+            * ecp_ = ec;
             // This is the odd case: although there's an error, user code
             // expressly forbid us to call set_exception(). We've set the
             // bound error code -- but future::get() will wait forever unless
@@ -66,8 +67,8 @@ public:
 //->
         // no bound error_code: cause promise_ to throw an exception
         promise_->set_exception(
-            std::make_exception_ptr(
-                boost::system::system_error( ec) ) );
+                std::make_exception_ptr(
+                    boost::system::system_error( ec) ) );
         // caller should NOT call set_value()
         return false;
     }
@@ -88,6 +89,7 @@ private:
 //[fibers_asio_promise_handler
 template< typename T >
 class promise_handler : public promise_handler_base< T > {
+private:
 //<-
     using promise_handler_base< T >::should_set_value;
 
@@ -118,6 +120,7 @@ public:
 // specialize promise_handler for void
 template<>
 class promise_handler< void > : public promise_handler_base< void > {
+private:
     using promise_handler_base< void >::should_set_value;
 
 public:
