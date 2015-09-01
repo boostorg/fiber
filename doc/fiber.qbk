@@ -447,15 +447,14 @@ interruption enabled.]]
 [[Preconditions:] [`*this` refers to a fiber of execution. [function_link
 use_scheduling_algorithm] has been called from this thread with a subclass of
 [template_link sched_algorithm_with_properties] with the same template
-argument `PROPS`. `*this` has been scheduled for execution at least once.]]
+argument `PROPS`.]]
 [[Returns:] [a reference to the scheduler properties instance for `*this`.]]
 [[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with a
 `sched_algorithm_with_properties` subclass with some other template parameter
 than `PROPS`.]]
 [[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
 user-coded scheduler to associate extended properties, such as priority, with
-a fiber instance. This method allows access to those user-provided properties
-[mdash] but only after this fiber has been scheduled for the first time.]]
+a fiber instance. This method allows access to those user-provided properties.]]
 [[See also:] [[link custom Customization]]]
 ]
 
