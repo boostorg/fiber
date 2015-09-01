@@ -24,17 +24,14 @@
 /*****************************************************************************
 *   Verbose
 *****************************************************************************/
-class Verbose: boost::noncopyable
-{
+class Verbose: boost::noncopyable {
 public:
-    Verbose(const std::string& d):
-        desc(d)
-    {
+    Verbose( std::string const& d):
+        desc( d) {
         std::cout << desc << " start" << std::endl;
     }
 
-    ~Verbose()
-    {
+    ~Verbose() {
         std::cout << desc << " stop" << std::endl;
     }
 
@@ -46,36 +43,31 @@ private:
 *   Runner and Example
 *****************************************************************************/
 // collect and ultimately run every Example
-class Runner
-{
-    typedef std::vector<std::pair<std::string, std::function<void()>>> function_list;
+class Runner {
+    typedef std::vector< std::pair< std::string, std::function< void() > > >    function_list;
+
 public:
-    void add(const std::string& desc, const std::function<void()>& func)
-    {
-        functions_.push_back(function_list::value_type(desc, func));
+    void add( std::string const& desc, std::function< void() > const& func) {
+        functions_.push_back( function_list::value_type( desc, func) );
     }
 
-    void run()
-    {
-        for (const function_list::value_type& pair : functions_)
-        {
-            Verbose v(pair.first);
+    void run() {
+        for ( function_list::value_type const& pair : functions_) {
+            Verbose v( pair.first);
             pair.second();
         }
     }
 
 private:
-    function_list functions_;
+    function_list   functions_;
 };
 
 Runner runner;
 
 // Example allows us to embed Runner::add() calls at module scope
-struct Example
-{
-    Example(Runner& runner, const std::string& desc, const std::function<void()>& func)
-    {
-        runner.add(desc, func);
+struct Example {
+    Example( Runner & runner, std::string const& desc, std::function< void() > const& func) {
+        runner.add( desc, func);
     }
 };
 
@@ -83,38 +75,35 @@ struct Example
 *   example task functions
 *****************************************************************************/
 //[wait_sleeper
-template <typename T>
-T sleeper_impl(T item, int ms, bool thrw=false)
-{
+template< typename T >
+T sleeper_impl( T item, int ms, bool thrw = false) {
     std::ostringstream descb, funcb;
     descb << item;
-    std::string desc(descb.str());
+    std::string desc( descb.str() );
     funcb << "  sleeper(" << item << ")";
-    Verbose v(funcb.str());
+    Verbose v( funcb.str() );
 
-    boost::this_fiber::sleep_for(std::chrono::milliseconds(ms));
-    if (thrw)
-        throw std::runtime_error(desc);
+    boost::this_fiber::sleep_for( std::chrono::milliseconds( ms) );
+    if ( thrw) {
+        throw std::runtime_error( desc);
+    }
     return item;
 }
 //]
 
 inline
-std::string sleeper(const std::string& item, int ms, bool thrw=false)
-{
-    return sleeper_impl(item, ms, thrw);
+std::string sleeper( std::string const& item, int ms, bool thrw = false) {
+    return sleeper_impl( item, ms, thrw);
 }
 
 inline
-double sleeper(double item, int ms, bool thrw=false)
-{
-    return sleeper_impl(item, ms, thrw);
+double sleeper( double item, int ms, bool thrw = false) {
+    return sleeper_impl( item, ms, thrw);
 }
 
 inline
-int sleeper(int item, int ms, bool thrw=false)
-{
-    return sleeper_impl(item, ms, thrw);
+int sleeper(int item, int ms, bool thrw = false) {
+    return sleeper_impl( item, ms, thrw);
 }
 
 /*****************************************************************************
@@ -122,27 +111,25 @@ int sleeper(int item, int ms, bool thrw=false)
 *****************************************************************************/
 //[wait_done
 // Wrap canonical pattern for condition_variable + bool flag
-struct Done
-{
+struct Done {
 private:
-    boost::fibers::condition_variable cond;
-    boost::fibers::mutex mutex;
-    bool ready = false;
+    boost::fibers::condition_variable   cond;
+    boost::fibers::mutex                mutex;
+    bool                                ready = false;
 
 public:
-    typedef std::shared_ptr<Done> ptr;
+    typedef std::shared_ptr< Done >     ptr;
 
-    void wait()
-    {
-        std::unique_lock<boost::fibers::mutex> lock(mutex);
-        while (! ready)
-            cond.wait(lock);
+    void wait() {
+        std::unique_lock< boost::fibers::mutex > lock( mutex);
+        while ( ! ready) {
+            cond.wait( lock);
+        }
     }
 
-    void notify()
-    {
+    void notify() {
         {
-            std::unique_lock<boost::fibers::mutex> lock(mutex);
+            std::unique_lock< boost::fibers::mutex > lock( mutex);
             ready = true;
         } // release mutex
         cond.notify_one();
@@ -156,37 +143,35 @@ public:
 //[wait_first_simple_impl
 // Degenerate case: when there are no functions to wait for, return
 // immediately.
-void wait_first_simple_impl(Done::ptr)
-{}
+void wait_first_simple_impl( Done::ptr) {
+}
 
 // When there's at least one function to wait for, launch it and recur to
 // process the rest.
-template <typename Fn, typename... Fns>
-void wait_first_simple_impl(Done::ptr done, Fn && function, Fns&& ... functions)
-{
-    boost::fibers::fiber([done, function](){
+template< typename Fn, typename ... Fns >
+void wait_first_simple_impl( Done::ptr done, Fn && function, Fns && ... functions) {
+    boost::fibers::fiber( [done, function](){
         function();
         done->notify();
     }).detach();
-    wait_first_simple_impl(done, std::forward<Fns>(functions)...);
+    wait_first_simple_impl( done, std::forward< Fns >( functions) ... );
 }
 //]
 
 // interface function: instantiate Done, launch tasks, wait for Done
 //[wait_first_simple
-template < typename... Fns >
-void wait_first_simple(Fns&& ... functions)
-{
+template< typename... Fns >
+void wait_first_simple( Fns && ... functions) {
     // Use shared_ptr because each function's fiber will bind it separately,
     // and we're going to return before the last of them completes.
-    auto done(std::make_shared<Done>());
-    wait_first_simple_impl(done, std::forward<Fns>(functions)...);
+    auto done( std::make_shared< Done >() );
+    wait_first_simple_impl( done, std::forward< Fns >( functions) ... );
     done->wait();
 }
 //]
 
 // example usage
-Example wfs(runner, "wait_first_simple()", [](){
+Example wfs( runner, "wait_first_simple()", [](){
 //[wait_first_simple_ex
     wait_first_simple([](){ sleeper("wfs_long",   150); },
                       [](){ sleeper("wfs_medium", 100); },
@@ -199,30 +184,28 @@ Example wfs(runner, "wait_first_simple()", [](){
 *****************************************************************************/
 // When there's only one function, call this overload
 //[wait_first_value_impl
-template < typename T, typename Fn >
-void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
-                           Fn && function)
-{
-    boost::fibers::fiber([channel, function](){
+template< typename T, typename Fn >
+void wait_first_value_impl( std::shared_ptr< boost::fibers::bounded_channel< T > > channel,
+                           Fn && function) {
+    boost::fibers::fiber( [channel, function](){
         // Ignore channel_op_status returned by push(): might be closed, might
         // be full; we simply don't care.
-        channel->push(function());
+        channel->push( function() );
     }).detach();
 }
 //]
 
 // When there are two or more functions, call this overload
-template < typename T, typename Fn0, typename Fn1, typename... Fns >
-void wait_first_value_impl(std::shared_ptr<boost::fibers::bounded_channel<T>> channel,
+template< typename T, typename Fn0, typename Fn1, typename... Fns >
+void wait_first_value_impl( std::shared_ptr< boost::fibers::bounded_channel< T > > channel,
                            Fn0 && function0,
                            Fn1 && function1,
-                           Fns && ... functions)
-{
+                           Fns && ... functions) {
     // process the first function using the single-function overload
-    wait_first_value_impl<T>(channel, std::forward<Fn0>(function0));
+    wait_first_value_impl< T >( channel, std::forward< Fn0 >( function0) );
     // then recur to process the rest
-    wait_first_value_impl<T>(channel, std::forward<Fn1>(function1),
-                             std::forward<Fns>(functions)...);
+    wait_first_value_impl< T >( channel, std::forward< Fn1 >( function1),
+                             std::forward< Fns >( functions) ... );
 }
 
 //[wait_first_value
@@ -366,7 +349,7 @@ Example wfo(runner, "wait_first_outcome()", [](){
 class exception_list: public std::runtime_error
 {
 public:
-    exception_list(const std::string& what):
+    exception_list( std::string const& what):
         std::runtime_error(what)
     {}
 
@@ -693,7 +676,7 @@ Example wav(runner, "wait_all_values()", [](){
                         [](){ return sleeper("wav_early",   50); }));
 //]
     std::cout << "wait_all_values() =>";
-    for (const std::string& v : values)
+    for ( std::string const& v : values)
     {
         std::cout << " '" << v << "'";
     }
@@ -843,7 +826,7 @@ Example waue(runner, "wait_all_until_error()", [](){
                                  [](){ return sleeper("waue_early",   50); }));
 //<-
         std::cout << "wait_all_until_error(fail) =>";
-        for (const std::string& v : values)
+        for ( std::string const& v : values)
         {
             std::cout << " '" << v << "'";
         }
@@ -908,7 +891,7 @@ Example wace(runner, "wait_all_collect_errors()", [](){
                                 [](){ return sleeper("waces_middle", 100); },
                                 [](){ return sleeper("waces_early",   50); }));
     std::cout << "wait_all_collect_errors(success) =>";
-    for (const std::string& v : values)
+    for ( std::string const& v : values)
     {
         std::cout << " '" << v << "'";
     }
@@ -923,7 +906,7 @@ Example wace(runner, "wait_all_collect_errors()", [](){
                                     [](){ return sleeper("wacef_middle", 100, true); },
                                     [](){ return sleeper("wacef_early",   50); });
         std::cout << "wait_all_collect_errors(fail) =>";
-        for (const std::string& v : values)
+        for ( std::string const& v : values)
         {
             std::cout << " '" << v << "'";
         }
@@ -1029,7 +1012,7 @@ Example wam(runner, "wait_all_members()", [](){
                      [](){ return sleeper("wamv_middle", 100); },
                      [](){ return sleeper("wamv_right",   50); }));
     std::cout << "wait_all_members<vector>() =>";
-    for (const std::string& str : strings)
+    for ( std::string const& str : strings)
     {
         std::cout << " '" << str << "'";
     }
@@ -1041,8 +1024,6 @@ Example wam(runner, "wait_all_members()", [](){
 *   main()
 *****************************************************************************/
 int main( int argc, char *argv[]) {
-
     runner.run();
-
     return EXIT_SUCCESS;
 }
