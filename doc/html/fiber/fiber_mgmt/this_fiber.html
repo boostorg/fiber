@@ -210,8 +210,8 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-              <a class="link" href="fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a> has been called from
-              this thread with a pointer to a (subclass) instance of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              <a class="link" href="fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a> has been called from
+              this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
@@ -221,8 +221,8 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> was passed a pointer to a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code> subclass
-              with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> was called with a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code>
+              subclass with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -233,7 +233,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="../custom.html#custom">custom</a>
+              <a class="link" href="../custom.html#custom">Customization</a>
             </p></dd>
 </dl>
 </div>

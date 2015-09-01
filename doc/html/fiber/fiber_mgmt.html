@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="prev" href="overview.html" title="Overview">
+<link rel="prev" href="rationale.html" title="Rationale">
 <link rel="next" href="fiber_mgmt/fiber.html" title="Class fiber">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="rationale.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -50,7 +50,8 @@
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
 <span class="keyword">struct</span> <span class="identifier">sched_algorithm_with_properties</span><span class="special">;</span>
 <span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
-<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">SchedAlgo</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">();</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
@@ -101,7 +102,7 @@
     </h4>
 <p>
       A new fiber is launched by passing an object of a callable type that can be
-      invoked with no parameters. If the object must not (or cannot) be copied, then
+      invoked with no parameters. If the object must not be copied or moved, then
       <span class="emphasis"><em>std::ref</em></span> can be used to pass in a reference to the function
       object. In this case, the user must ensure that the referenced object outlives
       the newly-created fiber.
@@ -125,7 +126,7 @@
       The spawned <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> is enqueued in the list of ready-to-run fibers
       at construction.
     </p>
-<h4>
+<a name="exceptions"></a><h4>
 <a name="fiber.fiber_mgmt.h3"></a>
       <span><a name="fiber.fiber_mgmt.exceptions"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.exceptions">Exceptions</a>
     </h4>
@@ -148,6 +149,18 @@ constructor
     </p>
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">some_fn</span><span class="special">).</span><span class="identifier">detach</span><span class="special">();</span>
 </pre>
+<p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides a number of ways to wait
+      for a running fiber to complete. You can coordinate even with a detached fiber
+      using a <a class="link" href="synchronization/mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>, or <a class="link" href="synchronization/conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a>, or
+      any of the other <a class="link" href="synchronization.html#synchronization">synchronization objects</a>
+      provided by the library.
+    </p>
+<p>
+      If a detached fiber is still running when the thread's main fiber terminates,
+      that fiber will be <a class="link" href="fiber_mgmt.html#interruption">interrupted</a> and shut
+      down.<sup>[<a name="fiber.fiber_mgmt.f0" href="#ftn.fiber.fiber_mgmt.f0" class="footnote">3</a>]</sup>
+    </p>
 <h4>
 <a name="fiber.fiber_mgmt.h5"></a>
       <span><a name="fiber.fiber_mgmt.joining"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.joining">Joining</a>
@@ -259,31 +272,31 @@ method.
           <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_interruption_point"> <code class="computeroutput">this_fiber::interruption_point()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::push()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_push"> <code class="computeroutput">bounded_channel::push()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::try_push()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_try_push"> <code class="computeroutput">bounded_channel::try_push()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::push_wait_for()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_push_wait_for"> <code class="computeroutput">bounded_channel::push_wait_for()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::push_wait_until()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_push_wait_until"> <code class="computeroutput">bounded_channel::push_wait_until()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::pop()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_pop"> <code class="computeroutput">bounded_channel::pop()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::try_pop()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_try_pop"> <code class="computeroutput">bounded_channel::try_pop()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::value_pop()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_value_pop"> <code class="computeroutput">bounded_channel::value_pop()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::pop_wait_for()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_pop_wait_for"> <code class="computeroutput">bounded_channel::pop_wait_for()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="../"> <code class="computeroutput">bounded_channel::pop_wait_until()</code></a>
+          <a class="link" href="synchronization/channels.html#bounded_channel_pop_wait_until"> <code class="computeroutput">bounded_channel::pop_wait_until()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/channels.html#unbounded_channel_push"> <code class="computeroutput">unbounded_channel::push()</code></a>
@@ -345,6 +358,17 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"> <code 
       <a class="link" href="fiber_mgmt.html#class_fiber_id"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code></a> yield a total order for every non-equal
       <a class="link" href="fiber_mgmt.html#class_fiber_id"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code></a>.
     </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.fiber_mgmt.f0" href="#fiber.fiber_mgmt.f0" class="para">3</a>] </sup>
+        This treatment of detached fibers depends on a detached fiber eventually
+        either terminating or reaching one of the specified <a class="link" href="fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
+        Note that since <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a> is <span class="emphasis"><em>not</em></span>
+        an interruption point, a detached fiber whose only interaction with the Fiber
+        library is <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
+        cannot cleanly be terminated.
+      </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -356,7 +380,7 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"> <code 
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="rationale.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

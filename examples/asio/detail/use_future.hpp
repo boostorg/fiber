@@ -31,7 +31,7 @@ namespace detail {
 
 // use_future_handler is just an alias for promise_handler -- but we must
 // distinguish this case to specialize async_result below.
-template < typename T >
+template< typename T >
 using use_future_handler = promise_handler< T >;
 
 }}}
@@ -62,7 +62,7 @@ private:
 
 // Handler type specialisation for use_future for a nullary callback.
 template< typename Allocator, typename ReturnType >
-struct handler_type< boost::fibers::asio::use_future_t< Allocator>, ReturnType() > {
+struct handler_type< boost::fibers::asio::use_future_t< Allocator >, ReturnType() > {
     typedef fibers::asio::detail::use_future_handler< void >    type;
 };
 

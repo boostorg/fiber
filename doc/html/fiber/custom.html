@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="prev" href="rational.html" title="Rational">
+<link rel="prev" href="performance.html" title="Performance">
 <link rel="next" href="acknowledgements.html" title="Acknowledgments">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,32 +20,450 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="rational.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="fiber.custom"></a><a name="custom"></a><a class="link" href="custom.html" title="Customization">Customization</a>
 </h2></div></div></div>
+<h4>
+<a name="fiber.custom.h0"></a>
+      <span><a name="fiber.custom.overview"></a></span><a class="link" href="custom.html#fiber.custom.overview">Overview</a>
+    </h4>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> allows to customize the scheduling
-      algorithm by a user-defined implementation. A fiber-scheduler must implement
-      interface <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>. <span class="bold"><strong>Boost.Fiber</strong></span>
-      provides scheduler <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a>.
+      As noted in the <a class="link" href="scheduling.html#scheduling">Scheduling</a> section, by default
+      <span class="bold"><strong>Boost.Fiber</strong></span> uses its own <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> scheduler
+      for each thread. To control the way <span class="bold"><strong>Boost.Fiber</strong></span>
+      schedules ready fibers on a particular thread, in general you must follow several
+      steps. This section discusses those steps, whereas <a class="link" href="scheduling.html#scheduling">Scheduling</a>
+      serves as a reference for the classes involved.
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_fn</span><span class="special">()</span> <span class="special">{</span>
-    <span class="identifier">my_fiber_scheduler</span> <span class="identifier">mfs</span><span class="special">;</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="special">&amp;</span> <span class="identifier">mfs</span><span class="special">);</span>
+<p>
+      The library's fiber manager keeps track of suspended (blocked) fibers. Only
+      when a fiber becomes ready to run is it passed to the scheduler. Of course,
+      if there are fewer than two ready fibers, the scheduler's job is trivial. Only
+      when there are two or more ready fibers does the particular scheduler implementation
+      start to influence the overall sequence of fiber execution.
+    </p>
+<p>
+      In this section we illustrate a simple custom scheduler that honors an integer
+      fiber priority. We will implement it such that a fiber with higher priority
+      is preferred over a fiber with lower priority. Any fibers with equal priority
+      values are serviced on a round-robin basis.
+    </p>
+<p>
+      The full source code for the examples below is found in <a href="../../../examples/priority.cpp" target="_top">priority.cpp</a>.
+    </p>
+<h4>
+<a name="fiber.custom.h1"></a>
+      <span><a name="fiber.custom.custom_property_class"></a></span><a class="link" href="custom.html#fiber.custom.custom_property_class">Custom
+      Property Class</a>
+    </h4>
+<p>
+      The first essential point is that we must associate an integer priority with
+      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">6</a>]</sup>
+    </p>
+<p>
+      One might suggest deriving a custom <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> subclass to store such
+      properties. There are a couple of reasons for the present mechanism.
+    </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+          <span class="bold"><strong>Boost.Fiber</strong></span> provides a number of different
+          ways to launch a fiber. (Consider <a class="link" href="synchronization/futures/future.html#fibers_async"> <code class="computeroutput">fibers::async()</code></a>.) Higher-level
+          libraries might introduce additional such wrapper functions. A custom scheduler
+          must associate its custom properties with <span class="emphasis"><em>every</em></span> fiber
+          in the thread, not only the ones explicitly launched by instantiating a
+          custom <code class="computeroutput"><span class="identifier">fiber</span></code> subclass.
+        </li>
+<li class="listitem">
+          Consider a large existing program that launches fibers in many different
+          places in the code. We discover a need to introduce a custom scheduler
+          for a particular thread. If supporting that scheduler's custom properties
+          required a particular <code class="computeroutput"><span class="identifier">fiber</span></code>
+          subclass, we would have to hunt down and modify every place that launches
+          a fiber on that thread.
+        </li>
+</ol></div>
+<p>
+      The present mechanism allows you to "drop in" a custom scheduler
+      with its attendant custom properties <span class="emphasis"><em>without</em></span> altering
+      the rest of your application.
+    </p>
+<p>
+      Instead of deriving a custom scheduler fiber properties subclass from <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a>,
+      you must instead derive it from <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a>.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">priority_props</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_properties</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">priority_props</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">p</span><span class="special">):</span>
+        <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">p</span><span class="special">),</span> <a class="co" name="fiber.custom.c0" href="custom.html#fiber.custom.c1"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
+        <span class="identifier">priority_</span><span class="special">(</span> <span class="number">0</span><span class="special">)</span> <span class="special">{</span>
+    <span class="special">}</span>
+
+    <span class="keyword">int</span> <span class="identifier">get_priority</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span>
+        <span class="keyword">return</span> <span class="identifier">priority_</span><span class="special">;</span> <a class="co" name="fiber.custom.c2" href="custom.html#fiber.custom.c3"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
+    <span class="special">}</span>
+
+    <span class="comment">// Call this method to alter priority, because we must notify</span>
+    <span class="comment">// priority_scheduler of any change.</span>
+    <span class="keyword">void</span> <span class="identifier">set_priority</span><span class="special">(</span> <span class="keyword">int</span> <span class="identifier">p</span><span class="special">)</span> <span class="special">{</span>
+        <a class="co" name="fiber.custom.c4" href="custom.html#fiber.custom.c5"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
+        <span class="comment">// Of course, it's only worth reshuffling the queue and all if we're</span>
+        <span class="comment">// actually changing the priority.</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">p</span> <span class="special">!=</span> <span class="identifier">priority_</span><span class="special">)</span> <span class="special">{</span>
+            <span class="identifier">priority_</span> <span class="special">=</span> <span class="identifier">p</span><span class="special">;</span>
+            <span class="identifier">notify</span><span class="special">();</span>
+        <span class="special">}</span>
+    <span class="special">}</span>
+
+    <span class="comment">// The fiber name of course is solely for purposes of this example</span>
+    <span class="comment">// program; it has nothing to do with implementing scheduler priority.</span>
+    <span class="comment">// This is a public data member -- not requiring set/get access methods --</span>
+    <span class="comment">// because we need not inform the scheduler of any change.</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span> <a class="co" name="fiber.custom.c6" href="custom.html#fiber.custom.c7"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
+<span class="keyword">private</span><span class="special">:</span>
+    <span class="keyword">int</span> <span class="identifier">priority_</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c1"></a><a href="#fiber.custom.c0"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          Your subclass constructor must accept a <code class="literal"> <a class="link" href="scheduling.html#class_fiber_context"> <code class="computeroutput">fiber_context</code></a>*</code>
+          and pass it to the <code class="computeroutput"><span class="identifier">fiber_properties</span></code>
+          constructor.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c3"></a><a href="#fiber.custom.c2"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          Provide read access methods at your own discretion.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c5"></a><a href="#fiber.custom.c4"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          It's important to call notify() on any change in a property that can affect
+          the scheduler's behavior. Therefore, such modifications should only be
+          performed through an access method.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c7"></a><a href="#fiber.custom.c6"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          A property that does not affect the scheduler does not need access methods.
+        </p></td>
+</tr>
+</table></div>
+<h4>
+<a name="fiber.custom.h2"></a>
+      <span><a name="fiber.custom.custom_scheduler_class"></a></span><a class="link" href="custom.html#fiber.custom.custom_scheduler_class">Custom
+      Scheduler Class</a>
+    </h4>
+<p>
+      Now we can derive a custom scheduler from <a class="link" href="scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a>,
+      specifying our custom property class <code class="computeroutput"><span class="identifier">priority_props</span></code>
+      as the template parameter.
+    </p>
+<p>
+      Your custom scheduler can track ready <code class="literal"> <a class="link" href="scheduling.html#class_fiber_context"> <code class="computeroutput">fiber_context</code></a>*</code>s
+      using whatever container tactic you prefer. In this example, we use <a class="link" href="scheduling.html#fiber_context_nxt"> <code class="computeroutput">fiber_context::nxt</code></a> to
+      hand-implement an intrusive singly-linked list.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">priority_scheduler</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">sched_algorithm_with_properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;</span> <span class="special">{</span>
+<span class="keyword">private</span><span class="special">:</span>
+    <span class="comment">// Much as we would like, we don't use std::priority_queue because it</span>
+    <span class="comment">// doesn't appear to provide any way to alter the priority (and hence</span>
+    <span class="comment">// queue position) of a particular item.</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span>    <span class="special">*</span>   <span class="identifier">head_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">priority_scheduler</span><span class="special">()</span> <span class="special">:</span>
+        <span class="identifier">head_</span><span class="special">(</span> <span class="keyword">nullptr</span><span class="special">)</span> <span class="special">{</span>
+    <span class="special">}</span>
+
+    <span class="comment">// For a subclass of sched_algorithm_with_properties&lt;&gt;, it's important to</span>
+    <span class="comment">// override the correct awakened() overload.</span>
+    <a class="co" name="fiber.custom.c8" href="custom.html#fiber.custom.c9"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="special">{</span>
+        <span class="keyword">int</span> <span class="identifier">f_priority</span> <span class="special">=</span> <span class="identifier">props</span><span class="special">.</span><span class="identifier">get_priority</span><span class="special">();</span> <a class="co" name="fiber.custom.c10" href="custom.html#fiber.custom.c11"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
+        <span class="comment">// With this scheduler, fibers with higher priority values are</span>
+        <span class="comment">// preferred over fibers with lower priority values. But fibers with</span>
+        <span class="comment">// equal priority values are processed in round-robin fashion. So when</span>
+        <span class="comment">// we're handed a new fiber_base, put it at the end of the fibers with</span>
+        <span class="comment">// that same priority. In other words: search for the first fiber in</span>
+        <span class="comment">// the queue with LOWER priority, and insert before that one.</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">**</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">head_</span><span class="special">;</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span>
+            <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">properties</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">f_priority</span><span class="special">)</span> <span class="special">{</span>
+                <a class="co" name="fiber.custom.c12" href="custom.html#fiber.custom.c13"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
+                <span class="keyword">break</span><span class="special">;</span>
+            <span class="special">}</span>
+        <span class="comment">// It doesn't matter whether we hit the end of the list or found</span>
+        <span class="comment">// another fiber with lower priority. Either way, insert f here.</span>
+        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <a class="co" name="fiber.custom.c14" href="custom.html#fiber.custom.c15"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
+        <span class="special">*</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
+    <span class="special">}</span>
+
+    <a class="co" name="fiber.custom.c16" href="custom.html#fiber.custom.c17"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span>
+    <span class="special">{</span>
+        <span class="comment">// if ready queue is empty, just tell caller</span>
+        <span class="keyword">if</span> <span class="special">(!</span> <span class="identifier">head_</span><span class="special">)</span>
+            <span class="keyword">return</span> <span class="keyword">nullptr</span><span class="special">;</span>
+        <span class="comment">// Here we have at least one ready fiber. Unlink and return that.</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span>
+        <span class="identifier">head_</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
+        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
+
+        <span class="keyword">return</span> <span class="identifier">f</span><span class="special">;</span>
+    <span class="special">}</span>
+
+    <a class="co" name="fiber.custom.c18" href="custom.html#fiber.custom.c19"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a><span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span>
+    <span class="special">{</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+        <span class="keyword">for</span> <span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span> <span class="identifier">f</span><span class="special">;</span> <span class="identifier">f</span><span class="special">=</span><span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">)</span>
+        <span class="special">{</span>
+            <span class="special">++</span><span class="identifier">count</span><span class="special">;</span>
+        <span class="special">}</span>
+        <span class="keyword">return</span> <span class="identifier">count</span><span class="special">;</span>
+    <span class="special">}</span>
+
+    <a class="co" name="fiber.custom.c20" href="custom.html#fiber.custom.c21"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">priority_props</span><span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span>
+    <span class="special">{</span>
+        <span class="comment">// Although our priority_props class defines multiple properties, only</span>
+        <span class="comment">// one of them (priority) actually calls notify() when changed. The</span>
+        <span class="comment">// point of a property_change() override is to reshuffle the ready</span>
+        <span class="comment">// queue according to the updated priority value.</span>
+
+        <span class="comment">// Despite the added complexity of the loop body, make a single pass</span>
+        <span class="comment">// over the queue to find both the existing item and the new desired</span>
+        <span class="comment">// insertion point.</span>
+        <span class="keyword">bool</span> <span class="identifier">found</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">**</span><span class="identifier">insert</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">,</span> <span class="special">**</span><span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span><span class="identifier">head_</span><span class="special">;</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span><span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;(*</span><span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span>
+        <span class="special">{</span>
+            <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">fp</span> <span class="special">==</span> <span class="identifier">f</span><span class="special">)</span>
+            <span class="special">{</span>
+                <span class="comment">// found the passed fiber in our list -- unlink it</span>
+                <span class="identifier">found</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+                <span class="special">*</span><span class="identifier">fp</span> <span class="special">=</span> <span class="special">(*</span><span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
+                <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
+                <span class="comment">// If that was the last item in the list, stop.</span>
+                <span class="keyword">if</span> <span class="special">(!</span> <span class="special">*</span><span class="identifier">fp</span><span class="special">)</span>
+                    <span class="keyword">break</span><span class="special">;</span>
+                <span class="comment">// If we've already found the new insertion point, no need to</span>
+                <span class="comment">// continue looping.</span>
+                <span class="keyword">if</span> <span class="special">(</span><span class="identifier">insert</span><span class="special">)</span>
+                    <span class="keyword">break</span><span class="special">;</span>
+            <span class="special">}</span>
+            <span class="comment">// As in awakened(), we're looking for the first fiber in the</span>
+            <span class="comment">// queue with priority lower than the passed fiber.</span>
+            <span class="keyword">if</span> <span class="special">(</span><span class="identifier">properties</span><span class="special">(*</span><span class="identifier">fp</span><span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">props</span><span class="special">.</span><span class="identifier">get_priority</span><span class="special">())</span>
+            <span class="special">{</span>
+                <span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">fp</span><span class="special">;</span>
+                <span class="comment">// If we've already found and unlinked the passed fiber, no</span>
+                <span class="comment">// need to continue looping.</span>
+                <span class="keyword">if</span> <span class="special">(</span><span class="identifier">found</span><span class="special">)</span>
+                    <span class="keyword">break</span><span class="special">;</span>
+            <span class="special">}</span>
+        <span class="special">}</span>
+        <span class="comment">// property_change() should only be called if f-&gt;is_ready(). However,</span>
+        <span class="comment">// a waiting fiber can change state to is_ready() while still on the</span>
+        <span class="comment">// fiber_manager's waiting queue. Every such fiber will be swept onto</span>
+        <span class="comment">// our ready queue before the next pick_next() call, but still it's</span>
+        <span class="comment">// possible to get a property_change() call for a fiber that</span>
+        <span class="comment">// is_ready() but is not yet on our ready queue. If it's not there, no</span>
+        <span class="comment">// action required: we'll handle it next time it hits awakened().</span>
+        <span class="keyword">if</span> <span class="special">(!</span> <span class="identifier">found</span><span class="special">)</span> <a class="co" name="fiber.custom.c22" href="custom.html#fiber.custom.c23"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a>
+        <span class="special">{</span>
+            <span class="keyword">return</span><span class="special">;</span>
+        <span class="special">}</span>
+        <span class="comment">// There might not be any ready fibers with lower priority. In that</span>
+        <span class="comment">// case, append to the end of the queue.</span>
+        <span class="keyword">if</span> <span class="special">(!</span> <span class="identifier">insert</span><span class="special">)</span>
+        <span class="special">{</span>
+            <span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">fp</span><span class="special">;</span>
+        <span class="special">}</span>
+        <span class="comment">// Insert f at the new insertion point in the queue.</span>
+        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">insert</span><span class="special">;</span>
+        <span class="special">*</span><span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
+    <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c9"></a><a href="#fiber.custom.c8"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          You must override the <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a>
+         method.
+          This is how your scheduler receives notification of a fiber that has become
+          ready to run.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c11"></a><a href="#fiber.custom.c10"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          <code class="computeroutput"><span class="identifier">props</span></code> is the instance of
+          priority_props associated with the passed fiber <code class="computeroutput"><span class="identifier">f</span></code>.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c13"></a><a href="#fiber.custom.c12"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          Use the <a class="link" href="scheduling.html#sched_algorithm_with_properties_properties"> <code class="computeroutput">sched_algorithm_with_properties::properties()</code></a>
+                method
+          to access properties for any <span class="emphasis"><em>other</em></span> fiber.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c15"></a><a href="#fiber.custom.c14"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          Note use of the <a class="link" href="scheduling.html#fiber_context_nxt"> <code class="computeroutput">fiber_context::nxt</code></a> member.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c17"></a><a href="#fiber.custom.c16"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          You must override the <a class="link" href="scheduling.html#sched_algorithm_with_properties_pick_next"> <code class="computeroutput">sched_algorithm_with_properties::pick_next()</code></a>
+         method.
+          This is how your scheduler actually advises the fiber manager of the next
+          fiber to run.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c19"></a><a href="#fiber.custom.c18"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          You must override <a class="link" href="scheduling.html#sched_algorithm_with_properties_ready_fibers"> <code class="computeroutput">sched_algorithm_with_properties::ready_fibers()</code></a>
+      to
+          inform the fiber manager of the size of your ready queue.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c21"></a><a href="#fiber.custom.c20"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          Overriding <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>
+         is
+          optional. This override handles the case in which the running fiber changes
+          the priority of another ready fiber: a fiber already in our queue. In that
+          case, move the updated fiber within the queue.
+        </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c23"></a><a href="#fiber.custom.c22"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+          Your <code class="computeroutput"><span class="identifier">property_change</span><span class="special">()</span></code>
+          override must be able to handle the case in which the passed <code class="computeroutput"><span class="identifier">f</span></code> is not in your ready queue. It might
+          be running, or it might be blocked.
+        </p></td>
+</tr>
+</table></div>
+<p>
+      Our example <code class="computeroutput"><span class="identifier">priority_scheduler</span></code>
+      doesn't override <a class="link" href="scheduling.html#sched_algorithm_with_properties_new_properties"> <code class="computeroutput">sched_algorithm_with_properties::new_properties()</code></a>:
+      we're content with allocating <code class="computeroutput"><span class="identifier">priority_props</span></code>
+      instances on the heap.
+    </p>
+<h4>
+<a name="fiber.custom.h3"></a>
+      <span><a name="fiber.custom.replace_default_scheduler"></a></span><a class="link" href="custom.html#fiber.custom.replace_default_scheduler">Replace
+      Default Scheduler</a>
+    </h4>
+<p>
+      You must call <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a> at the start
+      of each thread on which you want <span class="bold"><strong>Boost.Fiber</strong></span>
+      to use your custom scheduler rather than its own default <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a>.
+      Specifically, you must call <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> before performing any other <span class="bold"><strong>Boost.Fiber</strong></span>
+      operations on that thread.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">argc</span><span class="special">,</span> <span class="keyword">char</span> <span class="special">*</span><span class="identifier">argv</span><span class="special">[])</span>
+<span class="special">{</span>
+    <span class="comment">// make sure we use our priority_scheduler rather than default round_robin</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">priority_scheduler</span> <span class="special">&gt;();</span>
     <span class="special">...</span>
 <span class="special">}</span>
 </pre>
+<p>
+    </p>
 <h4>
-<a name="fiber.custom.h0"></a>
-      <span><a name="fiber.custom.fiber_context"></a></span><a class="link" href="custom.html#fiber.custom.fiber_context">fiber_context</a>
+<a name="fiber.custom.h4"></a>
+      <span><a name="fiber.custom.use_properties"></a></span><a class="link" href="custom.html#fiber.custom.use_properties">Use
+      Properties</a>
     </h4>
 <p>
-      The fiber_context class is mostly supposed to be opaque. However, certain members
-      are available for use by a custom scheduling algorithm.
+      The running fiber can access its own <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
+      instance by calling <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_properties"> <code class="computeroutput">this_fiber::properties()</code></a>. Although
+      <code class="computeroutput"><span class="identifier">properties</span><span class="special">&lt;&gt;()</span></code>
+      is a nullary function, you must pass, as a template parameter, the <code class="computeroutput"><span class="identifier">fiber_properties</span></code> subclass.
     </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">init</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&amp;</span> <span class="identifier">name</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">)</span>
+<span class="special">{</span>
+    <span class="identifier">priority_props</span><span class="special">&amp;</span> <span class="identifier">props</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">properties</span><span class="special">&lt;</span><span class="identifier">priority_props</span><span class="special">&gt;());</span>
+    <span class="identifier">props</span><span class="special">.</span><span class="identifier">name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
+    <span class="identifier">props</span><span class="special">.</span><span class="identifier">set_priority</span><span class="special">(</span><span class="identifier">priority</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+    </p>
+<p>
+      Given a <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> instance still connected with a running fiber (that
+      is, not <a class="link" href="fiber_mgmt/fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a>ed), you may access that fiber's properties
+      using <a class="link" href="fiber_mgmt/fiber.html#fiber_properties"> <code class="computeroutput">fiber::properties()</code></a>. As with <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">properties</span><span class="special">&lt;&gt;()</span></code>, you must pass your <code class="computeroutput"><span class="identifier">fiber_properties</span></code> subclass as the template
+      parameter.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">change_fn</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&amp;</span> <span class="identifier">name</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">,</span>
+               <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">other_priority</span><span class="special">,</span>
+               <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">barrier</span><span class="special">&amp;</span> <span class="identifier">barrier</span><span class="special">)</span>
+<span class="special">{</span>
+    <span class="identifier">init</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">priority</span><span class="special">);</span>
+
+    <span class="identifier">barrier</span><span class="special">.</span><span class="identifier">wait</span><span class="special">();</span>
+    <span class="comment">// We assume a couple things about 'other':</span>
+    <span class="comment">// - that it was also waiting on the same barrier</span>
+    <span class="comment">// - that it has lower priority than this fiber.</span>
+    <span class="comment">// If both are true, 'other' is now ready to run but is sitting in</span>
+    <span class="comment">// priority_scheduler's ready queue. Change its priority.</span>
+    <span class="identifier">priority_props</span><span class="special">&amp;</span> <span class="identifier">other_props</span><span class="special">(</span><span class="identifier">other</span><span class="special">.</span><span class="identifier">properties</span><span class="special">&lt;</span><span class="identifier">priority_props</span><span class="special">&gt;());</span>
+    <span class="identifier">other_props</span><span class="special">.</span><span class="identifier">set_priority</span><span class="special">(</span><span class="identifier">other_priority</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+    </p>
+<p>
+      Since launching a new fiber schedules that fiber right away, code such as the
+      following:
+    </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">newfiber</span><span class="special">(</span><span class="identifier">fiber_function</span><span class="special">);</span>
+<span class="identifier">newfiber</span><span class="special">.</span><span class="identifier">properties</span><span class="special">&lt;</span><span class="identifier">priority_props</span><span class="special">&gt;().</span><span class="identifier">name</span> <span class="special">=</span> <span class="string">"newfiber"</span><span class="special">;</span>
+</pre>
+<p>
+      will not necessarily set the property as soon as you expect. It is generally
+      preferable to pass the initial property values to your <code class="computeroutput"><span class="identifier">fiber_function</span><span class="special">()</span></code> and have it set them itself. In the example
+      above, <code class="computeroutput"><span class="identifier">change_fn</span><span class="special">()</span></code>
+      accepts its own <code class="computeroutput"><span class="identifier">name</span></code> and <code class="computeroutput"><span class="identifier">priority</span></code> and calls <code class="computeroutput"><span class="identifier">init</span><span class="special">()</span></code> to set the corresponding properties.
+    </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">6</a>] </sup>
+        A previous version of the Fiber library implicitly tracked an int priority
+        for each fiber, even though the default scheduler ignored it. This has been
+        dropped, since the library now supports arbitrary scheduler-specific fiber
+        properties.
+      </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -57,7 +475,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="rational.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>
