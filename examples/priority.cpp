@@ -213,7 +213,7 @@ public:
 };
 //]
 
-//[init
+//[launch
 template < typename Fn >
 boost::fibers::fiber launch( Fn && func, std::string const& name, int priority) {
     boost::fibers::fiber fiber(func);
@@ -270,18 +270,20 @@ void change_fn( boost::fibers::fiber & other,
 
 //[main
 int main( int argc, char *argv[]) {
-    Verbose v("main()");
     // make sure we use our priority_scheduler rather than default round_robin
     boost::fibers::use_scheduling_algorithm< priority_scheduler >();
 /*=    ...*/
 /*=}*/
 //]
+    Verbose v("main()");
 
     // for clarity
     std::cout << "main() yielding" << std::endl;
     boost::this_fiber::yield();
     std::cout << "main() setting name" << std::endl;
+//[main_name
     boost::this_fiber::properties<priority_props>().name = "main";
+//]
     std::cout << "main() running tests" << std::endl;
 
     {

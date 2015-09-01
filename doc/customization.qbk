@@ -100,7 +100,7 @@ instance by calling [ns_function_link this_fiber..properties]. Although
 `properties<>()` is a nullary function, you must pass, as a template
 parameter, the `fiber_properties` subclass.
 
-[init]
+[main_name]
 
 Given a [class_link fiber] instance still connected with a running fiber (that
 is, not [member_link fiber..detach]ed), you may access that fiber's properties
@@ -108,17 +108,14 @@ using [template_member_link fiber..properties]. As with
 `this_fiber::properties<>()`, you must pass your `fiber_properties` subclass
 as the template parameter.
 
-[change_fn]
+[launch]
 
-Since launching a new fiber schedules that fiber right away, code such as the
-following:
-
-    boost::fibers::fiber newfiber( fiber_function);
-    newfiber.properties< priority_props >().name = "newfiber";
-
-will not necessarily set the property as soon as you expect. It is generally
-preferable to pass the initial property values to your `fiber_function()` and
-have it set them itself. In the example above, `change_fn()` accepts its own
-`name` and `priority` and calls `init()` to set the corresponding properties.
+Launching a new fiber schedules that fiber as ready, but does ['not]
+immediately enter its ['fiber-function]. The current fiber retains control
+until it blocks (or yields, or terminates) for some other reason. As shown in
+the `launch()` function above, it is reasonable to launch a fiber and
+immediately set relevant properties -- such as, for instance, its priority.
+Your custom scheduler can then make use of this information next time the
+fiber manager calls [member_link sched_algorithm_with_properties..pick_next].
 
 [endsect]
