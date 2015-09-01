@@ -4,9 +4,27 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <boost/fiber/all.hpp>
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
+#include <boost/noncopyable.hpp>
 #include <iostream>
+
+class Verbose: public boost::noncopyable
+{
+public:
+    Verbose(const std::string& d, const std::string& s="stop"):
+        desc(d),
+        stop(s)
+    {
+        std::cout << desc << " start" << std::endl;
+    }
+
+    ~Verbose()
+    {
+        std::cout << desc << " " << stop << std::endl;
+    }
+
+private:
+    std::string desc, stop;
+};
 
 //[priority_props
 class priority_props : public boost::fibers::fiber_properties {
@@ -141,45 +159,22 @@ public:
                   << ")): ";
 //->
 
-        // Despite the added complexity of the loop body, make a single pass
-        // over the queue to find both the existing item and the new desired
-        // insertion point.
+        // Find 'f' in the queue. Note that it might not be in our queue at
+        // all, if caller is changing the priority of (say) the running fiber.
         bool found = false;
-        boost::fibers::fiber_context ** insert = nullptr, ** fp = & head_;
-        for ( ; * fp; fp = & ( * fp)->nxt) {
+        for ( boost::fibers::fiber_context ** fp = & head_; * fp; fp = & ( * fp)->nxt) {
             if ( * fp == f) {
                 // found the passed fiber in our list -- unlink it
                 found = true;
                 * fp = ( * fp)->nxt;
                 f->nxt = nullptr;
-                // If that was the last item in the list, stop.
-                if ( ! * fp) {
-                    break;
-                }
-                // If we've already found the new insertion point, no need to
-                // continue looping.
-                if ( insert) {
-                    break;
-                }
-            }
-            // As in awakened(), we're looking for the first fiber in the
-            // queue with priority lower than the passed fiber.
-            if ( properties( * fp).get_priority() < props.get_priority() ) {
-                insert = fp;
-                // If we've already found and unlinked the passed fiber, no
-                // need to continue looping.
-                if ( found) {
-                    break;
-                }
+                break;
             }
         }
-        // property_change() should only be called if f->is_ready(). However,
-        // a waiting fiber can change state to is_ready() while still on the
-        // fiber_manager's waiting queue. Every such fiber will be swept onto
-        // our ready queue before the next pick_next() call, but still it's
-        // possible to get a property_change() call for a fiber that
-        // is_ready() but is not yet on our ready queue. If it's not there, no
-        // action required: we'll handle it next time it hits awakened().
+
+        // It's possible to get a property_change() call for a fiber that is
+        // not on our ready queue. If it's not there, no need to move it:
+        // we'll handle it next time it hits awakened().
         if ( ! found) {
             /*< Your `property_change()` override must be able to
             handle the case in which the passed `f` is not in
@@ -193,28 +188,11 @@ public:
 //->
             return;
         }
-        // There might not be any ready fibers with lower priority. In that
-        // case, append to the end of the queue.
-        /*=if (! insert)*/
-//<-
-        std::string where;
-        if ( insert) {
-            where = std::string("before ") + properties( * insert).name;
-        } else {
-//->
-            insert = fp;
-//<-
-            where = "to end";
-//->
-        }
-        // Insert f at the new insertion point in the queue.
-        f->nxt = * insert;
-        * insert = f;
-//<-
 
-        std::cout << "moving " << where << ": ";
-        describe_ready_queue();
-//->
+        // Here we know that f was in our ready queue, but we've unlinked it.
+        // We happen to have a method that will (re-)add a fiber_context* to
+        // the ready queue.
+        awakened(f, props);
     }
 //<-
 
@@ -236,40 +214,40 @@ public:
 //]
 
 //[init
-void init( std::string const& name, int priority) {
-    priority_props & props(
-            boost::this_fiber::properties< priority_props >() );
+template < typename Fn >
+boost::fibers::fiber launch( Fn && func, std::string const& name, int priority) {
+    boost::fibers::fiber fiber(func);
+    priority_props & props( fiber.properties< priority_props >() );
     props.name = name;
     props.set_priority( priority);
+    return fiber;
 }
 //]
 
-void yield_fn( std::string const& name, int priority) {
-    init( name, priority);
-
+void yield_fn() {
+    std::string name(boost::this_fiber::properties<priority_props>().name);
+    Verbose v(std::string("fiber ") + name);
     for ( int i = 0; i < 3; ++i) {
-        std::cout << "fiber " << name << " running" << std::endl;
+        std::cout << "fiber " << name << " yielding" << std::endl;
         boost::this_fiber::yield();
     }
 }
 
-void barrier_fn( std::string const& name, int priority, boost::fibers::barrier & barrier) {
-    init( name, priority);
-
+void barrier_fn( boost::fibers::barrier & barrier) {
+    std::string name( boost::this_fiber::properties<priority_props>().name);
+    Verbose v(std::string("fiber ") + name);
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
     barrier.wait();
     std::cout << "fiber " << name << " yielding" << std::endl;
     boost::this_fiber::yield();
-    std::cout << "fiber " << name << " done" << std::endl;
 }
 
 //[change_fn
-void change_fn( std::string const& name,
-                int priority,
-                boost::fibers::fiber & other,
+void change_fn( boost::fibers::fiber & other,
                 int other_priority,
                 boost::fibers::barrier& barrier) {
-    init( name, priority);
+    std::string name( boost::this_fiber::properties<priority_props>().name);
+    Verbose v(std::string("fiber ") + name);
 
 //<-
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
@@ -287,67 +265,83 @@ void change_fn( std::string const& name,
               << " to " << other_priority << std::endl;
 //->
     other_props.set_priority( other_priority);
-//<-
-    std::cout << "fiber " << name << " done" << std::endl;
-//->
 }
 //]
 
 //[main
 int main( int argc, char *argv[]) {
+    Verbose v("main()");
     // make sure we use our priority_scheduler rather than default round_robin
     boost::fibers::use_scheduling_algorithm< priority_scheduler >();
 /*=    ...*/
 /*=}*/
 //]
 
+    // for clarity
+    std::cout << "main() yielding" << std::endl;
+    boost::this_fiber::yield();
+    std::cout << "main() setting name" << std::endl;
+    boost::this_fiber::properties<priority_props>().name = "main";
+    std::cout << "main() running tests" << std::endl;
+
     {
+        Verbose v("high-priority first", "stop\n");
         // verify that high-priority fiber always gets scheduled first
-        boost::fibers::fiber low( boost::bind( yield_fn, "low",    1) );
-        boost::fibers::fiber med( boost::bind( yield_fn, "medium", 2) );
-        boost::fibers::fiber hi( boost::bind( yield_fn,  "high",   3) );
+        boost::fibers::fiber low( launch( yield_fn, "low",    1) );
+        boost::fibers::fiber med( launch( yield_fn, "medium", 2) );
+        boost::fibers::fiber hi( launch( yield_fn,  "high",   3) );
+        std::cout << "main: high.join()" << std::endl;
         hi.join();
+        std::cout << "main: medium.join()" << std::endl;
         med.join();
+        std::cout << "main: low.join()" << std::endl;
         low.join();
-        std::cout << std::endl;
     }
 
     {
+        Verbose v("same priority round-robin", "stop\n");
         // fibers of same priority are scheduled in round-robin order
-        boost::fibers::fiber a( boost::bind( yield_fn, "a", 0) );
-        boost::fibers::fiber b( boost::bind( yield_fn, "b", 0) );
-        boost::fibers::fiber c( boost::bind( yield_fn, "c", 0) );
+        boost::fibers::fiber a( launch( yield_fn, "a", 0) );
+        boost::fibers::fiber b( launch( yield_fn, "b", 0) );
+        boost::fibers::fiber c( launch( yield_fn, "c", 0) );
+        std::cout << "main: a.join()" << std::endl;
         a.join();
+        std::cout << "main: b.join()" << std::endl;
         b.join();
+        std::cout << "main: c.join()" << std::endl;
         c.join();
-        std::cout << std::endl;
     }
 
     {
+        Verbose v("barrier wakes up all", "stop\n");
         // using a barrier wakes up all waiting fibers at the same time
         boost::fibers::barrier barrier( 3);
-        boost::fibers::fiber low( boost::bind( barrier_fn, "low",    1, boost::ref( barrier) ) );
-        boost::fibers::fiber med( boost::bind( barrier_fn, "medium", 2, boost::ref( barrier) ) );
-        boost::fibers::fiber hi( boost::bind( barrier_fn,  "high",   3, boost::ref( barrier) ) );
+        boost::fibers::fiber low( launch( [&barrier](){ barrier_fn(barrier); }, "low",    1) );
+        boost::fibers::fiber med( launch( [&barrier](){ barrier_fn(barrier); }, "medium", 2) );
+        boost::fibers::fiber hi( launch( [&barrier](){ barrier_fn(barrier); },  "high",   3) );
+        std::cout << "main: low.join()" << std::endl;
         low.join();
+        std::cout << "main: medium.join()" << std::endl;
         med.join();
+        std::cout << "main: high.join()" << std::endl;
         hi.join();
-        std::cout << std::endl;
     }
 
     {
+        Verbose v("change priority", "stop\n");
         // change priority of a fiber in priority_scheduler's ready queue
         boost::fibers::barrier barrier( 3);
-        boost::fibers::fiber c( boost::bind( barrier_fn, "c", 1, boost::ref( barrier) ) );
-        boost::fibers::fiber a( boost::bind( change_fn,  "a", 3, boost::ref( c), 3, boost::ref( barrier) ) );
-        boost::fibers::fiber b( boost::bind( barrier_fn, "b", 2, boost::ref( barrier) ) );
+        boost::fibers::fiber c( launch( [&barrier](){ barrier_fn(barrier); }, "c", 1) );
+        boost::fibers::fiber a( launch( [&c, &barrier]() { change_fn(c, 3, barrier); },
+                                             "a", 3) );
+        boost::fibers::fiber b( launch( [&barrier](){ barrier_fn(barrier); }, "b", 2) );
+        std::cout << "main: a.join()" << std::endl;
         a.join();
+        std::cout << "main: b.join()" << std::endl;
         b.join();
+        std::cout << "main: c.join()" << std::endl;
         c.join();
-        std::cout << std::endl;
     }
-
-    std::cout << "done." << std::endl;
 
     return EXIT_SUCCESS;
 }
