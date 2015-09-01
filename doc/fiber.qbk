@@ -92,7 +92,9 @@ that the referenced object outlives the newly-created fiber.
         } // x is destroyed, but the newly-created fiber still has a reference
           // this leads to undefined behaviour
 
-The spawned __fiber__ is enqueued in the list of ready-to-run fibers at construction.
+The spawned __fiber__ does not immediately start running. It is enqueued in
+the list of ready-to-run fibers, and will run when the scheduler gets around
+to it.
 
 
 [#exceptions]
