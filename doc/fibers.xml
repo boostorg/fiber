@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/09/01 15:15:41 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/09/01 15:31:09 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -11046,42 +11046,40 @@ to return that result
         <phrase role="comment">// that same priority. In other words: search for the first fiber in</phrase>
         <phrase role="comment">// the queue with LOWER priority, and insert before that one.</phrase>
         <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">).</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">f_priority</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <co id="fiber.custom.c12" linkends="fiber.custom.c13" />
                 <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
             <phrase role="special">}</phrase>
+        <phrase role="special">}</phrase>
         <phrase role="comment">// It doesn't matter whether we hit the end of the list or found</phrase>
         <phrase role="comment">// another fiber with lower priority. Either way, insert f here.</phrase>
         <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <co id="fiber.custom.c14" linkends="fiber.custom.c15" />
         <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c16" linkends="fiber.custom.c17" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase><phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase>
-    <phrase role="special">{</phrase>
+    <co id="fiber.custom.c16" linkends="fiber.custom.c17" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
         <phrase role="comment">// if ready queue is empty, just tell caller</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(!</phrase> <phrase role="identifier">head_</phrase><phrase role="special">)</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">head_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="keyword">return</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
+        <phrase role="special">}</phrase>
         <phrase role="comment">// Here we have at least one ready fiber. Unlink and return that.</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
         <phrase role="identifier">head_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
         <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
 
         <phrase role="keyword">return</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c18" linkends="fiber.custom.c19" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase>
-    <phrase role="special">{</phrase>
+    <co id="fiber.custom.c18" linkends="fiber.custom.c19" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">count</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase><phrase role="special">=</phrase><phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase>
-        <phrase role="special">{</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="special">++</phrase><phrase role="identifier">count</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
         <phrase role="keyword">return</phrase> <phrase role="identifier">count</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c20" linkends="fiber.custom.c21" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase>
-    <phrase role="special">{</phrase>
+    <co id="fiber.custom.c20" linkends="fiber.custom.c21" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
         <phrase role="comment">// Although our priority_props class defines multiple properties, only</phrase>
         <phrase role="comment">// one of them (priority) actually calls notify() when changed. The</phrase>
         <phrase role="comment">// point of a property_change() override is to reshuffle the ready</phrase>
@@ -11091,32 +11089,32 @@ to return that result
         <phrase role="comment">// over the queue to find both the existing item and the new desired</phrase>
         <phrase role="comment">// insertion point.</phrase>
         <phrase role="keyword">bool</phrase> <phrase role="identifier">found</phrase> <phrase role="special">=</phrase> <phrase role="keyword">false</phrase><phrase role="special">;</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">**</phrase><phrase role="identifier">insert</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">,</phrase> <phrase role="special">**</phrase><phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase><phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="special">*</phrase><phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;(*</phrase><phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase>
-        <phrase role="special">{</phrase>
-            <phrase role="keyword">if</phrase> <phrase role="special">(*</phrase><phrase role="identifier">fp</phrase> <phrase role="special">==</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase>
-            <phrase role="special">{</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">insert</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">,</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">==</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <phrase role="comment">// found the passed fiber in our list -- unlink it</phrase>
                 <phrase role="identifier">found</phrase> <phrase role="special">=</phrase> <phrase role="keyword">true</phrase><phrase role="special">;</phrase>
-                <phrase role="special">*</phrase><phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">(*</phrase><phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
+                <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
                 <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
                 <phrase role="comment">// If that was the last item in the list, stop.</phrase>
-                <phrase role="keyword">if</phrase> <phrase role="special">(!</phrase> <phrase role="special">*</phrase><phrase role="identifier">fp</phrase><phrase role="special">)</phrase>
+                <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                     <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
+                <phrase role="special">}</phrase>
                 <phrase role="comment">// If we've already found the new insertion point, no need to</phrase>
                 <phrase role="comment">// continue looping.</phrase>
-                <phrase role="keyword">if</phrase> <phrase role="special">(</phrase><phrase role="identifier">insert</phrase><phrase role="special">)</phrase>
+                <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">insert</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                     <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
+                <phrase role="special">}</phrase>
             <phrase role="special">}</phrase>
             <phrase role="comment">// As in awakened(), we're looking for the first fiber in the</phrase>
             <phrase role="comment">// queue with priority lower than the passed fiber.</phrase>
-            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase><phrase role="identifier">properties</phrase><phrase role="special">(*</phrase><phrase role="identifier">fp</phrase><phrase role="special">).</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">())</phrase>
-            <phrase role="special">{</phrase>
+            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">).</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <phrase role="identifier">insert</phrase> <phrase role="special">=</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase>
                 <phrase role="comment">// If we've already found and unlinked the passed fiber, no</phrase>
                 <phrase role="comment">// need to continue looping.</phrase>
-                <phrase role="keyword">if</phrase> <phrase role="special">(</phrase><phrase role="identifier">found</phrase><phrase role="special">)</phrase>
+                <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">found</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                     <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
+                <phrase role="special">}</phrase>
             <phrase role="special">}</phrase>
         <phrase role="special">}</phrase>
         <phrase role="comment">// property_change() should only be called if f-&gt;is_ready(). However,</phrase>
@@ -11126,19 +11124,18 @@ to return that result
         <phrase role="comment">// possible to get a property_change() call for a fiber that</phrase>
         <phrase role="comment">// is_ready() but is not yet on our ready queue. If it's not there, no</phrase>
         <phrase role="comment">// action required: we'll handle it next time it hits awakened().</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(!</phrase> <phrase role="identifier">found</phrase><phrase role="special">)</phrase> <co id="fiber.custom.c22" linkends="fiber.custom.c23" />
-        <phrase role="special">{</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">found</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <co id="fiber.custom.c22" linkends="fiber.custom.c23" />
             <phrase role="keyword">return</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
         <phrase role="comment">// There might not be any ready fibers with lower priority. In that</phrase>
         <phrase role="comment">// case, append to the end of the queue.</phrase>
         <phrase role="keyword">if</phrase> <phrase role="special">(!</phrase> <phrase role="identifier">insert</phrase><phrase role="special">)</phrase>
-        <phrase role="special">{</phrase>
             <phrase role="identifier">insert</phrase> <phrase role="special">=</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
         <phrase role="comment">// Insert f at the new insertion point in the queue.</phrase>
-        <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="special">*</phrase><phrase role="identifier">insert</phrase><phrase role="special">;</phrase>
-        <phrase role="special">*</phrase><phrase role="identifier">insert</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="special">*</phrase> <phrase role="identifier">insert</phrase><phrase role="special">;</phrase>
+        <phrase role="special">*</phrase> <phrase role="identifier">insert</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
@@ -11222,8 +11219,7 @@ to return that result
       operations on that thread.
     </para>
     <para>
-<programlisting><phrase role="keyword">int</phrase> <phrase role="identifier">main</phrase><phrase role="special">(</phrase><phrase role="keyword">int</phrase> <phrase role="identifier">argc</phrase><phrase role="special">,</phrase> <phrase role="keyword">char</phrase> <phrase role="special">*</phrase><phrase role="identifier">argv</phrase><phrase role="special">[])</phrase>
-<phrase role="special">{</phrase>
+<programlisting><phrase role="keyword">int</phrase> <phrase role="identifier">main</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">argc</phrase><phrase role="special">,</phrase> <phrase role="keyword">char</phrase> <phrase role="special">*</phrase><phrase role="identifier">argv</phrase><phrase role="special">[])</phrase> <phrase role="special">{</phrase>
     <phrase role="comment">// make sure we use our priority_scheduler rather than default round_robin</phrase>
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_scheduler</phrase> <phrase role="special">&gt;();</phrase>
     <phrase role="special">...</phrase>
@@ -11242,11 +11238,11 @@ to return that result
       role="identifier">fiber_properties</phrase></code> subclass.
     </para>
     <para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">init</phrase><phrase role="special">(</phrase><phrase role="keyword">const</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">name</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">priority</phrase><phrase role="special">)</phrase>
-<phrase role="special">{</phrase>
-    <phrase role="identifier">priority_props</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">(</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">properties</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">priority_props</phrase><phrase role="special">&gt;());</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">init</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">name</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">priority</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">(</phrase>
+            <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">properties</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&gt;()</phrase> <phrase role="special">);</phrase>
     <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">name</phrase> <phrase role="special">=</phrase> <phrase role="identifier">name</phrase><phrase role="special">;</phrase>
-    <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">set_priority</phrase><phrase role="special">(</phrase><phrase role="identifier">priority</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">set_priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">priority</phrase><phrase role="special">);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
     </para>
@@ -11260,11 +11256,12 @@ to return that result
       parameter.
     </para>
     <para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">change_fn</phrase><phrase role="special">(</phrase><phrase role="keyword">const</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">name</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">priority</phrase><phrase role="special">,</phrase>
-               <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">other_priority</phrase><phrase role="special">,</phrase>
-               <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">barrier</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">barrier</phrase><phrase role="special">)</phrase>
-<phrase role="special">{</phrase>
-    <phrase role="identifier">init</phrase><phrase role="special">(</phrase><phrase role="identifier">name</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">change_fn</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">name</phrase><phrase role="special">,</phrase>
+                <phrase role="keyword">int</phrase> <phrase role="identifier">priority</phrase><phrase role="special">,</phrase>
+                <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">,</phrase>
+                <phrase role="keyword">int</phrase> <phrase role="identifier">other_priority</phrase><phrase role="special">,</phrase>
+                <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">barrier</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">barrier</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">init</phrase><phrase role="special">(</phrase> <phrase role="identifier">name</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority</phrase><phrase role="special">);</phrase>
 
     <phrase role="identifier">barrier</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase>
     <phrase role="comment">// We assume a couple things about 'other':</phrase>
@@ -11272,8 +11269,9 @@ to return that result
     <phrase role="comment">// - that it has lower priority than this fiber.</phrase>
     <phrase role="comment">// If both are true, 'other' is now ready to run but is sitting in</phrase>
     <phrase role="comment">// priority_scheduler's ready queue. Change its priority.</phrase>
-    <phrase role="identifier">priority_props</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other_props</phrase><phrase role="special">(</phrase><phrase role="identifier">other</phrase><phrase role="special">.</phrase><phrase role="identifier">properties</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">priority_props</phrase><phrase role="special">&gt;());</phrase>
-    <phrase role="identifier">other_props</phrase><phrase role="special">.</phrase><phrase role="identifier">set_priority</phrase><phrase role="special">(</phrase><phrase role="identifier">other_priority</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">other_props</phrase><phrase role="special">(</phrase>
+            <phrase role="identifier">other</phrase><phrase role="special">.</phrase><phrase role="identifier">properties</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&gt;()</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">other_props</phrase><phrase role="special">.</phrase><phrase role="identifier">set_priority</phrase><phrase role="special">(</phrase> <phrase role="identifier">other_priority</phrase><phrase role="special">);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
     </para>
@@ -11281,8 +11279,8 @@ to return that result
       Since launching a new fiber schedules that fiber right away, code such as the
       following:
     </para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">newfiber</phrase><phrase role="special">(</phrase><phrase role="identifier">fiber_function</phrase><phrase role="special">);</phrase>
-<phrase role="identifier">newfiber</phrase><phrase role="special">.</phrase><phrase role="identifier">properties</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">priority_props</phrase><phrase role="special">&gt;().</phrase><phrase role="identifier">name</phrase> <phrase role="special">=</phrase> <phrase role="string">&quot;newfiber&quot;</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">newfiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_function</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">newfiber</phrase><phrase role="special">.</phrase><phrase role="identifier">properties</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&gt;().</phrase><phrase role="identifier">name</phrase> <phrase role="special">=</phrase> <phrase role="string">&quot;newfiber&quot;</phrase><phrase role="special">;</phrase>
 </programlisting>
     <para>
       will not necessarily set the property as soon as you expect. It is generally

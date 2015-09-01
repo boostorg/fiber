@@ -200,42 +200,40 @@
         <span class="comment">// that same priority. In other words: search for the first fiber in</span>
         <span class="comment">// the queue with LOWER priority, and insert before that one.</span>
         <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">**</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">head_</span><span class="special">;</span>
-        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span> <span class="special">{</span>
             <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">properties</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">f_priority</span><span class="special">)</span> <span class="special">{</span>
                 <a class="co" name="fiber.custom.c12" href="custom.html#fiber.custom.c13"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
                 <span class="keyword">break</span><span class="special">;</span>
             <span class="special">}</span>
+        <span class="special">}</span>
         <span class="comment">// It doesn't matter whether we hit the end of the list or found</span>
         <span class="comment">// another fiber with lower priority. Either way, insert f here.</span>
         <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <a class="co" name="fiber.custom.c14" href="custom.html#fiber.custom.c15"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
         <span class="special">*</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
     <span class="special">}</span>
 
-    <a class="co" name="fiber.custom.c16" href="custom.html#fiber.custom.c17"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span>
-    <span class="special">{</span>
+    <a class="co" name="fiber.custom.c16" href="custom.html#fiber.custom.c17"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">{</span>
         <span class="comment">// if ready queue is empty, just tell caller</span>
-        <span class="keyword">if</span> <span class="special">(!</span> <span class="identifier">head_</span><span class="special">)</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">head_</span><span class="special">)</span> <span class="special">{</span>
             <span class="keyword">return</span> <span class="keyword">nullptr</span><span class="special">;</span>
+        <span class="special">}</span>
         <span class="comment">// Here we have at least one ready fiber. Unlink and return that.</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span>
         <span class="identifier">head_</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
         <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
 
         <span class="keyword">return</span> <span class="identifier">f</span><span class="special">;</span>
     <span class="special">}</span>
 
-    <a class="co" name="fiber.custom.c18" href="custom.html#fiber.custom.c19"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a><span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span>
-    <span class="special">{</span>
+    <a class="co" name="fiber.custom.c18" href="custom.html#fiber.custom.c19"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a><span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-        <span class="keyword">for</span> <span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span> <span class="identifier">f</span><span class="special">;</span> <span class="identifier">f</span><span class="special">=</span><span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">)</span>
-        <span class="special">{</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span> <span class="identifier">f</span><span class="special">;</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">)</span> <span class="special">{</span>
             <span class="special">++</span><span class="identifier">count</span><span class="special">;</span>
         <span class="special">}</span>
         <span class="keyword">return</span> <span class="identifier">count</span><span class="special">;</span>
     <span class="special">}</span>
 
-    <a class="co" name="fiber.custom.c20" href="custom.html#fiber.custom.c21"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">priority_props</span><span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span>
-    <span class="special">{</span>
+    <a class="co" name="fiber.custom.c20" href="custom.html#fiber.custom.c21"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="special">{</span>
         <span class="comment">// Although our priority_props class defines multiple properties, only</span>
         <span class="comment">// one of them (priority) actually calls notify() when changed. The</span>
         <span class="comment">// point of a property_change() override is to reshuffle the ready</span>
@@ -245,32 +243,32 @@
         <span class="comment">// over the queue to find both the existing item and the new desired</span>
         <span class="comment">// insertion point.</span>
         <span class="keyword">bool</span> <span class="identifier">found</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">**</span><span class="identifier">insert</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">,</span> <span class="special">**</span><span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span><span class="identifier">head_</span><span class="special">;</span>
-        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span><span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;(*</span><span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span>
-        <span class="special">{</span>
-            <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">fp</span> <span class="special">==</span> <span class="identifier">f</span><span class="special">)</span>
-            <span class="special">{</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_context</span> <span class="special">**</span> <span class="identifier">insert</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">,</span> <span class="special">**</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">head_</span><span class="special">;</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span> <span class="special">{</span>
+            <span class="keyword">if</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span> <span class="special">==</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span>
                 <span class="comment">// found the passed fiber in our list -- unlink it</span>
                 <span class="identifier">found</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
-                <span class="special">*</span><span class="identifier">fp</span> <span class="special">=</span> <span class="special">(*</span><span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
+                <span class="special">*</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
                 <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
                 <span class="comment">// If that was the last item in the list, stop.</span>
-                <span class="keyword">if</span> <span class="special">(!</span> <span class="special">*</span><span class="identifier">fp</span><span class="special">)</span>
+                <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)</span> <span class="special">{</span>
                     <span class="keyword">break</span><span class="special">;</span>
+                <span class="special">}</span>
                 <span class="comment">// If we've already found the new insertion point, no need to</span>
                 <span class="comment">// continue looping.</span>
-                <span class="keyword">if</span> <span class="special">(</span><span class="identifier">insert</span><span class="special">)</span>
+                <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">insert</span><span class="special">)</span> <span class="special">{</span>
                     <span class="keyword">break</span><span class="special">;</span>
+                <span class="special">}</span>
             <span class="special">}</span>
             <span class="comment">// As in awakened(), we're looking for the first fiber in the</span>
             <span class="comment">// queue with priority lower than the passed fiber.</span>
-            <span class="keyword">if</span> <span class="special">(</span><span class="identifier">properties</span><span class="special">(*</span><span class="identifier">fp</span><span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">props</span><span class="special">.</span><span class="identifier">get_priority</span><span class="special">())</span>
-            <span class="special">{</span>
+            <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">properties</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">props</span><span class="special">.</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span>
                 <span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">fp</span><span class="special">;</span>
                 <span class="comment">// If we've already found and unlinked the passed fiber, no</span>
                 <span class="comment">// need to continue looping.</span>
-                <span class="keyword">if</span> <span class="special">(</span><span class="identifier">found</span><span class="special">)</span>
+                <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">found</span><span class="special">)</span> <span class="special">{</span>
                     <span class="keyword">break</span><span class="special">;</span>
+                <span class="special">}</span>
             <span class="special">}</span>
         <span class="special">}</span>
         <span class="comment">// property_change() should only be called if f-&gt;is_ready(). However,</span>
@@ -280,19 +278,18 @@
         <span class="comment">// possible to get a property_change() call for a fiber that</span>
         <span class="comment">// is_ready() but is not yet on our ready queue. If it's not there, no</span>
         <span class="comment">// action required: we'll handle it next time it hits awakened().</span>
-        <span class="keyword">if</span> <span class="special">(!</span> <span class="identifier">found</span><span class="special">)</span> <a class="co" name="fiber.custom.c22" href="custom.html#fiber.custom.c23"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a>
-        <span class="special">{</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">found</span><span class="special">)</span> <span class="special">{</span>
+            <a class="co" name="fiber.custom.c22" href="custom.html#fiber.custom.c23"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a>
             <span class="keyword">return</span><span class="special">;</span>
         <span class="special">}</span>
         <span class="comment">// There might not be any ready fibers with lower priority. In that</span>
         <span class="comment">// case, append to the end of the queue.</span>
         <span class="keyword">if</span> <span class="special">(!</span> <span class="identifier">insert</span><span class="special">)</span>
-        <span class="special">{</span>
             <span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">fp</span><span class="special">;</span>
         <span class="special">}</span>
         <span class="comment">// Insert f at the new insertion point in the queue.</span>
-        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">insert</span><span class="special">;</span>
-        <span class="special">*</span><span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
+        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="special">*</span> <span class="identifier">insert</span><span class="special">;</span>
+        <span class="special">*</span> <span class="identifier">insert</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
     <span class="special">}</span>
 <span class="special">};</span>
 </pre>
@@ -385,8 +382,7 @@
     </p>
 <p>
 </p>
-<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">argc</span><span class="special">,</span> <span class="keyword">char</span> <span class="special">*</span><span class="identifier">argv</span><span class="special">[])</span>
-<span class="special">{</span>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">(</span> <span class="keyword">int</span> <span class="identifier">argc</span><span class="special">,</span> <span class="keyword">char</span> <span class="special">*</span><span class="identifier">argv</span><span class="special">[])</span> <span class="special">{</span>
     <span class="comment">// make sure we use our priority_scheduler rather than default round_robin</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">priority_scheduler</span> <span class="special">&gt;();</span>
     <span class="special">...</span>
@@ -407,11 +403,11 @@
     </p>
 <p>
 </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">init</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&amp;</span> <span class="identifier">name</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">)</span>
-<span class="special">{</span>
-    <span class="identifier">priority_props</span><span class="special">&amp;</span> <span class="identifier">props</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">properties</span><span class="special">&lt;</span><span class="identifier">priority_props</span><span class="special">&gt;());</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">init</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">name</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">(</span>
+            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;()</span> <span class="special">);</span>
     <span class="identifier">props</span><span class="special">.</span><span class="identifier">name</span> <span class="special">=</span> <span class="identifier">name</span><span class="special">;</span>
-    <span class="identifier">props</span><span class="special">.</span><span class="identifier">set_priority</span><span class="special">(</span><span class="identifier">priority</span><span class="special">);</span>
+    <span class="identifier">props</span><span class="special">.</span><span class="identifier">set_priority</span><span class="special">(</span> <span class="identifier">priority</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -424,11 +420,12 @@
     </p>
 <p>
 </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">change_fn</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&amp;</span> <span class="identifier">name</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">,</span>
-               <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">other_priority</span><span class="special">,</span>
-               <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">barrier</span><span class="special">&amp;</span> <span class="identifier">barrier</span><span class="special">)</span>
-<span class="special">{</span>
-    <span class="identifier">init</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">priority</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">change_fn</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">name</span><span class="special">,</span>
+                <span class="keyword">int</span> <span class="identifier">priority</span><span class="special">,</span>
+                <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">,</span>
+                <span class="keyword">int</span> <span class="identifier">other_priority</span><span class="special">,</span>
+                <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">barrier</span><span class="special">&amp;</span> <span class="identifier">barrier</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">init</span><span class="special">(</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">priority</span><span class="special">);</span>
 
     <span class="identifier">barrier</span><span class="special">.</span><span class="identifier">wait</span><span class="special">();</span>
     <span class="comment">// We assume a couple things about 'other':</span>
@@ -436,8 +433,9 @@
     <span class="comment">// - that it has lower priority than this fiber.</span>
     <span class="comment">// If both are true, 'other' is now ready to run but is sitting in</span>
     <span class="comment">// priority_scheduler's ready queue. Change its priority.</span>
-    <span class="identifier">priority_props</span><span class="special">&amp;</span> <span class="identifier">other_props</span><span class="special">(</span><span class="identifier">other</span><span class="special">.</span><span class="identifier">properties</span><span class="special">&lt;</span><span class="identifier">priority_props</span><span class="special">&gt;());</span>
-    <span class="identifier">other_props</span><span class="special">.</span><span class="identifier">set_priority</span><span class="special">(</span><span class="identifier">other_priority</span><span class="special">);</span>
+    <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">other_props</span><span class="special">(</span>
+            <span class="identifier">other</span><span class="special">.</span><span class="identifier">properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;()</span> <span class="special">);</span>
+    <span class="identifier">other_props</span><span class="special">.</span><span class="identifier">set_priority</span><span class="special">(</span> <span class="identifier">other_priority</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -446,8 +444,8 @@
       Since launching a new fiber schedules that fiber right away, code such as the
       following:
     </p>
-<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">newfiber</span><span class="special">(</span><span class="identifier">fiber_function</span><span class="special">);</span>
-<span class="identifier">newfiber</span><span class="special">.</span><span class="identifier">properties</span><span class="special">&lt;</span><span class="identifier">priority_props</span><span class="special">&gt;().</span><span class="identifier">name</span> <span class="special">=</span> <span class="string">"newfiber"</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">newfiber</span><span class="special">(</span> <span class="identifier">fiber_function</span><span class="special">);</span>
+<span class="identifier">newfiber</span><span class="special">.</span><span class="identifier">properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;().</span><span class="identifier">name</span> <span class="special">=</span> <span class="string">"newfiber"</span><span class="special">;</span>
 </pre>
 <p>
       will not necessarily set the property as soon as you expect. It is generally
