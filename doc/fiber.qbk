@@ -73,7 +73,7 @@ cooperatively by a scheduler. Objects of type __fiber__ are move-only.
 
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
-If the object must not (or cannot) be copied, then ['std::ref] can be used to
+If the object must not be copied or moved, then ['std::ref] can be used to
 pass in a reference to the function object. In this case, the user must ensure
 that the referenced object outlives the newly-created fiber.
 

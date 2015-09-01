@@ -95,8 +95,9 @@ Use __future__ instead.
 
 Similarly, a fiber that invokes a normal blocking I/O operation will block its
 entire thread. Fiber authors are encouraged to consistently use asynchronous
-I/O. __boost_asio__ explicitly supports fibers; other asynchronous I/O
-operations can straightforwardly be adapted for __boost_fiber__.
+I/O. __boost_asio__ and other asynchronous I/O operations can
+straightforwardly be adapted for __boost_fiber__: see [link callbacks
+Integrating Fibers with Asynchronous Callbacks].
 
 [warning This library is ['not] an official Boost library.]
 
