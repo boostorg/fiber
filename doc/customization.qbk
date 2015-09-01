@@ -113,8 +113,8 @@ as the template parameter.
 Since launching a new fiber schedules that fiber right away, code such as the
 following:
 
-    boost::fibers::fiber newfiber(fiber_function);
-    newfiber.properties<priority_props>().name = "newfiber";
+    boost::fibers::fiber newfiber( fiber_function);
+    newfiber.properties< priority_props >().name = "newfiber";
 
 will not necessarily set the property as soon as you expect. It is generally
 preferable to pass the initial property values to your `fiber_function()` and

@@ -78,13 +78,14 @@ public:
         // that same priority. In other words: search for the first fiber in
         // the queue with LOWER priority, and insert before that one.
         boost::fibers::fiber_context ** fp = & head_;
-        for ( ; * fp; fp = & ( * fp)->nxt)
+        for ( ; * fp; fp = & ( * fp)->nxt) {
             if ( properties( * fp).get_priority() < f_priority) {
                 /*< Use the
                 [member_link sched_algorithm_with_properties..properties]
                 method to access properties for any ['other] fiber. >*/
                 break;
             }
+        }
         // It doesn't matter whether we hit the end of the list or found
         // another fiber with lower priority. Either way, insert f here.
         f->nxt = * fp; /*< Note use of the [data_member_link fiber_context..nxt] member. >*/
@@ -99,18 +100,18 @@ public:
     /*<< You must override the [member_link sched_algorithm_with_properties..pick_next]
          method. This is how your scheduler actually advises the fiber manager
          of the next fiber to run. >>*/
-    virtual boost::fibers::fiber_context* pick_next()
-    {
+    virtual boost::fibers::fiber_context * pick_next() {
         // if ready queue is empty, just tell caller
-        if (! head_)
+        if ( ! head_) {
             return nullptr;
+        }
         // Here we have at least one ready fiber. Unlink and return that.
-        boost::fibers::fiber_context* f = head_;
+        boost::fibers::fiber_context * f = head_;
         head_ = f->nxt;
         f->nxt = nullptr;
 
 //<-
-        std::cout << "pick_next() resuming " << properties(f).name << ": ";
+        std::cout << "pick_next() resuming " << properties( f).name << ": ";
         describe_ready_queue();
 //->
         return f;
@@ -118,11 +119,9 @@ public:
 
     /*<< You must override [member_link sched_algorithm_with_properties..ready_fibers]
       to inform the fiber manager of the size of your ready queue. >>*/
-    virtual std::size_t ready_fibers() const noexcept
-    {
+    virtual std::size_t ready_fibers() const noexcept {
         std::size_t count = 0;
-        for (boost::fibers::fiber_context* f = head_; f; f=f->nxt)
-        {
+        for ( boost::fibers::fiber_context * f = head_; f; f = f->nxt) {
             ++count;
         }
         return count;
@@ -132,8 +131,7 @@ public:
          is optional. This override handles the case in which the running
          fiber changes the priority of another ready fiber: a fiber already in
          our queue. In that case, move the updated fiber within the queue. >>*/
-    virtual void property_change(boost::fibers::fiber_context* f, priority_props& props)
-    {
+    virtual void property_change( boost::fibers::fiber_context * f, priority_props & props) {
         // Although our priority_props class defines multiple properties, only
         // one of them (priority) actually calls notify() when changed. The
         // point of a property_change() override is to reshuffle the ready
@@ -147,32 +145,32 @@ public:
         // over the queue to find both the existing item and the new desired
         // insertion point.
         bool found = false;
-        boost::fibers::fiber_context **insert = nullptr, **fp = &head_;
-        for ( ; *fp; fp = &(*fp)->nxt)
-        {
-            if (*fp == f)
-            {
+        boost::fibers::fiber_context ** insert = nullptr, ** fp = & head_;
+        for ( ; * fp; fp = & ( * fp)->nxt) {
+            if ( * fp == f) {
                 // found the passed fiber in our list -- unlink it
                 found = true;
-                *fp = (*fp)->nxt;
+                * fp = ( * fp)->nxt;
                 f->nxt = nullptr;
                 // If that was the last item in the list, stop.
-                if (! *fp)
+                if ( ! * fp) {
                     break;
+                }
                 // If we've already found the new insertion point, no need to
                 // continue looping.
-                if (insert)
+                if ( insert) {
                     break;
+                }
             }
             // As in awakened(), we're looking for the first fiber in the
             // queue with priority lower than the passed fiber.
-            if (properties(*fp).get_priority() < props.get_priority())
-            {
+            if ( properties( * fp).get_priority() < props.get_priority() ) {
                 insert = fp;
                 // If we've already found and unlinked the passed fiber, no
                 // need to continue looping.
-                if (found)
+                if ( found) {
                     break;
+                }
             }
         }
         // property_change() should only be called if f->is_ready(). However,
@@ -182,11 +180,11 @@ public:
         // possible to get a property_change() call for a fiber that
         // is_ready() but is not yet on our ready queue. If it's not there, no
         // action required: we'll handle it next time it hits awakened().
-        if (! found) /*< Your `property_change()` override must be able to
-                         handle the case in which the passed `f` is not in
-                         your ready queue. It might be running, or it might be
-                         blocked. >*/
-        {
+        if ( ! found) {
+            /*< Your `property_change()` override must be able to
+            handle the case in which the passed `f` is not in
+            your ready queue. It might be running, or it might be
+            blocked. >*/
 //<-
             // hopefully user will distinguish this case by noticing that
             // the fiber with which we were called does not appear in the
@@ -200,19 +198,18 @@ public:
         /*=if (! insert)*/
 //<-
         std::string where;
-        if (insert)
-            where = std::string("before ") + properties(*insert).name;
-        else
+        if ( insert) {
+            where = std::string("before ") + properties( * insert).name;
+        } else {
 //->
-        {
             insert = fp;
 //<-
             where = "to end";
 //->
         }
         // Insert f at the new insertion point in the queue.
-        f->nxt = *insert;
-        *insert = f;
+        f->nxt = * insert;
+        * insert = f;
 //<-
 
         std::cout << "moving " << where << ": ";
@@ -221,16 +218,13 @@ public:
     }
 //<-
 
-    void describe_ready_queue()
-    {
-        if (! head_)
+    void describe_ready_queue() {
+        if ( ! head_) {
             std::cout << "[empty]";
-        else
-        {
-            const char* delim = "";
-            for (boost::fibers::fiber_context *f = head_; f; f = f->nxt)
-            {
-                priority_props& props(properties(f));
+        } else {
+            const char * delim = "";
+            for ( boost::fibers::fiber_context * f = head_; f; f = f->nxt) {
+                priority_props & props( properties( f) );
                 std::cout << delim << props.name << '(' << props.get_priority() << ')';
                 delim = ", ";
             }
@@ -242,28 +236,25 @@ public:
 //]
 
 //[init
-void init(const std::string& name, int priority)
-{
-    priority_props& props(boost::this_fiber::properties<priority_props>());
+void init( std::string const& name, int priority) {
+    priority_props & props(
+            boost::this_fiber::properties< priority_props >() );
     props.name = name;
-    props.set_priority(priority);
+    props.set_priority( priority);
 }
 //]
 
-void yield_fn(const std::string& name, int priority)
-{
-    init(name, priority);
+void yield_fn( std::string const& name, int priority) {
+    init( name, priority);
 
-    for (int i = 0; i < 3; ++i)
-    {
+    for ( int i = 0; i < 3; ++i) {
         std::cout << "fiber " << name << " running" << std::endl;
         boost::this_fiber::yield();
     }
 }
 
-void barrier_fn(const std::string& name, int priority, boost::fibers::barrier& barrier)
-{
-    init(name, priority);
+void barrier_fn( std::string const& name, int priority, boost::fibers::barrier & barrier) {
+    init( name, priority);
 
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
     barrier.wait();
@@ -273,11 +264,12 @@ void barrier_fn(const std::string& name, int priority, boost::fibers::barrier& b
 }
 
 //[change_fn
-void change_fn(const std::string& name, int priority,
-               boost::fibers::fiber& other, int other_priority,
-               boost::fibers::barrier& barrier)
-{
-    init(name, priority);
+void change_fn( std::string const& name,
+                int priority,
+                boost::fibers::fiber & other,
+                int other_priority,
+                boost::fibers::barrier& barrier) {
+    init( name, priority);
 
 //<-
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
@@ -288,12 +280,13 @@ void change_fn(const std::string& name, int priority,
     // - that it has lower priority than this fiber.
     // If both are true, 'other' is now ready to run but is sitting in
     // priority_scheduler's ready queue. Change its priority.
-    priority_props& other_props(other.properties<priority_props>());
+    priority_props & other_props(
+            other.properties< priority_props >() );
 //<-
     std::cout << "fiber " << name << " changing priority of " << other_props.name
               << " to " << other_priority << std::endl;
 //->
-    other_props.set_priority(other_priority);
+    other_props.set_priority( other_priority);
 //<-
     std::cout << "fiber " << name << " done" << std::endl;
 //->
@@ -301,8 +294,7 @@ void change_fn(const std::string& name, int priority,
 //]
 
 //[main
-int main(int argc, char *argv[])
-{
+int main( int argc, char *argv[]) {
     // make sure we use our priority_scheduler rather than default round_robin
     boost::fibers::use_scheduling_algorithm< priority_scheduler >();
 /*=    ...*/
@@ -311,9 +303,9 @@ int main(int argc, char *argv[])
 
     {
         // verify that high-priority fiber always gets scheduled first
-        boost::fibers::fiber low(boost::bind(yield_fn, "low", 1));
-        boost::fibers::fiber med(boost::bind(yield_fn, "medium", 2));
-        boost::fibers::fiber hi(boost::bind(yield_fn, "high", 3));
+        boost::fibers::fiber low( boost::bind( yield_fn, "low",    1) );
+        boost::fibers::fiber med( boost::bind( yield_fn, "medium", 2) );
+        boost::fibers::fiber hi( boost::bind( yield_fn,  "high",   3) );
         hi.join();
         med.join();
         low.join();
@@ -322,9 +314,9 @@ int main(int argc, char *argv[])
 
     {
         // fibers of same priority are scheduled in round-robin order
-        boost::fibers::fiber a(boost::bind(yield_fn, "a", 0));
-        boost::fibers::fiber b(boost::bind(yield_fn, "b", 0));
-        boost::fibers::fiber c(boost::bind(yield_fn, "c", 0));
+        boost::fibers::fiber a( boost::bind( yield_fn, "a", 0) );
+        boost::fibers::fiber b( boost::bind( yield_fn, "b", 0) );
+        boost::fibers::fiber c( boost::bind( yield_fn, "c", 0) );
         a.join();
         b.join();
         c.join();
@@ -333,10 +325,10 @@ int main(int argc, char *argv[])
 
     {
         // using a barrier wakes up all waiting fibers at the same time
-        boost::fibers::barrier barrier(3);
-        boost::fibers::fiber low(boost::bind(barrier_fn, "low", 1, boost::ref(barrier)));
-        boost::fibers::fiber med(boost::bind(barrier_fn, "medium", 2, boost::ref(barrier)));
-        boost::fibers::fiber hi(boost::bind(barrier_fn, "high", 3, boost::ref(barrier)));
+        boost::fibers::barrier barrier( 3);
+        boost::fibers::fiber low( boost::bind( barrier_fn, "low",    1, boost::ref( barrier) ) );
+        boost::fibers::fiber med( boost::bind( barrier_fn, "medium", 2, boost::ref( barrier) ) );
+        boost::fibers::fiber hi( boost::bind( barrier_fn,  "high",   3, boost::ref( barrier) ) );
         low.join();
         med.join();
         hi.join();
@@ -345,11 +337,10 @@ int main(int argc, char *argv[])
 
     {
         // change priority of a fiber in priority_scheduler's ready queue
-        boost::fibers::barrier barrier(3);
-        boost::fibers::fiber c(boost::bind(barrier_fn, "c", 1, boost::ref(barrier)));
-        boost::fibers::fiber a(boost::bind(change_fn, "a", 3,
-                                           boost::ref(c), 3, boost::ref(barrier)));
-        boost::fibers::fiber b(boost::bind(barrier_fn, "b", 2, boost::ref(barrier)));
+        boost::fibers::barrier barrier( 3);
+        boost::fibers::fiber c( boost::bind( barrier_fn, "c", 1, boost::ref( barrier) ) );
+        boost::fibers::fiber a( boost::bind( change_fn,  "a", 3, boost::ref( c), 3, boost::ref( barrier) ) );
+        boost::fibers::fiber b( boost::bind( barrier_fn, "b", 2, boost::ref( barrier) ) );
         a.join();
         b.join();
         c.join();
