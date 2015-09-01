@@ -36,6 +36,58 @@
         barrier is reset.
       </p>
 <p>
+        The fact that the barrier automatically resets is significant. Consider a
+        case in which you launch some number of fibers and want to wait only until
+        the first of them has completed. You might be tempted to use a <code class="computeroutput"><span class="identifier">barrier</span><span class="special">(</span><span class="number">2</span><span class="special">)</span></code> as the synchronization
+        mechanism, making each new fiber call its <a class="link" href="barriers.html#barrier_wait"> <code class="computeroutput">barrier::wait()</code></a> method,
+        then calling <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>
+        in the launching fiber to wait until the first other fiber completes.
+      </p>
+<p>
+        That will in fact unblock the launching fiber. The unfortunate part is that
+        it will continue blocking the <span class="emphasis"><em>remaining</em></span> fibers.
+      </p>
+<p>
+        Consider the following scenario:
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            Fiber "main" launches fibers A, B, C and D, then calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>.
+          </li>
+<li class="listitem">
+            Fiber C finishes first and likewise calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>.
+          </li>
+<li class="listitem">
+            Fiber "main" is unblocked, as desired.
+          </li>
+<li class="listitem">
+            Fiber B calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fiber B is <span class="emphasis"><em>blocked</em></span>!
+          </li>
+<li class="listitem">
+            Fiber A calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fibers A and B are unblocked.
+          </li>
+<li class="listitem">
+            Fiber D calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fiber D is blocked indefinitely.
+          </li>
+</ol></div>
+<p>
+        (See also <a class="link" href="../when_any/when_any/when_any__simple_completion.html#wait_first_simple_section">when_any, simple completion</a>.)
+      </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../../doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          It is unwise to tie the lifespan of a barrier to any one of its participating
+          fibers. Although conceptually all waiting fibers awaken "simultaneously,"
+          because of the nature of fibers, in practice they will awaken one by one
+          in indeterminate order. The rest of the waiting fibers will still be blocked
+          in <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>,
+          which must, before returning, access data members in the barrier object.
+        </p></td></tr>
+</table></div>
+<p>
         </p>
 <h5>
 <a name="class_barrier_bridgehead"></a>

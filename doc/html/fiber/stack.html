@@ -27,7 +27,7 @@
 <a name="fiber.stack"></a><a name="stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
 </h2></div></div></div>
 <p>
-      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally a <a href="../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
+      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally a <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
       which manages a set of registers and a stack. The memory used by the stack
       is allocated/deallocated via a <span class="emphasis"><em>stack_allocator</em></span> which is
       required to model a <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
@@ -41,7 +41,7 @@
       A <span class="emphasis"><em>stack_allocator</em></span> must satisfy the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
       concept</em></span></a> requirements shown in the following table, in which
       <code class="computeroutput"><span class="identifier">a</span></code> is an object of a <span class="emphasis"><em>stack_allocator</em></span>
-      type, <code class="computeroutput"><span class="identifier">sctx</span></code> is a <a href="../../../../../libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>, and <code class="computeroutput"><span class="identifier">size</span></code> is a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span></code>:
+      type, <code class="computeroutput"><span class="identifier">sctx</span></code> is a <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>, and <code class="computeroutput"><span class="identifier">size</span></code> is a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span></code>:
     </p>
 <div class="informaltable"><table class="table">
 <colgroup>
@@ -89,7 +89,7 @@
             </td>
 <td>
               <p>
-                <a href="../../../../../libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>
+                <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>
               </p>
             </td>
 <td>
@@ -136,7 +136,7 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         Calling <code class="computeroutput"><span class="identifier">deallocate</span><span class="special">()</span></code>
-        with a <a href="../../../../../libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a> not obtained from
+        with a <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a> not obtained from
         <code class="computeroutput"><span class="identifier">allocate</span><span class="special">()</span></code>
         results in undefined behaviour.
       </p></td></tr>
@@ -148,11 +148,11 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         The memory for the stack is not required to be aligned; alignment takes place
-        inside <a href="../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
+        inside <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
       </p></td></tr>
 </table></div>
 <p>
-      See also <a href="../../../../../libs/context/doc/html/context/stack.html" target="_top">Boost.Context
+      See also <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack.html" target="_top">Boost.Context
       stack allocation</a>.
     </p>
 <p>

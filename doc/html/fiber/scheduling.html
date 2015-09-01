@@ -35,7 +35,7 @@
     </p>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> provides the fiber manager, but
-      the scheduler is a customization point. (See <a class="link" href="custom.html#custom">custom</a>.)
+      the scheduler is a customization point. (See <a class="link" href="custom.html#custom">Customization</a>.)
     </p>
 <p>
       Each thread has its own scheduler. By default, <span class="bold"><strong>Boost.Fiber</strong></span>
@@ -44,11 +44,10 @@
     </p>
 <p>
       You are explicitly permitted to code your own <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass,
-      and to pass it to <a class="link" href="fiber_mgmt/fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a>.
+      and to specify it to <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a>.
     </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_fn</span><span class="special">()</span> <span class="special">{</span>
-    <span class="identifier">my_fiber_scheduler</span> <span class="identifier">mfs</span><span class="special">;</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="special">&amp;</span> <span class="identifier">mfs</span><span class="special">);</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span><span class="identifier">my_fiber_scheduler</span><span class="special">&gt;();</span>
     <span class="special">...</span>
 <span class="special">}</span>
 </pre>
@@ -165,8 +164,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Returns 0 if scheduling algorithm has no fibers ready to run, otherwise
-            nonzero.
+            Returns the number of fibers ready to run.
           </p></dd>
 </dl>
 </div>
@@ -258,7 +256,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            0 if scheduling algorithm has no fibers ready to run, otherwise nonzero.
+            Returns the number of fibers ready to run.
           </p></dd>
 </dl>
 </div>
@@ -295,7 +293,7 @@
 
 <span class="keyword">class</span> <span class="identifier">fiber_properties</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">back_ptr</span> <span class="identifier">f</span><span class="special">);</span>
+    <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 
     <span class="keyword">virtual</span> <span class="special">~</span><span class="identifier">fiber_properties</span><span class="special">()</span> <span class="special">{}</span>
 
@@ -307,7 +305,7 @@
 <a name="fiber.scheduling.h1"></a>
       <span><a name="fiber.scheduling.constructor"></a></span><a class="link" href="scheduling.html#fiber.scheduling.constructor">Constructor</a>
     </h4>
-<pre class="programlisting"><span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">back_ptr</span> <span class="identifier">f</span><span class="special">);</span>
+<pre class="programlisting"><span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -318,9 +316,7 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            Your subclass constructor must accept a <code class="computeroutput"><span class="identifier">back_ptr</span></code>
-            and pass it to the base-class <code class="computeroutput"><span class="identifier">fiber_properties</span></code>
-            constructor.
+            Your subclass constructor must accept a <code class="computeroutput"><span class="identifier">fiber_context</span><span class="special">*</span></code> and pass it to the base-class <code class="computeroutput"><span class="identifier">fiber_properties</span></code> constructor.
           </p></dd>
 </dl>
 </div>

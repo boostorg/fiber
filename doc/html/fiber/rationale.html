@@ -1,0 +1,159 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Rationale</title>
+<link rel="stylesheet" href="../../../../../doc/src/boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="prev" href="overview.html" title="Overview">
+<link rel="next" href="fiber_mgmt.html" title="Fiber management">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="fiber.rationale"></a><a class="link" href="rationale.html" title="Rationale">Rationale</a>
+</h2></div></div></div>
+<h4>
+<a name="fiber.rationale.h0"></a>
+      <span><a name="fiber.rationale.distinction_between_coroutines_and_fibers"></a></span><a class="link" href="rationale.html#fiber.rationale.distinction_between_coroutines_and_fibers">distinction
+      between coroutines and fibers</a>
+    </h4>
+<p>
+      The fiber library extends the coroutine library by adding a scheduler and synchronization
+      mechanisms.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+          a coroutine yields
+        </li>
+<li class="listitem">
+          a fiber blocks
+        </li>
+</ul></div>
+<p>
+      When a coroutine yields, it passes control directly to its caller (or, in the
+      case of symmetric coroutines, a designated other coroutine). When a fiber blocks,
+      it implicitly passes control to the fiber scheduler. Coroutines have no scheduler
+      because they need no scheduler. <sup>[<a name="fiber.rationale.f0" href="#ftn.fiber.rationale.f0" class="footnote">1</a>]</sup>.
+    </p>
+<h4>
+<a name="fiber.rationale.h1"></a>
+      <span><a name="fiber.rationale.what_about_transactional_memory"></a></span><a class="link" href="rationale.html#fiber.rationale.what_about_transactional_memory">what
+      about transactional memory</a>
+    </h4>
+<p>
+      GCC supports transactional memory since version 4.7. Unfortunately tests show
+      that transactional memory is slower (ca. 4x) than spinlocks using atomics.
+      Once transactional memory is improved (supporting hybrid tm), spinlocks will
+      be replaced by __transaction_atomic{} statements surrounding the critical sections.
+    </p>
+<h4>
+<a name="fiber.rationale.h2"></a>
+      <span><a name="fiber.rationale.synchronization_between_fibers_running_in_different_threads"></a></span><a class="link" href="rationale.html#fiber.rationale.synchronization_between_fibers_running_in_different_threads">synchronization
+      between fibers running in different threads</a>
+    </h4>
+<p>
+      Synchronization classes from <a href="http://www.boost.org/doc/libs/release/libs/thread/index.html" target="_top">Boost.Thread</a>
+      block the entire thread. In contrast, the synchronization classes from <span class="bold"><strong>Boost.Fiber</strong></span> block only specific fibers, so that the
+      scheduler can still keep the thread busy running other fibers in the meantime.
+      The synchronization classes from <span class="bold"><strong>Boost.Fiber</strong></span>
+      are designed to be thread-safe, i.e. it is possible to synchronize fibers running
+      in different threads as well as fibers running in the same thread. (However,
+      there is a build option to disable cross-thread fiber synchronization support;
+      see <a class="link" href="overview.html#cross_thread_sync">this description</a>.)
+    </p>
+<h4>
+<a name="fiber.rationale.h3"></a>
+      <span><a name="fiber.rationale.migrating_fibers_between_threads"></a></span><a class="link" href="rationale.html#fiber.rationale.migrating_fibers_between_threads">migrating
+      fibers between threads</a>
+    </h4>
+<p>
+      Support for migrating fibers between threads was removed. Especially in the
+      case of NUMA-architectures, it is not always advisable to migrate data between
+      threads. Suppose fiber <span class="emphasis"><em>f</em></span> is running on logical CPU <span class="emphasis"><em>cpu0</em></span>
+      which belongs to NUMA node <span class="emphasis"><em>node0</em></span>. The data of <span class="emphasis"><em>f</em></span>
+      are allocated on the physical memory located at <span class="emphasis"><em>node0</em></span>.
+      Migrating the fiber from <span class="emphasis"><em>cpu0</em></span> to another logical CPU
+      <span class="emphasis"><em>cpuX</em></span> which is part of a different NUMA node <span class="emphasis"><em>nodeX</em></span>
+      will reduce the performance of the application because of increased latency
+      of memory access.
+    </p>
+<p>
+      A more <span class="bold"><strong>important</strong></span> aspect is the problem with
+      thread-local-storage (<span class="bold"><strong>TLS</strong></span>). Instead of recomputing
+      the address of a TLS variable, a compiler might, as an optimization, cache
+      its previously-computed address in various function stack frames.<sup>[<a name="fiber.rationale.f1" href="#ftn.fiber.rationale.f1" class="footnote">2</a>]</sup> If a fiber was running on thread <span class="emphasis"><em>t0</em></span> and then
+      migrated to thread <span class="emphasis"><em>t1</em></span>, the cached TLS variable address(es)
+      would continue pointing to the TLS for thread <span class="emphasis"><em>t0</em></span>. Bad
+      things would ensue.
+    </p>
+<h4>
+<a name="fiber.rationale.h4"></a>
+      <span><a name="fiber.rationale.support_for_boost_asio"></a></span><a class="link" href="rationale.html#fiber.rationale.support_for_boost_asio">support
+      for Boost.Asio</a>
+    </h4>
+<p>
+      Support for <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>'s
+      <span class="emphasis"><em>async-result</em></span> is not part of the official API. However,
+      to integrate with a <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span></code>,
+      see <a class="link" href="integration.html#integration">Sharing a Thread with Another Main Loop</a>.
+      To interface smoothly with an arbitrary Asio async I/O operation, see <a class="link" href="callbacks.html#callbacks_asio">Then There's <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a></a>.
+    </p>
+<h4>
+<a name="fiber.rationale.h5"></a>
+      <span><a name="fiber.rationale.tested_compilers"></a></span><a class="link" href="rationale.html#fiber.rationale.tested_compilers">tested
+      compilers</a>
+    </h4>
+<p>
+      The library was tested with GCC-4.9.2, GCC-5.1.1, Clang-3.6.0 and MSVC-14.0
+      in c++14-mode.
+    </p>
+<h4>
+<a name="fiber.rationale.h6"></a>
+      <span><a name="fiber.rationale.supported_architectures"></a></span><a class="link" href="rationale.html#fiber.rationale.supported_architectures">supported
+      architectures</a>
+    </h4>
+<p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> depends on <a href="http://www.boost.org/doc/libs/release/libs/context/index.html" target="_top">Boost.Context</a>
+      - the list of supported architectures can be found <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/architectures.html" target="_top">here</a>.
+    </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f0" href="#fiber.rationale.f0" class="para">1</a>] </sup>
+        <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4024.pdf" target="_top">'N4024:
+        Distinguishing coroutines and fibers'</a>
+      </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f1" href="#fiber.rationale.f1" class="para">2</a>] </sup>
+        dicussed in <a href="http://www.crystalclearsoftware.com/soc/coroutine/coroutine/coroutine_thread.html" target="_top">'Interaction
+        between coroutines and threads' by Giovanni P. Deretta, <a href="https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/3g6ZIWedGJ8" target="_top">'A
+        proposal to add coroutines to C++'</a></a>
+      </p></div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2013 Oliver Kowalke<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

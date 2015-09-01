@@ -55,8 +55,7 @@ public:
 
     /// Specify an alternate allocator.
     template< typename OtherAllocator >
-    use_future_t< OtherAllocator >
-    operator[]( OtherAllocator const& allocator) const {
+    use_future_t< OtherAllocator > operator[]( OtherAllocator const& allocator) const {
         return use_future_t< OtherAllocator >( allocator);
     }
 };

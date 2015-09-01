@@ -80,7 +80,7 @@ namespace asio {
  */
 //[fibers_asio_yield_t
 template< typename Allocator = std::allocator< void > >
-class yield_t: public promise_completion_token< Allocator > {
+class yield_t : public promise_completion_token< Allocator > {
 public:
     /// Construct with default-constructed allocator.
     BOOST_CONSTEXPR yield_t() {
@@ -91,13 +91,12 @@ public:
 
     /// Construct using specified allocator.
     explicit yield_t( Allocator const& allocator) :
-        promise_completion_token<Allocator>( allocator) {
+        promise_completion_token< Allocator >( allocator) {
     }
 
     /// Specify an alternate allocator.
     template< typename OtherAllocator >
-    yield_t< OtherAllocator >
-    with( OtherAllocator const& allocator) const {
+    yield_t< OtherAllocator > with( OtherAllocator const& allocator) const {
         return yield_t< OtherAllocator >( allocator);
     }
 

@@ -60,7 +60,7 @@ private:
 *****************************************************************************/
 AsyncAPI::AsyncAPI( std::string const& data) :
     data_( data),
-    injected_(0) {
+    injected_( 0) {
 }
 
 void AsyncAPI::inject_error( errorcode ec) {
@@ -73,19 +73,19 @@ void AsyncAPI::init_read( Response::ptr response) {
     // reset it synchronously with caller
     injected_ = 0;
     // local copy of data_ so we can capture in lambda
-    std::string data(data_);
+    std::string data( data_);
     // Simulate an asynchronous I/O operation by launching a detached thread
     // that sleeps a bit before calling either completion method.
-    std::thread([injected, response, data](){
-        std::this_thread::sleep_for( std::chrono::milliseconds(100) );
-        if ( ! injected) {
-            // no error, call success()
-            response->success( data);
-        } else {
-            // injected error, call error()
-            response->error( injected);
-        }            
-    }).detach();
+    std::thread( [injected, response, data](){
+                     std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+                     if ( ! injected) {
+                         // no error, call success()
+                         response->success( data);
+                     } else {
+                         // injected error, call error()
+                         response->error( injected);
+                     }            
+                 }).detach();
 }
 
 /*****************************************************************************
@@ -104,7 +104,9 @@ public:
 
     // called if the operation fails
     virtual void error( AsyncAPIBase::errorcode ec) {
-        promise_.set_exception( std::make_exception_ptr( make_exception("read", ec) ) );
+        promise_.set_exception(
+                std::make_exception_ptr(
+                    make_exception("read", ec) ) );
     }
 
     boost::fibers::future< std::string > get_future() {

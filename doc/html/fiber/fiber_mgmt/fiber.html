@@ -75,7 +75,8 @@
 
 <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-<span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span> <span class="special">*</span> <span class="identifier">al</span><span class="special">)</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">SchedAlgo</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">();</span>
 
@@ -144,7 +145,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              StackAllocator is required to allocate a stack for the internal <a href="../../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
+              StackAllocator is required to allocate a stack for the internal <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
               If StackAllocator is not explicitly passed, a <a class="link" href="../stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> is
               used by default.
             </p></dd>
@@ -433,9 +434,8 @@
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution. <a class="link" href="fiber.html#set_scheduling_algorithm"> <code class="computeroutput">set_scheduling_algorithm()</code></a> has
-              been called from this thread with a pointer to a (subclass) instance
-              of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              refers to a fiber of execution. <a class="link" href="fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a> has
+              been called from this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
               <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               has been scheduled for execution at least once.
@@ -446,20 +446,20 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> was passed a pointer to a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code> subclass
-              with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> was called with a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code>
+              subclass with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This method allows access
-              to those user-provided properties -- but only after this fiber has
-              been scheduled for the first time.
+              to those user-provided properties &#8212; but only after this fiber has been
+              scheduled for the first time.
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="../custom.html#custom">custom</a>
+              <a class="link" href="../custom.html#custom">Customization</a>
             </p></dd>
 </dl>
 </div>
@@ -582,40 +582,35 @@
 <p>
         </p>
 <h5>
-<a name="set_scheduling_algorithm_bridgehead"></a>
-  <span><a name="set_scheduling_algorithm"></a></span>
-  <a class="link" href="fiber.html#set_scheduling_algorithm">Non-member
-        function <code class="computeroutput">set_scheduling_algorithm()</code></a>
+<a name="use_scheduling_algorithm_bridgehead"></a>
+  <span><a name="use_scheduling_algorithm"></a></span>
+  <a class="link" href="fiber.html#use_scheduling_algorithm">Non-member
+        function <code class="computeroutput">use_scheduling_algorithm()</code></a>
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">set_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">sched_algorithm</span><span class="special">*</span> <span class="identifier">scheduler</span> <span class="special">);</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">SchedAlgo</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Directs <span class="bold"><strong>Boost.Fiber</strong></span> to use <code class="computeroutput"><span class="identifier">scheduler</span></code>, which must be a concrete
+              Directs <span class="bold"><strong>Boost.Fiber</strong></span> to use <code class="computeroutput"><span class="identifier">SchedAlgo</span></code>, which must be a concrete
               subclass of <a class="link" href="../scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>, as the scheduling
-              algorithm for all fibers in the current thread.
+              algorithm for all fibers in the current thread. Pass any required
+              <code class="computeroutput"><span class="identifier">SchedAlgo</span></code> constructor
+              arguments as <code class="computeroutput"><span class="identifier">args</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               If you want a given thread to use a non-default scheduling algorithm,
-              make that thread call <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> before any other <span class="bold"><strong>Boost.Fiber</strong></span>
+              make that thread call <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> before any other <span class="bold"><strong>Boost.Fiber</strong></span>
               entry point. If no scheduler has been set for the current thread by
               the time <span class="bold"><strong>Boost.Fiber</strong></span> needs to use
               it, the library will create a default <a class="link" href="../scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> instance
               for this thread.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="identifier">set_scheduling_algorithm</span><span class="special">()</span></code> does <span class="emphasis"><em>not</em></span> take
-              ownership of the passed <code class="computeroutput"><span class="identifier">sched_algorithm</span><span class="special">*</span></code>: <span class="bold"><strong>Boost.Fiber</strong></span>
-              does not claim responsibility for the lifespan of the referenced <code class="computeroutput"><span class="identifier">scheduler</span></code> object. The caller must
-              eventually destroy the passed <code class="computeroutput"><span class="identifier">scheduler</span></code>,
-              just as it must allocate it in the first place.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -623,7 +618,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="../scheduling.html#scheduling">scheduling</a>, <a class="link" href="../custom.html#custom">custom</a>
+              <a class="link" href="../scheduling.html#scheduling">Scheduling</a>, <a class="link" href="../custom.html#custom">Customization</a>
             </p></dd>
 </dl>
 </div>
@@ -643,7 +638,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-              Returns the amount of fibers ready to run.
+              Returns the number of fibers ready to run.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -681,8 +676,16 @@
 <dd><p>
               This setting can be used to adjust the "niceness" of an idle
               thread: a thread whose fibers are all currently blocked for various
-              reasons. A longer <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> causes an idle thread to use less
-              CPU. The default for each thread, if not specified, is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">milliseconds</span><span class="special">(</span><span class="number">10</span><span class="special">)</span></code>.
+              reasons. The default for each thread, if not specified, is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">milliseconds</span><span class="special">(</span><span class="number">10</span><span class="special">)</span></code>.
+              A longer <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> causes an idle thread to use less
+              CPU. A shorter <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> is more responsive to fibers becoming
+              ready. When a fiber becomes ready to resume, e.g. a mutex on which
+              it is blocked becomes available, control is not immediately passed
+              to that fiber; instead it is marked "ready to run." It won't
+              actually resume until the fiber manager wakes up to consult the scheduler.
+              It could take as long as <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> before the fiber manager notices
+              the fiber's readiness. It is likely that the optimal setting for <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code>
+              is application-specific.
             </p></dd>
 </dl>
 </div>

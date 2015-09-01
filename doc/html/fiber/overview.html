@@ -7,7 +7,7 @@
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="prev" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="next" href="fiber_mgmt.html" title="Fiber management">
+<link rel="next" href="rationale.html" title="Rationale">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../index.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="../index.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -29,7 +29,7 @@
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> provides a framework for micro-/userland-threads
       (fibers) scheduled cooperatively. The API contains classes and functions to
-      manage and synchronize fibers similiarly to <a href="../../../../../libs/thread/index.html" target="_top">Boost.Thread</a>.
+      manage and synchronize fibers similiarly to <a href="http://www.boost.org/doc/libs/release/libs/thread/index.html" target="_top">Boost.Thread</a>.
     </p>
 <p>
       Each fiber has its own stack.
@@ -41,10 +41,10 @@
       using cooperative scheduling (versus threads, which are preemptively scheduled).
       The running fiber decides explicitly when it should yield to allow another
       fiber to run (context switching). <span class="bold"><strong>Boost.Fiber</strong></span>
-      internally uses <a href="../../../../../libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
-      from <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>; the
-      classes in this library manage, schedule and, when needed, synchronize those
-      execution contexts. A context switch between threads usually costs thousands
+      internally uses <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
+      from <a href="http://www.boost.org/doc/libs/release/libs/context/index.html" target="_top">Boost.Context</a>;
+      the classes in this library manage, schedule and, when needed, synchronize
+      those execution contexts. A context switch between threads usually costs thousands
       of CPU cycles on x86, compared to a fiber switch with less than a hundred cycles.
       A fiber can only run on a single thread at any point in time.
     </p>
@@ -134,9 +134,10 @@
 <p>
       Similarly, a fiber that invokes a normal blocking I/O operation will block
       its entire thread. Fiber authors are encouraged to consistently use asynchronous
-      I/O. <a href="../../../../../libs/asio/index.html" target="_top">Boost.Asio</a> explicitly
-      supports fibers; other asynchronous I/O operations can straightforwardly be
-      adapted for <span class="bold"><strong>Boost.Fiber</strong></span>.
+      I/O. <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>
+      and other asynchronous I/O operations can straightforwardly be adapted for
+      <span class="bold"><strong>Boost.Fiber</strong></span>: see <a class="link" href="callbacks.html#callbacks">Integrating
+      Fibers with Asynchronous Callbacks</a>.
     </p>
 <div class="warning"><table border="0" summary="Warning">
 <tr>
@@ -148,7 +149,7 @@
       </p></td></tr>
 </table></div>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> depends upon <a href="../../../../../libs/context/index.html" target="_top">Boost.Context</a>.
+      <span class="bold"><strong>Boost.Fiber</strong></span> depends upon <a href="http://www.boost.org/doc/libs/release/libs/context/index.html" target="_top">Boost.Context</a>.
       Boost version 1.58.0 or greater is required.
     </p>
 <div class="note"><table border="0" summary="Note">
@@ -171,7 +172,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../index.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="../index.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>
