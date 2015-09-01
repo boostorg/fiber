@@ -127,6 +127,7 @@ The source code above is found in
 and
 [@../../examples/adapt_method_calls.cpp adapt_method_calls.cpp].
 
+[#callbacks_asio]
 [heading Then There's __boost_asio__]
 
 [import ../examples/asio/yield.hpp]

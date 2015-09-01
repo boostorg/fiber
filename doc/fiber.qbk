@@ -73,7 +73,7 @@ cooperatively by a scheduler. Objects of type __fiber__ are move-only.
 
 A new fiber is launched by passing an object of a callable type that can be
 invoked with no parameters.
-If the object must not (or cannot) be copied, then ['std::ref] can be used to
+If the object must not be copied or moved, then ['std::ref] can be used to
 pass in a reference to the function object. In this case, the user must ensure
 that the referenced object outlives the newly-created fiber.
 
@@ -118,7 +118,12 @@ mutex], or [class_link condition_variable], or any of the other [link
 synchronization synchronization objects] provided by the library.
 
 If a detached fiber is still running when the thread's main fiber terminates,
-that fiber will be [link interruption interrupted] and shut down.
+that fiber will be [link interruption interrupted] and shut down.[footnote
+This treatment of detached fibers depends on a detached fiber eventually
+either terminating or reaching one of the specified __interruption_points__.
+Note that since [ns_function_link this_fiber..yield] is ['not] an interruption
+point, a detached fiber whose only interaction with the Fiber library is
+`yield()` cannot cleanly be terminated.]
 
 [heading Joining]
 
