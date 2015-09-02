@@ -56,7 +56,19 @@ template< typename PROPS >
 PROPS & properties() {
     fibers::fiber_properties* props =
         fibers::detail::scheduler::instance()->active()->get_properties();
-    BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+    if ( ! props) {
+        // props could be nullptr if the thread's main fiber has not yet
+        // yielded (not yet passed through sched_algorithm_with_properties::
+        // awakened()). Address that by yielding right now.
+        yield();
+        // Try again to obtain the fiber_properties subclass instance ptr.
+        // Walk through the whole chain again because who knows WHAT might
+        // have happened while we were yielding!
+        props = fibers::detail::scheduler::instance()->active()->get_properties();
+        // Could still be hosed if the running scheduler isn't a subclass of
+        // sched_algorithm_with_properties.
+        BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+    }
     return dynamic_cast< PROPS & >( * props );
 }
 

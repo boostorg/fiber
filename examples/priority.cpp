@@ -278,8 +278,6 @@ int main( int argc, char *argv[]) {
     Verbose v("main()");
 
     // for clarity
-    std::cout << "main() yielding" << std::endl;
-    boost::this_fiber::yield();
     std::cout << "main() setting name" << std::endl;
 //[main_name
     boost::this_fiber::properties<priority_props>().name = "main";
