@@ -148,10 +148,9 @@ the joined __fiber__ object becomes __not_a_fiber__.
 
 [heading Destruction]
 
-When a __fiber__ object representing a valid execution context is destroyed, the
-program terminates if the fiber is __joinable__. If you intend the
-fiber to outlive the __fiber__ object that launched it, use the __detach__
-method.
+When a __fiber__ object representing a valid execution context (the fiber is
+__joinable__) is destroyed, the program terminates. If you intend the fiber to
+outlive the __fiber__ object that launched it, use the __detach__ method.
 
         {
             boost::fibers::fiber f( some_fn);
@@ -329,7 +328,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 [[Note:] [StackAllocator is required to allocate a stack for the internal
 __econtext__. If StackAllocator is not explicitly passed, a
 __fixedsize_stack__ is used by default.]]
-[[See also:] [[link stack]]]
+[[See also:] [[link stack Stack allocation]]]
 ]
 
 [heading Move constructor]
@@ -387,10 +386,9 @@ may not have completed; otherwise `false`.]]
 
 [variablelist
 [[Preconditions:] [the fiber is __joinable__.]]
-[[Effects:] [If `*this` refers to a fiber of execution, waits for that fiber to
-complete.]]
-[[Postconditions:] [If `*this` refers to a fiber of execution on entry, that
-fiber has completed. `*this` no longer refers to any fiber of execution.]]
+[[Effects:] [Waits for the referenced fiber of execution to complete.]]
+[[Postconditions:] [The fiber of execution referenced on entry has completed.
+`*this` no longer refers to any fiber of execution.]]
 [[Throws:] [__fiber_interrupted__ if the current fiber is interrupted or
 `system_error`]]
 [[Error Conditions:] [
