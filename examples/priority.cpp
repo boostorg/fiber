@@ -2,23 +2,38 @@
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+//
+#include <iostream>
 
 #include <boost/fiber/all.hpp>
 #include <boost/noncopyable.hpp>
-#include <iostream>
 
-class Verbose: public boost::noncopyable
-{
+class Verbose: public boost::noncopyable {
 public:
-    Verbose(const std::string& d, const std::string& s="stop"):
-        desc(d),
-        stop(s)
-    {
+    Verbose( std::string const& d, std::string const& s="stop") :
+        desc( d),
+        stop( s) {
         std::cout << desc << " start" << std::endl;
     }
 
-    ~Verbose()
-    {
+    ~Verbose() {
+        std::cout << desc << " " << stop << std::endl;
+    }
+
+private:
+    std::string     desc;
+    std::string     stop;
+};
+
+class Verbose : public boost::noncopyable {
+public:
+    Verbose( std::string const& d, std::string const& s = "stop") :
+        desc( d),
+        stop( s) {
+        std::cout << desc << " start" << std::endl;
+    }
+
+    ~Verbose() {
         std::cout << desc << " " << stop << std::endl;
     }
 
@@ -214,9 +229,9 @@ public:
 //]
 
 //[launch
-template < typename Fn >
+template< typename Fn >
 boost::fibers::fiber launch( Fn && func, std::string const& name, int priority) {
-    boost::fibers::fiber fiber(func);
+    boost::fibers::fiber fiber( func);
     priority_props & props( fiber.properties< priority_props >() );
     props.name = name;
     props.set_priority( priority);
@@ -225,8 +240,8 @@ boost::fibers::fiber launch( Fn && func, std::string const& name, int priority) 
 //]
 
 void yield_fn() {
-    std::string name(boost::this_fiber::properties<priority_props>().name);
-    Verbose v(std::string("fiber ") + name);
+    std::string name( boost::this_fiber::properties< priority_props >().name);
+    Verbose v( std::string("fiber ") + name);
     for ( int i = 0; i < 3; ++i) {
         std::cout << "fiber " << name << " yielding" << std::endl;
         boost::this_fiber::yield();
@@ -234,8 +249,8 @@ void yield_fn() {
 }
 
 void barrier_fn( boost::fibers::barrier & barrier) {
-    std::string name( boost::this_fiber::properties<priority_props>().name);
-    Verbose v(std::string("fiber ") + name);
+    std::string name( boost::this_fiber::properties< priority_props >().name);
+    Verbose v( std::string("fiber ") + name);
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
     barrier.wait();
     std::cout << "fiber " << name << " yielding" << std::endl;
@@ -246,8 +261,8 @@ void barrier_fn( boost::fibers::barrier & barrier) {
 void change_fn( boost::fibers::fiber & other,
                 int other_priority,
                 boost::fibers::barrier& barrier) {
-    std::string name( boost::this_fiber::properties<priority_props>().name);
-    Verbose v(std::string("fiber ") + name);
+    std::string name( boost::this_fiber::properties< priority_props >().name);
+    Verbose v( std::string("fiber ") + name);
 
 //<-
     std::cout << "fiber " << name << " waiting on barrier" << std::endl;
@@ -280,7 +295,7 @@ int main( int argc, char *argv[]) {
     // for clarity
     std::cout << "main() setting name" << std::endl;
 //[main_name
-    boost::this_fiber::properties<priority_props>().name = "main";
+    boost::this_fiber::properties< priority_props >().name = "main";
 //]
     std::cout << "main() running tests" << std::endl;
 
@@ -316,9 +331,9 @@ int main( int argc, char *argv[]) {
         Verbose v("barrier wakes up all", "stop\n");
         // using a barrier wakes up all waiting fibers at the same time
         boost::fibers::barrier barrier( 3);
-        boost::fibers::fiber low( launch( [&barrier](){ barrier_fn(barrier); }, "low",    1) );
-        boost::fibers::fiber med( launch( [&barrier](){ barrier_fn(barrier); }, "medium", 2) );
-        boost::fibers::fiber hi( launch( [&barrier](){ barrier_fn(barrier); },  "high",   3) );
+        boost::fibers::fiber low( launch( [&barrier](){ barrier_fn( barrier); }, "low",    1) );
+        boost::fibers::fiber med( launch( [&barrier](){ barrier_fn( barrier); }, "medium", 2) );
+        boost::fibers::fiber hi( launch( [&barrier](){ barrier_fn( barrier); },  "high",   3) );
         std::cout << "main: low.join()" << std::endl;
         low.join();
         std::cout << "main: medium.join()" << std::endl;
@@ -331,10 +346,10 @@ int main( int argc, char *argv[]) {
         Verbose v("change priority", "stop\n");
         // change priority of a fiber in priority_scheduler's ready queue
         boost::fibers::barrier barrier( 3);
-        boost::fibers::fiber c( launch( [&barrier](){ barrier_fn(barrier); }, "c", 1) );
-        boost::fibers::fiber a( launch( [&c, &barrier]() { change_fn(c, 3, barrier); },
-                                             "a", 3) );
-        boost::fibers::fiber b( launch( [&barrier](){ barrier_fn(barrier); }, "b", 2) );
+        boost::fibers::fiber c( launch( [&barrier](){ barrier_fn( barrier); }, "c", 1) );
+        boost::fibers::fiber a( launch( [&c,&barrier]() { change_fn( c, 3, barrier); }, "a", 3) );
+        boost::fibers::fiber b( launch( [&barrier](){ barrier_fn( barrier); }, "b", 2) );
+        std::cout << "main: a.join()" << std::endl;
         std::cout << "main: a.join()" << std::endl;
         a.join();
         std::cout << "main: b.join()" << std::endl;

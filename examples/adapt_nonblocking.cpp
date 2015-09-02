@@ -100,7 +100,7 @@ int NonblockingAPI::read( std::string & data, std::size_t desired) {
 *****************************************************************************/
 //[nonblocking_read_chunk
 // guaranteed not to return EWOULDBLOCK
-int read_chunk( NonblockingAPI & api, std::string& data, std::size_t desired) {
+int read_chunk( NonblockingAPI & api, std::string & data, std::size_t desired) {
     int error;
     while ( EWOULDBLOCK == ( error = api.read( data, desired) ) ) {
         // not ready yet -- try again on the next iteration of the
