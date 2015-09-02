@@ -82,7 +82,7 @@ queue.]]
         virtual std::size_t ready_fibers() const noexcept = 0;
 
 [variablelist
-[[Effects:] [Returns the number of fibers ready to run.]]
+[[Returns:] [the number of fibers ready to run.]]
 ]
 
 
@@ -124,7 +124,7 @@ of that queue, shares the thread between ready fibers in round-robin fashion.]]
         virtual std::size_t ready_fibers() const noexcept;
 
 [variablelist
-[[Returns:] [Returns the number of fibers ready to run.]]
+[[Returns:] [the number of fibers ready to run.]]
 ]
 
 
@@ -246,8 +246,7 @@ ready fiber.]]
         virtual std::size_t ready_fibers() const noexcept;
 
 [variablelist
-[[Returns:] [0 if scheduling algorithm has no fibers ready to run, otherwise
-nonzero.]]
+[[Returns:] [the number of fibers ready to run.]]
 [[Note:] [same as [member_link sched_algorithm..ready_fibers]]]
 ]
 
@@ -258,7 +257,8 @@ nonzero.]]
 [variablelist
 [[Returns:] [the `PROPS` instance associated with fiber `f`.]]
 [[Note:] [The fiber's associated `PROPS` instance is already passed to
-`awakened()` and `property_change()`. However, every [class_link
+[member_link sched_algorithm_with_properties..awakened] and [member_link
+sched_algorithm_with_properties..property_change]. However, every [class_link
 sched_algorithm] subclass is expected to track a collection of ready
 [class_link fiber_context] instances. This method allows your custom scheduler
 to retrieve the [class_link fiber_properties] subclass instance for any
