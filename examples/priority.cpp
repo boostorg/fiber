@@ -24,23 +24,6 @@ private:
     std::string     stop;
 };
 
-class Verbose : public boost::noncopyable {
-public:
-    Verbose( std::string const& d, std::string const& s = "stop") :
-        desc( d),
-        stop( s) {
-        std::cout << desc << " start" << std::endl;
-    }
-
-    ~Verbose() {
-        std::cout << desc << " " << stop << std::endl;
-    }
-
-private:
-    std::string     desc;
-    std::string     stop;
-};
-
 //[priority_props
 class priority_props : public boost::fibers::fiber_properties {
 public:
