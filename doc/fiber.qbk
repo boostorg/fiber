@@ -765,6 +765,8 @@ than `PROPS`.]]
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This function allows access to those user-provided
 properties.]]
+[[Note:] [The first time this function is called from the main fiber of a
+thread, it may internally yield, permitting other fibers to run.]]
 [[See also:] [[link custom Customization]]]
 ]
 
