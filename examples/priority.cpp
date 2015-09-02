@@ -17,7 +17,6 @@ public:
     }
 
     ~Verbose() {
-        std::cout << desc << " " << stop << std::endl;
     }
 
 private:
@@ -38,7 +37,8 @@ public:
     }
 
 private:
-    std::string desc, stop;
+    std::string     desc;
+    std::string     stop;
 };
 
 //[priority_props
