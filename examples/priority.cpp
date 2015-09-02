@@ -341,5 +341,7 @@ int main( int argc, char *argv[]) {
         c.join();
     }
 
+    std::cout << "done." << std::endl;
+
     return EXIT_SUCCESS;
 }
