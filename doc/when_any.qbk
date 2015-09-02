@@ -172,7 +172,7 @@ Let's at least ensure that such an exception would propagate to the fiber
 awaiting the first result. We can use [template_link future] to transport
 either a return value or an exception. Therefore, we will change [link
 wait_first_value `wait_first_value()`]'s [template_link bounded_channel] to
-hold `future<T>` items instead of simply `T`.
+hold `future< T >` items instead of simply `T`.
 
 Once we have a `future<>` in hand, all we need do is call [member_link
 future..get], which will either return the value or rethrow the exception.
@@ -230,7 +230,7 @@ right approach. If one of the services produces an error quickly, while
 another follows up with a real answer, we don't want to prefer the error just
 because it arrived first!
 
-Given the `bounded_queue<future<T>>` we already constructed for
+Given the `bounded_queue< future< T > >` we already constructed for
 `wait_first_outcome()`, though, we can readily recast the interface function
 to deliver the first ['successful] result.
 
@@ -402,11 +402,11 @@ For example:
 
 Naturally, just as with [link wait_first_outcome `wait_first_outcome()`], we
 can elaborate [link wait_all_values `wait_all_values()`] and [link
-wait_all_values_source `wait_all_values_source()`] by passing `future<T>`
+wait_all_values_source `wait_all_values_source()`] by passing `future< T >`
 instead of plain `T`.
 
 [#wait_all_until_error]
-`wait_all_until_error()` pops that `future<T>` and calls its [member_link
+`wait_all_until_error()` pops that `future< T >` and calls its [member_link
 future..get]:
 
 [wait_all_until_error]
@@ -417,7 +417,7 @@ For example:
 
 [#wait_all_until_error_source]
 Naturally this complicates the API for `wait_all_until_error_source()`. The
-caller must both retrieve a `future<T>` and call its `get()` method. It would,
+caller must both retrieve a `future< T >` and call its `get()` method. It would,
 of course, be possible to return a façade over the consumer end of the
 channel that would implicitly perform the `get()` and return a simple `T` (or
 throw).
