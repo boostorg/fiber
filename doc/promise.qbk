@@ -58,6 +58,7 @@ later be retrieved from the corresponding __future__ object. `promise<>` and
 [variablelist
 [[Effects:] [Creates a promise with an empty [link shared_state shared state] by using `alloc`.]]
 [[Throws:] [Nothing.]]
+[[See also:] [__allocator_arg_t__]]
 ]
 
 [heading Move constructor]

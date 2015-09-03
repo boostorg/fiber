@@ -82,6 +82,7 @@ shared_state shared state].]]
 shared_state shared state] and stores the callable target `fn` internally.]]
 [[Throws:] [Nothing.]]
 [[Note:] [The signature of `Fn` should have a return type convertible to `R`.]]
+[[See also:] [__allocator_arg_t__]]
 ]
 
 [heading Move constructor]

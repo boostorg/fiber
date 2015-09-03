@@ -48,14 +48,6 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 [[Effects:] [The [link shared_state shared state] did not become ready before timeout has passed.]]
 ]
 
-[heading `deferred`]
-[variablelist
-[[Effects:] [The function is deferred, e.g. result will be computed only when explictly requested.]]
-[[Note:] [Not implemented yet.]]
-]
-
-[warning Launch policy `deferred`, which indicates you simply want to defer the function call until a later time (lazy evaluation), is not supported yet.]
-
 
 [template_heading future]
 
@@ -115,11 +107,11 @@ After construction `false == valid()`.]]
 [template future_move_copy_ctor_variablelist[xfuture post_valid]
 [variablelist
 [[Effects:] [Constructs a [xfuture] with the [link shared_state shared state] of other.
-After construction [^[post_valid] == other.valid()]]]
+After construction [post_valid].]]
 [[Throws:] [Nothing.]]
 ]
 ]
-[future_move_copy_ctor_variablelist future..false]
+[future_move_copy_ctor_variablelist future..`false == other.valid()`]
 
 [heading Destructor]
 
@@ -173,6 +165,9 @@ After the assignment, `false == other.valid()`.]]
 
 [variablelist
 [[Effects:] [Move the state to a __shared_future__.]]
+[[Returns:] [a __shared_future__ containing the [link shared_state shared
+state] formerly belonging to `*this`.]]
+[[Postcondition:] [`false == valid()`]]
 [[Throws:] [__future_error__ with error condition __no_state__.]]
 ]
 
@@ -206,6 +201,9 @@ __fiber_interrupted__. Any exception passed to `promise::set_exception()`.]]
 default-constructed `std::exception_ptr`. If `set_exception()` is called,
 returns the passed `std::exception_ptr`.]]
 [[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Note:] [ `get_exception_ptr()` does ['not] invalidate the [`[xfuture]].
+After calling `get_exception_ptr()`, you may still call [member_link
+[xfuture]..get].]]
 ]
 ]
 [future_get_exception_ptr future]
@@ -247,7 +245,8 @@ returns the passed `std::exception_ptr`.]]
 
 [template_heading shared_future]
 
-A __shared_future__ contains a [link shared_state shared state] which might be shared with other futures.
+A __shared_future__ contains a [link shared_state shared state] which might be
+shared with other __shared_future__ instances.
 
         template< typename R >
         class shared_future {
@@ -279,10 +278,12 @@ A __shared_future__ contains a [link shared_state shared state] which might be s
             void wait() const;
 
             template< class Rep, class Period >
-            future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const;
+            future_status wait_for(
+                std::chrono::duration< Rep, Period > const& timeout_duration) const;
 
             template< typename Clock, typename Duration >
-            future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const;
+            future_status wait_until(
+                std::chrono::time_point< Clock, Duration > const& timeout_time) const;
         };
 
 [heading Default constructor]
@@ -296,13 +297,13 @@ A __shared_future__ contains a [link shared_state shared state] which might be s
         shared_future( future && other) noexcept;
         shared_future( shared_future && other) noexcept;
 
-[future_move_copy_ctor_variablelist shared_future..false]
+[future_move_copy_ctor_variablelist shared_future..`false == other.valid()`]
 
 [heading Copy constructor]
 
         shared_future( shared_future const& other) noexcept;
 
-[future_move_copy_ctor_variablelist shared_future..true]
+[future_move_copy_ctor_variablelist shared_future..`other.valid()` is unchanged]
 
 [heading Destructor]
 
@@ -319,7 +320,7 @@ A __shared_future__ contains a [link shared_state shared state] which might be s
 [variablelist
 [[Effects:] [Moves or copies the [link shared_state shared state] of other to
 `this`. After the assignment, the state of `other.valid()` depends on which
-overload was invoked: `true` for the overload accepting `shared_future
+overload was invoked: unchanged for the overload accepting `shared_future
 const&`, otherwise `false`.]]
 [[Throws:] [Nothing.]]
 ]
@@ -357,7 +358,7 @@ const&`, otherwise `false`.]]
 shared_state shared state] associated with the asynchronous execution of
 `fn`.]]
 [[Throws:] [__fiber_exception__ or __future_error__ if an error occurs.]]
-[[Notes:] [The overload accepting `std::allocator_arg_t` uses the passed
+[[Notes:] [The overload accepting __allocator_arg_t__ uses the passed
 `StackAllocator` when constructing the launched `fiber`.]]
 ]
 

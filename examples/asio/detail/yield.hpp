@@ -65,13 +65,15 @@ private:
 
 // Handler type specialisation for yield for a nullary callback.
 template< typename Allocator, typename ReturnType >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >, ReturnType() > {
+struct handler_type< boost::fibers::asio::yield_t< Allocator >,
+                     ReturnType() > {
     typedef boost::fibers::asio::detail::yield_handler< void >    type;
 };
 
 // Handler type specialisation for yield for a single-argument callback.
 template< typename Allocator, typename ReturnType, typename Arg1 >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >, ReturnType( Arg1) > {
+struct handler_type< boost::fibers::asio::yield_t< Allocator >,
+                     ReturnType( Arg1) > {
     typedef fibers::asio::detail::yield_handler< Arg1 >    type;
 };
 
@@ -80,7 +82,8 @@ struct handler_type< boost::fibers::asio::yield_t< Allocator >, ReturnType( Arg1
 // error_code indicating error will be conveyed to consumer code via an
 // exception. Normal return implies (! error_code).
 template< typename Allocator, typename ReturnType >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >, ReturnType( boost::system::error_code) > {
+struct handler_type< boost::fibers::asio::yield_t< Allocator >,
+                     ReturnType( boost::system::error_code) > {
     typedef fibers::asio::detail::yield_handler< void >    type;
 };
 
@@ -91,7 +94,8 @@ struct handler_type< boost::fibers::asio::yield_t< Allocator >, ReturnType( boos
 // error_code).
 //[asio_handler_type
 template< typename Allocator, typename ReturnType, typename Arg2 >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >, ReturnType( boost::system::error_code, Arg2) > {
+struct handler_type< boost::fibers::asio::yield_t< Allocator >,
+                     ReturnType( boost::system::error_code, Arg2) > {
     typedef fibers::asio::detail::yield_handler< Arg2 >    type;
 };
 //]

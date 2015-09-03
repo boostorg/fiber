@@ -30,7 +30,7 @@ Consider the following scenario:
 # Fiber "main" launches fibers A, B, C and D, then calls `barrier::wait()`.
 # Fiber C finishes first and likewise calls `barrier::wait()`.
 # Fiber "main" is unblocked, as desired.
-# Fiber B calls `barrier::wait()`. Fiber B is ['blocked]!
+# Fiber B calls `barrier::wait()`. Fiber B is ['blocked!]
 # Fiber A calls `barrier::wait()`. Fibers A and B are unblocked.
 # Fiber D calls `barrier::wait()`. Fiber D is blocked indefinitely.
 

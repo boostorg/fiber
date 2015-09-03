@@ -370,7 +370,7 @@ producer fiber is independent. It has no idea whether it is the last one to
 
 [#wait_nchannel]
 We can address that problem with a counting façade for the
-`bounded_channel<>`. In fact, our façade need only support the producer end of
+`unbounded_channel<>`. In fact, our façade need only support the producer end of
 the channel.
 
 [wait_nchannel]

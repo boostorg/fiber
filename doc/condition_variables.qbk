@@ -19,7 +19,7 @@
         class condition_variable_any;
 
 The class `condition_variable` provides a mechanism for a fiber to wait for
-notification on `condition_variable`. When the fiber awakens from the wait, then
+notification from another fiber. When the fiber awakens from the wait, then
 it checks to see if the appropriate condition is now true, and continues if so.
 If the condition is not true, then the fiber calls `wait` again to resume
 waiting. In the simplest case, this condition is just a boolean variable:
@@ -85,7 +85,7 @@ optimize as described for `boost::thread::condition_variable`.
     #include <boost/fiber/condition.hpp>
 
     enum cv_status {
-        no_timeout = 1,
+        no_timeout,
         timeout
     };
 
@@ -301,8 +301,9 @@ while ( ! pred() ) {
 }
 return true;
 
-`` That is, even if `wait_for()` times out, it can still return `true` if
-`pred()` returns `true` at that time.]]
+`` (except of course that `timeout_duration` is adjusted for each iteration).
+The point is that, even if `wait_for()` times out, it can still return `true`
+if `pred()` returns `true` at that time.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
 [[Throws:] [__fiber_exception__ if an error
 occurs. __fiber_interrupted__ if the wait was interrupted by a call to

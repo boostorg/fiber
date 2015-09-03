@@ -90,6 +90,8 @@
 [template dblink[id text] '''<link linkend="'''[id]'''">'''[text]'''</link>''']
 [template `[text] '''<code>'''[text]'''</code>''']
 
+[def __allocator_arg_t__
+[@http://en.cppreference.com/w/cpp/memory/allocator_arg_t `std::allocator_arg_t`]]
 [def __barrier__ [class_link barrier]]
 [def __condition__ [class_link condition_variable]]
 [def __disable_interruption__ [class_link disable_interruption]]
@@ -181,7 +183,7 @@ consumers would behave strangely.
 The fiber synchronization objects provided by this library will, by default,
 safely synchronize fibers running on different threads. However, this level of
 synchronization can be removed (for performance) by building the library with
-`BOOST_FIBERS_NO_ATOMICS` defined. When the library is built with that macro,
+[*`BOOST_FIBERS_NO_ATOMICS`] defined. When the library is built with that macro,
 you must ensure that all the fibers referencing a particular synchronization
 object are running in the same thread.
 
