@@ -312,6 +312,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 [[Throws:] [Nothing]]
 ]
 
+[#fiber_fiber]
 [heading Constructor]
 
         template< typename Fn, typename ... Args >
@@ -328,7 +329,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 [[Note:] [StackAllocator is required to allocate a stack for the internal
 __econtext__. If StackAllocator is not explicitly passed, a
 __fixedsize_stack__ is used by default.]]
-[[See also:] [[link stack Stack allocation]]]
+[[See also:] [__allocator_arg_t__, [link stack Stack allocation]]]
 ]
 
 [heading Move constructor]
@@ -525,7 +526,7 @@ create a default [class_link round_robin] instance for this thread.]]
     std::size_t ready_fibers();
 
 [variablelist
-[[Returns:] [Returns the number of fibers ready to run.]]
+[[Returns:] [the number of fibers ready to run.]]
 [[Throws:] [Nothing]]
 ]
 

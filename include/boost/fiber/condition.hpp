@@ -160,12 +160,9 @@ public:
 
     template< typename LockType, typename Rep, typename Period, typename Pred >
     bool wait_for( LockType & lt, std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred) {
-        while ( ! pred() ) {
-            if ( cv_status::timeout == wait_for( lt, timeout_duration) ) {
-                return pred();
-            }
-        }
-        return true;
+        return wait_until( lt,
+                           std::chrono::high_resolution_clock::now() + timeout_duration,
+                           pred);
     }
 };
 

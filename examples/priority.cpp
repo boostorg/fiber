@@ -90,9 +90,9 @@ public:
         // With this scheduler, fibers with higher priority values are
         // preferred over fibers with lower priority values. But fibers with
         // equal priority values are processed in round-robin fashion. So when
-        // we're handed a new fiber_base, put it at the end of the fibers with
-        // that same priority. In other words: search for the first fiber in
-        // the queue with LOWER priority, and insert before that one.
+        // we're handed a new fiber_context*, put it at the end of the fibers
+        // with that same priority. In other words: search for the first fiber
+        // in the queue with LOWER priority, and insert before that one.
         boost::fibers::fiber_context ** fp = & head_;
         for ( ; * fp; fp = & ( * fp)->nxt) {
             if ( properties( * fp).get_priority() < f_priority) {

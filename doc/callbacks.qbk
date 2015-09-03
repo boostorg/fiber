@@ -55,9 +55,10 @@ All we have to do is:
 
 [note This tactic for resuming a pending fiber works even if the callback is
 called on a different thread than the one on which the initiating fiber is
-running. In fact, the example program's dummy `AsyncAPI` implementation
-illustrates that: it simulates async I/O by launching a new thread that sleeps
-briefly and then calls the relevant callback.]
+running. In fact, [@../../examples/adapt_callbacks.cpp the example program's]
+dummy `AsyncAPI` implementation illustrates that: it simulates async I/O by
+launching a new thread that sleeps briefly and then calls the relevant
+callback.]
 
 [heading Success or Exception]
 
@@ -83,6 +84,7 @@ identical to `write_ec()`. You can call it like this:
 
 [callbacks_read_ec_call]
 
+[#Data_or_Exception]
 [heading Data or Exception]
 
 But a more natural API for a function that obtains data is to return only the
@@ -195,14 +197,14 @@ appropriate type. (We store a `shared_ptr< promise< T > >` because the
 `promise_handler` instance is copied on its way into underlying Asio
 machinery.)
 
-Asio, having consulted the `yield_handler` traits specialization, instantiates
+Asio, having consulted the `handler_type<>` traits specialization, instantiates
 a `yield_handler` (aka `promise_handler`) as the async operation's callback:
 
 [fibers_asio_promise_handler]
 
-Like the lambda callback in our `read(AsyncAPI&)` presented earlier,
-`promise_handler::operator()()` either calls [member_link promise..set_value]
-or [member_link promise..set_exception] (via
+Like the lambda callback in our [link Data_or_Exception `read(AsyncAPI&)`]
+presented earlier, `promise_handler::operator()()` either calls [member_link
+promise..set_value] or [member_link promise..set_exception] (via
 `promise_handler_base::should_set_value()`).
 
 [/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
