@@ -69,21 +69,24 @@ fiber can count on thread-local storage; however that storage will be shared
 among all fibers running on the same thread.
 
 [#cross_thread_sync]
+[heading BOOST_FIBERS_NO_ATOMICS]
 The fiber synchronization objects provided by this library will, by default,
 safely synchronize fibers running on different threads. However, this level of
 synchronization can be removed (for performance) by building the library with
-`BOOST_FIBERS_NO_ATOMICS` defined. When the library is built with that macro,
+[*`BOOST_FIBERS_NO_ATOMICS`] defined. When the library is built with that macro,
 you must ensure that all the fibers referencing a particular synchronization
-object are running in the same thread. Please see [link synchronization].
+object are running in the same thread. Please see [link synchronization
+Synchronization].
 
 For fiber-local storage, please see __fsp__.
 
 [#blocking]
 [heading Blocking]
 
-Normally, when this documentation states that a particular fiber ['blocks], it
-means that it yields control, allowing other fibers on the same thread to run.
-The synchronization mechanisms provided by __boost_fiber__ have this behavior.
+Normally, when this documentation states that a particular fiber ['blocks] (or
+equivalently, ['suspends),] it means that it yields control, allowing other
+fibers on the same thread to run. The synchronization mechanisms provided by
+__boost_fiber__ have this behavior.
 
 A fiber may, of course, use normal thread synchronization mechanisms; however
 a fiber that invokes any of these mechanisms will block its entire thread,

@@ -58,7 +58,8 @@ order.
         explicit fiber_specific_ptr( void(*fn)(T*) );
 
 [variablelist
-[[Requires:] [`delete this->get()` is well-formed; fn(this->get()) does not throw]]
+[[Requires:] [`delete this->get()` is well-formed; `fn(this->get())` does not
+throw]]
 [[Effects:] [Construct a __fsp__ object for storing a pointer to an object of
 type `T` specific to each fiber. When `reset()` is called, or the
 fiber exits, __fsp__ calls `fn(this->get())`. If the no-arguments constructor
@@ -73,7 +74,7 @@ will be used to destroy the fiber-local objects.]]
 
 [variablelist
 [[Requires:] [All the fiber specific instances associated to this __fsp__
-(except maybe the one associated to this fiber) must be null.]]
+(except maybe the one associated to this fiber) must be nullptr.]]
 [[Effects:] [Calls `this->reset()` to clean up the associated value for the
 current fiber, and destroys `*this`.]]
 [[Throws:] [Nothing.]]
@@ -103,6 +104,7 @@ each fiber.]
         T* operator->() const;
 
 [variablelist
+[[Requires:] [`this->get()` is not `nullptr`.]]
 [[Returns:] [`this->get()`]]
 [[Throws:] [Nothing.]]
 ]
@@ -124,13 +126,13 @@ each fiber.]
 [variablelist
 [[Effects:] [Return `this->get()` and store `nullptr` as the pointer associated
 with the current fiber without invoking the cleanup function.]]
-[[Postcondition:] [`this->get()==0`]]
+[[Postcondition:] [`this->get()==nullptr`]]
 [[Throws:] [Nothing.]]
 ]
 
 [member_heading fiber_specific_ptr..reset]
 
-        void reset(T* new_value=0);
+        void reset(T* new_value);
 
 [variablelist
 [[Effects:] [If `this->get()!=new_value` and `this->get()` is not `nullptr`,

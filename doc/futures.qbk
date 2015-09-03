@@ -32,9 +32,9 @@ are safe. You can move an instance of __future__ into an instance of
 __shared_future__, thus transferring ownership of the associated asynchronous
 result, but not vice-versa.
 
-__async__ is a simple way of running asynchronous tasks. A call to __async__
-spawns a fiber and returns a __future__ that will deliver the result of the
-fiber function.
+[ns_function_link fibers..async] is a simple way of running asynchronous
+tasks. A call to __async__ spawns a fiber and returns a __future__ that will
+deliver the result of the fiber function.
 
 
 [heading Creating asynchronous values]

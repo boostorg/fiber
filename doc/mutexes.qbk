@@ -29,8 +29,8 @@ __mutex__ provides an exclusive-ownership mutex. At most one fiber can own the
 lock on a given instance of __mutex__ at any time. Multiple concurrent calls to
 __lock__, __try_lock__ and __unlock__ shall be permitted.
 
-Any fiber blocked in __lock__ is suspended in the scheduler until the owning
-fiber releases the lock by calling __unlock__.
+Any fiber blocked in __lock__ is suspended until the owning fiber releases the
+lock by calling __unlock__.
 
 [member_heading mutex..lock]
 
