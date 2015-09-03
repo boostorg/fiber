@@ -18,6 +18,8 @@ synchronization, capable of synchronizing fibers running on different threads.
 The columns labeled [*fiber (raw)] were compiled with [link cross_thread_sync
 `BOOST_FIBERS_NO_ATOMICS`].
 
+[note The measurement of fibers include the memory allocation of fiber stacks!]
+
 [table Overhead of creating and joining
     [[thread]     [fiber (atomics)] [fiber (raw)] [tbb]    [qthread]]
     [[31 \u00b5s] [1.1 \u00b5s]     [955 ns]      [570 ns] [620 ns]]
@@ -43,7 +45,7 @@ The columns labeled [*fiber (raw)] were compiled with [link cross_thread_sync
 (from [@../../performance/fiber/overhead_future.cpp overhead_future.cpp])
 
 [table Scaling of creating and joining
-    [[average of]   [thread]        [fiber (atomics)] [fiber (raw)]] 
+    [[average of]   [thread]        [fiber (atomics)] [fiber (raw)]]
     [[10]           [50.65 \u00b5s] [4.83 \u00b5s]    [3.76 \u00b5s]]
     [[50]           [52.99 \u00b5s] [4.84 \u00b5s]    [2.78 \u00b5s]]
     [[100]          [50.44 \u00b5s] [5.24 \u00b5s]    [2.45 \u00b5s]]
