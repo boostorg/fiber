@@ -33,14 +33,14 @@ namespace detail {
 //[fibers_asio_promise_handler_base
 template< typename T >
 class promise_handler_base {
-private:
-    typedef boost::shared_ptr< boost::fibers::promise< T > > promise_ptr;
-
 public:
+    typedef std::shared_ptr< boost::fibers::promise< T > > promise_ptr;
+
     // Construct from any promise_completion_token subclass special value.
     template< typename Allocator >
     promise_handler_base( boost::fibers::asio::promise_completion_token< Allocator > const& pct) :
-        promise_( new boost::fibers::promise< T >( std::allocator_arg, pct.get_allocator() ) )
+        promise_( std::make_shared< boost::fibers::promise< T > >(
+                      std::allocator_arg, pct.get_allocator() ) )
 //<-
         , ecp_( pct.ec_)
 //->
@@ -112,6 +112,7 @@ public:
         }
     }
 //<-
+    using promise_handler_base< T >::promise_ptr;
     using promise_handler_base< T >::get_promise;
 //->
 };
@@ -140,6 +141,7 @@ public:
         }
     }
 
+    using promise_handler_base< void >::promise_ptr;
     using promise_handler_base< void >::get_promise;
 };
 
@@ -152,7 +154,8 @@ namespace detail {
 // from the handler are propagated back to the caller via the future.
 template< typename Function, typename T >
 void asio_handler_invoke( Function f, fibers::asio::detail::promise_handler< T > * h) {
-    boost::shared_ptr< boost::fibers::promise< T > > p( h->get_promise() );
+    typename fibers::asio::detail::promise_handler< T >::promise_ptr
+        p( h->get_promise() );
     try {
         f();
     } catch (...) {
