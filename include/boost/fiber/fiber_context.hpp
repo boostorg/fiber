@@ -190,7 +190,7 @@ public:
               // lambda, executed in execution context
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
-              [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> decltype( auto) {
+              [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> void {
                 try {
                     BOOST_ASSERT( is_running() );
                     detail::invoke_helper( std::move( fn), std::move( tpl) );
