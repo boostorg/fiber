@@ -18,14 +18,14 @@
 #define JOBS BOOST_PP_LIMIT_REPEAT
 #endif
 
-#define DETACH(z, n, _) \
+#define JOIN(z, n, _) \
 { \
-    boost::fibers::fiber f( worker); \
     time_point_type start( clock_type::now() ); \
-    f.detach(); \
+    boost::fibers::fiber f( worker); \
     duration_type total = clock_type::now() - start; \
     total -= overhead_clock(); \
     result += total; \
+    f.join(); \
 }
 
 void worker() {}
@@ -36,7 +36,7 @@ duration_type measure( duration_type overhead)
 
     duration_type result;
 
-    BOOST_PP_REPEAT_FROM_TO(1, JOBS, DETACH, _)
+    BOOST_PP_REPEAT_FROM_TO(1, JOBS, JOIN, _)
 
     result /= JOBS;  // loops
 

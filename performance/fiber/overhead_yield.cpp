@@ -19,24 +19,28 @@
 #endif
 
 #define JOIN(z, n, _) \
-    boost::fibers::fiber( worker).join();
+    boost::fibers::fiber( worker, & result).join();
 
-void worker()
-{ boost::this_fiber::yield(); }
+void worker( duration_type * result)
+{
+    time_point_type start( clock_type::now() );
+    boost::this_fiber::yield();
+    duration_type total = clock_type::now() - start;
+    total -= overhead_clock();
+    * result += total;
+}
 
 duration_type measure( duration_type overhead)
 {
-    boost::fibers::fiber( worker).join();
+    duration_type result;
 
-    time_point_type start( clock_type::now() );
+    boost::fibers::fiber( worker, & result).join();
 
     BOOST_PP_REPEAT_FROM_TO(1, JOBS, JOIN, _)
 
-    duration_type total = clock_type::now() - start;
-    total -= overhead_clock(); // overhead of measurement
-    total /= JOBS;  // loops
+    result /= JOBS;  // loops
 
-    return total;
+    return result;
 }
 
 int main( int argc, char * argv[])
