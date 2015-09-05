@@ -34,7 +34,7 @@ duration_type measure( duration_type overhead)
 {
     boost::fibers::fiber( worker).join();
 
-    duration_type result;
+    duration_type result = duration_type::zero();
 
     BOOST_PP_REPEAT_FROM_TO(1, JOBS, DETACH, _)
 

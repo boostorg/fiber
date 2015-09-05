@@ -52,7 +52,7 @@
       The fiber synchronization objects provided by this library will, by default,
       safely synchronize fibers running on different threads. However, this level
       of synchronization can be removed (for performance) by building the library
-      with <code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code>
+      with <span class="bold"><strong><code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code></strong></span>
       defined. When the library is built with that macro, you must ensure that all
       the fibers referencing a particular synchronization object are running in the
       same thread.

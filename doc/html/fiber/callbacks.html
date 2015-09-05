@@ -150,9 +150,10 @@
 <tr><td align="left" valign="top"><p>
         This tactic for resuming a pending fiber works even if the callback is called
         on a different thread than the one on which the initiating fiber is running.
-        In fact, the example program's dummy <code class="computeroutput"><span class="identifier">AsyncAPI</span></code>
-        implementation illustrates that: it simulates async I/O by launching a new
-        thread that sleeps briefly and then calls the relevant callback.
+        In fact, <a href="../../../examples/adapt_callbacks.cpp" target="_top">the example program's</a>
+        dummy <code class="computeroutput"><span class="identifier">AsyncAPI</span></code> implementation
+        illustrates that: it simulates async I/O by launching a new thread that sleeps
+        briefly and then calls the relevant callback.
       </p></td></tr>
 </table></div>
 <h4>
@@ -215,7 +216,7 @@
 </pre>
 <p>
     </p>
-<h4>
+<a name="Data_or_Exception"></a><h4>
 <a name="fiber.callbacks.h4"></a>
       <span><a name="fiber.callbacks.data_or_exception"></a></span><a class="link" href="callbacks.html#fiber.callbacks.data_or_exception">Data
       or Exception</a>
@@ -444,7 +445,8 @@
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ReturnType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Arg2</span> <span class="special">&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">handler_type</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_t</span><span class="special">&lt;</span> <span class="identifier">Allocator</span> <span class="special">&gt;,</span> <span class="identifier">ReturnType</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">,</span> <span class="identifier">Arg2</span><span class="special">)</span> <span class="special">&gt;</span> <span class="special">{</span>
+<span class="keyword">struct</span> <span class="identifier">handler_type</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_t</span><span class="special">&lt;</span> <span class="identifier">Allocator</span> <span class="special">&gt;,</span>
+                     <span class="identifier">ReturnType</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">,</span> <span class="identifier">Arg2</span><span class="special">)</span> <span class="special">&gt;</span> <span class="special">{</span>
     <span class="keyword">typedef</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="identifier">Arg2</span> <span class="special">&gt;</span>    <span class="identifier">type</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
@@ -481,14 +483,14 @@
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">promise_handler_base</span> <span class="special">{</span>
-<span class="keyword">private</span><span class="special">:</span>
-    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">promise_ptr</span><span class="special">;</span>
-
 <span class="keyword">public</span><span class="special">:</span>
+    <span class="keyword">typedef</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">promise_ptr</span><span class="special">;</span>
+
     <span class="comment">// Construct from any promise_completion_token subclass special value.</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
     <span class="identifier">promise_handler_base</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">promise_completion_token</span><span class="special">&lt;</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">pct</span><span class="special">)</span> <span class="special">:</span>
-        <span class="identifier">promise_</span><span class="special">(</span> <span class="keyword">new</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg</span><span class="special">,</span> <span class="identifier">pct</span><span class="special">.</span><span class="identifier">get_allocator</span><span class="special">()</span> <span class="special">)</span> <span class="special">)</span>
+        <span class="identifier">promise_</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;(</span>
+                      <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg</span><span class="special">,</span> <span class="identifier">pct</span><span class="special">.</span><span class="identifier">get_allocator</span><span class="special">()</span> <span class="special">)</span> <span class="special">)</span>
     <span class="special">{}</span>
 
     <span class="keyword">bool</span> <span class="identifier">should_set_value</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span> <span class="special">{</span>
@@ -524,10 +526,9 @@
       instance is copied on its way into underlying Asio machinery.)
     </p>
 <p>
-      Asio, having consulted the <code class="computeroutput"><span class="identifier">yield_handler</span></code>
-      traits specialization, instantiates a <code class="computeroutput"><span class="identifier">yield_handler</span></code>
-      (aka <code class="computeroutput"><span class="identifier">promise_handler</span></code>) as the
-      async operation's callback:
+      Asio, having consulted the <code class="computeroutput"><span class="identifier">handler_type</span><span class="special">&lt;&gt;</span></code> traits specialization, instantiates
+      a <code class="computeroutput"><span class="identifier">yield_handler</span></code> (aka <code class="computeroutput"><span class="identifier">promise_handler</span></code>) as the async operation's
+      callback:
     </p>
 <p>
 </p>
@@ -551,9 +552,8 @@
 <p>
     </p>
 <p>
-      Like the lambda callback in our <code class="computeroutput"><span class="identifier">read</span><span class="special">(</span><span class="identifier">AsyncAPI</span><span class="special">&amp;)</span></code> presented earlier, <code class="computeroutput"><span class="identifier">promise_handler</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()()</span></code>
-      either calls <a class="link" href="synchronization/futures/promise.html#promise_set_value"> <code class="computeroutput">promise::set_value()</code></a>
-or <a class="link" href="synchronization/futures/promise.html#promise_set_exception"> <code class="computeroutput">promise::set_exception()</code></a> (via
+      Like the lambda callback in our <a class="link" href="callbacks.html#Data_or_Exception"><code class="computeroutput"><span class="identifier">read</span><span class="special">(</span><span class="identifier">AsyncAPI</span><span class="special">&amp;)</span></code></a> presented earlier, <code class="computeroutput"><span class="identifier">promise_handler</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()()</span></code>
+      either calls <a class="link" href="synchronization/futures/promise.html#promise_set_value"> <code class="computeroutput">promise::set_value()</code></a> or <a class="link" href="synchronization/futures/promise.html#promise_set_exception"> <code class="computeroutput">promise::set_exception()</code></a> (via
       <code class="computeroutput"><span class="identifier">promise_handler_base</span><span class="special">::</span><span class="identifier">should_set_value</span><span class="special">()</span></code>).
     </p>
 <p>

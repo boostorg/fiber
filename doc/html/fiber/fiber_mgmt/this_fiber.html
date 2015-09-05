@@ -231,6 +231,11 @@
               such as priority, with a fiber instance. This function allows access
               to those user-provided properties.
             </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              The first time this function is called from the main fiber of a thread,
+              it may internally yield, permitting other fibers to run.
+            </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
               <a class="link" href="../custom.html#custom">Customization</a>

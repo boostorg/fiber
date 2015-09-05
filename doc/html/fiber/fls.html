@@ -97,8 +97,7 @@
 <dl>
 <dt><span class="term">Requires:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="keyword">delete</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">()</span></code> is well-formed; fn(this-&gt;get())
-            does not throw
+            <code class="computeroutput"><span class="keyword">delete</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">()</span></code> is well-formed; <code class="computeroutput"><span class="identifier">fn</span><span class="special">(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">())</span></code> does not throw
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -129,7 +128,7 @@
 <dd><p>
             All the fiber specific instances associated to this <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>
 (except
-            maybe the one associated to this fiber) must be null.
+            maybe the one associated to this fiber) must be nullptr.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -212,6 +211,11 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Requires:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">()</span></code>
+            is not <code class="computeroutput"><span class="keyword">nullptr</span></code>.
+          </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
             <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">()</span></code>
@@ -276,7 +280,7 @@
           </p></dd>
 <dt><span class="term">Postcondition:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">()==</span><span class="number">0</span></code>
+            <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">()==</span><span class="keyword">nullptr</span></code>
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -294,7 +298,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span><span class="identifier">T</span><span class="special">*</span> <span class="identifier">new_value</span><span class="special">=</span><span class="number">0</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span><span class="identifier">T</span><span class="special">*</span> <span class="identifier">new_value</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>

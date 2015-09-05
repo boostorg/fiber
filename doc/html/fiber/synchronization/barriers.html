@@ -61,7 +61,7 @@
             Fiber "main" is unblocked, as desired.
           </li>
 <li class="listitem">
-            Fiber B calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fiber B is <span class="emphasis"><em>blocked</em></span>!
+            Fiber B calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fiber B is <span class="emphasis"><em>blocked!</em></span>
           </li>
 <li class="listitem">
             Fiber A calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fibers A and B are unblocked.
@@ -82,8 +82,7 @@
           It is unwise to tie the lifespan of a barrier to any one of its participating
           fibers. Although conceptually all waiting fibers awaken "simultaneously,"
           because of the nature of fibers, in practice they will awaken one by one
-          in indeterminate order. The rest of the waiting fibers will still be blocked
-          in <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>,
+          in indeterminate order.<sup>[<a name="fiber.synchronization.barriers.f0" href="#ftn.fiber.synchronization.barriers.f0" class="footnote">4</a>]</sup> The rest of the waiting fibers will still be blocked in <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>,
           which must, before returning, access data members in the barrier object.
         </p></td></tr>
 </table></div>
@@ -171,6 +170,15 @@
               is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
             </p></dd>
 </dl>
+</div>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.synchronization.barriers.f0" href="#fiber.synchronization.barriers.f0" class="para">4</a>] </sup>
+            The current implementation wakes fibers in FIFO order: the first to call
+            <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>
+            wakes first, and so forth. But it is perilous to rely on the order in
+            which the various fibers will reach the <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> call.
+          </p></div>
 </div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

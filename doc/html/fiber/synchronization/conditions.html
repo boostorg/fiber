@@ -40,11 +40,12 @@
 </pre>
 <p>
         The class <code class="computeroutput"><span class="identifier">condition_variable</span></code>
-        provides a mechanism for a fiber to wait for notification on <code class="computeroutput"><span class="identifier">condition_variable</span></code>. When the fiber awakens
-        from the wait, then it checks to see if the appropriate condition is now
-        true, and continues if so. If the condition is not true, then the fiber calls
-        <code class="computeroutput"><span class="identifier">wait</span></code> again to resume waiting.
-        In the simplest case, this condition is just a boolean variable:
+        provides a mechanism for a fiber to wait for notification from another fiber.
+        When the fiber awakens from the wait, then it checks to see if the appropriate
+        condition is now true, and continues if so. If the condition is not true,
+        then the fiber calls <code class="computeroutput"><span class="identifier">wait</span></code>
+        again to resume waiting. In the simplest case, this condition is just a boolean
+        variable:
       </p>
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable</span> <span class="identifier">cond</span><span class="special">;</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="identifier">mtx</span><span class="special">;</span>
@@ -123,7 +124,7 @@
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">condition</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">enum</span> <span class="identifier">cv_status</span> <span class="special">{</span>
-    <span class="identifier">no_timeout</span> <span class="special">=</span> <span class="number">1</span><span class="special">,</span>
+    <span class="identifier">no_timeout</span><span class="special">,</span>
     <span class="identifier">timeout</span>
 <span class="special">};</span>
 
@@ -500,8 +501,11 @@
 <span class="keyword">return</span> <span class="keyword">true</span><span class="special">;</span>
 </pre>
 <p>
-              That is, even if <code class="computeroutput"><span class="identifier">wait_for</span><span class="special">()</span></code> times out, it can still return <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">pred</span><span class="special">()</span></code> returns <code class="computeroutput"><span class="keyword">true</span></code>
-              at that time.
+              (except of course that <code class="computeroutput"><span class="identifier">timeout_duration</span></code>
+              is adjusted for each iteration). The point is that, even if <code class="computeroutput"><span class="identifier">wait_for</span><span class="special">()</span></code>
+              times out, it can still return <code class="computeroutput"><span class="keyword">true</span></code>
+              if <code class="computeroutput"><span class="identifier">pred</span><span class="special">()</span></code>
+              returns <code class="computeroutput"><span class="keyword">true</span></code> at that time.
             </p>
 </dd>
 <dt><span class="term">Postcondition:</span></dt>

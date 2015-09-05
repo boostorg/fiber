@@ -30,11 +30,12 @@
 <p>
           Naturally, just as with <a class="link" href="../when_any/when_any__produce_first_outcome__whether_result_or_exception.html#wait_first_outcome"><code class="computeroutput"><span class="identifier">wait_first_outcome</span><span class="special">()</span></code></a>,
           we can elaborate <a class="link" href="when_all__return_values.html#wait_all_values"><code class="computeroutput"><span class="identifier">wait_all_values</span><span class="special">()</span></code></a> and <a class="link" href="when_all__return_values.html#wait_all_values_source"><code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code></a>
-          by passing <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          by passing <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span>
+          <span class="identifier">T</span> <span class="special">&gt;</span></code>
           instead of plain <code class="computeroutput"><span class="identifier">T</span></code>.
         </p>
 <p>
-          <a name="wait_all_until_error"></a><code class="computeroutput"><span class="identifier">wait_all_until_error</span><span class="special">()</span></code> pops that <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> and calls its <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>:
+          <a name="wait_all_until_error"></a><code class="computeroutput"><span class="identifier">wait_all_until_error</span><span class="special">()</span></code> pops that <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span></code> and calls its <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>:
         </p>
 <p>
 </p>
@@ -85,7 +86,8 @@
         </p>
 <p>
           <a name="wait_all_until_error_source"></a>Naturally this complicates the
-          API for <code class="computeroutput"><span class="identifier">wait_all_until_error_source</span><span class="special">()</span></code>. The caller must both retrieve a <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          API for <code class="computeroutput"><span class="identifier">wait_all_until_error_source</span><span class="special">()</span></code>. The caller must both retrieve a <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span>
+          <span class="identifier">T</span> <span class="special">&gt;</span></code>
           and call its <code class="computeroutput"><span class="identifier">get</span><span class="special">()</span></code>
           method. It would, of course, be possible to return a fa&#231;ade over the consumer
           end of the channel that would implicitly perform the <code class="computeroutput"><span class="identifier">get</span><span class="special">()</span></code> and return a simple <code class="computeroutput"><span class="identifier">T</span></code>
