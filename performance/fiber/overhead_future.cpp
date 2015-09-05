@@ -26,7 +26,7 @@
     time_point_type start( clock_type::now() ); \
     f.wait(); \
     duration_type total = clock_type::now() - start; \
-    total -= overhead_clock(); \
+    total -= overhead; \
     result += total; \
 }
 

@@ -19,14 +19,14 @@
 #endif
 
 #define JOIN(z, n, _) \
-    boost::fibers::fiber( worker, & result).join();
+    boost::fibers::fiber( worker, overhead, & result).join();
 
-void worker( duration_type * result)
+void worker( duration_type overhead, duration_type * result)
 {
     time_point_type start( clock_type::now() );
     boost::this_fiber::yield();
     duration_type total = clock_type::now() - start;
-    total -= overhead_clock();
+    total -= overhead;
     * result += total;
 }
 
@@ -34,7 +34,7 @@ duration_type measure( duration_type overhead)
 {
     duration_type result = duration_type::zero();
 
-    boost::fibers::fiber( worker, & result).join();
+    boost::fibers::fiber( worker, overhead, & result).join();
 
     result = duration_type::zero();
 
