@@ -287,21 +287,21 @@ public:
 
     template< typename Rep, typename Period >
     channel_op_status push_wait_for( value_type const& va,
-                                   std::chrono::duration< Rep, Period > const& timeout_duration) {
+                                     std::chrono::duration< Rep, Period > const& timeout_duration) {
         return push_wait_until( va,
                                 std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Rep, typename Period >
     channel_op_status push_wait_for( value_type && va,
-                                   std::chrono::duration< Rep, Period > const& timeout_duration) {
+                                     std::chrono::duration< Rep, Period > const& timeout_duration) {
         return push_wait_until( std::forward< value_type >( va),
                                 std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
     channel_op_status push_wait_until( value_type const& va,
-                                     std::chrono::time_point< Clock, Duration > const& timeout_time) {
+                                       std::chrono::time_point< Clock, Duration > const& timeout_time) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( va, alloc_) );
         std::unique_lock< mutex > lk( mtx_);
@@ -310,7 +310,7 @@ public:
 
     template< typename Clock, typename Duration >
     channel_op_status push_wait_until( value_type && va,
-                                     std::chrono::time_point< Clock, Duration > const& timeout_time) {
+                                       std::chrono::time_point< Clock, Duration > const& timeout_time) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
@@ -383,14 +383,14 @@ public:
 
     template< typename Rep, typename Period >
     channel_op_status pop_wait_for( value_type & va,
-                                  std::chrono::duration< Rep, Period > const& timeout_duration) {
+                                    std::chrono::duration< Rep, Period > const& timeout_duration) {
         return pop_wait_until( va,
                                std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
     channel_op_status pop_wait_until( value_type & va,
-                                    std::chrono::time_point< Clock, Duration > const& timeout_time) {
+                                      std::chrono::time_point< Clock, Duration > const& timeout_time) {
         std::unique_lock< mutex > lk( mtx_);
 
         while ( ! is_closed_() && is_empty_() ) {

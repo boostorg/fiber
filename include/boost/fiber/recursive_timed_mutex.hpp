@@ -42,6 +42,8 @@ private:
 
     bool lock_if_unlocked_();
 
+    bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time);
+
 public:
     recursive_timed_mutex();
 
@@ -54,18 +56,16 @@ public:
 
     bool try_lock();
 
-    bool try_lock_until( std::chrono::steady_clock::time_point const& timeout_time);
-
     template< typename Clock, typename Duration >
     bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
-        return try_lock_until( timeout_time);
+        return try_lock_until_( timeout_time);
     }
 
     template< typename Rep, typename Period >
     bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
-        return try_lock_until( std::chrono::steady_clock::now() + timeout_duration);
+        return try_lock_until_( std::chrono::steady_clock::now() + timeout_duration);
     }
 
     void unlock();

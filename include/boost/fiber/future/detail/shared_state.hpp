@@ -112,8 +112,9 @@ private:
         return future_status::ready;
     }
 
+    template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                              std::chrono::steady_clock::time_point const& timeout_time) const {
+                              std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -181,7 +182,8 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( std::chrono::steady_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
@@ -274,8 +276,9 @@ private:
         return future_status::ready;
     }
 
+    template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::steady_clock::time_point const& timeout_time) const {
+                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -338,7 +341,8 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( std::chrono::steady_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
@@ -435,9 +439,9 @@ private:
         return future_status::ready;
     }
 
-    inline
+    template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::steady_clock::time_point const& timeout_time) const {
+                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -505,8 +509,8 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    inline
-    future_status wait_until( std::chrono::steady_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }

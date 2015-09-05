@@ -81,7 +81,7 @@ timed_mutex::try_lock() {
 }
 
 bool
-timed_mutex::try_lock_until( std::chrono::steady_clock::time_point const& timeout_time) {
+timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {

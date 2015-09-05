@@ -134,8 +134,8 @@ fiber_manager::wait( detail::spinlock_lock & lk) {
 }
 
 bool
-fiber_manager::wait_until( std::chrono::steady_clock::time_point const& timeout_time,
-                           detail::spinlock_lock & lk) {
+fiber_manager::wait_until_( std::chrono::steady_clock::time_point const& timeout_time,
+                            detail::spinlock_lock & lk) {
     BOOST_ASSERT( active_fiber_->is_running() );
     // set active-fiber to state_waiting
     active_fiber_->set_waiting();

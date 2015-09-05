@@ -6,6 +6,7 @@
 //
 // This test is based on the tests of Boost.Thread 
 
+#include <chrono>
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -16,7 +17,6 @@
 
 #include <boost/atomic.hpp>
 #include <boost/bind.hpp>
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/function.hpp>
 #include <boost/ref.hpp>

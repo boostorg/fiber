@@ -94,9 +94,8 @@ public:
     }
 
     template< typename LockType, typename Clock, typename Duration >
-    cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+    cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time) {
         cv_status status = cv_status::no_timeout;
-        std::chrono::steady_clock::time_point timeout_time( detail::convert_tp( timeout_time_) );
 
         fiber_context * f( detail::scheduler::instance()->active() );
         try {

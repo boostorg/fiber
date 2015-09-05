@@ -87,7 +87,7 @@ recursive_timed_mutex::try_lock() {
 }
 
 bool
-recursive_timed_mutex::try_lock_until( std::chrono::steady_clock::time_point const& timeout_time) {
+recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
