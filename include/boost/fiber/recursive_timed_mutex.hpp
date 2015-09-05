@@ -54,18 +54,18 @@ public:
 
     bool try_lock();
 
-    bool try_lock_until( std::chrono::high_resolution_clock::time_point const& timeout_time);
+    bool try_lock_until( std::chrono::steady_clock::time_point const& timeout_time);
 
     template< typename Clock, typename Duration >
     bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
-        std::chrono::high_resolution_clock::time_point timeout_time(
+        std::chrono::steady_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
         return try_lock_until( timeout_time);
     }
 
     template< typename Rep, typename Period >
     bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
-        return try_lock_until( std::chrono::high_resolution_clock::now() + timeout_duration);
+        return try_lock_until( std::chrono::steady_clock::now() + timeout_duration);
     }
 
     void unlock();

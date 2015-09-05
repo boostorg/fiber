@@ -289,14 +289,14 @@ public:
     channel_op_status push_wait_for( value_type const& va,
                                    std::chrono::duration< Rep, Period > const& timeout_duration) {
         return push_wait_until( va,
-                                std::chrono::high_resolution_clock::now() + timeout_duration);
+                                std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Rep, typename Period >
     channel_op_status push_wait_for( value_type && va,
                                    std::chrono::duration< Rep, Period > const& timeout_duration) {
         return push_wait_until( std::forward< value_type >( va),
-                                std::chrono::high_resolution_clock::now() + timeout_duration);
+                                std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
@@ -385,7 +385,7 @@ public:
     channel_op_status pop_wait_for( value_type & va,
                                   std::chrono::duration< Rep, Period > const& timeout_duration) {
         return pop_wait_until( va,
-                               std::chrono::high_resolution_clock::now() + timeout_duration);
+                               std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >

@@ -238,7 +238,7 @@ public:
     template< typename Rep, typename Period >
     channel_op_status pop_wait_for( value_type & va,
                                     std::chrono::duration< Rep, Period > const& timeout_duration) {
-        return pop_wait_until( va, std::chrono::high_resolution_clock::now() + timeout_duration);
+        return pop_wait_until( va, std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >

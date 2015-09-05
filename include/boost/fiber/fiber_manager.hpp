@@ -39,7 +39,7 @@ private:
     fiber_context                               *   active_fiber_;
     wqueue_t                                        wqueue_;
     tqueue_t                                        tqueue_;
-    std::chrono::high_resolution_clock::duration    wait_interval_;
+    std::chrono::steady_clock::duration    wait_interval_;
 
     void resume_( fiber_context *);
 
@@ -57,13 +57,13 @@ public:
 
     void wait( detail::spinlock_lock &);
 
-    bool wait_until( std::chrono::high_resolution_clock::time_point const&,
+    bool wait_until( std::chrono::steady_clock::time_point const&,
                         detail::spinlock_lock &);
 
     template< typename Clock, typename Duration >
     bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
                      detail::spinlock_lock & lk) {
-        std::chrono::high_resolution_clock::time_point timeout_time(
+        std::chrono::steady_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
         return wait_until( timeout_time, lk);
     }
@@ -71,7 +71,7 @@ public:
     template< typename Rep, typename Period >
     bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
                    detail::spinlock_lock & lk) {
-        return wait_until( std::chrono::high_resolution_clock::now() + timeout_duration, lk);
+        return wait_until( std::chrono::steady_clock::now() + timeout_duration, lk);
     }
 
     void yield();
@@ -86,14 +86,14 @@ public:
 
     void set_sched_algo( std::unique_ptr< sched_algorithm >);
 
-    void wait_interval( std::chrono::high_resolution_clock::duration const&) noexcept;
+    void wait_interval( std::chrono::steady_clock::duration const&) noexcept;
 
     template< typename Rep, typename Period >
     void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
         wait_interval( wait_interval);
     }
 
-    std::chrono::high_resolution_clock::duration wait_interval() noexcept;
+    std::chrono::steady_clock::duration wait_interval() noexcept;
 };
 
 }}

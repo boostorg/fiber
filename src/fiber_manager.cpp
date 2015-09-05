@@ -120,7 +120,7 @@ fiber_manager::run() {
         } else {
             // no fibers ready to run; the thread should sleep
             std::this_thread::sleep_until(
-                std::chrono::high_resolution_clock::now() + wait_interval_);
+                std::chrono::steady_clock::now() + wait_interval_);
         }
     }
 }
@@ -128,13 +128,13 @@ fiber_manager::run() {
 void
 fiber_manager::wait( detail::spinlock_lock & lk) {
     wait_until(
-        std::chrono::high_resolution_clock::time_point(
-            (std::chrono::high_resolution_clock::duration::max)() ),
+        std::chrono::steady_clock::time_point(
+            (std::chrono::steady_clock::duration::max)() ),
         lk);
 }
 
 bool
-fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time,
+fiber_manager::wait_until( std::chrono::steady_clock::time_point const& timeout_time,
                            detail::spinlock_lock & lk) {
     BOOST_ASSERT( active_fiber_->is_running() );
     // set active-fiber to state_waiting
@@ -150,7 +150,7 @@ fiber_manager::wait_until( std::chrono::high_resolution_clock::time_point const&
     // check if fiber was interrupted
     this_fiber::interruption_point();
     // check if timeout has reached
-    return std::chrono::high_resolution_clock::now() < timeout_time;
+    return std::chrono::steady_clock::now() < timeout_time;
 }
 
 void
@@ -202,11 +202,11 @@ fiber_manager::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
 }
 
 void
-fiber_manager::wait_interval( std::chrono::high_resolution_clock::duration const& wait_interval) noexcept {
+fiber_manager::wait_interval( std::chrono::steady_clock::duration const& wait_interval) noexcept {
     wait_interval_ = wait_interval;
 }
 
-std::chrono::high_resolution_clock::duration
+std::chrono::steady_clock::duration
 fiber_manager::wait_interval() noexcept {
     return wait_interval_;
 }

@@ -264,10 +264,10 @@ void fn3( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point t = t0 + ms(250);
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point t = t0 + ms(250);
     bool r = cv.wait_until(lk, t, Pred(test2));
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -289,11 +289,11 @@ void fn4( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     int count=0;
     while (test2 == 0 && cv.wait_for(lk, ms(250)) == boost::fibers::cv_status::no_timeout)
         count++;
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250));
@@ -313,11 +313,11 @@ void fn5( boost::fibers::mutex & m, boost::fibers::condition_variable & cv)
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
-    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     int count=0;
     cv.wait_for(lk, ms(250), Pred(test2));
     count++;
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     if (runs == 0)
     {
         BOOST_CHECK(t1 - t0 < ms(250+1000));

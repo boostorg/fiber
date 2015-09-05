@@ -43,8 +43,8 @@ void
 waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
     BOOST_ASSERT( nullptr != sched_algo);
 
-    std::chrono::high_resolution_clock::time_point now(
-        std::chrono::high_resolution_clock::now() );
+    std::chrono::steady_clock::time_point now(
+        std::chrono::steady_clock::now() );
 
     fiber_context * prev = head_;
     for ( fiber_context * f( head_); nullptr != f;) {

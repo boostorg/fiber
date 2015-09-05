@@ -113,7 +113,7 @@ private:
     }
 
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                              std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+                              std::chrono::steady_clock::time_point const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -181,7 +181,7 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    future_status wait_until( std::chrono::steady_clock::time_point const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
@@ -275,7 +275,7 @@ private:
     }
 
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+                               std::chrono::steady_clock::time_point const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -338,7 +338,7 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    future_status wait_until( std::chrono::steady_clock::time_point const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
@@ -437,7 +437,7 @@ private:
 
     inline
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+                               std::chrono::steady_clock::time_point const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -506,7 +506,7 @@ public:
     }
 
     inline
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    future_status wait_until( std::chrono::steady_clock::time_point const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
