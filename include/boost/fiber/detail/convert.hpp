@@ -22,13 +22,13 @@ namespace fibers {
 namespace detail {
 
 inline
-std::chrono::high_resolution_clock::time_point convert_tp( std::chrono::high_resolution_clock::time_point const& timeout_time) noexcept {
+std::chrono::steady_clock::time_point convert_tp( std::chrono::steady_clock::time_point const& timeout_time) noexcept {
     return timeout_time;
 }
 
 template< typename Clock, typename Duration >
-std::chrono::high_resolution_clock::time_point convert_tp( std::chrono::time_point< Clock, Duration > const& timeout_time) {
-    return std::chrono::high_resolution_clock::now() + ( timeout_time - Clock::now() );
+std::chrono::steady_clock::time_point convert_tp( std::chrono::time_point< Clock, Duration > const& timeout_time) {
+    return std::chrono::steady_clock::now() + ( timeout_time - Clock::now() );
 }
 
 }}}

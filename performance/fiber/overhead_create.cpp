@@ -7,9 +7,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include <thread>
 
 #include <boost/cstdint.hpp>
+#include <boost/fiber/all.hpp>
 #include <boost/preprocessor.hpp>
 
 #include "../clock.hpp"
@@ -20,19 +20,19 @@
 
 #define JOIN(z, n, _) \
 { \
-    std::thread t( worker); \
     time_point_type start( clock_type::now() ); \
-    t.join(); \
+    boost::fibers::fiber f( worker); \
     duration_type total = clock_type::now() - start; \
     total -= overhead; \
     result += total; \
+    f.join(); \
 }
 
 void worker() {}
 
 duration_type measure( duration_type overhead)
 {
-    std::thread( worker).join();
+    boost::fibers::fiber( worker).join();
 
     duration_type result = duration_type::zero();
 

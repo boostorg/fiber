@@ -87,13 +87,13 @@ recursive_timed_mutex::try_lock() {
 }
 
 bool
-recursive_timed_mutex::try_lock_until( std::chrono::high_resolution_clock::time_point const& timeout_time) {
+recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
     fiber_context * f( detail::scheduler::instance()->active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
 
-        if ( std::chrono::high_resolution_clock::now() > timeout_time) {
+        if ( std::chrono::steady_clock::now() > timeout_time) {
             return false;
         }
 

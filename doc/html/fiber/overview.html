@@ -100,27 +100,31 @@
       can count on thread-local storage; however that storage will be shared among
       all fibers running on the same thread.
     </p>
+<a name="cross_thread_sync"></a><h4>
+<a name="fiber.overview.h1"></a>
+      <span><a name="fiber.overview.boost_fibers_no_atomics"></a></span><a class="link" href="overview.html#fiber.overview.boost_fibers_no_atomics">BOOST_FIBERS_NO_ATOMICS</a>
+    </h4>
 <p>
-      <a name="cross_thread_sync"></a>The fiber synchronization objects provided
-      by this library will, by default, safely synchronize fibers running on different
-      threads. However, this level of synchronization can be removed (for performance)
-      by building the library with <code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code>
+      The fiber synchronization objects provided by this library will, by default,
+      safely synchronize fibers running on different threads. However, this level
+      of synchronization can be removed (for performance) by building the library
+      with <span class="bold"><strong><code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code></strong></span>
       defined. When the library is built with that macro, you must ensure that all
       the fibers referencing a particular synchronization object are running in the
-      same thread. Please see <a class="link" href="synchronization.html#synchronization">synchronization</a>.
+      same thread. Please see <a class="link" href="synchronization.html#synchronization">Synchronization</a>.
     </p>
 <p>
       For fiber-local storage, please see <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>.
     </p>
 <a name="blocking"></a><h4>
-<a name="fiber.overview.h1"></a>
+<a name="fiber.overview.h2"></a>
       <span><a name="fiber.overview.blocking"></a></span><a class="link" href="overview.html#fiber.overview.blocking">Blocking</a>
     </h4>
 <p>
-      Normally, when this documentation states that a particular fiber <span class="emphasis"><em>blocks</em></span>,
-      it means that it yields control, allowing other fibers on the same thread to
-      run. The synchronization mechanisms provided by <span class="bold"><strong>Boost.Fiber</strong></span>
-      have this behavior.
+      Normally, when this documentation states that a particular fiber <span class="emphasis"><em>blocks</em></span>
+      (or equivalently, <span class="emphasis"><em>suspends),</em></span> it means that it yields control,
+      allowing other fibers on the same thread to run. The synchronization mechanisms
+      provided by <span class="bold"><strong>Boost.Fiber</strong></span> have this behavior.
     </p>
 <p>
       A fiber may, of course, use normal thread synchronization mechanisms; however

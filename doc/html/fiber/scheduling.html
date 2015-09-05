@@ -162,9 +162,9 @@
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
-<dt><span class="term">Effects:</span></dt>
+<dt><span class="term">Returns:</span></dt>
 <dd><p>
-            Returns the number of fibers ready to run.
+            the number of fibers ready to run.
           </p></dd>
 </dl>
 </div>
@@ -256,7 +256,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            Returns the number of fibers ready to run.
+            the number of fibers ready to run.
           </p></dd>
 </dl>
 </div>
@@ -469,7 +469,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            0 if scheduling algorithm has no fibers ready to run, otherwise nonzero.
+            the number of fibers ready to run.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -500,8 +500,10 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
             The fiber's associated <code class="computeroutput"><span class="identifier">PROPS</span></code>
-            instance is already passed to <code class="computeroutput"><span class="identifier">awakened</span><span class="special">()</span></code> and <code class="computeroutput"><span class="identifier">property_change</span><span class="special">()</span></code>. However, every <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass
-            is expected to track a collection of ready <a class="link" href="scheduling.html#class_fiber_context"> <code class="computeroutput">fiber_context</code></a> instances.
+            instance is already passed to <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> and
+            <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>.
+            However, every <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass is expected
+            to track a collection of ready <a class="link" href="scheduling.html#class_fiber_context"> <code class="computeroutput">fiber_context</code></a> instances.
             This method allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
             instance for any <code class="computeroutput"><span class="identifier">fiber_context</span></code>
             in its collection.

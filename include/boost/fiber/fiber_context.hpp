@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_FIBER_CONTEXT_H
 #define BOOST_FIBERS_FIBER_CONTEXT_H
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstddef>
@@ -92,7 +93,7 @@ private:
     fss_data_t                                      fss_data_;
     std::vector< fiber_context * >                  waiting_;
     std::exception_ptr                              except_;
-    std::chrono::high_resolution_clock::time_point  tp_;
+    std::chrono::steady_clock::time_point  tp_;
     fiber_properties                            *   properties_;
 
     // main fiber
@@ -105,7 +106,7 @@ private:
         fss_data_(),
         waiting_(),
         except_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        tp_( (std::chrono::steady_clock::time_point::max)() ),
         properties_( nullptr),
         nxt( nullptr) {
     }
@@ -189,7 +190,7 @@ public:
               // lambda, executed in execution context
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
-              [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> decltype( auto) {
+              [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> void {
                 try {
                     BOOST_ASSERT( is_running() );
                     detail::invoke_helper( std::move( fn), std::move( tpl) );
@@ -214,7 +215,7 @@ public:
         fss_data_(),
         waiting_(),
         except_(),
-        tp_( (std::chrono::high_resolution_clock::time_point::max)() ),
+        tp_( (std::chrono::steady_clock::time_point::max)() ),
         properties_( nullptr),
         nxt( nullptr) {
     }
@@ -321,16 +322,16 @@ public:
         ctx_();
     }
 
-    std::chrono::high_resolution_clock::time_point const& time_point() const noexcept {
+    std::chrono::steady_clock::time_point const& time_point() const noexcept {
         return tp_;
     }
 
-    void time_point( std::chrono::high_resolution_clock::time_point const& tp) {
+    void time_point( std::chrono::steady_clock::time_point const& tp) {
         tp_ = tp;
     }
 
     void time_point_reset() {
-        tp_ = (std::chrono::high_resolution_clock::time_point::max)();
+        tp_ = (std::chrono::steady_clock::time_point::max)();
     }
 
     void set_properties( fiber_properties* props);

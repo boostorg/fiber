@@ -102,18 +102,12 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         if ( ! valid() ) {
             throw future_uninitialized();
         }
         return state_->wait_until( timeout_time);
-    }
-
-    template< typename ClockType >
-    future_status wait_until( typename ClockType::time_point const& timeout_time_) const {
-        std::chrono::high_resolution_clock::time_point timeout_time(
-            std::chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( timeout_time);
     }
 };
 
@@ -189,18 +183,12 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         if ( ! valid() ) {
             throw future_uninitialized();
         }
         return state_->wait_until( timeout_time);
-    }
-
-    template< typename ClockType >
-    future_status wait_until( typename ClockType::time_point const& timeout_time_) const {
-        std::chrono::high_resolution_clock::time_point timeout_time(
-            std::chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( timeout_time);
     }
 };
 
@@ -282,19 +270,12 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    inline
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         if ( ! valid() ) {
             throw future_uninitialized();
         }
         return state_->wait_until( timeout_time);
-    }
-
-    template< typename ClockType >
-    future_status wait_until( typename ClockType::time_point const& timeout_time_) const {
-        std::chrono::high_resolution_clock::time_point timeout_time(
-            std::chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( timeout_time);
     }
 };
 
@@ -384,18 +365,12 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         if ( ! valid() ) {
             throw future_uninitialized();
         }
         return state_->wait_until( timeout_time);
-    }
-
-    template< typename ClockType >
-    future_status wait_until( typename ClockType::time_point const& timeout_time_) const {
-        std::chrono::high_resolution_clock::time_point timeout_time(
-            std::chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( timeout_time);
     }
 };
 
@@ -484,18 +459,12 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         if ( ! valid() ) {
             throw future_uninitialized();
         }
         return state_->wait_until( timeout_time);
-    }
-
-    template< typename ClockType >
-    future_status wait_until( typename ClockType::time_point const& timeout_time_) const {
-        std::chrono::high_resolution_clock::time_point timeout_time(
-            std::chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( timeout_time);
     }
 };
 
@@ -595,19 +564,12 @@ public:
         return state_->wait_for( timeout_duration);
     }
 
-    inline
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         if ( ! valid() ) {
             throw future_uninitialized();
         }
         return state_->wait_until( timeout_time);
-    }
-
-    template< typename ClockType >
-    future_status wait_until( typename ClockType::time_point const& timeout_time_) const {
-        std::chrono::high_resolution_clock::time_point timeout_time(
-            std::chrono::high_resolution_clock::now() + ( timeout_time_ - ClockType::now() ) );
-        return wait_until( timeout_time);
     }
 };
 

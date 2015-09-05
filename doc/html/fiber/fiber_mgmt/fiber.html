@@ -110,7 +110,7 @@
             </p></dd>
 </dl>
 </div>
-<h5>
+<a name="fiber_fiber"></a><h5>
 <a name="fiber.fiber_mgmt.fiber.h1"></a>
         <span><a name="fiber.fiber_mgmt.fiber.constructor"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.constructor">Constructor</a>
       </h5>
@@ -151,7 +151,8 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="../stack.html#stack">stack</a>
+              <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a>, <a class="link" href="../stack.html#stack">Stack
+              allocation</a>
             </p></dd>
 </dl>
 </div>
@@ -288,14 +289,11 @@
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              If <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution, waits for that fiber to complete.
+              Waits for the referenced fiber of execution to complete.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
-              If <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution on entry, that fiber has completed.
-              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              The fiber of execution referenced on entry has completed. <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               no longer refers to any fiber of execution.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
@@ -437,8 +435,6 @@
               refers to a fiber of execution. <a class="link" href="fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a> has
               been called from this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
-              <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              has been scheduled for execution at least once.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
@@ -454,8 +450,7 @@
               <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This method allows access
-              to those user-provided properties &#8212; but only after this fiber has been
-              scheduled for the first time.
+              to those user-provided properties.
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
@@ -638,7 +633,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-              Returns the number of fibers ready to run.
+              the number of fibers ready to run.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>

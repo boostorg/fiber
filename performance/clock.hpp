@@ -16,7 +16,7 @@
 
 #include <boost/assert.hpp>
 
-typedef std::chrono::high_resolution_clock  clock_type;
+typedef std::chrono::steady_clock  clock_type;
 typedef clock_type::duration                duration_type;
 typedef clock_type::time_point              time_point_type;
 

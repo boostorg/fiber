@@ -7,8 +7,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include <string>
 
+#include <boost/cstdint.hpp>
 #include <boost/fiber/all.hpp>
 #include <boost/preprocessor.hpp>
 
@@ -18,29 +18,31 @@
 #define JOBS BOOST_PP_LIMIT_REPEAT
 #endif
 
-void worker() {}
-
-void test_future()
-{
-    boost::fibers::packaged_task< void() > pt( worker);
-    boost::fibers::future< void > f( pt.get_future() );
-    boost::fibers::fiber( std::move( pt) ).detach();
-    f.wait();
+#define WAIT(z, n, _) \
+{ \
+    boost::fibers::packaged_task< void() > pt( worker); \
+    boost::fibers::future< void > f( pt.get_future() ); \
+    boost::fibers::fiber( std::move( pt) ).detach(); \
+    time_point_type start( clock_type::now() ); \
+    f.wait(); \
+    duration_type total = clock_type::now() - start; \
+    total -= overhead; \
+    result += total; \
 }
+
+void worker() {}
 
 duration_type measure( duration_type overhead)
 {
-    test_future();
+    boost::fibers::fiber( worker).join();
 
-    time_point_type start( clock_type::now() );
-    for ( std::size_t i = 0; i < JOBS; ++i) {
-        test_future();
-    }
-    duration_type total = clock_type::now() - start;
-    total -= overhead_clock(); // overhead of measurement
-    total /= JOBS;  // loops
+    duration_type result = duration_type::zero();
 
-    return total;
+    BOOST_PP_REPEAT_FROM_TO(1, JOBS, WAIT, _)
+
+    result /= JOBS;  // loops
+
+    return result;
 }
 
 int main( int argc, char * argv[])

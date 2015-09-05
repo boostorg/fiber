@@ -20,12 +20,12 @@
 
 #define JOIN(z, n, _) \
 { \
-    std::thread t( worker); \
     time_point_type start( clock_type::now() ); \
-    t.join(); \
+    std::thread t( worker); \
     duration_type total = clock_type::now() - start; \
     total -= overhead; \
     result += total; \
+    t.join(); \
 }
 
 void worker() {}

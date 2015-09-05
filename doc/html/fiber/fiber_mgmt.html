@@ -123,8 +123,9 @@
   <span class="comment">// this leads to undefined behaviour</span>
 </pre>
 <p>
-      The spawned <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> is enqueued in the list of ready-to-run fibers
-      at construction.
+      The spawned <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> does not immediately start running. It is enqueued
+      in the list of ready-to-run fibers, and will run when the scheduler gets around
+      to it.
     </p>
 <a name="exceptions"></a><h4>
 <a name="fiber.fiber_mgmt.h3"></a>
@@ -188,11 +189,10 @@ constructor
       <span><a name="fiber.fiber_mgmt.destruction"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.destruction">Destruction</a>
     </h4>
 <p>
-      When a <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object representing a valid execution context is destroyed,
-      the program terminates if the fiber is <a class="link" href="fiber_mgmt/fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. If
+      When a <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object representing a valid execution context (the fiber
+      is <a class="link" href="fiber_mgmt/fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>) is destroyed, the program terminates. If
       you intend the fiber to outlive the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object that launched it,
-      use the <a class="link" href="fiber_mgmt/fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a>
-method.
+      use the <a class="link" href="fiber_mgmt/fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a> method.
     </p>
 <pre class="programlisting"><span class="special">{</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f</span><span class="special">(</span> <span class="identifier">some_fn</span><span class="special">);</span>

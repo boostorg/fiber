@@ -15,15 +15,15 @@ import toolset ;
 
 project boost/fiber/performance/thread
     : requirements
-      <library>/boost/chrono//boost_chrono
-      <library>/boost/coroutine//boost_coroutine
-      <library>/boost/thread//boost_thread
-      <library>/boost/program_options//boost_program_options
       <link>static
       <optimization>speed
       <threading>multi
       <variant>release
     ;
+
+exe overhead_create
+   : overhead_create.cpp
+   ;
 
 exe overhead_join
    : overhead_join.cpp
@@ -41,6 +41,6 @@ exe overhead_future
    : overhead_future.cpp
    ;
 
-exe scale_join
-   : scale_join.cpp
-   ;
+#exe scale_join
+#   : scale_join.cpp
+#   ;

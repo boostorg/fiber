@@ -43,39 +43,42 @@ private:
     optional< R >               value_;
     std::exception_ptr          except_;
 
-    void mark_ready_and_notify_() {
+    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
         ready_ = true;
+        lk.unlock();
         waiters_.notify_all();
     }
 
-    void owner_destroyed_() {
+    void owner_destroyed_( std::unique_lock< mutex > & lk) {
         if ( ! ready_) {
-            set_exception_( std::make_exception_ptr( broken_promise() ) );
+            set_exception_(
+                    std::make_exception_ptr( broken_promise() ),
+                    lk);
         }
     }
 
-    void set_value_( R const& value) {
+    void set_value_( R const& value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         value_ = value;
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
-    void set_value_( R && value) {
+    void set_value_( R && value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         value_ = std::move( value);
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
-    void set_exception_( std::exception_ptr except) {
+    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         except_ = except;
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
     R const& get_( std::unique_lock< mutex > & lk) {
@@ -109,8 +112,9 @@ private:
         return future_status::ready;
     }
 
+    template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                              std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+                              std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -139,22 +143,22 @@ public:
 
     void owner_destroyed() {
         std::unique_lock< mutex > lk( mtx_);
-        owner_destroyed_();
+        owner_destroyed_( lk);
     }
 
     void set_value( R const& value) {
         std::unique_lock< mutex > lk( mtx_);
-        set_value_( value);
+        set_value_( value, lk);
     }
 
     void set_value( R && value) {
         std::unique_lock< mutex > lk( mtx_);
-        set_value_( std::move( value) );
+        set_value_( std::move( value), lk);
     }
 
     void set_exception( std::exception_ptr except) {
         std::unique_lock< mutex > lk( mtx_);
-        set_exception_( except);
+        set_exception_( except, lk);
     }
 
     R const& get() {
@@ -178,7 +182,8 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
@@ -210,31 +215,34 @@ private:
     R                       *   value_;
     std::exception_ptr          except_;
 
-    void mark_ready_and_notify_() {
+    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
         ready_ = true;
+        lk.unlock();
         waiters_.notify_all();
     }
 
-    void owner_destroyed_() {
+    void owner_destroyed_( std::unique_lock< mutex > & lk) {
         if ( ! ready_) {
-            set_exception_( std::make_exception_ptr( broken_promise() ) );
+            set_exception_(
+                    std::make_exception_ptr( broken_promise() ),
+                    lk);
         }
     }
 
-    void set_value_( R & value) {
+    void set_value_( R & value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         value_ = & value;
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
-    void set_exception_( std::exception_ptr except) {
+    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         except_ = except;
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
     R & get_( std::unique_lock< mutex > & lk) {
@@ -268,8 +276,9 @@ private:
         return future_status::ready;
     }
 
+    template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                              std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -298,17 +307,17 @@ public:
 
     void owner_destroyed() {
         std::unique_lock< mutex > lk( mtx_);
-        owner_destroyed_();
+        owner_destroyed_( lk);
     }
 
     void set_value( R & value) {
         std::unique_lock< mutex > lk( mtx_);
-        set_value_( value);
+        set_value_( value, lk);
     }
 
     void set_exception( std::exception_ptr except) {
         std::unique_lock< mutex > lk( mtx_);
-        set_exception_( except);
+        set_exception_( except, lk);
     }
 
     R & get() {
@@ -332,7 +341,8 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }
@@ -364,33 +374,36 @@ private:
     std::exception_ptr          except_;
 
     inline
-    void mark_ready_and_notify_() {
+    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
         ready_ = true;
+        lk.unlock();
         waiters_.notify_all();
     }
 
     inline
-    void owner_destroyed_() {
+    void owner_destroyed_( std::unique_lock< mutex > & lk) {
         if ( ! ready_) {
-            set_exception_( std::make_exception_ptr( broken_promise() ) );
+            set_exception_(
+                    std::make_exception_ptr( broken_promise() ),
+                    lk);
         }
     }
 
     inline
-    void set_value_() {
+    void set_value_( std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
     inline
-    void set_exception_( std::exception_ptr except) {
+    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         except_ = except;
-        mark_ready_and_notify_();
+        mark_ready_and_notify_( lk);
     }
 
     inline
@@ -426,9 +439,9 @@ private:
         return future_status::ready;
     }
 
-    inline
+    template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         while ( ! ready_) {
             cv_status st( waiters_.wait_until( lk, timeout_time) );
             if ( cv_status::timeout == st && ! ready_) {
@@ -457,19 +470,19 @@ public:
     inline
     void owner_destroyed() {
         std::unique_lock< mutex > lk( mtx_);
-        owner_destroyed_();
+        owner_destroyed_( lk);
     }
 
     inline
     void set_value() {
         std::unique_lock< mutex > lk( mtx_);
-        set_value_();
+        set_value_( lk);
     }
 
     inline
     void set_exception( std::exception_ptr except) {
         std::unique_lock< mutex > lk( mtx_);
-        set_exception_( except);
+        set_exception_( except, lk);
     }
 
     inline
@@ -496,8 +509,8 @@ public:
         return wait_for_( lk, timeout_duration);
     }
 
-    inline
-    future_status wait_until( std::chrono::high_resolution_clock::time_point const& timeout_time) const {
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_until_( lk, timeout_time);
     }

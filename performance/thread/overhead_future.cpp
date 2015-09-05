@@ -5,16 +5,13 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cstdlib>
+#include <future>
 #include <iostream>
 #include <stdexcept>
-#include <string>
+#include <thread>
 
-#include <boost/chrono.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/preprocessor.hpp>
-#include <boost/program_options.hpp>
-#include <boost/thread.hpp>
-#include <boost/thread/future.hpp>
 
 #include "../clock.hpp"
 
@@ -22,29 +19,31 @@
 #define JOBS BOOST_PP_LIMIT_REPEAT
 #endif
 
-void worker() {}
-
-void test_future()
-{
-    boost::packaged_task< void > pt( worker);
-    boost::unique_future< void > f( pt.get_future() );
-    boost::thread( boost::move( pt) ).detach();
-    f.wait();
+#define WAIT(z, n, _) \
+{ \
+    std::packaged_task< void() > pt( worker); \
+    std::future< void > f( pt.get_future() ); \
+    std::thread( std::move( pt) ).detach(); \
+    time_point_type start( clock_type::now() ); \
+    f.wait(); \
+    duration_type total = clock_type::now() - start; \
+    total -= overhead; \
+    result += total; \
 }
+
+void worker() {}
 
 duration_type measure( duration_type overhead)
 {
-    test_future();
+    std::thread( worker).join();
 
-    time_point_type start( clock_type::now() );
-    for ( std::size_t i = 0; i < JOBS; ++i) {
-        test_future();
-    }
-    duration_type total = clock_type::now() - start;
-    total -= overhead_clock(); // overhead of measurement
-    total /= JOBS;  // loops
+    duration_type result = duration_type::zero();
 
-    return total;
+    BOOST_PP_REPEAT_FROM_TO(1, JOBS, WAIT, _)
+
+    result /= JOBS;  // loops
+
+    return result;
 }
 
 int main( int argc, char * argv[])

@@ -49,7 +49,7 @@ void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time) 
 
 template< typename Rep, typename Period >
 void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
-    sleep_until( std::chrono::high_resolution_clock::now() + timeout_duration);
+    sleep_until( std::chrono::steady_clock::now() + timeout_duration);
 }
 
 template< typename PROPS >
@@ -93,7 +93,7 @@ void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) n
 }
 
 inline
-std::chrono::high_resolution_clock::duration wait_interval() noexcept {
+std::chrono::steady_clock::duration wait_interval() noexcept {
     return detail::scheduler::instance()->wait_interval();
 }
 

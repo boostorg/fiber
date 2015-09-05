@@ -56,8 +56,8 @@
         concurrent calls to <code class="computeroutput"><span class="identifier">lock</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">try_lock</span><span class="special">()</span></code> and <code class="computeroutput"><span class="identifier">unlock</span><span class="special">()</span></code> shall be permitted.
       </p>
 <p>
-        Any fiber blocked in <code class="computeroutput"><span class="identifier">lock</span><span class="special">()</span></code> is suspended in the scheduler until the
-        owning fiber releases the lock by calling <code class="computeroutput"><span class="identifier">unlock</span><span class="special">()</span></code>.
+        Any fiber blocked in <code class="computeroutput"><span class="identifier">lock</span><span class="special">()</span></code> is suspended until the owning fiber releases
+        the lock by calling <code class="computeroutput"><span class="identifier">unlock</span><span class="special">()</span></code>.
       </p>
 <p>
         </p>

@@ -37,7 +37,8 @@
           Let's at least ensure that such an exception would propagate to the fiber
           awaiting the first result. We can use <a class="link" href="../../synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> to transport
           either a return value or an exception. Therefore, we will change <a class="link" href="when_any__return_value.html#wait_first_value"><code class="computeroutput"><span class="identifier">wait_first_value</span><span class="special">()</span></code></a>'s <a class="link" href="../../synchronization/channels.html#class_bounded_channel"> <code class="computeroutput">bounded_channel&lt;&gt;</code></a> to
-          hold <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          hold <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span>
+          <span class="identifier">T</span> <span class="special">&gt;</span></code>
           items instead of simply <code class="computeroutput"><span class="identifier">T</span></code>.
         </p>
 <p>
