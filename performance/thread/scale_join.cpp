@@ -7,17 +7,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include <string>
+#include <thread>
 
-#include <boost/chrono.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/preprocessor.hpp>
-#include <boost/thread.hpp>
 
 #include "../clock.hpp"
 
 #define CREATE(z, n, _) \
-    boost::thread BOOST_PP_CAT(t,n) ( worker);
+    std::thread BOOST_PP_CAT(t,n) (worker);
 #define JOIN(z, n, _) \
     BOOST_PP_CAT(t,n) .join();
 
@@ -25,14 +23,14 @@ void worker() {}
 
 duration_type measure10( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
     BOOST_PP_REPEAT_FROM_TO(1, 10, CREATE, _);
-    BOOST_PP_REPEAT_FROM_TO(1, 10, JOIN, _);
 
+    time_point_type start( clock_type::now() );
+    BOOST_PP_REPEAT_FROM_TO(1, 10, JOIN, _);
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 10;  // loops
 
@@ -41,14 +39,14 @@ duration_type measure10( duration_type overhead)
 
 duration_type measure50( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
     BOOST_PP_REPEAT_FROM_TO(1, 50, CREATE, _);
-    BOOST_PP_REPEAT_FROM_TO(1, 50, JOIN, _);
 
+    time_point_type start( clock_type::now() );
+    BOOST_PP_REPEAT_FROM_TO(1, 50, JOIN, _);
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 50;  // loops
 
@@ -57,14 +55,14 @@ duration_type measure50( duration_type overhead)
 
 duration_type measure100( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
     BOOST_PP_REPEAT_FROM_TO(1, 100, CREATE, _);
-    BOOST_PP_REPEAT_FROM_TO(1, 100, JOIN, _);
 
+    time_point_type start( clock_type::now() );
+    BOOST_PP_REPEAT_FROM_TO(1, 100, JOIN, _);
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 100;  // loops
 
@@ -73,14 +71,14 @@ duration_type measure100( duration_type overhead)
 
 duration_type measure500( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
 #include "thread_create_500.ipp"
-#include "thread_join_500.ipp"
 
+    time_point_type start( clock_type::now() );
+#include "thread_join_500.ipp"
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 500;  // loops
 
@@ -89,14 +87,14 @@ duration_type measure500( duration_type overhead)
 
 duration_type measure1000( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
 #include "thread_create_1000.ipp"
-#include "thread_join_1000.ipp"
 
+    time_point_type start( clock_type::now() );
+#include "thread_join_1000.ipp"
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 1000;  // loops
 
@@ -105,14 +103,14 @@ duration_type measure1000( duration_type overhead)
 
 duration_type measure5000( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
 #include "thread_create_5000.ipp"
-#include "thread_join_5000.ipp"
 
+    time_point_type start( clock_type::now() );
+#include "thread_join_5000.ipp"
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 5000;  // loops
 
@@ -121,14 +119,14 @@ duration_type measure5000( duration_type overhead)
 
 duration_type measure10000( duration_type overhead)
 {
-    boost::thread( worker).join();
-
-    time_point_type start( clock_type::now() );
+    std::thread( worker).join();
 
 #include "thread_create_10000.ipp"
-#include "thread_join_10000.ipp"
 
+    time_point_type start( clock_type::now() );
+#include "thread_join_10000.ipp"
     duration_type total = clock_type::now() - start;
+
     total -= overhead_clock(); // overhead of measurement
     total /= 10000;  // loops
 

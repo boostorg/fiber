@@ -7,13 +7,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include <string>
+#include <thread>
 
-#include <boost/chrono.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/preprocessor.hpp>
-#include <boost/program_options.hpp>
-#include <boost/thread.hpp>
 
 #include "../clock.hpp"
 
@@ -22,24 +19,30 @@
 #endif
 
 #define JOIN(z, n, _) \
-    boost::thread( worker).join();
+    std::thread( worker, overhead, & result).join();
 
-void worker()
-{ boost::this_thread::yield(); }
+void worker( duration_type overhead, duration_type * result)
+{
+    time_point_type start( clock_type::now() );
+    std::this_thread::yield();
+    duration_type total = clock_type::now() - start;
+    total -= overhead;
+    * result += total;
+}
 
 duration_type measure( duration_type overhead)
 {
-    boost::thread( worker).join();
+    duration_type result = duration_type::zero();
 
-    time_point_type start( clock_type::now() );
+    std::thread( worker, overhead, & result).join();
+
+    result = duration_type::zero();
 
     BOOST_PP_REPEAT_FROM_TO(1, JOBS, JOIN, _)
 
-    duration_type total = clock_type::now() - start;
-    total -= overhead_clock(); // overhead of measurement
-    total /= JOBS;  // loops
+    result /= JOBS;  // loops
 
-    return total;
+    return result;
 }
 
 int main( int argc, char * argv[])
