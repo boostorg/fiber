@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_FIBER_CONTEXT_H
 #define BOOST_FIBERS_FIBER_CONTEXT_H
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstddef>

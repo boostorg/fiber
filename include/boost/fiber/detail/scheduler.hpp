@@ -6,8 +6,8 @@
 #ifndef BOOST_FIBERS_DETAIL_SCHEDULER_H
 #define BOOST_FIBERS_DETAIL_SCHEDULER_H
 
+#include <algorithm>
 #include <memory>
-#include <utility>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
