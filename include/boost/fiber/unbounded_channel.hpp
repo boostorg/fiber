@@ -93,8 +93,9 @@ private:
         return queue_status::closed == state_;
     }
 
-    void close_() {
+    void close_( std::unique_lock< mutex > & lk) {
         state_ = queue_status::closed;
+        lk.unlock();
         not_empty_cond_.notify_all();
     }
 
@@ -103,22 +104,24 @@ private:
     }
 
     channel_op_status push_( typename node::ptr const& new_node,
-                             std::unique_lock< boost::fibers::mutex > & lk) {
+                             std::unique_lock< mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
 
-        return push_and_notify_( new_node);
+        return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status push_and_notify_( typename node::ptr const& new_node) {
+    channel_op_status push_and_notify_( typename node::ptr const& new_node,
+                                        std::unique_lock< mutex > & lk) {
         try {
             push_tail_( new_node);
+            lk.unlock();
             not_empty_cond_.notify_one();
 
             return channel_op_status::success;
         } catch (...) {
-            close_();
+            close_( lk);
             throw;
         }
     }
@@ -128,14 +131,14 @@ private:
         tail_ = & new_node->nxt;
     }
 
-    value_type value_pop_() {
+    value_type value_pop_( std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( ! is_empty_() );
 
         try {
             typename node::ptr old_head = pop_head_();
             return std::move( old_head->va);
         } catch (...) {
-            close_();
+            close_( lk);
             throw;
         }
     }
@@ -165,8 +168,7 @@ public:
 
     void close() {
         std::unique_lock< mutex > lk( mtx_);
-
-        close_();
+        close_( lk);
     }
 
     channel_op_status push( value_type const& va) {
@@ -194,7 +196,7 @@ public:
             return channel_op_status::closed;
         }
 
-        va = value_pop_();
+        va = value_pop_( lk);
         return channel_op_status::success;
     }
 
@@ -209,7 +211,7 @@ public:
             throw logic_error("boost fiber: queue is closed");
         }
 
-        return value_pop_();
+        return value_pop_( lk);
     }
 
     channel_op_status try_pop( value_type & va) {
@@ -229,19 +231,19 @@ public:
             return channel_op_status::empty;
         }
 
-        va = value_pop_();
+        va = value_pop_( lk);
         return channel_op_status::success;
     }
 
     template< typename Rep, typename Period >
     channel_op_status pop_wait_for( value_type & va,
-                                  std::chrono::duration< Rep, Period > const& timeout_duration) {
+                                    std::chrono::duration< Rep, Period > const& timeout_duration) {
         return pop_wait_until( va, std::chrono::high_resolution_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
     channel_op_status pop_wait_until( value_type & va,
-                                    std::chrono::time_point< Clock, Duration > const& timeout_time) {
+                                      std::chrono::time_point< Clock, Duration > const& timeout_time) {
         std::unique_lock< mutex > lk( mtx_);
 
         while ( ! is_closed_() && is_empty_() ) {
@@ -253,7 +255,7 @@ public:
             return channel_op_status::closed;
         }
 
-        va = value_pop_();
+        va = value_pop_( lk);
         return channel_op_status::success;
     }
 };

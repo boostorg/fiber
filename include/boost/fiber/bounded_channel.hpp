@@ -96,8 +96,9 @@ private:
         return queue_status::closed == state_;
     }
 
-    void close_() {
+    void close_( std::unique_lock< boost::fibers::mutex > & lk) {
         state_ = queue_status::closed;
+        lk.unlock();
         not_empty_cond_.notify_all();
         not_full_cond_.notify_all();
     }
@@ -115,7 +116,7 @@ private:
     }
 
     channel_op_status push_( typename node::ptr const& new_node,
-                             std::unique_lock< boost::fibers::mutex > & lk ) {
+                             std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -124,10 +125,11 @@ private:
             not_full_cond_.wait( lk);
         }
 
-        return push_and_notify_( new_node);
+        return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status try_push_( typename node::ptr const& new_node) {
+    channel_op_status try_push_( typename node::ptr const& new_node,
+                                 std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -136,7 +138,7 @@ private:
             return channel_op_status::full;
         }
 
-        return push_and_notify_( new_node);
+        return push_and_notify_( new_node, lk);
     }
 
     template< typename Clock, typename Duration >
@@ -153,17 +155,19 @@ private:
             }
         }
 
-        return push_and_notify_( new_node);
+        return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status push_and_notify_( typename node::ptr const& new_node) {
+    channel_op_status push_and_notify_( typename node::ptr const& new_node,
+                                        std::unique_lock< boost::fibers::mutex > & lk) {
         try {
             push_tail_( new_node);
+            lk.unlock();
             not_empty_cond_.notify_one();
 
             return channel_op_status::success;
         } catch (...) {
-            close_();
+            close_( lk);
             throw;
         }
     }
@@ -174,15 +178,17 @@ private:
         ++count_;
     }
 
-    value_type value_pop_() {
+    value_type value_pop_( std::unique_lock< boost::fibers::mutex > & lk) {
         BOOST_ASSERT( ! is_empty_() );
 
         try {
             typename node::ptr old_head = pop_head_();
             if ( size_() <= lwm_) {
                 if ( lwm_ == hwm_) {
+                    lk.unlock();
                     not_full_cond_.notify_one();
                 } else {
+                    lk.unlock();
                     // more than one producer could be waiting
                     // to push a value
                     not_full_cond_.notify_all();
@@ -190,7 +196,7 @@ private:
             }
             return std::move( old_head->va);
         } catch (...) {
-            close_();
+            close_( lk);
             throw;
         }
     }
@@ -262,7 +268,7 @@ public:
 
     void close() {
         std::unique_lock< mutex > lk( mtx_);
-        close_();
+        close_( lk);
     }
 
     channel_op_status push( value_type const& va) {
@@ -315,14 +321,14 @@ public:
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( va, alloc_) );
         std::unique_lock< mutex > lk( mtx_);
-        return try_push_( new_node);
+        return try_push_( new_node, lk);
     }
 
     channel_op_status try_push( value_type && va) {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
-        return try_push_( new_node);
+        return try_push_( new_node, lk);
     }
 
     channel_op_status pop( value_type & va) {
@@ -336,7 +342,7 @@ public:
             return channel_op_status::closed;
         }
 
-        va = value_pop_();
+        va = value_pop_( lk);
         return channel_op_status::success;
     }
 
@@ -351,7 +357,7 @@ public:
             throw logic_error("boost fiber: queue is closed");
         }
 
-        return value_pop_();
+        return value_pop_( lk);
     }
 
     channel_op_status try_pop( value_type & va) {
@@ -371,7 +377,7 @@ public:
             return channel_op_status::empty;
         }
 
-        va = value_pop_();
+        va = value_pop_( lk);
         return channel_op_status::success;
     }
 
@@ -397,7 +403,7 @@ public:
             return channel_op_status::closed;
         }
 
-        va = value_pop_();
+        va = value_pop_( lk);
         return channel_op_status::success;
     }
 };

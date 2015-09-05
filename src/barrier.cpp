@@ -36,6 +36,7 @@ barrier::wait() {
 	if ( 0 == --current_) {
 		cycle_ = ! cycle_;
 		current_ = initial_;
+        lk.unlock(); // no pessimization
 		cond_.notify_all();
 		return true;
 	} else {
