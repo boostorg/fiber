@@ -91,7 +91,7 @@ waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
 
 void
 waiting_queue::interrupt_all() noexcept {
-    fiber_context * mf( fiber_context::main_fiber() );
+    fiber_context * mf( fiber_context::main_fiber() ); // ?
     for ( fiber_context * f( head_); nullptr != f; f = f->nxt) {
         if ( f != mf) {
             f->request_interruption( true);

@@ -80,21 +80,21 @@ private:
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic< std::size_t >                      use_count_;
-    std::atomic< fiber_status >                     state_;
-    std::atomic< int >                              flags_;
+    std::atomic< std::size_t >                  use_count_;
+    std::atomic< fiber_status >                 state_;
+    std::atomic< int >                          flags_;
 #else
-    std::size_t                                     use_count_;
-    fiber_status                                    state_;
-    int                                             flags_;
+    std::size_t                                 use_count_;
+    fiber_status                                state_;
+    int                                         flags_;
 #endif
-    detail::spinlock                                splk_;
-    context::execution_context                      ctx_;
-    fss_data_t                                      fss_data_;
-    std::vector< fiber_context * >                  waiting_;
-    std::exception_ptr                              except_;
-    std::chrono::steady_clock::time_point  tp_;
-    fiber_properties                            *   properties_;
+    detail::spinlock                            splk_;
+    context::execution_context                  ctx_;
+    fss_data_t                                  fss_data_;
+    std::vector< fiber_context * >              waiting_;
+    std::exception_ptr                          except_;
+    std::chrono::steady_clock::time_point       tp_;
+    fiber_properties                        *   properties_;
 
     // main fiber
     fiber_context() :
@@ -239,6 +239,10 @@ public:
     }
 
     void request_interruption( bool req) noexcept;
+
+    bool is_main_fiber() const noexcept {
+        return 0 != ( flags_ & flag_main_fiber);
+    }
 
     bool is_terminated() const noexcept {
         return fiber_status::terminated == state_;
