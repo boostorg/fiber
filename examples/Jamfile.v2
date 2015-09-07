@@ -38,6 +38,7 @@ exe priority : priority.cpp ;
 exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp ;
 exe wait_stuff : wait_stuff.cpp ;
+exe work_sharing : work_sharing.cpp ;
 
 exe asio/daytime_client : asio/daytime_client.cpp ;
 exe asio/daytime_client2 : asio/daytime_client2.cpp ;
