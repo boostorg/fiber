@@ -9,7 +9,7 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/context.hpp"
-#include "boost/fiber/fiber_manager.hpp"
+#include "boost/fiber/scheduler.hpp"
 
 namespace boost {
 namespace fibers {

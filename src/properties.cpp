@@ -8,7 +8,7 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/algorithm.hpp"
-#include "boost/fiber/fiber_manager.hpp"
+#include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS

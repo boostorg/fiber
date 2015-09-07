@@ -27,7 +27,7 @@
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/fiber_manager.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -90,14 +90,14 @@ private:
     fiber_status                                state_;
     int                                         flags_;
 #endif
-    detail::spinlock                                splk_;
-    fiber_manager                               *   mgr_;
-    boost::context::execution_context               ctx_;
-    fss_data_t                                      fss_data_;
-    std::vector< context * >                  waiting_;
-    std::exception_ptr                              except_;
-    std::chrono::steady_clock::time_point  tp_;
-    fiber_properties                            *   properties_;
+    detail::spinlock                            splk_;
+    scheduler                               *   scheduler_;
+    boost::context::execution_context           ctx_;
+    fss_data_t                                  fss_data_;
+    std::vector< context * >                    waiting_;
+    std::exception_ptr                          except_;
+    std::chrono::steady_clock::time_point       tp_;
+    fiber_properties                        *   properties_;
 
 protected:
     virtual void deallocate() {
@@ -172,7 +172,7 @@ public:
         state_( fiber_status::running),
         flags_( flag_main_fiber),
         splk_(),
-        mgr_( nullptr),
+        scheduler_( nullptr),
         ctx_( boost::context::execution_context::current() ),
         fss_data_(),
         waiting_(),
@@ -192,7 +192,7 @@ public:
         state_( fiber_status::ready),
         flags_( 0),
         splk_(),
-        mgr_( nullptr),
+        scheduler_( nullptr),
         ctx_( palloc, salloc,
               // lambda, executed in execution context
               // mutable: generated operator() is not const -> enables std::move( fn)
@@ -229,13 +229,13 @@ public:
 
     virtual ~context();
 
-    void manager( fiber_manager * mgr) {
+    void set_scheduler( scheduler * mgr) {
         BOOST_ASSERT( nullptr != mgr);
-        mgr_ = mgr;
+        scheduler_ = mgr;
     }
 
-    fiber_manager * manager() const noexcept {
-        return mgr_;
+    scheduler * get_scheduler() const noexcept {
+        return scheduler_;
     }
 
     id get_id() const noexcept {
@@ -371,13 +371,13 @@ public:
     template< typename Clock, typename Duration >
     bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time,
                         detail::spinlock_lock & lk) {
-        return mgr_->wait_until( timeout_time, lk);
+        return scheduler_->wait_until( timeout_time, lk);
     }
 
     template< typename Rep, typename Period >
     bool do_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
                       detail::spinlock_lock & lk) {
-        return mgr_->wait_for( timeout_duration, lk);
+        return scheduler_->wait_for( timeout_duration, lk);
     }
 
     void do_yield();
@@ -390,7 +390,7 @@ public:
 
     template< typename Rep, typename Period >
     void do_wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
-        mgr_->wait_interval( wait_interval);
+        scheduler_->wait_interval( wait_interval);
     }
 
     std::chrono::steady_clock::duration do_wait_interval() noexcept;

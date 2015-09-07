@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/09/05 11:41:40 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/09/07 15:34:21 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -2681,10 +2681,10 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     </bridgehead>
     <para>
       A scheduler class directly derived from <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link> can
-      use any information available from <link linkend="class_context"> <code>context</code></link> to implement
-      the <code><phrase role="identifier">sched_algorithm</phrase></code> interface.
-      But a custom scheduler might need to track additional properties for a fiber.
-      For instance, a priority-based scheduler would need to track a fiber's priority.
+      use any information available from <link linkend="class_context"> <code>context</code></link> to implement the <code><phrase
+      role="identifier">sched_algorithm</phrase></code> interface. But a custom scheduler
+      might need to track additional properties for a fiber. For instance, a priority-based
+      scheduler would need to track a fiber's priority.
     </para>
     <para>
       <emphasis role="bold">Boost.Fiber</emphasis> provides a mechanism by which
@@ -2942,8 +2942,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
             instance is already passed to <link linkend="sched_algorithm_with_properties_awakened"> <code>sched_algorithm_with_properties::awakened()</code></link> and
             <link linkend="sched_algorithm_with_properties_property_change"> <code>sched_algorithm_with_properties::property_change()</code></link>.
             However, every <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link> subclass is expected
-            to track a collection of ready <link linkend="class_context"> <code>context</code></link> instances.
-            This method allows your custom scheduler to retrieve the <link linkend="class_fiber_properties"> <code>fiber_properties</code></link> subclass
+            to track a collection of ready <link linkend="class_context"> <code>context</code></link> instances. This method
+            allows your custom scheduler to retrieve the <link linkend="class_fiber_properties"> <code>fiber_properties</code></link> subclass
             instance for any <code><phrase role="identifier">context</phrase></code>
             in its collection.
           </para>
@@ -3029,12 +3029,12 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <para>
       While you are free to treat <code><phrase role="identifier">context</phrase><phrase
       role="special">*</phrase></code> as an opaque token, certain <code><phrase
-      role="identifier">context</phrase></code> members may be useful to a
-      custom scheduler implementation.
+      role="identifier">context</phrase></code> members may be useful to a custom
+      scheduler implementation.
     </para>
     <para>
-      (Most <code><phrase role="identifier">context</phrase></code> members
-      are implementation details; most of interest are implementations of <link linkend="class_fiber"> <code>fiber</code></link> methods.)
+      (Most <code><phrase role="identifier">context</phrase></code> members are implementation
+      details; most of interest are implementations of <link linkend="class_fiber"> <code>fiber</code></link> methods.)
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
@@ -3062,9 +3062,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <para>
             This link pointer may be used to help implement a custom scheduler's
             ready queue. It is overwritten by the fiber manager every time this
-            <code><phrase role="identifier">context</phrase></code> is returned
-            by <link linkend="sched_algorithm_pick_next"> <code>sched_algorithm::pick_next()</code></link>, but between
-            the time the fiber manager passes this <code><phrase role="identifier">context</phrase></code>
+            <code><phrase role="identifier">context</phrase></code> is returned by
+            <link linkend="sched_algorithm_pick_next"> <code>sched_algorithm::pick_next()</code></link>, but between the
+            time the fiber manager passes this <code><phrase role="identifier">context</phrase></code>
             to <link linkend="sched_algorithm_awakened"> <code>sched_algorithm::awakened()</code></link> (or <link linkend="sched_algorithm_with_properties_awakened"> <code>sched_algorithm_with_properties::awakened()</code></link>)
             and the time your <code><phrase role="identifier">pick_next</phrase><phrase
             role="special">()</phrase></code> returns it to the fiber manager, it
@@ -3076,8 +3076,8 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <para>
       <bridgehead renderas="sect4" id="context_main_fiber_bridgehead">
   <phrase id="context_main_fiber"/>
-  <link linkend="context_main_fiber">Static
-      member function <code>main_fiber</code>()</link>
+  <link linkend="context_main_fiber">Static member
+      function <code>main_fiber</code>()</link>
 </bridgehead>
     </para>
 <programlisting><phrase role="keyword">static</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">main_fiber</phrase><phrase role="special">();</phrase>
@@ -10572,13 +10572,8 @@ to return that result
       on different threads. The columns labeled <emphasis role="bold">fiber (raw)</emphasis>
       were compiled with <link linkend="cross_thread_sync"><code><phrase role="identifier">BOOST_FIBERS_NO_ATOMICS</phrase></code></link>.
     </para>
-    <note>
-      <para>
-        The measurement of fibers include the memory allocation of fiber stacks!
-      </para>
-    </note>
-    <table frame="all" id="fiber.performance.overhead_of_join">
-      <title>Overhead of join</title>
+    <table frame="all" id="fiber.performance.overhead_of_join__contains_fiber_context_destruction__fiber_stack_deallocation_">
+      <title>Overhead of join (contains fiber-context destruction, fiber-stack deallocation)</title>
       <tgroup cols="5">
         <thead>
           <row>
@@ -10613,7 +10608,7 @@ to return that result
           <row>
             <entry>
               <para>
-                31 &#xb5;s
+                18 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10669,7 +10664,7 @@ to return that result
           <row>
             <entry>
               <para>
-                20 &#xb5;s
+                126 ns
               </para>
             </entry>
             <entry>
@@ -10715,7 +10710,7 @@ to return that result
           <row>
             <entry>
               <para>
-                38 &#xb5;s
+                1.5 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10761,7 +10756,7 @@ to return that result
           <row>
             <entry>
               <para>
-                32 &#xb5;s
+                16 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10780,6 +10775,53 @@ to return that result
     </table>
     <para>
       (from <ulink url="../../performance/fiber/overhead_future.cpp">overhead_future.cpp</ulink>)
+    </para>
+    <table frame="all" id="fiber.performance.overhead_of_fiber_creation__contains_fiber_stack_allocation_and_preparation__fiber_context_construction__scheduler_handling_">
+      <title>Overhead of fiber creation (contains fiber-stack allocation and preparation,
+      fiber-context construction, scheduler handling)</title>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                thread
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (atomics)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (raw)
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                18 &#xb5;s
+              </para>
+            </entry>
+            <entry>
+              <para>
+                210 ns
+              </para>
+            </entry>
+            <entry>
+              <para>
+                205 ns
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para>
+      (from <ulink url="../../performance/fiber/overhead_create.cpp">overhead_create.cpp</ulink>)
     </para>
     <table frame="all" id="fiber.performance.scaling_of_creating_and_joining">
       <title>Scaling of creating and joining</title>
@@ -10817,7 +10859,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                50.65 &#xb5;s
+                8.21 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10839,7 +10881,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                52.99 &#xb5;s
+                6.67 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10861,7 +10903,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                50.44 &#xb5;s
+                6.79 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10883,7 +10925,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                45.19 &#xb5;s
+                8.25 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10905,7 +10947,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                42.59 &#xb5;s
+                7.71 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10927,7 +10969,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                42.30 &#xb5;s
+                5.67 &#xb5;s
               </para>
             </entry>
             <entry>
@@ -10949,7 +10991,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                41.07 &#xb5;s
+                5.25 &#xb5;s
               </para>
             </entry>
             <entry>

@@ -18,15 +18,15 @@
 namespace boost {
 namespace fibers {
 
-static context * main_fiber() {
-    static thread_local context mf;
-    static thread_local fiber_manager mgr;
-    mf.manager( & mgr);
-    return & mf;
+static context * main_context() {
+    static thread_local context mc;
+    static thread_local scheduler sched;
+    mc.set_scheduler( & sched);
+    return & mc;
 }
 
 thread_local context *
-context::active_ = main_fiber();
+context::active_ = main_context();
 
 context *
 context::active() noexcept {
@@ -148,69 +148,69 @@ context::set_properties( fiber_properties * props) {
 
 void
 context::do_spawn( fiber const& f_) {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
     context * f( f_.impl_.get() );
-    f->manager( mgr_);
-    mgr_->spawn( f);
+    f->set_scheduler( scheduler_);
+    scheduler_->spawn( f);
 }
 
 void
 context::do_schedule() {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    mgr_->run();
+    scheduler_->run();
 }
 
 void
 context::do_wait( detail::spinlock_lock & lk) {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    mgr_->wait( lk);
+    scheduler_->wait( lk);
 }
 
 void
 context::do_yield() {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    mgr_->yield();
+    scheduler_->yield();
 }
 
 void
 context::do_join( context * f) {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
     BOOST_ASSERT( nullptr != f);
 
-    mgr_->join( f);
+    scheduler_->join( f);
 }
 
 std::size_t
 context::do_ready_fibers() const noexcept {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    return mgr_->ready_fibers();
+    return scheduler_->ready_fibers();
 }
 
 void
 context::do_set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    mgr_->set_sched_algo( std::move( algo) );
+    scheduler_->set_sched_algo( std::move( algo) );
 }
 
 std::chrono::steady_clock::duration
 context::do_wait_interval() noexcept {
-    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    return mgr_->wait_interval();
+    return scheduler_->wait_interval();
 }
 
 }}

@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/fiber_manager.hpp"
+#include "boost/fiber/scheduler.hpp"
 
 #include <cmath>
 #include <thread> // std::this_thread::sleep_until()
@@ -25,14 +25,14 @@
 namespace boost {
 namespace fibers {
 
-fiber_manager::fiber_manager() noexcept :
+scheduler::scheduler() noexcept :
     sched_algo_( new round_robin() ),
     wqueue_(),
     tqueue_(),
     wait_interval_( std::chrono::milliseconds( 10) ) {
 }
 
-fiber_manager::~fiber_manager() noexcept {
+scheduler::~scheduler() noexcept {
     // FIXME: test for main-fiber
     for (;;) {
         // NOTE: at this stage the fibers in the waiting-queue
@@ -46,8 +46,8 @@ fiber_manager::~fiber_manager() noexcept {
         context * f( sched_algo_->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
-            // set fiber_manager
-            f->manager( this);
+            // set scheduler
+            f->set_scheduler( this);
             // add active-fiber to joinig-list of f
             // fiber::join() should not fail because fiber f is in state_ready
             // so main-fiber should be in the waiting-queue of fiber f
@@ -68,7 +68,7 @@ fiber_manager::~fiber_manager() noexcept {
 }
 
 void
-fiber_manager::resume_( context * f) {
+scheduler::resume_( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
     // set fiber to state running
@@ -78,10 +78,10 @@ fiber_manager::resume_( context * f) {
     if ( f == context::active() ) {
         return;
     }
-    // pass new fiber the fiber_manager of the current active fiber
+    // pass new fiber the scheduler of the current active fiber
     // this might be necessary if the new fiber was miggrated from
     // another thread
-    f->manager( context::active()->manager() );
+    f->set_scheduler( context::active()->get_scheduler() );
     // assign new fiber to active-fiber
     context * old( context::active( f) );
     // push terminated fibers to terminated-queue
@@ -93,7 +93,7 @@ fiber_manager::resume_( context * f) {
 }
 
 void
-fiber_manager::spawn( context * f) {
+scheduler::spawn( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
     BOOST_ASSERT( f != context::active() );
@@ -102,7 +102,7 @@ fiber_manager::spawn( context * f) {
 }
 
 void
-fiber_manager::run() {
+scheduler::run() {
     for (;;) {
         // destroy terminated fibers from terminated-queue
         tqueue_.clear();
@@ -113,8 +113,6 @@ fiber_manager::run() {
         context * f( sched_algo_->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
-            // set fiber_manager
-            f->manager( this);
             // resume fiber f
             resume_( f);
             return;
@@ -127,7 +125,7 @@ fiber_manager::run() {
 }
 
 void
-fiber_manager::wait( detail::spinlock_lock & lk) {
+scheduler::wait( detail::spinlock_lock & lk) {
     wait_until(
         std::chrono::steady_clock::time_point(
             (std::chrono::steady_clock::duration::max)() ),
@@ -135,7 +133,7 @@ fiber_manager::wait( detail::spinlock_lock & lk) {
 }
 
 bool
-fiber_manager::wait_until_( std::chrono::steady_clock::time_point const& timeout_time,
+scheduler::wait_until_( std::chrono::steady_clock::time_point const& timeout_time,
                             detail::spinlock_lock & lk) {
     BOOST_ASSERT( context::active()->is_running() );
     // set active-fiber to state_waiting
@@ -155,7 +153,7 @@ fiber_manager::wait_until_( std::chrono::steady_clock::time_point const& timeout
 }
 
 void
-fiber_manager::yield() {
+scheduler::yield() {
     BOOST_ASSERT( context::active()->is_running() );
     // set active-fiber to state_waiting
     context::active()->set_ready();
@@ -169,7 +167,7 @@ fiber_manager::yield() {
 }
 
 void
-fiber_manager::join( context * f) {
+scheduler::join( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f != context::active() );
     // set active-fiber to state_waiting
@@ -193,22 +191,22 @@ fiber_manager::join( context * f) {
 }
 
 void
-fiber_manager::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
     sched_algo_ = std::move( algo);
 }
 
 void
-fiber_manager::wait_interval( std::chrono::steady_clock::duration const& wait_interval) noexcept {
+scheduler::wait_interval( std::chrono::steady_clock::duration const& wait_interval) noexcept {
     wait_interval_ = wait_interval;
 }
 
 std::chrono::steady_clock::duration
-fiber_manager::wait_interval() noexcept {
+scheduler::wait_interval() noexcept {
     return wait_interval_;
 }
 
 std::size_t
-fiber_manager::ready_fibers() const noexcept {
+scheduler::ready_fibers() const noexcept {
     return sched_algo_->ready_fibers();
 }
 

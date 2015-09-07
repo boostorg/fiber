@@ -267,10 +267,9 @@
     </h4>
 <p>
       A scheduler class directly derived from <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> can
-      use any information available from <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> to implement
-      the <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> interface.
-      But a custom scheduler might need to track additional properties for a fiber.
-      For instance, a priority-based scheduler would need to track a fiber's priority.
+      use any information available from <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> to implement the <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> interface. But a custom scheduler
+      might need to track additional properties for a fiber. For instance, a priority-based
+      scheduler would need to track a fiber's priority.
     </p>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> provides a mechanism by which
@@ -503,8 +502,8 @@
             instance is already passed to <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> and
             <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>.
             However, every <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass is expected
-            to track a collection of ready <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> instances.
-            This method allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
+            to track a collection of ready <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> instances. This method
+            allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
             instance for any <code class="computeroutput"><span class="identifier">context</span></code>
             in its collection.
           </p></dd>
@@ -580,12 +579,12 @@
 <p>
     </p>
 <p>
-      While you are free to treat <code class="computeroutput"><span class="identifier">context</span><span class="special">*</span></code> as an opaque token, certain <code class="computeroutput"><span class="identifier">context</span></code> members may be useful to a
-      custom scheduler implementation.
+      While you are free to treat <code class="computeroutput"><span class="identifier">context</span><span class="special">*</span></code> as an opaque token, certain <code class="computeroutput"><span class="identifier">context</span></code> members may be useful to a custom
+      scheduler implementation.
     </p>
 <p>
-      (Most <code class="computeroutput"><span class="identifier">context</span></code> members
-      are implementation details; most of interest are implementations of <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> methods.)
+      (Most <code class="computeroutput"><span class="identifier">context</span></code> members are implementation
+      details; most of interest are implementations of <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> methods.)
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">context</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
@@ -615,9 +614,9 @@
 <dd><p>
             This link pointer may be used to help implement a custom scheduler's
             ready queue. It is overwritten by the fiber manager every time this
-            <code class="computeroutput"><span class="identifier">context</span></code> is returned
-            by <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a>, but between
-            the time the fiber manager passes this <code class="computeroutput"><span class="identifier">context</span></code>
+            <code class="computeroutput"><span class="identifier">context</span></code> is returned by
+            <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a>, but between the
+            time the fiber manager passes this <code class="computeroutput"><span class="identifier">context</span></code>
             to <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a> (or <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a>)
             and the time your <code class="computeroutput"><span class="identifier">pick_next</span><span class="special">()</span></code> returns it to the fiber manager, it
             is available for use by your custom scheduler.
@@ -629,8 +628,8 @@
 <h5>
 <a name="context_main_fiber_bridgehead"></a>
   <span><a name="context_main_fiber"></a></span>
-  <a class="link" href="scheduling.html#context_main_fiber">Static
-      member function <code class="computeroutput">main_fiber</code>()</a>
+  <a class="link" href="scheduling.html#context_main_fiber">Static member
+      function <code class="computeroutput">main_fiber</code>()</a>
 </h5>
 <p>
     </p>

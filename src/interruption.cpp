@@ -9,7 +9,7 @@
 #include "boost/fiber/interruption.hpp"
 
 #include "boost/fiber/context.hpp"
-#include "boost/fiber/fiber_manager.hpp"
+#include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS

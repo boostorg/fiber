@@ -30,7 +30,7 @@ namespace fibers {
 class context;
 struct sched_algorithm;
 
-struct BOOST_FIBERS_DECL fiber_manager {
+struct BOOST_FIBERS_DECL scheduler {
 private:
     typedef detail::waiting_queue          wqueue_t;
     typedef detail::terminated_queue       tqueue_t;
@@ -46,12 +46,12 @@ private:
                       detail::spinlock_lock &);
 
 public:
-    fiber_manager() noexcept;
+    scheduler() noexcept;
 
-    fiber_manager( fiber_manager const&) = delete;
-    fiber_manager & operator=( fiber_manager const&) = delete;
+    scheduler( scheduler const&) = delete;
+    scheduler & operator=( scheduler const&) = delete;
 
-    virtual ~fiber_manager() noexcept;
+    virtual ~scheduler() noexcept;
 
     void spawn( context *);
 
