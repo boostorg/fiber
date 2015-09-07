@@ -36,7 +36,6 @@ private:
     typedef detail::terminated_queue       tqueue_t;
 
     std::unique_ptr< sched_algorithm >     sched_algo_;
-    fiber_context                      *   active_fiber_;
     wqueue_t                               wqueue_;
     tqueue_t                               tqueue_;
     std::chrono::steady_clock::duration    wait_interval_;
@@ -79,11 +78,7 @@ public:
 
     void join( fiber_context *);
 
-    fiber_context * active() noexcept;
-
     std::size_t ready_fibers() const noexcept;
-
-    sched_algorithm* get_sched_algo_();
 
     void set_sched_algo( std::unique_ptr< sched_algorithm >);
 

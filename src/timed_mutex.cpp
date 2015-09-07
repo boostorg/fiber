@@ -47,7 +47,7 @@ timed_mutex::~timed_mutex() {
 
 void
 timed_mutex::lock() {
-    fiber_context * f( detail::scheduler::instance()->active() );
+    fiber_context * f( fiber_context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -61,7 +61,7 @@ timed_mutex::lock() {
         waiting_.push_back( f);
 
         // suspend this fiber
-        detail::scheduler::instance()->wait( lk);
+        fiber_context::active()->do_wait( lk);
     }
 }
 
@@ -82,7 +82,7 @@ timed_mutex::try_lock() {
 
 bool
 timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
-    fiber_context * f( detail::scheduler::instance()->active() );
+    fiber_context * f( fiber_context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -100,7 +100,7 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
         waiting_.push_back( f);
 
         // suspend this fiber until notified or timed-out
-        if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
+        if ( ! fiber_context::active()->do_wait_until( timeout_time, lk) ) {
             lk.lock();
             std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {

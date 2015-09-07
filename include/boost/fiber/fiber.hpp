@@ -21,7 +21,6 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -34,7 +33,7 @@ class fiber_context;
 
 class BOOST_FIBERS_DECL fiber {
 private:
-    friend struct detail::scheduler;
+    friend class fiber_context;
 
     typedef intrusive_ptr< fiber_context >  ptr_t;
 

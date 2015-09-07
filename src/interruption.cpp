@@ -20,45 +20,45 @@ namespace boost {
 namespace this_fiber {
 
 disable_interruption::disable_interruption() noexcept :
-    set_( ( fibers::detail::scheduler::instance()->active()->interruption_blocked() ) ) {
+    set_( ( fibers::fiber_context::active()->interruption_blocked() ) ) {
     if ( ! set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( true);
+        fibers::fiber_context::active()->interruption_blocked( true);
     }
 }
 
 disable_interruption::~disable_interruption() noexcept {
     if ( ! set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( false);
+        fibers::fiber_context::active()->interruption_blocked( false);
     }
 }
 
 restore_interruption::restore_interruption( disable_interruption & disabler) noexcept :
     disabler_( disabler) {
     if ( ! disabler_.set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( false);
+        fibers::fiber_context::active()->interruption_blocked( false);
     }
 }
 
 restore_interruption::~restore_interruption() noexcept {
     if ( ! disabler_.set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( true);
+        fibers::fiber_context::active()->interruption_blocked( true);
     }
 }
 
 BOOST_FIBERS_DECL
 bool interruption_enabled() noexcept { 
-    return ! fibers::detail::scheduler::instance()->active()->interruption_blocked(); 
+    return ! fibers::fiber_context::active()->interruption_blocked(); 
 } 
  
 BOOST_FIBERS_DECL
 bool interruption_requested() noexcept { 
-    return fibers::detail::scheduler::instance()->active()->interruption_requested(); 
+    return fibers::fiber_context::active()->interruption_requested(); 
 }
 
 BOOST_FIBERS_DECL
 void interruption_point() {
     if ( interruption_requested() && interruption_enabled() ) {
-        fibers::detail::scheduler::instance()->active()->request_interruption( false);
+        fibers::fiber_context::active()->request_interruption( false);
         throw fibers::fiber_interrupted();
     }
 }
