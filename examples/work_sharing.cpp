@@ -31,10 +31,11 @@ private:
     static std::mutex                  mutex_;
     typedef std::unique_lock<std::mutex> lock_t;
 
-    // Reserve a separate, thread-specific slot for this thread's main fiber.
-    // It would be Bad News for thread B to retrieve and attempt to execute
-    // thread A's main fiber. This slot might be empty (nullptr) or full (==
-    // context::main_fiber()): pick_next() must only return the main fiber's
+    // Reserve a separate, scheduler-specific slot for this thread's main
+    // fiber. When we're passed the main fiber, stash it there instead of in
+    // the shared queue: it would be Bad News for thread B to retrieve and
+    // attempt to execute thread A's main fiber. This slot might be empty
+    // (nullptr) or full: pick_next() must only return the main fiber's
     // context* after it has been passed to awakened().
     boost::fibers::context*            main_fiber;
 
