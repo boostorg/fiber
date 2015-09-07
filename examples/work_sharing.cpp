@@ -31,28 +31,53 @@ private:
     static std::mutex                  mutex_;
     typedef std::unique_lock<std::mutex> lock_t;
 
+    // Reserve a separate, thread-specific slot for this thread's main fiber.
+    // It would be Bad News for thread B to retrieve and attempt to execute
+    // thread A's main fiber. This slot might be empty (nullptr) or full (==
+    // context::main_fiber()): pick_next() must only return the main fiber's
+    // context* after it has been passed to awakened().
+    boost::fibers::context*            main_fiber;
+
 public:
+    shared_ready_queue():
+        main_fiber(nullptr)
+    {}
+
     virtual void awakened( boost::fibers::context * f) {
         BOOST_ASSERT( nullptr != f);
 
-        lock_t lock(mutex_);
-        rqueue_.push( f);
+        // recognize when we're passed this thread's main fiber
+        if (f->is_main_context()) {
+            // never put this thread's main fiber on the queue
+            // stash it in separate slot
+            main_fiber = f;
+        } else {
+            // ordinary fiber, enqueue on shared queue
+            lock_t lock(mutex_);
+            rqueue_.push( f);
+        }
     }
 
     virtual boost::fibers::context * pick_next() {
         lock_t lock(mutex_);
-        boost::fibers::context * victim( nullptr);
+        boost::fibers::context * victim;
         if ( ! rqueue_.empty() ) {
+            // good, we have an item in the ready queue, pop it
             victim = rqueue_.front();
             rqueue_.pop();
             BOOST_ASSERT( nullptr != victim);
+        } else {
+            // nothing in the ready queue, return main_fiber
+            victim = main_fiber;
+            // once we've returned main_fiber, clear the slot
+            main_fiber = nullptr;
         }
         return victim;
     }
 
     virtual std::size_t ready_fibers() const noexcept {
         lock_t lock(mutex_);
-        return rqueue_.size();
+        return rqueue_.size() + (main_fiber? 1 : 0);
     }
 };
 
