@@ -74,9 +74,9 @@
 <span class="keyword">struct</span> <span class="identifier">sched_algorithm</span> <span class="special">{</span>
     <span class="keyword">virtual</span> <span class="special">~</span><span class="identifier">sched_algorithm</span><span class="special">()</span> <span class="special">{}</span>
 
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
     <span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 <span class="special">};</span>
@@ -91,7 +91,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -125,7 +125,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -184,9 +184,9 @@
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">round_robin</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">class</span> <span class="identifier">round_robin</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">sched_algorithm</span> <span class="special">{</span>
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*);</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*);</span>
 
-    <span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
+    <span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
 
     <span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="special">};</span>
@@ -201,7 +201,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -223,7 +223,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -267,10 +267,9 @@
     </h4>
 <p>
       A scheduler class directly derived from <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> can
-      use any information available from <a class="link" href="scheduling.html#class_fiber_context"> <code class="computeroutput">fiber_context</code></a> to implement
-      the <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> interface.
-      But a custom scheduler might need to track additional properties for a fiber.
-      For instance, a priority-based scheduler would need to track a fiber's priority.
+      use any information available from <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> to implement the <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> interface. But a custom scheduler
+      might need to track additional properties for a fiber. For instance, a priority-based
+      scheduler would need to track a fiber's priority.
     </p>
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> provides a mechanism by which
@@ -293,7 +292,7 @@
 
 <span class="keyword">class</span> <span class="identifier">fiber_properties</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+    <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 
     <span class="keyword">virtual</span> <span class="special">~</span><span class="identifier">fiber_properties</span><span class="special">()</span> <span class="special">{}</span>
 
@@ -305,7 +304,7 @@
 <a name="fiber.scheduling.h1"></a>
       <span><a name="fiber.scheduling.constructor"></a></span><a class="link" href="scheduling.html#fiber.scheduling.constructor">Constructor</a>
     </h4>
-<pre class="programlisting"><span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">fiber_context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+<pre class="programlisting"><span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">context</span><span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -316,7 +315,7 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            Your subclass constructor must accept a <code class="computeroutput"><span class="identifier">fiber_context</span><span class="special">*</span></code> and pass it to the base-class <code class="computeroutput"><span class="identifier">fiber_properties</span></code> constructor.
+            Your subclass constructor must accept a <code class="computeroutput"><span class="identifier">context</span><span class="special">*</span></code> and pass it to the base-class <code class="computeroutput"><span class="identifier">fiber_properties</span></code> constructor.
           </p></dd>
 </dl>
 </div>
@@ -379,22 +378,22 @@
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
 <span class="keyword">struct</span> <span class="identifier">sched_algorithm_with_properties</span> <span class="special">{</span>
     <span class="comment">// override this method instead of sched_algorithm::awakened()</span>
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">)</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 
-    <span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
+    <span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
 
     <span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="comment">// obtain f's associated PROPS instance</span>
-    <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+    <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 
     <span class="comment">// override this to be notified by PROPS::notify()</span>
-    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">);</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">);</span>
 
     <span class="comment">// Override this to customize instantiation of PROPS, e.g. use a different</span>
     <span class="comment">// allocator. Each PROPS instance is associated with a particular</span>
-    <span class="comment">// fiber_context.</span>
-    <span class="keyword">virtual</span> <span class="identifier">fiber_properties</span> <span class="special">*</span> <span class="identifier">new_properties</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+    <span class="comment">// context.</span>
+    <span class="keyword">virtual</span> <span class="identifier">fiber_properties</span> <span class="special">*</span> <span class="identifier">new_properties</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -407,7 +406,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -436,7 +435,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -487,7 +486,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="identifier">PROPS</span><span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+<pre class="programlisting"><span class="identifier">PROPS</span><span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -503,9 +502,9 @@
             instance is already passed to <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> and
             <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>.
             However, every <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass is expected
-            to track a collection of ready <a class="link" href="scheduling.html#class_fiber_context"> <code class="computeroutput">fiber_context</code></a> instances.
-            This method allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
-            instance for any <code class="computeroutput"><span class="identifier">fiber_context</span></code>
+            to track a collection of ready <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> instances. This method
+            allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
+            instance for any <code class="computeroutput"><span class="identifier">context</span></code>
             in its collection.
           </p></dd>
 </dl>
@@ -520,7 +519,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -549,7 +548,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">fiber_properties</span> <span class="special">*</span> <span class="identifier">new_properties</span><span class="special">(</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">fiber_properties</span> <span class="special">*</span> <span class="identifier">new_properties</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -573,40 +572,40 @@
 <p>
       </p>
 <h5>
-<a name="class_fiber_context_bridgehead"></a>
-  <span><a name="class_fiber_context"></a></span>
-  <a class="link" href="scheduling.html#class_fiber_context">Class <code class="computeroutput">fiber_context</code></a>
+<a name="class_context_bridgehead"></a>
+  <span><a name="class_context"></a></span>
+  <a class="link" href="scheduling.html#class_context">Class <code class="computeroutput">context</code></a>
 </h5>
 <p>
     </p>
 <p>
-      While you are free to treat <code class="computeroutput"><span class="identifier">fiber_context</span><span class="special">*</span></code> as an opaque token, certain <code class="computeroutput"><span class="identifier">fiber_context</span></code> members may be useful to a
-      custom scheduler implementation.
+      While you are free to treat <code class="computeroutput"><span class="identifier">context</span><span class="special">*</span></code> as an opaque token, certain <code class="computeroutput"><span class="identifier">context</span></code> members may be useful to a custom
+      scheduler implementation.
     </p>
 <p>
-      (Most <code class="computeroutput"><span class="identifier">fiber_context</span></code> members
-      are implementation details; most of interest are implementations of <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> methods.)
+      (Most <code class="computeroutput"><span class="identifier">context</span></code> members are implementation
+      details; most of interest are implementations of <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> methods.)
     </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fiber_context</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">context</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">fiber_context</span> <span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">context</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">fiber_context</span>   <span class="special">*</span>   <span class="identifier">nxt</span><span class="special">;</span>
+    <span class="identifier">context</span>   <span class="special">*</span>   <span class="identifier">nxt</span><span class="special">;</span>
 
-    <span class="keyword">static</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">main_fiber</span><span class="special">();</span>
+    <span class="keyword">static</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">main_fiber</span><span class="special">();</span>
 
 <span class="special">};</span>
 </pre>
 <p>
       </p>
 <h5>
-<a name="fiber_context_nxt_bridgehead"></a>
-  <span><a name="fiber_context_nxt"></a></span>
-  <a class="link" href="scheduling.html#fiber_context_nxt">Data member <code class="computeroutput">nxt</code></a>
+<a name="context_nxt_bridgehead"></a>
+  <span><a name="context_nxt"></a></span>
+  <a class="link" href="scheduling.html#context_nxt">Data member <code class="computeroutput">nxt</code></a>
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="identifier">fiber_context</span>   <span class="special">*</span>   <span class="identifier">nxt</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">context</span>   <span class="special">*</span>   <span class="identifier">nxt</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -615,9 +614,9 @@
 <dd><p>
             This link pointer may be used to help implement a custom scheduler's
             ready queue. It is overwritten by the fiber manager every time this
-            <code class="computeroutput"><span class="identifier">fiber_context</span></code> is returned
-            by <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a>, but between
-            the time the fiber manager passes this <code class="computeroutput"><span class="identifier">fiber_context</span></code>
+            <code class="computeroutput"><span class="identifier">context</span></code> is returned by
+            <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a>, but between the
+            time the fiber manager passes this <code class="computeroutput"><span class="identifier">context</span></code>
             to <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a> (or <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a>)
             and the time your <code class="computeroutput"><span class="identifier">pick_next</span><span class="special">()</span></code> returns it to the fiber manager, it
             is available for use by your custom scheduler.
@@ -627,21 +626,21 @@
 <p>
       </p>
 <h5>
-<a name="fiber_context_main_fiber_bridgehead"></a>
-  <span><a name="fiber_context_main_fiber"></a></span>
-  <a class="link" href="scheduling.html#fiber_context_main_fiber">Static
-      member function <code class="computeroutput">main_fiber</code>()</a>
+<a name="context_main_fiber_bridgehead"></a>
+  <span><a name="context_main_fiber"></a></span>
+  <a class="link" href="scheduling.html#context_main_fiber">Static member
+      function <code class="computeroutput">main_fiber</code>()</a>
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">static</span> <span class="identifier">fiber_context</span> <span class="special">*</span> <span class="identifier">main_fiber</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">static</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">main_fiber</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            the <code class="computeroutput"><span class="identifier">fiber_context</span></code> associated
+            the <code class="computeroutput"><span class="identifier">context</span></code> associated
             with the "main" fiber of the thread: the one implicitly created
             by the thread itself, rather than one explicitly created by <span class="bold"><strong>Boost.Fiber</strong></span>.
           </p></dd>

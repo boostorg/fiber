@@ -8,7 +8,6 @@
 #define BOOST_FIBERS_DETAIL_WAITING_QUEUE_H
 
 #include <algorithm>
-#include <memory>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -22,7 +21,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 struct sched_algorithm;
 
 namespace detail {
@@ -41,15 +40,15 @@ public:
         return nullptr == head_;
     }
 
-    void push( fiber_context * item) noexcept;
+    void push( context * item) noexcept;
 
-    fiber_context * top() const noexcept {
+    context * top() const noexcept {
         BOOST_ASSERT( ! empty() );
 
         return head_; 
     }
 
-    void move_to( std::unique_ptr< sched_algorithm > &);
+    void move_to( sched_algorithm *);
 
     void interrupt_all() noexcept;
 
@@ -59,8 +58,8 @@ public:
     }
 
 private:
-    fiber_context   *   head_;
-    fiber_context   *   tail_;
+    context   *   head_;
+    context   *   tail_;
 };
 
 }}}

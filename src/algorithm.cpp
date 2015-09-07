@@ -6,7 +6,7 @@
 
 #include "boost/fiber/algorithm.hpp"
 
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -17,13 +17,13 @@ namespace fibers {
 
 //static
 fiber_properties *
-sched_algorithm_with_properties_base::get_properties( fiber_context * f) noexcept {
+sched_algorithm_with_properties_base::get_properties( context * f) noexcept {
     return f->get_properties();
 }
 
 //static
 void
-sched_algorithm_with_properties_base::set_properties( fiber_context * f, fiber_properties * props) noexcept {
+sched_algorithm_with_properties_base::set_properties( context * f, fiber_properties * props) noexcept {
     f->set_properties( props);
 }
 

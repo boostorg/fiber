@@ -16,7 +16,7 @@
 
 #include "boost/fiber/algorithm.hpp"
 #include "boost/fiber/detail/config.hpp"
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -27,7 +27,7 @@ namespace fibers {
 namespace detail {
 
 void
-waiting_queue::push( fiber_context * item) noexcept {
+waiting_queue::push( context * item) noexcept {
     BOOST_ASSERT( nullptr != item);
     BOOST_ASSERT( nullptr == item->nxt);
 
@@ -40,14 +40,14 @@ waiting_queue::push( fiber_context * item) noexcept {
 }
 
 void
-waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
+waiting_queue::move_to( sched_algorithm * sched_algo) {
     BOOST_ASSERT( nullptr != sched_algo);
 
     std::chrono::steady_clock::time_point now(
         std::chrono::steady_clock::now() );
 
-    fiber_context * prev = head_;
-    for ( fiber_context * f( head_); nullptr != f;) {
+    context * prev = head_;
+    for ( context * f( head_); nullptr != f;) {
         BOOST_ASSERT( ! f->is_running() );
         BOOST_ASSERT( ! f->is_terminated() );
 
@@ -64,13 +64,13 @@ waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
             if ( head_ == f) {
                 head_ = f->nxt;
                 prev = head_;
-                fiber_context * item = f;
+                context * item = f;
                 f = head_;
                 if ( nullptr == head_) {
                     tail_ = head_;
                 }
                 item->nxt = nullptr;
-                // Pass the newly-unlinked fiber_context* to sched_algo.
+                // Pass the newly-unlinked context* to sched_algo.
                 item->time_point_reset();
                 sched_algo->awakened( item);
             } else {
@@ -78,10 +78,10 @@ waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
                 if ( nullptr == prev->nxt) {
                     tail_ = prev;
                 }
-                fiber_context * item = f;
+                context * item = f;
                 f = f->nxt;
                 item->nxt = nullptr;
-                // Pass the newly-unlinked fiber_context* to sched_algo.
+                // Pass the newly-unlinked context* to sched_algo.
                 item->time_point_reset();
                 sched_algo->awakened( item);
             }
@@ -91,11 +91,8 @@ waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
 
 void
 waiting_queue::interrupt_all() noexcept {
-    fiber_context * mf( fiber_context::main_fiber() );
-    for ( fiber_context * f( head_); nullptr != f; f = f->nxt) {
-        if ( f != mf) {
-            f->request_interruption( true);
-        }
+    for ( context * f( head_); nullptr != f; f = f->nxt) {
+        f->request_interruption( true);
     }
 }
 

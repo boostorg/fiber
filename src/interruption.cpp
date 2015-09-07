@@ -8,8 +8,8 @@
 
 #include "boost/fiber/interruption.hpp"
 
-#include "boost/fiber/fiber_context.hpp"
-#include "boost/fiber/fiber_manager.hpp"
+#include "boost/fiber/context.hpp"
+#include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -20,45 +20,45 @@ namespace boost {
 namespace this_fiber {
 
 disable_interruption::disable_interruption() noexcept :
-    set_( ( fibers::detail::scheduler::instance()->active()->interruption_blocked() ) ) {
+    set_( ( fibers::context::active()->interruption_blocked() ) ) {
     if ( ! set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( true);
+        fibers::context::active()->interruption_blocked( true);
     }
 }
 
 disable_interruption::~disable_interruption() noexcept {
     if ( ! set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( false);
+        fibers::context::active()->interruption_blocked( false);
     }
 }
 
 restore_interruption::restore_interruption( disable_interruption & disabler) noexcept :
     disabler_( disabler) {
     if ( ! disabler_.set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( false);
+        fibers::context::active()->interruption_blocked( false);
     }
 }
 
 restore_interruption::~restore_interruption() noexcept {
     if ( ! disabler_.set_) {
-        fibers::detail::scheduler::instance()->active()->interruption_blocked( true);
+        fibers::context::active()->interruption_blocked( true);
     }
 }
 
 BOOST_FIBERS_DECL
 bool interruption_enabled() noexcept { 
-    return ! fibers::detail::scheduler::instance()->active()->interruption_blocked(); 
+    return ! fibers::context::active()->interruption_blocked(); 
 } 
  
 BOOST_FIBERS_DECL
 bool interruption_requested() noexcept { 
-    return fibers::detail::scheduler::instance()->active()->interruption_requested(); 
+    return fibers::context::active()->interruption_requested(); 
 }
 
 BOOST_FIBERS_DECL
 void interruption_point() {
     if ( interruption_requested() && interruption_enabled() ) {
-        fibers::detail::scheduler::instance()->active()->request_interruption( false);
+        fibers::context::active()->request_interruption( false);
         throw fibers::fiber_interrupted();
     }
 }

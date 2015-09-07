@@ -21,7 +21,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 
 namespace detail {
 
@@ -44,9 +44,9 @@ public:
         return size_;
     }
 
-    void push( fiber_context * item) noexcept;
+    void push( context * item) noexcept;
 
-    fiber_context * pop() noexcept;
+    context * pop() noexcept;
 
     void swap( fifo & other) {
         std::swap( head_, other.head_);
@@ -55,12 +55,12 @@ public:
 
 private:
     std::size_t         size_;
-    fiber_context   *   head_;
+    context   *   head_;
     // tail_ points to the nxt field that contains the null that marks the end
     // of the fifo. When the fifo is empty, tail_ points to head_. tail_ must
-    // never be null: it always points to a real fiber_context*. However, in
+    // never be null: it always points to a real context*. However, in
     // normal use, (*tail_) is always null.
-    fiber_context   **  tail_;
+    context   **  tail_;
 };
 
 }}}

@@ -27,9 +27,9 @@ private:
 //[priority_props
 class priority_props : public boost::fibers::fiber_properties {
 public:
-    priority_props( boost::fibers::fiber_context * p):
+    priority_props( boost::fibers::context * p):
         fiber_properties( p), /*< Your subclass constructor must accept a 
-                                 [^[class_link fiber_context]*] and pass it to
+                                 [^[class_link context]*] and pass it to
                                  the `fiber_properties` constructor. >*/
         priority_( 0) {
     }
@@ -71,7 +71,7 @@ private:
     // Much as we would like, we don't use std::priority_queue because it
     // doesn't appear to provide any way to alter the priority (and hence
     // queue position) of a particular item.
-    boost::fibers::fiber_context    *   head_;
+    boost::fibers::context    *   head_;
 
 public:
     priority_scheduler() :
@@ -83,17 +83,17 @@ public:
     /*<< You must override the [member_link sched_algorithm_with_properties..awakened]
          method. This is how your scheduler receives notification of a
          fiber that has become ready to run. >>*/
-    virtual void awakened( boost::fibers::fiber_context * f, priority_props & props) {
+    virtual void awakened( boost::fibers::context * f, priority_props & props) {
         int f_priority = props.get_priority(); /*< `props` is the instance of
                                                    priority_props associated
                                                    with the passed fiber `f`. >*/
         // With this scheduler, fibers with higher priority values are
         // preferred over fibers with lower priority values. But fibers with
         // equal priority values are processed in round-robin fashion. So when
-        // we're handed a new fiber_context*, put it at the end of the fibers
+        // we're handed a new context*, put it at the end of the fibers
         // with that same priority. In other words: search for the first fiber
         // in the queue with LOWER priority, and insert before that one.
-        boost::fibers::fiber_context ** fp = & head_;
+        boost::fibers::context ** fp = & head_;
         for ( ; * fp; fp = & ( * fp)->nxt) {
             if ( properties( * fp).get_priority() < f_priority) {
                 /*< Use the
@@ -104,7 +104,7 @@ public:
         }
         // It doesn't matter whether we hit the end of the list or found
         // another fiber with lower priority. Either way, insert f here.
-        f->nxt = * fp; /*< Note use of the [data_member_link fiber_context..nxt] member. >*/
+        f->nxt = * fp; /*< Note use of the [data_member_link context..nxt] member. >*/
         * fp = f;
 //<-
 
@@ -116,13 +116,13 @@ public:
     /*<< You must override the [member_link sched_algorithm_with_properties..pick_next]
          method. This is how your scheduler actually advises the fiber manager
          of the next fiber to run. >>*/
-    virtual boost::fibers::fiber_context * pick_next() {
+    virtual boost::fibers::context * pick_next() {
         // if ready queue is empty, just tell caller
         if ( ! head_) {
             return nullptr;
         }
         // Here we have at least one ready fiber. Unlink and return that.
-        boost::fibers::fiber_context * f = head_;
+        boost::fibers::context * f = head_;
         head_ = f->nxt;
         f->nxt = nullptr;
 
@@ -137,7 +137,7 @@ public:
       to inform the fiber manager of the size of your ready queue. >>*/
     virtual std::size_t ready_fibers() const noexcept {
         std::size_t count = 0;
-        for ( boost::fibers::fiber_context * f = head_; f; f = f->nxt) {
+        for ( boost::fibers::context * f = head_; f; f = f->nxt) {
             ++count;
         }
         return count;
@@ -147,7 +147,7 @@ public:
          is optional. This override handles the case in which the running
          fiber changes the priority of another ready fiber: a fiber already in
          our queue. In that case, move the updated fiber within the queue. >>*/
-    virtual void property_change( boost::fibers::fiber_context * f, priority_props & props) {
+    virtual void property_change( boost::fibers::context * f, priority_props & props) {
         // Although our priority_props class defines multiple properties, only
         // one of them (priority) actually calls notify() when changed. The
         // point of a property_change() override is to reshuffle the ready
@@ -160,7 +160,7 @@ public:
         // Find 'f' in the queue. Note that it might not be in our queue at
         // all, if caller is changing the priority of (say) the running fiber.
         bool found = false;
-        for ( boost::fibers::fiber_context ** fp = & head_; * fp; fp = & ( * fp)->nxt) {
+        for ( boost::fibers::context ** fp = & head_; * fp; fp = & ( * fp)->nxt) {
             if ( * fp == f) {
                 // found the passed fiber in our list -- unlink it
                 found = true;
@@ -188,7 +188,7 @@ public:
         }
 
         // Here we know that f was in our ready queue, but we've unlinked it.
-        // We happen to have a method that will (re-)add a fiber_context* to
+        // We happen to have a method that will (re-)add a context* to
         // the ready queue.
         awakened(f, props);
     }
@@ -199,7 +199,7 @@ public:
             std::cout << "[empty]";
         } else {
             const char * delim = "";
-            for ( boost::fibers::fiber_context * f = head_; f; f = f->nxt) {
+            for ( boost::fibers::context * f = head_; f; f = f->nxt) {
                 priority_props & props( properties( f) );
                 std::cout << delim << props.name << '(' << props.get_priority() << ')';
                 delim = ", ";

@@ -10,7 +10,7 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/fiber_manager.hpp"
+#include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -47,7 +47,7 @@ mutex::~mutex() {
 
 void
 mutex::lock() {
-    fiber_context * f( detail::scheduler::instance()->active() );
+    context * f( context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -61,7 +61,7 @@ mutex::lock() {
         waiting_.push_back( f);
 
         // suspend this fiber
-        detail::scheduler::instance()->wait( lk);
+        context::active()->do_wait( lk);
     }
 }
 
@@ -86,13 +86,13 @@ mutex::unlock() {
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     detail::spinlock_lock lk( splk_);
-    fiber_context * f( nullptr);
+    context * f( nullptr);
     if ( ! waiting_.empty() ) {
         f = waiting_.front();
         waiting_.pop_front();
         BOOST_ASSERT( nullptr != f);
     }
-    owner_ = fiber_context::id();
+    owner_ = context::id();
 	state_ = mutex_status::unlocked;
     lk.unlock();
 

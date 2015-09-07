@@ -25,12 +25,12 @@ namespace boost {
 namespace fibers {
 
 struct sched_algorithm;
-class fiber_context;
+class context;
 
 class BOOST_FIBERS_DECL fiber_properties {
 protected:
     // initialized by constructor
-    fiber_context   *   fiber_;
+    context   *   fiber_;
     // set every time this fiber becomes READY
     sched_algorithm *   sched_algo_;
 
@@ -44,14 +44,14 @@ public:
     // instance variable, can/should call notify().
 
     // fiber_properties, and by implication every subclass, must accept a back
-    // pointer to its fiber_context.
-    fiber_properties( fiber_context* f):
+    // pointer to its context.
+    fiber_properties( context* f):
         fiber_( f),
         sched_algo_( nullptr)
     {}
 
     // We need a virtual destructor (hence a vtable) because fiber_properties
-    // is stored polymorphically (as fiber_properties*) in fiber_context, and
+    // is stored polymorphically (as fiber_properties*) in context, and
     // destroyed via that pointer.
     virtual ~fiber_properties() {}
 

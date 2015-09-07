@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_FIBER_CONTEXT_H
-#define BOOST_FIBERS_FIBER_CONTEXT_H
+#ifndef BOOST_FIBERS_CONTEXT_H
+#define BOOST_FIBERS_CONTEXT_H
 
 #include <algorithm>
 #include <atomic>
@@ -27,8 +27,7 @@
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
-#include <boost/fiber/fiber_manager.hpp>
+#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -38,9 +37,10 @@
 namespace boost {
 namespace fibers {
 
+class fiber;
 class fiber_properties;
 
-class BOOST_FIBERS_DECL fiber_context {
+class BOOST_FIBERS_DECL context {
 private:
     enum class fiber_status {
         ready = 0,
@@ -50,7 +50,7 @@ private:
     };
 
     enum flag_t {
-        flag_main_fiber             = 1 << 1,
+        flag_main_context           = 1 << 1,
         flag_interruption_blocked   = 1 << 2,
         flag_interruption_requested = 1 << 3,
         flag_detached               = 1 << 4
@@ -79,37 +79,25 @@ private:
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic< std::size_t >                      use_count_;
-    std::atomic< fiber_status >                     state_;
-    std::atomic< int >                              flags_;
-#else
-    std::size_t                                     use_count_;
-    fiber_status                                    state_;
-    int                                             flags_;
-#endif
-    detail::spinlock                                splk_;
-    context::execution_context                      ctx_;
-    fss_data_t                                      fss_data_;
-    std::vector< fiber_context * >                  waiting_;
-    std::exception_ptr                              except_;
-    std::chrono::steady_clock::time_point  tp_;
-    fiber_properties                            *   properties_;
+    static thread_local context           *   active_;
 
-    // main fiber
-    fiber_context() :
-        use_count_( 1), // allocated on stack
-        state_( fiber_status::running),
-        flags_( flag_main_fiber),
-        splk_(),
-        ctx_( context::execution_context::current() ),
-        fss_data_(),
-        waiting_(),
-        except_(),
-        tp_( (std::chrono::steady_clock::time_point::max)() ),
-        properties_( nullptr),
-        nxt( nullptr) {
-    }
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
+    std::atomic< std::size_t >                  use_count_;
+    std::atomic< fiber_status >                 state_;
+    std::atomic< int >                          flags_;
+#else
+    std::size_t                                 use_count_;
+    fiber_status                                state_;
+    int                                         flags_;
+#endif
+    detail::spinlock                            splk_;
+    scheduler                               *   scheduler_;
+    boost::context::execution_context           ctx_;
+    fss_data_t                                  fss_data_;
+    std::vector< context * >                    waiting_;
+    std::exception_ptr                          except_;
+    std::chrono::steady_clock::time_point       tp_;
+    fiber_properties                        *   properties_;
 
 protected:
     virtual void deallocate() {
@@ -118,14 +106,14 @@ protected:
 public:
     class id {
     private:
-        fiber_context  *   impl_;
+        context  *   impl_;
 
     public:
         id() noexcept :
             impl_( nullptr) {
         }
 
-        explicit id( fiber_context * impl) noexcept :
+        explicit id( context * impl) noexcept :
             impl_( impl) {
         }
 
@@ -172,13 +160,31 @@ public:
         }
     };
 
-    fiber_context   *   nxt;
+    static context * active() noexcept;
 
-    static fiber_context * main_fiber();
+    static context * active( context * active) noexcept;
+
+    context   *   nxt;
+
+    // main fiber
+    context() :
+        use_count_( 1), // allocated on stack
+        state_( fiber_status::running),
+        flags_( flag_main_context),
+        splk_(),
+        scheduler_( nullptr),
+        ctx_( boost::context::execution_context::current() ),
+        fss_data_(),
+        waiting_(),
+        except_(),
+        tp_( (std::chrono::steady_clock::time_point::max)() ),
+        properties_( nullptr),
+        nxt( nullptr) {
+    }
 
     // worker fiber
     template< typename StackAlloc, typename Fn, typename ... Args >
-    fiber_context( context::preallocated palloc,
+    context( boost::context::preallocated palloc,
                    StackAlloc salloc,
                    Fn && fn,
                    Args && ... args) :
@@ -186,6 +192,7 @@ public:
         state_( fiber_status::ready),
         flags_( 0),
         splk_(),
+        scheduler_( nullptr),
         ctx_( palloc, salloc,
               // lambda, executed in execution context
               // mutable: generated operator() is not const -> enables std::move( fn)
@@ -208,7 +215,7 @@ public:
                 release();
 
                 // switch to another fiber
-                detail::scheduler::instance()->run();
+                do_schedule();
 
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
@@ -220,13 +227,22 @@ public:
         nxt( nullptr) {
     }
 
-    virtual ~fiber_context();
+    virtual ~context();
 
-    id get_id() const noexcept {
-        return id( const_cast< fiber_context * >( this) );
+    void set_scheduler( scheduler * mgr) {
+        BOOST_ASSERT( nullptr != mgr);
+        scheduler_ = mgr;
     }
 
-    bool join( fiber_context *);
+    scheduler * get_scheduler() const noexcept {
+        return scheduler_;
+    }
+
+    id get_id() const noexcept {
+        return id( const_cast< context * >( this) );
+    }
+
+    bool join( context *);
 
     bool interruption_blocked() const noexcept {
         return 0 != ( flags_ & flag_interruption_blocked);
@@ -239,6 +255,10 @@ public:
     }
 
     void request_interruption( bool req) noexcept;
+
+    bool is_main_context() const noexcept {
+        return 0 != ( flags_ & flag_main_context);
+    }
 
     bool is_terminated() const noexcept {
         return fiber_status::terminated == state_;
@@ -342,16 +362,49 @@ public:
 
     void release();
 
-    friend void intrusive_ptr_add_ref( fiber_context * f) {
+    void do_spawn( fiber const&);
+
+    void do_schedule();
+
+    void do_wait( detail::spinlock_lock &);
+
+    template< typename Clock, typename Duration >
+    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time,
+                        detail::spinlock_lock & lk) {
+        return scheduler_->wait_until( timeout_time, lk);
+    }
+
+    template< typename Rep, typename Period >
+    bool do_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
+                      detail::spinlock_lock & lk) {
+        return scheduler_->wait_for( timeout_duration, lk);
+    }
+
+    void do_yield();
+
+    void do_join( context *);
+
+    std::size_t do_ready_fibers() const noexcept;
+
+    void do_set_sched_algo( std::unique_ptr< sched_algorithm >);
+
+    template< typename Rep, typename Period >
+    void do_wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
+        scheduler_->wait_interval( wait_interval);
+    }
+
+    std::chrono::steady_clock::duration do_wait_interval() noexcept;
+
+    friend void intrusive_ptr_add_ref( context * f) {
         BOOST_ASSERT( nullptr != f);
         ++f->use_count_;
     }
 
-    friend void intrusive_ptr_release( fiber_context * f) {
+    friend void intrusive_ptr_release( context * f) {
         BOOST_ASSERT( nullptr != f);
         if ( 0 == --f->use_count_) {
             BOOST_ASSERT( f->is_terminated() );
-            f->~fiber_context();
+            f->~context();
         }
     }
 };
@@ -362,4 +415,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_FIBER_CONTEXT_H
+#endif // BOOST_FIBERS_CONTEXT_H

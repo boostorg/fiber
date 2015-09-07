@@ -21,14 +21,14 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 
 struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}
 
-    virtual void awakened( fiber_context *) = 0;
+    virtual void awakened( context *) = 0;
 
-    virtual fiber_context * pick_next() = 0;
+    virtual context * pick_next() = 0;
 
     virtual std::size_t ready_fibers() const noexcept = 0;
 };
@@ -36,11 +36,11 @@ struct BOOST_FIBERS_DECL sched_algorithm {
 class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {
 public:
     // called by fiber_properties::notify() -- don't directly call
-    virtual void property_change_( fiber_context * f, fiber_properties * props) = 0;
+    virtual void property_change_( context * f, fiber_properties * props) = 0;
 
 protected:
-    static fiber_properties* get_properties( fiber_context * f) noexcept;
-    static void set_properties( fiber_context * f, fiber_properties * p) noexcept;
+    static fiber_properties* get_properties( context * f) noexcept;
+    static void set_properties( context * f, fiber_properties * p) noexcept;
 };
 
 template< typename PROPS >
@@ -51,7 +51,7 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     // must override awakened() with properties parameter instead. Otherwise
     // you'd have to remember to start every subclass awakened() override
     // with: sched_algorithm_with_properties<PROPS>::awakened(fb);
-    virtual void awakened( fiber_context * f) final {
+    virtual void awakened( context * f) final {
         fiber_properties * props = super::get_properties( f);
         if ( ! props) {
             // TODO: would be great if PROPS could be allocated on the new
@@ -74,26 +74,26 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     }
 
     // subclasses override this method instead of the original awakened()
-    virtual void awakened( fiber_context *, PROPS& ) = 0;
+    virtual void awakened( context *, PROPS& ) = 0;
 
     // used for all internal calls
-    PROPS& properties( fiber_context * f) {
+    PROPS& properties( context * f) {
         return static_cast< PROPS & >( * super::get_properties( f) );
     }
 
     // override this to be notified by PROPS::notify()
-    virtual void property_change( fiber_context * f, PROPS & props) {
+    virtual void property_change( context * f, PROPS & props) {
     }
 
     // implementation for sched_algorithm_with_properties_base method
-    void property_change_( fiber_context * f, fiber_properties * props ) final {
+    void property_change_( context * f, fiber_properties * props ) final {
         property_change( f, * static_cast< PROPS * >( props) );
     }
 
     // Override this to customize instantiation of PROPS, e.g. use a different
     // allocator. Each PROPS instance is associated with a particular
-    // fiber_context.
-    virtual fiber_properties * new_properties( fiber_context * f) {
+    // context.
+    virtual fiber_properties * new_properties( context * f) {
         return new PROPS( f);
     }
 };

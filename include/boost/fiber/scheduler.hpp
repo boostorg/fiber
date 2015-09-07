@@ -27,34 +27,33 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 struct sched_algorithm;
 
-struct BOOST_FIBERS_DECL fiber_manager {
+struct BOOST_FIBERS_DECL scheduler {
 private:
     typedef detail::waiting_queue          wqueue_t;
     typedef detail::terminated_queue       tqueue_t;
 
     std::unique_ptr< sched_algorithm >     sched_algo_;
-    fiber_context                      *   active_fiber_;
     wqueue_t                               wqueue_;
     tqueue_t                               tqueue_;
     std::chrono::steady_clock::duration    wait_interval_;
 
-    void resume_( fiber_context *);
+    void resume_( context *);
 
     bool wait_until_( std::chrono::steady_clock::time_point const&,
                       detail::spinlock_lock &);
 
 public:
-    fiber_manager() noexcept;
+    scheduler() noexcept;
 
-    fiber_manager( fiber_manager const&) = delete;
-    fiber_manager & operator=( fiber_manager const&) = delete;
+    scheduler( scheduler const&) = delete;
+    scheduler & operator=( scheduler const&) = delete;
 
-    virtual ~fiber_manager() noexcept;
+    virtual ~scheduler() noexcept;
 
-    void spawn( fiber_context *);
+    void spawn( context *);
 
     void run();
 
@@ -77,13 +76,9 @@ public:
 
     void yield();
 
-    void join( fiber_context *);
-
-    fiber_context * active() noexcept;
+    void join( context *);
 
     std::size_t ready_fibers() const noexcept;
-
-    sched_algorithm* get_sched_algo_();
 
     void set_sched_algo( std::unique_ptr< sched_algorithm >);
 

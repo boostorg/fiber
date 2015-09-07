@@ -72,9 +72,9 @@ Now we can derive a custom scheduler from [template_link
 sched_algorithm_with_properties], specifying our custom property class
 `priority_props` as the template parameter.
 
-Your custom scheduler can track ready [^[class_link fiber_context]*]s using
+Your custom scheduler can track ready [^[class_link context]*]s using
 whatever container tactic you prefer. In this example, we use
-[data_member_link fiber_context..nxt] to hand-implement an intrusive
+[data_member_link context..nxt] to hand-implement an intrusive
 singly-linked list.
 
 [priority_scheduler]

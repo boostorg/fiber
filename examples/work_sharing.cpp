@@ -60,25 +60,6 @@ shared_ready_queue::rqueue_t shared_ready_queue::rqueue_;
 std::mutex shared_ready_queue::mutex_;
 
 /*****************************************************************************
-*   example thread function
-*****************************************************************************/
-// Wait until all running fibers have completed. This works because we happen
-// to know that all example fibers use yield(), which leaves them in ready
-// state. A fiber blocked on a synchronization object is invisible to
-// ready_fibers().
-void drain() {
-    // THIS fiber is running, so won't be counted among "ready" fibers
-    while (boost::fibers::ready_fibers()) {
-        boost::this_fiber::yield();
-    }
-}
-
-void thread() {
-    boost::fibers::use_scheduling_algorithm<shared_ready_queue>();
-    drain();
-}
-
-/*****************************************************************************
 *   example fiber function
 *****************************************************************************/
 void whatevah(char me) {
@@ -100,13 +81,35 @@ void whatevah(char me) {
     }
 }
 
+/*****************************************************************************
+*   example thread function
+*****************************************************************************/
+// Wait until all running fibers have completed. This works because we happen
+// to know that all example fibers use yield(), which leaves them in ready
+// state. A fiber blocked on a synchronization object is invisible to
+// ready_fibers().
+void drain() {
+    // THIS fiber is running, so won't be counted among "ready" fibers
+    while (boost::fibers::ready_fibers()) {
+        boost::this_fiber::yield();
+    }
+}
+
+void thread() {
+    boost::fibers::use_scheduling_algorithm<shared_ready_queue>();
+    drain();
+}
+
+/*****************************************************************************
+*   main()
+*****************************************************************************/
 int main( int argc, char *argv[]) {
     // use shared_ready_queue for main thread too, so we launch new fibers
     // into shared pool
     boost::fibers::use_scheduling_algorithm<shared_ready_queue>();
 
     // launch a number of fibers
-    for (char c : "abcdefghijklmno") {
+    for (char c : std::string("abcdefghijklmno")) {
         boost::fibers::fiber([c](){ whatevah(c); }).detach();
     }
 

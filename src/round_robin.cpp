@@ -8,7 +8,7 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -18,15 +18,15 @@ namespace boost {
 namespace fibers {
 
 void
-round_robin::awakened( fiber_context * f) {
+round_robin::awakened( context * f) {
     BOOST_ASSERT( nullptr != f);
 
     rqueue_.push( f);
 }
 
-fiber_context *
+context *
 round_robin::pick_next() {
-    fiber_context * victim( nullptr);
+    context * victim( nullptr);
     if ( ! rqueue_.empty() ) {
         victim = rqueue_.pop();
         BOOST_ASSERT( nullptr != victim);

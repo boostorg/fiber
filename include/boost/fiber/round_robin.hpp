@@ -21,7 +21,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 
 class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
 private:
@@ -30,9 +30,9 @@ private:
     rqueue_t                    rqueue_;
 
 public:
-    virtual void awakened( fiber_context *);
+    virtual void awakened( context *);
 
-    virtual fiber_context * pick_next();
+    virtual context * pick_next();
 
     virtual std::size_t ready_fibers() const noexcept;
 };

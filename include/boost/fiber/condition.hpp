@@ -18,6 +18,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/context.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
@@ -29,7 +30,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 
 enum class cv_status {
     no_timeout = 1,
@@ -39,7 +40,7 @@ enum class cv_status {
 class BOOST_FIBERS_DECL condition {
 private:
     detail::spinlock                    splk_;
-    std::deque< fiber_context * >       waiting_;
+    std::deque< context * >       waiting_;
 
 public:
     condition();
@@ -62,7 +63,7 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
-        fiber_context * f( detail::scheduler::instance()->active() );
+        context * f( context::active() );
         try {
             // lock spinlock
             detail::spinlock_lock lk( splk_);
@@ -77,14 +78,14 @@ public:
 
             // suspend this fiber
             // locked spinlock will be released if this fiber
-            // was stored inside schedulers's waiting-queue
-            detail::scheduler::instance()->wait( lk);
+            // was stored inside manager's waiting-queue
+            context::active()->do_wait( lk);
 
             // lock external again before returning
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
                 waiting_.erase( i);
@@ -97,7 +98,7 @@ public:
     cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time) {
         cv_status status = cv_status::no_timeout;
 
-        fiber_context * f( detail::scheduler::instance()->active() );
+        context * f( context::active() );
         try {
             // lock spinlock
             detail::spinlock_lock lk( splk_);
@@ -111,12 +112,12 @@ public:
 
             // suspend this fiber
             // locked spinlock will be released if this fiber
-            // was stored inside schedulers's waiting-queue
-            if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
+            // was stored inside manager's waiting-queue
+            if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 detail::spinlock_lock lk( splk_);
-                std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+                std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
                 if ( waiting_.end() != i) {
                     // remove fiber from waiting-list
                     waiting_.erase( i);
@@ -129,7 +130,7 @@ public:
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
                 waiting_.erase( i);
