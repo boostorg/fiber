@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_FIBER_CONTEXT_H
-#define BOOST_FIBERS_FIBER_CONTEXT_H
+#ifndef BOOST_FIBERS_CONTEXT_H
+#define BOOST_FIBERS_CONTEXT_H
 
 #include <algorithm>
 #include <atomic>
@@ -40,7 +40,7 @@ namespace fibers {
 class fiber;
 class fiber_properties;
 
-class BOOST_FIBERS_DECL fiber_context {
+class BOOST_FIBERS_DECL context {
 private:
     enum class fiber_status {
         ready = 0,
@@ -79,7 +79,7 @@ private:
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
-    static thread_local fiber_context           *   active_;
+    static thread_local context           *   active_;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                  use_count_;
@@ -92,9 +92,9 @@ private:
 #endif
     detail::spinlock                                splk_;
     fiber_manager                               *   mgr_;
-    context::execution_context                      ctx_;
+    boost::context::execution_context               ctx_;
     fss_data_t                                      fss_data_;
-    std::vector< fiber_context * >                  waiting_;
+    std::vector< context * >                  waiting_;
     std::exception_ptr                              except_;
     std::chrono::steady_clock::time_point  tp_;
     fiber_properties                            *   properties_;
@@ -106,14 +106,14 @@ protected:
 public:
     class id {
     private:
-        fiber_context  *   impl_;
+        context  *   impl_;
 
     public:
         id() noexcept :
             impl_( nullptr) {
         }
 
-        explicit id( fiber_context * impl) noexcept :
+        explicit id( context * impl) noexcept :
             impl_( impl) {
         }
 
@@ -160,20 +160,20 @@ public:
         }
     };
 
-    static fiber_context * active() noexcept;
+    static context * active() noexcept;
 
-    static fiber_context * active( fiber_context * active) noexcept;
+    static context * active( context * active) noexcept;
 
-    fiber_context   *   nxt;
+    context   *   nxt;
 
     // main fiber
-    fiber_context() :
+    context() :
         use_count_( 1), // allocated on stack
         state_( fiber_status::running),
         flags_( flag_main_fiber),
         splk_(),
         mgr_( nullptr),
-        ctx_( context::execution_context::current() ),
+        ctx_( boost::context::execution_context::current() ),
         fss_data_(),
         waiting_(),
         except_(),
@@ -184,7 +184,7 @@ public:
 
     // worker fiber
     template< typename StackAlloc, typename Fn, typename ... Args >
-    fiber_context( context::preallocated palloc,
+    context( boost::context::preallocated palloc,
                    StackAlloc salloc,
                    Fn && fn,
                    Args && ... args) :
@@ -227,7 +227,7 @@ public:
         nxt( nullptr) {
     }
 
-    virtual ~fiber_context();
+    virtual ~context();
 
     void manager( fiber_manager * mgr) {
         BOOST_ASSERT( nullptr != mgr);
@@ -239,10 +239,10 @@ public:
     }
 
     id get_id() const noexcept {
-        return id( const_cast< fiber_context * >( this) );
+        return id( const_cast< context * >( this) );
     }
 
-    bool join( fiber_context *);
+    bool join( context *);
 
     bool interruption_blocked() const noexcept {
         return 0 != ( flags_ & flag_interruption_blocked);
@@ -382,7 +382,7 @@ public:
 
     void do_yield();
 
-    void do_join( fiber_context *);
+    void do_join( context *);
 
     std::size_t do_ready_fibers() const noexcept;
 
@@ -395,16 +395,16 @@ public:
 
     std::chrono::steady_clock::duration do_wait_interval() noexcept;
 
-    friend void intrusive_ptr_add_ref( fiber_context * f) {
+    friend void intrusive_ptr_add_ref( context * f) {
         BOOST_ASSERT( nullptr != f);
         ++f->use_count_;
     }
 
-    friend void intrusive_ptr_release( fiber_context * f) {
+    friend void intrusive_ptr_release( context * f) {
         BOOST_ASSERT( nullptr != f);
         if ( 0 == --f->use_count_) {
             BOOST_ASSERT( f->is_terminated() );
-            f->~fiber_context();
+            f->~context();
         }
     }
 };
@@ -415,4 +415,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_FIBER_CONTEXT_H
+#endif // BOOST_FIBERS_CONTEXT_H

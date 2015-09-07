@@ -21,7 +21,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 struct sched_algorithm;
 
 namespace detail {
@@ -40,9 +40,9 @@ public:
         return nullptr == head_;
     }
 
-    void push( fiber_context * item) noexcept;
+    void push( context * item) noexcept;
 
-    fiber_context * top() const noexcept {
+    context * top() const noexcept {
         BOOST_ASSERT( ! empty() );
 
         return head_; 
@@ -58,8 +58,8 @@ public:
     }
 
 private:
-    fiber_context   *   head_;
-    fiber_context   *   tail_;
+    context   *   head_;
+    context   *   tail_;
 };
 
 }}}

@@ -53,7 +53,7 @@ recursive_mutex::~recursive_mutex() {
 
 void
 recursive_mutex::lock() {
-    fiber_context * f( fiber_context::active() );
+    context * f( context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -67,7 +67,7 @@ recursive_mutex::lock() {
         waiting_.push_back( f);
 
         // suspend this fiber
-        fiber_context::active()->do_wait( lk);
+        context::active()->do_wait( lk);
     }
 }
 
@@ -92,14 +92,14 @@ recursive_mutex::unlock() {
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     detail::spinlock_lock lk( splk_);
-    fiber_context * f( nullptr);
+    context * f( nullptr);
     if ( 0 == --count_) {
         if ( ! waiting_.empty() ) {
             f = waiting_.front();
             waiting_.pop_front();
             BOOST_ASSERT( nullptr != f);
         }
-        owner_ = fiber_context::id();
+        owner_ = context::id();
         state_ = mutex_status::unlocked;
         lk.unlock();
 

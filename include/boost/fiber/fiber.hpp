@@ -19,7 +19,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/fiber_context.hpp>
+#include <boost/fiber/context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -29,13 +29,13 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 
 class BOOST_FIBERS_DECL fiber {
 private:
-    friend class fiber_context;
+    friend class context;
 
-    typedef intrusive_ptr< fiber_context >  ptr_t;
+    typedef intrusive_ptr< context >  ptr_t;
 
     ptr_t       impl_;
 
@@ -43,14 +43,14 @@ private:
 
     template< typename StackAlloc, typename Fn, typename ... Args >
     static ptr_t create( StackAlloc salloc, Fn && fn, Args && ... args) {
-        context::stack_context sctx( salloc.allocate() );
+        boost::context::stack_context sctx( salloc.allocate() );
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
         // reserve space for control structure
-        std::size_t size = sctx.size - sizeof( fiber_context);
-        void * sp = static_cast< char * >( sctx.sp) - sizeof( fiber_context);
+        std::size_t size = sctx.size - sizeof( context);
+        void * sp = static_cast< char * >( sctx.sp) - sizeof( context);
 #else
-        constexpr std::size_t func_alignment = 64; // alignof( fiber_context);
-        constexpr std::size_t func_size = sizeof( fiber_context);
+        constexpr std::size_t func_alignment = 64; // alignof( context);
+        constexpr std::size_t func_size = sizeof( context);
         // reserve space on stack
         void * sp = static_cast< char * >( sctx.sp) - func_size - func_alignment;
         // align sp pointer
@@ -60,16 +60,17 @@ private:
         // calculate remaining size
         std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
-        // placement new of fiber_context on top of fiber's stack
+        // placement new of context on top of fiber's stack
         return ptr_t( 
-            new ( sp) fiber_context( context::preallocated( sp, size, sctx),
-                                     salloc,
-                                     std::forward< Fn >( fn),
-                                     std::forward< Args >( args) ... ) );
+            new ( sp) context(
+                boost::context::preallocated( sp, size, sctx),
+                                              salloc,
+                                              std::forward< Fn >( fn),
+                                              std::forward< Args >( args) ... ) );
     }
 
 public:
-    typedef fiber_context::id    id;
+    typedef context::id    id;
 
     fiber() noexcept :
         impl_() {

@@ -8,7 +8,7 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -19,7 +19,7 @@ namespace fibers {
 namespace detail {
 
 void
-terminated_queue::push( fiber_context * item) noexcept {
+terminated_queue::push( context * item) noexcept {
     BOOST_ASSERT( nullptr != item);
     BOOST_ASSERT( nullptr == item->nxt);
 
@@ -33,12 +33,12 @@ terminated_queue::push( fiber_context * item) noexcept {
 void
 terminated_queue::clear() noexcept {
     while ( nullptr != head_) {
-        fiber_context * item( head_);
+        context * item( head_);
         head_ = head_->nxt;
         if ( nullptr == head_) {
             tail_ = & head_;
         }
-        // should call ~fiber_context()
+        // should call ~context()
         intrusive_ptr_release( item);
     }
 }

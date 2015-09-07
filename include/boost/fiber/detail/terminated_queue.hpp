@@ -21,7 +21,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 
 namespace detail {
 
@@ -39,7 +39,7 @@ public:
     terminated_queue( terminated_queue const&) = delete;
     terminated_queue & operator=( terminated_queue const&) = delete;
 
-    void push( fiber_context * item) noexcept;
+    void push( context * item) noexcept;
 
     void clear() noexcept;
 
@@ -49,12 +49,12 @@ public:
     }
 
 private:
-    fiber_context   *   head_;
+    context   *   head_;
     // tail_ points to the nxt field that contains the null that marks the end
     // of the terminated_queue. When the terminated_queue is empty, tail_ points to head_. tail_ must
-    // never be null: it always points to a real fiber_context*. However, in
+    // never be null: it always points to a real context*. However, in
     // normal use, (*tail_) is always null.
-    fiber_context   **  tail_;
+    context   **  tail_;
 };
 
 }}}

@@ -22,7 +22,7 @@
 // other Boost.Fiber operation.
 class shared_ready_queue : public boost::fibers::sched_algorithm {
 private:
-    typedef std::queue<boost::fibers::fiber_context*> rqueue_t;
+    typedef std::queue<boost::fibers::context*> rqueue_t;
     // The important point about this ready queue is that it's a class static,
     // common to all instances of shared_ready_queue.
     static rqueue_t                    rqueue_;
@@ -32,16 +32,16 @@ private:
     typedef std::unique_lock<std::mutex> lock_t;
 
 public:
-    virtual void awakened( boost::fibers::fiber_context * f) {
+    virtual void awakened( boost::fibers::context * f) {
         BOOST_ASSERT( nullptr != f);
 
         lock_t lock(mutex_);
         rqueue_.push( f);
     }
 
-    virtual boost::fibers::fiber_context * pick_next() {
+    virtual boost::fibers::context * pick_next() {
         lock_t lock(mutex_);
-        boost::fibers::fiber_context * victim( nullptr);
+        boost::fibers::context * victim( nullptr);
         if ( ! rqueue_.empty() ) {
             victim = rqueue_.front();
             rqueue_.pop();

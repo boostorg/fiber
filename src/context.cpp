@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 
 #include "boost/fiber/algorithm.hpp"
 #include "boost/fiber/exceptions.hpp"
@@ -18,39 +18,39 @@
 namespace boost {
 namespace fibers {
 
-static fiber_context * main_fiber() {
-    static thread_local fiber_context mf;
+static context * main_fiber() {
+    static thread_local context mf;
     static thread_local fiber_manager mgr;
     mf.manager( & mgr);
     return & mf;
 }
 
-thread_local fiber_context *
-fiber_context::active_ = main_fiber();
+thread_local context *
+context::active_ = main_fiber();
 
-fiber_context *
-fiber_context::active() noexcept {
+context *
+context::active() noexcept {
     return active_;
 }
 
-fiber_context *
-fiber_context::active( fiber_context * active) noexcept {
+context *
+context::active( context * active) noexcept {
     BOOST_ASSERT( nullptr != active);
-    fiber_context * old( active_);
+    context * old( active_);
     active_ = active;
     return old;
 }
 
-fiber_context::~fiber_context() {
+context::~context() {
     BOOST_ASSERT( waiting_.empty() );
     delete properties_;
 }
 
 void
-fiber_context::release() {
+context::release() {
     BOOST_ASSERT( is_terminated() );
 
-    std::vector< fiber_context * > waiting;
+    std::vector< context * > waiting;
 
     // get all waiting fibers
     splk_.lock();
@@ -58,7 +58,7 @@ fiber_context::release() {
     splk_.unlock();
 
     // notify all waiting fibers
-    for ( fiber_context * f : waiting) {
+    for ( context * f : waiting) {
         BOOST_ASSERT( nullptr != f);
         BOOST_ASSERT( ! f->is_terminated() );
         f->set_ready();
@@ -72,7 +72,7 @@ fiber_context::release() {
 }
 
 bool
-fiber_context::join( fiber_context * f) {
+context::join( context * f) {
     BOOST_ASSERT( nullptr != f);
 
     detail::spinlock_lock lk( splk_);
@@ -84,7 +84,7 @@ fiber_context::join( fiber_context * f) {
 }
 
 void
-fiber_context::interruption_blocked( bool blck) noexcept {
+context::interruption_blocked( bool blck) noexcept {
     if ( blck) {
         flags_ |= flag_interruption_blocked;
     } else {
@@ -93,7 +93,7 @@ fiber_context::interruption_blocked( bool blck) noexcept {
 }
 
 void
-fiber_context::request_interruption( bool req) noexcept {
+context::request_interruption( bool req) noexcept {
     if ( req) {
         flags_ |= flag_interruption_requested;
     } else {
@@ -102,7 +102,7 @@ fiber_context::request_interruption( bool req) noexcept {
 }
 
 void *
-fiber_context::get_fss_data( void const * vp) const {
+context::get_fss_data( void const * vp) const {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::const_iterator i( fss_data_.find( key) );
 
@@ -110,7 +110,7 @@ fiber_context::get_fss_data( void const * vp) const {
 }
 
 void
-fiber_context::set_fss_data( void const * vp,
+context::set_fss_data( void const * vp,
                              detail::fss_cleanup_function::ptr_t const& cleanup_fn,
                              void * data,
                              bool cleanup_existing) {
@@ -141,23 +141,23 @@ fiber_context::set_fss_data( void const * vp,
 }
 
 void
-fiber_context::set_properties( fiber_properties * props) {
+context::set_properties( fiber_properties * props) {
     delete properties_;
     properties_ = props;
 }
 
 void
-fiber_context::do_spawn( fiber const& f_) {
+context::do_spawn( fiber const& f_) {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 
-    fiber_context * f( f_.impl_.get() );
+    context * f( f_.impl_.get() );
     f->manager( mgr_);
     mgr_->spawn( f);
 }
 
 void
-fiber_context::do_schedule() {
+context::do_schedule() {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 
@@ -165,7 +165,7 @@ fiber_context::do_schedule() {
 }
 
 void
-fiber_context::do_wait( detail::spinlock_lock & lk) {
+context::do_wait( detail::spinlock_lock & lk) {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 
@@ -173,7 +173,7 @@ fiber_context::do_wait( detail::spinlock_lock & lk) {
 }
 
 void
-fiber_context::do_yield() {
+context::do_yield() {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 
@@ -181,7 +181,7 @@ fiber_context::do_yield() {
 }
 
 void
-fiber_context::do_join( fiber_context * f) {
+context::do_join( context * f) {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
     BOOST_ASSERT( nullptr != f);
@@ -190,7 +190,7 @@ fiber_context::do_join( fiber_context * f) {
 }
 
 std::size_t
-fiber_context::do_ready_fibers() const noexcept {
+context::do_ready_fibers() const noexcept {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 
@@ -198,7 +198,7 @@ fiber_context::do_ready_fibers() const noexcept {
 }
 
 void
-fiber_context::do_set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+context::do_set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 
@@ -206,7 +206,7 @@ fiber_context::do_set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
 }
 
 std::chrono::steady_clock::duration
-fiber_context::do_wait_interval() noexcept {
+context::do_wait_interval() noexcept {
     BOOST_ASSERT( nullptr != mgr_);
     BOOST_ASSERT( this == active_);
 

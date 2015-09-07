@@ -16,7 +16,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/fss.hpp>
-#include <boost/fiber/fiber_context.hpp>
+#include <boost/fiber/context.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -62,7 +62,7 @@ public:
     }
 
     ~fiber_specific_ptr() {
-        fiber_context * f( fiber_context::active() );
+        context * f( context::active() );
         if ( nullptr != f) {
             f->set_fss_data(
                 this, cleanup_fn_, nullptr, true);
@@ -73,9 +73,9 @@ public:
     fiber_specific_ptr & operator=( fiber_specific_ptr const&) = delete;
 
     T * get() const {
-        BOOST_ASSERT( fiber_context::active() );
+        BOOST_ASSERT( context::active() );
 
-        void * vp( fiber_context::active()->get_fss_data( this) );
+        void * vp( context::active()->get_fss_data( this) );
         return static_cast< T * >( vp);
     }
 
@@ -89,7 +89,7 @@ public:
 
     T * release() {
         T * tmp = get();
-        fiber_context::active()->set_fss_data(
+        context::active()->set_fss_data(
             this, cleanup_fn_, nullptr, false);
         return tmp;
     }
@@ -97,7 +97,7 @@ public:
     void reset( T * t) {
         T * c = get();
         if ( c != t) {
-            fiber_context::active()->set_fss_data(
+            context::active()->set_fss_data(
                 this, cleanup_fn_, t, true);
         }
     }

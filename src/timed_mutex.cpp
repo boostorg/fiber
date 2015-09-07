@@ -47,7 +47,7 @@ timed_mutex::~timed_mutex() {
 
 void
 timed_mutex::lock() {
-    fiber_context * f( fiber_context::active() );
+    context * f( context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -61,7 +61,7 @@ timed_mutex::lock() {
         waiting_.push_back( f);
 
         // suspend this fiber
-        fiber_context::active()->do_wait( lk);
+        context::active()->do_wait( lk);
     }
 }
 
@@ -82,7 +82,7 @@ timed_mutex::try_lock() {
 
 bool
 timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
-    fiber_context * f( fiber_context::active() );
+    context * f( context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -100,9 +100,9 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
         waiting_.push_back( f);
 
         // suspend this fiber until notified or timed-out
-        if ( ! fiber_context::active()->do_wait_until( timeout_time, lk) ) {
+        if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
             lk.lock();
-            std::deque< fiber_context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
+            std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
             if ( waiting_.end() != i) {
                 // remove fiber from waiting-list
                 waiting_.erase( i);
@@ -119,13 +119,13 @@ timed_mutex::unlock() {
     BOOST_ASSERT( this_fiber::get_id() == owner_);
 
     detail::spinlock_lock lk( splk_);
-    fiber_context * f( nullptr);
+    context * f( nullptr);
     if ( ! waiting_.empty() ) {
         f = waiting_.front();
         waiting_.pop_front();
         BOOST_ASSERT( nullptr != f);
     }
-    owner_ = fiber_context::id();
+    owner_ = context::id();
     state_ = mutex_status::unlocked;
     lk.unlock();
 

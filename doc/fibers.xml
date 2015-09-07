@@ -2478,9 +2478,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">{</phrase>
     <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">sched_algorithm</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
@@ -2492,7 +2492,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>awakened</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2533,7 +2533,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>pick_next</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2598,9 +2598,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">round_robin</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">{</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*);</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*);</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
@@ -2612,7 +2612,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>awakened</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2633,7 +2633,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>pick_next</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2681,7 +2681,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     </bridgehead>
     <para>
       A scheduler class directly derived from <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link> can
-      use any information available from <link linkend="class_fiber_context"> <code>fiber_context</code></link> to implement
+      use any information available from <link linkend="class_context"> <code>context</code></link> to implement
       the <code><phrase role="identifier">sched_algorithm</phrase></code> interface.
       But a custom scheduler might need to track additional properties for a fiber.
       For instance, a priority-based scheduler would need to track a fiber's priority.
@@ -2704,7 +2704,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">fiber_properties</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
 
@@ -2715,7 +2715,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <bridgehead renderas="sect3" id="fiber.scheduling.h1">
       <phrase id="fiber.scheduling.constructor"/><link linkend="fiber.scheduling.constructor">Constructor</link>
     </bridgehead>
-<programlisting><phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase><phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2731,7 +2731,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <term>Note:</term>
         <listitem>
           <para>
-            Your subclass constructor must accept a <code><phrase role="identifier">fiber_context</phrase><phrase
+            Your subclass constructor must accept a <code><phrase role="identifier">context</phrase><phrase
             role="special">*</phrase></code> and pass it to the base-class <code><phrase
             role="identifier">fiber_properties</phrase></code> constructor.
           </para>
@@ -2804,22 +2804,22 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm_with_properties</phrase> <phrase role="special">{</phrase>
     <phrase role="comment">// override this method instead of sched_algorithm::awakened()</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="comment">// obtain f's associated PROPS instance</phrase>
-    <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 
     <phrase role="comment">// override this to be notified by PROPS::notify()</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
 
     <phrase role="comment">// Override this to customize instantiation of PROPS, e.g. use a different</phrase>
     <phrase role="comment">// allocator. Each PROPS instance is associated with a particular</phrase>
-    <phrase role="comment">// fiber_context.</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">*</phrase> <phrase role="identifier">new_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+    <phrase role="comment">// context.</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">*</phrase> <phrase role="identifier">new_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
     <para>
@@ -2829,7 +2829,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>awakened</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2864,7 +2864,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>pick_next</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">();</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2921,7 +2921,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>properties</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="identifier">PROPS</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="identifier">PROPS</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2942,9 +2942,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
             instance is already passed to <link linkend="sched_algorithm_with_properties_awakened"> <code>sched_algorithm_with_properties::awakened()</code></link> and
             <link linkend="sched_algorithm_with_properties_property_change"> <code>sched_algorithm_with_properties::property_change()</code></link>.
             However, every <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link> subclass is expected
-            to track a collection of ready <link linkend="class_fiber_context"> <code>fiber_context</code></link> instances.
+            to track a collection of ready <link linkend="class_context"> <code>context</code></link> instances.
             This method allows your custom scheduler to retrieve the <link linkend="class_fiber_properties"> <code>fiber_properties</code></link> subclass
-            instance for any <code><phrase role="identifier">fiber_context</phrase></code>
+            instance for any <code><phrase role="identifier">context</phrase></code>
             in its collection.
           </para>
         </listitem>
@@ -2957,7 +2957,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>property_change</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">);</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -2989,7 +2989,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       function <code>new_properties</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">*</phrase> <phrase role="identifier">new_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">*</phrase> <phrase role="identifier">new_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">);</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -3021,38 +3021,38 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="class_fiber_context_bridgehead">
-  <phrase id="class_fiber_context"/>
-  <link linkend="class_fiber_context">Class <code>fiber_context</code></link>
+      <bridgehead renderas="sect4" id="class_context_bridgehead">
+  <phrase id="class_context"/>
+  <link linkend="class_context">Class <code>context</code></link>
 </bridgehead>
     </para>
     <para>
-      While you are free to treat <code><phrase role="identifier">fiber_context</phrase><phrase
+      While you are free to treat <code><phrase role="identifier">context</phrase><phrase
       role="special">*</phrase></code> as an opaque token, certain <code><phrase
-      role="identifier">fiber_context</phrase></code> members may be useful to a
+      role="identifier">context</phrase></code> members may be useful to a
       custom scheduler implementation.
     </para>
     <para>
-      (Most <code><phrase role="identifier">fiber_context</phrase></code> members
+      (Most <code><phrase role="identifier">context</phrase></code> members
       are implementation details; most of interest are implementations of <link linkend="class_fiber"> <code>fiber</code></link> methods.)
     </para>
-<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber_context</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">class</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">context</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">fiber_context</phrase>   <phrase role="special">*</phrase>   <phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">context</phrase>   <phrase role="special">*</phrase>   <phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">static</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">main_fiber</phrase><phrase role="special">();</phrase>
+    <phrase role="keyword">static</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">main_fiber</phrase><phrase role="special">();</phrase>
 
 <phrase role="special">};</phrase>
 </programlisting>
     <para>
-      <bridgehead renderas="sect4" id="fiber_context_nxt_bridgehead">
-  <phrase id="fiber_context_nxt"/>
-  <link linkend="fiber_context_nxt">Data member <code>nxt</code></link>
+      <bridgehead renderas="sect4" id="context_nxt_bridgehead">
+  <phrase id="context_nxt"/>
+  <link linkend="context_nxt">Data member <code>nxt</code></link>
 </bridgehead>
     </para>
-<programlisting><phrase role="identifier">fiber_context</phrase>   <phrase role="special">*</phrase>   <phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="identifier">context</phrase>   <phrase role="special">*</phrase>   <phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -3062,9 +3062,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
           <para>
             This link pointer may be used to help implement a custom scheduler's
             ready queue. It is overwritten by the fiber manager every time this
-            <code><phrase role="identifier">fiber_context</phrase></code> is returned
+            <code><phrase role="identifier">context</phrase></code> is returned
             by <link linkend="sched_algorithm_pick_next"> <code>sched_algorithm::pick_next()</code></link>, but between
-            the time the fiber manager passes this <code><phrase role="identifier">fiber_context</phrase></code>
+            the time the fiber manager passes this <code><phrase role="identifier">context</phrase></code>
             to <link linkend="sched_algorithm_awakened"> <code>sched_algorithm::awakened()</code></link> (or <link linkend="sched_algorithm_with_properties_awakened"> <code>sched_algorithm_with_properties::awakened()</code></link>)
             and the time your <code><phrase role="identifier">pick_next</phrase><phrase
             role="special">()</phrase></code> returns it to the fiber manager, it
@@ -3074,13 +3074,13 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="fiber_context_main_fiber_bridgehead">
-  <phrase id="fiber_context_main_fiber"/>
-  <link linkend="fiber_context_main_fiber">Static
+      <bridgehead renderas="sect4" id="context_main_fiber_bridgehead">
+  <phrase id="context_main_fiber"/>
+  <link linkend="context_main_fiber">Static
       member function <code>main_fiber</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">static</phrase> <phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">main_fiber</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="keyword">static</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">main_fiber</phrase><phrase role="special">();</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -3088,7 +3088,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <term>Returns:</term>
         <listitem>
           <para>
-            the <code><phrase role="identifier">fiber_context</phrase></code> associated
+            the <code><phrase role="identifier">context</phrase></code> associated
             with the &quot;main&quot; fiber of the thread: the one implicitly created
             by the thread itself, rather than one explicitly created by <emphasis
             role="bold">Boost.Fiber</emphasis>.
@@ -11052,7 +11052,7 @@ to return that result
     <para>
 <programlisting><phrase role="keyword">class</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_properties</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">priority_props</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">p</phrase><phrase role="special">):</phrase>
+    <phrase role="identifier">priority_props</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">p</phrase><phrase role="special">):</phrase>
         <phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">p</phrase><phrase role="special">),</phrase> <co id="fiber.custom.c0" linkends="fiber.custom.c1" />
         <phrase role="identifier">priority_</phrase><phrase role="special">(</phrase> <phrase role="number">0</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
@@ -11086,7 +11086,7 @@ to return that result
     <calloutlist>
       <callout arearefs="fiber.custom.c0" id="fiber.custom.c1">
         <para>
-          Your subclass constructor must accept a <literal> <link linkend="class_fiber_context"> <code>fiber_context</code></link>*</literal>
+          Your subclass constructor must accept a <literal> <link linkend="class_context"> <code>context</code></link>*</literal>
           and pass it to the <code><phrase role="identifier">fiber_properties</phrase></code>
           constructor.
         </para>
@@ -11119,8 +11119,8 @@ to return that result
       as the template parameter.
     </para>
     <para>
-      Your custom scheduler can track ready <literal> <link linkend="class_fiber_context"> <code>fiber_context</code></link>*</literal>s
-      using whatever container tactic you prefer. In this example, we use <link linkend="fiber_context_nxt"> <code>fiber_context::nxt</code></link> to
+      Your custom scheduler can track ready <literal> <link linkend="class_context"> <code>context</code></link>*</literal>s
+      using whatever container tactic you prefer. In this example, we use <link linkend="context_nxt"> <code>context::nxt</code></link> to
       hand-implement an intrusive singly-linked list.
     </para>
     <para>
@@ -11129,7 +11129,7 @@ to return that result
     <phrase role="comment">// Much as we would like, we don't use std::priority_queue because it</phrase>
     <phrase role="comment">// doesn't appear to provide any way to alter the priority (and hence</phrase>
     <phrase role="comment">// queue position) of a particular item.</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase>    <phrase role="special">*</phrase>   <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase>    <phrase role="special">*</phrase>   <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">priority_scheduler</phrase><phrase role="special">()</phrase> <phrase role="special">:</phrase>
@@ -11138,15 +11138,15 @@ to return that result
 
     <phrase role="comment">// For a subclass of sched_algorithm_with_properties&lt;&gt;, it's important to</phrase>
     <phrase role="comment">// override the correct awakened() overload.</phrase>
-    <co id="fiber.custom.c8" linkends="fiber.custom.c9" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <co id="fiber.custom.c8" linkends="fiber.custom.c9" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
         <phrase role="keyword">int</phrase> <phrase role="identifier">f_priority</phrase> <phrase role="special">=</phrase> <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">();</phrase> <co id="fiber.custom.c10" linkends="fiber.custom.c11" />
         <phrase role="comment">// With this scheduler, fibers with higher priority values are</phrase>
         <phrase role="comment">// preferred over fibers with lower priority values. But fibers with</phrase>
         <phrase role="comment">// equal priority values are processed in round-robin fashion. So when</phrase>
-        <phrase role="comment">// we're handed a new fiber_context*, put it at the end of the fibers</phrase>
+        <phrase role="comment">// we're handed a new context*, put it at the end of the fibers</phrase>
         <phrase role="comment">// with that same priority. In other words: search for the first fiber</phrase>
         <phrase role="comment">// in the queue with LOWER priority, and insert before that one.</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
         <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">).</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">f_priority</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <co id="fiber.custom.c12" linkends="fiber.custom.c13" />
@@ -11159,13 +11159,13 @@ to return that result
         <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c16" linkends="fiber.custom.c17" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
+    <co id="fiber.custom.c16" linkends="fiber.custom.c17" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
         <phrase role="comment">// if ready queue is empty, just tell caller</phrase>
         <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">head_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="keyword">return</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
         <phrase role="comment">// Here we have at least one ready fiber. Unlink and return that.</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
         <phrase role="identifier">head_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
         <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
 
@@ -11174,13 +11174,13 @@ to return that result
 
     <co id="fiber.custom.c18" linkends="fiber.custom.c19" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">count</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="special">++</phrase><phrase role="identifier">count</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
         <phrase role="keyword">return</phrase> <phrase role="identifier">count</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c20" linkends="fiber.custom.c21" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <co id="fiber.custom.c20" linkends="fiber.custom.c21" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
         <phrase role="comment">// Although our priority_props class defines multiple properties, only</phrase>
         <phrase role="comment">// one of them (priority) actually calls notify() when changed. The</phrase>
         <phrase role="comment">// point of a property_change() override is to reshuffle the ready</phrase>
@@ -11189,7 +11189,7 @@ to return that result
         <phrase role="comment">// Find 'f' in the queue. Note that it might not be in our queue at</phrase>
         <phrase role="comment">// all, if caller is changing the priority of (say) the running fiber.</phrase>
         <phrase role="keyword">bool</phrase> <phrase role="identifier">found</phrase> <phrase role="special">=</phrase> <phrase role="keyword">false</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">==</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <phrase role="comment">// found the passed fiber in our list -- unlink it</phrase>
                 <phrase role="identifier">found</phrase> <phrase role="special">=</phrase> <phrase role="keyword">true</phrase><phrase role="special">;</phrase>
@@ -11208,7 +11208,7 @@ to return that result
         <phrase role="special">}</phrase>
 
         <phrase role="comment">// Here we know that f was in our ready queue, but we've unlinked it.</phrase>
-        <phrase role="comment">// We happen to have a method that will (re-)add a fiber_context* to</phrase>
+        <phrase role="comment">// We happen to have a method that will (re-)add a context* to</phrase>
         <phrase role="comment">// the ready queue.</phrase>
         <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase><phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">props</phrase><phrase role="special">);</phrase>
     <phrase role="special">}</phrase>
@@ -11239,7 +11239,7 @@ to return that result
       </callout>
       <callout arearefs="fiber.custom.c14" id="fiber.custom.c15">
         <para>
-          Note use of the <link linkend="fiber_context_nxt"> <code>fiber_context::nxt</code></link> member.
+          Note use of the <link linkend="context_nxt"> <code>context::nxt</code></link> member.
         </para>
       </callout>
       <callout arearefs="fiber.custom.c16" id="fiber.custom.c17">

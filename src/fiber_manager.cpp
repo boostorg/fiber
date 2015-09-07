@@ -14,7 +14,7 @@
 
 #include "boost/fiber/algorithm.hpp"
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/round_robin.hpp"
 
@@ -43,7 +43,7 @@ fiber_manager::~fiber_manager() noexcept {
         // from waiting-queue to the runnable-queue
         wqueue_.move_to( sched_algo_.get() );
         // pop new fiber from ready-queue
-        fiber_context * f( sched_algo_->pick_next() );
+        context * f( sched_algo_->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // set fiber_manager
@@ -51,11 +51,11 @@ fiber_manager::~fiber_manager() noexcept {
             // add active-fiber to joinig-list of f
             // fiber::join() should not fail because fiber f is in state_ready
             // so main-fiber should be in the waiting-queue of fiber f
-            f->join( fiber_context::active() );
+            f->join( context::active() );
             // set main-fiber to state_waiting
-            fiber_context::active()->set_waiting();
+            context::active()->set_waiting();
             // push main-fiber to waiting-queue
-            wqueue_.push( fiber_context::active() );
+            wqueue_.push( context::active() );
             // resume fiber f
             resume_( f);
         } else if ( wqueue_.empty() ) {
@@ -68,35 +68,35 @@ fiber_manager::~fiber_manager() noexcept {
 }
 
 void
-fiber_manager::resume_( fiber_context * f) {
+fiber_manager::resume_( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
     // set fiber to state running
     f->set_running();
     // fiber next-to-run is same as current active-fiber
     // this might happen in context of this_fiber::yield() 
-    if ( f == fiber_context::active() ) {
+    if ( f == context::active() ) {
         return;
     }
     // pass new fiber the fiber_manager of the current active fiber
     // this might be necessary if the new fiber was miggrated from
     // another thread
-    f->manager( fiber_context::active()->manager() );
+    f->manager( context::active()->manager() );
     // assign new fiber to active-fiber
-    fiber_context * old( fiber_context::active( f) );
+    context * old( context::active( f) );
     // push terminated fibers to terminated-queue
     if ( old->is_terminated() ) {
         tqueue_.push( old);
     }
     // resume active-fiber == start or yield to
-    fiber_context::active()->resume();
+    context::active()->resume();
 }
 
 void
-fiber_manager::spawn( fiber_context * f) {
+fiber_manager::spawn( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
-    BOOST_ASSERT( f != fiber_context::active() );
+    BOOST_ASSERT( f != context::active() );
     // add new fiber to the scheduler
     sched_algo_->awakened( f);
 }
@@ -110,7 +110,7 @@ fiber_manager::run() {
         // from waiting-queue to the runnable-queue
         wqueue_.move_to( sched_algo_.get() );
         // pop new fiber from ready-queue
-        fiber_context * f( sched_algo_->pick_next() );
+        context * f( sched_algo_->pick_next() );
         if ( f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // set fiber_manager
@@ -137,14 +137,14 @@ fiber_manager::wait( detail::spinlock_lock & lk) {
 bool
 fiber_manager::wait_until_( std::chrono::steady_clock::time_point const& timeout_time,
                             detail::spinlock_lock & lk) {
-    BOOST_ASSERT( fiber_context::active()->is_running() );
+    BOOST_ASSERT( context::active()->is_running() );
     // set active-fiber to state_waiting
-    fiber_context::active()->set_waiting();
+    context::active()->set_waiting();
     // release lock
     lk.unlock();
     // push active-fiber to waiting-queue
-    fiber_context::active()->time_point( timeout_time);
-    wqueue_.push( fiber_context::active() );
+    context::active()->time_point( timeout_time);
+    wqueue_.push( context::active() );
     // switch to another fiber
     run();
     // fiber has been resumed
@@ -156,11 +156,11 @@ fiber_manager::wait_until_( std::chrono::steady_clock::time_point const& timeout
 
 void
 fiber_manager::yield() {
-    BOOST_ASSERT( fiber_context::active()->is_running() );
+    BOOST_ASSERT( context::active()->is_running() );
     // set active-fiber to state_waiting
-    fiber_context::active()->set_ready();
+    context::active()->set_ready();
     // push active-fiber to wqueue_
-    wqueue_.push( fiber_context::active() );
+    wqueue_.push( context::active() );
     // switch to another fiber
     run();
     // fiber has been resumed
@@ -169,19 +169,19 @@ fiber_manager::yield() {
 }
 
 void
-fiber_manager::join( fiber_context * f) {
+fiber_manager::join( context * f) {
     BOOST_ASSERT( nullptr != f);
-    BOOST_ASSERT( f != fiber_context::active() );
+    BOOST_ASSERT( f != context::active() );
     // set active-fiber to state_waiting
-    fiber_context::active()->set_waiting();
+    context::active()->set_waiting();
     // push active-fiber to waiting-queue
-    wqueue_.push( fiber_context::active() );
+    wqueue_.push( context::active() );
     // add active-fiber to joinig-list of f
-    if ( ! f->join( fiber_context::active() ) ) {
+    if ( ! f->join( context::active() ) ) {
         // f must be already terminated therefore we set
         // active-fiber to state_ready
         // FIXME: better state_running and no suspend
-        fiber_context::active()->set_ready();
+        context::active()->set_ready();
     }
     // switch to another fiber
     run();

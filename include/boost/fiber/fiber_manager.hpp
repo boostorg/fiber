@@ -27,7 +27,7 @@
 namespace boost {
 namespace fibers {
 
-class fiber_context;
+class context;
 struct sched_algorithm;
 
 struct BOOST_FIBERS_DECL fiber_manager {
@@ -40,7 +40,7 @@ private:
     tqueue_t                               tqueue_;
     std::chrono::steady_clock::duration    wait_interval_;
 
-    void resume_( fiber_context *);
+    void resume_( context *);
 
     bool wait_until_( std::chrono::steady_clock::time_point const&,
                       detail::spinlock_lock &);
@@ -53,7 +53,7 @@ public:
 
     virtual ~fiber_manager() noexcept;
 
-    void spawn( fiber_context *);
+    void spawn( context *);
 
     void run();
 
@@ -76,7 +76,7 @@ public:
 
     void yield();
 
-    void join( fiber_context *);
+    void join( context *);
 
     std::size_t ready_fibers() const noexcept;
 

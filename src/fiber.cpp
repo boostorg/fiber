@@ -10,7 +10,7 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/fiber_context.hpp"
+#include "boost/fiber/context.hpp"
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/operations.hpp"
 
@@ -24,7 +24,7 @@ namespace fibers {
 void
 fiber::start_() {
     impl_->set_ready();
-    fiber_context::active()->do_spawn( * this);
+    context::active()->do_spawn( * this);
 }
 
 void
@@ -41,7 +41,7 @@ fiber::join() {
                                     "boost fiber: fiber not joinable");
     }
 
-    fiber_context::active()->do_join( impl_.get() );
+    context::active()->do_join( impl_.get() );
 
     // check if joined fiber was interrupted
     std::exception_ptr except( impl_->get_exception() );
