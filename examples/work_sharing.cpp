@@ -134,12 +134,14 @@ int main( int argc, char *argv[]) {
     boost::fibers::use_scheduling_algorithm<shared_ready_queue>();
 
     // launch a number of fibers
-    for (char c : std::string("abcdefghijklmno")) {
+    for (char c : std::string("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")) {
         boost::fibers::fiber([c](){ whatevah(c); }).detach();
     }
 
     // launch a couple threads to help process them
     std::thread threads[] = {
+        std::thread(thread),
+        std::thread(thread),
         std::thread(thread),
         std::thread(thread),
         std::thread(thread)
