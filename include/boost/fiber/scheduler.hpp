@@ -41,13 +41,14 @@ private:
     tqueue_t                                tqueue_;
     std::chrono::steady_clock::duration     wait_interval_;
 
-    void resume_( context *);
+    void resume_( context *, context *);
 
-    bool wait_until_( std::chrono::steady_clock::time_point const&,
+    bool wait_until_( context *,
+                      std::chrono::steady_clock::time_point const&,
                       detail::spinlock_lock &);
 
 public:
-    scheduler() noexcept;
+    scheduler( context *) noexcept;
 
     scheduler( scheduler const&) = delete;
     scheduler & operator=( scheduler const&) = delete;
@@ -56,28 +57,30 @@ public:
 
     void spawn( context *);
 
-    void run();
+    void run( context *);
 
-    void wait( detail::spinlock_lock &);
+    void wait( context *, detail::spinlock_lock &);
 
     template< typename Clock, typename Duration >
-    bool wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
+    bool wait_until( context * af,
+                     std::chrono::time_point< Clock, Duration > const& timeout_time_,
                      detail::spinlock_lock & lk) {
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
-        return wait_until_( timeout_time, lk);
+        return wait_until_( af, timeout_time, lk);
     }
 
     template< typename Rep, typename Period >
-    bool wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
+    bool wait_for( context * af,
+                   std::chrono::duration< Rep, Period > const& timeout_duration,
                    detail::spinlock_lock & lk) {
         return wait_until_(
-                std::chrono::steady_clock::now() + timeout_duration, lk);
+                af, std::chrono::steady_clock::now() + timeout_duration, lk);
     }
 
-    void yield();
+    void yield( context *);
 
-    void join( context *);
+    void join( context *,context *);
 
     std::size_t ready_fibers() const noexcept;
 
