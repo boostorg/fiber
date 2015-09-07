@@ -50,7 +50,7 @@ private:
     };
 
     enum flag_t {
-        flag_main_fiber             = 1 << 1,
+        flag_main_context           = 1 << 1,
         flag_interruption_blocked   = 1 << 2,
         flag_interruption_requested = 1 << 3,
         flag_detached               = 1 << 4
@@ -170,7 +170,7 @@ public:
     context() :
         use_count_( 1), // allocated on stack
         state_( fiber_status::running),
-        flags_( flag_main_fiber),
+        flags_( flag_main_context),
         splk_(),
         scheduler_( nullptr),
         ctx_( boost::context::execution_context::current() ),
@@ -256,8 +256,8 @@ public:
 
     void request_interruption( bool req) noexcept;
 
-    bool is_main_fiber() const noexcept {
-        return 0 != ( flags_ & flag_main_fiber);
+    bool is_main_context() const noexcept {
+        return 0 != ( flags_ & flag_main_context);
     }
 
     bool is_terminated() const noexcept {
