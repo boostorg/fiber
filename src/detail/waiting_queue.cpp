@@ -40,7 +40,7 @@ waiting_queue::push( fiber_context * item) noexcept {
 }
 
 void
-waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
+waiting_queue::move_to( sched_algorithm * sched_algo) {
     BOOST_ASSERT( nullptr != sched_algo);
 
     std::chrono::steady_clock::time_point now(
@@ -91,11 +91,8 @@ waiting_queue::move_to( std::unique_ptr< sched_algorithm > & sched_algo) {
 
 void
 waiting_queue::interrupt_all() noexcept {
-    fiber_context * mf( fiber_context::main_fiber() );
     for ( fiber_context * f( head_); nullptr != f; f = f->nxt) {
-        if ( f != mf) {
-            f->request_interruption( true);
-        }
+        f->request_interruption( true);
     }
 }
 

@@ -47,7 +47,7 @@ mutex::~mutex() {
 
 void
 mutex::lock() {
-    fiber_context * f( detail::scheduler::instance()->active() );
+    fiber_context * f( fiber_context::active() );
     BOOST_ASSERT( nullptr != f);
     for (;;) {
         detail::spinlock_lock lk( splk_);
@@ -61,7 +61,7 @@ mutex::lock() {
         waiting_.push_back( f);
 
         // suspend this fiber
-        detail::scheduler::instance()->wait( lk);
+        fiber_context::active()->do_wait( lk);
     }
 }
 

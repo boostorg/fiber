@@ -6,8 +6,9 @@
 
 #include "boost/fiber/fiber_context.hpp"
 
-#include "boost/fiber/detail/scheduler.hpp"
+#include "boost/fiber/algorithm.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/fiber.hpp"
 #include "boost/fiber/properties.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -17,15 +18,32 @@
 namespace boost {
 namespace fibers {
 
-fiber_context::~fiber_context() {
-    BOOST_ASSERT( waiting_.empty() );
-    delete properties_;
+static fiber_context * main_fiber() {
+    static thread_local fiber_context mf;
+    static thread_local fiber_manager mgr;
+    mf.manager( & mgr);
+    return & mf;
+}
+
+thread_local fiber_context *
+fiber_context::active_ = main_fiber();
+
+fiber_context *
+fiber_context::active() noexcept {
+    return active_;
 }
 
 fiber_context *
-fiber_context::main_fiber() {
-    static thread_local fiber_context mf;
-    return & mf;
+fiber_context::active( fiber_context * active) noexcept {
+    BOOST_ASSERT( nullptr != active);
+    fiber_context * old( active_);
+    active_ = active;
+    return old;
+}
+
+fiber_context::~fiber_context() {
+    BOOST_ASSERT( waiting_.empty() );
+    delete properties_;
 }
 
 void
@@ -126,6 +144,73 @@ void
 fiber_context::set_properties( fiber_properties * props) {
     delete properties_;
     properties_ = props;
+}
+
+void
+fiber_context::do_spawn( fiber const& f_) {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    fiber_context * f( f_.impl_.get() );
+    f->manager( mgr_);
+    mgr_->spawn( f);
+}
+
+void
+fiber_context::do_schedule() {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    mgr_->run();
+}
+
+void
+fiber_context::do_wait( detail::spinlock_lock & lk) {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    mgr_->wait( lk);
+}
+
+void
+fiber_context::do_yield() {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    mgr_->yield();
+}
+
+void
+fiber_context::do_join( fiber_context * f) {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+    BOOST_ASSERT( nullptr != f);
+
+    mgr_->join( f);
+}
+
+std::size_t
+fiber_context::do_ready_fibers() const noexcept {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    return mgr_->ready_fibers();
+}
+
+void
+fiber_context::do_set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    mgr_->set_sched_algo( std::move( algo) );
+}
+
+std::chrono::steady_clock::duration
+fiber_context::do_wait_interval() noexcept {
+    BOOST_ASSERT( nullptr != mgr_);
+    BOOST_ASSERT( this == active_);
+
+    return mgr_->wait_interval();
 }
 
 }}

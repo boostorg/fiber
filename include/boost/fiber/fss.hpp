@@ -16,6 +16,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/fss.hpp>
+#include <boost/fiber/fiber_context.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -61,8 +62,9 @@ public:
     }
 
     ~fiber_specific_ptr() {
-        if ( detail::scheduler::instance()->active() ) {
-            detail::scheduler::instance()->active()->set_fss_data(
+        fiber_context * f( fiber_context::active() );
+        if ( nullptr != f) {
+            f->set_fss_data(
                 this, cleanup_fn_, nullptr, true);
         }
     }
@@ -71,9 +73,9 @@ public:
     fiber_specific_ptr & operator=( fiber_specific_ptr const&) = delete;
 
     T * get() const {
-        BOOST_ASSERT( detail::scheduler::instance()->active() );
+        BOOST_ASSERT( fiber_context::active() );
 
-        void * vp( detail::scheduler::instance()->active()->get_fss_data( this) );
+        void * vp( fiber_context::active()->get_fss_data( this) );
         return static_cast< T * >( vp);
     }
 
@@ -87,7 +89,7 @@ public:
 
     T * release() {
         T * tmp = get();
-        detail::scheduler::instance()->active()->set_fss_data(
+        fiber_context::active()->set_fss_data(
             this, cleanup_fn_, nullptr, false);
         return tmp;
     }
@@ -95,7 +97,7 @@ public:
     void reset( T * t) {
         T * c = get();
         if ( c != t) {
-            detail::scheduler::instance()->active()->set_fss_data(
+            fiber_context::active()->set_fss_data(
                 this, cleanup_fn_, t, true);
         }
     }

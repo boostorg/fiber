@@ -24,7 +24,7 @@ namespace fibers {
 void
 fiber::start_() {
     impl_->set_ready();
-    detail::scheduler::instance()->spawn( impl_.get() );
+    fiber_context::active()->do_spawn( * this);
 }
 
 void
@@ -41,7 +41,7 @@ fiber::join() {
                                     "boost fiber: fiber not joinable");
     }
 
-    detail::scheduler::instance()->join( impl_.get() );
+    fiber_context::active()->do_join( impl_.get() );
 
     // check if joined fiber was interrupted
     std::exception_ptr except( impl_->get_exception() );

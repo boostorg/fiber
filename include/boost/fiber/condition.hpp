@@ -18,6 +18,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/fiber_context.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
@@ -62,7 +63,7 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
-        fiber_context * f( detail::scheduler::instance()->active() );
+        fiber_context * f( fiber_context::active() );
         try {
             // lock spinlock
             detail::spinlock_lock lk( splk_);
@@ -77,8 +78,8 @@ public:
 
             // suspend this fiber
             // locked spinlock will be released if this fiber
-            // was stored inside schedulers's waiting-queue
-            detail::scheduler::instance()->wait( lk);
+            // was stored inside manager's waiting-queue
+            fiber_context::active()->do_wait( lk);
 
             // lock external again before returning
             lt.lock();
@@ -97,7 +98,7 @@ public:
     cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time) {
         cv_status status = cv_status::no_timeout;
 
-        fiber_context * f( detail::scheduler::instance()->active() );
+        fiber_context * f( fiber_context::active() );
         try {
             // lock spinlock
             detail::spinlock_lock lk( splk_);
@@ -111,8 +112,8 @@ public:
 
             // suspend this fiber
             // locked spinlock will be released if this fiber
-            // was stored inside schedulers's waiting-queue
-            if ( ! detail::scheduler::instance()->wait_until( timeout_time, lk) ) {
+            // was stored inside manager's waiting-queue
+            if ( ! fiber_context::active()->do_wait_until( timeout_time, lk) ) {
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 detail::spinlock_lock lk( splk_);

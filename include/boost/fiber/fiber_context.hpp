@@ -27,7 +27,6 @@
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/detail/scheduler.hpp>
 #include <boost/fiber/fiber_manager.hpp>
 #include <boost/fiber/exceptions.hpp>
 
@@ -38,6 +37,7 @@
 namespace boost {
 namespace fibers {
 
+class fiber;
 class fiber_properties;
 
 class BOOST_FIBERS_DECL fiber_context {
@@ -79,6 +79,8 @@ private:
 
     typedef std::map< uintptr_t, fss_data >   fss_data_t;
 
+    static thread_local fiber_context           *   active_;
+
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                      use_count_;
     std::atomic< fiber_status >                     state_;
@@ -89,27 +91,13 @@ private:
     int                                             flags_;
 #endif
     detail::spinlock                                splk_;
+    fiber_manager                               *   mgr_;
     context::execution_context                      ctx_;
     fss_data_t                                      fss_data_;
     std::vector< fiber_context * >                  waiting_;
     std::exception_ptr                              except_;
     std::chrono::steady_clock::time_point  tp_;
     fiber_properties                            *   properties_;
-
-    // main fiber
-    fiber_context() :
-        use_count_( 1), // allocated on stack
-        state_( fiber_status::running),
-        flags_( flag_main_fiber),
-        splk_(),
-        ctx_( context::execution_context::current() ),
-        fss_data_(),
-        waiting_(),
-        except_(),
-        tp_( (std::chrono::steady_clock::time_point::max)() ),
-        properties_( nullptr),
-        nxt( nullptr) {
-    }
 
 protected:
     virtual void deallocate() {
@@ -172,9 +160,27 @@ public:
         }
     };
 
+    static fiber_context * active() noexcept;
+
+    static fiber_context * active( fiber_context * active) noexcept;
+
     fiber_context   *   nxt;
 
-    static fiber_context * main_fiber();
+    // main fiber
+    fiber_context() :
+        use_count_( 1), // allocated on stack
+        state_( fiber_status::running),
+        flags_( flag_main_fiber),
+        splk_(),
+        mgr_( nullptr),
+        ctx_( context::execution_context::current() ),
+        fss_data_(),
+        waiting_(),
+        except_(),
+        tp_( (std::chrono::steady_clock::time_point::max)() ),
+        properties_( nullptr),
+        nxt( nullptr) {
+    }
 
     // worker fiber
     template< typename StackAlloc, typename Fn, typename ... Args >
@@ -186,6 +192,7 @@ public:
         state_( fiber_status::ready),
         flags_( 0),
         splk_(),
+        mgr_( nullptr),
         ctx_( palloc, salloc,
               // lambda, executed in execution context
               // mutable: generated operator() is not const -> enables std::move( fn)
@@ -208,7 +215,7 @@ public:
                 release();
 
                 // switch to another fiber
-                detail::scheduler::instance()->run();
+                do_schedule();
 
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
@@ -221,6 +228,15 @@ public:
     }
 
     virtual ~fiber_context();
+
+    void manager( fiber_manager * mgr) {
+        BOOST_ASSERT( nullptr != mgr);
+        mgr_ = mgr;
+    }
+
+    fiber_manager * manager() const noexcept {
+        return mgr_;
+    }
 
     id get_id() const noexcept {
         return id( const_cast< fiber_context * >( this) );
@@ -341,6 +357,39 @@ public:
     }
 
     void release();
+
+    void do_spawn( fiber const&);
+
+    void do_schedule();
+
+    void do_wait( detail::spinlock_lock &);
+
+    template< typename Clock, typename Duration >
+    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time,
+                        detail::spinlock_lock & lk) {
+        return mgr_->wait_until( timeout_time, lk);
+    }
+
+    template< typename Rep, typename Period >
+    bool do_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
+                      detail::spinlock_lock & lk) {
+        return mgr_->wait_for( timeout_duration, lk);
+    }
+
+    void do_yield();
+
+    void do_join( fiber_context *);
+
+    std::size_t do_ready_fibers() const noexcept;
+
+    void do_set_sched_algo( std::unique_ptr< sched_algorithm >);
+
+    template< typename Rep, typename Period >
+    void do_wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
+        mgr_->wait_interval( wait_interval);
+    }
+
+    std::chrono::steady_clock::duration do_wait_interval() noexcept;
 
     friend void intrusive_ptr_add_ref( fiber_context * f) {
         BOOST_ASSERT( nullptr != f);
