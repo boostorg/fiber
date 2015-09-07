@@ -20,7 +20,7 @@ namespace fibers {
 
 static context * main_context() {
     static thread_local context mc;
-    static thread_local scheduler sched;
+    static thread_local scheduler sched( & mc);
     mc.set_scheduler( & sched);
     return & mc;
 }

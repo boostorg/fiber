@@ -25,8 +25,9 @@
 namespace boost {
 namespace fibers {
 
-scheduler::scheduler() noexcept :
+scheduler::scheduler( context * main_context) noexcept :
     sched_algo_( new round_robin() ),
+    main_context_( main_context),
     wqueue_(),
     tqueue_(),
     wait_interval_( std::chrono::milliseconds( 10) ) {

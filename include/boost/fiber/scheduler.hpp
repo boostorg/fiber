@@ -32,13 +32,14 @@ struct sched_algorithm;
 
 struct BOOST_FIBERS_DECL scheduler {
 private:
-    typedef detail::waiting_queue          wqueue_t;
-    typedef detail::terminated_queue       tqueue_t;
+    typedef detail::waiting_queue           wqueue_t;
+    typedef detail::terminated_queue        tqueue_t;
 
-    std::unique_ptr< sched_algorithm >     sched_algo_;
-    wqueue_t                               wqueue_;
-    tqueue_t                               tqueue_;
-    std::chrono::steady_clock::duration    wait_interval_;
+    std::unique_ptr< sched_algorithm >      sched_algo_;
+    context                             *   main_context_;
+    wqueue_t                                wqueue_;
+    tqueue_t                                tqueue_;
+    std::chrono::steady_clock::duration     wait_interval_;
 
     void resume_( context *);
 
