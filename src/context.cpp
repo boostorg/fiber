@@ -33,12 +33,10 @@ context::active() noexcept {
     return active_;
 }
 
-context *
+void
 context::active( context * active) noexcept {
     BOOST_ASSERT( nullptr != active);
-    context * old( active_);
     active_ = active;
-    return old;
 }
 
 context::~context() {
@@ -111,9 +109,9 @@ context::get_fss_data( void const * vp) const {
 
 void
 context::set_fss_data( void const * vp,
-                             detail::fss_cleanup_function::ptr_t const& cleanup_fn,
-                             void * data,
-                             bool cleanup_existing) {
+                       detail::fss_cleanup_function::ptr_t const& cleanup_fn,
+                       void * data,
+                       bool cleanup_existing) {
     BOOST_ASSERT( cleanup_fn);
 
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
@@ -147,13 +145,11 @@ context::set_properties( fiber_properties * props) {
 }
 
 void
-context::do_spawn( fiber const& f_) {
+context::do_spawn( fiber const& f) {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    context * f( f_.impl_.get() );
-    f->set_scheduler( scheduler_);
-    scheduler_->spawn( f);
+    scheduler_->spawn( f.impl_.get() );
 }
 
 void
