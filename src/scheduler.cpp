@@ -131,8 +131,6 @@ scheduler::run( context * af) {
     BOOST_ASSERT( nullptr != af);
     BOOST_ASSERT( context::active() == af);
     for (;;) {
-        // destroy terminated fibers from terminated-queue
-        tqueue_.clear();
         // move all fibers which are ready (state_ready)
         // from waiting-queue to the runnable-queue
         wqueue_.move_to( sched_algo_.get() );
@@ -142,6 +140,8 @@ scheduler::run( context * af) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // resume fiber f
             resume_( af, f);
+            // destroy terminated fibers from terminated-queue
+            tqueue_.clear();
             return;
         } else {
             // no fibers ready to run; the thread should sleep

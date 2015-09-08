@@ -162,7 +162,7 @@ public:
 
     static context * active() noexcept;
 
-    static context * active( context * active) noexcept;
+    static void active( context * active) noexcept;
 
     context   *   nxt;
 
