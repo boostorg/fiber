@@ -20,7 +20,7 @@ namespace fibers {
 
 static context * main_context() {
     static thread_local context mc;
-    static thread_local scheduler sched;
+    static thread_local scheduler sched( & mc);
     mc.set_scheduler( & sched);
     return & mc;
 }
@@ -161,7 +161,7 @@ context::do_schedule() {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    scheduler_->run();
+    scheduler_->run( this);
 }
 
 void
@@ -169,7 +169,7 @@ context::do_wait( detail::spinlock_lock & lk) {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    scheduler_->wait( lk);
+    scheduler_->wait( this, lk);
 }
 
 void
@@ -177,7 +177,7 @@ context::do_yield() {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    scheduler_->yield();
+    scheduler_->yield( this);
 }
 
 void
@@ -186,7 +186,7 @@ context::do_join( context * f) {
     BOOST_ASSERT( this == active_);
     BOOST_ASSERT( nullptr != f);
 
-    scheduler_->join( f);
+    scheduler_->join( this, f);
 }
 
 std::size_t

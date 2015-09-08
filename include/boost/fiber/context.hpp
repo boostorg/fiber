@@ -371,13 +371,13 @@ public:
     template< typename Clock, typename Duration >
     bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time,
                         detail::spinlock_lock & lk) {
-        return scheduler_->wait_until( timeout_time, lk);
+        return scheduler_->wait_until( this, timeout_time, lk);
     }
 
     template< typename Rep, typename Period >
     bool do_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
                       detail::spinlock_lock & lk) {
-        return scheduler_->wait_for( timeout_duration, lk);
+        return scheduler_->wait_for( this, timeout_duration, lk);
     }
 
     void do_yield();

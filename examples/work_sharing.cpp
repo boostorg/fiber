@@ -134,24 +134,28 @@ int main( int argc, char *argv[]) {
     // into shared pool
     boost::fibers::use_scheduling_algorithm<shared_ready_queue>();
 
-    // launch a number of fibers
-    for (char c : std::string("abcdefghijklmno")) {
-        boost::fibers::fiber([c](){ whatevah(c); }).detach();
-    }
+    for ( int i = 0; i < 10; ++i) {
+        // launch a number of fibers
+        for (char c : std::string("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")) {
+            boost::fibers::fiber([c](){ whatevah(c); }).detach();
+        }
 
-    // launch a couple threads to help process them
-    std::thread threads[] = {
-        std::thread(thread),
-        std::thread(thread),
-        std::thread(thread)
-    };
+        // launch a couple threads to help process them
+        std::thread threads[] = {
+            std::thread(thread),
+            std::thread(thread),
+            std::thread(thread),
+            std::thread(thread),
+            std::thread(thread)
+        };
 
-    // drain running fibers
-    drain();
+        // drain running fibers
+        drain();
 
-    // wait for threads to terminate
-    for (std::thread& t : threads) {
-        t.join();
+        // wait for threads to terminate
+        for (std::thread& t : threads) {
+            t.join();
+        }
     }
 
     return EXIT_SUCCESS;
