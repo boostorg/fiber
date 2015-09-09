@@ -90,17 +90,21 @@ scheduler::~scheduler() noexcept {
             break;
         }
     }
-    // FIXME
-#if 0
     // destroy terminated fibers from terminated-queue
+    tqueue_t::iterator e = tqueue_.end();
     for ( tqueue_t::iterator i = tqueue_.begin(); i != e;) {
-        //BOOST_ASSERT( i->is_terminated() );
-        // intrusive_ptr_release( & ( * i) ); // might call ~context()
-        //i = tqueue_.erase( i);
+        context * f( & ( * i) );
+        BOOST_ASSERT( f->is_terminated() );
+        i = tqueue_.erase( i);
+        BOOST_ASSERT( ! f->state_is_linked() );
+        BOOST_ASSERT( ! f->wait_is_linked() );
+        BOOST_ASSERT( ! f->yield_is_linked() );
+        intrusive_ptr_release( f); // might call ~context()
     }
-#endif
-    BOOST_ASSERT( wqueue_.empty() );
     BOOST_ASSERT( context::active() == main_context_);
+    BOOST_ASSERT( wqueue_.empty() );
+    BOOST_ASSERT( yqueue_.empty() );
+    BOOST_ASSERT( 0 == sched_algo_->ready_fibers() );
 }
 
 void
@@ -186,15 +190,17 @@ scheduler::run( context * af) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // resume fiber f
             resume_( af, f);
-            // FIXME
-#if 0
             // destroy terminated fibers from terminated-queue
+            tqueue_t::iterator e = tqueue_.end();
             for ( tqueue_t::iterator i = tqueue_.begin(); i != e;) {
-                //BOOST_ASSERT( i->is_terminated() );
-                // intrusive_ptr_release( & ( * i) ); // might call ~context()
-                //i = tqueue_.erase( i);
+                context * f( & ( * i) );
+                BOOST_ASSERT( f->is_terminated() );
+                i = tqueue_.erase( i);
+                BOOST_ASSERT( ! f->state_is_linked() );
+                BOOST_ASSERT( ! f->wait_is_linked() );
+                BOOST_ASSERT( ! f->yield_is_linked() );
+                intrusive_ptr_release( f); // might call ~context()
             }
-#endif
             return;
         } else {
             // no fibers ready to run; the thread should sleep
