@@ -90,6 +90,15 @@ scheduler::~scheduler() noexcept {
             break;
         }
     }
+    // FIXME
+#if 0
+    // destroy terminated fibers from terminated-queue
+    for ( tqueue_t::iterator i = tqueue_.begin(); i != e;) {
+        //BOOST_ASSERT( i->is_terminated() );
+        // intrusive_ptr_release( & ( * i) ); // might call ~context()
+        //i = tqueue_.erase( i);
+    }
+#endif
     BOOST_ASSERT( wqueue_.empty() );
     BOOST_ASSERT( context::active() == main_context_);
 }
@@ -182,6 +191,7 @@ scheduler::run( context * af) {
             // destroy terminated fibers from terminated-queue
             for ( tqueue_t::iterator i = tqueue_.begin(); i != e;) {
                 //BOOST_ASSERT( i->is_terminated() );
+                // intrusive_ptr_release( & ( * i) ); // might call ~context()
                 //i = tqueue_.erase( i);
             }
 #endif
