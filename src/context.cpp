@@ -10,6 +10,7 @@
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/fiber.hpp"
 #include "boost/fiber/properties.hpp"
+#include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -33,12 +34,10 @@ context::active() noexcept {
     return active_;
 }
 
-context *
+void
 context::active( context * active) noexcept {
     BOOST_ASSERT( nullptr != active);
-    context * old( active_);
     active_ = active;
-    return old;
 }
 
 context::~context() {
@@ -111,9 +110,9 @@ context::get_fss_data( void const * vp) const {
 
 void
 context::set_fss_data( void const * vp,
-                             detail::fss_cleanup_function::ptr_t const& cleanup_fn,
-                             void * data,
-                             bool cleanup_existing) {
+                       detail::fss_cleanup_function::ptr_t const& cleanup_fn,
+                       void * data,
+                       bool cleanup_existing) {
     BOOST_ASSERT( cleanup_fn);
 
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
@@ -146,14 +145,21 @@ context::set_properties( fiber_properties * props) {
     properties_ = props;
 }
 
-void
-context::do_spawn( fiber const& f_) {
+bool
+context::do_wait_until_( std::chrono::steady_clock::time_point const& time_point,
+                         detail::spinlock_lock & lk) {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    context * f( f_.impl_.get() );
-    f->set_scheduler( scheduler_);
-    scheduler_->spawn( f);
+    return scheduler_->wait_until( this, time_point, lk);
+}
+
+void
+context::do_spawn( fiber const& f) {
+    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( this == active_);
+
+    scheduler_->spawn( f.impl_.get() );
 }
 
 void

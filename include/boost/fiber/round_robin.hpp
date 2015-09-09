@@ -11,8 +11,9 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/algorithm.hpp>
+#include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/fifo.hpp>
+#include <boost/fiber/detail/queues.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -25,7 +26,7 @@ class context;
 
 class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
 private:
-    typedef detail::fifo        rqueue_t;
+    typedef detail::state_queue< context >   rqueue_t;
 
     rqueue_t                    rqueue_;
 

@@ -434,12 +434,12 @@ void test_wm_1()
     BOOST_CHECK_EQUAL( id1, ids[2]); // f1 pushes 3
     BOOST_CHECK_EQUAL( id1, ids[3]); // f1 blocks in push( 4) (channel is full)
     BOOST_CHECK_EQUAL( id2, ids[4]); // f2 resumes and pops 1, f1 gets ready to push 4, f2 yields
-    BOOST_CHECK_EQUAL( id1, ids[5]); // f1 resumes and pushes 4, blocks in push( 5) (channel full)
-    BOOST_CHECK_EQUAL( id2, ids[6]); // f2 resumes and pops 2
+    BOOST_CHECK_EQUAL( id2, ids[5]); // f2 resumes and pops 2
+    BOOST_CHECK_EQUAL( id2, ids[6]); // f2 pops 4
     BOOST_CHECK_EQUAL( id2, ids[7]); // f2 pops 3
-    BOOST_CHECK_EQUAL( id2, ids[8]); // f2 pops 4
-    BOOST_CHECK_EQUAL( id2, ids[9]); // f2 blocks in pop() (channel is empty)
-    BOOST_CHECK_EQUAL( id1, ids[10]); // f1 resumes and pushes 4, completes
+    BOOST_CHECK_EQUAL( id1, ids[8]); // f1 resumes and pushes 4, blocks in push( 5) (channel full)
+    BOOST_CHECK_EQUAL( id1, ids[9]); // f1 resumes and pushes 4, completes
+    BOOST_CHECK_EQUAL( id2, ids[10]); // f2 blocks in pop() (channel is empty)
     BOOST_CHECK_EQUAL( id2, ids[11]); // f2 resumes and pops 5, completes
 }
 
@@ -501,8 +501,8 @@ void test_wm_2()
     BOOST_CHECK_EQUAL( id1, ids[2]); // f1 pushes 3
     BOOST_CHECK_EQUAL( id1, ids[3]); // f1 blocks in push( 4) (channel is full)
     BOOST_CHECK_EQUAL( id2, ids[4]); // f2 resumes and pops 1, f1 gets ready to push 4, f2 yields
-    BOOST_CHECK_EQUAL( id1, ids[5]); // f1 resumes and pushes 4, blocks in push( 5) (channel full)
-    BOOST_CHECK_EQUAL( id2, ids[6]); // f2 resumes and pops 2, f1 gets ready tp push 5, f2 yields
+    BOOST_CHECK_EQUAL( id2, ids[5]); // f2 resumes and pops 2, f1 gets ready tp push 5, f2 yields
+    BOOST_CHECK_EQUAL( id1, ids[6]); // f1 resumes and pushes 4, blocks in push( 5) (channel full)
     BOOST_CHECK_EQUAL( id1, ids[7]); // f1 resumes and pushes 5, completes
     BOOST_CHECK_EQUAL( id2, ids[8]); // f2 resumes and pops 3
     BOOST_CHECK_EQUAL( id2, ids[9]); // f2 pops 4
@@ -570,10 +570,10 @@ void test_wm_3()
     BOOST_CHECK_EQUAL( id1, ids[3]); // f1 blocks in push( 4) (channel is full)
     BOOST_CHECK_EQUAL( id2, ids[4]); // f2 resumes and pops 1, f1 gets NOT ready to push 4, f2 yields
     BOOST_CHECK_EQUAL( id2, ids[5]); // f2 pops 2, f1 gets ready to push 4 (lwm == size == 1), f2 yields
-    BOOST_CHECK_EQUAL( id1, ids[6]); // f1 resumes and pushes 4 + 5
-    BOOST_CHECK_EQUAL( id1, ids[7]); // f1 completes
-    BOOST_CHECK_EQUAL( id2, ids[8]); // f2 resumes and pops 3
-    BOOST_CHECK_EQUAL( id2, ids[9]); // f2 pops 4
+    BOOST_CHECK_EQUAL( id2, ids[6]); // f2 pops 4
+    BOOST_CHECK_EQUAL( id2, ids[7]); // f2 resumes and pops 3
+    BOOST_CHECK_EQUAL( id1, ids[8]); // f1 resumes and pushes 4 + 5
+    BOOST_CHECK_EQUAL( id1, ids[9]); // f1 completes
     BOOST_CHECK_EQUAL( id2, ids[10]); // f2 pops 5
     BOOST_CHECK_EQUAL( id2, ids[11]); // f2 completes
 }
@@ -634,8 +634,8 @@ void test_wm_4()
     BOOST_CHECK_EQUAL( id1, ids[3]); // f1 blocks in push( 4) ( channel full)
     BOOST_CHECK_EQUAL( id2, ids[4]); // f2 resumes and pops 1, f1 gets NOT ready to push 4, f2 yields
     BOOST_CHECK_EQUAL( id2, ids[5]); // f2 pops 2, f1 gets ready to push 4 (lwm == size == 1), f2 yields
-    BOOST_CHECK_EQUAL( id1, ids[6]); // f1 resumes and pushes 4, completes
-    BOOST_CHECK_EQUAL( id2, ids[7]); // f2 resumes and pops 3
+    BOOST_CHECK_EQUAL( id2, ids[6]); // f2 resumes and pops 3
+    BOOST_CHECK_EQUAL( id1, ids[7]); // f1 resumes and pushes 4, completes
     BOOST_CHECK_EQUAL( id2, ids[8]); // f2 pops 4
     BOOST_CHECK_EQUAL( id2, ids[9]); // f2 completes
 }

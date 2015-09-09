@@ -47,8 +47,8 @@ public:
     // pointer to its context.
     fiber_properties( context* f):
         fiber_( f),
-        sched_algo_( nullptr)
-    {}
+        sched_algo_( nullptr) {
+    }
 
     // We need a virtual destructor (hence a vtable) because fiber_properties
     // is stored polymorphically (as fiber_properties*) in context, and

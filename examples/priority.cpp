@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <boost/fiber/all.hpp>
+#include <boost/fiber/detail/queues.hpp>
 #include <boost/noncopyable.hpp>
 
 class Verbose: public boost::noncopyable {
@@ -68,14 +69,13 @@ private:
 //[priority_scheduler
 class priority_scheduler : public boost::fibers::sched_algorithm_with_properties< priority_props > {
 private:
-    // Much as we would like, we don't use std::priority_queue because it
-    // doesn't appear to provide any way to alter the priority (and hence
-    // queue position) of a particular item.
-    boost::fibers::context    *   head_;
+    typedef boost::fibers::detail::state_queue< boost::fibers::context >   rqueue_t;
+
+    rqueue_t                    rqueue_;
 
 public:
     priority_scheduler() :
-        head_( nullptr) {
+        rqueue_() {
     }
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
@@ -93,19 +93,16 @@ public:
         // we're handed a new context*, put it at the end of the fibers
         // with that same priority. In other words: search for the first fiber
         // in the queue with LOWER priority, and insert before that one.
-        boost::fibers::context ** fp = & head_;
-        for ( ; * fp; fp = & ( * fp)->nxt) {
-            if ( properties( * fp).get_priority() < f_priority) {
-                /*< Use the
-                [member_link sched_algorithm_with_properties..properties]
-                method to access properties for any ['other] fiber. >*/
-                break;
+        if ( rqueue_.empty() ) {
+            rqueue_.push_back( * f);
+        } else {
+            rqueue_t::iterator e( rqueue_.end() );
+            for ( rqueue_t::iterator i( rqueue_.begin() ); i != e; ++i) {
+                if ( properties( & ( * i) ).get_priority() < f_priority) {
+                    rqueue_.insert( i, * f);
+                }
             }
         }
-        // It doesn't matter whether we hit the end of the list or found
-        // another fiber with lower priority. Either way, insert f here.
-        f->nxt = * fp; /*< Note use of the [data_member_link context..nxt] member. >*/
-        * fp = f;
 //<-
 
         std::cout << "awakened(" << props.name << "): ";
@@ -118,14 +115,11 @@ public:
          of the next fiber to run. >>*/
     virtual boost::fibers::context * pick_next() {
         // if ready queue is empty, just tell caller
-        if ( ! head_) {
+        if ( rqueue_.empty() ) {
             return nullptr;
         }
-        // Here we have at least one ready fiber. Unlink and return that.
-        boost::fibers::context * f = head_;
-        head_ = f->nxt;
-        f->nxt = nullptr;
-
+        boost::fibers::context * f( & rqueue_.front() );
+        rqueue_.pop_front();
 //<-
         std::cout << "pick_next() resuming " << properties( f).name << ": ";
         describe_ready_queue();
@@ -136,11 +130,7 @@ public:
     /*<< You must override [member_link sched_algorithm_with_properties..ready_fibers]
       to inform the fiber manager of the size of your ready queue. >>*/
     virtual std::size_t ready_fibers() const noexcept {
-        std::size_t count = 0;
-        for ( boost::fibers::context * f = head_; f; f = f->nxt) {
-            ++count;
-        }
-        return count;
+        return rqueue_.size();
     }
 
     /*<< Overriding [member_link sched_algorithm_with_properties..property_change]
@@ -160,12 +150,12 @@ public:
         // Find 'f' in the queue. Note that it might not be in our queue at
         // all, if caller is changing the priority of (say) the running fiber.
         bool found = false;
-        for ( boost::fibers::context ** fp = & head_; * fp; fp = & ( * fp)->nxt) {
-            if ( * fp == f) {
+        rqueue_t::iterator e( rqueue_.end() );
+        for ( rqueue_t::iterator i( rqueue_.begin() ); i != e; ++i) {
+            if ( & ( * i) == f) {
                 // found the passed fiber in our list -- unlink it
                 found = true;
-                * fp = ( * fp)->nxt;
-                f->nxt = nullptr;
+                rqueue_.erase( i);
                 break;
             }
         }
@@ -195,12 +185,12 @@ public:
 //<-
 
     void describe_ready_queue() {
-        if ( ! head_) {
+        if ( rqueue_.empty() ) {
             std::cout << "[empty]";
         } else {
             const char * delim = "";
-            for ( boost::fibers::context * f = head_; f; f = f->nxt) {
-                priority_props & props( properties( f) );
+            for ( boost::fibers::context & f : rqueue_) {
+                priority_props & props( properties( & f) );
                 std::cout << delim << props.name << '(' << props.get_priority() << ')';
                 delim = ", ";
             }

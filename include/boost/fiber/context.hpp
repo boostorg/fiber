@@ -24,10 +24,11 @@
 #include <boost/context/all.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/invoke.hpp>
+#include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/exceptions.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -39,8 +40,12 @@ namespace fibers {
 
 class fiber;
 class fiber_properties;
+class scheduler;
+struct sched_algorithm;
 
-class BOOST_FIBERS_DECL context {
+class BOOST_FIBERS_DECL context : public detail::state_hook,
+                                  public detail::yield_hook,
+                                  public detail::wait_hook {
 private:
     enum class fiber_status {
         ready = 0,
@@ -98,6 +103,9 @@ private:
     std::exception_ptr                          except_;
     std::chrono::steady_clock::time_point       tp_;
     fiber_properties                        *   properties_;
+
+    bool do_wait_until_( std::chrono::steady_clock::time_point const&,
+                         detail::spinlock_lock &);
 
 protected:
     virtual void deallocate() {
@@ -162,9 +170,7 @@ public:
 
     static context * active() noexcept;
 
-    static context * active( context * active) noexcept;
-
-    context   *   nxt;
+    static void active( context * active) noexcept;
 
     // main fiber
     context() :
@@ -178,8 +184,7 @@ public:
         waiting_(),
         except_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
-        properties_( nullptr),
-        nxt( nullptr) {
+        properties_( nullptr) {
     }
 
     // worker fiber
@@ -223,8 +228,7 @@ public:
         waiting_(),
         except_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
-        properties_( nullptr),
-        nxt( nullptr) {
+        properties_( nullptr) {
     }
 
     virtual ~context();
@@ -369,15 +373,17 @@ public:
     void do_wait( detail::spinlock_lock &);
 
     template< typename Clock, typename Duration >
-    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time,
+    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
                         detail::spinlock_lock & lk) {
-        return scheduler_->wait_until( this, timeout_time, lk);
+        std::chrono::steady_clock::time_point timeout_time(
+                detail::convert_tp( timeout_time_) );
+        return do_wait_until_( timeout_time, lk);
     }
 
     template< typename Rep, typename Period >
     bool do_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
                       detail::spinlock_lock & lk) {
-        return scheduler_->wait_for( this, timeout_duration, lk);
+        return do_wait_until_( std::chrono::steady_clock::now() + timeout_duration, lk);
     }
 
     void do_yield();
@@ -390,10 +396,26 @@ public:
 
     template< typename Rep, typename Period >
     void do_wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
-        scheduler_->wait_interval( wait_interval);
+        // wait_interval_( wait_interval); FIXME
     }
 
     std::chrono::steady_clock::duration do_wait_interval() noexcept;
+
+    bool state_is_linked() {
+        return detail::state_hook::is_linked();
+    }
+
+    bool yield_is_linked() {
+        return detail::yield_hook::is_linked();
+    }
+
+    void wait_unlink() {
+        detail::wait_hook::unlink();
+    }
+
+    bool wait_is_linked() {
+        return detail::wait_hook::is_linked();
+    }
 
     friend void intrusive_ptr_add_ref( context * f) {
         BOOST_ASSERT( nullptr != f);
