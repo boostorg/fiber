@@ -9,16 +9,16 @@
 
 #include <algorithm>
 #include <chrono>
-#include <deque>
 #include <mutex>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
+#include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/context.hpp>
 #include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
@@ -39,8 +39,10 @@ enum class cv_status {
 
 class BOOST_FIBERS_DECL condition {
 private:
-    detail::spinlock                    splk_;
-    std::deque< context * >       waiting_;
+    typedef detail::wait_queue< context >   wqueue_t;
+
+    detail::spinlock        splk_;
+    wqueue_t                waiting_;
 
 public:
     condition();
@@ -68,10 +70,10 @@ public:
             // lock spinlock
             detail::spinlock_lock lk( splk_);
 
-            BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
             // store this fiber in waiting-queue
             // in order notify (resume) this fiber later
-            waiting_.push_back( f);
+            BOOST_ASSERT( ! f->wait_is_linked() );
+            waiting_.push_back( * f);
 
             // unlock external
             lt.unlock();
@@ -79,17 +81,13 @@ public:
             // suspend this fiber
             // locked spinlock will be released if this fiber
             // was stored inside manager's waiting-queue
-            context::active()->do_wait( lk);
+            f->do_wait( lk);
 
             // lock external again before returning
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
-            if ( waiting_.end() != i) {
-                // remove fiber from waiting-list
-                waiting_.erase( i);
-            }
+            f->wait_unlink();
             throw;
         }
     }
@@ -105,7 +103,8 @@ public:
 
             // store this fiber in waiting-queue
             // in order notify (resume) this fiber later
-            waiting_.push_back( f);
+            BOOST_ASSERT( ! f->wait_is_linked() );
+            waiting_.push_back( * f);
 
             // unlock external
             lt.unlock();
@@ -113,15 +112,11 @@ public:
             // suspend this fiber
             // locked spinlock will be released if this fiber
             // was stored inside manager's waiting-queue
-            if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
+            if ( ! f->do_wait_until( timeout_time, lk) ) {
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 detail::spinlock_lock lk( splk_);
-                std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
-                if ( waiting_.end() != i) {
-                    // remove fiber from waiting-list
-                    waiting_.erase( i);
-                }
+                f->wait_unlink();
 
                 status = cv_status::timeout;
             }
@@ -130,11 +125,7 @@ public:
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
-            if ( waiting_.end() != i) {
-                // remove fiber from waiting-list
-                waiting_.erase( i);
-            }
+            f->wait_unlink();
             throw;
         }
 

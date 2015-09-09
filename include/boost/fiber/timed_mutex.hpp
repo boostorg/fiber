@@ -8,14 +8,14 @@
 #define BOOST_FIBERS_TIMED_MUTEX_H
 
 #include <chrono>
-#include <deque>
 
 #include <boost/config.hpp>
 
+#include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/context.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -31,10 +31,12 @@ private:
         unlocked
     };
 
-    detail::spinlock                splk_;
-    mutex_status                    state_;
-    context::id               owner_;
-    std::deque< context * >   waiting_;
+    typedef detail::wait_queue< context >   wqueue_t;
+
+    detail::spinlock    splk_;
+    mutex_status        state_;
+    context::id         owner_;
+    wqueue_t            waiting_;
 
     bool lock_if_unlocked_();
 

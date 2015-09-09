@@ -31,7 +31,7 @@ condition::notify_one() {
     detail::spinlock_lock lk( splk_);
     // get one waiting fiber
     if ( ! waiting_.empty() ) {
-        f = waiting_.front();
+        f = & waiting_.front();
         waiting_.pop_front();
     }
     lk.unlock();
@@ -44,7 +44,7 @@ condition::notify_one() {
 
 void
 condition::notify_all() {
-    std::deque< context * > waiting;
+    wqueue_t waiting;
 
     detail::spinlock_lock lk( splk_);
     // get all waiting fibers
@@ -52,11 +52,9 @@ condition::notify_all() {
     lk.unlock();
 
     // notify all waiting fibers
-    while ( ! waiting.empty() ) {
-        context * f( waiting.front() );
-        waiting.pop_front();
-        BOOST_ASSERT( nullptr != f);
-        f->set_ready();
+    for ( context & f : waiting) {
+        f.set_ready();
+        // f->wait_unlink(); ?
     }
 }
 

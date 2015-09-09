@@ -14,11 +14,11 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
+#include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/detail/terminated_queue.hpp>
-#include <boost/fiber/detail/waiting_queue.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -30,22 +30,20 @@ namespace fibers {
 class context;
 struct sched_algorithm;
 
-struct BOOST_FIBERS_DECL scheduler {
+class BOOST_FIBERS_DECL scheduler {
 private:
-    typedef detail::waiting_queue           wqueue_t;
-    typedef detail::terminated_queue        tqueue_t;
+    typedef detail::state_queue< context >  tqueue_t;
+    typedef detail::state_queue< context >  wqueue_t;
+    typedef detail::yield_queue< context >  yqueue_t;
 
     std::unique_ptr< sched_algorithm >      sched_algo_;
     context                             *   main_context_;
     wqueue_t                                wqueue_;
     tqueue_t                                tqueue_;
+    yqueue_t                                yqueue_;
     std::chrono::steady_clock::duration     wait_interval_;
 
     void resume_( context *, context *);
-
-    bool wait_until_( context *,
-                      std::chrono::steady_clock::time_point const&,
-                      detail::spinlock_lock &);
 
 public:
     scheduler( context *) noexcept;
@@ -61,22 +59,9 @@ public:
 
     void wait( context *, detail::spinlock_lock &);
 
-    template< typename Clock, typename Duration >
-    bool wait_until( context * af,
-                     std::chrono::time_point< Clock, Duration > const& timeout_time_,
-                     detail::spinlock_lock & lk) {
-        std::chrono::steady_clock::time_point timeout_time(
-                detail::convert_tp( timeout_time_) );
-        return wait_until_( af, timeout_time, lk);
-    }
-
-    template< typename Rep, typename Period >
-    bool wait_for( context * af,
-                   std::chrono::duration< Rep, Period > const& timeout_duration,
-                   detail::spinlock_lock & lk) {
-        return wait_until_(
-                af, std::chrono::steady_clock::now() + timeout_duration, lk);
-    }
+    bool wait_until( context *,
+                     std::chrono::steady_clock::time_point const&,
+                     detail::spinlock_lock &);
 
     void yield( context *);
 

@@ -8,8 +8,6 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/context.hpp"
-
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
@@ -21,14 +19,16 @@ void
 round_robin::awakened( context * f) {
     BOOST_ASSERT( nullptr != f);
 
-    rqueue_.push( f);
+    BOOST_ASSERT( ! f->state_is_linked() );
+    rqueue_.push_back( * f);
 }
 
 context *
 round_robin::pick_next() {
     context * victim( nullptr);
     if ( ! rqueue_.empty() ) {
-        victim = rqueue_.pop();
+        victim = & rqueue_.front();
+        rqueue_.pop_front();
         BOOST_ASSERT( nullptr != victim);
     }
     return victim;

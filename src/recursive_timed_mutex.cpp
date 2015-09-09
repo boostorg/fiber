@@ -63,8 +63,8 @@ recursive_timed_mutex::lock() {
         }
 
         // store this fiber in order to be notified later
-        BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
-        waiting_.push_back( f);
+        BOOST_ASSERT( ! f->wait_is_linked() );
+        waiting_.push_back( * f);
 
         // suspend this fiber
         context::active()->do_wait( lk);
@@ -102,17 +102,13 @@ recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point co
         }
 
         // store this fiber in order to be notified later
-        BOOST_ASSERT( waiting_.end() == std::find( waiting_.begin(), waiting_.end(), f) );
-        waiting_.push_back( f);
+        BOOST_ASSERT( ! f->wait_is_linked() );
+        waiting_.push_back( * f);
 
         // suspend this fiber until notified or timed-out
         if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
             lk.lock();
-            std::deque< context * >::iterator i( std::find( waiting_.begin(), waiting_.end(), f) );
-            if ( waiting_.end() != i) {
-                // remove fiber from waiting-list
-                waiting_.erase( i);
-            }
+            f->wait_unlink();
             lk.unlock();
             return false;
         }
@@ -128,7 +124,7 @@ recursive_timed_mutex::unlock() {
     context * f( nullptr);
     if ( 0 == --count_) {
         if ( ! waiting_.empty() ) {
-            f = waiting_.front();
+            f = & waiting_.front();
             waiting_.pop_front();
             BOOST_ASSERT( nullptr != f);
         }
