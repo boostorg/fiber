@@ -82,7 +82,7 @@ scheduler::~scheduler() noexcept {
             main_context_->set_waiting();
             // push main-fiber to waiting-queue
             BOOST_ASSERT( ! main_context_->state_is_linked() );
-            wqueue_.push_back( * main_context_);
+            yqueue_.push_back( * main_context_);
             // resume fiber f
             resume_( main_context_, f);
         } else if ( wqueue_.empty() ) {
