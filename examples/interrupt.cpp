@@ -31,10 +31,6 @@ int main()
     try
     {
         f.join();
-
-        std::cout << "done." << std::endl;
-
-        return EXIT_SUCCESS;
     }
     catch ( boost::fibers::fiber_interrupted const&)
     { std::cerr << "interrupted" << std::endl; }
@@ -43,5 +39,7 @@ int main()
     catch (...)
     { std::cerr << "unhandled exception" << std::endl; }
 
-    return EXIT_FAILURE;
+    std::cout << "done." << std::endl;
+
+    return EXIT_SUCCESS;
 }
