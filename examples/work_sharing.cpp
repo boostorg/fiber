@@ -91,7 +91,7 @@ void whatevah(char me) {
     std::thread::id my_thread = std::this_thread::get_id();
     {
         std::ostringstream buffer;
-        buffer << "fiber " << me << " started on thread " << my_thread << '\n';
+        //buffer << "fiber " << me << " started on thread " << my_thread << '\n';
         std::cout << buffer.str() << std::flush;
     }
     for (unsigned i = 0; i < 5; ++i) {
@@ -100,7 +100,7 @@ void whatevah(char me) {
         if (new_thread != my_thread) {
             my_thread = new_thread;
             std::ostringstream buffer;
-            buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
+            //buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
             std::cout << buffer.str() << std::flush;
         }
     }

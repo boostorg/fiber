@@ -31,10 +31,7 @@ lib boost_fiber
       barrier.cpp
       condition.cpp
       context.cpp
-      detail/fifo.cpp
       detail/spinlock.cpp
-      detail/terminated_queue.cpp
-      detail/waiting_queue.cpp
       fiber.cpp
       future.cpp
       interruption.cpp

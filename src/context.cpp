@@ -10,6 +10,7 @@
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/fiber.hpp"
 #include "boost/fiber/properties.hpp"
+#include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -142,6 +143,15 @@ void
 context::set_properties( fiber_properties * props) {
     delete properties_;
     properties_ = props;
+}
+
+bool
+context::do_wait_until_( std::chrono::steady_clock::time_point const& time_point,
+                         detail::spinlock_lock & lk) {
+    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( this == active_);
+
+    return scheduler_->wait_until( this, time_point, lk);
 }
 
 void
