@@ -70,7 +70,7 @@ scheduler::~scheduler() noexcept {
         }
         // pop new fiber from ready-queue
         context * f( sched_algo_->pick_next() );
-        if ( f) {
+        if ( nullptr != f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // set scheduler
             f->set_scheduler( this);
@@ -173,7 +173,7 @@ scheduler::run( context * af) {
         }
         // pop new fiber from ready-queue
         context * f( sched_algo_->pick_next() );
-        if ( f) {
+        if ( nullptr != f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // resume fiber f
             resume_( af, f);
