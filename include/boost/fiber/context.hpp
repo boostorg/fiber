@@ -409,10 +409,6 @@ public:
         return detail::yield_hook::is_linked();
     }
 
-    void wait_unlink() {
-        detail::wait_hook::unlink();
-    }
-
     bool wait_is_linked() {
         return detail::wait_hook::is_linked();
     }

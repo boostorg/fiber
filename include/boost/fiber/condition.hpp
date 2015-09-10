@@ -87,7 +87,7 @@ public:
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            f->wait_unlink();
+            detail::erase_and_dispose( waiting_, f);
             throw;
         }
     }
@@ -116,7 +116,7 @@ public:
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 detail::spinlock_lock lk( splk_);
-                f->wait_unlink();
+                detail::erase_and_dispose( waiting_, f);
 
                 status = cv_status::timeout;
             }
@@ -125,7 +125,7 @@ public:
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            f->wait_unlink();
+            detail::erase_and_dispose( waiting_, f);
             throw;
         }
 

@@ -102,7 +102,7 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
         // suspend this fiber until notified or timed-out
         if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
             lk.lock();
-            f->wait_unlink();
+            detail::erase_and_dispose( waiting_, f);
             lk.unlock();
             return false;
         }
