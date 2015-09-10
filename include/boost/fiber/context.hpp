@@ -43,9 +43,7 @@ class fiber_properties;
 class scheduler;
 struct sched_algorithm;
 
-class BOOST_FIBERS_DECL context : public detail::state_hook,
-                                  public detail::yield_hook,
-                                  public detail::wait_hook {
+class BOOST_FIBERS_DECL context {
 private:
     enum class fiber_status {
         ready = 0,
@@ -99,7 +97,7 @@ private:
     scheduler                               *   scheduler_;
     boost::context::execution_context           ctx_;
     fss_data_t                                  fss_data_;
-    std::vector< context * >                    waiting_;
+    std::vector< context * >                    wait_queue_;
     std::exception_ptr                          except_;
     std::chrono::steady_clock::time_point       tp_;
     fiber_properties                        *   properties_;
@@ -168,6 +166,11 @@ public:
         }
     };
 
+    detail::runnable_hook   runnable_hook_;
+    detail::ready_hook      ready_hook_;
+    detail::sleep_hook      sleep_hook_;
+    detail::wait_hook       wait_hook_;
+
     static context * active() noexcept;
 
     static void active( context * active) noexcept;
@@ -181,7 +184,7 @@ public:
         scheduler_( nullptr),
         ctx_( boost::context::execution_context::current() ),
         fss_data_(),
-        waiting_(),
+        wait_queue_(),
         except_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
         properties_( nullptr) {
@@ -225,7 +228,7 @@ public:
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
         fss_data_(),
-        waiting_(),
+        wait_queue_(),
         except_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
         properties_( nullptr) {
@@ -401,16 +404,24 @@ public:
 
     std::chrono::steady_clock::duration do_wait_interval() noexcept;
 
-    bool state_is_linked() {
-        return detail::state_hook::is_linked();
+    bool runnable_is_linked() {
+        return runnable_hook_.is_linked();
     }
 
-    bool yield_is_linked() {
-        return detail::yield_hook::is_linked();
+    bool ready_is_linked() {
+        return ready_hook_.is_linked();
+    }
+
+    bool sleep_is_linked() {
+        return sleep_hook_.is_linked();
     }
 
     bool wait_is_linked() {
-        return detail::wait_hook::is_linked();
+        return wait_hook_.is_linked();
+    }
+
+    void wait_unlink() {
+        wait_hook_.unlink();
     }
 
     friend void intrusive_ptr_add_ref( context * f) {

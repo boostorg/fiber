@@ -39,10 +39,10 @@ enum class cv_status {
 
 class BOOST_FIBERS_DECL condition {
 private:
-    typedef detail::wait_queue< context >   wqueue_t;
+    typedef detail::wait_queue< context >   wait_queue_t;
 
     detail::spinlock        splk_;
-    wqueue_t                waiting_;
+    wait_queue_t                wait_queue_;
 
 public:
     condition();
@@ -73,7 +73,7 @@ public:
             // store this fiber in waiting-queue
             // in order notify (resume) this fiber later
             BOOST_ASSERT( ! f->wait_is_linked() );
-            waiting_.push_back( * f);
+            wait_queue_.push_back( * f);
 
             // unlock external
             lt.unlock();
@@ -87,7 +87,7 @@ public:
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            detail::erase_and_dispose( waiting_, f);
+            f->wait_unlink();
             throw;
         }
     }
@@ -104,7 +104,7 @@ public:
             // store this fiber in waiting-queue
             // in order notify (resume) this fiber later
             BOOST_ASSERT( ! f->wait_is_linked() );
-            waiting_.push_back( * f);
+            wait_queue_.push_back( * f);
 
             // unlock external
             lt.unlock();
@@ -116,7 +116,7 @@ public:
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 detail::spinlock_lock lk( splk_);
-                detail::erase_and_dispose( waiting_, f);
+                f->wait_unlink();
 
                 status = cv_status::timeout;
             }
@@ -125,7 +125,7 @@ public:
             lt.lock();
         } catch (...) {
             detail::spinlock_lock lk( splk_);
-            detail::erase_and_dispose( waiting_, f);
+            f->wait_unlink();
             throw;
         }
 

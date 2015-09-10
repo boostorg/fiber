@@ -37,12 +37,12 @@ timed_mutex::timed_mutex() :
     splk_(),
 	state_( mutex_status::unlocked),
     owner_(),
-    waiting_() {
+    wait_queue_() {
 }
 
 timed_mutex::~timed_mutex() {
     BOOST_ASSERT( ! owner_);
-    BOOST_ASSERT( waiting_.empty() );
+    BOOST_ASSERT( wait_queue_.empty() );
 }
 
 void
@@ -58,7 +58,7 @@ timed_mutex::lock() {
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( ! f->wait_is_linked() );
-        waiting_.push_back( * f);
+        wait_queue_.push_back( * f);
 
         // suspend this fiber
         context::active()->do_wait( lk);
@@ -97,12 +97,12 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( ! f->wait_is_linked() );
-        waiting_.push_back( * f);
+        wait_queue_.push_back( * f);
 
         // suspend this fiber until notified or timed-out
         if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
             lk.lock();
-            detail::erase_and_dispose( waiting_, f);
+            f->wait_unlink();
             lk.unlock();
             return false;
         }
@@ -116,9 +116,9 @@ timed_mutex::unlock() {
 
     detail::spinlock_lock lk( splk_);
     context * f( nullptr);
-    if ( ! waiting_.empty() ) {
-        f = & waiting_.front();
-        waiting_.pop_front();
+    if ( ! wait_queue_.empty() ) {
+        f = & wait_queue_.front();
+        wait_queue_.pop_front();
         BOOST_ASSERT( nullptr != f);
     }
     owner_ = context::id();
