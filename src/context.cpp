@@ -57,7 +57,7 @@ context::release() {
     splk_.unlock();
 
     // notify all waiting fibers
-    for ( context * f : wait_queue_) {
+    for ( context * f : tmp) {
         do_signal( f);
     }
 
