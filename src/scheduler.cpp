@@ -46,7 +46,6 @@ scheduler::~scheduler() noexcept {
         // from waiting-queue to the runnable-queue
         std::chrono::steady_clock::time_point now(
                 std::chrono::steady_clock::now() );
-
         wqueue_t::iterator e = wqueue_.end();
         for ( wqueue_t::iterator i = wqueue_.begin(); i != e;) {
             context * f = & ( * i);
@@ -63,6 +62,9 @@ scheduler::~scheduler() noexcept {
                 i = wqueue_.erase( i);
                 // Pass the newly-unlinked context* to sched_algo.
                 f->time_point_reset();
+                BOOST_ASSERT( ! f->state_is_linked() );
+                BOOST_ASSERT( ! f->wait_is_linked() );
+                BOOST_ASSERT( ! f->yield_is_linked() );
                 sched_algo_->awakened( f);
             } else {
                 ++i;
@@ -70,6 +72,9 @@ scheduler::~scheduler() noexcept {
         }
         // pop new fiber from ready-queue
         context * f( sched_algo_->pick_next() );
+        BOOST_ASSERT( ! f->state_is_linked() );
+        BOOST_ASSERT( ! f->wait_is_linked() );
+        BOOST_ASSERT( ! f->yield_is_linked() );
         if ( nullptr != f) {
             BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
             // set scheduler
@@ -140,6 +145,9 @@ scheduler::spawn( context * f) {
     BOOST_ASSERT( f->is_ready() );
     BOOST_ASSERT( f != context::active() );
     // add new fiber to the scheduler
+    BOOST_ASSERT( ! f->state_is_linked() );
+    BOOST_ASSERT( ! f->wait_is_linked() );
+    BOOST_ASSERT( ! f->yield_is_linked() );
     sched_algo_->awakened( f);
 }
 
@@ -156,6 +164,9 @@ scheduler::run( context * af) {
                 BOOST_ASSERT( f->is_ready() );
 
                 i = yqueue_.erase( i);
+                BOOST_ASSERT( ! f->state_is_linked() );
+                BOOST_ASSERT( ! f->wait_is_linked() );
+                BOOST_ASSERT( ! f->yield_is_linked() );
                 sched_algo_->awakened( f);
             }
         }
@@ -178,6 +189,9 @@ scheduler::run( context * af) {
                     i = wqueue_.erase( i);
                     // Pass the newly-unlinked context* to sched_algo.
                     f->time_point_reset();
+                    BOOST_ASSERT( ! f->state_is_linked() );
+                    BOOST_ASSERT( ! f->wait_is_linked() );
+                    BOOST_ASSERT( ! f->yield_is_linked() );
                     sched_algo_->awakened( f);
                 } else {
                     ++i;
