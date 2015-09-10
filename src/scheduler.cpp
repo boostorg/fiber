@@ -233,26 +233,12 @@ scheduler::run( context * af) {
     }
 }
 
-void
-scheduler::wait( context * af, detail::spinlock_lock & lk) {
-    wait_until(
-        af,
-        std::chrono::steady_clock::time_point(
-            (std::chrono::steady_clock::duration::max)() ),
-        lk);
-}
-
 bool
 scheduler::wait_until( context * af,
-                       std::chrono::steady_clock::time_point const& timeout_time,
-                       detail::spinlock_lock & lk) {
+                       std::chrono::steady_clock::time_point const& timeout_time) {
     BOOST_ASSERT( nullptr != af);
     BOOST_ASSERT( context::active() == af);
-    BOOST_ASSERT( af->is_running() );
-    // set active-fiber to state_waiting
-    af->set_waiting();
-    // release lock
-    lk.unlock();
+    BOOST_ASSERT( af->is_running() || af->is_waiting() );
     // push active-fiber to waiting-queue
     af->time_point( timeout_time);
     BOOST_ASSERT( ! af->sleep_is_linked() );
@@ -309,6 +295,16 @@ scheduler::join( context * af, context * f) {
     this_fiber::interruption_point();
     // check that fiber f has terminated
     BOOST_ASSERT( f->is_terminated() );
+}
+
+void
+scheduler::signal( context * f) {
+    BOOST_ASSERT( nullptr != f);
+    BOOST_ASSERT( ! f->is_terminated() );
+    // set fiber to state_ready
+    f->set_ready();
+    // put reafy fiber ot read-queue
+    ready_queue_.push_back( * f);
 }
 
 void

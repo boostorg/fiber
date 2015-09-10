@@ -74,14 +74,13 @@ public:
             // in order notify (resume) this fiber later
             BOOST_ASSERT( ! f->wait_is_linked() );
             wait_queue_.push_back( * f);
+            lk.unlock();
 
             // unlock external
             lt.unlock();
 
             // suspend this fiber
-            // locked spinlock will be released if this fiber
-            // was stored inside manager's waiting-queue
-            f->do_wait( lk);
+            f->do_schedule();
 
             // lock external again before returning
             lt.lock();
@@ -105,14 +104,13 @@ public:
             // in order notify (resume) this fiber later
             BOOST_ASSERT( ! f->wait_is_linked() );
             wait_queue_.push_back( * f);
+            lk.unlock();
 
             // unlock external
             lt.unlock();
 
             // suspend this fiber
-            // locked spinlock will be released if this fiber
-            // was stored inside manager's waiting-queue
-            if ( ! f->do_wait_until( timeout_time, lk) ) {
+            if ( ! f->do_wait_until( timeout_time) ) {
                 // this fiber was not notified before timeout
                 // lock spinlock again
                 detail::spinlock_lock lk( splk_);

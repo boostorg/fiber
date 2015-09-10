@@ -12,7 +12,6 @@
 
 #include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
-#include "boost/fiber/operations.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -29,7 +28,7 @@ mutex::lock_if_unlocked_() {
     
     state_ = mutex_status::locked;
     BOOST_ASSERT( ! owner_);
-    owner_ = this_fiber::get_id();
+    owner_ = context::active()->get_id();
     return true;
 }
 
@@ -58,10 +57,12 @@ mutex::lock() {
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( ! f->wait_is_linked() );
+        f->set_waiting();
         wait_queue_.push_back( * f);
+        lk.unlock();
 
         // suspend this fiber
-        context::active()->do_wait( lk);
+        f->do_schedule();
     }
 }
 
@@ -76,14 +77,14 @@ mutex::try_lock() {
     lk.unlock();
 
     // let other fiber release the lock
-    this_fiber::yield();
+    context::active()->do_yield();
     return false;
 }
 
 void
 mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
-    BOOST_ASSERT( this_fiber::get_id() == owner_);
+    BOOST_ASSERT( context::active()->get_id() == owner_);
 
     detail::spinlock_lock lk( splk_);
     context * f( nullptr);
@@ -97,8 +98,7 @@ mutex::unlock() {
     lk.unlock();
 
     if ( nullptr != f) {
-        BOOST_ASSERT( ! f->is_terminated() );
-        f->set_ready();
+        context::active()->do_signal( f);
     }
 }
 

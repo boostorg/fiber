@@ -49,18 +49,16 @@ void
 context::release() {
     BOOST_ASSERT( is_terminated() );
 
-    std::vector< context * > waiting;
+    wait_queue_t tmp;
 
     // get all waiting fibers
     splk_.lock();
-    waiting.swap( wait_queue_);
+    tmp.swap( wait_queue_);
     splk_.unlock();
 
     // notify all waiting fibers
-    for ( context * f : waiting) {
-        BOOST_ASSERT( nullptr != f);
-        BOOST_ASSERT( ! f->is_terminated() );
-        f->set_ready();
+    for ( context * f : wait_queue_) {
+        do_signal( f);
     }
 
     // release fiber-specific-data
@@ -146,12 +144,11 @@ context::set_properties( fiber_properties * props) {
 }
 
 bool
-context::do_wait_until_( std::chrono::steady_clock::time_point const& time_point,
-                         detail::spinlock_lock & lk) {
+context::do_wait_until_( std::chrono::steady_clock::time_point const& time_point) {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
-    return scheduler_->wait_until( this, time_point, lk);
+    return scheduler_->wait_until( this, time_point);
 }
 
 void
@@ -171,14 +168,6 @@ context::do_schedule() {
 }
 
 void
-context::do_wait( detail::spinlock_lock & lk) {
-    BOOST_ASSERT( nullptr != scheduler_);
-    BOOST_ASSERT( this == active_);
-
-    scheduler_->wait( this, lk);
-}
-
-void
 context::do_yield() {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
@@ -191,8 +180,26 @@ context::do_join( context * f) {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
     BOOST_ASSERT( nullptr != f);
+    BOOST_ASSERT( f != active_);
 
-    scheduler_->join( this, f);
+    if ( f->join( this) ) {
+        scheduler_->run( this);
+    }
+}
+
+void
+context::do_signal( context * f) {
+    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( this == active_);
+    BOOST_ASSERT( nullptr != f);
+
+    if ( scheduler_ == f->scheduler_) {
+        // local scheduler
+        scheduler_->signal( f);
+    } else {
+        // scheduler in another thread
+        f->scheduler_->signal( f);
+    }
 }
 
 std::size_t
