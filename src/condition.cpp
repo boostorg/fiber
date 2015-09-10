@@ -38,23 +38,22 @@ condition::notify_one() {
 
     // notify waiting fiber
     if ( nullptr != f) {
-        f->set_ready();
+        context::active()->do_signal( f);
     }
 }
 
 void
 condition::notify_all() {
-    wait_queue_t waiting;
+    wait_queue_t tmp;
 
     detail::spinlock_lock lk( splk_);
     // get all waiting fibers
-    waiting.swap( wait_queue_);
+    tmp.swap( wait_queue_);
     lk.unlock();
 
     // notify all waiting fibers
-    for ( context & f : waiting) {
-        f.set_ready();
-        // f->wait_unlink(); ?
+    for ( context & f : tmp) {
+        context::active()->do_signal( & f);
     }
 }
 

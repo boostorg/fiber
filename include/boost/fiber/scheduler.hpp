@@ -60,12 +60,13 @@ public:
     void wait( context *, detail::spinlock_lock &);
 
     bool wait_until( context *,
-                     std::chrono::steady_clock::time_point const&,
-                     detail::spinlock_lock &);
+                     std::chrono::steady_clock::time_point const&);
 
     void yield( context *);
 
     void join( context *,context *);
+
+    void signal( context *);
 
     size_t ready_fibers() const noexcept;
 

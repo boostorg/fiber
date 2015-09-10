@@ -12,7 +12,6 @@
 
 #include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/interruption.hpp"
-#include "boost/fiber/operations.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -29,7 +28,7 @@ timed_mutex::lock_if_unlocked_() {
     
     state_ = mutex_status::locked;
     BOOST_ASSERT( ! owner_);
-    owner_ = this_fiber::get_id();
+    owner_ = context::active()->get_id();
     return true;
 }
 
@@ -58,10 +57,12 @@ timed_mutex::lock() {
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( ! f->wait_is_linked() );
+        f->set_waiting();
         wait_queue_.push_back( * f);
+        lk.unlock();
 
         // suspend this fiber
-        context::active()->do_wait( lk);
+        f->do_schedule();
     }
 }
 
@@ -76,7 +77,7 @@ timed_mutex::try_lock() {
     lk.unlock();
 
     // let other fiber release the lock
-    this_fiber::yield();
+    context::active()->do_yield();
     return false;
 }
 
@@ -97,10 +98,12 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( ! f->wait_is_linked() );
+        f->set_waiting();
         wait_queue_.push_back( * f);
+        lk.unlock();
 
         // suspend this fiber until notified or timed-out
-        if ( ! context::active()->do_wait_until( timeout_time, lk) ) {
+        if ( ! context::active()->do_wait_until( timeout_time) ) {
             lk.lock();
             f->wait_unlink();
             lk.unlock();
@@ -112,7 +115,7 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
 void
 timed_mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
-    BOOST_ASSERT( this_fiber::get_id() == owner_);
+    BOOST_ASSERT( context::active()->get_id() == owner_);
 
     detail::spinlock_lock lk( splk_);
     context * f( nullptr);
@@ -126,8 +129,7 @@ timed_mutex::unlock() {
     lk.unlock();
 
     if ( nullptr != f) {
-        BOOST_ASSERT( ! f->is_terminated() );
-        f->set_ready();
+        context::active()->do_signal( f);
     }
 }
 

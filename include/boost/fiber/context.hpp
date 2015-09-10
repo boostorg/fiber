@@ -80,7 +80,9 @@ private:
         }
     };
 
-    typedef std::map< uintptr_t, fss_data >   fss_data_t;
+    typedef std::map< uintptr_t, fss_data >     fss_data_t;
+    typedef std::vector< context * >            wait_queue_t;
+    //typedef detail::wait_queue< context >       wait_queue_t;
 
     static thread_local context           *   active_;
 
@@ -97,13 +99,12 @@ private:
     scheduler                               *   scheduler_;
     boost::context::execution_context           ctx_;
     fss_data_t                                  fss_data_;
-    std::vector< context * >                    wait_queue_;
+    wait_queue_t                                wait_queue_;
     std::exception_ptr                          except_;
     std::chrono::steady_clock::time_point       tp_;
     fiber_properties                        *   properties_;
 
-    bool do_wait_until_( std::chrono::steady_clock::time_point const&,
-                         detail::spinlock_lock &);
+    bool do_wait_until_( std::chrono::steady_clock::time_point const&);
 
 protected:
     virtual void deallocate() {
@@ -373,25 +374,18 @@ public:
 
     void do_schedule();
 
-    void do_wait( detail::spinlock_lock &);
-
     template< typename Clock, typename Duration >
-    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_,
-                        detail::spinlock_lock & lk) {
+    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert_tp( timeout_time_) );
-        return do_wait_until_( timeout_time, lk);
-    }
-
-    template< typename Rep, typename Period >
-    bool do_wait_for( std::chrono::duration< Rep, Period > const& timeout_duration,
-                      detail::spinlock_lock & lk) {
-        return do_wait_until_( std::chrono::steady_clock::now() + timeout_duration, lk);
+        return do_wait_until_( timeout_time);
     }
 
     void do_yield();
 
     void do_join( context *);
+
+    void do_signal( context *);
 
     std::size_t do_ready_fibers() const noexcept;
 
