@@ -41,7 +41,7 @@ context::active( context * active) noexcept {
 }
 
 context::~context() {
-    BOOST_ASSERT( waiting_.empty() );
+    BOOST_ASSERT( wait_queue_.empty() );
     delete properties_;
 }
 
@@ -53,7 +53,7 @@ context::release() {
 
     // get all waiting fibers
     splk_.lock();
-    waiting.swap( waiting_);
+    waiting.swap( wait_queue_);
     splk_.unlock();
 
     // notify all waiting fibers
@@ -78,7 +78,7 @@ context::join( context * f) {
     if ( is_terminated() ) {
         return false;
     }
-    waiting_.push_back( f);
+    wait_queue_.push_back( f);
     return true;
 }
 

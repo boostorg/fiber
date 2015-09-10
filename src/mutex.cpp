@@ -37,12 +37,12 @@ mutex::mutex() :
     splk_(),
 	state_( mutex_status::unlocked),
     owner_(),
-    waiting_() {
+    wait_queue_() {
 }
 
 mutex::~mutex() {
     BOOST_ASSERT( ! owner_);
-    BOOST_ASSERT( waiting_.empty() );
+    BOOST_ASSERT( wait_queue_.empty() );
 }
 
 void
@@ -58,7 +58,7 @@ mutex::lock() {
 
         // store this fiber in order to be notified later
         BOOST_ASSERT( ! f->wait_is_linked() );
-        waiting_.push_back( * f);
+        wait_queue_.push_back( * f);
 
         // suspend this fiber
         context::active()->do_wait( lk);
@@ -87,9 +87,9 @@ mutex::unlock() {
 
     detail::spinlock_lock lk( splk_);
     context * f( nullptr);
-    if ( ! waiting_.empty() ) {
-        f = & waiting_.front();
-        waiting_.pop_front();
+    if ( ! wait_queue_.empty() ) {
+        f = & wait_queue_.front();
+        wait_queue_.pop_front();
         BOOST_ASSERT( nullptr != f);
     }
     owner_ = context::id();

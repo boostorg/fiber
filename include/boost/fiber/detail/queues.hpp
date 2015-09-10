@@ -20,49 +20,56 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-struct state_tag;
-typedef intrusive::list_base_hook<
-    intrusive::tag< state_tag >,
+struct runnable_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< runnable_tag >,
     intrusive::link_mode<
         intrusive::safe_link
     >
->                                       state_hook;
+>                                       runnable_hook;
 template< typename T >
-using state_queue = intrusive::list<
+using runnable_queue = intrusive::list<
                         T,
-                        intrusive::base_hook< state_hook > >;
+                        intrusive::member_hook< T, runnable_hook, & T::runnable_hook_ > >;
 
-struct yield_tag;
-typedef intrusive::list_base_hook<
-    intrusive::tag< yield_tag >,
+struct ready_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< ready_tag >,
     intrusive::link_mode<
         intrusive::safe_link
     >
->                                       yield_hook;
+>                                       ready_hook;
 template< typename T >
-using yield_queue = intrusive::list<
+using ready_queue = intrusive::list<
                         T,
-                        intrusive::base_hook< yield_hook >,
+                        intrusive::member_hook< T, ready_hook, & T::ready_hook_ >,
+                        intrusive::constant_time_size< false > >;
+
+struct sleep_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< sleep_tag >,
+    intrusive::link_mode<
+        intrusive::safe_link
+    >
+>                                       sleep_hook;
+template< typename T >
+using sleep_queue = intrusive::list<
+                        T,
+                        intrusive::member_hook< T, sleep_hook, & T::sleep_hook_ >,
                         intrusive::constant_time_size< false > >;
 
 struct wait_tag;
-typedef intrusive::list_base_hook<
+typedef intrusive::list_member_hook<
     intrusive::tag< wait_tag >,
     intrusive::link_mode<
-        intrusive::safe_link
+        intrusive::auto_unlink
     >
 >                                       wait_hook;
 template< typename T >
 using wait_queue = intrusive::list<
                         T,
-                        intrusive::base_hook< wait_hook >,
+                        intrusive::member_hook< T, wait_hook, & T::wait_hook_ >,
                         intrusive::constant_time_size< false > >;
-
-template< typename Lst, typename Ctx >
-void erase_and_dispose( Lst & lst, Ctx * ctx){
-    typename Lst::iterator i( Lst::s_iterator_to( * ctx) );
-    lst.erase_and_dispose( i, []( Ctx * ctx){ intrusive_ptr_release( ctx); });
-}
 
 }}}
 

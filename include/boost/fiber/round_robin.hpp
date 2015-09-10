@@ -26,9 +26,9 @@ class context;
 
 class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
 private:
-    typedef detail::state_queue< context >   rqueue_t;
+    typedef detail::runnable_queue< context >   runnable_queue_t;
 
-    rqueue_t                    rqueue_;
+    runnable_queue_t        runnable_queue_;
 
 public:
     virtual void awakened( context *);

@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <chrono>
 #include <memory>
-#include <mutex>
+#include <vector>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -32,15 +32,15 @@ struct sched_algorithm;
 
 class BOOST_FIBERS_DECL scheduler {
 private:
-    typedef detail::state_queue< context >  tqueue_t;
-    typedef detail::state_queue< context >  wqueue_t;
-    typedef detail::yield_queue< context >  yqueue_t;
+    typedef detail::ready_queue< context >  ready_queue_t;
+    typedef detail::sleep_queue< context >  sleep_queue_t;
+    typedef std::vector< context * >        terminated_queue_t;
 
     std::unique_ptr< sched_algorithm >      sched_algo_;
     context                             *   main_context_;
-    wqueue_t                                wqueue_;
-    tqueue_t                                tqueue_;
-    yqueue_t                                yqueue_;
+    ready_queue_t                           ready_queue_;
+    sleep_queue_t                           sleep_queue_;
+    terminated_queue_t                      terminated_queue_;
     std::chrono::steady_clock::duration     wait_interval_;
 
     void resume_( context *, context *);
@@ -67,7 +67,7 @@ public:
 
     void join( context *,context *);
 
-    std::size_t ready_fibers() const noexcept;
+    size_t ready_fibers() const noexcept;
 
     void set_sched_algo( std::unique_ptr< sched_algorithm >);
 

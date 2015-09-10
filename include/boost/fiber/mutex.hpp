@@ -28,12 +28,12 @@ private:
         unlocked
     };
 
-    typedef detail::wait_queue< context >   wqueue_t;
+    typedef detail::wait_queue< context >   wait_queue_t;
 
     detail::spinlock    splk_;
     mutex_status        state_;
     context::id         owner_;
-    wqueue_t            waiting_;
+    wait_queue_t            wait_queue_;
 
     bool lock_if_unlocked_();
 
