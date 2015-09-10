@@ -49,7 +49,7 @@ struct wait_tag;
 typedef intrusive::list_base_hook<
     intrusive::tag< wait_tag >,
     intrusive::link_mode<
-        intrusive::auto_unlink
+        intrusive::safe_link
     >
 >                                       wait_hook;
 template< typename T >
@@ -57,6 +57,12 @@ using wait_queue = intrusive::list<
                         T,
                         intrusive::base_hook< wait_hook >,
                         intrusive::constant_time_size< false > >;
+
+template< typename Lst, typename Ctx >
+void erase_and_dispose( Lst & lst, Ctx * ctx){
+    typename Lst::iterator i( Lst::s_iterator_to( * ctx) );
+    lst.erase_and_dispose( i, []( Ctx * ctx){ intrusive_ptr_release( ctx); });
+}
 
 }}}
 
