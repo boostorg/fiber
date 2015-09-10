@@ -18,6 +18,7 @@ public:
     }
 
     ~Verbose() {
+        std::cout << desc << ' ' << stop << std::endl;
     }
 
 private:
@@ -93,16 +94,15 @@ public:
         // we're handed a new context*, put it at the end of the fibers
         // with that same priority. In other words: search for the first fiber
         // in the queue with LOWER priority, and insert before that one.
-        if ( rqueue_.empty() ) {
-            rqueue_.push_back( * f);
-        } else {
-            rqueue_t::iterator e( rqueue_.end() );
-            for ( rqueue_t::iterator i( rqueue_.begin() ); i != e; ++i) {
-                if ( properties( & ( * i) ).get_priority() < f_priority) {
-                    rqueue_.insert( i, * f);
-                }
+        rqueue_t::iterator i( rqueue_.begin() ), e( rqueue_.end() );
+        for ( ; i != e; ++i) {
+            if ( properties( & ( * i) ).get_priority() < f_priority) {
+                break;
             }
         }
+        // Now, whether or not we found a fiber with lower priority,
+        // insert this new fiber here.
+        rqueue_.insert( i, * f);
 //<-
 
         std::cout << "awakened(" << props.name << "): ";
