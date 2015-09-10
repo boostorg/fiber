@@ -39,9 +39,7 @@ void yield() {
 
 template< typename Clock, typename Duration >
 void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time) {
-    fibers::detail::spinlock splk;
-    std::unique_lock< fibers::detail::spinlock > lk( splk);
-    fibers::context::active()->do_wait_until( sleep_time, lk);
+    fibers::context::active()->do_wait_until( sleep_time);
 
     // check if fiber was interrupted
     interruption_point();
