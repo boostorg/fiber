@@ -43,7 +43,6 @@ private:
     ready_queue_t                           ready_queue_;
     sleep_queue_t                           sleep_queue_;
     terminated_queue_t                      terminated_queue_;
-    std::chrono::steady_clock::duration     wait_interval_;
 
     void resume_( context *, context *);
 
