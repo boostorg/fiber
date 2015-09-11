@@ -9,6 +9,7 @@
 
 #include <boost/config.hpp>
 #include <boost/intrusive/list.hpp>
+#include <boost/intrusive/set.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -45,19 +46,6 @@ using ready_queue = intrusive::list<
                         intrusive::member_hook< T, ready_hook, & T::ready_hook_ >,
                         intrusive::constant_time_size< false > >;
 
-struct sleep_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< sleep_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       sleep_hook;
-template< typename T >
-using sleep_queue = intrusive::list<
-                        T,
-                        intrusive::member_hook< T, sleep_hook, & T::sleep_hook_ >,
-                        intrusive::constant_time_size< false > >;
-
 struct wait_tag;
 typedef intrusive::list_member_hook<
     intrusive::tag< wait_tag >,
@@ -70,6 +58,27 @@ using wait_queue = intrusive::list<
                         T,
                         intrusive::member_hook< T, wait_hook, & T::wait_hook_ >,
                         intrusive::constant_time_size< false > >;
+
+template< typename T >
+struct timepoint_less {
+    bool operator()( T const& l, T const& r) {
+        return l->time_point() < r->time_point();
+    }
+};
+
+struct sleep_tag;
+typedef intrusive::set_member_hook<
+    intrusive::tag< sleep_tag >,
+    intrusive::link_mode<
+        intrusive::auto_unlink
+    >
+>                                       sleep_hook;
+template< typename T >
+using sleep_queue = intrusive::set<
+                        T,
+                        intrusive::member_hook< T, sleep_hook, & T::sleep_hook_ >,
+                        intrusive::constant_time_size< false >,
+                        intrusive::compare< timepoint_less< T > > >;
 
 }}}
 

@@ -25,6 +25,7 @@ namespace boost {
 namespace fibers {
 
 scheduler::scheduler( context * main_context) noexcept :
+    ev_(),
     sched_algo_( new round_robin() ),
     main_context_( main_context),
     ready_queue_(),
@@ -226,9 +227,17 @@ scheduler::run( context * af) {
             terminated_queue_.clear();
             return;
         } else {
-            // no fibers ready to run; the thread should sleep
-            std::this_thread::sleep_until(
-                std::chrono::steady_clock::now() + wait_interval_);
+            // no fibers ready to run
+            // set timeout-tiempoint to highest value
+            std::chrono::steady_clock::time_point tp(
+                    (std::chrono::steady_clock::time_point::max)());
+            // get lowest time-point from sleeping-queue
+            sleep_queue_t::iterator i( sleep_queue_.begin() );
+            if ( sleep_queue_.end() != i) {
+                tp = i->time_point();
+            }
+            // sleep to get signaled or timeout
+            ev_.reset( tp);
         }
     }
 }
@@ -298,6 +307,8 @@ scheduler::remote_signal( context * f) {
     // FIXME: add context f to a thread-safe queue
     //        check that context f is not yet in
     //        local runnable- or ready-queue
+    // set event-variable to wake-up scheduler
+    ev_.set();
 }
 
 std::size_t
