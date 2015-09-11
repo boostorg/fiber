@@ -62,7 +62,7 @@ using wait_queue = intrusive::list<
 template< typename T >
 struct timepoint_less {
     bool operator()( T const& l, T const& r) {
-        return l->time_point() < r->time_point();
+        return l.time_point() < r.time_point();
     }
 };
 

@@ -49,7 +49,10 @@ void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time_)
 
 template< typename Rep, typename Period >
 void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
-    sleep_until( std::chrono::steady_clock::now() + timeout_duration);
+    fibers::context::active()->do_wait_until(
+            std::chrono::steady_clock::now() + timeout_duration);
+    // check if fiber was interrupted
+    interruption_point();
 }
 
 template< typename PROPS >
