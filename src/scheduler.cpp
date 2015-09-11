@@ -30,36 +30,41 @@ scheduler::scheduler( context * main_context) noexcept :
     main_context_( main_context),
     ready_queue_(),
     sleep_queue_(),
-    terminated_queue_(),
-    wait_interval_( std::chrono::milliseconds( 10) ) {
+    terminated_queue_() {
 }
 
 scheduler::~scheduler() noexcept {
     BOOST_ASSERT( context::active() == main_context_);
     for (;;) {
-        // NOTE: at this stage the fibers in the waiting-queue
-        //       can only be detached fibers
-        //       interrupt all waiting fibers (except main-fiber)
-        for ( context & f : sleep_queue_) {
-            f.request_interruption( true);
-        }
-        // move all fibers which are ready (state_ready)
-        // from waiting-queue to the runnable-queue
-        std::chrono::steady_clock::time_point now(
-                std::chrono::steady_clock::now() );
-        sleep_queue_t::iterator e = sleep_queue_.end();
-        for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
-            context * f = & ( * i);
-            BOOST_ASSERT( ! f->is_running() );
-            BOOST_ASSERT( ! f->is_terminated() );
+        {
+            // move all fibers in ready-queue to ready-queue
+            ready_queue_t::iterator e = ready_queue_.end();
+            for ( ready_queue_t::iterator i = ready_queue_.begin(); i != e;) {
+                context * f = & ( * i);
+                BOOST_ASSERT( f->is_ready() );
 
-            // set fiber to state_ready if deadline was reached
-            // set fiber to state_ready if interruption was requested
-            if ( f->time_point() <= now || f->interruption_requested() ) {
-                f->set_ready();
+                i = ready_queue_.erase( i);
+                BOOST_ASSERT( ! f->runnable_is_linked() );
+                BOOST_ASSERT( ! f->ready_is_linked() );
+                // timed_mutex::try_lock_until() -> add f to waiting-queue
+                //                               -> add f to sleeping-queue
+                if ( f->sleep_is_linked() ) {
+                    f->sleep_unlink();
+                }
+                sched_algo_->awakened( f);
             }
-
-            if ( f->is_ready() ) {
+        }
+        {
+            // interrupt all fibers in the sleep-queue
+            sleep_queue_t::iterator e = sleep_queue_.end();
+            for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
+                context * f = & ( * i);
+                BOOST_ASSERT( ! f->is_running() );
+                BOOST_ASSERT( ! f->is_terminated() );
+                // request interruption
+                f->request_interruption( true);
+                // set to state_ready
+                f->set_ready();
                 i = sleep_queue_.erase( i);
                 // unlink after accesing iterator
                 f->time_point_reset();
@@ -68,11 +73,9 @@ scheduler::~scheduler() noexcept {
                 BOOST_ASSERT( ! f->ready_is_linked() );
                 BOOST_ASSERT( ! f->sleep_is_linked() );
                 sched_algo_->awakened( f);
-            } else {
-                ++i;
             }
         }
-        // pop new fiber from ready-queue
+        // pop new fiber from runnable-queue
         context * f( sched_algo_->pick_next() );
         if ( nullptr != f) {
             BOOST_ASSERT( ! f->runnable_is_linked() );
@@ -127,8 +130,11 @@ scheduler::resume_( context * af, context * f) {
         return;
     }
     // pass new fiber the scheduler of the current active fiber
-    // this might be necessary if the new fiber was miggrated from
-    // another thread
+    // this might be necessary if the new fiber was migrated
+    // from another thread
+    // FIXME: mabye better don in the sched-algorithm (knows
+    //        if fiber was migrated)
+    //        -> performance issue?
     f->set_scheduler( af->get_scheduler() );
     // assign new fiber to active-fiber
     context::active( f);
@@ -146,10 +152,10 @@ scheduler::spawn( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( f->is_ready() );
     BOOST_ASSERT( f != context::active() );
-    // add new fiber to the scheduler
     BOOST_ASSERT( ! f->runnable_is_linked() );
     BOOST_ASSERT( ! f->ready_is_linked() );
     BOOST_ASSERT( ! f->sleep_is_linked() );
+    // add new fiber to the scheduler
     f->set_scheduler( this);
     sched_algo_->awakened( f);
 }
@@ -160,7 +166,7 @@ scheduler::run( context * af) {
     BOOST_ASSERT( context::active() == af);
     for (;;) {
         {
-            // move all fibers in yield-queue to ready-queue
+            // move all fibers in ready-queue to runnable-queue
             ready_queue_t::iterator e = ready_queue_.end();
             for ( ready_queue_t::iterator i = ready_queue_.begin(); i != e;) {
                 context * f = & ( * i);
@@ -178,8 +184,8 @@ scheduler::run( context * af) {
             }
         }
         {
-            // move all fibers which are ready (state_ready)
-            // from waiting-queue to the runnable-queue
+            // move sleeping fibers which timed-out or interrupted
+            // to runnable-queue
             std::chrono::steady_clock::time_point now(
                     std::chrono::steady_clock::now() );
             sleep_queue_t::iterator e = sleep_queue_.end();
@@ -206,13 +212,13 @@ scheduler::run( context * af) {
                 }
             }
         }
-        // pop new fiber from ready-queue
+        // pop new fiber from runnable-queue
         context * f( sched_algo_->pick_next() );
         if ( nullptr != f) {
             BOOST_ASSERT( ! f->runnable_is_linked() );
             BOOST_ASSERT( ! f->ready_is_linked() );
             BOOST_ASSERT( ! f->sleep_is_linked() );
-            BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in ready-queue");
+            BOOST_ASSERT_MSG( f->is_ready(), "fiber with invalid state in runnable-queue");
             // resume fiber f
             resume_( af, f);
             // destroy terminated fibers from terminated-queue
@@ -228,15 +234,15 @@ scheduler::run( context * af) {
             return;
         } else {
             // no fibers ready to run
-            // set timeout-tiempoint to highest value
+            // set deadline to highest value
             std::chrono::steady_clock::time_point tp(
                     (std::chrono::steady_clock::time_point::max)());
-            // get lowest time-point from sleeping-queue
+            // get lowest deadline from sleep-queue
             sleep_queue_t::iterator i( sleep_queue_.begin() );
             if ( sleep_queue_.end() != i) {
                 tp = i->time_point();
             }
-            // sleep to get signaled or timeout
+            // wait till signaled or timed-out
             ev_.reset( tp);
         }
     }
@@ -287,7 +293,7 @@ scheduler::signal( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( ! f->is_terminated() );
 
-    // a fiber MUST NOT be multiple times
+    // a fiber MUST NOT be inserted multiple times
     // in runnable- or ready-queue
     if ( ! f->ready_is_linked() &&
          ! f->runnable_is_linked() ) {
