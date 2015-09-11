@@ -16,7 +16,7 @@
 
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/clock_cast.hpp>
 #include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -57,29 +57,18 @@ public:
 
     void run( context *);
 
-    void wait( context *, detail::spinlock_lock &);
-
     bool wait_until( context *,
                      std::chrono::steady_clock::time_point const&);
 
     void yield( context *);
 
-    void join( context *,context *);
-
     void signal( context *);
+
+    void remote_signal( context *);
 
     size_t ready_fibers() const noexcept;
 
     void set_sched_algo( std::unique_ptr< sched_algorithm >);
-
-    void wait_interval( std::chrono::steady_clock::duration const&) noexcept;
-
-    template< typename Rep, typename Period >
-    void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
-        wait_interval( wait_interval);
-    }
-
-    std::chrono::steady_clock::duration wait_interval() noexcept;
 };
 
 }}

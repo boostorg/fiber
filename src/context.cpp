@@ -76,6 +76,7 @@ context::join( context * f) {
     if ( is_terminated() ) {
         return false;
     }
+    f->set_waiting();
     wait_queue_.push_back( f);
     return true;
 }
@@ -143,14 +144,6 @@ context::set_properties( fiber_properties * props) {
     properties_ = props;
 }
 
-bool
-context::do_wait_until_( std::chrono::steady_clock::time_point const& time_point) {
-    BOOST_ASSERT( nullptr != scheduler_);
-    BOOST_ASSERT( this == active_);
-
-    return scheduler_->wait_until( this, time_point);
-}
-
 void
 context::do_spawn( fiber const& f) {
     BOOST_ASSERT( nullptr != scheduler_);
@@ -165,6 +158,14 @@ context::do_schedule() {
     BOOST_ASSERT( this == active_);
 
     scheduler_->run( this);
+}
+
+bool
+context::do_wait_until( std::chrono::steady_clock::time_point const& time_point) {
+    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( this == active_);
+
+    return scheduler_->wait_until( this, time_point);
 }
 
 void
@@ -198,7 +199,7 @@ context::do_signal( context * f) {
         scheduler_->signal( f);
     } else {
         // scheduler in another thread
-        f->scheduler_->signal( f);
+        f->scheduler_->remote_signal( f);
     }
 }
 
@@ -216,14 +217,6 @@ context::do_set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
     BOOST_ASSERT( this == active_);
 
     scheduler_->set_sched_algo( std::move( algo) );
-}
-
-std::chrono::steady_clock::duration
-context::do_wait_interval() noexcept {
-    BOOST_ASSERT( nullptr != scheduler_);
-    BOOST_ASSERT( this == active_);
-
-    return scheduler_->wait_interval();
 }
 
 }}

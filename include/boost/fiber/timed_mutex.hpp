@@ -13,7 +13,7 @@
 
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/clock_cast.hpp>
 #include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -57,7 +57,7 @@ public:
     template< typename Clock, typename Duration >
     bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         std::chrono::steady_clock::time_point timeout_time(
-                detail::convert_tp( timeout_time_) );
+                detail::clock_cast( timeout_time_) );
         return try_lock_until_( timeout_time);
     }
 
