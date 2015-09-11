@@ -216,5 +216,7 @@ int main( int argc, char *argv[]) {
     }
     assert( thrown == make_exception("read", 4).what() );
 
+    std::cout << "done." << std::endl;
+
     return EXIT_SUCCESS;
 }
