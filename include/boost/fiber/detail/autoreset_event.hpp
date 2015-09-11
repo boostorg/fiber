@@ -46,9 +46,8 @@ public:
 
     void reset( std::chrono::steady_clock::time_point const& time_point) {
         std::unique_lock< std::mutex > lk( mtx_);
-        if ( cnd_.wait_until( lk, time_point, [=](){ return flag_; }) ) {
-            flag_ = false;
-        }
+        cnd_.wait_until( lk, time_point, [=](){ return flag_; });
+        flag_ = false;
     }
 };
 
