@@ -255,7 +255,7 @@ scheduler::wait_until( context * af,
     // push active-fiber to waiting-queue
     af->time_point( timeout_time);
     BOOST_ASSERT( ! af->sleep_is_linked() );
-    sleep_queue_.push_back( * af);
+    sleep_queue_.insert( * af);
     // switch to another fiber
     run( af);
     // fiber has been resumed
