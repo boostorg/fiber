@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DETAIL_CONVERT_H
-#define BOOST_FIBERS_DETAIL_CONVERT_H
+#ifndef BOOST_FIBERS_DETAIL_CLOCK_CAST_H
+#define BOOST_FIBERS_DETAIL_CLOCK_CAST_H
 
 #include <chrono>
 
@@ -22,12 +22,14 @@ namespace fibers {
 namespace detail {
 
 inline
-std::chrono::steady_clock::time_point convert_tp( std::chrono::steady_clock::time_point const& timeout_time) noexcept {
+std::chrono::steady_clock::time_point clock_cast(
+        std::chrono::steady_clock::time_point const& timeout_time) noexcept {
     return timeout_time;
 }
 
 template< typename Clock, typename Duration >
-std::chrono::steady_clock::time_point convert_tp( std::chrono::time_point< Clock, Duration > const& timeout_time) {
+std::chrono::steady_clock::time_point clock_cast(
+        std::chrono::time_point< Clock, Duration > const& timeout_time) {
     return std::chrono::steady_clock::now() + ( timeout_time - Clock::now() );
 }
 
@@ -37,4 +39,4 @@ std::chrono::steady_clock::time_point convert_tp( std::chrono::time_point< Clock
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DETAIL_CONVERT_H
+#endif // BOOST_FIBERS_DETAIL_CLOCK_CAST_H

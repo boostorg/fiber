@@ -24,7 +24,7 @@
 #include <boost/context/all.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/clock_cast.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/invoke.hpp>
 #include <boost/fiber/detail/queues.hpp>
@@ -103,8 +103,6 @@ private:
     std::exception_ptr                          except_;
     std::chrono::steady_clock::time_point       tp_;
     fiber_properties                        *   properties_;
-
-    bool do_wait_until_( std::chrono::steady_clock::time_point const&);
 
 protected:
     virtual void deallocate() {
@@ -324,7 +322,7 @@ public:
         fiber_status previous = state_;
         state_ = fiber_status::waiting;
 #endif
-        BOOST_ASSERT( fiber_status::running == previous);
+        BOOST_ASSERT( fiber_status::waiting == previous || fiber_status::running == previous);
         (void)previous;
     }
 
@@ -374,12 +372,7 @@ public:
 
     void do_schedule();
 
-    template< typename Clock, typename Duration >
-    bool do_wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
-        std::chrono::steady_clock::time_point timeout_time(
-                detail::convert_tp( timeout_time_) );
-        return do_wait_until_( timeout_time);
-    }
+    bool do_wait_until( std::chrono::steady_clock::time_point const&);
 
     void do_yield();
 
@@ -391,13 +384,6 @@ public:
 
     void do_set_sched_algo( std::unique_ptr< sched_algorithm >);
 
-    template< typename Rep, typename Period >
-    void do_wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
-        // wait_interval_( wait_interval); FIXME
-    }
-
-    std::chrono::steady_clock::duration do_wait_interval() noexcept;
-
     bool runnable_is_linked() {
         return runnable_hook_.is_linked();
     }
@@ -408,6 +394,10 @@ public:
 
     bool sleep_is_linked() {
         return sleep_hook_.is_linked();
+    }
+
+    void sleep_unlink() {
+        sleep_hook_.unlink();
     }
 
     bool wait_is_linked() {

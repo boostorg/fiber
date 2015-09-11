@@ -16,7 +16,7 @@
 
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/clock_cast.hpp>
 #include <boost/fiber/detail/queues.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/interruption.hpp>
@@ -41,8 +41,8 @@ class BOOST_FIBERS_DECL condition {
 private:
     typedef detail::wait_queue< context >   wait_queue_t;
 
-    detail::spinlock        splk_;
-    wait_queue_t                wait_queue_;
+    detail::spinlock    splk_;
+    wait_queue_t        wait_queue_;
 
 public:
     condition();
@@ -79,6 +79,8 @@ public:
             // unlock external
             lt.unlock();
 
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
             // suspend this fiber
             f->do_schedule();
 
@@ -92,9 +94,10 @@ public:
     }
 
     template< typename LockType, typename Clock, typename Duration >
-    cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time) {
+    cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         cv_status status = cv_status::no_timeout;
-
+        std::chrono::steady_clock::time_point timeout_time(
+                detail::clock_cast( timeout_time_) );
         context * f( context::active() );
         try {
             // lock spinlock
@@ -109,6 +112,8 @@ public:
             // unlock external
             lt.unlock();
 
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
             // suspend this fiber
             if ( ! f->do_wait_until( timeout_time) ) {
                 // this fiber was not notified before timeout

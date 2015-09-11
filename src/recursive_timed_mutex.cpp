@@ -61,14 +61,22 @@ recursive_timed_mutex::lock() {
             return;
         }
 
-        // store this fiber in order to be notified later
-        BOOST_ASSERT( ! f->wait_is_linked() );
-        f->set_waiting();
-        wait_queue_.push_back( * f);
-        lk.unlock();
+        try {
+            // store this fiber in order to be notified later
+            BOOST_ASSERT( ! f->wait_is_linked() );
+            f->set_waiting();
+            wait_queue_.push_back( * f);
+            lk.unlock();
 
-        // suspend this fiber
-        f->do_schedule();
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
+            // suspend this fiber
+            f->do_schedule();
+        } catch (...) {
+            detail::spinlock_lock lk( splk_);
+            f->wait_unlink();
+            throw;
+        }
     }
 }
 
@@ -102,18 +110,26 @@ recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point co
             return true;
         }
 
-        // store this fiber in order to be notified later
-        BOOST_ASSERT( ! f->wait_is_linked() );
-        f->set_waiting();
-        wait_queue_.push_back( * f);
-        lk.unlock();
-
-        // suspend this fiber until notified or timed-out
-        if ( ! f->do_wait_until( timeout_time) ) {
-            lk.lock();
-            f->wait_unlink();
+        try {
+            // store this fiber in order to be notified later
+            BOOST_ASSERT( ! f->wait_is_linked() );
+            f->set_waiting();
+            wait_queue_.push_back( * f);
             lk.unlock();
-            return false;
+
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
+            // suspend this fiber until notified or timed-out
+            if ( ! f->do_wait_until( timeout_time) ) {
+                lk.lock();
+                f->wait_unlink();
+                lk.unlock();
+                return false;
+            }
+        } catch (...) {
+            detail::spinlock_lock lk( splk_);
+            f->wait_unlink();
+            throw;
         }
     }
 }

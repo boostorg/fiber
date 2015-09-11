@@ -49,7 +49,7 @@ struct sleep_tag;
 typedef intrusive::list_member_hook<
     intrusive::tag< sleep_tag >,
     intrusive::link_mode<
-        intrusive::safe_link
+        intrusive::auto_unlink
     >
 >                                       sleep_hook;
 template< typename T >

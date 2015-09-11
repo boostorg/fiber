@@ -15,6 +15,7 @@
 #include <boost/assert.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/clock_cast.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/context.hpp>
@@ -38,9 +39,10 @@ void yield() {
 }
 
 template< typename Clock, typename Duration >
-void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time) {
+void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time_) {
+    std::chrono::steady_clock::time_point sleep_time(
+            boost::fibers::detail::clock_cast( sleep_time_) );
     fibers::context::active()->do_wait_until( sleep_time);
-
     // check if fiber was interrupted
     interruption_point();
 }
@@ -79,30 +81,15 @@ void migrate( fiber const& f) {
     context::active()->do_spawn( f);
 }
 
+inline
+std::size_t ready_fibers() {
+    return context::active()->do_ready_fibers();
+}
+
 template< typename SchedAlgo, typename ... Args >
 void use_scheduling_algorithm( Args && ... args) {
     context::active()->do_set_sched_algo(
         std::make_unique< SchedAlgo >( std::forward< Args >( args) ... ) );
-}
-
-template< typename Rep, typename Period >
-void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept {
-    context::active()->do_wait_interval( wait_interval);
-}
-
-inline
-std::chrono::steady_clock::duration wait_interval() noexcept {
-    return context::active()->do_wait_interval();
-}
-
-template< typename Rep, typename Period >
-std::chrono::duration< Rep, Period > wait_interval() noexcept {
-    return context::active()->do_wait_interval< Rep, Period >();
-}
-
-inline
-std::size_t ready_fibers() {
-    return context::active()->do_ready_fibers();
 }
 
 }}

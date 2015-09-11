@@ -30,6 +30,7 @@ round_robin::pick_next() {
         victim = & runnable_queue_.front();
         runnable_queue_.pop_front();
         BOOST_ASSERT( nullptr != victim);
+        BOOST_ASSERT( ! victim->runnable_is_linked() );
     }
     return victim;
 }

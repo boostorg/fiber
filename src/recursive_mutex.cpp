@@ -61,14 +61,22 @@ recursive_mutex::lock() {
             return;
         }
 
-        // store this fiber in order to be notified later
-        BOOST_ASSERT( ! f->wait_is_linked() );
-        f->set_waiting();
-        wait_queue_.push_back( * f);
-        lk.unlock();
+        try {
+            // store this fiber in order to be notified later
+            BOOST_ASSERT( ! f->wait_is_linked() );
+            f->set_waiting();
+            wait_queue_.push_back( * f);
+            lk.unlock();
 
-        // suspend this fiber
-        f->do_schedule();
+            // check if fiber was interrupted
+            this_fiber::interruption_point();
+            // suspend this fiber
+            f->do_schedule();
+        } catch (...) {
+            detail::spinlock_lock lk( splk_);
+            f->wait_unlink();
+            throw;
+        }
     }
 }
 

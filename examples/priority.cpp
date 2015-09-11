@@ -70,7 +70,7 @@ private:
 //[priority_scheduler
 class priority_scheduler : public boost::fibers::sched_algorithm_with_properties< priority_props > {
 private:
-    typedef boost::fibers::detail::state_queue< boost::fibers::context >   rqueue_t;
+    typedef boost::fibers::detail::runnable_queue< boost::fibers::context >   rqueue_t;
 
     rqueue_t                    rqueue_;
 

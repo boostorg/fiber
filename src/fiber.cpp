@@ -73,6 +73,7 @@ fiber::interrupt() noexcept {
     BOOST_ASSERT( impl_);
 
     impl_->request_interruption( true);
+    context::active()->do_signal( impl_.get() );
 }
 
 }}
