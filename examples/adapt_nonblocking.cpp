@@ -201,5 +201,7 @@ int main( int argc, char *argv[]) {
     }
     assert(thrown == 1);
 
+    std::cout << "done." << std::endl;
+
     return EXIT_SUCCESS;
 }
