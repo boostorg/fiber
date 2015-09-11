@@ -15,6 +15,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/context.hpp>
+#include <boost/fiber/detail/autoreset_event.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/clock_cast.hpp>
 #include <boost/fiber/detail/queues.hpp>
@@ -36,6 +37,7 @@ private:
     typedef detail::sleep_queue< context >  sleep_queue_t;
     typedef std::vector< context * >        terminated_queue_t;
 
+    detail::autoreset_event                 ev_;
     std::unique_ptr< sched_algorithm >      sched_algo_;
     context                             *   main_context_;
     ready_queue_t                           ready_queue_;

@@ -98,7 +98,8 @@ void fn8( boost::fibers::timed_mutex & m)
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
+    ns r = ns(5000000)+ms(1000); // within 6ms
+    BOOST_CHECK(d < r); // within 6ms
 }
 
 void fn9( boost::fibers::recursive_timed_mutex & m)
