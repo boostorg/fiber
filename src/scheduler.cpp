@@ -40,9 +40,11 @@ scheduler::~scheduler() noexcept {
         {
             // move all fibers in remote-ready-queue to runnable-queue
             remote_ready_queue_.consume_all([=](context * f){
+                                                if ( ! f->ready_is_linked() &&
+                                                     ! f->runnable_is_linked() ) {
                                                 f->set_ready();
                                                 ready_queue_.push_back( * f);
-                                            });
+                                            }});
             // move all fibers in ready-queue to running-queue
             ready_queue_t::iterator e = ready_queue_.end();
             for ( ready_queue_t::iterator i = ready_queue_.begin(); i != e;) {
