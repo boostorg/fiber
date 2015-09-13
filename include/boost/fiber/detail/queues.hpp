@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_DETAIL_QUEUES_H
 
 #include <boost/config.hpp>
+#include <boost/lockfree/queue.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
 
@@ -79,6 +80,12 @@ using sleep_queue = intrusive::set<
                         intrusive::member_hook< T, sleep_hook, & T::sleep_hook_ >,
                         intrusive::constant_time_size< false >,
                         intrusive::compare< timepoint_less< T > > >;
+
+template< typename T >
+using remote_ready_queue = lockfree::queue<
+                        T,
+                        lockfree::fixed_sized< true >,
+                        lockfree::capacity< 100 > >;
 
 }}}
 
