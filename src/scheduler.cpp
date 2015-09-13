@@ -30,13 +30,19 @@ scheduler::scheduler( context * main_context) noexcept :
     main_context_( main_context),
     ready_queue_(),
     sleep_queue_(),
-    terminated_queue_() {
+    terminated_queue_(),
+    remote_ready_queue_() {
 }
 
 scheduler::~scheduler() noexcept {
     BOOST_ASSERT( context::active() == main_context_);
     for (;;) {
         {
+            // move all fibers in remote-ready-queue to runnable-queue
+            remote_ready_queue_.consume_all([=](context * f){
+                                                f->set_ready();
+                                                ready_queue_.push_back( * f);
+                                            });
             // move all fibers in ready-queue to running-queue
             ready_queue_t::iterator e = ready_queue_.end();
             for ( ready_queue_t::iterator i = ready_queue_.begin(); i != e;) {
@@ -166,6 +172,11 @@ scheduler::run( context * af) {
     BOOST_ASSERT( context::active() == af);
     for (;;) {
         {
+            // move all fibers in remote-ready-queue to runnable-queue
+            remote_ready_queue_.consume_all([=](context * f){
+                                                f->set_ready();
+                                                ready_queue_.push_back( * f);
+                                            });
             // move all fibers in ready-queue to runnable-queue
             ready_queue_t::iterator e = ready_queue_.end();
             for ( ready_queue_t::iterator i = ready_queue_.begin(); i != e;) {
@@ -311,11 +322,9 @@ scheduler::remote_signal( context * f) {
     BOOST_ASSERT( nullptr != f);
     BOOST_ASSERT( ! f->is_terminated() );
 
-    BOOST_ASSERT_MSG( false, "not implemented");
-    // FIXME: add context f to a thread-safe queue
-    //        check that context f is not yet in
-    //        local runnable- or ready-queue
-    // set event-variable to wake-up scheduler
+    while ( ! remote_ready_queue_.bounded_push( f) ) {
+        context::active()->do_yield();
+    }
     ev_.set();
 }
 

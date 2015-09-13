@@ -33,9 +33,10 @@ struct sched_algorithm;
 
 class BOOST_FIBERS_DECL scheduler {
 private:
-    typedef detail::ready_queue< context >  ready_queue_t;
-    typedef detail::sleep_queue< context >  sleep_queue_t;
-    typedef std::vector< context * >        terminated_queue_t;
+    typedef detail::ready_queue< context >          ready_queue_t;
+    typedef detail::sleep_queue< context >          sleep_queue_t;
+    typedef std::vector< context * >                terminated_queue_t;
+    typedef detail::remote_ready_queue< context * > remote_ready_queue_t;
 
     detail::autoreset_event                 ev_;
     std::unique_ptr< sched_algorithm >      sched_algo_;
@@ -43,6 +44,7 @@ private:
     ready_queue_t                           ready_queue_;
     sleep_queue_t                           sleep_queue_;
     terminated_queue_t                      terminated_queue_;
+    remote_ready_queue_t                    remote_ready_queue_;
 
     void resume_( context *, context *);
 
