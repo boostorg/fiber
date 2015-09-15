@@ -10,12 +10,10 @@
 #include <algorithm>
 #include <exception>
 #include <memory>
-#include <tuple>
 #include <utility>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/all.hpp>
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -29,8 +27,6 @@
 namespace boost {
 namespace fibers {
 
-class context;
-
 class BOOST_FIBERS_DECL fiber {
 private:
     friend class context;
@@ -40,34 +36,6 @@ private:
     ptr_t       impl_;
 
     void start_();
-
-    template< typename StackAlloc, typename Fn, typename ... Args >
-    static ptr_t create( StackAlloc salloc, Fn && fn, Args && ... args) {
-        boost::context::stack_context sctx( salloc.allocate() );
-#if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
-        // reserve space for control structure
-        std::size_t size = sctx.size - sizeof( context);
-        void * sp = static_cast< char * >( sctx.sp) - sizeof( context);
-#else
-        constexpr std::size_t func_alignment = 64; // alignof( context);
-        constexpr std::size_t func_size = sizeof( context);
-        // reserve space on stack
-        void * sp = static_cast< char * >( sctx.sp) - func_size - func_alignment;
-        // align sp pointer
-        std::size_t space = func_size + func_alignment;
-        sp = std::align( func_alignment, func_size, sp, space);
-        BOOST_ASSERT( nullptr != sp);
-        // calculate remaining size
-        std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
-#endif
-        // placement new of context on top of fiber's stack
-        return ptr_t( 
-            new ( sp) context(
-                boost::context::preallocated( sp, size, sctx),
-                                              salloc,
-                                              std::forward< Fn >( fn),
-                                              std::forward< Args >( args) ... ) );
-    }
 
 public:
     typedef context::id    id;
@@ -84,7 +52,7 @@ public:
 
     template< typename StackAllocator, typename Fn, typename ... Args >
     explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_( create( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
+        impl_( make_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 
@@ -125,24 +93,11 @@ public:
     }
 
     bool joinable() const noexcept {
-        return nullptr != impl_ /* && ! impl_->is_terminated() */;
+        return nullptr != impl_;
     }
 
     id get_id() const noexcept {
         return impl_ ? impl_->get_id() : id();
-    }
-
-    void detach();
-
-    void join();
-
-    void interrupt() noexcept;
-
-    template< typename PROPS >
-    PROPS & properties() {
-        fiber_properties* props = impl_->get_properties();
-        BOOST_ASSERT_MSG(props, "fiber::properties not set");
-        return dynamic_cast< PROPS & >( * props );
     }
 };
 
