@@ -113,7 +113,7 @@ context::resume() {
 
 void
 context::release() noexcept {
-    BOOST_ASSERT( terminated_is_linked() );
+    BOOST_ASSERT( is_terminated() );
 
     // notify all waiting fibers
     wait_queue_t::iterator e = wait_queue_.end();
@@ -149,11 +149,6 @@ context::wait_is_linked() {
 bool
 context::ready_is_linked() {
     return ready_hook_.is_linked();
-}
-
-bool
-context::terminated_is_linked() {
-    return terminated_hook_.is_linked();
 }
 
 void
