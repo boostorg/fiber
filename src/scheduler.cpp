@@ -132,7 +132,7 @@ void
 scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->terminated_is_linked() );
+    BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     // set the scheduler for new fiber context
     ctx->set_scheduler( this);
@@ -143,8 +143,8 @@ scheduler::set_ready( context * ctx) noexcept {
 void
 scheduler::set_terminated( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     terminated_queue_.push_back( * ctx);
 }

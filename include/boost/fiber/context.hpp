@@ -248,11 +248,13 @@ public:
         return 0 != ( flags_ & flag_worker_context);
     }
 
+    bool is_terminated() const noexcept {
+        return 0 != ( flags_ & flag_terminated);
+    }
+
     bool wait_is_linked();
 
     bool ready_is_linked();
-
-    bool terminated_is_linked();
 
     void wait_unlink();
 
