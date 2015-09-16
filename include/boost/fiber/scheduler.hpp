@@ -34,7 +34,7 @@ private:
                 intrusive::constant_time_size< false > >    terminated_queue_t;
 
     context                 *   main_ctx_;
-    intrusive_ptr< context >    dispatching_ctx_;
+    intrusive_ptr< context >    dispatcher_ctx_;
     ready_queue_t               ready_queue_;
     terminated_queue_t          terminated_queue_;
     bool                        shutdown_;
@@ -55,9 +55,11 @@ public:
 
     void set_main_context( context *) noexcept;
 
-    void set_dispatching_context( intrusive_ptr< context >) noexcept;
+    void set_dispatcher_context( intrusive_ptr< context >) noexcept;
 
     void dispatch();
+
+    void set_ready( context *) noexcept;
 
     void set_terminated( context *) noexcept;
 

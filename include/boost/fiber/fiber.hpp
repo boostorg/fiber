@@ -92,13 +92,15 @@ public:
         impl_.swap( other.impl_);
     }
 
+    id get_id() const noexcept {
+        return impl_ ? impl_->get_id() : id();
+    }
+
     bool joinable() const noexcept {
         return nullptr != impl_;
     }
 
-    id get_id() const noexcept {
-        return impl_ ? impl_->get_id() : id();
-    }
+    void join();
 };
 
 inline
