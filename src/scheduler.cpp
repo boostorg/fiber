@@ -107,6 +107,8 @@ scheduler::dispatch() {
         context * ctx( nullptr);
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
+            // FIXME: move context' from remote ready-queue to local ready-queue
+            //        move ready context' from sleep-queue to ready-queue
             // no ready context, wait till signaled
             ready_queue_ev_.reset(
                 (std::chrono::steady_clock::time_point::max)());
@@ -116,7 +118,12 @@ scheduler::dispatch() {
         auto active_ctx = context::active();
         ready_queue_.push_back( * active_ctx);
         resume_( active_ctx, ctx);
+            // FIXME: pump external event-loop like boost::asio::io_service
+            //        react on external interrupt signals
+            //        react on requestsin work sahring scenario
+            // no ready context, wait till signaled
     }
+    // interrupt all context' in ready- and sleep-queue
     release_terminated_();
     resume_( dispatcher_ctx_.get(), main_ctx_);
 }
