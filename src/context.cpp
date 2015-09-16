@@ -44,6 +44,7 @@ context::active( context * active) noexcept {
 
 void
 context::set_terminated_() noexcept {
+    flags_ |= flag_terminated;
     scheduler_->set_terminated( this);
 }
 
@@ -127,14 +128,17 @@ context::release() noexcept {
 
 void
 context::join() noexcept {
-    // get active context
-    context * active_ctx = context::active();
-    // push active context to wait-queue, member
-    // of the context which has to be joined by
-    // the active context
-    wait_queue_.push_back( * active_ctx);
-    // suspend active context
-    scheduler_->re_schedule( active_ctx);
+    // wait for context which is not terminated
+    if ( 0 == ( flags_ & flag_terminated) ) {
+        // get active context
+        context * active_ctx = context::active();
+        // push active context to wait-queue, member
+        // of the context which has to be joined by
+        // the active context
+        wait_queue_.push_back( * active_ctx);
+        // suspend active context
+        scheduler_->re_schedule( active_ctx);
+    }
 }
 
 bool

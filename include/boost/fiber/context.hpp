@@ -101,7 +101,8 @@ private:
     enum flag_t {
         flag_main_context       = 1 << 1,
         flag_dispatcher_context = 1 << 2,
-        flag_worker_context     = 1 << 3
+        flag_worker_context     = 1 << 3,
+        flag_terminated         = 1 << 4
     };
 
     static thread_local context         *   active_;
