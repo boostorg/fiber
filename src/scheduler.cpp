@@ -20,13 +20,13 @@ namespace boost {
 namespace fibers {
 
 void
-scheduler::resume_( context * actx, context * ctx) {
-    BOOST_ASSERT( nullptr != actx);
+scheduler::resume_( context * active_ctx, context * ctx) {
+    BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( actx->get_scheduler() == ctx->get_scheduler() );
+    BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
     // fiber next-to-run is same as current active-fiber
     // this might happen in context of this_fiber::yield() 
-    if ( actx == ctx) {
+    if ( active_ctx == ctx) {
         return;
     }
     // assign new fiber to active-fiber
