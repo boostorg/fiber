@@ -233,6 +233,8 @@ public:
 
     void release() noexcept;
 
+    void join() noexcept;
+
     bool is_main_context() const noexcept {
         return 0 != ( flags_ & flag_main_context);
     }
@@ -269,7 +271,7 @@ public:
 inline
 static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     fixedsize_stack salloc; // use default satck-size
-    boost::context::stack_context sctx( salloc.allocate() );
+    boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
     std::size_t size = sctx.size - sizeof( context);
@@ -297,7 +299,7 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
 
 template< typename StackAlloc, typename Fn, typename ... Args >
 static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn, Args && ... args) {
-    boost::context::stack_context sctx( salloc.allocate() );
+    boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
     std::size_t size = sctx.size - sizeof( context);

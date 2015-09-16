@@ -20,12 +20,10 @@ static context * make_main_context() {
     static thread_local context main_ctx( main_context);
     // scheduler for this thread
     static thread_local scheduler sched;
-    // attach scheduler to main fiber context
-    main_ctx.set_scheduler( & sched);
     // attach main fiber context to scheduler
     sched.set_main_context( & main_ctx);
-    // create and attach dispatching fiber context to scheduler
-    sched.set_dispatching_context(
+    // create and attach dispatcher fiber context to scheduler
+    sched.set_dispatcher_context(
         make_dispatcher_context( & sched) );
     return & main_ctx;
 }
@@ -120,9 +118,23 @@ context::release() noexcept {
     wait_queue_t::iterator e = wait_queue_.end();
     for ( wait_queue_t::iterator i = wait_queue_.begin(); i != e;) {
         context * f = & ( * i);
+        // remove fiber from wait-queue
         i = wait_queue_.erase( i);
-        //FIXME: signal that f might resume
+        // notify scheduler
+        scheduler_->set_ready( f);
     }
+}
+
+void
+context::join() noexcept {
+    // get active context
+    context * active_ctx = context::active();
+    // push active context to wait-queue, member
+    // of the context which has to be joined by
+    // the active context
+    wait_queue_.push_back( * active_ctx);
+    // suspend active context
+    scheduler_->re_schedule( active_ctx);
 }
 
 bool
