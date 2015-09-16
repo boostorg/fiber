@@ -18,15 +18,12 @@ namespace boost {
 namespace fibers {
 
 void
-scheduler::resume_( context * af, context * f) {
-    BOOST_ASSERT( nullptr != af);
-    BOOST_ASSERT( nullptr != f);
-    BOOST_ASSERT( f->is_ready() );
-    // set fiber to state running
-    f->set_running();
+scheduler::resume_( context * actx, context * ctx) {
+    BOOST_ASSERT( nullptr != actx);
+    BOOST_ASSERT( nullptr != ctx);
     // fiber next-to-run is same as current active-fiber
     // this might happen in context of this_fiber::yield() 
-    if ( f == af) {
+    if ( actx == ctx) {
         return;
     }
     // pass new fiber the scheduler of the current active fiber
@@ -35,40 +32,63 @@ scheduler::resume_( context * af, context * f) {
     // FIXME: mabye better don in the sched-algorithm (knows
     //        if fiber was migrated)
     //        -> performance issue?
-    f->set_scheduler( af->get_scheduler() );
+    ctx->set_scheduler( actx->get_scheduler() );
     // assign new fiber to active-fiber
-    context::active( f);
-    // resume active-fiber == f
-    f->resume();
+    context::active( ctx);
+    // resume active-fiber == ctx
+    ctx->resume();
+}
+
+context *
+scheduler::get_next_() noexcept {
+    BOOST_ASSERT( ! ready_queue_.empty() );
+    context * ctx( & ready_queue_.front() );
+    ready_queue_.pop_front();
+    return ctx;
+}
+
+void
+scheduler::release_terminated_() {
+    terminated_queue_t::iterator e( terminated_queue_.end() );
+    for ( terminated_queue_t::iterator i( terminated_queue_.begin() );
+            i != e;) {
+        context * ctx( & ( * i) );
+        i = terminated_queue_.erase( i);
+        intrusive_ptr_release( ctx);
+    }
 }
 
 scheduler::scheduler() noexcept :
     main_ctx_( nullptr),
-    dispatching_ctx_( nullptr),
-    ready_queue_() {
+    dispatching_ctx_(),
+    ready_queue_(),
+    terminated_queue_(),
+    shutdown_( false) {
 }
 
 scheduler::~scheduler() noexcept {
     BOOST_ASSERT( nullptr != main_ctx_);
-    BOOST_ASSERT( dispatching_ctx_);
+    BOOST_ASSERT( nullptr != dispatching_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
 
-    // FIXME: signal dispatching context termination
-    //        wait till dispatching context agrees on termination
-
-    // reset intrusive-pointer to dispatching context
-    // should destroy dispatching context stack
+    // signal dispatching context termination
+    shutdown_ = true;
+    // resume pending fibers
+    resume_( main_ctx_, get_next_() );
+    // deallocate dispatching-context
     dispatching_ctx_.reset();
+    // set main-context to nullptr
+    main_ctx_ = nullptr;
 }
 
 void
-scheduler::main_context( context * main_ctx) noexcept {
+scheduler::set_main_context( context * main_ctx) noexcept {
     BOOST_ASSERT( nullptr != main_ctx);
     main_ctx_ = main_ctx;
 }
 
 void
-scheduler::dispatching_context( intrusive_ptr< context > dispatching_ctx) noexcept {
+scheduler::set_dispatching_context( intrusive_ptr< context > dispatching_ctx) noexcept {
     BOOST_ASSERT( dispatching_ctx);
     dispatching_ctx_.swap( dispatching_ctx);
     // add dispatching context to ready-queue
@@ -80,10 +100,26 @@ scheduler::dispatching_context( intrusive_ptr< context > dispatching_ctx) noexce
 }
 
 void
-scheduler::dispatch() noexcept {
-    if ( ready_queue.empty() ) {
-        // FIXME: sleep
+scheduler::dispatch() {
+    while ( ! shutdown_) {
+        release_terminated_();
     }
+    release_terminated_();
+    resume_( dispatching_ctx_.get(), main_ctx_);
+}
+
+void
+scheduler::set_terminated( context * ctx) noexcept {
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    terminated_queue_.push_back( * ctx);
+}
+
+void
+scheduler::re_schedule( context * actx) noexcept {
+    BOOST_ASSERT( nullptr != actx);
+    resume_( actx, get_next_() );
 }
 
 }}

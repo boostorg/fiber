@@ -20,8 +20,6 @@
 namespace boost {
 namespace fibers {
 
-class context;
-
 class BOOST_FIBERS_DECL scheduler {
 private:
     typedef intrusive::list<
@@ -29,12 +27,23 @@ private:
                 intrusive::member_hook<
                     context, detail::ready_hook, & context::ready_hook_ >,
                 intrusive::constant_time_size< false > >    ready_queue_t;
+    typedef intrusive::list<
+                context,
+                intrusive::member_hook<
+                    context, detail::terminated_hook, & context::terminated_hook_ >,
+                intrusive::constant_time_size< false > >    terminated_queue_t;
 
     context                 *   main_ctx_;
     intrusive_ptr< context >    dispatching_ctx_;
     ready_queue_t               ready_queue_;
+    terminated_queue_t          terminated_queue_;
+    bool                        shutdown_;
 
     void resume_( context *, context *);
+
+    context * get_next_() noexcept;
+
+    void release_terminated_();
 
 public:
     scheduler() noexcept;
@@ -44,11 +53,15 @@ public:
 
     virtual ~scheduler() noexcept;
 
-    void main_context( context *) noexcept;
+    void set_main_context( context *) noexcept;
 
-    void dispatching_context( intrusive_ptr< context >) noexcept;
+    void set_dispatching_context( intrusive_ptr< context >) noexcept;
 
-    void dispatch() noexcept;
+    void dispatch();
+
+    void set_terminated( context *) noexcept;
+
+    void re_schedule( context *) noexcept;
 };
 
 }}

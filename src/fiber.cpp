@@ -19,7 +19,6 @@ namespace fibers {
 
 void
 fiber::start_() {
-    impl_->set_ready();
     //FIXME: spawn new fiber-context
 }
 

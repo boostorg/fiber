@@ -52,7 +52,7 @@ public:
 
     template< typename StackAllocator, typename Fn, typename ... Args >
     explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_( make_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
+        impl_( make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 
@@ -81,11 +81,11 @@ public:
     }
 
     explicit operator bool() const noexcept {
-        return impl_ && ! impl_->is_terminated();
+        return nullptr != impl_.get();
     }
 
     bool operator!() const noexcept {
-        return ! impl_ || impl_->is_terminated();
+        return nullptr == impl_.get();
     }
 
     void swap( fiber & other) noexcept {
