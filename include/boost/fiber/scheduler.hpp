@@ -11,6 +11,7 @@
 #include <boost/intrusive/list.hpp>
 
 #include <boost/fiber/context.hpp>
+#include <boost/fiber/detail/autoreset_event.hpp>
 #include <boost/fiber/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -38,6 +39,7 @@ private:
     ready_queue_t               ready_queue_;
     terminated_queue_t          terminated_queue_;
     bool                        shutdown_;
+    detail::autoreset_event     ready_queue_ev_;
 
     void resume_( context *, context *);
 

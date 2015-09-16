@@ -6,6 +6,8 @@
 
 #include "boost/fiber/scheduler.hpp"
 
+#include <chrono>
+
 #include <boost/assert.hpp>
 
 #include "boost/fiber/context.hpp"
@@ -35,9 +37,11 @@ scheduler::resume_( context * actx, context * ctx) {
 
 context *
 scheduler::get_next_() noexcept {
-    BOOST_ASSERT( ! ready_queue_.empty() );
-    context * ctx = & ready_queue_.front();
-    ready_queue_.pop_front();
+    context * ctx( nullptr);
+    if ( ! ready_queue_.empty() ) {
+        ctx = & ready_queue_.front();
+        ready_queue_.pop_front();
+    }
     return ctx;
 }
 
@@ -57,7 +61,8 @@ scheduler::scheduler() noexcept :
     dispatcher_ctx_(),
     ready_queue_(),
     terminated_queue_(),
-    shutdown_( false) {
+    shutdown_( false),
+    ready_queue_ev_() {
 }
 
 scheduler::~scheduler() noexcept {
@@ -99,7 +104,13 @@ void
 scheduler::dispatch() {
     while ( ! shutdown_) {
         release_terminated_();
-        auto ctx = get_next_();
+        context * ctx( nullptr);
+        // loop till we get next ready context
+        while ( nullptr == ( ctx = get_next_() ) ) {
+            // no ready context, wait till signaled
+            ready_queue_ev_.reset(
+                (std::chrono::steady_clock::time_point::max)());
+        }
         // push dispatcher context to ready-queue
         // so that ready-queue never becomes empty
         auto active_ctx = context::active();
