@@ -13,9 +13,15 @@
 #include <boost/fiber/all.hpp>
 
 int value1 = 0;
+std::string value2 = "";
 
 void fn1() {
     value1 = 1;
+}
+
+void fn2( int i, std::string const& s) {
+    value1 = i;
+    value2 = s;
 }
 
 struct X {
@@ -92,10 +98,20 @@ void test_scheduler_dtor() {
 }
 
 void test_join_fn() {
-    value1 = 0;
-    boost::fibers::fiber f( fn1);
-    f.join();
-    BOOST_CHECK_EQUAL( value1, 1);
+    {
+        value1 = 0;
+        boost::fibers::fiber f( fn1);
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 1);
+    }
+    {
+        value1 = 0;
+        value2 = "";
+        boost::fibers::fiber f( fn2, 3, "abc");
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 3);
+        BOOST_CHECK_EQUAL( value2, "abc");
+    }
 }
 
 void test_join_memfn() {
