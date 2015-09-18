@@ -65,6 +65,8 @@ public:
 
     void set_terminated( context *) noexcept;
 
+    void yield( context *) noexcept;
+
     void re_schedule( context *) noexcept;
 };
 
