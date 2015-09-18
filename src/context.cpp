@@ -44,6 +44,7 @@ context::active( context * active) noexcept {
 
 void
 context::set_terminated_() noexcept {
+    // TODO: protect for concurrent access
     flags_ |= flag_terminated;
     scheduler_->set_terminated( this);
 }
@@ -128,6 +129,7 @@ context::release() noexcept {
 
 void
 context::join() noexcept {
+    // TODO: protect for concurrent access
     // wait for context which is not terminated
     if ( 0 == ( flags_ & flag_terminated) ) {
         // get active context
