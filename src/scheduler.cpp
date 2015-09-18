@@ -107,8 +107,8 @@ scheduler::dispatch() {
         context * ctx( nullptr);
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
-            // FIXME: move context' from remote ready-queue to local ready-queue
-            //        move ready context' from sleep-queue to ready-queue
+            // TODO: move context' from remote ready-queue to local ready-queue
+            //       move ready context' from sleep-queue to ready-queue
             // no ready context, wait till signaled
             ready_queue_ev_.reset(
                 (std::chrono::steady_clock::time_point::max)());
@@ -118,9 +118,9 @@ scheduler::dispatch() {
         auto active_ctx = context::active();
         ready_queue_.push_back( * active_ctx);
         resume_( active_ctx, ctx);
-            // FIXME: pump external event-loop like boost::asio::io_service
-            //        react on external interrupt signals
-            //        react on requestsin work sahring scenario
+            // TODO: pump external event-loop like boost::asio::io_service
+            //       react on external interrupt signals
+            //       react on requestsin work sahring scenario
             // no ready context, wait till signaled
     }
     // interrupt all context' in ready- and sleep-queue
@@ -134,9 +134,9 @@ scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
-    // set the scheduler for new fiber context
+    // set the scheduler for new context
     ctx->set_scheduler( this);
-    // push new fiber context to redy-queue
+    // push new context to ready-queue
     ready_queue_.push_back( * ctx);
 }
 
@@ -147,6 +147,17 @@ scheduler::set_terminated( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     terminated_queue_.push_back( * ctx);
+}
+
+void
+scheduler::yield( context * active_ctx) noexcept {
+    BOOST_ASSERT( nullptr != active_ctx);
+    BOOST_ASSERT( ! active_ctx->is_terminated() );
+    BOOST_ASSERT( ! active_ctx->ready_is_linked() );
+    BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+    // push active context to ready-queue
+    ready_queue_.push_back( * active_ctx);
+    resume_( active_ctx, get_next_() );
 }
 
 void

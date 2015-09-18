@@ -24,6 +24,20 @@ void fn2( int i, std::string const& s) {
     value2 = s;
 }
 
+void fn3( int & i) {
+    i = 1;
+    boost::this_fiber::yield();
+    i = 1;
+    boost::this_fiber::yield();
+    i = 2;
+    boost::this_fiber::yield();
+    i = 3;
+    boost::this_fiber::yield();
+    i = 5;
+    boost::this_fiber::yield();
+    i = 8;
+}
+
 struct X {
     int value;
 
@@ -179,6 +193,20 @@ void test_id() {
     f3.join();
 }
 
+void test_yield() {
+    int v1 = 0, v2 = 0;
+    BOOST_CHECK_EQUAL( 0, v1);
+    BOOST_CHECK_EQUAL( 0, v2);
+    boost::fibers::fiber f1( fn3, std::ref( v1) );
+    boost::fibers::fiber f2( fn3, std::ref( v2) );
+    f1.join();
+    f2.join();
+    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f2);
+    BOOST_CHECK_EQUAL( 8, v1);
+    BOOST_CHECK_EQUAL( 8, v2);
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
@@ -189,7 +217,8 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
      test->add( BOOST_TEST_CASE( & test_join_copyable) );
      test->add( BOOST_TEST_CASE( & test_join_moveable) );
      test->add( BOOST_TEST_CASE( & test_move_fiber) );
-     test->add( BOOST_TEST_CASE( & test_id) );
+     test->add( BOOST_TEST_CASE( & test_move_fiber) );
+     test->add( BOOST_TEST_CASE( & test_yield) );
 
     return test;
 }

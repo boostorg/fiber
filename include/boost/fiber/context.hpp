@@ -236,6 +236,8 @@ public:
 
     void join() noexcept;
 
+    void yield() noexcept;
+
     bool is_main_context() const noexcept {
         return 0 != ( flags_ & flag_main_context);
     }

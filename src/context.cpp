@@ -143,6 +143,14 @@ context::join() noexcept {
     }
 }
 
+void
+context::yield() noexcept {
+    // get active context
+    context * active_ctx = context::active();
+    // yield active context
+    scheduler_->yield( active_ctx);
+}
+
 bool
 context::wait_is_linked() {
     return wait_hook_.is_linked();
