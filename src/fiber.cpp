@@ -42,7 +42,7 @@ fiber::join() {
 
     tmp->join();
 
-    // FIXME: call interruption_point()
+    // TODO: call interruption_point()
 }
 
 }}
