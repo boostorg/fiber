@@ -15,29 +15,6 @@
 int value1 = 0;
 std::string value2 = "";
 
-void fn1() {
-    value1 = 1;
-}
-
-void fn2( int i, std::string const& s) {
-    value1 = i;
-    value2 = s;
-}
-
-void fn3( int & i) {
-    i = 1;
-    boost::this_fiber::yield();
-    i = 1;
-    boost::this_fiber::yield();
-    i = 2;
-    boost::this_fiber::yield();
-    i = 3;
-    boost::this_fiber::yield();
-    i = 5;
-    boost::this_fiber::yield();
-    i = 8;
-}
-
 struct X {
     int value;
 
@@ -105,6 +82,42 @@ public:
     }
 };
 
+void fn1() {
+    value1 = 1;
+}
+
+void fn2( int i, std::string const& s) {
+    value1 = i;
+    value2 = s;
+}
+
+void fn3( int & i) {
+    i = 1;
+    boost::this_fiber::yield();
+    i = 1;
+    boost::this_fiber::yield();
+    i = 2;
+    boost::this_fiber::yield();
+    i = 3;
+    boost::this_fiber::yield();
+    i = 5;
+    boost::this_fiber::yield();
+    i = 8;
+}
+
+void fn4() {
+    boost::this_fiber::yield();
+}
+
+void fn5() {
+    boost::fibers::fiber f( fn4);
+    BOOST_CHECK( f);
+    BOOST_CHECK( f.joinable() );
+    f.join();
+    BOOST_CHECK( ! f);
+    BOOST_CHECK( ! f.joinable() );
+}
+
 void test_scheduler_dtor() {
     boost::fibers::context * ctx(
         boost::fibers::context::active() );
@@ -155,6 +168,17 @@ void test_join_moveable() {
     f.join();
     BOOST_CHECK( ! mv.state);
     BOOST_CHECK_EQUAL( value1, 7);
+}
+
+void test_join_in_fiber() {
+    // spawn fiber f
+    // f spawns an new fiber f' in its fiber-fn
+    // f' yields in its fiber-fn
+    // f joins s' and gets suspended (waiting on s')
+    boost::fibers::fiber f( fn5);
+    // join() resumes f + f' which completes
+    f.join();
+    BOOST_CHECK( ! f);
 }
 
 void test_move_fiber() {
@@ -216,6 +240,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
      test->add( BOOST_TEST_CASE( & test_join_memfn) );
      test->add( BOOST_TEST_CASE( & test_join_copyable) );
      test->add( BOOST_TEST_CASE( & test_join_moveable) );
+     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
      test->add( BOOST_TEST_CASE( & test_move_fiber) );
      test->add( BOOST_TEST_CASE( & test_move_fiber) );
      test->add( BOOST_TEST_CASE( & test_yield) );
