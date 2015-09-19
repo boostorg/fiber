@@ -6,9 +6,10 @@
 
 #include "boost/fiber/detail/spinlock.hpp"
 
+#include <thread>
+
 #include <boost/assert.hpp>
 
-#include "boost/fiber/context.hpp"
 #include "boost/fiber/scheduler.hpp"
 
 namespace boost {
@@ -27,7 +28,7 @@ atomic_spinlock::lock() {
         // sucessive acccess to state_ -> cache hit
         while ( atomic_spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
             // busy-wait
-            context::active()->do_yield();
+            std::this_thread::yield();
         }
         // state_ was released by other fiber
         // cached copies are invalidated -> cache miss
