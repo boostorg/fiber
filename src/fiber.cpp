@@ -27,6 +27,7 @@ fiber::start_() {
 
 void
 fiber::join() {
+    // FIXME: must fiber::join() be synchronized?
     if ( context::active()->get_id() == get_id() ) {
         throw fiber_resource_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
                                     "boost fiber: trying to join itself");
