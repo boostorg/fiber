@@ -67,18 +67,16 @@ void test_mutex() {
         BOOST_CHECK( 7 == value2);
     }
 }
-#if 0
-void test_recursive_mutex()
-{
-    for ( int i = 0; i < 10; ++i)
-    {
+
+void test_recursive_mutex() {
+    for ( int i = 0; i < 10; ++i) {
         boost::fibers::recursive_mutex mtx;
         mtx.lock();
         boost::barrier b( 3);
-        std::thread t1( fn1< boost::fibers::recursive_mutex >, std::ref( b), std::ref( mtx) );
-        std::thread t2( fn2< boost::fibers::recursive_mutex >, std::ref( b), std::ref( mtx) );
+        boost::thread t1( fn1< boost::fibers::recursive_mutex >, std::ref( b), std::ref( mtx) );
+        boost::thread t2( fn2< boost::fibers::recursive_mutex >, std::ref( b), std::ref( mtx) );
         b.wait();
-        std::this_thread::sleep_for( ms( 250) );
+        boost::this_thread::sleep_for( ms( 250) );
         mtx.unlock();
         t1.join();
         t2.join();
@@ -87,6 +85,7 @@ void test_recursive_mutex()
     }
 }
 
+#if 0
 void test_recursive_timed_mutex()
 {
     for ( int i = 0; i < 10; ++i)
@@ -134,7 +133,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     test->add( BOOST_TEST_CASE( & test_mutex) );
-    //test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
+    test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
     //test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );
     //test->add( BOOST_TEST_CASE( & test_timed_mutex) );
 #else
