@@ -32,7 +32,7 @@ private:
     typedef context::wait_queue_t   wait_queue_t;
 
     std::atomic< mutex_status > state_;
-    context::id                 owner_;
+    std::atomic< context * >    owner_;
     wait_queue_t                wait_queue_;
     detail::spinlock            wait_queue_splk_;
 
