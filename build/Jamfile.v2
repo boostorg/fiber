@@ -30,6 +30,7 @@ lib boost_fiber
     : context.cpp
       detail/spinlock.cpp
       fiber.cpp
+      mutex.cpp
       scheduler.cpp
     : <link>shared:<library>../../context/build//boost_context
     ;

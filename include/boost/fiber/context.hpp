@@ -134,8 +134,6 @@ private:
 
     void set_terminated_() noexcept;
 
-    void  suspend_() noexcept;
-
 protected:
     virtual void deallocate() {
     }
@@ -231,7 +229,7 @@ public:
                 // notify waiting (joining) fibers
                 release();
                 // switch to another fiber
-                suspend_();
+                suspend();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
         wait_queue_() {
@@ -246,6 +244,8 @@ public:
     id get_id() const noexcept;
 
     void resume();
+
+    void suspend() noexcept;
 
     void release() noexcept;
 
