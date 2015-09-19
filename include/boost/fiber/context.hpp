@@ -253,7 +253,7 @@ public:
 
     void yield() noexcept;
 
-    bool wait_until( std::chrono::steady_clock::time_point const&);
+    bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
 
     bool is_main_context() const noexcept {
         return 0 != ( flags_ & flag_main_context);

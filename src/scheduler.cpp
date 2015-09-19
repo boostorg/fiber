@@ -206,7 +206,7 @@ scheduler::yield( context * active_ctx) noexcept {
 
 bool
 scheduler::wait_until( context * active_ctx,
-                       std::chrono::steady_clock::time_point const& sleep_tp) {
+                       std::chrono::steady_clock::time_point const& sleep_tp) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );

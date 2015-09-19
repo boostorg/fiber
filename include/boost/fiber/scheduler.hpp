@@ -87,7 +87,7 @@ public:
 
     void yield( context *) noexcept;
 
-    bool wait_until( context *, std::chrono::steady_clock::time_point const&);
+    bool wait_until( context *, std::chrono::steady_clock::time_point const&) noexcept;
 
     void re_schedule( context *) noexcept;
 };
