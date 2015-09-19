@@ -11,7 +11,6 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/scheduler.hpp"
-#include "boost/fiber/interruption.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -30,20 +29,20 @@ mutex::lock_if_unlocked_() {
         return false;
     }
     
-    BOOST_ASSERT( ! owner_);
-    owner_ = context::active()->get_id();
+    BOOST_ASSERT( nullptr == owner_);
+    owner_ = context::active();
     return true;
 }
 
 mutex::mutex() :
 	state_( mutex_status::unlocked),
-    owner_(),
+    owner_( nullptr),
     wait_queue_(),
     wait_queue_splk_() {
 }
 
 mutex::~mutex() {
-    BOOST_ASSERT( ! owner_);
+    BOOST_ASSERT( nullptr == owner_);
     BOOST_ASSERT( wait_queue_.empty() );
 }
 
@@ -91,7 +90,7 @@ mutex::try_lock() {
 void
 mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
-    BOOST_ASSERT( context::active()->get_id() == owner_);
+    BOOST_ASSERT( context::active() == owner_);
 
     detail::spinlock_lock lk( wait_queue_splk_);
     context * ctx( nullptr);
@@ -101,7 +100,7 @@ mutex::unlock() {
         BOOST_ASSERT( nullptr != ctx);
     }
     lk.unlock();
-    owner_ = context::id();
+    owner_ = nullptr;
 	state_ = mutex_status::unlocked;
 
     if ( nullptr != ctx) {
