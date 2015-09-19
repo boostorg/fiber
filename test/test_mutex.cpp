@@ -163,9 +163,8 @@ void fn14( boost::fibers::recursive_timed_mutex & m)
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
-
-void fn15( boost::fibers::recursive_mutex & m)
-{
+#endif
+void fn15( boost::fibers::recursive_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     m.lock();
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -176,8 +175,7 @@ void fn15( boost::fibers::recursive_mutex & m)
     BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
 }
 
-void fn16( boost::fibers::recursive_mutex & m)
-{
+void fn16( boost::fibers::recursive_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     while (!m.try_lock());
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -187,7 +185,6 @@ void fn16( boost::fibers::recursive_mutex & m)
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
 }
-#endif
 
 void fn17( boost::fibers::mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
@@ -260,8 +257,7 @@ struct test_recursive_lock {
     typedef M mutex_type;
     typedef typename std::unique_lock< M > lock_type;
 
-    void operator()()
-    {
+    void operator()() {
         mutex_type mx;
         lock_type lock1(mx);
         lock_type lock2(mx);
@@ -295,9 +291,7 @@ void test_mutex() {
     boost::fibers::fiber( & do_test_mutex).join();
 }
 
-#if 0
-void do_test_recursive_mutex()
-{
+void do_test_recursive_mutex() {
     test_lock< boost::fibers::recursive_mutex >()();
     test_exclusive< boost::fibers::recursive_mutex >()();
     test_recursive_lock< boost::fibers::recursive_mutex >()();
@@ -321,11 +315,11 @@ void do_test_recursive_mutex()
     }
 }
 
-void test_recursive_mutex()
-{
+void test_recursive_mutex() {
     boost::fibers::fiber( do_test_recursive_mutex).join();
 }
 
+#if 0
 void do_test_timed_mutex()
 {
     test_lock< boost::fibers::timed_mutex >()();
@@ -464,7 +458,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
         BOOST_TEST_SUITE("Boost.Fiber: mutex test suite");
 
     test->add( BOOST_TEST_CASE( & test_mutex) );
-    //test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
+    test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
     //test->add( BOOST_TEST_CASE( & test_timed_mutex) );
     //test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );
 
