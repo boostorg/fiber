@@ -164,7 +164,7 @@ context::yield() noexcept {
 }
 
 bool
-context::wait_until( std::chrono::steady_clock::time_point const& tp) {
+context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
 
