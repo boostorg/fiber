@@ -59,6 +59,7 @@ context::context( main_context_t) :
     ready_hook_(),
     terminated_hook_(),
     wait_hook_(),
+    tp_( (std::chrono::steady_clock::time_point::max)() ),
     use_count_( 1), // allocated on main- or thread-stack
     flags_( flag_main_context),
     scheduler_( nullptr),
@@ -72,6 +73,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     ready_hook_(),
     terminated_hook_(),
     wait_hook_(),
+    tp_( (std::chrono::steady_clock::time_point::max)() ),
     use_count_( 0), // scheduler will own dispatcher context
     flags_( flag_dispatcher_context),
     scheduler_( nullptr),
@@ -152,6 +154,14 @@ context::yield() noexcept {
 }
 
 bool
+context::wait_until( std::chrono::steady_clock::time_point const& tp) {
+    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( this == active_);
+
+    return scheduler_->wait_until( this, tp);
+}
+
+bool
 context::wait_is_linked() {
     return wait_hook_.is_linked();
 }
@@ -159,6 +169,11 @@ context::wait_is_linked() {
 bool
 context::ready_is_linked() {
     return ready_hook_.is_linked();
+}
+
+bool
+context::sleep_is_linked() {
+    return sleep_hook_.is_linked();
 }
 
 void

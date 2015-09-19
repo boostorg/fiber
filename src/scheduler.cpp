@@ -56,6 +56,34 @@ scheduler::release_terminated_() {
     }
 }
 
+void
+scheduler::woken_up_() noexcept {
+        // move context which the deadline has reached
+        // to ready-queue
+        // sleep-queue is sorted (ascending)
+        std::chrono::steady_clock::time_point now =
+                std::chrono::steady_clock::now();
+        sleep_queue_t::iterator e = sleep_queue_.end();
+        for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
+            context * ctx = & ( * i);
+            BOOST_ASSERT( ! ctx->is_terminated() );
+            BOOST_ASSERT( ! ctx->ready_is_linked() );
+            BOOST_ASSERT( ctx->sleep_is_linked() );
+            BOOST_ASSERT( ! ctx->wait_is_linked() );
+            // set fiber to state_ready if deadline was reached
+            if ( ctx->tp_ <= now) {
+                // remove context from sleep-queue
+                i = sleep_queue_.erase( i);
+                // reset sleep-tp
+                ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
+                // push new context to ready-queue
+                ready_queue_.push_back( * ctx);
+            } else {
+                break; // first element with ctx->tp_ > now, leave for-loop
+            }
+        }
+}
+
 scheduler::scheduler() noexcept :
     main_ctx_( nullptr),
     dispatcher_ctx_(),
@@ -103,15 +131,27 @@ scheduler::set_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noex
 void
 scheduler::dispatch() {
     while ( ! shutdown_) {
+        // release termianted context'
         release_terminated_();
-        context * ctx( nullptr);
+        // get sleeping context'
+        woken_up_();
+        context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
             // TODO: move context' from remote ready-queue to local ready-queue
-            //       move ready context' from sleep-queue to ready-queue
+            //
             // no ready context, wait till signaled
-            ready_queue_ev_.reset(
-                (std::chrono::steady_clock::time_point::max)());
+            // set deadline to highest value
+            std::chrono::steady_clock::time_point tp =
+                    (std::chrono::steady_clock::time_point::max)();
+            // get lowest deadline from sleep-queue
+            sleep_queue_t::iterator i = sleep_queue_.begin();
+            if ( sleep_queue_.end() != i) {
+                tp = i->tp_;
+            }
+            ready_queue_ev_.reset( tp);
+            // get sleeping context'
+            woken_up_();
         }
         // push dispatcher context to ready-queue
         // so that ready-queue never becomes empty
@@ -131,8 +171,9 @@ scheduler::dispatch() {
 void
 scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->is_terminated() );
+    BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     // set the scheduler for new context
     ctx->set_scheduler( this);
@@ -145,6 +186,7 @@ scheduler::set_terminated( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     terminated_queue_.push_back( * ctx);
 }
@@ -154,15 +196,36 @@ scheduler::yield( context * active_ctx) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );
+    BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     // push active context to ready-queue
     ready_queue_.push_back( * active_ctx);
+    // resume another fiber
     resume_( active_ctx, get_next_() );
+}
+
+bool
+scheduler::wait_until( context * active_ctx,
+                       std::chrono::steady_clock::time_point const& sleep_tp) {
+    BOOST_ASSERT( nullptr != active_ctx);
+    BOOST_ASSERT( ! active_ctx->is_terminated() );
+    BOOST_ASSERT( ! active_ctx->ready_is_linked() );
+    BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
+    BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+    // push active context to sleep-queue
+    active_ctx->tp_ = sleep_tp;
+    sleep_queue_.insert( * active_ctx);
+    // resume another context
+    resume_( active_ctx, get_next_() );
+    // context has been resumed
+    // check if deadline has reached
+    return std::chrono::steady_clock::now() < sleep_tp;
 }
 
 void
 scheduler::re_schedule( context * active_ctx) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
+    // resume another context
     resume_( active_ctx, get_next_() );
 }
 

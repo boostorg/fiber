@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_CONTEXT_H
 
 #include <atomic>
+#include <chrono>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -16,6 +17,7 @@
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
+#include <boost/intrusive/set.hpp>
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -67,6 +69,14 @@ typedef intrusive::list_member_hook<
     >
 >                                       ready_hook;
 
+struct sleep_tag;
+typedef intrusive::set_member_hook<
+    intrusive::tag< sleep_tag >,
+    intrusive::link_mode<
+        intrusive::auto_unlink
+    >
+>                                       sleep_hook;
+
 struct terminated_tag;
 typedef intrusive::list_member_hook<
     intrusive::tag< terminated_tag >,
@@ -88,9 +98,11 @@ constexpr worker_context_t worker_context = worker_context_t();
 
 class BOOST_FIBERS_DECL context {
 public:
-    detail::ready_hook      ready_hook_;
-    detail::terminated_hook terminated_hook_;
-    detail::wait_hook       wait_hook_;
+    detail::ready_hook                      ready_hook_;
+    detail::sleep_hook                      sleep_hook_;
+    detail::terminated_hook                 terminated_hook_;
+    detail::wait_hook                       wait_hook_;
+    std::chrono::steady_clock::time_point   tp_;
 
     typedef intrusive::list<
         context,
@@ -202,6 +214,7 @@ public:
         ready_hook_(),
         terminated_hook_(),
         wait_hook_(),
+        tp_( (std::chrono::steady_clock::time_point::max)() ),
         use_count_( 1), // fiber instance or scheduler owner
         flags_( flag_worker_context),
         scheduler_( nullptr),
@@ -238,6 +251,8 @@ public:
 
     void yield() noexcept;
 
+    bool wait_until( std::chrono::steady_clock::time_point const&);
+
     bool is_main_context() const noexcept {
         return 0 != ( flags_ & flag_main_context);
     }
@@ -257,6 +272,8 @@ public:
     bool wait_is_linked();
 
     bool ready_is_linked();
+
+    bool sleep_is_linked();
 
     void wait_unlink();
 
