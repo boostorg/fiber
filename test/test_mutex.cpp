@@ -40,9 +40,8 @@ void fn2( M & mtx) {
 	typename std::unique_lock< mutex_type > lk( mtx);
 	++value2;
 }
-#if 0
-void fn3( boost::fibers::timed_mutex & m)
-{
+
+void fn3( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     m.lock();
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -51,8 +50,7 @@ void fn3( boost::fibers::timed_mutex & m)
     BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
 }
 
-void fn4( boost::fibers::timed_mutex & m)
-{
+void fn4( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     while ( ! m.try_lock() );
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -61,8 +59,7 @@ void fn4( boost::fibers::timed_mutex & m)
     BOOST_CHECK(d < ns(50000000)+ms(2000)); // within 50 ms
 }
 
-void fn5( boost::fibers::timed_mutex & m)
-{
+void fn5( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK( m.try_lock_for(ms(300)+ms(2000)) == true);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -71,8 +68,7 @@ void fn5( boost::fibers::timed_mutex & m)
     BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
 }
 
-void fn6( boost::fibers::timed_mutex & m)
-{
+void fn6( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_for(ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -80,8 +76,7 @@ void fn6( boost::fibers::timed_mutex & m)
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
-void fn7( boost::fibers::timed_mutex & m)
-{
+void fn7( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(300) + ms(1000)) == true);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -90,8 +85,7 @@ void fn7( boost::fibers::timed_mutex & m)
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
 }
 
-void fn8( boost::fibers::timed_mutex & m)
-{
+void fn8( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -99,7 +93,7 @@ void fn8( boost::fibers::timed_mutex & m)
     ns r = ns(5000000)+ms(1000); // within 6ms
     BOOST_CHECK(d < r); // within 6ms
 }
-
+#if 0
 void fn9( boost::fibers::recursive_timed_mutex & m)
 {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
@@ -319,9 +313,7 @@ void test_recursive_mutex() {
     boost::fibers::fiber( do_test_recursive_mutex).join();
 }
 
-#if 0
-void do_test_timed_mutex()
-{
+void do_test_timed_mutex() {
     test_lock< boost::fibers::timed_mutex >()();
     test_exclusive< boost::fibers::timed_mutex >()();
 
@@ -380,11 +372,10 @@ void do_test_timed_mutex()
     }
 }
 
-void test_timed_mutex()
-{
+void test_timed_mutex() {
     boost::fibers::fiber( & do_test_timed_mutex).join();
 }
-
+#if 0
 void do_test_recursive_timed_mutex()
 {
     test_lock< boost::fibers::recursive_timed_mutex >()();
@@ -452,14 +443,13 @@ void test_recursive_timed_mutex()
 }
 #endif
 
-boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
-{
+boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: mutex test suite");
 
     test->add( BOOST_TEST_CASE( & test_mutex) );
     test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
-    //test->add( BOOST_TEST_CASE( & test_timed_mutex) );
+    test->add( BOOST_TEST_CASE( & test_timed_mutex) );
     //test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );
 
 	return test;

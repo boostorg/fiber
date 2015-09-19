@@ -279,6 +279,8 @@ public:
 
     bool sleep_is_linked();
 
+    void sleep_unlink();
+
     void wait_unlink();
 
     friend void intrusive_ptr_add_ref( context * ctx) {

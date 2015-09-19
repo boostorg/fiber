@@ -203,6 +203,11 @@ context::sleep_is_linked() {
 }
 
 void
+context::sleep_unlink() {
+    sleep_hook_.unlink();
+}
+
+void
 context::wait_unlink() {
     wait_hook_.unlink();
 }
