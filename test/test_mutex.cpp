@@ -93,9 +93,8 @@ void fn8( boost::fibers::timed_mutex & m) {
     ns r = ns(5000000)+ms(1000); // within 6ms
     BOOST_CHECK(d < r); // within 6ms
 }
-#if 0
-void fn9( boost::fibers::recursive_timed_mutex & m)
-{
+
+void fn9( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     m.lock();
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -106,8 +105,7 @@ void fn9( boost::fibers::recursive_timed_mutex & m)
     BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
 }
 
-void fn10( boost::fibers::recursive_timed_mutex & m)
-{
+void fn10( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     while (!m.try_lock()) ;
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -118,8 +116,7 @@ void fn10( boost::fibers::recursive_timed_mutex & m)
     BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
 }
 
-void fn11( boost::fibers::recursive_timed_mutex & m)
-{
+void fn11( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_for(ms(300)+ms(1000)) == true);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -130,8 +127,7 @@ void fn11( boost::fibers::recursive_timed_mutex & m)
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
-void fn12( boost::fibers::recursive_timed_mutex & m)
-{
+void fn12( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_for(ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -139,8 +135,7 @@ void fn12( boost::fibers::recursive_timed_mutex & m)
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
-void fn13( boost::fibers::recursive_timed_mutex & m)
-{
+void fn13( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(300) + ms(1000)) == true);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -149,15 +144,14 @@ void fn13( boost::fibers::recursive_timed_mutex & m)
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
 
-void fn14( boost::fibers::recursive_timed_mutex & m)
-{
+void fn14( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     ns d = t1 - t0 - ms(250);
     BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
 }
-#endif
+
 void fn15( boost::fibers::recursive_mutex & m) {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     m.lock();
@@ -375,9 +369,8 @@ void do_test_timed_mutex() {
 void test_timed_mutex() {
     boost::fibers::fiber( & do_test_timed_mutex).join();
 }
-#if 0
-void do_test_recursive_timed_mutex()
-{
+
+void do_test_recursive_timed_mutex() {
     test_lock< boost::fibers::recursive_timed_mutex >()();
     test_exclusive< boost::fibers::recursive_timed_mutex >()();
     test_recursive_lock< boost::fibers::recursive_timed_mutex >()();
@@ -437,11 +430,9 @@ void do_test_recursive_timed_mutex()
     }
 }
 
-void test_recursive_timed_mutex()
-{
+void test_recursive_timed_mutex() {
     boost::fibers::fiber( & do_test_recursive_timed_mutex).join();
 }
-#endif
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
@@ -450,7 +441,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     test->add( BOOST_TEST_CASE( & test_mutex) );
     test->add( BOOST_TEST_CASE( & test_recursive_mutex) );
     test->add( BOOST_TEST_CASE( & test_timed_mutex) );
-    //test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );
+    test->add( BOOST_TEST_CASE( & test_recursive_timed_mutex) );
 
 	return test;
 }
