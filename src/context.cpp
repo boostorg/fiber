@@ -44,7 +44,8 @@ context::active( context * active) noexcept {
 
 void
 context::set_terminated_() noexcept {
-    // TODO: protect for concurrent access
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( splk_);
     flags_ |= flag_terminated;
     scheduler_->set_terminated( this);
 }
@@ -64,7 +65,8 @@ context::context( main_context_t) :
     flags_( flag_main_context),
     scheduler_( nullptr),
     ctx_( boost::context::execution_context::current() ),
-    wait_queue_() {
+    wait_queue_(),
+    splk_() {
 }
 
 // dispatcher fiber context
@@ -84,7 +86,8 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }),
-    wait_queue_() {
+    wait_queue_(),
+    splk_() {
 }
 
 context::~context() {
@@ -118,12 +121,17 @@ void
 context::release() noexcept {
     BOOST_ASSERT( is_terminated() );
 
+    wait_queue_t tmp;
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( splk_);
+    tmp.swap( wait_queue_);
+    lk.unlock();
     // notify all waiting fibers
-    wait_queue_t::iterator e = wait_queue_.end();
-    for ( wait_queue_t::iterator i = wait_queue_.begin(); i != e;) {
+    wait_queue_t::iterator e = tmp.end();
+    for ( wait_queue_t::iterator i = tmp.begin(); i != e;) {
         context * f = & ( * i);
         // remove fiber from wait-queue
-        i = wait_queue_.erase( i);
+        i = tmp.erase( i);
         // notify scheduler
         scheduler_->set_ready( f);
     }
@@ -131,7 +139,8 @@ context::release() noexcept {
 
 void
 context::join() noexcept {
-    // TODO: protect for concurrent access
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( splk_);
     // wait for context which is not terminated
     if ( 0 == ( flags_ & flag_terminated) ) {
         // get active context
@@ -140,6 +149,7 @@ context::join() noexcept {
         // of the context which has to be joined by
         // the active context
         wait_queue_.push_back( * active_ctx);
+        lk.unlock();
         // suspend active context
         scheduler_->re_schedule( active_ctx);
     }

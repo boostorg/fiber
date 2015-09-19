@@ -21,6 +21,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -129,6 +130,7 @@ private:
     scheduler                           *   scheduler_;
     boost::context::execution_context       ctx_;
     wait_queue_t                            wait_queue_;
+    detail::spinlock                        splk_;
 
     void set_terminated_() noexcept;
 
