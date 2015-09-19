@@ -70,7 +70,8 @@ scheduler::woken_up_() noexcept {
             BOOST_ASSERT( ! ctx->is_terminated() );
             BOOST_ASSERT( ! ctx->ready_is_linked() );
             BOOST_ASSERT( ctx->sleep_is_linked() );
-            BOOST_ASSERT( ! ctx->wait_is_linked() );
+            // NOTE: ctx->wait_is_linked() mightreturn true if
+            //       context is wiaitng in time_mutex
             // set fiber to state_ready if deadline was reached
             if ( ctx->tp_ <= now) {
                 // remove context from sleep-queue
@@ -184,8 +185,14 @@ scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
+    // context was waiting for a certain time
+    // an is no set to ready
+    // (might happen with timed_mutex)
+    if ( ctx->sleep_is_linked() ) {
+        // unlink it from sleep-queue
+        ctx->sleep_unlink();
+    }
     // set the scheduler for new context
     ctx->set_scheduler( this);
     // push new context to ready-queue
@@ -237,7 +244,8 @@ scheduler::wait_until( context * active_ctx,
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );
     BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
-    BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+    // NOTE: active_ctx->wait_is_linked() might return true
+    //       if context was locked inside timed_mutex::try_lock_until()
     // push active context to sleep-queue
     active_ctx->tp_ = sleep_tp;
     sleep_queue_.insert( * active_ctx);
