@@ -28,6 +28,7 @@ project boost/fiber
 
 lib boost_fiber
     : context.cpp
+      detail/spinlock.cpp
       fiber.cpp
       scheduler.cpp
     : <link>shared:<library>../../context/build//boost_context
