@@ -115,7 +115,7 @@ recursive_mutex::unlock() {
         }
         lk.unlock();
         owner_ = nullptr;
-        state_ = mutex_status::unlocked;
+        state_.store( mutex_status::unlocked, std::memory_order_release);
 
         if ( nullptr != ctx) {
             context::active()->set_ready( ctx);

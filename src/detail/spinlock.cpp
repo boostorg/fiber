@@ -40,7 +40,7 @@ atomic_spinlock::lock() {
 void
 atomic_spinlock::unlock() noexcept {
     BOOST_ASSERT( atomic_spinlock_status::locked == state_);
-    state_ = atomic_spinlock_status::unlocked;
+    state_.store( atomic_spinlock_status::unlocked, std::memory_order_release);
 }
 
 }}}
