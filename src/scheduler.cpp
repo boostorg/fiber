@@ -7,6 +7,7 @@
 #include "boost/fiber/scheduler.hpp"
 
 #include <chrono>
+#include <mutex>
 
 #include <boost/assert.hpp>
 
@@ -88,9 +89,11 @@ scheduler::scheduler() noexcept :
     main_ctx_( nullptr),
     dispatcher_ctx_(),
     ready_queue_(),
+    remote_ready_queue_(),
     terminated_queue_(),
     shutdown_( false),
-    ready_queue_ev_() {
+    ready_queue_ev_(),
+    remote_ready_splk_() {
 }
 
 scheduler::~scheduler() noexcept {
@@ -135,11 +138,19 @@ scheduler::dispatch() {
         release_terminated_();
         // get sleeping context'
         woken_up_();
+        // protect for concurrent access
+        std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+        // get from remote ready-queue
+        ready_queue_.splice( ready_queue_.end(), remote_ready_queue_);
+        lk.unlock();
         context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
-            // TODO: move context' from remote ready-queue to local ready-queue
-            //
+            // protect for concurrent access
+            lk.lock();
+            // get from remote ready-queue
+            ready_queue_.splice( ready_queue_.end(), remote_ready_queue_);
+            lk.unlock();
             // no ready context, wait till signaled
             // set deadline to highest value
             std::chrono::steady_clock::time_point tp =
@@ -179,6 +190,21 @@ scheduler::set_ready( context * ctx) noexcept {
     ctx->set_scheduler( this);
     // push new context to ready-queue
     ready_queue_.push_back( * ctx);
+}
+
+void
+scheduler::set_remote_ready( context * ctx) noexcept {
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( ! ctx->is_terminated() );
+    BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ! ctx->sleep_is_linked() );
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    // set the scheduler for new context
+    ctx->set_scheduler( this);
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    // push new context to remote ready-queue
+    remote_ready_queue_.push_back( * ctx);
 }
 
 void

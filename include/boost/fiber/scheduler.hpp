@@ -16,6 +16,7 @@
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/autoreset_event.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -54,10 +55,12 @@ private:
     context                 *   main_ctx_;
     intrusive_ptr< context >    dispatcher_ctx_;
     ready_queue_t               ready_queue_;
+    ready_queue_t               remote_ready_queue_;
     sleep_queue_t               sleep_queue_;
     terminated_queue_t          terminated_queue_;
     bool                        shutdown_;
     detail::autoreset_event     ready_queue_ev_;
+    detail::spinlock            remote_ready_splk_;
 
     void resume_( context *, context *);
 
@@ -82,6 +85,8 @@ public:
     void dispatch();
 
     void set_ready( context *) noexcept;
+
+    void set_remote_ready( context *) noexcept;
 
     void set_terminated( context *) noexcept;
 

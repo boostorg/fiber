@@ -171,6 +171,22 @@ context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     return scheduler_->wait_until( this, tp);
 }
 
+void
+context::set_ready( context * ctx) noexcept {
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( this != ctx);
+    // FIXME: comparing scheduler address' must be synchronized?
+    //        what if ctx is migrated between threads
+    //        (other scheduler assigned)
+    if ( scheduler_ == ctx->scheduler_) {
+        // local
+        scheduler_->set_ready( ctx);
+    } else {
+        // remote
+        scheduler_->set_remote_ready( ctx);
+    }
+}
+
 bool
 context::wait_is_linked() {
     return wait_hook_.is_linked();
