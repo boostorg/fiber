@@ -50,11 +50,6 @@ context::set_terminated_() noexcept {
     scheduler_->set_terminated( this);
 }
 
-void
-context::suspend_() noexcept {
-    scheduler_->re_schedule( this);
-}
-
 // main fiber context
 context::context( main_context_t) :
     ready_hook_(),
@@ -115,6 +110,11 @@ context::get_id() const noexcept {
 void
 context::resume() {
     ctx_();
+}
+
+void
+context::suspend() noexcept {
+    scheduler_->re_schedule( this);
 }
 
 void
@@ -183,7 +183,7 @@ context::set_ready( context * ctx) noexcept {
         scheduler_->set_ready( ctx);
     } else {
         // remote
-        scheduler_->set_remote_ready( ctx);
+        ctx->scheduler_->set_remote_ready( ctx);
     }
 }
 

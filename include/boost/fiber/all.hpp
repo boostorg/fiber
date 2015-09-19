@@ -11,6 +11,7 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 #include <boost/fiber/protected_fixedsize_stack.hpp>
 #include <boost/fiber/scheduler.hpp>
