@@ -255,6 +255,8 @@ public:
 
     bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
 
+    void set_ready( context *) noexcept;
+
     bool is_main_context() const noexcept {
         return 0 != ( flags_ & flag_main_context);
     }
