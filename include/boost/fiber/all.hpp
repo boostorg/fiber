@@ -18,8 +18,9 @@
 #include <boost/fiber/protected_fixedsize_stack.hpp>
 #include <boost/fiber/recursive_mutex.hpp>
 #include <boost/fiber/recursive_timed_mutex.hpp>
-#include <boost/fiber/timed_mutex.hpp>
 #include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/segmented_stack.hpp>
+#include <boost/fiber/timed_mutex.hpp>
+#include <boost/fiber/unbounded_channel.hpp>
 
 #endif // BOOST_FIBERS_H
