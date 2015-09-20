@@ -38,6 +38,11 @@ private:
                 intrusive::member_hook<
                     context, detail::ready_hook, & context::ready_hook_ >,
                 intrusive::constant_time_size< false > >    ready_queue_t;
+    typedef intrusive::list<
+                context,
+                intrusive::member_hook<
+                    context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
+                intrusive::constant_time_size< false > >    remote_ready_queue_t;
     typedef intrusive::set<
                 context,
                 intrusive::member_hook<
@@ -55,7 +60,7 @@ private:
     context                 *   main_ctx_;
     intrusive_ptr< context >    dispatcher_ctx_;
     ready_queue_t               ready_queue_;
-    ready_queue_t               remote_ready_queue_;
+    remote_ready_queue_t        remote_ready_queue_;
     sleep_queue_t               sleep_queue_;
     terminated_queue_t          terminated_queue_;
     bool                        shutdown_;
@@ -67,6 +72,8 @@ private:
     context * get_next_() noexcept;
 
     void release_terminated_();
+
+    void move_from_remote_();
 
     void woken_up_() noexcept;
 

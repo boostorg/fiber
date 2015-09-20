@@ -57,6 +57,7 @@ context::context( main_context_t) :
     scheduler_( nullptr),
     ctx_( boost::context::execution_context::current() ),
     ready_hook_(),
+    remote_ready_hook_(),
     terminated_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
@@ -78,6 +79,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }),
     ready_hook_(),
+    remote_ready_hook_(),
     terminated_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
@@ -86,9 +88,11 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 }
 
 context::~context() {
-    BOOST_ASSERT( ! wait_is_linked() );
     BOOST_ASSERT( wait_queue_.empty() );
     BOOST_ASSERT( ! ready_is_linked() );
+    BOOST_ASSERT( ! remote_ready_is_linked() );
+    BOOST_ASSERT( ! sleep_is_linked() );
+    BOOST_ASSERT( ! wait_is_linked() );
 }
 
 void
@@ -188,18 +192,23 @@ context::set_ready( context * ctx) noexcept {
 }
 
 bool
-context::wait_is_linked() {
-    return wait_hook_.is_linked();
-}
-
-bool
 context::ready_is_linked() {
     return ready_hook_.is_linked();
 }
 
 bool
+context::remote_ready_is_linked() {
+    return remote_ready_hook_.is_linked();
+}
+
+bool
 context::sleep_is_linked() {
     return sleep_hook_.is_linked();
+}
+
+bool
+context::wait_is_linked() {
+    return wait_hook_.is_linked();
 }
 
 void
