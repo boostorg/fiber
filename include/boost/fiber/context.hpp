@@ -134,10 +134,6 @@ private:
 
     void set_terminated_() noexcept;
 
-protected:
-    virtual void deallocate() {
-    }
-
 public:
     class id {
     private:
