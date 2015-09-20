@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_H
 
 #include <boost/fiber/barrier.hpp>
+#include <boost/fiber/bounded_channel.hpp>
 #include <boost/fiber/condition.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/exceptions.hpp>
