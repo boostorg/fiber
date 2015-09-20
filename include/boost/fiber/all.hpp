@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_H
 #define BOOST_FIBERS_H
 
+#include <boost/fiber/condition.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>
