@@ -52,14 +52,14 @@ context::set_terminated_() noexcept {
 
 // main fiber context
 context::context( main_context_t) :
-    ready_hook_(),
-    terminated_hook_(),
-    wait_hook_(),
-    tp_( (std::chrono::steady_clock::time_point::max)() ),
     use_count_( 1), // allocated on main- or thread-stack
     flags_( flag_main_context),
     scheduler_( nullptr),
     ctx_( boost::context::execution_context::current() ),
+    ready_hook_(),
+    terminated_hook_(),
+    wait_hook_(),
+    tp_( (std::chrono::steady_clock::time_point::max)() ),
     wait_queue_(),
     splk_() {
 }
@@ -67,10 +67,6 @@ context::context( main_context_t) :
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   fixedsize_stack const& salloc, scheduler * sched) :
-    ready_hook_(),
-    terminated_hook_(),
-    wait_hook_(),
-    tp_( (std::chrono::steady_clock::time_point::max)() ),
     use_count_( 0), // scheduler will own dispatcher context
     flags_( flag_dispatcher_context),
     scheduler_( nullptr),
@@ -81,6 +77,10 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }),
+    ready_hook_(),
+    terminated_hook_(),
+    wait_hook_(),
+    tp_( (std::chrono::steady_clock::time_point::max)() ),
     wait_queue_(),
     splk_() {
 }
@@ -129,11 +129,11 @@ context::release() noexcept {
     // notify all waiting fibers
     wait_queue_t::iterator e = tmp.end();
     for ( wait_queue_t::iterator i = tmp.begin(); i != e;) {
-        context * f = & ( * i);
+        context * ctx = & ( * i);
         // remove fiber from wait-queue
         i = tmp.erase( i);
         // notify scheduler
-        scheduler_->set_ready( f);
+        scheduler_->set_ready( ctx);
     }
 }
 

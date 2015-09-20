@@ -98,18 +98,6 @@ struct worker_context_t {};
 constexpr worker_context_t worker_context = worker_context_t();
 
 class BOOST_FIBERS_DECL context {
-public:
-    detail::ready_hook                      ready_hook_;
-    detail::sleep_hook                      sleep_hook_;
-    detail::terminated_hook                 terminated_hook_;
-    detail::wait_hook                       wait_hook_;
-    std::chrono::steady_clock::time_point   tp_;
-
-    typedef intrusive::list<
-        context,
-        intrusive::function_hook< detail::wait_functor >,
-        intrusive::constant_time_size< false > >   wait_queue_t;
-
 private:
     enum flag_t {
         flag_main_context       = 1 << 1,
@@ -129,6 +117,20 @@ private:
 #endif
     scheduler                           *   scheduler_;
     boost::context::execution_context       ctx_;
+
+public:
+    detail::ready_hook                      ready_hook_;
+    detail::sleep_hook                      sleep_hook_;
+    detail::terminated_hook                 terminated_hook_;
+    detail::wait_hook                       wait_hook_;
+    std::chrono::steady_clock::time_point   tp_;
+
+    typedef intrusive::list<
+        context,
+        intrusive::function_hook< detail::wait_functor >,
+        intrusive::constant_time_size< false > >   wait_queue_t;
+
+private:
     wait_queue_t                            wait_queue_;
     detail::spinlock                        splk_;
 
@@ -207,10 +209,6 @@ public:
     context( worker_context_t,
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Args && ... args) :
-        ready_hook_(),
-        terminated_hook_(),
-        wait_hook_(),
-        tp_( (std::chrono::steady_clock::time_point::max)() ),
         use_count_( 1), // fiber instance or scheduler owner
         flags_( flag_worker_context),
         scheduler_( nullptr),
@@ -228,7 +226,12 @@ public:
                 suspend();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
-        wait_queue_() {
+        ready_hook_(),
+        terminated_hook_(),
+        wait_hook_(),
+        tp_( (std::chrono::steady_clock::time_point::max)() ),
+        wait_queue_(),
+        splk_() {
     }
 
     virtual ~context();
