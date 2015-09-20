@@ -70,8 +70,8 @@ scheduler::woken_up_() noexcept {
             BOOST_ASSERT( ! ctx->is_terminated() );
             BOOST_ASSERT( ! ctx->ready_is_linked() );
             BOOST_ASSERT( ctx->sleep_is_linked() );
-            // NOTE: ctx->wait_is_linked() mightreturn true if
-            //       context is wiaitng in time_mutex
+            // ctx->wait_is_linked() might return true if
+            // context is waiting in time_mutex::try_lock_until()
             // set fiber to state_ready if deadline was reached
             if ( ctx->tp_ <= now) {
                 // remove context from sleep-queue
@@ -185,10 +185,11 @@ scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
-    // context was waiting for a certain time
-    // an is no set to ready
-    // (might happen with timed_mutex)
+    // we do not test for wait-queue because
+    // context::wait_is_linked() is not sychronized
+    // with other threads
+    // remove context ctx from sleep-queue
+    // (might happen if blocked in timed_mutex::try_lock_until())
     if ( ctx->sleep_is_linked() ) {
         // unlink it from sleep-queue
         ctx->sleep_unlink();
@@ -202,11 +203,9 @@ scheduler::set_ready( context * ctx) noexcept {
 void
 scheduler::set_remote_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( ! ctx->is_terminated() );
-    BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->sleep_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
-    // set the scheduler for new context
+    // context ctx might in wait-/ready-/sleep-queue
+    // we do not test this in this function
+    // scheduler::dispatcher() has to take care
     ctx->set_scheduler( this);
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
@@ -230,7 +229,9 @@ scheduler::yield( context * active_ctx) noexcept {
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );
     BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
-    BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+    // we do not test for wait-queue because
+    // context::wait_is_linked() is not sychronized
+    // with other threads
     // push active context to ready-queue
     ready_queue_.push_back( * active_ctx);
     // resume another fiber
@@ -244,8 +245,10 @@ scheduler::wait_until( context * active_ctx,
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );
     BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
-    // NOTE: active_ctx->wait_is_linked() might return true
-    //       if context was locked inside timed_mutex::try_lock_until()
+    // active_ctx->wait_is_linked() might return true
+    // if context was locked inside timed_mutex::try_lock_until()
+    // context::wait_is_linked() is not sychronized
+    // with other threads
     // push active context to sleep-queue
     active_ctx->tp_ = sleep_tp;
     sleep_queue_.insert( * active_ctx);
