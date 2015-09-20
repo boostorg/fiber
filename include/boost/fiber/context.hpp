@@ -70,6 +70,14 @@ typedef intrusive::list_member_hook<
     >
 >                                       ready_hook;
 
+struct remote_ready_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< remote_ready_tag >,
+    intrusive::link_mode<
+        intrusive::safe_link
+    >
+>                                       remote_ready_hook;
+
 struct sleep_tag;
 typedef intrusive::set_member_hook<
     intrusive::tag< sleep_tag >,
@@ -120,6 +128,7 @@ private:
 
 public:
     detail::ready_hook                      ready_hook_;
+    detail::remote_ready_hook               remote_ready_hook_;
     detail::sleep_hook                      sleep_hook_;
     detail::terminated_hook                 terminated_hook_;
     detail::wait_hook                       wait_hook_;
@@ -227,6 +236,7 @@ public:
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
         ready_hook_(),
+        remote_ready_hook_(),
         terminated_hook_(),
         wait_hook_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
@@ -272,11 +282,13 @@ public:
         return 0 != ( flags_ & flag_terminated);
     }
 
-    bool wait_is_linked();
-
     bool ready_is_linked();
 
+    bool remote_ready_is_linked();
+
     bool sleep_is_linked();
+
+    bool wait_is_linked();
 
     void sleep_unlink();
 

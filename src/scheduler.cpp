@@ -58,32 +58,50 @@ scheduler::release_terminated_() {
 }
 
 void
-scheduler::woken_up_() noexcept {
-        // move context which the deadline has reached
-        // to ready-queue
-        // sleep-queue is sorted (ascending)
-        std::chrono::steady_clock::time_point now =
-                std::chrono::steady_clock::now();
-        sleep_queue_t::iterator e = sleep_queue_.end();
-        for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
-            context * ctx = & ( * i);
-            BOOST_ASSERT( ! ctx->is_terminated() );
-            BOOST_ASSERT( ! ctx->ready_is_linked() );
-            BOOST_ASSERT( ctx->sleep_is_linked() );
-            // ctx->wait_is_linked() might return true if
-            // context is waiting in time_mutex::try_lock_until()
-            // set fiber to state_ready if deadline was reached
-            if ( ctx->tp_ <= now) {
-                // remove context from sleep-queue
-                i = sleep_queue_.erase( i);
-                // reset sleep-tp
-                ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
-                // push new context to ready-queue
-                ready_queue_.push_back( * ctx);
-            } else {
-                break; // first element with ctx->tp_ > now, leave for-loop
-            }
+scheduler::move_from_remote_() {
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    // get from remote ready-queue
+    remote_ready_queue_t::iterator e = remote_ready_queue_.end();
+    for ( remote_ready_queue_t::iterator i = remote_ready_queue_.begin(); i != e;) {
+        context * ctx = & ( * i);
+        i = remote_ready_queue_.erase( i);
+        // context must no be contained in ready-queue
+        // no need to check agains active context
+        // because we are in scheduler::dispatch() -> dispatcher-context
+        if ( ! ctx->ready_is_linked() ) {
+            ready_queue_.push_back( * ctx);
         }
+    }
+}
+
+void
+scheduler::woken_up_() noexcept {
+    // move context which the deadline has reached
+    // to ready-queue
+    // sleep-queue is sorted (ascending)
+    std::chrono::steady_clock::time_point now =
+        std::chrono::steady_clock::now();
+    sleep_queue_t::iterator e = sleep_queue_.end();
+    for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
+        context * ctx = & ( * i);
+        BOOST_ASSERT( ! ctx->is_terminated() );
+        BOOST_ASSERT( ! ctx->ready_is_linked() );
+        BOOST_ASSERT( ctx->sleep_is_linked() );
+        // ctx->wait_is_linked() might return true if
+        // context is waiting in time_mutex::try_lock_until()
+        // set fiber to state_ready if deadline was reached
+        if ( ctx->tp_ <= now) {
+            // remove context from sleep-queue
+            i = sleep_queue_.erase( i);
+            // reset sleep-tp
+            ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
+            // push new context to ready-queue
+            ready_queue_.push_back( * ctx);
+        } else {
+            break; // first element with ctx->tp_ > now, leave for-loop
+        }
+    }
 }
 
 scheduler::scheduler() noexcept :
@@ -138,19 +156,13 @@ scheduler::dispatch() {
         release_terminated_();
         // get sleeping context'
         woken_up_();
-        // protect for concurrent access
-        std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
-        // get from remote ready-queue
-        ready_queue_.splice( ready_queue_.end(), remote_ready_queue_);
-        lk.unlock();
+        // get context' from remote ready-queue
+        move_from_remote_();
         context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
-            // protect for concurrent access
-            lk.lock();
-            // get from remote ready-queue
-            ready_queue_.splice( ready_queue_.end(), remote_ready_queue_);
-            lk.unlock();
+            // get context' from remote ready-queue
+            move_from_remote_();
             // no ready context, wait till signaled
             // set deadline to highest value
             std::chrono::steady_clock::time_point tp =
