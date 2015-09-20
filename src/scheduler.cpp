@@ -101,7 +101,6 @@ scheduler::~scheduler() noexcept {
     BOOST_ASSERT( nullptr != main_ctx_);
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
-
     // signal dispatcher context termination
     shutdown_ = true;
     // resume pending fibers

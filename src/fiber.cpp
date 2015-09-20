@@ -32,17 +32,13 @@ fiber::join() {
         throw fiber_resource_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
                                     "boost fiber: trying to join itself");
     }
-
     if ( ! joinable() ) {
         throw fiber_resource_error( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: fiber not joinable");
     }
-
     ptr_t tmp;
     tmp.swap( impl_);
-
     tmp->join();
-
     // TODO: call interruption_point()
 }
 
