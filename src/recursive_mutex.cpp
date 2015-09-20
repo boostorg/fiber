@@ -29,7 +29,6 @@ recursive_mutex::lock_if_unlocked_() {
             return false;
         }
     }
-
     if ( mutex_status::unlocked != state_.exchange( mutex_status::locked, std::memory_order_acquire) ) {
         if ( context::active() == owner_) {
             ++count_;
@@ -38,7 +37,6 @@ recursive_mutex::lock_if_unlocked_() {
             return false;
         }
     }
-
     BOOST_ASSERT( nullptr == owner_);
     owner_ = context::active();
     ++count_;
@@ -67,16 +65,13 @@ recursive_mutex::lock() {
             if ( lock_if_unlocked_() ) {
                 return;
             }
-
             // store this fiber in order to be notified later
             detail::spinlock_lock lk( wait_queue_splk_);
             BOOST_ASSERT( ! ctx->wait_is_linked() );
             wait_queue_.push_back( * ctx);
             lk.unlock();
-
             // suspend this fiber
             ctx->suspend();
-
             // remove fiber from wait-queue 
             lk.lock();
             ctx->wait_unlink();
@@ -94,7 +89,6 @@ recursive_mutex::try_lock() {
     if ( lock_if_unlocked_() ) {
         return true;
     }
-
     // let other fiber release the lock
     context::active()->yield();
     return false;
@@ -104,7 +98,6 @@ void
 recursive_mutex::unlock() {
     BOOST_ASSERT( mutex_status::locked == state_);
     BOOST_ASSERT( context::active() == owner_);
-
     detail::spinlock_lock lk( wait_queue_splk_);
     context * ctx( nullptr);
     if ( 0 == --count_) {
@@ -116,7 +109,6 @@ recursive_mutex::unlock() {
         lk.unlock();
         owner_ = nullptr;
         state_.store( mutex_status::unlocked, std::memory_order_release);
-
         if ( nullptr != ctx) {
             context::active()->set_ready( ctx);
         }
