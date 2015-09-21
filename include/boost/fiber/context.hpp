@@ -267,7 +267,7 @@ public:
 
     void release() noexcept;
 
-    void join() noexcept;
+    void join();
 
     void yield() noexcept;
 

@@ -144,7 +144,7 @@ context::release() noexcept {
 }
 
 void
-context::join() noexcept {
+context::join() {
     // get active context
     context * active_ctx = context::active();
     try {
