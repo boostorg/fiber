@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <exception>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -22,6 +23,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -108,10 +110,12 @@ const worker_context_t worker_context{};
 class BOOST_FIBERS_DECL context {
 private:
     enum flag_t {
-        flag_main_context       = 1 << 1,
-        flag_dispatcher_context = 1 << 2,
-        flag_worker_context     = 1 << 3,
-        flag_terminated         = 1 << 4
+        flag_main_context           = 1 << 1,
+        flag_dispatcher_context     = 1 << 2,
+        flag_worker_context         = 1 << 3,
+        flag_terminated             = 1 << 4,
+        flag_interruption_blocked   = 1 << 5,
+        flag_interruption_requested = 1 << 6
     };
 
     static thread_local context         *   active_;
@@ -225,8 +229,13 @@ public:
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
               [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> void {
-                // invoke fiber function
-                boost::context::detail::invoke_helper( std::move( fn), std::move( tpl) );
+                try {
+                    // invoke fiber function
+                    boost::context::detail::invoke_helper( std::move( fn), std::move( tpl) );
+                } catch ( fiber_interrupted const&) {
+                } catch ( ... ) {
+                    std::terminate();
+                }
                 // mark fiber as terminated
                 set_terminated_();
                 // notify waiting (joining) fibers
@@ -267,20 +276,32 @@ public:
     void set_ready( context *) noexcept;
 
     bool is_main_context() const noexcept {
-        return 0 != ( flags_ & flag_main_context);
+        return flags_ & flag_main_context;
     }
 
     bool is_dispatcher_context() const noexcept {
-        return 0 != ( flags_ & flag_dispatcher_context);
+        return flags_ & flag_dispatcher_context;
     }
 
     bool is_worker_context() const noexcept {
-        return 0 != ( flags_ & flag_worker_context);
+        return flags_ & flag_worker_context;
     }
 
     bool is_terminated() const noexcept {
-        return 0 != ( flags_ & flag_terminated);
+        return flags_ & flag_terminated;
     }
+
+    bool interruption_blocked() const noexcept {
+        return flags_ & flag_interruption_blocked;
+    }
+
+    void interruption_blocked( bool blck) noexcept;
+
+    bool interruption_requested() const noexcept {
+        return flags_ & flag_interruption_requested;
+    }
+
+    void request_interruption( bool req) noexcept;
 
     bool ready_is_linked();
 

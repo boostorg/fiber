@@ -19,6 +19,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 
@@ -77,6 +78,8 @@ public:
             // remove fiber from wait-queue 
             lk.lock();
             ctx->wait_unlink();
+            // check if context was interrupted
+            this_fiber::interruption_point();
             // lock external again before returning
             lt.lock();
         } catch (...) {
@@ -108,6 +111,8 @@ public:
             // remove fiber from wait-queue 
             lk.lock();
             ctx->wait_unlink();
+            // check if context was interrupted
+            this_fiber::interruption_point();
             // lock external again before returning
             lt.lock();
         } catch (...) {

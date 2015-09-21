@@ -101,6 +101,8 @@ public:
     }
 
     void join();
+
+    void interrupt() noexcept;
 };
 
 inline
