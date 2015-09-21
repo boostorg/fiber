@@ -322,7 +322,6 @@ void do_join( boost::fibers::fiber * f, bool * interrupted) {
         f->join();
     } catch ( ... ) {
         * interrupted = true;
-        fprintf(stderr, "do_join() -> throw\n");
     }
 }
 
@@ -331,7 +330,7 @@ void test_fiber_interrupt_at_join() {
     boost::fibers::barrier b( 2);
     boost::fibers::fiber f1(do_wait, & b);
     boost::fibers::fiber f2(do_join, & f1, & interrupted);
-    //boost::this_fiber::yield();
+    boost::this_fiber::yield();
     f2.interrupt();
     f2.join();
     b.wait();
@@ -376,7 +375,7 @@ void test_sleep_until_is_interruption_point() {
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
-#if 0
+
     test->add( BOOST_TEST_CASE( & test_scheduler_dtor) );
     test->add( BOOST_TEST_CASE( & test_join_fn) );
     test->add( BOOST_TEST_CASE( & test_join_memfn) );
@@ -390,12 +389,9 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     test->add( BOOST_TEST_CASE( & test_sleep_until) );
     test->add( BOOST_TEST_CASE( & test_fiber_interrupts_at_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_fiber_no_interrupt_if_interrupts_disabled_at_interruption_point) );
-#endif
     test->add( BOOST_TEST_CASE( & test_fiber_interrupt_at_join) );
-#if 0
     test->add( BOOST_TEST_CASE( & test_sleep_for_is_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_sleep_until_is_interruption_point) );
-#endif
 
     return test;
 }

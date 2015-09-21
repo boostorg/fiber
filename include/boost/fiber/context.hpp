@@ -276,29 +276,29 @@ public:
     void set_ready( context *) noexcept;
 
     bool is_main_context() const noexcept {
-        return flags_ & flag_main_context;
+        return 0 != ( flags_ & flag_main_context);
     }
 
     bool is_dispatcher_context() const noexcept {
-        return flags_ & flag_dispatcher_context;
+        return 0 != ( flags_ & flag_dispatcher_context);
     }
 
     bool is_worker_context() const noexcept {
-        return flags_ & flag_worker_context;
+        return 0 != ( flags_ & flag_worker_context);
     }
 
     bool is_terminated() const noexcept {
-        return flags_ & flag_terminated;
+        return 0 != ( flags_ & flag_terminated);
     }
 
     bool interruption_blocked() const noexcept {
-        return flags_ & flag_interruption_blocked;
+        return 0 != ( flags_ & flag_interruption_blocked);
     }
 
     void interruption_blocked( bool blck) noexcept;
 
     bool interruption_requested() const noexcept {
-        return flags_ & flag_interruption_requested;
+        return 0 != ( flags_ & flag_interruption_requested);
     }
 
     void request_interruption( bool req) noexcept;
