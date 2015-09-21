@@ -38,7 +38,7 @@ recursive_timed_mutex::lock_if_unlocked_() {
             return false;
         }
     }
-    BOOST_ASSERT( nullptr == owner_);
+    BOOST_ASSERT( nullptr == owner_.load());
     owner_ = context::active();
     ++count_;
     return true;
@@ -53,7 +53,7 @@ recursive_timed_mutex::recursive_timed_mutex() :
 }
 
 recursive_timed_mutex::~recursive_timed_mutex() {
-    BOOST_ASSERT( nullptr == owner_);
+    BOOST_ASSERT( nullptr == owner_.load());
     BOOST_ASSERT( 0 == count_);
     BOOST_ASSERT( wait_queue_.empty() );
 }
