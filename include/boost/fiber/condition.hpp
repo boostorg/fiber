@@ -63,6 +63,8 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
+        // check if context was interrupted
+        this_fiber::interruption_point();
         context * ctx = context::active();
         try {
             // store this fiber in waiting-queue
@@ -91,6 +93,8 @@ public:
 
     template< typename LockType, typename Clock, typename Duration >
     cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+        // check if context was interrupted
+        this_fiber::interruption_point();
         cv_status status = cv_status::no_timeout;
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert( timeout_time_) );
