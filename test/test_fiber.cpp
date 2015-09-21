@@ -326,16 +326,29 @@ void do_join( boost::fibers::fiber * f, bool * interrupted) {
 }
 
 void test_fiber_interrupt_at_join() {
-    bool interrupted=false;
-    boost::fibers::barrier b( 2);
-    boost::fibers::fiber f1(do_wait, & b);
-    boost::fibers::fiber f2(do_join, & f1, & interrupted);
-    boost::this_fiber::yield();
-    f2.interrupt();
-    f2.join();
-    b.wait();
-    f1.join();
-    BOOST_CHECK(interrupted);
+    {
+        bool interrupted=false;
+        boost::fibers::barrier b( 2);
+        boost::fibers::fiber f1(do_wait, & b);
+        boost::fibers::fiber f2(do_join, & f1, & interrupted);
+        f2.interrupt();
+        f2.join();
+        b.wait();
+        f1.join();
+        BOOST_CHECK(interrupted);
+    }
+    {
+        bool interrupted=false;
+        boost::fibers::barrier b( 2);
+        boost::fibers::fiber f1(do_wait, & b);
+        boost::fibers::fiber f2(do_join, & f1, & interrupted);
+        boost::this_fiber::yield();
+        f2.interrupt();
+        f2.join();
+        b.wait();
+        f1.join();
+        BOOST_CHECK(interrupted);
+    }
 }
 
 void do_sleep_for( std::chrono::seconds const& s, bool * interrupted) {
