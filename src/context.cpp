@@ -147,13 +147,8 @@ void
 context::join() {
     // get active context
     context * active_ctx = context::active();
-    try {
     // context::join() is a interruption point
     this_fiber::interruption_point();
-    } catch ( boost::fibers::fiber_interrupted const&) {
-        fprintf(stderr, "context::join() -> throw\n");
-        throw;
-    }
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
     // wait for context which is not terminated
