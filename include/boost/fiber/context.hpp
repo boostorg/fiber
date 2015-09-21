@@ -97,13 +97,13 @@ typedef intrusive::list_member_hook<
 }
 
 struct main_context_t {};
-constexpr main_context_t main_context = main_context_t();
+const main_context_t main_context{};
 
 struct dispatcher_context_t {};
-constexpr dispatcher_context_t dispatcher_context = dispatcher_context_t();
+const dispatcher_context_t dispatcher_context{};
 
 struct worker_context_t {};
-constexpr worker_context_t worker_context = worker_context_t();
+const worker_context_t worker_context{};
 
 class BOOST_FIBERS_DECL context {
 private:
