@@ -14,6 +14,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/fiber.hpp>
+#include <boost/fiber/interruption.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,16 +38,16 @@ void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time_)
     std::chrono::steady_clock::time_point sleep_time(
             boost::fibers::detail::convert( sleep_time_) );
     fibers::context::active()->wait_until( sleep_time);
-    // TODO: check if fiber was interrupted
-    //interruption_point();
+    // check if fiber was interrupted
+    interruption_point();
 }
 
 template< typename Rep, typename Period >
 void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
     fibers::context::active()->wait_until(
             std::chrono::steady_clock::now() + timeout_duration);
-    // TODO: check if fiber was interrupted
-    //interruption_point();
+    // check if fiber was interrupted
+    interruption_point();
 }
 
 }}

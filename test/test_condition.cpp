@@ -78,7 +78,7 @@ void wait_fn(
 	cond.wait( lk);
 	++value;
 }
-#if 0
+
 void test_condition_wait_is_a_interruption_point() {
     condition_test_data data;
     bool interrupted = false;
@@ -92,7 +92,7 @@ void test_condition_wait_is_a_interruption_point() {
     BOOST_CHECK(interrupted);
     BOOST_CHECK_EQUAL(data.awoken,0);
 }
-#endif
+
 void test_one_waiter_notify_one() {
 	value = 0;
 	boost::fibers::mutex mtx;
@@ -488,7 +488,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
     test->add( BOOST_TEST_CASE( & test_condition_wait) );
-    //FIXME :test->add( BOOST_TEST_CASE( & test_condition_wait_is_a_interruption_point) );
+    //test->add( BOOST_TEST_CASE( & test_condition_wait_is_a_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_condition_wait_until) );
     test->add( BOOST_TEST_CASE( & test_condition_wait_until_pred) );
     test->add( BOOST_TEST_CASE( & test_condition_wait_for) );

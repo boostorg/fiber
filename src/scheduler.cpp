@@ -158,6 +158,7 @@ scheduler::dispatch() {
         woken_up_();
         // get context' from remote ready-queue
         move_from_remote_();
+        // FIXME: local and remote ready-queue cotnain same context
         context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
@@ -195,7 +196,12 @@ void
 scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
-    BOOST_ASSERT( ! ctx->ready_is_linked() );
+    // if context is already in ready-queue, return
+    // this might happend if a newly create fiber is
+    // signaled to interrupt
+    if ( ctx->ready_is_linked() ) {
+        return;
+    }
     // we do not test for wait-queue because
     // context::wait_is_linked() is not sychronized
     // with other threads

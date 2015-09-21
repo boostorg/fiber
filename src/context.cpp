@@ -6,6 +6,8 @@
 
 #include "boost/fiber/context.hpp"
 
+#include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/interruption.hpp"
 #include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -143,12 +145,19 @@ context::release() noexcept {
 
 void
 context::join() noexcept {
+    // get active context
+    context * active_ctx = context::active();
+    try {
+    // context::join() is a interruption point
+    this_fiber::interruption_point();
+    } catch ( boost::fibers::fiber_interrupted const&) {
+        fprintf(stderr, "context::join() -> throw\n");
+        throw;
+    }
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
     // wait for context which is not terminated
     if ( 0 == ( flags_ & flag_terminated) ) {
-        // get active context
-        context * active_ctx = context::active();
         // push active context to wait-queue, member
         // of the context which has to be joined by
         // the active context
@@ -156,7 +165,13 @@ context::join() noexcept {
         lk.unlock();
         // suspend active context
         scheduler_->re_schedule( active_ctx);
+        // remove from wait-queue
+        active_ctx->wait_unlink();
+        // active context resumed
+        BOOST_ASSERT( context::active() == active_ctx);
     }
+    // context::join() is a interruption point
+    this_fiber::interruption_point();
 }
 
 void
@@ -188,6 +203,25 @@ context::set_ready( context * ctx) noexcept {
     } else {
         // remote
         ctx->scheduler_->set_remote_ready( ctx);
+    }
+}
+
+void
+context::interruption_blocked( bool blck) noexcept {
+    if ( blck) {
+        flags_ |= flag_interruption_blocked;
+    } else {
+        flags_ &= ~flag_interruption_blocked;
+    }
+}
+
+void
+context::request_interruption( bool req) noexcept {
+    BOOST_ASSERT( ! is_main_context() && ! is_dispatcher_context() );
+    if ( req) {
+        flags_ |= flag_interruption_requested;
+    } else {
+        flags_ &= ~flag_interruption_requested;
     }
 }
 
