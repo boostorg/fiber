@@ -28,7 +28,7 @@ timed_mutex::lock_if_unlocked_() {
     if ( mutex_status::unlocked != state_.exchange( mutex_status::locked, std::memory_order_acquire) ) {
         return false;
     }
-    BOOST_ASSERT( nullptr == owner_);
+    BOOST_ASSERT( nullptr == owner_.load());
     owner_ = context::active();
     return true;
 }
@@ -41,7 +41,7 @@ timed_mutex::timed_mutex() :
 }
 
 timed_mutex::~timed_mutex() {
-    BOOST_ASSERT( nullptr == owner_);
+    BOOST_ASSERT( nullptr == owner_.load());
     BOOST_ASSERT( wait_queue_.empty() );
 }
 
