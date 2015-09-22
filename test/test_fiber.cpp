@@ -83,6 +83,38 @@ public:
     }
 };
 
+class detachable {
+private:
+    int   alive_count_;
+
+public:
+    static int    alive_count;
+    static bool   was_running;
+
+    detachable() :
+        alive_count_( 1) {
+        ++alive_count;
+    }
+
+    detachable( detachable const& g) :
+        alive_count_( g.alive_count_) {
+        ++alive_count;
+    }
+
+    ~detachable() {
+        alive_count_ = 0;
+        --alive_count;
+    }
+
+    void operator()() {
+        BOOST_CHECK_EQUAL(1, alive_count_);
+        was_running = true;
+    }
+};
+
+int detachable::alive_count = 0;
+bool detachable::was_running = false;
+
 void fn1() {
     value1 = 1;
 }
@@ -385,6 +417,28 @@ void test_sleep_until_is_interruption_point() {
     BOOST_CHECK(interrupted);
 }
 
+void test_detach() {
+    {
+        boost::fibers::fiber f( (detachable()) );
+        BOOST_CHECK( f.joinable() );
+        f.detach();
+        BOOST_CHECK( ! f.joinable() );
+        boost::this_fiber::sleep_for( std::chrono::milliseconds(250) );
+        BOOST_CHECK( detachable::was_running);
+        BOOST_CHECK_EQUAL( 0, detachable::alive_count);
+    }
+    {
+        boost::fibers::fiber f( (detachable()) );
+        BOOST_CHECK( f.joinable() );
+        boost::this_fiber::yield();
+        f.detach();
+        BOOST_CHECK( ! f.joinable() );
+        boost::this_fiber::sleep_for( std::chrono::milliseconds(250) );
+        BOOST_CHECK( detachable::was_running);
+        BOOST_CHECK_EQUAL( 0, detachable::alive_count);
+    }
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: fiber test suite");
@@ -405,6 +459,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     test->add( BOOST_TEST_CASE( & test_fiber_interrupt_at_join) );
     test->add( BOOST_TEST_CASE( & test_sleep_for_is_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_sleep_until_is_interruption_point) );
+    test->add( BOOST_TEST_CASE( & test_detach) );
 
     return test;
 }

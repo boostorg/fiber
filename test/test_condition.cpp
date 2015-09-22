@@ -80,12 +80,22 @@ void wait_fn(
 }
 
 void test_condition_wait_is_a_interruption_point() {
-    condition_test_data data;
-    boost::fibers::fiber f( & condition_test_fiber, &data);
+    {
+        condition_test_data data;
+        boost::fibers::fiber f( & condition_test_fiber, &data);
 
-    f.interrupt();
-    f.join();
-    BOOST_CHECK_EQUAL(data.awoken,0);
+        f.interrupt();
+        f.join();
+        BOOST_CHECK_EQUAL(data.awoken,0);
+    }
+    {
+        condition_test_data data;
+        boost::fibers::fiber f( & condition_test_fiber, &data);
+        boost::this_fiber::yield();
+        f.interrupt();
+        f.join();
+        BOOST_CHECK_EQUAL(data.awoken,0);
+    }
 }
 
 void test_one_waiter_notify_one() {
