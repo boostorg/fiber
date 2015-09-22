@@ -10,6 +10,7 @@
 #include <atomic>
 #include <chrono>
 #include <exception>
+#include <map>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -22,6 +23,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
@@ -118,6 +120,29 @@ private:
         flag_interruption_requested = 1 << 6
     };
 
+    struct BOOST_FIBERS_DECL fss_data {
+        void                                *   vp;
+        detail::fss_cleanup_function::ptr_t     cleanup_function;
+
+        fss_data() :
+            vp( nullptr),
+            cleanup_function() {
+        }
+
+        fss_data( void * vp_,
+                  detail::fss_cleanup_function::ptr_t const& fn) :
+            vp( vp_),
+            cleanup_function( fn) {
+            BOOST_ASSERT( cleanup_function);
+        }
+
+        void do_cleanup() {
+            ( * cleanup_function)( vp);
+        }
+    };
+
+    typedef std::map< uintptr_t, fss_data >     fss_data_t;
+
     static thread_local context         *   active_;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
@@ -144,6 +169,7 @@ public:
         intrusive::constant_time_size< false > >   wait_queue_t;
 
 private:
+    fss_data_t                              fss_data_;
     wait_queue_t                            wait_queue_;
     detail::spinlock                        splk_;
 
@@ -249,6 +275,7 @@ public:
         terminated_hook_(),
         wait_hook_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
+        fss_data_(),
         wait_queue_(),
         splk_() {
     }
@@ -300,6 +327,14 @@ public:
     bool interruption_requested() const noexcept {
         return 0 != ( flags_ & flag_interruption_requested);
     }
+
+    void * get_fss_data( void const * vp) const;
+
+    void set_fss_data(
+        void const * vp,
+        detail::fss_cleanup_function::ptr_t const& cleanup_fn,
+        void * data,
+        bool cleanup_existing);
 
     void request_interruption( bool req) noexcept;
 

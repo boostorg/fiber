@@ -63,6 +63,7 @@ context::context( main_context_t) :
     terminated_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
+    fss_data_(),
     wait_queue_(),
     splk_() {
 }
@@ -85,6 +86,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     terminated_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
+    fss_data_(),
     wait_queue_(),
     splk_() {
 }
@@ -141,6 +143,11 @@ context::release() noexcept {
         // notify scheduler
         scheduler_->set_ready( ctx);
     }
+    // release fiber-specific-data
+    for ( fss_data_t::value_type & data : fss_data_) {
+        data.second.do_cleanup();
+    }
+    fss_data_.clear();
 }
 
 void
@@ -217,6 +224,42 @@ context::request_interruption( bool req) noexcept {
         flags_ |= flag_interruption_requested;
     } else {
         flags_ &= ~flag_interruption_requested;
+    }
+}
+
+void *
+context::get_fss_data( void const * vp) const {
+    uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
+    fss_data_t::const_iterator i( fss_data_.find( key) );
+    return fss_data_.end() != i ? i->second.vp : nullptr;
+}
+
+void
+context::set_fss_data( void const * vp,
+                       detail::fss_cleanup_function::ptr_t const& cleanup_fn,
+                       void * data,
+                       bool cleanup_existing) {
+    BOOST_ASSERT( cleanup_fn);
+    uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
+    fss_data_t::iterator i( fss_data_.find( key) );
+    if ( fss_data_.end() != i) {
+        if( cleanup_existing) {
+            i->second.do_cleanup();
+        }
+        if ( nullptr != data) {
+            fss_data_.insert(
+                    i,
+                    std::make_pair(
+                        key,
+                        fss_data( data, cleanup_fn) ) );
+        } else {
+            fss_data_.erase( i);
+        }
+    } else {
+        fss_data_.insert(
+            std::make_pair(
+                key,
+                fss_data( data, cleanup_fn) ) );
     }
 }
 
