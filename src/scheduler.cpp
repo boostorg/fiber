@@ -58,7 +58,7 @@ scheduler::release_terminated_() {
 }
 
 void
-scheduler::move_from_remote_() {
+scheduler::remote_ready2ready_() {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
     // get from remote ready-queue
@@ -76,7 +76,7 @@ scheduler::move_from_remote_() {
 }
 
 void
-scheduler::woken_up_() noexcept {
+scheduler::sleep2ready_() noexcept {
     // move context which the deadline has reached
     // to ready-queue
     // sleep-queue is sorted (ascending)
@@ -155,15 +155,15 @@ scheduler::dispatch() {
         // release termianted context'
         release_terminated_();
         // get sleeping context'
-        woken_up_();
+        sleep2ready_();
         // get context' from remote ready-queue
-        move_from_remote_();
+        remote_ready2ready_();
         // FIXME: local and remote ready-queue cotnain same context
         context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
             // get context' from remote ready-queue
-            move_from_remote_();
+            remote_ready2ready_();
             // no ready context, wait till signaled
             // set deadline to highest value
             std::chrono::steady_clock::time_point tp =
@@ -175,7 +175,7 @@ scheduler::dispatch() {
             }
             ready_queue_ev_.reset( tp);
             // get sleeping context'
-            woken_up_();
+            sleep2ready_();
         }
         // push dispatcher context to ready-queue
         // so that ready-queue never becomes empty

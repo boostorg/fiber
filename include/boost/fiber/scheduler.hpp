@@ -73,9 +73,9 @@ private:
 
     void release_terminated_();
 
-    void move_from_remote_();
+    void remote_ready2ready_();
 
-    void woken_up_() noexcept;
+    void sleep2ready_() noexcept;
 
 public:
     scheduler() noexcept;
