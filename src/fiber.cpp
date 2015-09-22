@@ -49,6 +49,15 @@ fiber::interrupt() noexcept {
     context::active()->set_ready( impl_.get() );
 }
 
+void
+fiber::detach() noexcept {
+    if ( ! joinable() ) {
+        throw fiber_resource_error( static_cast< int >( std::errc::invalid_argument),
+                                    "boost fiber: fiber not joinable");
+    }
+    impl_.reset();
+}
+
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS
