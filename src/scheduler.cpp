@@ -122,7 +122,7 @@ scheduler::~scheduler() noexcept {
     BOOST_ASSERT( nullptr != main_ctx_);
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
-    // signal dispatcher context termination
+    // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
     resume_( main_ctx_, get_next_() );
@@ -143,10 +143,10 @@ void
 scheduler::set_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noexcept {
     BOOST_ASSERT( dispatcher_ctx);
     dispatcher_ctx_.swap( dispatcher_ctx);
-    // add dispatcher context to ready-queue
+    // add dispatcher-context to ready-queue
     // so it is the first element in the ready-queue
     // if the main context tries to suspend the first time
-    // the dispatcher context is resumed and
+    // the dispatcher-context is resumed and
     // scheduler::dispatch() is executed
     dispatcher_ctx_->set_scheduler( this);
     ready_queue_.push_back( * dispatcher_ctx_.get() );
@@ -162,7 +162,7 @@ scheduler::dispatch() {
         sleep2ready_();
         // get context' from remote ready-queue
         remote_ready2ready_();
-        // FIXME: local and remote ready-queue cotnain same context
+        // FIXME: local and remote ready-queue contain same context
         context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
@@ -177,19 +177,20 @@ scheduler::dispatch() {
             if ( sleep_queue_.end() != i) {
                 tp = i->tp_;
             }
+            // no ready context, wait till signaled
             ready_queue_ev_.reset( tp);
             // get sleeping context'
             sleep2ready_();
-        }
-        // push dispatcher context to ready-queue
-        // so that ready-queue never becomes empty
-        auto active_ctx = context::active();
-        ready_queue_.push_back( * active_ctx);
-        resume_( active_ctx, ctx);
             // TODO: pump external event-loop like boost::asio::io_service
             //       react on external interrupt signals
-            //       react on requestsin work sahring scenario
-            // no ready context, wait till signaled
+            //       react on requesting work sharing scenario
+            //       no ready context, wait till signaled
+        }
+        // push dispatcher-context to ready-queue
+        // so that ready-queue never becomes empty
+        ready_queue_.push_back( * dispatcher_ctx_);
+        resume_( dispatcher_ctx_.get(), ctx);
+        BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
     }
     // interrupt all context' in ready- and sleep-queue
     release_terminated_();
@@ -241,6 +242,9 @@ scheduler::set_terminated( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
+    // store the terminated fiber in the terminated-queue
+    // the dispatcher-context will call 
+    // intrusive_ptr_release( ctx);
     terminated_queue_.push_back( * ctx);
 }
 
