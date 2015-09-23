@@ -20,15 +20,22 @@ int fn( int i) {
 boost::fibers::future< int > async( int i) {
     boost::fibers::packaged_task< int() > pt( std::bind( fn, i) );
     boost::fibers::future< int > f( pt.get_future() );
-    std::thread( [pt=std::move( pt)] () mutable -> decltype( auto) { boost::fibers::fiber( std::move( pt) ).join(); } ).detach();
-    return std::move( f);
+    std::thread([pt=std::move( pt)] () mutable -> void {
+                    boost::fibers::fiber f( std::move( pt) );
+                    boost::this_fiber::yield();
+                    f.join();
+                    //pt();
+               }).detach();
+    return f;
 }
 
 void test_async() {
-    int i = 3;
-    boost::fibers::future< int > f = async( i);
-    int result = f.get();
-    BOOST_CHECK_EQUAL( i, result);
+    for ( int i = 0; i < 100; ++i) {
+        int n = 3;
+        boost::fibers::future< int > f = async( n);
+        int result = f.get();
+        BOOST_CHECK_EQUAL( n, result);
+    }
 }
 
 void test_dummy() {}
@@ -38,9 +45,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
         BOOST_TEST_SUITE("Boost.Fiber: futures-mt test suite");
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    for ( int i = 0; i < 50; ++i) {
-        test->add(BOOST_TEST_CASE(test_async));
-    }
+    test->add(BOOST_TEST_CASE(test_async));
 #else
     test->add(BOOST_TEST_CASE(test_dummy));
 #endif
