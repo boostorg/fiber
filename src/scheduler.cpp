@@ -34,6 +34,7 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     context::active( ctx);
     // resume active-fiber == ctx
     ctx->resume();
+    BOOST_ASSERT( context::active() == active_ctx);
 }
 
 context *
@@ -59,13 +60,15 @@ scheduler::release_terminated_() {
 
 void
 scheduler::remote_ready2ready_() {
+    remote_ready_queue_t tmp;
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    remote_ready_queue_.swap( tmp);
+    lk.unlock();
     // get from remote ready-queue
-    remote_ready_queue_t::iterator e = remote_ready_queue_.end();
-    for ( remote_ready_queue_t::iterator i = remote_ready_queue_.begin(); i != e;) {
-        context * ctx = & ( * i);
-        i = remote_ready_queue_.erase( i);
+    while ( ! tmp.empty() ) {
+        context * ctx = & tmp.front();
+        tmp.pop_front();
         // context must no be contained in ready-queue
         // no need to check agains active context
         // because we are in scheduler::dispatch() -> dispatcher-context
@@ -151,6 +154,7 @@ scheduler::set_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noex
 
 void
 scheduler::dispatch() {
+    BOOST_ASSERT( context::active() == dispatcher_ctx_);
     while ( ! shutdown_) {
         // release termianted context'
         release_terminated_();
@@ -260,7 +264,14 @@ scheduler::wait_until( context * active_ctx,
                        std::chrono::steady_clock::time_point const& sleep_tp) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( ! active_ctx->is_terminated() );
-    BOOST_ASSERT( ! active_ctx->ready_is_linked() );
+    // if the active-fiber running in this thread calls
+    // condition:wait() and code in another thread calls
+    // condition::notify_one(), it might happen that the
+    // other thread pushes the fiber to remote ready-queue first
+    // the dispatcher-context migh have been moved the fiber from
+    // the remote ready-queue to the local ready-queue
+    // so we do not check
+    //BOOST_ASSERT( active_ctx->ready_is_linked() );
     BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
     // active_ctx->wait_is_linked() might return true
     // if context was locked inside timed_mutex::try_lock_until()
