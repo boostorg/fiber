@@ -56,13 +56,30 @@ private:
                     detail::terminated_hook,
                     & context::terminated_hook_ >,
                 intrusive::constant_time_size< false > >    terminated_queue_t;
+    typedef intrusive::list<
+                context,
+                intrusive::member_hook<
+                    context,
+                    detail::worker_hook,
+                    & context::worker_hook_ >,
+                intrusive::constant_time_size< false > >    worker_queue_t;
 
     context                 *   main_ctx_;
     intrusive_ptr< context >    dispatcher_ctx_;
-    ready_queue_t               ready_queue_;
-    remote_ready_queue_t        remote_ready_queue_;
-    sleep_queue_t               sleep_queue_;
+    // worker-queue contains all context' mananged by this scheduler
+    // except main-context and dispatcher-context
+    // unlink happens on destruction of a context
+    worker_queue_t             worker_queue_;
+    // terminated-queue contains context' which have been terminated
     terminated_queue_t          terminated_queue_;
+    // ready-queue contains context' ready to be resumed
+    ready_queue_t               ready_queue_;
+    // remote ready-queue contains context' signaled by schedulers
+    // running in other threads
+    remote_ready_queue_t        remote_ready_queue_;
+    // sleep-queue cotnains context' whic hahve been called
+    // scheduler::wait_until()
+    sleep_queue_t               sleep_queue_;
     bool                        shutdown_;
     detail::autoreset_event     ready_queue_ev_;
     detail::spinlock            remote_ready_splk_;

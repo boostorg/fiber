@@ -98,6 +98,14 @@ typedef intrusive::list_member_hook<
     >
 >                                       terminated_hook;
 
+struct managed_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< managed_tag >,
+    intrusive::link_mode<
+        intrusive::auto_unlink
+    >
+>                                       worker_hook;
+
 }
 
 struct main_context_t {};
@@ -117,7 +125,8 @@ private:
         flag_worker_context         = 1 << 3,
         flag_terminated             = 1 << 4,
         flag_interruption_blocked   = 1 << 5,
-        flag_interruption_requested = 1 << 6
+        flag_interruption_requested = 1 << 6,
+        flag_forced_unwind          = 1 << 7
     };
 
     struct BOOST_FIBERS_DECL fss_data {
@@ -156,10 +165,11 @@ private:
     boost::context::execution_context       ctx_;
 
 public:
+    detail::worker_hook                    worker_hook_;
+    detail::terminated_hook                 terminated_hook_;
     detail::ready_hook                      ready_hook_;
     detail::remote_ready_hook               remote_ready_hook_;
     detail::sleep_hook                      sleep_hook_;
-    detail::terminated_hook                 terminated_hook_;
     detail::wait_hook                       wait_hook_;
     std::chrono::steady_clock::time_point   tp_;
 
@@ -259,6 +269,7 @@ public:
                     // invoke fiber function
                     boost::context::detail::invoke_helper( std::move( fn), std::move( tpl) );
                 } catch ( fiber_interrupted const&) {
+                } catch ( forced_unwind const&) {
                 } catch ( ... ) {
                     std::terminate();
                 }
@@ -270,9 +281,11 @@ public:
                 suspend();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
+        worker_hook_(),
+        terminated_hook_(),
         ready_hook_(),
         remote_ready_hook_(),
-        terminated_hook_(),
+        sleep_hook_(),
         wait_hook_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
         fss_data_(),
@@ -328,6 +341,14 @@ public:
         return 0 != ( flags_ & flag_interruption_requested);
     }
 
+    void request_interruption( bool req) noexcept;
+
+    bool unwinding_requested() const noexcept {
+        return 0 != ( flags_ & flag_forced_unwind);
+    }
+
+    void request_unwinding() noexcept;
+
     void * get_fss_data( void const * vp) const;
 
     void set_fss_data(
@@ -336,7 +357,7 @@ public:
         void * data,
         bool cleanup_existing);
 
-    void request_interruption( bool req) noexcept;
+    bool managed_is_linked();
 
     bool ready_is_linked();
 
@@ -345,6 +366,8 @@ public:
     bool sleep_is_linked();
 
     bool wait_is_linked();
+
+    void managed_unlink();
 
     void sleep_unlink();
 
