@@ -30,93 +30,123 @@ typedef std::chrono::milliseconds ms;
 
 boost::atomic< int > value;
 
-void notify_one_fn( boost::barrier & b, boost::fibers::condition & cond) {
+void notify_one_fn( boost::barrier & b,
+                    boost::fibers::mutex & mtx,
+                    boost::fibers::condition & cond,
+                    bool & flag) {
     b.wait();
-    boost::this_fiber::sleep_for( ms( 250) );
+	std::unique_lock< boost::fibers::mutex > lk( mtx);
+    flag = true;
+    lk.unlock();
 	cond.notify_one();
 }
 
-void notify_all_fn( boost::barrier & b, boost::fibers::condition & cond) {
+void notify_all_fn( boost::barrier & b,
+                    boost::fibers::mutex & mtx,
+                    boost::fibers::condition & cond,
+                    bool & flag) {
     b.wait();
-    boost::this_fiber::sleep_for( ms( 250) );
+	std::unique_lock< boost::fibers::mutex > lk( mtx);
+    flag = true;
+    lk.unlock();
 	cond.notify_all();
 }
 
-void wait_fn(
-    boost::barrier & b,
-	boost::fibers::mutex & mtx,
-	boost::fibers::condition & cond) {
+void wait_fn( boost::barrier & b,
+              boost::fibers::mutex & mtx,
+              boost::fibers::condition & cond,
+              bool & flag) {
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
-	cond.wait( lk);
+	cond.wait( lk, [&flag](){ return flag; });
 	++value;
 }
 
-void fn1( boost::barrier & b, boost::fibers::mutex & mtx, boost::fibers::condition & cond) {
+void fn1( boost::barrier & b,
+          boost::fibers::mutex & mtx,
+          boost::fibers::condition & cond,
+          bool & flag) {
     boost::fibers::fiber(
             std::bind(
                 wait_fn,
                 std::ref( b),
                 std::ref( mtx),
-                std::ref( cond) ) ).join();
+                std::ref( cond),
+                std::ref( flag) ) ).join();
 }
 
-void fn2( boost::barrier & b, boost::fibers::condition & cond) {
+void fn2( boost::barrier & b,
+          boost::fibers::mutex & mtx,
+          boost::fibers::condition & cond,
+          bool & flag) {
 	boost::fibers::fiber(
             std::bind(
                 notify_one_fn,
                 std::ref( b),
-                std::ref( cond) ) ).join();
+                std::ref( mtx),
+                std::ref( cond),
+                std::ref( flag) ) ).join();
 }
 
-void fn3( boost::barrier & b, boost::fibers::condition & cond) {
+void fn3( boost::barrier & b,
+          boost::fibers::mutex & mtx,
+          boost::fibers::condition & cond,
+          bool & flag) {
 	boost::fibers::fiber(
             std::bind(
                 notify_all_fn,
                 std::ref( b),
-                std::ref( cond) ) ).join();
+                std::ref( mtx),
+                std::ref( cond),
+                std::ref( flag) ) ).join();
 }
 
 void test_one_waiter_notify_one() {
-    boost::barrier b( 2);
+    for ( int i = 0; i < 100; ++i) {
+        boost::barrier b( 2);
 
-	value = 0;
-	boost::fibers::mutex mtx;
-	boost::fibers::condition cond;
+        bool flag = false;
+        value = 0;
+        boost::fibers::mutex mtx;
+        boost::fibers::condition cond;
 
-	BOOST_CHECK( 0 == value);
+        BOOST_CHECK( 0 == value);
 
-    boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond) ) );
-    boost::thread t2(std::bind( fn2, std::ref( b), std::ref( cond) ) );
+        boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
+        boost::thread t2(std::bind( fn2, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
 
-	BOOST_CHECK( 0 == value);
+        BOOST_CHECK( 0 == value);
 
-    t1.join();
-    t2.join();
+        t1.join();
+        t2.join();
 
-	BOOST_CHECK( 1 == value);
+        BOOST_CHECK( 1 == value);
+    }
 }
 
 void test_two_waiter_notify_all() {
-    boost::barrier b( 3);
+    for ( int i = 0; i < 100; ++i) {
+        boost::barrier b( 3);
 
-	value = 0;
-	boost::fibers::mutex mtx;
-	boost::fibers::condition cond;
+        bool flag = false;
+        value = 0;
+        boost::fibers::mutex mtx;
+        boost::fibers::condition cond;
 
-	BOOST_CHECK( 0 == value);
+        BOOST_CHECK( 0 == value);
 
-    boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond) ) );
-    boost::thread t2(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond) ) );
-    boost::thread t3(std::bind( fn3, std::ref( b), std::ref( cond) ) );
+        boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
+        boost::thread t2(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
+        boost::thread t3(std::bind( fn3, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
 
-	BOOST_CHECK( 0 == value);
+        BOOST_CHECK( 0 == value);
 
-    t1.join();
-    t2.join();
-    t3.join();
+        t1.join();
+        t2.join();
+        t3.join();
 
-	BOOST_CHECK( 2 == value);
+        BOOST_CHECK( 2 == value);
+    }
 }
 
 void test_dummy() {
