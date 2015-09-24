@@ -24,6 +24,8 @@
 namespace boost {
 namespace fibers {
 
+struct forced_unwind {};
+
 class fiber_exception : public std::system_error {
 public:
     fiber_exception() :

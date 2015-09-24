@@ -58,9 +58,11 @@ context::context( main_context_t) :
     flags_( flag_main_context),
     scheduler_( nullptr),
     ctx_( boost::context::execution_context::current() ),
+    worker_hook_(),
+    terminated_hook_(),
     ready_hook_(),
     remote_ready_hook_(),
-    terminated_hook_(),
+    sleep_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
@@ -81,9 +83,11 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }),
+    worker_hook_(),
+    terminated_hook_(),
     ready_hook_(),
     remote_ready_hook_(),
-    terminated_hook_(),
+    sleep_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
@@ -196,6 +200,8 @@ void
 context::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( this != ctx);
+    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( nullptr != ctx->scheduler_);
     // FIXME: comparing scheduler address' must be synchronized?
     //        what if ctx is migrated between threads
     //        (other scheduler assigned)
@@ -225,6 +231,13 @@ context::request_interruption( bool req) noexcept {
     } else {
         flags_ &= ~flag_interruption_requested;
     }
+}
+
+void
+context::request_unwinding() noexcept {
+    BOOST_ASSERT( ! is_main_context() );
+    BOOST_ASSERT( ! is_dispatcher_context() );
+    flags_ |= flag_forced_unwind;
 }
 
 void *
@@ -264,6 +277,11 @@ context::set_fss_data( void const * vp,
 }
 
 bool
+context::managed_is_linked() {
+    return worker_hook_.is_linked();
+}
+
+bool
 context::ready_is_linked() {
     return ready_hook_.is_linked();
 }
@@ -281,6 +299,11 @@ context::sleep_is_linked() {
 bool
 context::wait_is_linked() {
     return wait_hook_.is_linked();
+}
+
+void
+context::managed_unlink() {
+    worker_hook_.unlink();
 }
 
 void
