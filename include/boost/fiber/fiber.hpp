@@ -104,7 +104,7 @@ public:
 
     void interrupt() noexcept;
 
-    void detach() noexcept;
+    void detach();
 };
 
 inline

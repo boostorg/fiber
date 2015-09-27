@@ -50,7 +50,7 @@ fiber::interrupt() noexcept {
 }
 
 void
-fiber::detach() noexcept {
+fiber::detach() {
     if ( ! joinable() ) {
         throw fiber_resource_error( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: fiber not joinable");
