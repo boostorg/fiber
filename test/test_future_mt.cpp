@@ -17,24 +17,19 @@ int fn( int i) {
     return i;
 }
 
-boost::fibers::future< int > async( int i) {
-    boost::fibers::packaged_task< int() > pt( std::bind( fn, i) );
-    boost::fibers::future< int > f( pt.get_future() );
-    std::thread([pt=std::move( pt)] () mutable -> void {
-                    boost::fibers::fiber f( std::move( pt) );
-                    boost::this_fiber::yield();
-                    f.join();
-                    //pt();
-               }).detach();
-    return f;
-}
-
 void test_async() {
     for ( int i = 0; i < 100; ++i) {
         int n = 3;
-        boost::fibers::future< int > f = async( n);
+        boost::fibers::packaged_task< int() > pt( std::bind( fn, n) );
+        boost::fibers::future< int > f( pt.get_future() );
+        std::thread t([pt_=std::move( pt)] () mutable -> void {
+                boost::fibers::fiber f( std::move( pt_) );
+                boost::this_fiber::yield();
+                f.join();
+                });
         int result = f.get();
         BOOST_CHECK_EQUAL( n, result);
+        t.join();
     }
 }
 
