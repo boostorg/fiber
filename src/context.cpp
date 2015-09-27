@@ -76,7 +76,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     use_count_( 0), // scheduler will own dispatcher context
     flags_( flag_dispatcher_context),
     scheduler_( nullptr),
-    ctx_( palloc, salloc,
+    ctx_( std::allocator_arg, palloc, salloc,
           [=] () -> void {
             // execute scheduler::dispatch()
             sched->dispatch();
