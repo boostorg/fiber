@@ -11,6 +11,7 @@
 #include <chrono>
 #include <exception>
 #include <map>
+#include <memory>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -261,7 +262,7 @@ public:
         use_count_( 1), // fiber instance or scheduler owner
         flags_( flag_worker_context),
         scheduler_( nullptr),
-        ctx_( palloc, salloc,
+        ctx_( std::allocator_arg, palloc, salloc,
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
               [=,fn=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...)] () mutable -> void {
