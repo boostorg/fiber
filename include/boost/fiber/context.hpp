@@ -268,7 +268,7 @@ public:
               [=,fn_=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...),
                ctx=boost::context::execution_context::current()] () mutable -> void {
                 try {
-                    typename std::decay< Fn >::type fn( std::move( fn_) );
+                    auto fn( std::move( fn_) );
                     // jump back after initialization
                     ctx();
                     // check for unwinding
