@@ -121,7 +121,7 @@ scheduler::sleep2ready_() noexcept {
             // reset sleep-tp
             ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
             // push new context to ready-queue
-            ready_queue_.push_back( * ctx);
+            ctx->ready_link( ready_queue_);
         } else {
             break; // first context with now < deadline
         }
@@ -187,7 +187,7 @@ scheduler::set_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noex
     // the dispatcher-context is resumed and
     // scheduler::dispatch() is executed
     dispatcher_ctx_->set_scheduler( this);
-    ready_queue_.push_back( * dispatcher_ctx_.get() );
+    dispatcher_ctx_->ready_link( ready_queue_);
 }
 
 void
@@ -226,7 +226,7 @@ scheduler::dispatch() {
         }
         // push dispatcher-context to ready-queue
         // so that ready-queue never becomes empty
-        ready_queue_.push_back( * dispatcher_ctx_);
+        dispatcher_ctx_->ready_link( ready_queue_);
         resume_( dispatcher_ctx_.get(), ctx);
         BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
     }
@@ -258,7 +258,7 @@ scheduler::set_ready( context * ctx) noexcept {
             // attach context to `this`-scheduler
             ctx->set_scheduler( this);
             // push to the worker-queue
-            worker_queue_.push_back( * ctx);
+            ctx->worker_link( worker_queue_);
         }
     } else {
         // sanity checks, main-contxt might by signaled
@@ -278,7 +278,7 @@ scheduler::set_ready( context * ctx) noexcept {
     // signaled to interrupt
     if ( ! ctx->ready_is_linked() ) {
         // push new context to ready-queue
-        ready_queue_.push_back( * ctx);
+        ctx->ready_link( ready_queue_);
     }
 }
 
@@ -296,7 +296,7 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
     // push new context to remote ready-queue
-    remote_ready_queue_.push_back( * ctx);
+    ctx->remote_ready_link( remote_ready_queue_);
 }
 
 void
@@ -312,7 +312,7 @@ scheduler::set_terminated( context * ctx) noexcept {
     // store the terminated fiber in the terminated-queue
     // the dispatcher-context will call 
     // intrusive_ptr_release( ctx);
-    terminated_queue_.push_back( * ctx);
+    ctx->terminated_link( terminated_queue_);
 }
 
 void
@@ -328,7 +328,7 @@ scheduler::yield( context * active_ctx) noexcept {
     // context::wait_is_linked() is not sychronized
     // with other threads
     // push active context to ready-queue
-    ready_queue_.push_back( * active_ctx);
+    active_ctx->ready_link( ready_queue_);
     // resume another fiber
     resume_( active_ctx, get_next_() );
 }
@@ -356,7 +356,7 @@ scheduler::wait_until( context * active_ctx,
     // with other threads
     // push active context to sleep-queue
     active_ctx->tp_ = sleep_tp;
-    sleep_queue_.insert( * active_ctx);
+    active_ctx->sleep_link( sleep_queue_);
     // resume another context
     resume_( active_ctx, get_next_() );
     // context has been resumed

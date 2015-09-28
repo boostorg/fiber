@@ -71,7 +71,7 @@ public:
             // in order notify (resume) this fiber later
             detail::spinlock_lock lk( wait_queue_splk_);
             BOOST_ASSERT( ! ctx->wait_is_linked() );
-            wait_queue_.push_back( * ctx);
+            ctx->wait_link( wait_queue_);
             lk.unlock();
             // unlock external
             lt.unlock();
@@ -104,7 +104,7 @@ public:
             // in order notify (resume) this fiber later
             detail::spinlock_lock lk( wait_queue_splk_);
             BOOST_ASSERT( ! ctx->wait_is_linked() );
-            wait_queue_.push_back( * ctx);
+            ctx->wait_link( wait_queue_);
             lk.unlock();
             // unlock external
             lt.unlock();

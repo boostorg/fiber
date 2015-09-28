@@ -68,7 +68,7 @@ recursive_mutex::lock() {
             // store this fiber in order to be notified later
             detail::spinlock_lock lk( wait_queue_splk_);
             BOOST_ASSERT( ! ctx->wait_is_linked() );
-            wait_queue_.push_back( * ctx);
+            ctx->wait_link( wait_queue_);
             lk.unlock();
             // suspend this fiber
             ctx->suspend();
