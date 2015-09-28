@@ -273,7 +273,7 @@ public:
                     ctx();
                     // check for unwinding
                     if ( ! unwinding_requested() ) {
-                        boost::context::detail::invoke_helper( fn, std::move( tpl) );
+                        boost::context::detail::do_invoke( fn, std::move( tpl) );
                     }
                 } catch ( fiber_interrupted const&) {
                 } catch ( forced_unwind const&) {
