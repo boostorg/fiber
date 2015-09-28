@@ -277,7 +277,7 @@ context::set_fss_data( void const * vp,
 }
 
 bool
-context::managed_is_linked() {
+context::worker_is_linked() {
     return worker_hook_.is_linked();
 }
 
@@ -302,7 +302,7 @@ context::wait_is_linked() {
 }
 
 void
-context::managed_unlink() {
+context::worker_unlink() {
     worker_hook_.unlink();
 }
 

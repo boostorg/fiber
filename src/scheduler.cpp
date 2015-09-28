@@ -27,10 +27,10 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
-                  active_ctx->managed_is_linked() );
+                  active_ctx->worker_is_linked() );
     BOOST_ASSERT( main_ctx_ == ctx ||
                   dispatcher_ctx_.get() == ctx ||
-                  ctx->managed_is_linked() );
+                  ctx->worker_is_linked() );
     BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
     // fiber next-to-run is same as current active-fiber
     // this might happen in context of this_fiber::yield() 
@@ -44,7 +44,7 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     BOOST_ASSERT( context::active() == active_ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
-                  active_ctx->managed_is_linked() );
+                  active_ctx->worker_is_linked() );
     if ( ctx->unwinding_requested() ) {
         throw forced_unwind();
     }
@@ -68,7 +68,7 @@ scheduler::release_terminated_() {
         context * ctx = & ( * i);
         BOOST_ASSERT( ! ctx->is_main_context() );
         BOOST_ASSERT( ! ctx->is_dispatcher_context() );
-        BOOST_ASSERT( ctx->managed_is_linked() );
+        BOOST_ASSERT( ctx->worker_is_linked() );
         BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
@@ -108,7 +108,7 @@ scheduler::sleep2ready_() noexcept {
         context * ctx = & ( * i);
         BOOST_ASSERT( ! ctx->is_dispatcher_context() );
         BOOST_ASSERT( main_ctx_ == ctx ||
-                      ctx->managed_is_linked() );
+                      ctx->worker_is_linked() );
         BOOST_ASSERT( ! ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         BOOST_ASSERT( ctx->sleep_is_linked() );
@@ -254,7 +254,7 @@ scheduler::set_ready( context * ctx) noexcept {
     //BOOST_ASSERT( active_ctx->wait_is_linked() );
     // handle newly created context
     if ( ! ctx->is_main_context() ) {
-        if ( ! ctx->managed_is_linked() ) {
+        if ( ! ctx->worker_is_linked() ) {
             // attach context to `this`-scheduler
             ctx->set_scheduler( this);
             // push to the worker-queue
@@ -304,7 +304,7 @@ scheduler::set_terminated( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_main_context() );
     BOOST_ASSERT( ! ctx->is_dispatcher_context() );
-    BOOST_ASSERT( ctx->managed_is_linked() );
+    BOOST_ASSERT( ctx->worker_is_linked() );
     BOOST_ASSERT( ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
@@ -320,7 +320,7 @@ scheduler::yield( context * active_ctx) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
-                  active_ctx->managed_is_linked() );
+                  active_ctx->worker_is_linked() );
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );
     BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
@@ -339,7 +339,7 @@ scheduler::wait_until( context * active_ctx,
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
-                  active_ctx->managed_is_linked() );
+                  active_ctx->worker_is_linked() );
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     // if the active-fiber running in this thread calls
     // condition:wait() and code in another thread calls
@@ -369,7 +369,7 @@ scheduler::re_schedule( context * active_ctx) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
-                  active_ctx->managed_is_linked() );
+                  active_ctx->worker_is_linked() );
     // resume another context
     resume_( active_ctx, get_next_() );
 }

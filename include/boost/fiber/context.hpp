@@ -366,7 +366,7 @@ public:
         void * data,
         bool cleanup_existing);
 
-    bool managed_is_linked();
+    bool worker_is_linked();
 
     bool ready_is_linked();
 
@@ -376,7 +376,7 @@ public:
 
     bool wait_is_linked();
 
-    void managed_unlink();
+    void worker_unlink();
 
     void sleep_unlink();
 
