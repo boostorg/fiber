@@ -20,10 +20,11 @@ int fn( int i) {
 void test_async() {
     for ( int i = 0; i < 100; ++i) {
         int n = 3;
-        boost::fibers::packaged_task< int() > pt( std::bind( fn, n) );
+        boost::fibers::packaged_task< int( int) > pt( fn);
+        //boost::fibers::packaged_task< int() > pt( std::bind( fn, n) );
         boost::fibers::future< int > f( pt.get_future() );
-        std::thread t([pt_=std::move( pt)] () mutable -> void {
-                boost::fibers::fiber f( std::move( pt_) );
+        std::thread t([n=n,pt_=std::move( pt)] () mutable -> void {
+                boost::fibers::fiber f( std::move( pt_), n);
                 boost::this_fiber::yield();
                 f.join();
                 });
