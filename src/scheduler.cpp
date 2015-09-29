@@ -48,7 +48,7 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
                   active_ctx->worker_is_linked() );
-    if ( ctx->unwinding_requested() ) {
+    if ( active_ctx->unwinding_requested() ) {
         throw forced_unwind();
     }
 }
