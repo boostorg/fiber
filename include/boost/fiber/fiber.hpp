@@ -19,6 +19,7 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/properties.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -105,6 +106,13 @@ public:
     void interrupt() noexcept;
 
     void detach();
+
+    template< typename PROPS >
+    PROPS & properties() {
+        fiber_properties * props = impl_->get_properties();
+        BOOST_ASSERT_MSG(props, "fiber::properties not set");
+        return dynamic_cast< PROPS & >( * props );
+    }
 };
 
 inline
