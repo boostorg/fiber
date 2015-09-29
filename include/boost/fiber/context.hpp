@@ -28,6 +28,7 @@
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/properties.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -184,6 +185,7 @@ private:
     fss_data_t                              fss_data_;
     wait_queue_t                            wait_queue_;
     detail::spinlock                        splk_;
+    fiber_properties                    *   properties_;
 
     void set_terminated_() noexcept;
 
@@ -299,7 +301,8 @@ public:
         tp_( (std::chrono::steady_clock::time_point::max)() ),
         fss_data_(),
         wait_queue_(),
-        splk_() {
+        splk_(),
+        properties_( nullptr) {
         // switch for initialization
         ctx_();
     }
@@ -367,6 +370,12 @@ public:
         detail::fss_cleanup_function::ptr_t const& cleanup_fn,
         void * data,
         bool cleanup_existing);
+
+    void set_properties( fiber_properties * props);
+
+    fiber_properties * get_properties() const noexcept {
+        return properties_;
+    }
 
     bool worker_is_linked();
 

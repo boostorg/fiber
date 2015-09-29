@@ -13,6 +13,7 @@
 
 #include "boost/fiber/context.hpp"
 #include "boost/fiber/exceptions.hpp"
+#include "boost/fiber/round_robin.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -31,6 +32,8 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     BOOST_ASSERT( main_ctx_ == ctx ||
                   dispatcher_ctx_.get() == ctx ||
                   ctx->worker_is_linked() );
+    BOOST_ASSERT( this == active_ctx->get_scheduler() );
+    BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
     // fiber next-to-run is same as current active-fiber
     // this might happen in context of this_fiber::yield() 
@@ -52,12 +55,7 @@ scheduler::resume_( context * active_ctx, context * ctx) {
 
 context *
 scheduler::get_next_() noexcept {
-    context * ctx( nullptr);
-    if ( ! ready_queue_.empty() ) {
-        ctx = & ready_queue_.front();
-        ready_queue_.pop_front();
-    }
-    return ctx;
+    return sched_algo_->pick_next();
 }
 
 void
@@ -121,7 +119,7 @@ scheduler::sleep2ready_() noexcept {
             // reset sleep-tp
             ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
             // push new context to ready-queue
-            ctx->ready_link( ready_queue_);
+            sched_algo_->awakened( ctx);
         } else {
             break; // first context with now < deadline
         }
@@ -129,11 +127,11 @@ scheduler::sleep2ready_() noexcept {
 }
 
 scheduler::scheduler() noexcept :
+    sched_algo_( new round_robin() ),
     main_ctx_( nullptr),
     dispatcher_ctx_(),
     worker_queue_(),
     terminated_queue_(),
-    ready_queue_(),
     remote_ready_queue_(),
     sleep_queue_(),
     shutdown_( false),
@@ -152,7 +150,7 @@ scheduler::~scheduler() noexcept {
     // no context' in worker-queue
     BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
-    BOOST_ASSERT( ready_queue_.empty() );
+    BOOST_ASSERT( ! sched_algo_->has_ready_fibers() );
     BOOST_ASSERT( remote_ready_queue_.empty() );
     BOOST_ASSERT( sleep_queue_.empty() );
     // deallocate dispatcher-context
@@ -187,7 +185,7 @@ scheduler::set_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noex
     // the dispatcher-context is resumed and
     // scheduler::dispatch() is executed
     dispatcher_ctx_->set_scheduler( this);
-    dispatcher_ctx_->ready_link( ready_queue_);
+    sched_algo_->awakened( dispatcher_ctx_.get() );
 }
 
 void
@@ -226,7 +224,7 @@ scheduler::dispatch() {
         }
         // push dispatcher-context to ready-queue
         // so that ready-queue never becomes empty
-        dispatcher_ctx_->ready_link( ready_queue_);
+        sched_algo_->awakened( dispatcher_ctx_.get() );
         resume_( dispatcher_ctx_.get(), ctx);
         BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
     }
@@ -278,7 +276,7 @@ scheduler::set_ready( context * ctx) noexcept {
     // signaled to interrupt
     if ( ! ctx->ready_is_linked() ) {
         // push new context to ready-queue
-        ctx->ready_link( ready_queue_);
+        sched_algo_->awakened( ctx);
     }
 }
 
@@ -328,7 +326,7 @@ scheduler::yield( context * active_ctx) noexcept {
     // context::wait_is_linked() is not sychronized
     // with other threads
     // push active context to ready-queue
-    active_ctx->ready_link( ready_queue_);
+    sched_algo_->awakened( active_ctx);
     // resume another fiber
     resume_( active_ctx, get_next_() );
 }
@@ -372,6 +370,16 @@ scheduler::re_schedule( context * active_ctx) noexcept {
                   active_ctx->worker_is_linked() );
     // resume another context
     resume_( active_ctx, get_next_() );
+}
+
+bool
+scheduler::has_ready_fibers() const noexcept {
+    return sched_algo_->has_ready_fibers();
+}
+
+void
+scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+    sched_algo_ = std::move( algo);
 }
 
 }}

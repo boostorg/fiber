@@ -15,6 +15,7 @@
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/fiber.hpp>
 #include <boost/fiber/interruption.hpp>
+#include <boost/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -48,6 +49,43 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
             std::chrono::steady_clock::now() + timeout_duration);
     // check if fiber was interrupted
     interruption_point();
+}
+
+template< typename PROPS >
+PROPS & properties() {
+    fibers::fiber_properties * props =
+        fibers::context::active()->get_properties();
+    if ( ! props) {
+        // props could be nullptr if the thread's main fiber has not yet
+        // yielded (not yet passed through sched_algorithm_with_properties::
+        // awakened()). Address that by yielding right now.
+        yield();
+        // Try again to obtain the fiber_properties subclass instance ptr.
+        // Walk through the whole chain again because who knows WHAT might
+        // have happened while we were yielding!
+        props = fibers::context::active()->get_properties();
+        // Could still be hosed if the running manager isn't a subclass of
+        // sched_algorithm_with_properties.
+        BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+    }
+    return dynamic_cast< PROPS & >( * props );
+}
+
+}
+
+namespace fibers {
+
+inline
+bool has_ready_fibers() {
+    return boost::fibers::context::active()->get_scheduler()->has_ready_fibers();
+}
+
+template< typename SchedAlgo, typename ... Args >
+void use_scheduling_algorithm( Args && ... args) {
+    boost::fibers::context::active()->get_scheduler()
+        ->set_sched_algo(
+            std::make_unique< SchedAlgo >(
+                std::forward< Args >( args) ... ) );
 }
 
 }}

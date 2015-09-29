@@ -68,7 +68,8 @@ context::context( main_context_t) :
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
     wait_queue_(),
-    splk_() {
+    splk_(),
+    properties_( nullptr) {
 }
 
 // dispatcher fiber context
@@ -94,7 +95,8 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
     wait_queue_(),
-    splk_() {
+    splk_(),
+    properties_( nullptr) {
 }
 
 context::~context() {
@@ -103,6 +105,7 @@ context::~context() {
     BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
+    delete properties_;
 }
 
 void
@@ -276,6 +279,12 @@ context::set_fss_data( void const * vp,
                 key,
                 fss_data( data, cleanup_fn) ) );
     }
+}
+
+void
+context::set_properties( fiber_properties * props) {
+    delete properties_;
+    properties_ = props;
 }
 
 bool
