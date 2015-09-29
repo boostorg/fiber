@@ -14,6 +14,7 @@
 #include <chrono>
 #include <string>
 #include <cassert>
+#include <vector>
 
 // These are wait_something() functions rather than when_something()
 // functions. A big part of the point of the Fiber library is to model
