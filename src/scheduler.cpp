@@ -379,6 +379,10 @@ scheduler::has_ready_fibers() const noexcept {
 
 void
 scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+    // move remaining cotnext in current scheduler to new one
+    while ( sched_algo_->has_ready_fibers() ) {
+        algo->awakened( sched_algo_->pick_next() );
+    }
     sched_algo_ = std::move( algo);
 }
 
