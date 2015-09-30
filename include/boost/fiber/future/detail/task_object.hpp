@@ -41,7 +41,7 @@ public:
         try {
             this->set_value(
                     boost::context::detail::do_invoke(
-                        std::move( fn_), std::make_tuple( std::forward< Args >( args) ... ) ) );
+                        fn_, std::make_tuple( std::forward< Args >( args) ... ) ) );
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
@@ -78,7 +78,7 @@ public:
     void run( Args && ... args) {
         try {
             boost::context::detail::do_invoke(
-                    std::move( fn_), std::make_tuple( std::forward< Args >( args) ... ) );
+                    fn_, std::make_tuple( std::forward< Args >( args) ... ) );
             this->set_value();
         } catch (...) {
             this->set_exception( std::current_exception() );
