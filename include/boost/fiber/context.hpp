@@ -250,6 +250,8 @@ public:
 
     static void active( context * active) noexcept;
 
+    static void reset_active() noexcept;
+
     // main fiber context
     context( main_context_t);
 

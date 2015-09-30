@@ -153,6 +153,8 @@ scheduler::~scheduler() noexcept {
     BOOST_ASSERT( ! sched_algo_->has_ready_fibers() );
     BOOST_ASSERT( remote_ready_queue_.empty() );
     BOOST_ASSERT( sleep_queue_.empty() );
+    // set active context to nullptr
+    context::reset_active();
     // deallocate dispatcher-context
     dispatcher_ctx_.reset();
     // set main-context to nullptr

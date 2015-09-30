@@ -45,6 +45,11 @@ context::active( context * active) noexcept {
 }
 
 void
+context::reset_active() noexcept {
+    active_ = nullptr;
+}
+
+void
 context::set_terminated_() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
