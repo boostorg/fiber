@@ -268,15 +268,16 @@ public:
         ctx_( std::allocator_arg, palloc, salloc,
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
-              [=,fn_=std::forward< Fn >( fn),tpl=std::make_tuple( std::forward< Args >( args) ...),
+              [=,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
                ctx=boost::context::execution_context::current()] () mutable -> void {
                 try {
                     auto fn( std::move( fn_) );
+                    auto tpl( std::move( tpl_) );
                     // jump back after initialization
                     ctx();
                     // check for unwinding
                     if ( ! unwinding_requested() ) {
-                        boost::context::detail::do_invoke( fn, std::move( tpl) );
+                        boost::context::detail::do_invoke( fn, tpl);
                     }
                 } catch ( fiber_interrupted const&) {
                 } catch ( forced_unwind const&) {
