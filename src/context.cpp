@@ -6,6 +6,9 @@
 
 #include "boost/fiber/context.hpp"
 
+#include <cstdlib>
+#include <new>
+
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/interruption.hpp"
 #include "boost/fiber/scheduler.hpp"
@@ -17,24 +20,55 @@
 namespace boost {
 namespace fibers {
 
-static context * make_main_context() {
-    // main fiber context for this thread
-    static thread_local context main_ctx( main_context);
-    // scheduler for this thread
-    static thread_local scheduler sched;
-    // attach main fiber context to scheduler
-    sched.set_main_context( & main_ctx);
-    // create and attach dispatcher fiber context to scheduler
-    sched.set_dispatcher_context(
-        make_dispatcher_context( & sched) );
-    return & main_ctx;
+thread_local
+context *
+context::active_;
+
+thread_local static std::size_t counter;
+
+context_initializer::context_initializer() {
+    if ( 0 == counter++) {
+//# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+        // allocate memory for main context and scheduler
+        constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
+        void * vp = std::malloc( size);
+        if ( nullptr == vp) {
+            throw std::bad_alloc();
+        }
+        // main fiber context of this thread
+        context * main_ctx = new ( vp) context( main_context);
+        // scheduler of this thread
+        scheduler * sched = new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
+        // attach main context to scheduler
+        sched->set_main_context( main_ctx);
+        // create and attach dispatcher context to scheduler
+        sched->set_dispatcher_context(
+                make_dispatcher_context( sched) );
+        // make main context to active context
+        context::active_ = main_ctx;
+//# else
+//# endif
+    }
 }
 
-thread_local context *
-context::active_ = make_main_context();
+context_initializer::~context_initializer() {
+    if ( 0 == --counter) {
+        context * main_ctx = context::active_;
+        BOOST_ASSERT( main_ctx->is_main_context() );
+        scheduler * sched = main_ctx->get_scheduler();
+        sched->~scheduler();
+        main_ctx->~context();
+//# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+        std::free( main_ctx);
+//# else
+//# endif
+    }
+}
 
 context *
 context::active() noexcept {
+    thread_local static boost::context::detail::activation_record_initializer rec_initializer;
+    thread_local static context_initializer ctx_initializer;
     return active_;
 }
 

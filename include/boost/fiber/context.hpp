@@ -38,6 +38,7 @@ namespace boost {
 namespace fibers {
 
 class context;
+struct context_initializer;
 class fiber;
 class scheduler;
 
@@ -121,6 +122,8 @@ const worker_context_t worker_context{};
 
 class BOOST_FIBERS_DECL context {
 private:
+    friend struct context_initializer;
+
     enum flag_t {
         flag_main_context           = 1 << 1,
         flag_dispatcher_context     = 1 << 2,
@@ -449,6 +452,11 @@ public:
             ctx->~context();
         }
     }
+};
+
+struct context_initializer {
+    context_initializer();
+    ~context_initializer();
 };
 
 inline
