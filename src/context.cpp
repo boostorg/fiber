@@ -28,7 +28,7 @@ thread_local static std::size_t counter;
 
 context_initializer::context_initializer() {
     if ( 0 == counter++) {
-//# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
         // allocate memory for main context and scheduler
         constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
         void * vp = std::malloc( size);
@@ -46,8 +46,40 @@ context_initializer::context_initializer() {
                 make_dispatcher_context( sched) );
         // make main context to active context
         context::active_ = main_ctx;
-//# else
-//# endif
+# else
+        constexpr std::size_t alignment = 64; // alignof( capture_t);
+        constexpr std::size_t ctx_size = sizeof( context);
+        constexpr std::size_t sched_size = sizeof( scheduler);
+        constexpr std::size_t size = 2 * alignment + ctx_size + sched_size;
+        void * vp = std::malloc( size);
+        if ( nullptr == vp) {
+            throw std::bad_alloc();
+        }
+        // reserve space for shift
+        void * vp1 = static_cast< char * >( vp) + sizeof( int); 
+        // align context pointer
+        std::size_t space = ctx_size + alignment;
+        vp1 = std::align( alignment, ctx_size, vp1, space);
+        // reserves space for integer holding shifted size
+        int * shift = reinterpret_cast< int * >( static_cast< char * >( vp1) - sizeof( int) );
+        // store shifted size in fornt of context
+        * shift = static_cast< char * >( vp1) - static_cast< char * >( vp);
+        // main fiber context of this thread
+        context * main_ctx = new ( vp1) context( main_context);
+        vp1 = static_cast< char * >( vp1) + ctx_size;
+        // align scheduler pointer
+        space = sched_size + alignment;
+        vp1 = std::align( alignment, sched_size, vp1, space);
+        // scheduler of this thread
+        scheduler * sched = new ( vp1) scheduler();
+        // attach main context to scheduler
+        sched->set_main_context( main_ctx);
+        // create and attach dispatcher context to scheduler
+        sched->set_dispatcher_context(
+                make_dispatcher_context( sched) );
+        // make main context to active context
+        context::active_ = main_ctx;
+# endif
     }
 }
 
@@ -58,10 +90,13 @@ context_initializer::~context_initializer() {
         scheduler * sched = main_ctx->get_scheduler();
         sched->~scheduler();
         main_ctx->~context();
-//# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
         std::free( main_ctx);
-//# else
-//# endif
+# else
+        int * shift = reinterpret_cast< int * >( reinterpret_cast< char * >( main_ctx) - sizeof( int) );
+        void * vp = reinterpret_cast< char * >( main_ctx) - ( * shift);
+        std::free( vp);
+# endif
     }
 }
 
