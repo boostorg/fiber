@@ -20,12 +20,43 @@
 namespace boost {
 namespace fibers {
 
+// zero-initialization
 thread_local
 context *
 context::active_;
 
+static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
+    fixedsize_stack salloc; // use default satck-size
+    boost::context::stack_context sctx = salloc.allocate();
+#if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+    // reserve space for control structure
+    std::size_t size = sctx.size - sizeof( context);
+    void * sp = static_cast< char * >( sctx.sp) - sizeof( context);
+#else
+    constexpr std::size_t func_alignment = 64; // alignof( context);
+    constexpr std::size_t func_size = sizeof( context);
+    // reserve space on stack
+    void * sp = static_cast< char * >( sctx.sp) - func_size - func_alignment;
+    // align sp pointer
+    std::size_t space = func_size + func_alignment;
+    sp = std::align( func_alignment, func_size, sp, space);
+    BOOST_ASSERT( nullptr != sp);
+    // calculate remaining size
+    std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
+#endif
+    // placement new of context on top of fiber's stack
+    return intrusive_ptr< context >( 
+            new ( sp) context(
+                dispatcher_context,
+                boost::context::preallocated( sp, size, sctx),
+                salloc,
+                sched) );
+}
+
+// zero-initialization
 thread_local static std::size_t counter;
 
+// schwarz counter
 context_initializer::context_initializer() {
     if ( 0 == counter++) {
 # if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
@@ -102,7 +133,9 @@ context_initializer::~context_initializer() {
 
 context *
 context::active() noexcept {
+    // initialized the first time control passes; per thread
     thread_local static boost::context::detail::activation_record_initializer rec_initializer;
+    // initialized the first time control passes; per thread
     thread_local static context_initializer ctx_initializer;
     return active_;
 }
