@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <boost/fiber/all.hpp>
+#include <boost/fiber/detail/autoreset_event.hpp>
 #include <boost/fiber/scheduler.hpp>
 #include <boost/noncopyable.hpp>
 
@@ -72,11 +73,13 @@ class priority_scheduler : public boost::fibers::sched_algorithm_with_properties
 private:
     typedef boost::fibers::scheduler::ready_queue_t   rqueue_t;
 
-    rqueue_t                    rqueue_;
+    rqueue_t                                rqueue_;
+    boost::fibers::detail::autoreset_event  ev_;
 
 public:
     priority_scheduler() :
-        rqueue_() {
+        rqueue_(),
+        ev_() {
     }
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
@@ -198,6 +201,14 @@ public:
         std::cout << std::endl;
     }
 //->
+
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+        ev_.reset( suspend_time);
+    }
+
+    void notify() {
+        ev_.set();
+    }
 };
 //]
 

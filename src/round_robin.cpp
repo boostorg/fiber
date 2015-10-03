@@ -40,6 +40,16 @@ round_robin::has_ready_fibers() const noexcept {
     return ! ready_queue_.empty();
 }
 
+void
+round_robin::suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+    ev_.reset( suspend_time);
+}
+
+void
+round_robin::notify() {
+    ev_.set();
+}
+
 }}
 
 #ifdef BOOST_HAS_ABI_HEADERS

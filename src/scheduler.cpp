@@ -135,7 +135,6 @@ scheduler::scheduler() noexcept :
     remote_ready_queue_(),
     sleep_queue_(),
     shutdown_( false),
-    ready_queue_ev_(),
     remote_ready_splk_() {
 }
 
@@ -208,15 +207,15 @@ scheduler::dispatch() {
             remote_ready2ready_();
             // no ready context, wait till signaled
             // set deadline to highest value
-            std::chrono::steady_clock::time_point tp =
+            std::chrono::steady_clock::time_point suspend_time =
                     (std::chrono::steady_clock::time_point::max)();
             // get lowest deadline from sleep-queue
             sleep_queue_t::iterator i = sleep_queue_.begin();
             if ( sleep_queue_.end() != i) {
-                tp = i->tp_;
+                suspend_time = i->tp_;
             }
             // no ready context, wait till signaled
-            ready_queue_ev_.reset( tp);
+            sched_algo_->suspend_until( suspend_time);
             // get sleeping context'
             sleep2ready_();
             // TODO: pump external event-loop like boost::asio::io_service
@@ -297,6 +296,9 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
     // push new context to remote ready-queue
     ctx->remote_ready_link( remote_ready_queue_);
+    lk.unlock();
+    // notify scheduler
+    sched_algo_->notify();
 }
 
 void

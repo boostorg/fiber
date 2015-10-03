@@ -7,6 +7,7 @@
 #define BOOST_FIBERS_ALGORITHM_H
 
 #include <cstddef>
+#include <chrono>
 
 #include <boost/config.hpp>
 #include <boost/assert.hpp>
@@ -31,6 +32,10 @@ struct BOOST_FIBERS_DECL sched_algorithm {
     virtual context * pick_next() = 0;
 
     virtual bool has_ready_fibers() const noexcept = 0;
+
+    virtual void suspend_until( std::chrono::steady_clock::time_point const&) = 0;
+
+    virtual void notify() = 0;
 };
 
 class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {
