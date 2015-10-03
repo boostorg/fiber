@@ -16,7 +16,6 @@
 
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/context.hpp>
-#include <boost/fiber/detail/autoreset_event.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -83,7 +82,6 @@ private:
     // scheduler::wait_until()
     sleep_queue_t                       sleep_queue_;
     bool                                shutdown_;
-    detail::autoreset_event             ready_queue_ev_;
     detail::spinlock                    remote_ready_splk_;
 
     void resume_( context *, context *);
