@@ -18,7 +18,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#include "loop.hpp"                 // run_service()
+#include "asio_scheduler.hpp"
 #include "yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -31,23 +31,28 @@ void session( socket_ptr sock)
 {
     try
     {
+        std::cout << "handler request" << std::endl;
         for (;;)
         {
             char data[max_length];
 
             boost::system::error_code ec;
+            std::cout << "before asyc_ready" << std::endl;
             std::size_t length = sock->async_read_some(
                     boost::asio::buffer( data),
                     boost::fibers::asio::yield[ec]);
+            std::cout << "after asyc_ready" << std::endl;
             if ( ec == boost::asio::error::eof)
                 break; //connection closed cleanly by peer
             else if ( ec)
                 throw boost::system::system_error( ec); //some other error
 
+            std::cout << "before asyc_write" << std::endl;
             boost::asio::async_write(
                     * sock,
                     boost::asio::buffer( data, length),
                     boost::fibers::asio::yield[ec]);
+            std::cout << "after asyc_write" << std::endl;
             if ( ec == boost::asio::error::eof)
                 break; //connection closed cleanly by peer
             else if ( ec)
@@ -88,11 +93,12 @@ int main( int argc, char* argv[])
         }
 
         boost::asio::io_service io_service;
+        boost::fibers::use_scheduling_algorithm< asio_scheduler >( io_service);
 
         boost::fibers::fiber(
             boost::bind( server, boost::ref( io_service), std::atoi( argv[1]) ) ).detach();
-        
-        boost::fibers::asio::run_service( io_service);
+
+        io_service.run();
     }
     catch ( std::exception const& e)
     { std::cerr << "Exception: " << e.what() << "\n"; }
