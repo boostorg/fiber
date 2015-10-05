@@ -60,11 +60,9 @@ public:
     }
 
     void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
-        if ( std::chrono::steady_clock::now() < suspend_time) {
-            timer_.expires_at( suspend_time);
-            boost::system::error_code ignored_ec;
-            timer_.wait( ignored_ec);
-        }
+        timer_.expires_at( suspend_time);
+        boost::system::error_code ignored_ec;
+        timer_.wait( ignored_ec);
     }
 
     void notify() {

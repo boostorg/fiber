@@ -41,4 +41,3 @@ exe wait_stuff : wait_stuff.cpp ;
 exe asio/sleep : asio/sleep.cpp ;
 exe asio/echo_client : asio/echo_client.cpp ;
 exe asio/echo_server : asio/echo_server.cpp ;
-exe asio/echo_server2 : asio/echo_server2.cpp ;
