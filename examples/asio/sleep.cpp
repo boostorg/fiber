@@ -18,8 +18,9 @@
 #include <boost/fiber/all.hpp>
 
 #include "asio_scheduler.hpp"
+#include "spawn.hpp"
 
-void foo() {
+void foo( boost::fibers::asio::yield_context yield) {
     std::cout << "sleep 1s" << std::endl;
     boost::this_fiber::sleep_for( std::chrono::seconds( 1) );
     std::cout << "woken up after 1s" << std::endl;
@@ -27,11 +28,12 @@ void foo() {
 
 int main( int argc, char* argv[]) {
     try {
+        boost::asio::io_service io_svc;
+        boost::fibers::use_scheduling_algorithm< asio_scheduler >( io_svc);
 
-        boost::asio::io_service io_service;
-        boost::fibers::use_scheduling_algorithm< asio_scheduler >( io_service);
+        boost::fibers::asio::spawn( io_svc, std::bind( foo, std::placeholders::_1) );
 
-        boost::fibers::fiber( foo).join();
+        io_svc.run();
 
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
