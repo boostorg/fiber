@@ -3,38 +3,50 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef ASIO_SCHEDULER_H
-#define ASIO_SCHEDULER_H
+#ifndef BOOST_FIBERS_ASIO_ROUND_ROBIN_H
+#define BOOST_FIBERS_ASIO_ROUND_ROBIN_H
 
 #include <chrono>
 
 #include <boost/asio.hpp>
+#include <boost/assert.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/config.hpp>
 
-#include <boost/fiber/all.hpp>
+#include <boost/fiber/context.hpp>
+#include <boost/fiber/operations.hpp>
+#include <boost/fiber/scheduler.hpp>
+#include "yield.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
 #endif
 
-class asio_scheduler : public boost::fibers::sched_algorithm {
+namespace boost {
+namespace fibers {
+namespace asio {
+
+class round_robin : public boost::fibers::sched_algorithm {
 private:
     boost::asio::io_service             &   io_svc_;
     boost::asio::steady_timer               timer_;
     boost::fibers::scheduler::ready_queue_t ready_queue_;
 
-    void do_yield() {
-        boost::this_fiber::yield();
-        io_svc_.post( std::bind( & asio_scheduler::do_yield, this) );
+    void progress_() {
+        boost::this_fiber::yield(); 
+        io_svc_.post(
+            std::bind( & round_robin::progress_, this) );
     }
 
 public:
-    asio_scheduler( boost::asio::io_service & io_svc) :
+    round_robin( boost::asio::io_service & io_svc) :
         io_svc_( io_svc),
         timer_( io_svc_),
         ready_queue_() {
-        io_svc_.post( std::bind( & asio_scheduler::do_yield, this) );
+#if 0
+        io_svc_.post(
+            std::bind( & round_robin::progress_, this) );
+#endif
     }
 
     void awakened( boost::fibers::context * ctx) {
@@ -59,10 +71,15 @@ public:
         return ! ready_queue_.empty();
     }
 
+    void foo_bar() {
+        while ( 0 < io_svc_.poll_one() )
+            std::cout << "foo_bar()" << std::endl;
+    }
+
     void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
         timer_.expires_at( suspend_time);
         boost::system::error_code ignored_ec;
-        timer_.wait( ignored_ec);
+        timer_.async_wait( boost::fibers::asio::yield[ignored_ec]);
     }
 
     void notify() {
@@ -70,8 +87,10 @@ public:
     }
 };
 
+}}}
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // ASIO_SCHEDULER_H
+#endif // BOOST_FIBERS_ASIO_ROUND_ROBIN_H
