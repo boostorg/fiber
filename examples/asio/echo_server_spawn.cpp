@@ -17,8 +17,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
-
-#include "asio_scheduler.hpp"
+#include "round_robin.hpp"
+#include "spawn.hpp"
 #include "yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -27,47 +27,38 @@ const int max_length = 1024;
 
 typedef boost::shared_ptr< tcp::socket > socket_ptr;
 
-void session( socket_ptr sock)
-{
-    try
-    {
+void session( socket_ptr sock) {
+    try {
         std::cout << "handler request" << std::endl;
-        for (;;)
-        {
+        for (;;) {
             char data[max_length];
-
             boost::system::error_code ec;
-            std::cout << "before asyc_ready" << std::endl;
             std::size_t length = sock->async_read_some(
                     boost::asio::buffer( data),
                     boost::fibers::asio::yield[ec]);
-            std::cout << "after asyc_ready" << std::endl;
-            if ( ec == boost::asio::error::eof)
+            if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
-            else if ( ec)
+            } else if ( ec) {
                 throw boost::system::system_error( ec); //some other error
-
-            std::cout << "before asyc_write" << std::endl;
+            }
             boost::asio::async_write(
                     * sock,
                     boost::asio::buffer( data, length),
                     boost::fibers::asio::yield[ec]);
-            std::cout << "after asyc_write" << std::endl;
-            if ( ec == boost::asio::error::eof)
+            if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
-            else if ( ec)
+            } else if ( ec) {
                 throw boost::system::system_error( ec); //some other error
+            }
         }
+    } catch ( std::exception const& e) {
+        std::cerr << "Exception in fiber: " << e.what() << "\n";
     }
-    catch ( std::exception const& e)
-    { std::cerr << "Exception in fiber: " << e.what() << "\n"; }
 }
 
-void server( boost::asio::io_service & io_service, unsigned short port)
-{
+void server( boost::asio::io_service & io_service, unsigned short port) {
     tcp::acceptor a( io_service, tcp::endpoint( tcp::v4(), port) );
-    for (;;)
-    {
+    for (;;) {
         socket_ptr socket( new tcp::socket( io_service) );
         boost::system::error_code ec;
         std::cout << "wait for accept" << std::endl;
@@ -76,32 +67,29 @@ void server( boost::asio::io_service & io_service, unsigned short port)
                 boost::fibers::asio::yield[ec]);
         std::cout << "accepted" << std::endl;
         if ( ! ec) {
-            boost::fibers::fiber(
-                    boost::bind( session, socket) ).detach();
+            boost::fibers::asio::spawn(
+                    io_service,
+                    boost::bind( session, socket) );
         }
     }
 }
 
-int main( int argc, char* argv[])
-{
-    try
-    {
-        if ( argc != 2)
-        {
+int main( int argc, char* argv[]) {
+    try {
+        if ( 2 != argc) {
             std::cerr << "Usage: echo_server <port>\n";
-            return 1;
+            return EXIT_FAILURE;
         }
-
         boost::asio::io_service io_service;
-        boost::fibers::use_scheduling_algorithm< asio_scheduler >( io_service);
-
-        boost::fibers::fiber(
-            boost::bind( server, boost::ref( io_service), std::atoi( argv[1]) ) ).detach();
-
+        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_service);
+        boost::fibers::asio::spawn(
+            io_service,
+            boost::bind( server, boost::ref( io_service), std::atoi( argv[1]) ) );
         io_service.run();
+        return EXIT_SUCCESS;
+    } catch ( std::exception const& e) {
+        std::cerr << "Exception: " << e.what() << "\n";
     }
-    catch ( std::exception const& e)
-    { std::cerr << "Exception: " << e.what() << "\n"; }
 
-    return 0;
+    return EXIT_FAILURE;
 }
