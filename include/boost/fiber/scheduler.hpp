@@ -44,6 +44,11 @@ public:
                 intrusive::member_hook<
                     context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
                 intrusive::constant_time_size< false > >    remote_ready_queue_t;
+    typedef intrusive::list<
+                context,
+                intrusive::member_hook<
+                    context, detail::yield_hook, & context::yield_hook_ >,
+                intrusive::constant_time_size< false > >    yield_queue_t;
     typedef intrusive::set<
                 context,
                 intrusive::member_hook<
@@ -80,9 +85,11 @@ private:
     remote_ready_queue_t                remote_ready_queue_;
     // sleep-queue cotnains context' whic hahve been called
     // scheduler::wait_until()
+    yield_queue_t                       yield_queue_;
     sleep_queue_t                       sleep_queue_;
     bool                                shutdown_;
     detail::spinlock                    remote_ready_splk_;
+    std::mutex                          mtx_;
 
     void resume_( context *, context *);
 
@@ -91,6 +98,8 @@ private:
     void release_terminated_();
 
     void remote_ready2ready_();
+
+    void yield2ready_();
 
     void sleep2ready_() noexcept;
 
