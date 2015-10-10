@@ -85,6 +85,14 @@ typedef intrusive::list_member_hook<
     >
 >                                       remote_ready_hook;
 
+struct yield_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< yield_tag >,
+    intrusive::link_mode<
+        intrusive::auto_unlink
+    >
+>                                       yield_hook;
+
 struct sleep_tag;
 typedef intrusive::set_member_hook<
     intrusive::tag< sleep_tag >,
@@ -175,6 +183,7 @@ public:
     detail::terminated_hook                 terminated_hook_;
     detail::ready_hook                      ready_hook_;
     detail::remote_ready_hook               remote_ready_hook_;
+    detail::yield_hook                      yield_hook_;
     detail::sleep_hook                      sleep_hook_;
     detail::wait_hook                       wait_hook_;
     std::chrono::steady_clock::time_point   tp_;
@@ -302,6 +311,7 @@ public:
         terminated_hook_(),
         ready_hook_(),
         remote_ready_hook_(),
+        yield_hook_(),
         sleep_hook_(),
         wait_hook_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
@@ -391,6 +401,8 @@ public:
 
     bool remote_ready_is_linked();
 
+    bool yield_is_linked();
+
     bool sleep_is_linked();
 
     bool wait_is_linked();
@@ -419,6 +431,12 @@ public:
         lst.push_back( * this);
     }
 
+    template< typename List >
+    void yield_link( List & lst) {
+        std::unique_lock< detail::spinlock > lk( hook_splk_);
+        lst.push_back( * this);
+    }
+
     template< typename Set >
     void sleep_link( Set & set) {
         std::unique_lock< detail::spinlock > lk( hook_splk_);
@@ -436,6 +454,8 @@ public:
     void ready_unlink();
 
     void remote_ready_unlink();
+
+    void yield_unlink();
 
     void sleep_unlink();
 

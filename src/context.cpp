@@ -170,6 +170,7 @@ context::context( main_context_t) :
     terminated_hook_(),
     ready_hook_(),
     remote_ready_hook_(),
+    yield_hook_(),
     sleep_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
@@ -197,6 +198,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     terminated_hook_(),
     ready_hook_(),
     remote_ready_hook_(),
+    yield_hook_(),
     sleep_hook_(),
     wait_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
@@ -419,6 +421,12 @@ context::remote_ready_is_linked() {
 }
 
 bool
+context::yield_is_linked() {
+    std::unique_lock< detail::spinlock > lk( hook_splk_);
+    return yield_hook_.is_linked();
+}
+
+bool
 context::sleep_is_linked() {
     std::unique_lock< detail::spinlock > lk( hook_splk_);
     return sleep_hook_.is_linked();
@@ -446,6 +454,12 @@ void
 context::remote_ready_unlink() {
     std::unique_lock< detail::spinlock > lk( hook_splk_);
     remote_ready_hook_.unlink();
+}
+
+void
+context::yield_unlink() {
+    std::unique_lock< detail::spinlock > lk( hook_splk_);
+    yield_hook_.unlink();
 }
 
 void

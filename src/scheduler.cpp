@@ -48,6 +48,9 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
                   active_ctx->worker_is_linked() );
+    // move yielded context' to ready-queue
+    yield2ready_();
+    // check if unwinding was requested
     if ( active_ctx->unwinding_requested() ) {
         throw forced_unwind();
     }
@@ -55,7 +58,14 @@ scheduler::resume_( context * active_ctx, context * ctx) {
 
 context *
 scheduler::get_next_() noexcept {
-    return sched_algo_->pick_next();
+    context * ctx = sched_algo_->pick_next();
+    if ( nullptr != ctx &&
+         ! ctx->worker_is_linked() &&
+         ! ctx->is_main_context() &&
+         ! ctx->is_dispatcher_context() ) {
+        ctx->worker_link( worker_queue_);
+    }
+    return ctx;
 }
 
 void
@@ -90,6 +100,18 @@ scheduler::remote_ready2ready_() {
         context * ctx = & tmp.front();
         tmp.pop_front();
         // store context in local queues
+        set_ready( ctx);
+    }
+}
+
+void
+scheduler::yield2ready_() {
+    std::unique_lock< std::mutex > lk( mtx_);
+    // get context from yield-queue
+    while ( ! yield_queue_.empty() ) {
+        context * ctx = & yield_queue_.front();
+        yield_queue_.pop_front();
+        BOOST_ASSERT( ! ctx->ready_is_linked() );
         set_ready( ctx);
     }
 }
@@ -133,6 +155,7 @@ scheduler::scheduler() noexcept :
     worker_queue_(),
     terminated_queue_(),
     remote_ready_queue_(),
+    yield_queue_(),
     sleep_queue_(),
     shutdown_( false),
     remote_ready_splk_() {
@@ -151,6 +174,7 @@ scheduler::~scheduler() noexcept {
     BOOST_ASSERT( terminated_queue_.empty() );
     BOOST_ASSERT( ! sched_algo_->has_ready_fibers() );
     BOOST_ASSERT( remote_ready_queue_.empty() );
+    BOOST_ASSERT( yield_queue_.empty() );
     BOOST_ASSERT( sleep_queue_.empty() );
     // set active context to nullptr
     context::reset_active();
@@ -193,6 +217,8 @@ void
 scheduler::dispatch() {
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
     while ( ! shutdown_) {
+        // move yielded context' to ready-queue
+        yield2ready_();
         // release termianted context'
         release_terminated_();
         // get sleeping context'
@@ -247,8 +273,10 @@ void
 scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
+    // dispatcher-context will never be passed to set_ready()
+    BOOST_ASSERT( ! ctx->is_dispatcher_context() );
     // we do not test for wait-queue because
-    // context::wait_is_linked() is not sychronized
+    // context::wait_is_linked() is not synchronized
     // with other threads
     //BOOST_ASSERT( active_ctx->wait_is_linked() );
     // handle newly created context
@@ -260,7 +288,7 @@ scheduler::set_ready( context * ctx) noexcept {
             ctx->worker_link( worker_queue_);
         }
     } else {
-        // sanity checks, main-contxt might by signaled
+        // sanity checks, main-context might by signaled
         // from another thread
         BOOST_ASSERT( main_ctx_ == ctx);
         BOOST_ASSERT( this == ctx->get_scheduler() );
@@ -272,13 +300,12 @@ scheduler::set_ready( context * ctx) noexcept {
         // unlink it from sleep-queue
         ctx->sleep_unlink();
     }
-    // if context is already in ready-queue, do return
-    // this might happend if a newly created fiber was
+    // for safety unlink it from ready-queue
+    // this might happen if a newly created fiber was
     // signaled to interrupt
-    if ( ! ctx->ready_is_linked() ) {
-        // push new context to ready-queue
-        sched_algo_->awakened( ctx);
-    }
+    ctx->ready_unlink();
+    // push new context to ready-queue
+    sched_algo_->awakened( ctx);
 }
 
 void
@@ -329,8 +356,13 @@ scheduler::yield( context * active_ctx) noexcept {
     // we do not test for wait-queue because
     // context::wait_is_linked() is not sychronized
     // with other threads
-    // push active context to ready-queue
-    sched_algo_->awakened( active_ctx);
+    // push active context to yield-queue
+    // in work-sharing context (multiple threads read
+    // from one ready-queue) the context must be
+    // already suspended until another thread resumes it
+    std::unique_lock< std::mutex > lk( mtx_);
+    active_ctx->yield_link( yield_queue_);
+    lk.unlock();
     // resume another fiber
     resume_( active_ctx, get_next_() );
 }
