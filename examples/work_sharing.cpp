@@ -3,15 +3,18 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/fiber/all.hpp>
-#include <boost/assert.hpp>
-#include <iostream>
-#include <sstream>
 #include <iomanip>
-#include <thread>
+#include <iostream>
 #include <mutex>
 #include <queue>
+#include <sstream>
 #include <string>
+#include <thread>
+
+#include <boost/assert.hpp>
+
+#include <boost/fiber/all.hpp>
+#include <boost/fiber/detail/autoreset_event.hpp>
 
 /*****************************************************************************
 *   shared_ready_queue scheduler
@@ -38,13 +41,15 @@ private:
     // attempt to execute thread A's main fiber. This slot might be empty
     // (nullptr) or full: pick_next() must only return the main fiber's
     // context* after it has been passed to awakened().
-    boost::fibers::context              *   main_ctx_;
-    boost::fibers::context              *   dispatcher_ctx_;
+    boost::fibers::context                  *   main_ctx_;
+    boost::fibers::context                  *   dispatcher_ctx_;
+    boost::fibers::detail::autoreset_event      ev_;
 
 public:
     shared_ready_queue() :
         main_ctx_( nullptr),
-        dispatcher_ctx_( nullptr) {
+        dispatcher_ctx_( nullptr),
+        ev_() {
     }
 
     virtual void awakened( boost::fibers::context * ctx) {
@@ -61,8 +66,6 @@ public:
             // stash it in separate slot
             dispatcher_ctx_ = ctx;
         } else {
-            ctx->worker_unlink();
-            ctx->set_scheduler( nullptr);
             // ordinary fiber, enqueue on shared queue
             lock_t lock( mtx_);
             rqueue_.push( ctx);
@@ -70,30 +73,40 @@ public:
     }
 
     virtual boost::fibers::context * pick_next() {
+        boost::fibers::context * ctx( nullptr);
         lock_t lock( mtx_);
-        boost::fibers::context * victim( nullptr);
         if ( ! rqueue_.empty() ) {
             // good, we have an item in the ready queue, pop it
-            victim = rqueue_.front();
+            ctx = rqueue_.front();
             rqueue_.pop();
-            BOOST_ASSERT( nullptr != victim);
+            BOOST_ASSERT( nullptr != ctx);
+            ctx->set_scheduler( boost::fibers::context::active()->get_scheduler() );
+            ctx->worker_unlink();
         } else if ( nullptr != main_ctx_) {
             // nothing in the ready queue, return main_ctx_
-            victim = main_ctx_;
+            ctx = main_ctx_;
             // once we've returned main_ctx_, clear the slot
             main_ctx_ = nullptr;
         } else if ( nullptr != dispatcher_ctx_) {
             // nothing in the ready queue, return dispatcher_ctx_
-            victim = dispatcher_ctx_;
+            ctx = dispatcher_ctx_;
             // once we've returned dispatcher_ctx_, clear the slot
             dispatcher_ctx_ = nullptr;
         }
-        return victim;
+        return ctx;
     }
 
     virtual bool has_ready_fibers() const noexcept {
         lock_t lock( mtx_);
-        return ! rqueue_.empty() || nullptr != main_ctx_;
+        return ! rqueue_.empty() || nullptr != main_ctx_ || nullptr != dispatcher_ctx_;
+    }
+
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+        ev_.reset( suspend_time);
+    }
+
+    void notify() {
+        ev_.set();
     }
 };
 
@@ -107,7 +120,7 @@ void whatevah( char me) {
     std::thread::id my_thread = std::this_thread::get_id();
     {
         std::ostringstream buffer;
-        //buffer << "fiber " << me << " started on thread " << my_thread << '\n';
+        buffer << "fiber " << me << " started on thread " << my_thread << '\n';
         std::cout << buffer.str() << std::flush;
     }
     for ( unsigned i = 0; i < 10; ++i) {
@@ -116,7 +129,7 @@ void whatevah( char me) {
         if ( new_thread != my_thread) {
             my_thread = new_thread;
             std::ostringstream buffer;
-            //buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
+            buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
             std::cout << buffer.str() << std::flush;
         }
     }
@@ -158,10 +171,12 @@ int main( int argc, char *argv[]) {
         // launch a couple threads to help process them
         std::thread threads[] = {
             std::thread( thread),
+#if 0
             std::thread( thread),
             std::thread( thread),
             std::thread( thread),
             std::thread( thread)
+#endif
         };
 
         // drain running fibers
@@ -172,6 +187,8 @@ int main( int argc, char *argv[]) {
             t.join();
         }
     }
+
+    std::cout << "done." << std::endl;
 
     return EXIT_SUCCESS;
 }
