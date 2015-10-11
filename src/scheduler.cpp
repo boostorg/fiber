@@ -260,6 +260,8 @@ scheduler::dispatch() {
         worker_queue_t::iterator e = worker_queue_.end();
         for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e; ++i) {
             context * ctx = & ( * i);
+            BOOST_ASSERT( ! ctx->is_main_context() );
+            BOOST_ASSERT( ! ctx->is_dispatcher_context() );
             ctx->request_unwinding();
             set_ready( ctx); 
         }
