@@ -1,8 +1,10 @@
-//          Copyright Nat Goodspeed 2015.
+//          Copyright Nat Goodspeed + Oliver Kowalke 2015.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <atomic>
+#include <cstddef>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
@@ -15,6 +17,8 @@
 
 #include <boost/fiber/all.hpp>
 #include <boost/fiber/detail/autoreset_event.hpp>
+
+static std::atomic< std::size_t > fiber_count;
 
 /*****************************************************************************
 *   shared_ready_queue scheduler
@@ -111,22 +115,27 @@ std::mutex shared_ready_queue::mtx_;
 *   example fiber function
 *****************************************************************************/
 void whatevah( char me) {
-    std::thread::id my_thread = std::this_thread::get_id();
-    {
-        std::ostringstream buffer;
-        buffer << "fiber " << me << " started on thread " << my_thread << '\n';
-        std::cout << buffer.str() << std::flush;
-    }
-    for ( unsigned i = 0; i < 5; ++i) {
-        boost::this_fiber::yield();
-        std::thread::id new_thread = std::this_thread::get_id();
-        if ( new_thread != my_thread) {
-            my_thread = new_thread;
+    ++fiber_count;
+    try {
+        std::thread::id my_thread = std::this_thread::get_id();
+        {
             std::ostringstream buffer;
-            buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
+            buffer << "fiber " << me << " started on thread " << my_thread << '\n';
             std::cout << buffer.str() << std::flush;
         }
+        for ( unsigned i = 0; i < 5; ++i) {
+            boost::this_fiber::yield();
+            std::thread::id new_thread = std::this_thread::get_id();
+            if ( new_thread != my_thread) {
+                my_thread = new_thread;
+                std::ostringstream buffer;
+                buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
+                std::cout << buffer.str() << std::flush;
+            }
+        }
+    } catch ( ... ) {
     }
+    --fiber_count;
 }
 
 /*****************************************************************************
@@ -137,13 +146,19 @@ void whatevah( char me) {
 // state. A fiber blocked on a synchronization object is invisible to
 // ready_fibers().
 void drain() {
+    std::ostringstream buffer;
+    buffer << "thread " << std::this_thread::get_id() << " calls drain()" << std::endl;
+    std::cout << buffer.str() << std::flush;
     // THIS fiber is running, so won't be counted among "ready" fibers
-    while ( boost::fibers::has_ready_fibers() ) {
+    while ( 0 < fiber_count) {
         boost::this_fiber::yield();
     }
 }
 
 void thread() {
+    std::ostringstream buffer;
+    buffer << "thread started " << std::this_thread::get_id() << std::endl;
+    std::cout << buffer.str() << std::flush;
     boost::fibers::use_scheduling_algorithm< shared_ready_queue >();
     drain();
 }
@@ -152,6 +167,7 @@ void thread() {
 *   main()
 *****************************************************************************/
 int main( int argc, char *argv[]) {
+    std::cout << "main thread started " << std::this_thread::get_id() << std::endl;
     // use shared_ready_queue for main thread too, so we launch new fibers
     // into shared pool
     boost::fibers::use_scheduling_algorithm< shared_ready_queue >();
