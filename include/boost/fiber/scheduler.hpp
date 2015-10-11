@@ -89,7 +89,6 @@ private:
     sleep_queue_t                       sleep_queue_;
     bool                                shutdown_;
     detail::spinlock                    remote_ready_splk_;
-    std::mutex                          mtx_;
 
     void resume_( context *, context *);
 
