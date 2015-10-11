@@ -106,7 +106,6 @@ scheduler::remote_ready2ready_() {
 
 void
 scheduler::yield2ready_() {
-    std::unique_lock< std::mutex > lk( mtx_);
     // get context from yield-queue
     while ( ! yield_queue_.empty() ) {
         context * ctx = & yield_queue_.front();
@@ -360,9 +359,7 @@ scheduler::yield( context * active_ctx) noexcept {
     // in work-sharing context (multiple threads read
     // from one ready-queue) the context must be
     // already suspended until another thread resumes it
-    std::unique_lock< std::mutex > lk( mtx_);
     active_ctx->yield_link( yield_queue_);
-    lk.unlock();
     // resume another fiber
     resume_( active_ctx, get_next_() );
 }
