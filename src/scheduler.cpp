@@ -57,6 +57,7 @@ scheduler::resume_( context * active_ctx, context * ctx) {
 context *
 scheduler::get_next_() noexcept {
     context * ctx = sched_algo_->pick_next();
+    BOOST_ASSERT( nullptr == ctx || this == ctx->get_scheduler() );
     if ( nullptr != ctx &&
          ! ctx->worker_is_linked() &&
          ! ctx->is_main_context() &&
