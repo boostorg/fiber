@@ -41,14 +41,12 @@ private:
     // attempt to execute thread A's main fiber. This slot might be empty
     // (nullptr) or full: pick_next() must only return the main fiber's
     // context* after it has been passed to awakened().
-    boost::fibers::context                  *   main_ctx_;
-    boost::fibers::context                  *   dispatcher_ctx_;
+    rqueue_t                                    local_queue_;
     boost::fibers::detail::autoreset_event      ev_;
 
 public:
     shared_ready_queue() :
-        main_ctx_( nullptr),
-        dispatcher_ctx_( nullptr),
+        local_queue_(),
         ev_() {
     }
 
@@ -59,46 +57,42 @@ public:
         if ( ctx->is_main_context() ) {
             // never put this thread's main fiber on the queue
             // stash it in separate slot
-            main_ctx_ = ctx;
+            local_queue_.push( ctx);
         // recognize when we're passed this thread's dispatcher fiber
         } else if ( ctx->is_dispatcher_context() ) {
             // never put this thread's main fiber on the queue
             // stash it in separate slot
-            dispatcher_ctx_ = ctx;
+            local_queue_.push( ctx);
         } else {
             // ordinary fiber, enqueue on shared queue
-            lock_t lock( mtx_);
+            ctx->worker_unlink();
+            lock_t lk( mtx_);
             rqueue_.push( ctx);
         }
     }
 
     virtual boost::fibers::context * pick_next() {
         boost::fibers::context * ctx( nullptr);
-        lock_t lock( mtx_);
+        lock_t lk( mtx_);
         if ( ! rqueue_.empty() ) {
             // good, we have an item in the ready queue, pop it
             ctx = rqueue_.front();
             rqueue_.pop();
+            lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
             ctx->set_scheduler( boost::fibers::context::active()->get_scheduler() );
-            ctx->worker_unlink();
-        } else if ( nullptr != main_ctx_) {
-            // nothing in the ready queue, return main_ctx_
-            ctx = main_ctx_;
-            // once we've returned main_ctx_, clear the slot
-            main_ctx_ = nullptr;
-        } else if ( nullptr != dispatcher_ctx_) {
+        } else if ( ! local_queue_.empty() ) {
+            lk.unlock();
             // nothing in the ready queue, return dispatcher_ctx_
-            ctx = dispatcher_ctx_;
-            // once we've returned dispatcher_ctx_, clear the slot
-            dispatcher_ctx_ = nullptr;
+            ctx = local_queue_.front();
+            local_queue_.pop();
         }
         return ctx;
     }
 
     virtual bool has_ready_fibers() const noexcept {
         lock_t lock( mtx_);
-        return ! rqueue_.empty() || nullptr != main_ctx_ || nullptr != dispatcher_ctx_;
+        return ! rqueue_.empty() || ! local_queue_.empty();
     }
 
     void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
@@ -123,7 +117,7 @@ void whatevah( char me) {
         buffer << "fiber " << me << " started on thread " << my_thread << '\n';
         std::cout << buffer.str() << std::flush;
     }
-    for ( unsigned i = 0; i < 10; ++i) {
+    for ( unsigned i = 0; i < 5; ++i) {
         boost::this_fiber::yield();
         std::thread::id new_thread = std::this_thread::get_id();
         if ( new_thread != my_thread) {
@@ -164,7 +158,7 @@ int main( int argc, char *argv[]) {
 
     for ( int i = 0; i < 10; ++i) {
         // launch a number of fibers
-        for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) {
+        for ( char c : std::string("abc")) {
             boost::fibers::fiber([c](){ whatevah( c); }).detach();
         }
 
