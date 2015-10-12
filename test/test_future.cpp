@@ -21,6 +21,18 @@ struct my_exception : public std::runtime_error {
     }
 };
 
+struct A {
+    A() = default;
+
+    A( A const&) = delete;
+    A( A &&) = default;
+
+    A & operator=( A const&) = delete;
+    A & operator=( A &&) = default;
+
+    int value;
+};
+
 void fn1( boost::fibers::promise< int > * p, int i) {
     boost::this_fiber::yield();
     p->set_value( i);
@@ -476,6 +488,33 @@ void test_future_get() {
     // throw broken_promise if promise is destroyed without set
     {
         boost::fibers::promise< int > p2;
+        f1 = p2.get_future();
+    }
+    bool thrown = false;
+    try {
+        f1.get();
+    } catch ( boost::fibers::broken_promise const&) {
+        thrown = true;
+    }
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( thrown);
+}
+
+void test_future_get_move() {
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< A > p1;
+
+    boost::fibers::future< A > f1 = p1.get_future();
+    BOOST_CHECK( f1.valid() );
+
+    // get
+    BOOST_CHECK( ! f1.get_exception_ptr() );
+    BOOST_CHECK( 0 == f1.get().value);
+    BOOST_CHECK( ! f1.valid() );
+
+    // throw broken_promise if promise is destroyed without set
+    {
+        boost::fibers::promise< A > p2;
         f1 = p2.get_future();
     }
     bool thrown = false;
@@ -1112,7 +1151,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     test->add(BOOST_TEST_CASE(test_future_move_ref));
     test->add(BOOST_TEST_CASE(test_future_move_void));
     test->add(BOOST_TEST_CASE(test_future_get));
-    test->add(BOOST_TEST_CASE(test_future_get_ref));
+    test->add(BOOST_TEST_CASE(test_future_get_move));
     test->add(BOOST_TEST_CASE(test_future_get_ref));
     test->add(BOOST_TEST_CASE(test_future_get_void));
     test->add(BOOST_TEST_CASE(test_future_share));
