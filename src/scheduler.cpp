@@ -79,6 +79,9 @@ scheduler::release_terminated_() {
         BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
+        // remove context from worker-queue
+        ctx->worker_unlink();
+        // remove context from terminated-queue
         i = terminated_queue_.erase( i);
         // if last reference, e.g. fiber::join() or fiber::detach()
         // have been already called, this will call ~context(),
@@ -262,8 +265,12 @@ scheduler::dispatch() {
             context * ctx = & ( * i);
             BOOST_ASSERT( ! ctx->is_main_context() );
             BOOST_ASSERT( ! ctx->is_dispatcher_context() );
-            ctx->request_unwinding();
-            set_ready( ctx); 
+            if ( ctx->is_terminated() ) {
+                i = worker_queue_.erase( i);
+            } else {
+                ctx->request_unwinding();
+                set_ready( ctx); 
+            }
         }
     }
     resume_( dispatcher_ctx_.get(), main_ctx_);
