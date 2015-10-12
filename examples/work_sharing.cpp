@@ -84,7 +84,6 @@ public:
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
-            ctx->worker_unlink();
             ctx->set_scheduler( boost::fibers::context::active()->get_scheduler() );
         } else if ( ! local_queue_.empty() ) {
             lk.unlock();
