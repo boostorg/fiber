@@ -84,6 +84,7 @@ public:
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
+            ctx->worker_unlink();
             ctx->set_scheduler( boost::fibers::context::active()->get_scheduler() );
         } else if ( ! local_queue_.empty() ) {
             lk.unlock();
@@ -115,7 +116,6 @@ std::mutex shared_ready_queue::mtx_;
 *   example fiber function
 *****************************************************************************/
 void whatevah( char me) {
-    ++fiber_count;
     try {
         std::thread::id my_thread = std::this_thread::get_id();
         {
@@ -147,7 +147,6 @@ void whatevah( char me) {
 // ready_fibers().
 void drain() {
     std::ostringstream buffer;
-    buffer << "thread " << std::this_thread::get_id() << " calls drain()" << std::endl;
     std::cout << buffer.str() << std::flush;
     // THIS fiber is running, so won't be counted among "ready" fibers
     while ( 0 < fiber_count) {
@@ -174,19 +173,18 @@ int main( int argc, char *argv[]) {
 
     for ( int i = 0; i < 10; ++i) {
         // launch a number of fibers
-        for ( char c : std::string("abc")) {
+        for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) {
             boost::fibers::fiber([c](){ whatevah( c); }).detach();
+            ++fiber_count;
         }
 
         // launch a couple threads to help process them
         std::thread threads[] = {
             std::thread( thread),
-#if 0
             std::thread( thread),
             std::thread( thread),
             std::thread( thread),
             std::thread( thread)
-#endif
         };
 
         // drain running fibers
