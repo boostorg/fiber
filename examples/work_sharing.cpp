@@ -123,7 +123,7 @@ void whatevah( char me) {
             buffer << "fiber " << me << " started on thread " << my_thread << '\n';
             std::cout << buffer.str() << std::flush;
         }
-        for ( unsigned i = 0; i < 5; ++i) {
+        for ( unsigned i = 0; i < 10; ++i) {
             boost::this_fiber::yield();
             std::thread::id new_thread = std::this_thread::get_id();
             if ( new_thread != my_thread) {
@@ -195,6 +195,8 @@ int main( int argc, char *argv[]) {
             t.join();
         }
     }
+
+    BOOST_ASSERT( 0 == fiber_count.load() );
 
     std::cout << "done." << std::endl;
 
