@@ -165,7 +165,6 @@ context::context( main_context_t) :
     flags_( flag_main_context),
     scheduler_( nullptr),
     ctx_( boost::context::execution_context::current() ),
-    hook_splk_(),
     worker_hook_(),
     terminated_hook_(),
     ready_hook_(),
@@ -193,7 +192,6 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }),
-    hook_splk_(),
     worker_hook_(),
     terminated_hook_(),
     ready_hook_(),
@@ -398,79 +396,66 @@ context::set_properties( fiber_properties * props) {
 
 bool
 context::worker_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return worker_hook_.is_linked();
 }
 
 bool
 context::terminated_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return terminated_hook_.is_linked();
 }
 
 bool
 context::ready_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return ready_hook_.is_linked();
 }
 
 bool
 context::remote_ready_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return remote_ready_hook_.is_linked();
 }
 
 bool
 context::yield_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return yield_hook_.is_linked();
 }
 
 bool
 context::sleep_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return sleep_hook_.is_linked();
 }
 
 bool
 context::wait_is_linked() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     return wait_hook_.is_linked();
 }
 
 void
 context::worker_unlink() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     worker_hook_.unlink();
 }
 
 void
 context::ready_unlink() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     ready_hook_.unlink();
 }
 
 void
 context::remote_ready_unlink() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     remote_ready_hook_.unlink();
 }
 
 void
 context::yield_unlink() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     yield_hook_.unlink();
 }
 
 void
 context::sleep_unlink() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     sleep_hook_.unlink();
 }
 
 void
 context::wait_unlink() {
-    std::unique_lock< detail::spinlock > lk( hook_splk_);
     wait_hook_.unlink();
 }
 

@@ -178,7 +178,6 @@ private:
     boost::context::execution_context       ctx_;
 
 public:
-    detail::spinlock                        hook_splk_;
     detail::worker_hook                     worker_hook_;
     detail::terminated_hook                 terminated_hook_;
     detail::ready_hook                      ready_hook_;
@@ -306,7 +305,6 @@ public:
                 suspend();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
-        hook_splk_(),
         worker_hook_(),
         terminated_hook_(),
         ready_hook_(),
@@ -409,43 +407,36 @@ public:
 
     template< typename List >
     void worker_link( List & lst) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         lst.push_back( * this);
     }
 
     template< typename List >
     void terminated_link( List & lst) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         lst.push_back( * this);
     }
 
     template< typename List >
     void ready_link( List & lst) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         lst.push_back( * this);
     }
 
     template< typename List >
     void remote_ready_link( List & lst) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         lst.push_back( * this);
     }
 
     template< typename List >
     void yield_link( List & lst) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         lst.push_back( * this);
     }
 
     template< typename Set >
     void sleep_link( Set & set) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         set.insert( * this);
     }
 
     template< typename List >
     void wait_link( List & lst) {
-        std::unique_lock< detail::spinlock > lk( hook_splk_);
         lst.push_back( * this);
     }
 
