@@ -77,7 +77,7 @@ public:
         }
         ptr_t tmp;
         tmp.swap( state_);
-        return tmp->get();
+        return std::move( tmp->get() );
     }
 
     std::exception_ptr get_exception_ptr() {
