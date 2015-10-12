@@ -264,8 +264,29 @@ void test_promise_set_value() {
         thrown = true;
     }
     BOOST_CHECK( thrown);
+}
 
-    //TODO: promise takes a moveable-only as return type
+void test_promise_set_value_move() {
+    // promise takes a copyable as return type
+    boost::fibers::promise< A > p1;
+    boost::fibers::future< A > f1 = p1.get_future();
+    BOOST_CHECK( f1.valid() );
+
+    // move value
+    A a1; a1.value = 7;
+    p1.set_value( std::move( a1) );
+    A a2 = f1.get();
+    BOOST_CHECK( 7 == a2.value);
+
+    // set value a second time
+    bool thrown = false;
+    try {
+        A a;
+        p1.set_value( std::move( a) );
+    } catch ( boost::fibers::promise_already_satisfied const&) {
+        thrown = true;
+    }
+    BOOST_CHECK( thrown);
 }
 
 void test_promise_set_value_ref() {
@@ -482,8 +503,6 @@ void test_future_get() {
     BOOST_CHECK( ! f1.get_exception_ptr() );
     BOOST_CHECK( 7 == f1.get() );
     BOOST_CHECK( ! f1.valid() );
-
-    //TODO: future gets a moveable-only as return type
 
     // throw broken_promise if promise is destroyed without set
     {
@@ -1054,8 +1073,6 @@ void test_packaged_task_exception() {
     }
     BOOST_CHECK( thrown);
 
-    //TODO: packaged_task returns a moveable-only as return type
-    
     boost::fibers::packaged_task< int() > t2( fn5);
     BOOST_CHECK( t2.valid() );
     boost::fibers::future< int > f2 = t2.get_future();
@@ -1138,6 +1155,7 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     test->add(BOOST_TEST_CASE(test_promise_get_future_ref));
     test->add(BOOST_TEST_CASE(test_promise_get_future_void));
     test->add(BOOST_TEST_CASE(test_promise_set_value));
+    test->add(BOOST_TEST_CASE(test_promise_set_value_move));
     test->add(BOOST_TEST_CASE(test_promise_set_value_ref));
     test->add(BOOST_TEST_CASE(test_promise_set_value_void));
     test->add(BOOST_TEST_CASE(test_promise_set_exception));
