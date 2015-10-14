@@ -390,66 +390,66 @@ public:
         return properties_;
     }
 
-    bool ready_is_linked();
+    bool ready_is_linked() const;
 
-    bool remote_ready_is_linked();
+    bool remote_ready_is_linked() const;
 
-    bool sleep_is_linked();
+    bool sleep_is_linked() const;
 
-    bool terminated_is_linked();
+    bool terminated_is_linked() const;
 
-    bool wait_is_linked();
+    bool wait_is_linked() const;
 
-    bool worker_is_linked();
+    bool worker_is_linked() const;
 
-    bool yield_is_linked();
+    bool yield_is_linked() const;
 
     template< typename List >
-    void ready_link( List & lst) {
+    void ready_link( List & lst) noexcept {
         lst.push_back( * this);
     }
 
     template< typename List >
-    void remote_ready_link( List & lst) {
+    void remote_ready_link( List & lst) noexcept {
         lst.push_back( * this);
     }
 
     template< typename Set >
-    void sleep_link( Set & set) {
+    void sleep_link( Set & set) noexcept {
         set.insert( * this);
     }
 
     template< typename List >
-    void terminated_link( List & lst) {
+    void terminated_link( List & lst) noexcept {
         lst.push_back( * this);
     }
 
     template< typename List >
-    void wait_link( List & lst) {
+    void wait_link( List & lst) noexcept {
         lst.push_back( * this);
     }
 
     template< typename List >
-    void worker_link( List & lst) {
+    void worker_link( List & lst) noexcept {
         lst.push_back( * this);
     }
 
     template< typename List >
-    void yield_link( List & lst) {
+    void yield_link( List & lst) noexcept {
         lst.push_back( * this);
     }
 
-    void ready_unlink();
+    void ready_unlink() noexcept;
 
-    void remote_ready_unlink();
+    void remote_ready_unlink() noexcept;
 
-    void sleep_unlink();
+    void sleep_unlink() noexcept;
 
-    void wait_unlink();
+    void wait_unlink() noexcept;
 
-    void worker_unlink();
+    void worker_unlink() noexcept;
 
-    void yield_unlink();
+    void yield_unlink() noexcept;
 
     void attach( context *);
 
