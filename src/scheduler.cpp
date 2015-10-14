@@ -62,7 +62,7 @@ scheduler::get_next_() noexcept {
          ! ctx->worker_is_linked() &&
          ! ctx->is_main_context() &&
          ! ctx->is_dispatcher_context() ) {
-        ctx->worker_link( worker_queue_);
+        ctx->worker_link( worker_queue_); //FIXME
     }
     return ctx;
 }
@@ -186,35 +186,6 @@ scheduler::~scheduler() noexcept {
 }
 
 void
-scheduler::set_main_context( context * main_ctx) noexcept {
-    BOOST_ASSERT( nullptr != main_ctx);
-    // main-context represents the execution context created
-    // by the system, e.g. main()- or thread-context
-    // should not be in worker-queue
-    main_ctx_ = main_ctx;
-    main_ctx_->set_scheduler( this);
-}
-
-void
-scheduler::set_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noexcept {
-    BOOST_ASSERT( dispatcher_ctx);
-    // dispatcher context has to handle
-    //    - remote ready context'
-    //    - sleeping context'
-    //    - extern event-loops
-    //    - suspending the thread if ready-queue is empty (waiting on external event)
-    // should not be in worker-queue
-    dispatcher_ctx_.swap( dispatcher_ctx);
-    // add dispatcher-context to ready-queue
-    // so it is the first element in the ready-queue
-    // if the main context tries to suspend the first time
-    // the dispatcher-context is resumed and
-    // scheduler::dispatch() is executed
-    dispatcher_ctx_->set_scheduler( this);
-    sched_algo_->awakened( dispatcher_ctx_.get() );
-}
-
-void
 scheduler::dispatch() {
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
     while ( ! shutdown_) {
@@ -273,6 +244,9 @@ scheduler::dispatch() {
             }
         }
     }
+    // release termianted context'
+    release_terminated_();
+    // return to main-context
     resume_( dispatcher_ctx_.get(), main_ctx_);
 }
 
@@ -290,9 +264,9 @@ scheduler::set_ready( context * ctx) noexcept {
     if ( ! ctx->is_main_context() ) {
         if ( ! ctx->worker_is_linked() ) {
             // attach context to `this`-scheduler
-            ctx->set_scheduler( this);
+            ctx->scheduler_ = this;
             // push to the worker-queue
-            ctx->worker_link( worker_queue_);
+            ctx->worker_link( worker_queue_); // FIXME
         }
     } else {
         // sanity checks, main-context might by signaled
@@ -425,6 +399,62 @@ scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
         algo->awakened( sched_algo_->pick_next() );
     }
     sched_algo_ = std::move( algo);
+}
+
+void
+scheduler::attach_main_context( context * main_ctx) noexcept {
+    BOOST_ASSERT( nullptr != main_ctx);
+    // main-context represents the execution context created
+    // by the system, e.g. main()- or thread-context
+    // should not be in worker-queue
+    main_ctx_ = main_ctx;
+    main_ctx_->scheduler_ = this;
+}
+
+void
+scheduler::attach_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) noexcept {
+    BOOST_ASSERT( dispatcher_ctx);
+    // dispatcher context has to handle
+    //    - remote ready context'
+    //    - sleeping context'
+    //    - extern event-loops
+    //    - suspending the thread if ready-queue is empty (waiting on external event)
+    // should not be in worker-queue
+    dispatcher_ctx_.swap( dispatcher_ctx);
+    // add dispatcher-context to ready-queue
+    // so it is the first element in the ready-queue
+    // if the main context tries to suspend the first time
+    // the dispatcher-context is resumed and
+    // scheduler::dispatch() is executed
+    dispatcher_ctx_->scheduler_ = this;
+    sched_algo_->awakened( dispatcher_ctx_.get() );
+}
+
+void
+scheduler::attach_worker_context( context * ctx) noexcept {
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
+    BOOST_ASSERT( ! ctx->sleep_is_linked() );
+    BOOST_ASSERT( ! ctx->terminated_is_linked() );
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    BOOST_ASSERT( ! ctx->worker_is_linked() );
+    BOOST_ASSERT( ! ctx->yield_is_linked() );
+    ctx->worker_link( worker_queue_);
+    ctx->scheduler_ = this;
+}
+
+void
+scheduler::detach_worker_context( context * ctx) noexcept {
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
+    BOOST_ASSERT( ! ctx->sleep_is_linked() );
+    BOOST_ASSERT( ! ctx->terminated_is_linked() );
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    BOOST_ASSERT( ! ctx->yield_is_linked() );
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    ctx->worker_unlink();
 }
 
 }}

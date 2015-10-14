@@ -68,8 +68,9 @@ public:
             // stash it in separate slot
             local_queue_.push( ctx);
         } else {
+            // detach context from current scheduler
+            boost::fibers::context::active()->detach( ctx);
             // ordinary fiber, enqueue on shared queue
-            ctx->worker_unlink();
             lock_t lk( mtx_);
             rqueue_.push( ctx);
         }
@@ -84,7 +85,8 @@ public:
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
-            ctx->set_scheduler( boost::fibers::context::active()->get_scheduler() );
+            // attach context to current scheduler
+            boost::fibers::context::active()->attach( ctx);
         } else if ( ! local_queue_.empty() ) {
             lk.unlock();
             // nothing in the ready queue, return dispatcher_ctx_

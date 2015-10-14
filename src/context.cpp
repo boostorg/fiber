@@ -26,6 +26,7 @@ context *
 context::active_;
 
 static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
+    BOOST_ASSERT( nullptr != sched);
     fixedsize_stack salloc; // use default satck-size
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
@@ -71,9 +72,9 @@ context_initializer::context_initializer() {
         // scheduler of this thread
         scheduler * sched = new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
         // attach main context to scheduler
-        sched->set_main_context( main_ctx);
+        sched->attach_main_context( main_ctx);
         // create and attach dispatcher context to scheduler
-        sched->set_dispatcher_context(
+        sched->attach_dispatcher_context(
                 make_dispatcher_context( sched) );
         // make main context to active context
         context::active_ = main_ctx;
@@ -104,9 +105,9 @@ context_initializer::context_initializer() {
         // scheduler of this thread
         scheduler * sched = new ( vp1) scheduler();
         // attach main context to scheduler
-        sched->set_main_context( main_ctx);
+        sched->attach_main_context( main_ctx);
         // create and attach dispatcher context to scheduler
-        sched->set_dispatcher_context(
+        sched->attach_dispatcher_context(
                 make_dispatcher_context( sched) );
         // make main context to active context
         context::active_ = main_ctx;
@@ -165,13 +166,13 @@ context::context( main_context_t) :
     flags_( flag_main_context),
     scheduler_( nullptr),
     ctx_( boost::context::execution_context::current() ),
-    worker_hook_(),
-    terminated_hook_(),
     ready_hook_(),
     remote_ready_hook_(),
-    yield_hook_(),
     sleep_hook_(),
+    terminated_hook_(),
     wait_hook_(),
+    worker_hook_(),
+    yield_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
     wait_queue_(),
@@ -192,13 +193,13 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }),
-    worker_hook_(),
-    terminated_hook_(),
     ready_hook_(),
     remote_ready_hook_(),
-    yield_hook_(),
     sleep_hook_(),
+    terminated_hook_(),
     wait_hook_(),
+    worker_hook_(),
+    yield_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
     wait_queue_(),
@@ -213,12 +214,6 @@ context::~context() {
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
     delete properties_;
-}
-
-void
-context::set_scheduler( scheduler * s) {
-    BOOST_ASSERT( nullptr != s);
-    scheduler_ = s;
 }
 
 scheduler *
@@ -457,6 +452,20 @@ context::sleep_unlink() {
 void
 context::wait_unlink() {
     wait_hook_.unlink();
+}
+
+void
+context::attach( context * ctx) {
+    BOOST_ASSERT( nullptr != ctx);
+    scheduler_->attach_worker_context( ctx);
+}
+
+void
+context::detach( context * ctx) {
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( scheduler_ == ctx->scheduler_);
+    scheduler_->detach_worker_context( ctx);
+    ctx->scheduler_ = nullptr;
 }
 
 }}
