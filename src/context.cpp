@@ -390,67 +390,67 @@ context::set_properties( fiber_properties * props) {
 }
 
 bool
-context::worker_is_linked() {
+context::worker_is_linked() const {
     return worker_hook_.is_linked();
 }
 
 bool
-context::terminated_is_linked() {
+context::terminated_is_linked() const {
     return terminated_hook_.is_linked();
 }
 
 bool
-context::ready_is_linked() {
+context::ready_is_linked() const {
     return ready_hook_.is_linked();
 }
 
 bool
-context::remote_ready_is_linked() {
+context::remote_ready_is_linked() const {
     return remote_ready_hook_.is_linked();
 }
 
 bool
-context::yield_is_linked() {
+context::yield_is_linked() const {
     return yield_hook_.is_linked();
 }
 
 bool
-context::sleep_is_linked() {
+context::sleep_is_linked() const {
     return sleep_hook_.is_linked();
 }
 
 bool
-context::wait_is_linked() {
+context::wait_is_linked() const {
     return wait_hook_.is_linked();
 }
 
 void
-context::worker_unlink() {
+context::worker_unlink() noexcept {
     worker_hook_.unlink();
 }
 
 void
-context::ready_unlink() {
+context::ready_unlink() noexcept {
     ready_hook_.unlink();
 }
 
 void
-context::remote_ready_unlink() {
+context::remote_ready_unlink() noexcept {
     remote_ready_hook_.unlink();
 }
 
 void
-context::yield_unlink() {
+context::yield_unlink() noexcept {
     yield_hook_.unlink();
 }
 
 void
-context::sleep_unlink() {
+context::sleep_unlink() noexcept {
     sleep_hook_.unlink();
 }
 
 void
-context::wait_unlink() {
+context::wait_unlink() noexcept {
     wait_hook_.unlink();
 }
 
