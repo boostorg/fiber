@@ -58,12 +58,6 @@ context *
 scheduler::get_next_() noexcept {
     context * ctx = sched_algo_->pick_next();
     BOOST_ASSERT( nullptr == ctx || this == ctx->get_scheduler() );
-    if ( nullptr != ctx &&
-         ! ctx->worker_is_linked() &&
-         ! ctx->is_main_context() &&
-         ! ctx->is_dispatcher_context() ) {
-        ctx->worker_link( worker_queue_); //FIXME
-    }
     return ctx;
 }
 
@@ -197,7 +191,6 @@ scheduler::dispatch() {
         sleep2ready_();
         // get context' from remote ready-queue
         remote_ready2ready_();
-        // FIXME: local and remote ready-queue contain same context
         context * ctx = nullptr;
         // loop till we get next ready context
         while ( nullptr == ( ctx = get_next_() ) ) {
@@ -260,23 +253,8 @@ scheduler::set_ready( context * ctx) noexcept {
     // context::wait_is_linked() is not synchronized
     // with other threads
     //BOOST_ASSERT( active_ctx->wait_is_linked() );
-    // handle newly created context
-    if ( ! ctx->is_main_context() ) {
-        if ( ! ctx->worker_is_linked() ) {
-            // attach context to `this`-scheduler
-            ctx->scheduler_ = this;
-            // push to the worker-queue
-            ctx->worker_link( worker_queue_); // FIXME
-        }
-    } else {
-        // sanity checks, main-context might by signaled
-        // from another thread
-        BOOST_ASSERT( main_ctx_ == ctx);
-        BOOST_ASSERT( this == ctx->get_scheduler() );
-    }
     // remove context ctx from sleep-queue
     // (might happen if blocked in timed_mutex::try_lock_until())
-    // FIXME: mabye better done in scheduler::dispatch()
     if ( ctx->sleep_is_linked() ) {
         // unlink it from sleep-queue
         ctx->sleep_unlink();
