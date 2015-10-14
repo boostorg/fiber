@@ -13,11 +13,11 @@
 #include <cstddef>
 #include <exception>
 #include <mutex>
+#include <type_traits>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/optional.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/future/future_status.hpp>
@@ -36,12 +36,12 @@ namespace detail {
 template< typename R >
 class shared_state {
 private:
-    std::atomic< std::size_t >  use_count_;
-    mutable mutex               mtx_;
-    mutable condition           waiters_;
-    bool                        ready_;
-    optional< R >               value_;
-    std::exception_ptr          except_;
+    std::atomic< std::size_t >                                      use_count_;
+    mutable mutex                                                   mtx_;
+    mutable condition                                               waiters_;
+    bool                                                            ready_;
+    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_[1];
+    std::exception_ptr                                              except_;
 
     void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
         ready_ = true;
@@ -61,7 +61,7 @@ private:
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        value_ = value;
+        new ( storage_) R( value);
         mark_ready_and_notify_( lk);
     }
 
@@ -69,7 +69,7 @@ private:
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        value_ = std::move( value);
+        new ( storage_) R( std::move( value) );
         mark_ready_and_notify_( lk);
     }
 
@@ -81,12 +81,12 @@ private:
         mark_ready_and_notify_( lk);
     }
 
-    R const& get_( std::unique_lock< mutex > & lk) {
+    R & get_( std::unique_lock< mutex > & lk) {
         wait_( lk);
         if ( except_) {
             std::rethrow_exception( except_);
         }
-        return value_.get();
+        return * reinterpret_cast< R * >( storage_);
     }
 
     std::exception_ptr get_exception_ptr_( std::unique_lock< mutex > & lk) {
@@ -95,13 +95,13 @@ private:
     }
 
     void wait_( std::unique_lock< mutex > & lk) const {
-        waiters_.wait( lk, [&](){ return ready_; });
+        waiters_.wait( lk, [=](){ return ready_; });
     }
 
     template< class Rep, class Period >
     future_status wait_for_( std::unique_lock< mutex > & lk,
                              std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return waiters_.wait_for( lk, timeout_duration, [&](){ return ready_; })
+        return waiters_.wait_for( lk, timeout_duration, [=](){ return ready_; })
                     ? future_status::ready
                     : future_status::timeout;
     }
@@ -109,7 +109,7 @@ private:
     template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
                                std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return waiters_.wait_until( lk, timeout_time, [&](){ return ready_; })
+        return waiters_.wait_until( lk, timeout_time, [=](){ return ready_; })
                     ? future_status::ready
                     : future_status::timeout;
     }
@@ -122,10 +122,13 @@ public:
 
     shared_state() :
         use_count_( 0), mtx_(), ready_( false),
-        value_(), except_() {
+        storage_(), except_() {
     }
 
     virtual ~shared_state() noexcept {
+        if ( ready_) {
+            //reinterpret_cast< R const* >( storage_)->~R();
+        }
     }
 
     shared_state( shared_state const&) = delete;
@@ -151,7 +154,7 @@ public:
         set_exception_( except, lk);
     }
 
-    R const& get() {
+    R & get() {
         std::unique_lock< mutex > lk( mtx_);
         return get_( lk);
     }
@@ -249,13 +252,13 @@ private:
     }
 
     void wait_( std::unique_lock< mutex > & lk) const {
-        waiters_.wait( lk, [&](){ return ready_; });
+        waiters_.wait( lk, [=](){ return ready_; });
     }
 
     template< class Rep, class Period >
     future_status wait_for_( std::unique_lock< mutex > & lk,
                              std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return waiters_.wait_for( lk, timeout_duration, [&](){ return ready_; })
+        return waiters_.wait_for( lk, timeout_duration, [=](){ return ready_; })
                 ? future_status::ready
                 : future_status::timeout;
     }
@@ -263,7 +266,7 @@ private:
     template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
                                std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return waiters_.wait_until( lk, timeout_time, [&](){ return ready_; })
+        return waiters_.wait_until( lk, timeout_time, [=](){ return ready_; })
                 ? future_status::ready
                 : future_status::timeout;
     }
@@ -402,13 +405,13 @@ private:
 
     inline
     void wait_( std::unique_lock< mutex > & lk) const {
-        waiters_.wait( lk, [&](){ return ready_; });
+        waiters_.wait( lk, [=](){ return ready_; });
     }
 
     template< class Rep, class Period >
     future_status wait_for_( std::unique_lock< mutex > & lk,
                              std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return waiters_.wait_for( lk, timeout_duration, [&](){ return ready_; })
+        return waiters_.wait_for( lk, timeout_duration, [=](){ return ready_; })
                 ? future_status::ready
                 : future_status::timeout;
     }
@@ -416,7 +419,7 @@ private:
     template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
                                std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return waiters_.wait_until( lk, timeout_time, [&](){ return ready_; })
+        return waiters_.wait_until( lk, timeout_time, [=](){ return ready_; })
                 ? future_status::ready
                 : future_status::timeout;
     }
