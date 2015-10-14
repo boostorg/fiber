@@ -85,14 +85,6 @@ typedef intrusive::list_member_hook<
     >
 >                                       remote_ready_hook;
 
-struct yield_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< yield_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       yield_hook;
-
 struct sleep_tag;
 typedef intrusive::set_member_hook<
     intrusive::tag< sleep_tag >,
@@ -109,13 +101,21 @@ typedef intrusive::list_member_hook<
     >
 >                                       terminated_hook;
 
-struct managed_tag;
+struct worker_tag;
 typedef intrusive::list_member_hook<
-    intrusive::tag< managed_tag >,
+    intrusive::tag< worker_tag >,
     intrusive::link_mode<
         intrusive::auto_unlink
     >
 >                                       worker_hook;
+
+struct yield_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< yield_tag >,
+    intrusive::link_mode<
+        intrusive::auto_unlink
+    >
+>                                       yield_hook;
 
 }
 
@@ -131,6 +131,7 @@ const worker_context_t worker_context{};
 class BOOST_FIBERS_DECL context {
 private:
     friend struct context_initializer;
+    friend class scheduler;
 
     enum flag_t {
         flag_main_context           = 1 << 1,
@@ -178,13 +179,13 @@ private:
     boost::context::execution_context       ctx_;
 
 public:
-    detail::worker_hook                     worker_hook_;
-    detail::terminated_hook                 terminated_hook_;
     detail::ready_hook                      ready_hook_;
     detail::remote_ready_hook               remote_ready_hook_;
-    detail::yield_hook                      yield_hook_;
     detail::sleep_hook                      sleep_hook_;
+    detail::terminated_hook                 terminated_hook_;
     detail::wait_hook                       wait_hook_;
+    detail::worker_hook                     worker_hook_;
+    detail::yield_hook                      yield_hook_;
     std::chrono::steady_clock::time_point   tp_;
 
     typedef intrusive::list<
@@ -305,13 +306,13 @@ public:
                 suspend();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
-        worker_hook_(),
-        terminated_hook_(),
         ready_hook_(),
         remote_ready_hook_(),
-        yield_hook_(),
         sleep_hook_(),
+        terminated_hook_(),
         wait_hook_(),
+        worker_hook_(),
+        yield_hook_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
         fss_data_(),
         wait_queue_(),
@@ -322,8 +323,6 @@ public:
     }
 
     virtual ~context();
-
-    void set_scheduler( scheduler *);
 
     scheduler * get_scheduler() const noexcept;
 
@@ -391,29 +390,19 @@ public:
         return properties_;
     }
 
-    bool worker_is_linked();
-
-    bool terminated_is_linked();
-
     bool ready_is_linked();
 
     bool remote_ready_is_linked();
 
-    bool yield_is_linked();
-
     bool sleep_is_linked();
+
+    bool terminated_is_linked();
 
     bool wait_is_linked();
 
-    template< typename List >
-    void worker_link( List & lst) {
-        lst.push_back( * this);
-    }
+    bool worker_is_linked();
 
-    template< typename List >
-    void terminated_link( List & lst) {
-        lst.push_back( * this);
-    }
+    bool yield_is_linked();
 
     template< typename List >
     void ready_link( List & lst) {
@@ -425,14 +414,14 @@ public:
         lst.push_back( * this);
     }
 
-    template< typename List >
-    void yield_link( List & lst) {
-        lst.push_back( * this);
-    }
-
     template< typename Set >
     void sleep_link( Set & set) {
         set.insert( * this);
+    }
+
+    template< typename List >
+    void terminated_link( List & lst) {
+        lst.push_back( * this);
     }
 
     template< typename List >
@@ -440,17 +429,31 @@ public:
         lst.push_back( * this);
     }
 
-    void worker_unlink();
+    template< typename List >
+    void worker_link( List & lst) {
+        lst.push_back( * this);
+    }
+
+    template< typename List >
+    void yield_link( List & lst) {
+        lst.push_back( * this);
+    }
 
     void ready_unlink();
 
     void remote_ready_unlink();
 
-    void yield_unlink();
-
     void sleep_unlink();
 
     void wait_unlink();
+
+    void worker_unlink();
+
+    void yield_unlink();
+
+    void attach( context *);
+
+    void detach( context *);
 
     friend void intrusive_ptr_add_ref( context * ctx) {
         BOOST_ASSERT( nullptr != ctx);

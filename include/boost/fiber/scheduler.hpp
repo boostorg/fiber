@@ -110,10 +110,6 @@ public:
 
     virtual ~scheduler() noexcept;
 
-    void set_main_context( context *) noexcept;
-
-    void set_dispatcher_context( intrusive_ptr< context >) noexcept;
-
     void dispatch();
 
     void set_ready( context *) noexcept;
@@ -131,6 +127,14 @@ public:
     bool has_ready_fibers() const noexcept;
 
     void set_sched_algo( std::unique_ptr< sched_algorithm >);
+
+    void attach_main_context( context *) noexcept;
+
+    void attach_dispatcher_context( intrusive_ptr< context >) noexcept;
+
+    void attach_worker_context( context *) noexcept;
+
+    void detach_worker_context( context *) noexcept;
 };
 
 }}
