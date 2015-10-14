@@ -32,21 +32,11 @@ private:
     boost::asio::steady_timer               timer_;
     boost::fibers::scheduler::ready_queue_t ready_queue_;
 
-    void progress_() {
-        boost::this_fiber::yield(); 
-        io_svc_.post(
-            std::bind( & round_robin::progress_, this) );
-    }
-
 public:
     round_robin( boost::asio::io_service & io_svc) :
         io_svc_( io_svc),
         timer_( io_svc_),
         ready_queue_() {
-#if 0
-        io_svc_.post(
-            std::bind( & round_robin::progress_, this) );
-#endif
     }
 
     void awakened( boost::fibers::context * ctx) {
@@ -71,15 +61,11 @@ public:
         return ! ready_queue_.empty();
     }
 
-    void foo_bar() {
-        while ( 0 < io_svc_.poll_one() )
-            std::cout << "foo_bar()" << std::endl;
-    }
-
     void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
         timer_.expires_at( suspend_time);
         boost::system::error_code ignored_ec;
         timer_.async_wait( boost::fibers::asio::yield[ignored_ec]);
+        io_svc_.post([](){ boost::fibers::fiber([](){}).join(); });
     }
 
     void notify() {
