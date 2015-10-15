@@ -47,7 +47,14 @@ scheduler::resume_( context * active_ctx, context * ctx) {
     BOOST_ASSERT( context::active() == active_ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||
                   dispatcher_ctx_.get() == active_ctx ||
-                 active_ctx->worker_is_linked() );
+                  active_ctx->worker_is_linked() );
+    // move yielded context' to ready-queue
+    // note that we cann't call simply yield2ready_()
+    // because the context might be moved to another
+    // thread during suspension
+    // `this`might be cached and thus points to the
+    // previous scheduler (cotnaiend in the previous thread)
+    active_ctx->get_scheduler()->yield2ready_();
     // check if unwinding was requested
     if ( active_ctx->unwinding_requested() ) {
         throw forced_unwind();
