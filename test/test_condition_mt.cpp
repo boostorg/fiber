@@ -102,7 +102,7 @@ void fn3( boost::barrier & b,
 }
 
 void test_one_waiter_notify_one() {
-    for ( int i = 0; i < 100; ++i) {
+    for ( int i = 0; i < 10; ++i) {
         boost::barrier b( 2);
 
         bool flag = false;
@@ -125,7 +125,7 @@ void test_one_waiter_notify_one() {
 }
 
 void test_two_waiter_notify_all() {
-    for ( int i = 0; i < 100; ++i) {
+    for ( int i = 0; i < 10; ++i) {
         boost::barrier b( 3);
 
         bool flag = false;
