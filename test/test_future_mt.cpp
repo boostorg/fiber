@@ -18,15 +18,12 @@ int fn( int i) {
 }
 
 void test_async() {
-    for ( int i = 0; i < 100; ++i) {
+    for ( int i = 0; i < 10; ++i) {
         int n = 3;
         boost::fibers::packaged_task< int( int) > pt( fn);
-        //boost::fibers::packaged_task< int() > pt( std::bind( fn, n) );
         boost::fibers::future< int > f( pt.get_future() );
         std::thread t([n=n,pt_=std::move( pt)] () mutable -> void {
-                boost::fibers::fiber f( std::move( pt_), n);
-                boost::this_fiber::yield();
-                f.join();
+                boost::fibers::fiber( std::move( pt_), n).join();
                 });
         int result = f.get();
         BOOST_CHECK_EQUAL( n, result);

@@ -30,6 +30,16 @@ typedef std::chrono::milliseconds ms;
 
 boost::atomic< int > value;
 
+void wait_fn( boost::barrier & b,
+              boost::fibers::mutex & mtx,
+              boost::fibers::condition & cond,
+              bool & flag) {
+    b.wait();
+	std::unique_lock< boost::fibers::mutex > lk( mtx);
+	cond.wait( lk, [&flag](){ return flag; });
+	++value;
+}
+
 void notify_one_fn( boost::barrier & b,
                     boost::fibers::mutex & mtx,
                     boost::fibers::condition & cond,
@@ -37,7 +47,6 @@ void notify_one_fn( boost::barrier & b,
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
     flag = true;
-    lk.unlock();
 	cond.notify_one();
 }
 
@@ -48,18 +57,7 @@ void notify_all_fn( boost::barrier & b,
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
     flag = true;
-    lk.unlock();
 	cond.notify_all();
-}
-
-void wait_fn( boost::barrier & b,
-              boost::fibers::mutex & mtx,
-              boost::fibers::condition & cond,
-              bool & flag) {
-    b.wait();
-	std::unique_lock< boost::fibers::mutex > lk( mtx);
-	cond.wait( lk, [&flag](){ return flag; });
-	++value;
 }
 
 void fn1( boost::barrier & b,
@@ -159,7 +157,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
-    test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
+//    test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
 #else
     test->add( BOOST_TEST_CASE( & test_dummy) );
 #endif
