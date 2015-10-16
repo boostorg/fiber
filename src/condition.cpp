@@ -26,18 +26,15 @@ condition::~condition() {
 
 void
 condition::notify_one() {
-    context * ctx( nullptr);
     // get one context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
-    if ( ! wait_queue_.empty() ) {
-        ctx = & wait_queue_.front();
-        wait_queue_.pop_front();
+    if ( wait_queue_.empty() ) {
+        return;
     }
-    lk.unlock();
+    context * ctx = & wait_queue_.front();
+    wait_queue_.pop_front();
     // notify context
-    if ( nullptr != ctx) {
-        context::active()->set_ready( ctx);
-    }
+    context::active()->set_ready( ctx);
 }
 
 void
@@ -45,13 +42,10 @@ condition::notify_all() {
     wait_queue_t tmp;
     // get all context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
-    tmp.swap( wait_queue_);
-    lk.unlock();
     // notify all context'
-    while ( ! tmp.empty() ) {
-        context * ctx = & tmp.front();
-        tmp.pop_front();
-        BOOST_ASSERT( nullptr != ctx);
+    while ( ! wait_queue_.empty() ) {
+        context * ctx = & wait_queue_.front();
+        wait_queue_.pop_front();
         context::active()->set_ready( ctx);
     }
 }

@@ -7,11 +7,12 @@
 #include "boost/fiber/recursive_timed_mutex.hpp"
 
 #include <algorithm>
+#include <functional>
 
 #include <boost/assert.hpp>
 
+#include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/scheduler.hpp"
-#include "boost/fiber/interruption.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -20,32 +21,7 @@
 namespace boost {
 namespace fibers {
 
-bool
-recursive_timed_mutex::lock_if_unlocked_() {
-    if ( mutex_status::locked == state_.load( std::memory_order_relaxed) ) {
-        if ( context::active() == owner_) {
-            ++count_;
-            return true;
-        } else {
-            return false;
-        }
-    }
-    if ( mutex_status::unlocked != state_.exchange( mutex_status::locked, std::memory_order_acquire) ) {
-        if ( context::active() == owner_) {
-            ++count_;
-            return true;
-        } else {
-            return false;
-        }
-    }
-    BOOST_ASSERT( nullptr == owner_.load());
-    owner_ = context::active();
-    ++count_;
-    return true;
-}
-
 recursive_timed_mutex::recursive_timed_mutex() :
-	state_( mutex_status::unlocked),
     owner_( nullptr),
     count_( 0),
     wait_queue_(),
@@ -53,7 +29,7 @@ recursive_timed_mutex::recursive_timed_mutex() :
 }
 
 recursive_timed_mutex::~recursive_timed_mutex() {
-    BOOST_ASSERT( nullptr == owner_.load());
+    BOOST_ASSERT( nullptr == owner_);
     BOOST_ASSERT( 0 == count_);
     BOOST_ASSERT( wait_queue_.empty() );
 }
@@ -61,92 +37,92 @@ recursive_timed_mutex::~recursive_timed_mutex() {
 void
 recursive_timed_mutex::lock() {
     context * ctx = context::active();
-    for (;;) {
-        try {
-            if ( lock_if_unlocked_() ) {
-                return;
-            }
-            // store this fiber in order to be notified later
-            detail::spinlock_lock lk( wait_queue_splk_);
-            BOOST_ASSERT( ! ctx->wait_is_linked() );
-            ctx->wait_link( wait_queue_);
-            lk.unlock();
-            // suspend this fiber
-            ctx->suspend();
-            // remove fiber from wait-queue 
-            lk.lock();
-            ctx->wait_unlink();
-        } catch (...) {
-            // remove fiber from wait-queue 
-            detail::spinlock_lock lk( wait_queue_splk_);
-            ctx->wait_unlink();
-            throw;
-        }
+    // store this fiber in order to be notified later
+    detail::spinlock_lock lk( wait_queue_splk_);
+    if ( ctx == owner_) {
+        ++count_;
+        return;
+    } else if ( nullptr == owner_) {
+        owner_ = ctx;
+        count_ = 1;
+        return;
     }
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    ctx->wait_link( wait_queue_);
+    std::function< void() > func([&lk](){
+            lk.unlock();
+            });
+    // suspend this fiber
+    ctx->suspend( & func);
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
 }
 
 bool
 recursive_timed_mutex::try_lock() {
-    if ( lock_if_unlocked_() ) {
-        return true;
+    context * ctx = context::active();
+    detail::spinlock_lock lk( wait_queue_splk_);
+    if ( nullptr == owner_) {
+        owner_ = ctx;
+        count_ = 1;
+    } else if ( ctx == owner_) {
+        ++count_;
     }
+    lk.unlock();
     // let other fiber release the lock
     context::active()->yield();
-    return false;
+    return ctx == owner_;
 }
 
 bool
 recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
-    context * ctx = context::active();
-    for (;;) {
-        try {
-            if ( std::chrono::steady_clock::now() > timeout_time) {
-                return false;
-            }
-            if ( lock_if_unlocked_() ) {
-                return true;
-            }
-            // store this fiber in order to be notified later
-            detail::spinlock_lock lk( wait_queue_splk_);
-            BOOST_ASSERT( ! ctx->wait_is_linked() );
-            ctx->wait_link( wait_queue_);
-            lk.unlock();
-            // suspend this fiber until notified or timed-out
-            if ( ! ctx->wait_until( timeout_time) ) {
-                // remove fiber from wait-queue 
-                lk.lock();
-                ctx->wait_unlink();
-                return false;
-            }
-            // remove fiber from wait-queue 
-            lk.lock();
-            ctx->wait_unlink();
-        } catch (...) {
-            // remove fiber from wait-queue 
-            detail::spinlock_lock lk( wait_queue_splk_);
-            ctx->wait_unlink();
-            throw;
-        }
+    if ( std::chrono::steady_clock::now() > timeout_time) {
+        return false;
     }
+    context * ctx = context::active();
+    // store this fiber in order to be notified later
+    detail::spinlock_lock lk( wait_queue_splk_);
+    if ( ctx == owner_) {
+        ++count_;
+        return true;
+    } else if ( nullptr == owner_) {
+        owner_ = ctx;
+        count_ = 1;
+        return true;
+    }
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    ctx->wait_link( wait_queue_);
+    std::function< void() > func([&lk](){
+            lk.unlock();
+            });
+    // suspend this fiber until notified or timed-out
+    if ( ! context::active()->wait_until( timeout_time, & func) ) {
+        // remove fiber from wait-queue 
+        lk.lock();
+        ctx->wait_unlink();
+        return false;
+    }
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    return ctx == owner_;
 }
 
 void
 recursive_timed_mutex::unlock() {
-    BOOST_ASSERT( mutex_status::locked == state_);
-    BOOST_ASSERT( context::active() == owner_);
+    context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-    context * ctx( nullptr);
+    if ( ctx != owner_) {
+        throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+                "boost fiber: no  privilege to perform the operation");
+    }
     if ( 0 == --count_) {
         if ( ! wait_queue_.empty() ) {
-            ctx = & wait_queue_.front();
+            context * ctx = & wait_queue_.front();
             wait_queue_.pop_front();
-            BOOST_ASSERT( nullptr != ctx);
-        }
-        lk.unlock();
-        owner_ = nullptr;
-        state_.store( mutex_status::unlocked, std::memory_order_release);
-        if ( nullptr != ctx) {
+            owner_ = ctx;
+            count_ = 1;
             context::active()->set_ready( ctx);
+        } else {
+            owner_ = nullptr;
+            return;
         }
     }
 }

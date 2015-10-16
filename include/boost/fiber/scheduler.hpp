@@ -7,7 +7,9 @@
 #define BOOST_FIBERS_FIBER_MANAGER_H
 
 #include <chrono>
+#include <functional>
 #include <memory>
+#include <mutex>
 
 #include <boost/config.hpp>
 #include <boost/intrusive/list.hpp>
@@ -44,11 +46,6 @@ public:
                 intrusive::member_hook<
                     context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
                 intrusive::constant_time_size< false > >    remote_ready_queue_t;
-    typedef intrusive::list<
-                context,
-                intrusive::member_hook<
-                    context, detail::yield_hook, & context::yield_hook_ >,
-                intrusive::constant_time_size< false > >    yield_queue_t;
     typedef intrusive::set<
                 context,
                 intrusive::member_hook<
@@ -85,20 +82,17 @@ private:
     remote_ready_queue_t                remote_ready_queue_;
     // sleep-queue cotnains context' whic hahve been called
     // scheduler::wait_until()
-    yield_queue_t                       yield_queue_;
     sleep_queue_t                       sleep_queue_;
     bool                                shutdown_;
     detail::spinlock                    remote_ready_splk_;
 
-    void resume_( context *, context *);
+    void resume_( context *, context *, std::function< void() > *);
 
     context * get_next_() noexcept;
 
     void release_terminated_();
 
     void remote_ready2ready_();
-
-    void yield2ready_();
 
     void sleep2ready_() noexcept;
 
@@ -120,9 +114,12 @@ public:
 
     void yield( context *) noexcept;
 
-    bool wait_until( context *, std::chrono::steady_clock::time_point const&) noexcept;
+    bool wait_until( context *,
+                     std::chrono::steady_clock::time_point const&,
+                     std::function< void() > * = nullptr) noexcept;
 
-    void re_schedule( context *) noexcept;
+    void re_schedule( context *,
+                      std::function< void() > * = nullptr) noexcept;
 
     bool has_ready_fibers() const noexcept;
 

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <mutex>
 
 #include <boost/assert.hpp>
@@ -19,8 +20,8 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/interruption.hpp>
-#include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -66,29 +67,34 @@ public:
         // check if context was interrupted
         this_fiber::interruption_point();
         context * ctx = context::active();
+        typename LockType::mutex_type * mtx = lt.mutex();
+        if ( ctx != mtx->owner_) {
+            throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+                    "boost fiber: no  privilege to perform the operation");
+        }
+        // store this fiber in waiting-queue
+        // in order notify (resume) this fiber later
+        detail::spinlock_lock lk( wait_queue_splk_);
+        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        ctx->wait_link( wait_queue_);
+        // unlock external
+        //lt.unlock();
+        std::function< void() > func([&lk,&lt](){
+                lk.unlock();
+                lt.unlock();
+                });
+        // suspend this fiber
+        ctx->suspend( & func);
         try {
-            // store this fiber in waiting-queue
-            // in order notify (resume) this fiber later
-            detail::spinlock_lock lk( wait_queue_splk_);
-            BOOST_ASSERT( ! ctx->wait_is_linked() );
-            ctx->wait_link( wait_queue_);
-            lk.unlock();
-            // unlock external
-            lt.unlock();
-            // suspend this fiber
-            ctx->suspend();
-            // remove fiber from wait-queue 
-            lk.lock();
-            ctx->wait_unlink();
             // check if context was interrupted
             this_fiber::interruption_point();
-            // lock external again before returning
-            lt.lock();
-        } catch (...) {
-            detail::spinlock_lock lk( wait_queue_splk_);
+        } catch ( ... ) {
             ctx->wait_unlink();
             throw;
         }
+        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        // lock external again before returning
+        lt.lock();
     }
 
     template< typename LockType, typename Clock, typename Duration >
@@ -99,32 +105,37 @@ public:
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert( timeout_time_) );
         context * ctx = context::active();
-        try {
-            // store this fiber in waiting-queue
-            // in order notify (resume) this fiber later
-            detail::spinlock_lock lk( wait_queue_splk_);
-            BOOST_ASSERT( ! ctx->wait_is_linked() );
-            ctx->wait_link( wait_queue_);
-            lk.unlock();
-            // unlock external
-            lt.unlock();
-            // suspend this fiber
-            if ( ! ctx->wait_until( timeout_time) ) {
-                status = cv_status::timeout;
-            }
-            // remove fiber from wait-queue 
-            lk.lock();
+        typename LockType::mutex_type * mtx = lt.mutex();
+        if ( ctx != mtx->owner_) {
+            throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+                    "boost fiber: no  privilege to perform the operation");
+        }
+        // store this fiber in waiting-queue
+        // in order notify (resume) this fiber later
+        detail::spinlock_lock lk( wait_queue_splk_);
+        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        ctx->wait_link( wait_queue_);
+        // unlock external
+        //lt.unlock();
+        std::function< void() > func([&lk,&lt](){
+                lk.unlock();
+                lt.unlock();
+                });
+        // suspend this fiber
+        if ( ! ctx->wait_until( timeout_time, & func) ) {
+            status = cv_status::timeout;
             ctx->wait_unlink();
+        }
+        try {
             // check if context was interrupted
             this_fiber::interruption_point();
-            // lock external again before returning
-            lt.lock();
-        } catch (...) {
-            detail::spinlock_lock lk( wait_queue_splk_);
+        } catch ( ... ) {
             ctx->wait_unlink();
             throw;
         }
-
+        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        // lock external again before returning
+        lt.lock();
         return status;
     }
 

@@ -172,7 +172,6 @@ context::context( main_context_t) :
     terminated_hook_(),
     wait_hook_(),
     worker_hook_(),
-    yield_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
     wait_queue_(),
@@ -187,7 +186,11 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     flags_( flag_dispatcher_context),
     scheduler_( nullptr),
     ctx_( std::allocator_arg, palloc, salloc,
-          [=] () -> void {
+          [=] (void * vp) -> void {
+            if ( nullptr != vp) {
+                std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
+                ( * func)();
+            }
             // execute scheduler::dispatch()
             sched->dispatch();
             // dispatcher context should never return from scheduler::dispatch()
@@ -199,7 +202,6 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     terminated_hook_(),
     wait_hook_(),
     worker_hook_(),
-    yield_hook_(),
     tp_( (std::chrono::steady_clock::time_point::max)() ),
     fss_data_(),
     wait_queue_(),
@@ -226,20 +228,19 @@ context::get_id() const noexcept {
     return id( const_cast< context * >( this) );
 }
 
-void
-context::resume() {
-    ctx_();
+std::function< void() > *
+context::resume( std::function< void() > * func) {
+    return static_cast< std::function< void() > * >( ctx_( func) );
 }
 
 void
-context::suspend() noexcept {
-    scheduler_->re_schedule( this);
+context::suspend( std::function< void() > * func) noexcept {
+    scheduler_->re_schedule( this, func);
 }
 
 void
 context::release() noexcept {
     BOOST_ASSERT( is_terminated() );
-
     wait_queue_t tmp;
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
@@ -296,11 +297,11 @@ context::yield() noexcept {
 }
 
 bool
-context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
+context::wait_until( std::chrono::steady_clock::time_point const& tp,
+                     std::function< void() > * func) noexcept {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
-
-    return scheduler_->wait_until( this, tp);
+    return scheduler_->wait_until( this, tp, func);
 }
 
 void
@@ -410,11 +411,6 @@ context::remote_ready_is_linked() const {
 }
 
 bool
-context::yield_is_linked() const {
-    return yield_hook_.is_linked();
-}
-
-bool
 context::sleep_is_linked() const {
     return sleep_hook_.is_linked();
 }
@@ -437,11 +433,6 @@ context::ready_unlink() noexcept {
 void
 context::remote_ready_unlink() noexcept {
     remote_ready_hook_.unlink();
-}
-
-void
-context::yield_unlink() noexcept {
-    yield_hook_.unlink();
 }
 
 void

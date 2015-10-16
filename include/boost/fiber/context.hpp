@@ -10,6 +10,7 @@
 #include <atomic>
 #include <chrono>
 #include <exception>
+#include <functional>
 #include <map>
 #include <memory>
 
@@ -109,14 +110,6 @@ typedef intrusive::list_member_hook<
     >
 >                                       worker_hook;
 
-struct yield_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< yield_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       yield_hook;
-
 }
 
 struct main_context_t {};
@@ -185,7 +178,6 @@ public:
     detail::terminated_hook                 terminated_hook_;
     detail::wait_hook                       wait_hook_;
     detail::worker_hook                     worker_hook_;
-    detail::yield_hook                      yield_hook_;
     std::chrono::steady_clock::time_point   tp_;
 
     typedef intrusive::list<
@@ -283,12 +275,16 @@ public:
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
               [=,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
-               ctx=boost::context::execution_context::current()] () mutable -> void {
+               ctx=boost::context::execution_context::current()] (void *) mutable -> void {
                 try {
                     auto fn( std::move( fn_) );
                     auto tpl( std::move( tpl_) );
                     // jump back after initialization
-                    ctx();
+                    void * vp = ctx();
+                    if ( nullptr != vp) {
+                        std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
+                        ( * func)();
+                    }
                     // check for unwinding
                     if ( ! unwinding_requested() ) {
                         boost::context::detail::do_invoke( fn, tpl);
@@ -312,7 +308,6 @@ public:
         terminated_hook_(),
         wait_hook_(),
         worker_hook_(),
-        yield_hook_(),
         tp_( (std::chrono::steady_clock::time_point::max)() ),
         fss_data_(),
         wait_queue_(),
@@ -328,9 +323,9 @@ public:
 
     id get_id() const noexcept;
 
-    void resume();
+    std::function< void() > * resume( std::function< void() > *);
 
-    void suspend() noexcept;
+    void suspend( std::function< void() > * = nullptr) noexcept;
 
     void release() noexcept;
 
@@ -338,7 +333,8 @@ public:
 
     void yield() noexcept;
 
-    bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
+    bool wait_until( std::chrono::steady_clock::time_point const&,
+                     std::function< void() > * = nullptr) noexcept;
 
     void set_ready( context *) noexcept;
 
@@ -402,8 +398,6 @@ public:
 
     bool worker_is_linked() const;
 
-    bool yield_is_linked() const;
-
     template< typename List >
     void ready_link( List & lst) noexcept {
         lst.push_back( * this);
@@ -434,11 +428,6 @@ public:
         lst.push_back( * this);
     }
 
-    template< typename List >
-    void yield_link( List & lst) noexcept {
-        lst.push_back( * this);
-    }
-
     void ready_unlink() noexcept;
 
     void remote_ready_unlink() noexcept;
@@ -448,8 +437,6 @@ public:
     void wait_unlink() noexcept;
 
     void worker_unlink() noexcept;
-
-    void yield_unlink() noexcept;
 
     void attach( context *);
 
