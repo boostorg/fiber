@@ -7,7 +7,6 @@
 #ifndef BOOST_FIBERS_TIMED_MUTEX_H
 #define BOOST_FIBERS_TIMED_MUTEX_H
 
-#include <atomic>
 #include <chrono>
 
 #include <boost/config.hpp>
@@ -24,21 +23,17 @@
 namespace boost {
 namespace fibers {
 
+class condition;
+
 class BOOST_FIBERS_DECL timed_mutex {
 private:
-    enum class mutex_status {
-        locked = 0,
-        unlocked
-    };
+    friend class condition;
 
     typedef context::wait_queue_t   wait_queue_t;
 
-    std::atomic< mutex_status > state_;
-    std::atomic< context * >    owner_;
+    context                 *   owner_;
     wait_queue_t                wait_queue_;
     detail::spinlock            wait_queue_splk_;
-
-    bool lock_if_unlocked_();
 
     bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time);
 

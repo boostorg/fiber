@@ -7,9 +7,12 @@
 #include "boost/fiber/mutex.hpp"
 
 #include <algorithm>
+#include <functional>
+#include <system_error>
 
 #include <boost/assert.hpp>
 
+#include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -19,84 +22,68 @@
 namespace boost {
 namespace fibers {
 
-bool
-mutex::lock_if_unlocked_() {
-    if ( mutex_status::locked == state_.load( std::memory_order_relaxed) ) {
-        return false;
-    }
-    if ( mutex_status::unlocked != state_.exchange( mutex_status::locked, std::memory_order_acquire) ) {
-        return false;
-    }
-    BOOST_ASSERT( nullptr == owner_.load());
-    owner_ = context::active();
-    return true;
-}
-
 mutex::mutex() :
-	state_( mutex_status::unlocked),
     owner_( nullptr),
     wait_queue_(),
     wait_queue_splk_() {
 }
 
 mutex::~mutex() {
-    BOOST_ASSERT( nullptr == owner_.load());
+    BOOST_ASSERT( nullptr == owner_);
     BOOST_ASSERT( wait_queue_.empty() );
 }
 
 void
 mutex::lock() {
     context * ctx = context::active();
-    for (;;) {
-        try {
-            if ( lock_if_unlocked_() ) {
-                return;
-            }
-            // store this fiber in order to be notified later
-            detail::spinlock_lock lk( wait_queue_splk_);
-            BOOST_ASSERT( ! ctx->wait_is_linked() );
-            ctx->wait_link( wait_queue_);
-            lk.unlock();
-            // suspend this fiber
-            ctx->suspend();
-            // remove fiber from wait-queue 
-            lk.lock();
-            ctx->wait_unlink();
-        } catch (...) {
-            // remove fiber from wait-queue 
-            detail::spinlock_lock lk( wait_queue_splk_);
-            ctx->wait_unlink();
-            throw;
-        }
+    // store this fiber in order to be notified later
+    detail::spinlock_lock lk( wait_queue_splk_);
+    if ( ctx == owner_) {
+        throw lock_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
+                "boost fiber: a deadlock is detected");
+    } else if ( nullptr == owner_) {
+        owner_ = ctx;
+        return;
     }
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    ctx->wait_link( wait_queue_);
+    std::function< void() > func([&lk](){
+            lk.unlock();
+            });
+    // suspend this fiber
+    ctx->suspend( & func);
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
 }
 
 bool
 mutex::try_lock() {
-    if ( lock_if_unlocked_() ) {
-        return true;
+    context * ctx = context::active();
+    detail::spinlock_lock lk( wait_queue_splk_);
+    if ( nullptr == owner_) {
+        owner_ = ctx;
     }
+    lk.unlock();
     // let other fiber release the lock
     context::active()->yield();
-    return false;
+    return ctx == owner_;
 }
 
 void
 mutex::unlock() {
-    BOOST_ASSERT( mutex_status::locked == state_);
-    BOOST_ASSERT( context::active() == owner_);
+    context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-    context * ctx( nullptr);
+//  if ( ctx != owner_) {
+//      throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+//              "boost fiber: no  privilege to perform the operation");
+//  }
     if ( ! wait_queue_.empty() ) {
-        ctx = & wait_queue_.front();
+        context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
-        BOOST_ASSERT( nullptr != ctx);
-    }
-    lk.unlock();
-    owner_ = nullptr;
-	state_.store( mutex_status::unlocked, std::memory_order_release);
-    if ( nullptr != ctx) {
+        owner_ = ctx;
         context::active()->set_ready( ctx);
+    } else {
+        owner_ = nullptr;
+        return;
     }
 }
 
