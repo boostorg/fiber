@@ -88,15 +88,12 @@ scheduler::release_terminated_() {
 
 void
 scheduler::remote_ready2ready_() {
-    remote_ready_queue_t tmp;
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
-    remote_ready_queue_.swap( tmp);
-    lk.unlock();
     // get context from remote ready-queue
-    while ( ! tmp.empty() ) {
-        context * ctx = & tmp.front();
-        tmp.pop_front();
+    while ( ! remote_ready_queue_.empty() ) {
+        context * ctx = & remote_ready_queue_.front();
+        remote_ready_queue_.pop_front();
         // store context in local queues
         set_ready( ctx);
     }
@@ -275,19 +272,22 @@ scheduler::set_remote_ready( context * ctx) noexcept {
 }
 
 void
-scheduler::set_terminated( context * ctx) noexcept {
-    BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( ! ctx->is_main_context() );
-    BOOST_ASSERT( ! ctx->is_dispatcher_context() );
-    BOOST_ASSERT( ctx->worker_is_linked() );
-    BOOST_ASSERT( ctx->is_terminated() );
-    BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->sleep_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
+scheduler::set_terminated( context * active_ctx) noexcept {
+    BOOST_ASSERT( nullptr != active_ctx);
+    BOOST_ASSERT( context::active() == active_ctx);
+    BOOST_ASSERT( ! active_ctx->is_main_context() );
+    BOOST_ASSERT( ! active_ctx->is_dispatcher_context() );
+    BOOST_ASSERT( active_ctx->worker_is_linked() );
+    BOOST_ASSERT( active_ctx->is_terminated() );
+    BOOST_ASSERT( ! active_ctx->ready_is_linked() );
+    BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
+    BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     // store the terminated fiber in the terminated-queue
     // the dispatcher-context will call 
     // intrusive_ptr_release( ctx);
-    ctx->terminated_link( terminated_queue_);
+    active_ctx->terminated_link( terminated_queue_);
+    // resume another fiber
+    resume_( active_ctx, get_next_(), nullptr);
 }
 
 void

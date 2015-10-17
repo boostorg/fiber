@@ -152,14 +152,6 @@ context::reset_active() noexcept {
     active_ = nullptr;
 }
 
-void
-context::set_terminated_() noexcept {
-    // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( splk_);
-    flags_ |= flag_terminated;
-    scheduler_->set_terminated( this);
-}
-
 // main fiber context
 context::context( main_context_t) :
     use_count_( 1), // allocated on main- or thread-stack
@@ -239,30 +231,6 @@ context::suspend( std::function< void() > * func) noexcept {
 }
 
 void
-context::release() noexcept {
-    BOOST_ASSERT( is_terminated() );
-    wait_queue_t tmp;
-    // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( splk_);
-    tmp.swap( wait_queue_);
-    lk.unlock();
-    // notify all waiting fibers
-    wait_queue_t::iterator e = tmp.end();
-    for ( wait_queue_t::iterator i = tmp.begin(); i != e;) {
-        context * ctx = & ( * i);
-        // remove fiber from wait-queue
-        i = tmp.erase( i);
-        // notify scheduler
-        scheduler_->set_ready( ctx);
-    }
-    // release fiber-specific-data
-    for ( fss_data_t::value_type & data : fss_data_) {
-        data.second.do_cleanup();
-    }
-    fss_data_.clear();
-}
-
-void
 context::join() {
     // get active context
     context * active_ctx = context::active();
@@ -294,6 +262,30 @@ context::yield() noexcept {
     context * active_ctx = context::active();
     // yield active context
     scheduler_->yield( active_ctx);
+}
+
+void
+context::terminate() noexcept {
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( splk_);
+    // mark as terminated
+    flags_ |= flag_terminated;
+    // notify all waiting fibers
+    while ( ! wait_queue_.empty() ) {
+        context * ctx = & wait_queue_.front();
+        // remove fiber from wait-queue
+        wait_queue_.pop_front();
+        // notify scheduler
+        scheduler_->set_ready( ctx);
+    }
+    lk.unlock();
+    // release fiber-specific-data
+    for ( fss_data_t::value_type & data : fss_data_) {
+        data.second.do_cleanup();
+    }
+    fss_data_.clear();
+    // switch to another context
+    scheduler_->set_terminated( this);
 }
 
 bool
