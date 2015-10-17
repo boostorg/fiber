@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <type_traits>
 
@@ -226,7 +227,7 @@ private:
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        value_ = & value;
+        value_ = std::addressof( value);
         mark_ready_and_notify_( lk);
     }
 
