@@ -26,6 +26,9 @@
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
+#include "../round_robin.hpp"
+#include "../spawn.hpp"
+#include "../yield.hpp"
 
 using boost::asio::ip::tcp;
 
