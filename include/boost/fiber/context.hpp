@@ -191,8 +191,6 @@ private:
     detail::spinlock                        splk_;
     fiber_properties                    *   properties_;
 
-    void set_terminated_() noexcept;
-
 public:
     class id {
     private:
@@ -281,6 +279,7 @@ public:
                     auto tpl( std::move( tpl_) );
                     // jump back after initialization
                     void * vp = ctx();
+                    // execute returned functor
                     if ( nullptr != vp) {
                         std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
                         ( * func)();
@@ -294,12 +293,8 @@ public:
                 } catch ( ... ) {
                     std::terminate();
                 }
-                // mark fiber as terminated
-                set_terminated_();
-                // notify waiting (joining) fibers
-                release();
-                // switch to another fiber
-                suspend();
+                // terminate context
+                terminate();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }),
         ready_hook_(),
@@ -325,13 +320,13 @@ public:
 
     std::function< void() > * resume( std::function< void() > *);
 
-    void suspend( std::function< void() > * = nullptr) noexcept;
-
-    void release() noexcept;
+    void suspend( std::function< void() > *) noexcept;
 
     void join();
 
     void yield() noexcept;
+
+    void terminate() noexcept;
 
     bool wait_until( std::chrono::steady_clock::time_point const&,
                      std::function< void() > * = nullptr) noexcept;
