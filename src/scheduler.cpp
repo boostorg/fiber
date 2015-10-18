@@ -209,16 +209,24 @@ scheduler::dispatch() {
         release_terminated_();
         // force unwinding of all context' in worker-queue
         worker_queue_t::iterator e = worker_queue_.end();
-        for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e; ++i) {
-            context * ctx = & ( * i);
+        for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e;) {
+            context * ctx = & ( worker_queue_.front() );
             BOOST_ASSERT( ! ctx->is_main_context() );
             BOOST_ASSERT( ! ctx->is_dispatcher_context() );
             if ( ctx->is_terminated() ) {
                 i = worker_queue_.erase( i);
             } else {
                 ctx->request_unwinding();
-                set_ready( ctx); 
+                set_ready( ctx);
+                ++i;
             }
+        }
+        context * ctx = nullptr;
+        if ( nullptr != ( ctx = get_next_() ) ) {
+            // resume ready context's
+            sched_algo_->awakened( dispatcher_ctx_.get() );
+            resume_( dispatcher_ctx_.get(), ctx, nullptr);
+            BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
         }
     }
     // release termianted context'
