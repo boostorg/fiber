@@ -78,10 +78,9 @@ public:
         BOOST_ASSERT( ! ctx->wait_is_linked() );
         ctx->wait_link( wait_queue_);
         // unlock external
-        //lt.unlock();
-        std::function< void() > func([&lk,&lt](){
+        lt.unlock();
+        std::function< void() > func([&lk](){
                 lk.unlock();
-                lt.unlock();
                 });
         // suspend this fiber
         ctx->suspend( & func);
@@ -116,10 +115,9 @@ public:
         BOOST_ASSERT( ! ctx->wait_is_linked() );
         ctx->wait_link( wait_queue_);
         // unlock external
-        //lt.unlock();
-        std::function< void() > func([&lk,&lt](){
+        lt.unlock();
+        std::function< void() > func([&lk](){
                 lk.unlock();
-                lt.unlock();
                 });
         // suspend this fiber
         if ( ! ctx->wait_until( timeout_time, & func) ) {
