@@ -13,6 +13,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <type_traits>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -21,8 +22,8 @@
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
-#include <boost/intrusive/set.hpp>
 #include <boost/intrusive_ptr.hpp>
+#include <boost/intrusive/set.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/fss.hpp>
@@ -396,31 +397,37 @@ public:
 
     template< typename List >
     void ready_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::ready_hook >::value, "not a ready-queue");
         lst.push_back( * this);
     }
 
     template< typename List >
     void remote_ready_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::remote_ready_hook >::value, "not a remote ready-queue");
         lst.push_back( * this);
     }
 
     template< typename Set >
     void sleep_link( Set & set) noexcept {
+        static_assert( std::is_same< typename Set::value_traits::hook_type,detail::sleep_hook >::value, "not a sleep-queue");
         set.insert( * this);
     }
 
     template< typename List >
     void terminated_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::terminated_hook >::value, "not a terminated-queue");
         lst.push_back( * this);
     }
 
     template< typename List >
     void wait_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::wait_hook >::value, "not a wait-queue");
         lst.push_back( * this);
     }
 
     template< typename List >
     void worker_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::worker_hook >::value, "not a worker-queue");
         lst.push_back( * this);
     }
 
