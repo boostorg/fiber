@@ -320,7 +320,7 @@ public:
 
     std::function< void() > * resume( std::function< void() > *);
 
-    void suspend( std::function< void() > *) noexcept;
+    void suspend( std::function< void() > * = nullptr) noexcept;
 
     void join();
 
