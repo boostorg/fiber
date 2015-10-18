@@ -39,7 +39,6 @@ condition::notify_one() {
 
 void
 condition::notify_all() {
-    wait_queue_t tmp;
     // get all context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     // notify all context'
