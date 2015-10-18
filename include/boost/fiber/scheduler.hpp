@@ -41,6 +41,7 @@ public:
                 intrusive::member_hook<
                     context, detail::ready_hook, & context::ready_hook_ >,
                 intrusive::constant_time_size< false > >    ready_queue_t;
+private:
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
@@ -55,19 +56,14 @@ public:
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
-                    context,
-                    detail::terminated_hook,
-                    & context::terminated_hook_ >,
+                    context, detail::terminated_hook, & context::terminated_hook_ >,
                 intrusive::constant_time_size< false > >    terminated_queue_t;
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
-                    context,
-                    detail::worker_hook,
-                    & context::worker_hook_ >,
+                    context, detail::worker_hook, & context::worker_hook_ >,
                 intrusive::constant_time_size< false > >    worker_queue_t;
 
-private:
     std::unique_ptr< sched_algorithm >  sched_algo_;
     context                         *   main_ctx_;
     intrusive_ptr< context >            dispatcher_ctx_;
