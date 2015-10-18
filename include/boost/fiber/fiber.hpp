@@ -20,6 +20,7 @@
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 #include <boost/fiber/properties.hpp>
+#include <boost/fiber/segmented_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -47,7 +48,7 @@ public:
 
     template< typename Fn, typename ... Args >
     explicit fiber( Fn && fn, Args && ... args) :
-        fiber( std::allocator_arg, fixedsize_stack(),
+        fiber( std::allocator_arg, default_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
     }
 

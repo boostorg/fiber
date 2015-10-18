@@ -30,6 +30,7 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 #include <boost/fiber/properties.hpp>
+#include <boost/fiber/segmented_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -259,7 +260,7 @@ public:
 
     // dispatcher fiber context
     context( dispatcher_context_t, boost::context::preallocated const&,
-         fixedsize_stack const&, scheduler *);
+             default_stack const&, scheduler *);
 
     // worker fiber context
     template< typename StackAlloc, typename Fn, typename ... Args >

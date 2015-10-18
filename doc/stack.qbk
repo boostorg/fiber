@@ -92,4 +92,7 @@ __segmented_stack__, __boost_fiber__ must be built with
 property `segmented-stacks`, e.g. [*toolset=gcc segmented-stacks=on] at b2/bjam
 command line.]
 
+[note If the library is compiled for segmented stacks, __segmented_stack__ is the only
+available stack allocator.]
+
 [endsect]
