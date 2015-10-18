@@ -27,7 +27,7 @@ context::active_;
 
 static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     BOOST_ASSERT( nullptr != sched);
-    fixedsize_stack salloc; // use default satck-size
+    default_stack salloc; // use default satck-size
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
@@ -173,7 +173,7 @@ context::context( main_context_t) :
 
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
-                  fixedsize_stack const& salloc, scheduler * sched) :
+                  default_stack const& salloc, scheduler * sched) :
     use_count_( 0), // scheduler will own dispatcher context
     flags_( flag_dispatcher_context),
     scheduler_( nullptr),
