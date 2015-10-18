@@ -355,7 +355,7 @@ scheduler::wait_until( context * active_ctx,
 }
 
 void
-scheduler::re_schedule( context * active_ctx,
+scheduler::suspend( context * active_ctx,
                         std::function< void() > * func) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( main_ctx_ == active_ctx ||

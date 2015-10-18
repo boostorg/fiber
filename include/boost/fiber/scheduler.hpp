@@ -118,7 +118,7 @@ public:
                      std::chrono::steady_clock::time_point const&,
                      std::function< void() > * = nullptr) noexcept;
 
-    void re_schedule( context *,
+    void suspend( context *,
                       std::function< void() > * = nullptr) noexcept;
 
     bool has_ready_fibers() const noexcept;
