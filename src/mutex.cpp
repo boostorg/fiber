@@ -72,10 +72,10 @@ void
 mutex::unlock() {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-//  if ( ctx != owner_) {
-//      throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
-//              "boost fiber: no  privilege to perform the operation");
-//  }
+    if ( ctx != owner_) {
+        throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+                "boost fiber: no  privilege to perform the operation");
+    }
     if ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
