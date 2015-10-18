@@ -227,7 +227,7 @@ context::resume( std::function< void() > * func) {
 
 void
 context::suspend( std::function< void() > * func) noexcept {
-    scheduler_->re_schedule( this, func);
+    scheduler_->suspend( this, func);
 }
 
 void
@@ -246,7 +246,7 @@ context::join() {
         active_ctx->wait_link( wait_queue_);
         lk.unlock();
         // suspend active context
-        scheduler_->re_schedule( active_ctx);
+        scheduler_->suspend( active_ctx);
         // remove from wait-queue
         active_ctx->wait_unlink();
         // active context resumed
