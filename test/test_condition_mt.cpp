@@ -6,7 +6,6 @@
 //
 // This test is based on the tests of Boost.Thread 
 
-#include <chrono>
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -16,6 +15,7 @@
 
 #include <boost/atomic.hpp>
 #include <boost/bind.hpp>
+#include <boost/chrono.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/function.hpp>
 #include <boost/ref.hpp>
@@ -25,8 +25,7 @@
 
 #include <boost/fiber/all.hpp>
 
-typedef std::chrono::nanoseconds  ns;
-typedef std::chrono::milliseconds ms;
+typedef boost::chrono::milliseconds ms;
 
 boost::atomic< int > value;
 
@@ -47,6 +46,7 @@ void notify_one_fn( boost::barrier & b,
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
     flag = true;
+    lk.unlock();
 	cond.notify_one();
 }
 
@@ -57,6 +57,7 @@ void notify_all_fn( boost::barrier & b,
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
     flag = true;
+    lk.unlock();
 	cond.notify_all();
 }
 
@@ -113,8 +114,6 @@ void test_one_waiter_notify_one() {
         boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
         boost::thread t2(std::bind( fn2, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
 
-        BOOST_CHECK( 0 == value);
-
         t1.join();
         t2.join();
 
@@ -136,8 +135,6 @@ void test_two_waiter_notify_all() {
         boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
         boost::thread t2(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
         boost::thread t3(std::bind( fn3, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
-
-        BOOST_CHECK( 0 == value);
 
         t1.join();
         t2.join();
