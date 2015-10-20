@@ -35,11 +35,7 @@ scheduler::resume_( context * active_ctx, context * ctx, std::function< void() >
     BOOST_ASSERT( this == active_ctx->get_scheduler() );
     BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
-    // fiber next-to-run is same as current active-fiber
-    // this might happen in context of this_fiber::yield() 
-    if ( active_ctx == ctx) {
-        return;
-    }
+    BOOST_ASSERT( active_ctx != ctx);
     // assign new fiber to active-fiber
     context::active( ctx);
     // resume active-fiber == ctx
