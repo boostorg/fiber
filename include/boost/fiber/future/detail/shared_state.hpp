@@ -128,7 +128,7 @@ public:
 
     virtual ~shared_state() noexcept {
         if ( ready_) {
-            //reinterpret_cast< R const* >( storage_)->~R();
+            reinterpret_cast< R const* >( storage_)->~R();
         }
     }
 
