@@ -441,9 +441,7 @@ public:
 
     void worker_unlink() noexcept;
 
-    void attach( context *);
-
-    void detach( context *);
+    void migrate( context *);
 
     friend void intrusive_ptr_add_ref( context * ctx) {
         BOOST_ASSERT( nullptr != ctx);
