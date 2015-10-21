@@ -441,6 +441,8 @@ public:
 
     void worker_unlink() noexcept;
 
+    void attach( context *);
+
     void migrate( context *);
 
     friend void intrusive_ptr_add_ref( context * ctx) {
