@@ -438,6 +438,12 @@ context::wait_unlink() noexcept {
 }
 
 void
+context::attach( context * ctx) {
+    BOOST_ASSERT( nullptr != ctx);
+    scheduler_->attach_worker_context( ctx);
+}
+
+void
 context::migrate( context * ctx) {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() != ctx);
