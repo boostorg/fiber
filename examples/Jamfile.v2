@@ -38,6 +38,7 @@ exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp ;
 exe wait_stuff : wait_stuff.cpp ;
 exe work_sharing : work_sharing.cpp ;
+exe work_stealing : work_stealing.cpp ;
 
 exe asio/echo_client : asio/echo_client.cpp ;
 exe asio/echo_server_spawn : asio/echo_server_spawn.cpp ;
