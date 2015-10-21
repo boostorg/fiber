@@ -438,17 +438,11 @@ context::wait_unlink() noexcept {
 }
 
 void
-context::attach( context * ctx) {
+context::migrate( context * ctx) {
     BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( context::active() != ctx);
+    ctx->scheduler_->detach_worker_context( ctx);
     scheduler_->attach_worker_context( ctx);
-}
-
-void
-context::detach( context * ctx) {
-    BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( scheduler_ == ctx->scheduler_);
-    scheduler_->detach_worker_context( ctx);
-    ctx->scheduler_ = nullptr;
 }
 
 }}
