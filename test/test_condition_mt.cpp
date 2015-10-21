@@ -154,7 +154,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
-//    test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
+    test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
 #else
     test->add( BOOST_TEST_CASE( & test_dummy) );
 #endif
