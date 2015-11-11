@@ -59,8 +59,6 @@ public:
         if ( i != e) {
             ctx = & ( * i);
             rqueue_.erase( i);
-            ctx->detach( ctx);
-            BOOST_ASSERT( nullptr == ctx->get_scheduler() );
             BOOST_ASSERT( ! ctx->ready_is_linked() );
             BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
             BOOST_ASSERT( ! ctx->sleep_is_linked() );
