@@ -299,7 +299,7 @@ scheduler::yield( context * active_ctx) noexcept {
     // from one ready-queue) the context must be
     // already suspended until another thread resumes it
     // (== maked as ready)
-    std::function< void() > func([=](){
+    std::function< void() > func([this,active_ctx](){
                                     set_ready( active_ctx);
                                  });
     // resume another fiber
