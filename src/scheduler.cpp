@@ -31,14 +31,9 @@ scheduler::resume_( context * active_ctx, context * ctx, std::function< void() >
     BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
     BOOST_ASSERT( active_ctx != ctx);
-    // assign new fiber to active-fiber
-    context::active( ctx);
     // resume active-fiber == ctx
-    func = ctx->resume( func);
+    ctx->resume( func);
     BOOST_ASSERT( context::active() == active_ctx);
-    if ( nullptr != func) {
-        ( * func)();
-    }
     if ( active_ctx->unwinding_requested() ) {
         throw forced_unwind();
     }

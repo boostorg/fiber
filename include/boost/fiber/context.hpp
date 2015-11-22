@@ -252,8 +252,6 @@ public:
 
     static context * active() noexcept;
 
-    static void active( context * active) noexcept;
-
     static void reset_active() noexcept;
 
     // main fiber context
@@ -320,7 +318,7 @@ public:
 
     id get_id() const noexcept;
 
-    std::function< void() > * resume( std::function< void() > *);
+    void resume( std::function< void() > *);
 
     void suspend( std::function< void() > * = nullptr) noexcept;
 

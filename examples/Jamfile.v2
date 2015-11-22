@@ -30,7 +30,6 @@ exe adapt_method_calls : adapt_method_calls.cpp ;
 exe adapt_nonblocking : adapt_nonblocking.cpp ;
 exe barrier : barrier.cpp ;
 exe future : future.cpp ;
-exe interrupt : interrupt.cpp ;
 exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe priority : priority.cpp ;
