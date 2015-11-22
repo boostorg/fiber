@@ -142,12 +142,6 @@ context::active() noexcept {
 }
 
 void
-context::active( context * active) noexcept {
-    BOOST_ASSERT( nullptr != active);
-    active_ = active;
-}
-
-void
 context::reset_active() noexcept {
     active_ = nullptr;
 }
@@ -220,9 +214,16 @@ context::get_id() const noexcept {
     return id( const_cast< context * >( this) );
 }
 
-std::function< void() > *
+void
 context::resume( std::function< void() > * func) {
-    return static_cast< std::function< void() > * >( ctx_( func) );
+    context * prev = this;
+    // active_ will point to `this`
+    // prev will point to previous active context
+    std::swap( active_, prev);
+    func = static_cast< std::function< void() > * >( ctx_( func) );
+    if ( nullptr != func) {
+        ( * func)();
+    }
 }
 
 void
