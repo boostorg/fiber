@@ -172,7 +172,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     flags_( flag_dispatcher_context),
     scheduler_( nullptr),
     ctx_( std::allocator_arg, palloc, salloc,
-          [=] (void * vp) -> void {
+          [this,sched] (void * vp) -> void {
             if ( nullptr != vp) {
                 std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
                 ( * func)();
