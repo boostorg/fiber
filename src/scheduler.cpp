@@ -34,9 +34,6 @@ scheduler::resume_( context * active_ctx, context * ctx, std::function< void() >
     // resume active-fiber == ctx
     ctx->resume( func);
     BOOST_ASSERT( context::active() == active_ctx);
-    if ( active_ctx->unwinding_requested() ) {
-        throw forced_unwind();
-    }
 }
 
 context *
@@ -185,7 +182,7 @@ scheduler::dispatch() {
     // loop till all context' have been terminated
     std::unique_lock< detail::spinlock > lk( worker_splk_);
     while ( ! worker_queue_.empty() ) {
-        // force unwinding of all context' in worker-queue
+        // interrupt all context' in worker-queue
         worker_queue_t::iterator e = worker_queue_.end();
         for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e;) {
             context * ctx = & ( worker_queue_.front() );
@@ -194,7 +191,7 @@ scheduler::dispatch() {
             if ( ctx->is_terminated() ) {
                 i = worker_queue_.erase( i);
             } else {
-                ctx->request_unwinding();
+                ctx->request_interruption( true);
                 set_ready( ctx);
                 ++i;
             }
