@@ -115,7 +115,7 @@ context_initializer::context_initializer() {
     }
 }
 
-context_initializer::~context_initializer() {
+context_initializer::~context_initializer() noexcept {
     if ( 0 == --counter) {
         context * main_ctx = context::active_;
         BOOST_ASSERT( main_ctx->is_main_context() );
@@ -147,7 +147,7 @@ context::reset_active() noexcept {
 }
 
 // main fiber context
-context::context( main_context_t) :
+context::context( main_context_t) noexcept :
     use_count_( 1), // allocated on main- or thread-stack
     flags_( flag_main_context),
     scheduler_( nullptr),
@@ -195,7 +195,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     properties_( nullptr) {
 }
 
-context::~context() {
+context::~context() noexcept {
     BOOST_ASSERT( wait_queue_.empty() );
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! remote_ready_is_linked() );
