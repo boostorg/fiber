@@ -156,15 +156,19 @@ scheduler::dispatch() {
     while ( ! shutdown_) {
         // release termianted context'
         release_terminated_();
-        // get sleeping context'
-        sleep2ready_();
         // get context' from remote ready-queue
         remote_ready2ready_();
-        context * ctx = nullptr;
-        // loop till we get next ready context
-        while ( nullptr == ( ctx = get_next_() ) ) {
-            // get context' from remote ready-queue
-            remote_ready2ready_();
+        // get sleeping context'
+        sleep2ready_();
+        // get next ready context
+        context * ctx = get_next_();
+        if ( nullptr != ctx) {
+            // push dispatcher-context to ready-queue
+            // so that ready-queue never becomes empty
+            sched_algo_->awakened( dispatcher_ctx_.get() );
+            resume_( dispatcher_ctx_.get(), ctx, nullptr);
+            BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
+        } else {
             // no ready context, wait till signaled
             // set deadline to highest value
             std::chrono::steady_clock::time_point suspend_time =
@@ -176,18 +180,7 @@ scheduler::dispatch() {
             }
             // no ready context, wait till signaled
             sched_algo_->suspend_until( suspend_time);
-            // get sleeping context'
-            sleep2ready_();
-            // TODO: pump external event-loop like boost::asio::io_service
-            //       react on external interrupt signals
-            //       react on requesting work sharing scenario
-            //       no ready context, wait till signaled
         }
-        // push dispatcher-context to ready-queue
-        // so that ready-queue never becomes empty
-        sched_algo_->awakened( dispatcher_ctx_.get() );
-        resume_( dispatcher_ctx_.get(), ctx, nullptr);
-        BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
     }
     // loop till all context' have been terminated
     std::unique_lock< detail::spinlock > lk( worker_splk_);
