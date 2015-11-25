@@ -254,7 +254,7 @@ public:
     static void reset_active() noexcept;
 
     // main fiber context
-    context( main_context_t);
+    context( main_context_t) noexcept;
 
     // dispatcher fiber context
     context( dispatcher_context_t, boost::context::preallocated const&,
@@ -272,7 +272,7 @@ public:
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
               [this,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
-               ctx=boost::context::execution_context::current()] (void *) mutable -> void {
+               ctx=boost::context::execution_context::current()] (void *) mutable noexcept {
                 try {
                     auto fn( std::move( fn_) );
                     auto tpl( std::move( tpl_) );
@@ -305,7 +305,7 @@ public:
         ctx_();
     }
 
-    virtual ~context();
+    virtual ~context() noexcept;
 
     scheduler * get_scheduler() const noexcept;
 
@@ -445,7 +445,7 @@ public:
 
 struct context_initializer {
     context_initializer();
-    ~context_initializer();
+    ~context_initializer() noexcept;
 };
 
 template< typename StackAlloc, typename Fn, typename ... Args >
