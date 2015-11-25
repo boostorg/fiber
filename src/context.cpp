@@ -334,13 +334,6 @@ context::request_interruption( bool req) noexcept {
     }
 }
 
-void
-context::request_unwinding() noexcept {
-    BOOST_ASSERT( ! is_main_context() );
-    BOOST_ASSERT( ! is_dispatcher_context() );
-    flags_ |= flag_forced_unwind;
-}
-
 void *
 context::get_fss_data( void const * vp) const {
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );

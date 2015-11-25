@@ -134,8 +134,7 @@ private:
         flag_worker_context         = 1 << 3,
         flag_terminated             = 1 << 4,
         flag_interruption_blocked   = 1 << 5,
-        flag_interruption_requested = 1 << 6,
-        flag_forced_unwind          = 1 << 7
+        flag_interruption_requested = 1 << 6
     };
 
     struct BOOST_FIBERS_DECL fss_data {
@@ -284,14 +283,8 @@ public:
                         std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
                         ( * func)();
                     }
-                    // check for unwinding
-                    if ( ! unwinding_requested() ) {
-                        boost::context::detail::do_invoke( fn, tpl);
-                    }
+                    boost::context::detail::do_invoke( fn, tpl);
                 } catch ( fiber_interrupted const&) {
-                } catch ( forced_unwind const&) {
-                } catch ( ... ) {
-                    std::terminate();
                 }
                 // terminate context
                 terminate();
@@ -360,12 +353,6 @@ public:
     }
 
     void request_interruption( bool req) noexcept;
-
-    bool unwinding_requested() const noexcept {
-        return 0 != ( flags_ & flag_forced_unwind);
-    }
-
-    void request_unwinding() noexcept;
 
     void * get_fss_data( void const * vp) const;
 
