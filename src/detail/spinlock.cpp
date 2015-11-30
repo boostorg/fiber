@@ -16,12 +16,8 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-atomic_spinlock::atomic_spinlock() noexcept :
-    state_( atomic_spinlock_status::unlocked) {
-}
-
 void
-atomic_spinlock::lock() {
+atomic_spinlock::lock() noexcept {
     do {
         // access to CPU's cache
         // first access to state_ -> cache miss
