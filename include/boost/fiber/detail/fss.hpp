@@ -25,17 +25,14 @@ namespace detail {
 
 class fss_cleanup_function {
 private:
-    std::atomic< std::size_t >  use_count_;
+    std::atomic< std::size_t >  use_count_{ 0 };
 
 public:
     typedef intrusive_ptr< fss_cleanup_function >   ptr_t;
 
-    fss_cleanup_function() noexcept :
-        use_count_( 0) {
-    }
+    constexpr fss_cleanup_function() noexcept = default;
 
-    virtual ~fss_cleanup_function() {
-    }
+    virtual ~fss_cleanup_function() noexcept = default;
 
     virtual void operator()( void * data) = 0;
 
