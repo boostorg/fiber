@@ -25,14 +25,12 @@ namespace detail {
 
 class autoreset_event {
 private:
-    std::mutex              mtx_;
-    std::condition_variable cnd_;
-    bool                    flag_;
+    std::mutex              mtx_{};
+    std::condition_variable cnd_{};
+    bool                    flag_{ false };
 
 public:
-    autoreset_event() :
-        mtx_(), cnd_(), flag_( false) {
-    }
+    constexpr autoreset_event() = default;
 
     autoreset_event( autoreset_event const&) = delete;
     autoreset_event & operator=( autoreset_event const&) = delete;
