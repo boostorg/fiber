@@ -40,27 +40,23 @@ private:
         typedef intrusive_ptr< node >                                     ptr;
         typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >  allocator_type;
 
-        std::size_t         use_count;
+        std::size_t         use_count{ 0 };
         allocator_type  &   alloc;
         T                   va;
-        ptr                 nxt;
+        ptr                 nxt{};
 
-        explicit node( T const& t, allocator_type & alloc_) :
-            use_count( 0),
+        explicit node( T const& t, allocator_type & alloc_) noexcept :
             alloc( alloc_),
-            va( t),
-            nxt() {
+            va( t) {
         }
 
-        explicit node( T && t, allocator_type & alloc_) :
-            use_count( 0),
+        explicit node( T && t, allocator_type & alloc_) noexcept :
             alloc( alloc_),
-            va( std::forward< T >( t) ),
-            nxt() {
+            va( std::forward< T >( t) ) {
         }
 
         friend
-        void intrusive_ptr_add_ref( node * p) {
+        void intrusive_ptr_add_ref( node * p) noexcept {
             ++p->use_count;
         }
 
@@ -82,13 +78,13 @@ private:
     };
 
     allocator_type         alloc_;
-    queue_status           state_;
-    std::size_t            count_;
-    typename node::ptr     head_;
+    queue_status           state_{ queue_status::open };
+    std::size_t            count_{ 0 };
+    typename node::ptr     head_{};
     typename node::ptr  *  tail_;
-    mutable mutex          mtx_;
-    condition              not_empty_cond_;
-    condition              not_full_cond_;
+    mutable mutex          mtx_{};
+    condition              not_empty_cond_{};
+    condition              not_full_cond_{};
     std::size_t            hwm_;
     std::size_t            lwm_;
 
@@ -174,7 +170,7 @@ private:
     value_type value_pop_( std::unique_lock< boost::fibers::mutex > & lk) {
         BOOST_ASSERT( ! is_empty_() );
         try {
-            typename node::ptr old_head = pop_head_();
+            auto old_head = pop_head_();
             if ( size_() <= lwm_) {
                 if ( lwm_ == hwm_) {
                     lk.unlock();
@@ -194,7 +190,7 @@ private:
     }
 
     typename node::ptr pop_head_() {
-        typename node::ptr old_head = head_;
+        auto old_head = head_;
         head_ = old_head->nxt;
         if ( ! head_) {
             tail_ = & head_;
@@ -205,17 +201,10 @@ private:
     }
 
 public:
-    bounded_channel( std::size_t hwm,
-                   std::size_t lwm,
-                   Allocator const& alloc = Allocator() ) :
+    bounded_channel( std::size_t hwm, std::size_t lwm,
+                     Allocator const& alloc = Allocator() ) :
         alloc_( alloc),
-        state_( queue_status::open),
-        count_( 0),
-        head_(),
         tail_( & head_),
-        mtx_(),
-        not_empty_cond_(),
-        not_full_cond_(),
         hwm_( hwm),
         lwm_( lwm) {
         if ( hwm_ <= lwm_) {
@@ -229,15 +218,9 @@ public:
     }
 
     bounded_channel( std::size_t wm,
-                   Allocator const& alloc = Allocator() ) :
+                     Allocator const& alloc = Allocator() ) :
         alloc_( alloc),
-        state_( queue_status::open),
-        count_( 0),
-        head_(),
         tail_( & head_),
-        mtx_(),
-        not_empty_cond_(),
-        not_full_cond_(),
         hwm_( wm),
         lwm_() {
         if ( 0 == wm) {
