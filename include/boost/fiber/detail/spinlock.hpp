@@ -25,33 +25,28 @@ private:
         unlocked
     };
 
-    std::atomic< atomic_spinlock_status >  state_;
+    std::atomic< atomic_spinlock_status >  state_{ atomic_spinlock_status::unlocked };
 
 public:
-    atomic_spinlock() noexcept;
+    constexpr atomic_spinlock() noexcept = default;
 
     atomic_spinlock( atomic_spinlock const&) = delete;
     atomic_spinlock & operator=( atomic_spinlock const&) = delete;
 
-    void lock();
-
+    void lock() noexcept;
     void unlock() noexcept;
 };
 
 struct non_spinlock {
-    non_spinlock() noexcept {}
-
-    void lock() {}
-
+    constexpr non_spinlock() noexcept {}
+    void lock() noexcept {}
     void unlock() noexcept {}
 };
 
 struct non_lock {
-    non_lock( non_spinlock) {}
-
-    void lock() {}
-
-    void unlock() {}
+    constexpr non_lock( non_spinlock) noexcept {}
+    void lock() noexcept {}
+    void unlock() noexcept {}
 };
 
 #if ! defined(BOOST_FIBES_NO_ATOMICS) 
