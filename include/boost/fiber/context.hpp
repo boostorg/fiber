@@ -138,22 +138,19 @@ private:
     };
 
     struct BOOST_FIBERS_DECL fss_data {
-        void                                *   vp;
-        detail::fss_cleanup_function::ptr_t     cleanup_function;
+        void                                *   vp{ nullptr };
+        detail::fss_cleanup_function::ptr_t     cleanup_function{};
 
-        fss_data() :
-            vp( nullptr),
-            cleanup_function() {
-        }
+        constexpr fss_data() noexcept = default;
 
         fss_data( void * vp_,
-                  detail::fss_cleanup_function::ptr_t const& fn) :
+                  detail::fss_cleanup_function::ptr_t const& fn) noexcept :
             vp( vp_),
             cleanup_function( fn) {
             BOOST_ASSERT( cleanup_function);
         }
 
-        void do_cleanup() {
+        void do_cleanup() noexcept {
             ( * cleanup_function)( vp);
         }
     };
@@ -163,23 +160,23 @@ private:
     static thread_local context         *   active_;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic< std::size_t >              use_count_;
+    std::atomic< std::size_t >              use_count_{ 0 };
     std::atomic< int >                      flags_;
 #else
-    std::size_t                             use_count_;
+    std::size_t                             use_count_{ 0 };
     int                                     flags_;
 #endif
-    scheduler                           *   scheduler_;
+    scheduler                           *   scheduler_{ nullptr };
     boost::context::execution_context       ctx_;
 
 public:
-    detail::ready_hook                      ready_hook_;
-    detail::remote_ready_hook               remote_ready_hook_;
-    detail::sleep_hook                      sleep_hook_;
-    detail::terminated_hook                 terminated_hook_;
-    detail::wait_hook                       wait_hook_;
-    detail::worker_hook                     worker_hook_;
-    std::chrono::steady_clock::time_point   tp_;
+    detail::ready_hook                      ready_hook_{};
+    detail::remote_ready_hook               remote_ready_hook_{};
+    detail::sleep_hook                      sleep_hook_{};
+    detail::terminated_hook                 terminated_hook_{};
+    detail::wait_hook                       wait_hook_{};
+    detail::worker_hook                     worker_hook_{};
+    std::chrono::steady_clock::time_point   tp_{ (std::chrono::steady_clock::time_point::max)() };
 
     typedef intrusive::list<
         context,
@@ -187,20 +184,18 @@ public:
         intrusive::constant_time_size< false > >   wait_queue_t;
 
 private:
-    fss_data_t                              fss_data_;
-    wait_queue_t                            wait_queue_;
-    detail::spinlock                        splk_;
-    fiber_properties                    *   properties_;
+    fss_data_t                              fss_data_{};
+    wait_queue_t                            wait_queue_{};
+    detail::spinlock                        splk_{};
+    fiber_properties                    *   properties_{ nullptr };
 
 public:
     class id {
     private:
-        context  *   impl_;
+        context  *   impl_{ nullptr };
 
     public:
-        id() noexcept :
-            impl_( nullptr) {
-        }
+        constexpr id() noexcept = default;
 
         explicit id( context * impl) noexcept :
             impl_( impl) {
@@ -254,7 +249,7 @@ public:
     static void reset_active() noexcept;
 
     // main fiber context
-    context( main_context_t) noexcept;
+    explicit context( main_context_t) noexcept;
 
     // dispatcher fiber context
     context( dispatcher_context_t, boost::context::preallocated const&,
@@ -267,7 +262,6 @@ public:
              Fn && fn, Args && ... args) :
         use_count_( 1), // fiber instance or scheduler owner
         flags_( flag_worker_context),
-        scheduler_( nullptr),
         ctx_( std::allocator_arg, palloc, salloc,
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
@@ -289,18 +283,7 @@ public:
                 // terminate context
                 terminate();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
-              }),
-        ready_hook_(),
-        remote_ready_hook_(),
-        sleep_hook_(),
-        terminated_hook_(),
-        wait_hook_(),
-        worker_hook_(),
-        tp_( (std::chrono::steady_clock::time_point::max)() ),
-        fss_data_(),
-        wait_queue_(),
-        splk_(),
-        properties_( nullptr) {
+              }) {
         // switch for initialization
         ctx_();
     }
@@ -311,7 +294,7 @@ public:
 
     id get_id() const noexcept;
 
-    void resume( std::function< void() > *);
+    void resume( std::function< void() > *) noexcept;
 
     void suspend( std::function< void() > * = nullptr) noexcept;
 
@@ -362,23 +345,23 @@ public:
         void * data,
         bool cleanup_existing);
 
-    void set_properties( fiber_properties * props);
+    void set_properties( fiber_properties * props) noexcept;
 
     fiber_properties * get_properties() const noexcept {
         return properties_;
     }
 
-    bool ready_is_linked() const;
+    bool ready_is_linked() const noexcept;
 
-    bool remote_ready_is_linked() const;
+    bool remote_ready_is_linked() const noexcept;
 
-    bool sleep_is_linked() const;
+    bool sleep_is_linked() const noexcept;
 
-    bool terminated_is_linked() const;
+    bool terminated_is_linked() const noexcept;
 
-    bool wait_is_linked() const;
+    bool wait_is_linked() const noexcept;
 
-    bool worker_is_linked() const;
+    bool worker_is_linked() const noexcept;
 
     template< typename List >
     void ready_link( List & lst) noexcept {
@@ -426,16 +409,16 @@ public:
 
     void worker_unlink() noexcept;
 
-    void attach( context *);
+    void attach( context *) noexcept;
 
-    void migrate( context *);
+    void migrate( context *) noexcept;
 
-    friend void intrusive_ptr_add_ref( context * ctx) {
+    friend void intrusive_ptr_add_ref( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         ++ctx->use_count_;
     }
 
-    friend void intrusive_ptr_release( context * ctx) {
+    friend void intrusive_ptr_release( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         if ( 0 == --ctx->use_count_) {
             ctx->~context();
@@ -444,16 +427,16 @@ public:
 };
 
 struct context_initializer {
-    context_initializer();
+    context_initializer() noexcept;
     ~context_initializer() noexcept;
 };
 
 template< typename StackAlloc, typename Fn, typename ... Args >
-static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn, Args && ... args) {
+static auto make_worker_context( StackAlloc salloc, Fn && fn, Args && ... args) {
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
-    std::size_t size = sctx.size - sizeof( context);
+    const std::size_t size = sctx.size - sizeof( context);
     void * sp = static_cast< char * >( sctx.sp) - sizeof( context);
 #else
     constexpr std::size_t func_alignment = 64; // alignof( context);
@@ -465,7 +448,7 @@ static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn
     sp = std::align( func_alignment, func_size, sp, space);
     BOOST_ASSERT( nullptr != sp);
     // calculate remaining size
-    std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
+    const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >( 

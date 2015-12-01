@@ -22,7 +22,7 @@ namespace boost {
 namespace fibers {
 
 void
-fiber::start_() {
+fiber::start_() noexcept {
     context::active()->attach( impl_.get() );
     context::active()->get_scheduler()->set_ready( impl_.get() );
 }

@@ -25,13 +25,13 @@ thread_local
 context *
 context::active_;
 
-static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
+static auto make_dispatcher_context( scheduler * sched) {
     BOOST_ASSERT( nullptr != sched);
     default_stack salloc; // use default satck-size
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
-    std::size_t size = sctx.size - sizeof( context);
+    const std::size_t size = sctx.size - sizeof( context);
     void * sp = static_cast< char * >( sctx.sp) - sizeof( context);
 #else
     constexpr std::size_t func_alignment = 64; // alignof( context);
@@ -43,7 +43,7 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     sp = std::align( func_alignment, func_size, sp, space);
     BOOST_ASSERT( nullptr != sp);
     // calculate remaining size
-    std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
+    const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >( 
@@ -58,7 +58,7 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
 thread_local static std::size_t counter;
 
 // schwarz counter
-context_initializer::context_initializer() {
+context_initializer::context_initializer() noexcept {
     if ( 0 == counter++) {
 # if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
         // allocate memory for main context and scheduler
@@ -150,29 +150,15 @@ context::reset_active() noexcept {
 context::context( main_context_t) noexcept :
     use_count_( 1), // allocated on main- or thread-stack
     flags_( flag_main_context),
-    scheduler_( nullptr),
-    ctx_( boost::context::execution_context::current() ),
-    ready_hook_(),
-    remote_ready_hook_(),
-    sleep_hook_(),
-    terminated_hook_(),
-    wait_hook_(),
-    worker_hook_(),
-    tp_( (std::chrono::steady_clock::time_point::max)() ),
-    fss_data_(),
-    wait_queue_(),
-    splk_(),
-    properties_( nullptr) {
+    ctx_( boost::context::execution_context::current() ) {
 }
 
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   default_stack const& salloc, scheduler * sched) :
-    use_count_( 0), // scheduler will own dispatcher context
     flags_( flag_dispatcher_context),
-    scheduler_( nullptr),
     ctx_( std::allocator_arg, palloc, salloc,
-          [this,sched] (void * vp) -> void {
+          [this,sched] (void * vp) noexcept {
             if ( nullptr != vp) {
                 std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
                 ( * func)();
@@ -181,18 +167,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             sched->dispatch();
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
-          }),
-    ready_hook_(),
-    remote_ready_hook_(),
-    sleep_hook_(),
-    terminated_hook_(),
-    wait_hook_(),
-    worker_hook_(),
-    tp_( (std::chrono::steady_clock::time_point::max)() ),
-    fss_data_(),
-    wait_queue_(),
-    splk_(),
-    properties_( nullptr) {
+          }) {
 }
 
 context::~context() noexcept {
@@ -215,7 +190,7 @@ context::get_id() const noexcept {
 }
 
 void
-context::resume( std::function< void() > * func) {
+context::resume( std::function< void() > * func) noexcept {
     context * prev = this;
     // active_ will point to `this`
     // prev will point to previous active context
@@ -371,38 +346,38 @@ context::set_fss_data( void const * vp,
 }
 
 void
-context::set_properties( fiber_properties * props) {
+context::set_properties( fiber_properties * props) noexcept {
     delete properties_;
     properties_ = props;
 }
 
 bool
-context::worker_is_linked() const {
+context::worker_is_linked() const noexcept {
     return worker_hook_.is_linked();
 }
 
 bool
-context::terminated_is_linked() const {
+context::terminated_is_linked() const noexcept {
     return terminated_hook_.is_linked();
 }
 
 bool
-context::ready_is_linked() const {
+context::ready_is_linked() const noexcept {
     return ready_hook_.is_linked();
 }
 
 bool
-context::remote_ready_is_linked() const {
+context::remote_ready_is_linked() const noexcept {
     return remote_ready_hook_.is_linked();
 }
 
 bool
-context::sleep_is_linked() const {
+context::sleep_is_linked() const noexcept {
     return sleep_hook_.is_linked();
 }
 
 bool
-context::wait_is_linked() const {
+context::wait_is_linked() const noexcept {
     return wait_hook_.is_linked();
 }
 
@@ -432,13 +407,13 @@ context::wait_unlink() noexcept {
 }
 
 void
-context::attach( context * ctx) {
+context::attach( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     scheduler_->attach_worker_context( ctx);
 }
 
 void
-context::migrate( context * ctx) {
+context::migrate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() != ctx);
     ctx->scheduler_->detach_worker_context( ctx);

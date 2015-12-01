@@ -10,8 +10,6 @@
 #include <functional>
 #include <system_error>
 
-#include <boost/assert.hpp>
-
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/scheduler.hpp"
 
@@ -21,17 +19,6 @@
 
 namespace boost {
 namespace fibers {
-
-mutex::mutex() :
-    owner_( nullptr),
-    wait_queue_(),
-    wait_queue_splk_() {
-}
-
-mutex::~mutex() {
-    BOOST_ASSERT( nullptr == owner_);
-    BOOST_ASSERT( wait_queue_.empty() );
-}
 
 void
 mutex::lock() {
@@ -56,7 +43,7 @@ mutex::lock() {
 }
 
 bool
-mutex::try_lock() {
+mutex::try_lock() noexcept {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( nullptr == owner_) {

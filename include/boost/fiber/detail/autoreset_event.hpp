@@ -30,7 +30,7 @@ private:
     bool                    flag_{ false };
 
 public:
-    constexpr autoreset_event() = default;
+    autoreset_event() noexcept = default;
 
     autoreset_event( autoreset_event const&) = delete;
     autoreset_event & operator=( autoreset_event const&) = delete;

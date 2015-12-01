@@ -40,20 +40,22 @@ class BOOST_FIBERS_DECL condition {
 private:
     typedef context::wait_queue_t   wait_queue_t;
 
-    wait_queue_t        wait_queue_;
-    detail::spinlock    wait_queue_splk_;
+    wait_queue_t        wait_queue_{};
+    detail::spinlock    wait_queue_splk_{};
 
 public:
-    condition();
+    condition() = default;
 
-    ~condition();
+    ~condition() noexcept {
+        BOOST_ASSERT( wait_queue_.empty() );
+    }
 
     condition( condition const&) = delete;
     condition & operator=( condition const&) = delete;
 
-    void notify_one();
+    void notify_one() noexcept;
 
-    void notify_all();
+    void notify_all() noexcept;
 
     template< typename LockType, typename Pred >
     void wait( LockType & lt, Pred pred) {

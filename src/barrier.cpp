@@ -19,10 +19,7 @@ namespace fibers {
 
 barrier::barrier( std::size_t initial) :
 	initial_( initial),
-	current_( initial_),
-	cycle_( true),
-	mtx_(),
-	cond_() {
+	current_( initial_) {
     if ( 0 == initial) {
         throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
                                 "boost fiber: zero initial barrier count");
@@ -32,7 +29,7 @@ barrier::barrier( std::size_t initial) :
 bool
 barrier::wait() {
 	std::unique_lock< mutex > lk( mtx_);
-	bool cycle( cycle_);
+	const bool cycle( cycle_);
 	if ( 0 == --current_) {
 		cycle_ = ! cycle_;
 		current_ = initial_;

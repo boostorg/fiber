@@ -19,7 +19,7 @@
 namespace boost {
 namespace fibers {
 
-typedef boost::context::protected_fixedsize_stack protected_fixedsize_stack;
+using protected_fixedsize_stack = boost::context::protected_fixedsize_stack;
 
 }}
 

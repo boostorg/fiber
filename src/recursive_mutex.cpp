@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <functional>
 
-#include <boost/assert.hpp>
-
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/scheduler.hpp"
 
@@ -20,19 +18,6 @@
 
 namespace boost {
 namespace fibers {
-
-recursive_mutex::recursive_mutex() :
-    owner_( nullptr),
-    count_( 0),
-    wait_queue_(),
-    wait_queue_splk_() {
-}
-
-recursive_mutex::~recursive_mutex() {
-    BOOST_ASSERT( nullptr == owner_);
-    BOOST_ASSERT( 0 == count_);
-    BOOST_ASSERT( wait_queue_.empty() );
-}
 
 void
 recursive_mutex::lock() {
@@ -58,7 +43,7 @@ recursive_mutex::lock() {
 }
 
 bool
-recursive_mutex::try_lock() {
+recursive_mutex::try_lock() noexcept { 
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( nullptr == owner_) {

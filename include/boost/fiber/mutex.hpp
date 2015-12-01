@@ -9,6 +9,8 @@
 
 #include <boost/config.hpp>
 
+#include <boost/assert.hpp>
+
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
@@ -28,21 +30,24 @@ private:
 
     typedef context::wait_queue_t   wait_queue_t;
 
-    context                 *   owner_;
-    wait_queue_t                wait_queue_;
-    detail::spinlock            wait_queue_splk_;
+    context                 *   owner_{ nullptr };
+    wait_queue_t                wait_queue_{};
+    detail::spinlock            wait_queue_splk_{};
 
 public:
-    mutex();
+    mutex() = default;
 
-    ~mutex();
+    ~mutex() noexcept {
+        BOOST_ASSERT( nullptr == owner_);
+        BOOST_ASSERT( wait_queue_.empty() );
+    }
 
     mutex( mutex const&) = delete;
     mutex & operator=( mutex const&) = delete;
 
     void lock();
 
-    bool try_lock();
+    bool try_lock() noexcept;
 
     void unlock();
 };

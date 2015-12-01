@@ -35,30 +35,28 @@ private:
 
     typedef intrusive_ptr< context >  ptr_t;
 
-    ptr_t       impl_;
+    ptr_t       impl_{};
 
-    void start_();
+    void start_() noexcept;
 
 public:
     typedef context::id    id;
 
-    fiber() noexcept :
-        impl_() {
-    }
+    constexpr fiber() noexcept = default;
 
     template< typename Fn, typename ... Args >
-    explicit fiber( Fn && fn, Args && ... args) :
+    fiber( Fn && fn, Args && ... args) :
         fiber( std::allocator_arg, default_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
     }
 
     template< typename StackAllocator, typename Fn, typename ... Args >
-    explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
+    fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
         impl_( make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
         start_();
     }
 
-    ~fiber() {
+    ~fiber() noexcept {
         if ( joinable() ) {
             std::terminate();
         }
@@ -76,9 +74,8 @@ public:
         if ( joinable() ) {
             std::terminate();
         }
-        if ( this != & other) {
-            impl_.swap( other.impl_);
-        }
+        if ( this == & other) return * this;
+        impl_.swap( other.impl_);
         return * this;
     }
 
@@ -109,8 +106,8 @@ public:
     void detach();
 
     template< typename PROPS >
-    PROPS & properties() {
-        fiber_properties * props = impl_->get_properties();
+    PROPS & properties() noexcept {
+        auto props = impl_->get_properties();
         BOOST_ASSERT_MSG(props, "fiber::properties not set");
         return dynamic_cast< PROPS & >( * props );
     }

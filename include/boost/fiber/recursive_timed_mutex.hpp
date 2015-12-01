@@ -14,6 +14,8 @@
 
 #include <boost/config.hpp>
 
+#include <boost/assert.hpp>
+
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
@@ -34,27 +36,31 @@ private:
 
     typedef context::wait_queue_t   wait_queue_t;
 
-    context                 *   owner_;
-    std::size_t                 count_;
-    wait_queue_t                wait_queue_;
-    detail::spinlock            wait_queue_splk_;
+    context                 *   owner_{ nullptr };
+    std::size_t                 count_{ 0 };
+    wait_queue_t                wait_queue_{};
+    detail::spinlock            wait_queue_splk_{};
 
-    bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time);
+    bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) noexcept;
 
 public:
-    recursive_timed_mutex();
+    recursive_timed_mutex() = default;
 
-    ~recursive_timed_mutex();
+    ~recursive_timed_mutex() {
+        BOOST_ASSERT( nullptr == owner_);
+        BOOST_ASSERT( 0 == count_);
+        BOOST_ASSERT( wait_queue_.empty() );
+    }
 
     recursive_timed_mutex( recursive_timed_mutex const&) = delete;
     recursive_timed_mutex & operator=( recursive_timed_mutex const&) = delete;
 
     void lock();
 
-    bool try_lock();
+    bool try_lock() noexcept;
 
     template< typename Clock, typename Duration >
-    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) noexcept {
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert( timeout_time_) );
         return try_lock_until_( timeout_time);

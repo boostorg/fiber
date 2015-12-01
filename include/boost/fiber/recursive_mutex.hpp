@@ -13,6 +13,8 @@
 
 #include <boost/config.hpp>
 
+#include <boost/assert.hpp>
+
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
@@ -32,22 +34,26 @@ private:
 
     typedef context::wait_queue_t   wait_queue_t;
 
-    context                 *   owner_;
-    std::size_t                 count_;
-    wait_queue_t                wait_queue_;
-    detail::spinlock            wait_queue_splk_;
+    context                 *   owner_{ nullptr };
+    std::size_t                 count_{ 0 };
+    wait_queue_t                wait_queue_{};
+    detail::spinlock            wait_queue_splk_{};
 
 public:
-    recursive_mutex();
+    recursive_mutex() = default;
 
-    ~recursive_mutex();
+    ~recursive_mutex() {
+        BOOST_ASSERT( nullptr == owner_);
+        BOOST_ASSERT( 0 == count_);
+        BOOST_ASSERT( wait_queue_.empty() );
+    }
 
     recursive_mutex( recursive_mutex const&) = delete;
     recursive_mutex & operator=( recursive_mutex const&) = delete;
 
     void lock();
 
-    bool try_lock();
+    bool try_lock() noexcept;
 
     void unlock();
 };

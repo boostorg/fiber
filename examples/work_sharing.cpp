@@ -45,16 +45,11 @@ private:
     // attempt to execute thread A's main fiber. This slot might be empty
     // (nullptr) or full: pick_next() must only return the main fiber's
     // context* after it has been passed to awakened().
-    rqueue_t                                    local_queue_;
-    boost::fibers::detail::autoreset_event      ev_;
+    rqueue_t                                    local_queue_{};
+    boost::fibers::detail::autoreset_event      ev_{};
 
 public:
-    shared_ready_queue() :
-        local_queue_(),
-        ev_() {
-    }
-
-    virtual void awakened( boost::fibers::context * ctx) {
+    virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
 
         // recognize when we're passed this thread's main fiber
@@ -74,7 +69,7 @@ public:
         }
     }
 
-    virtual boost::fibers::context * pick_next() {
+    virtual boost::fibers::context * pick_next() noexcept {
         boost::fibers::context * ctx( nullptr);
         lock_t lk( mtx_);
         if ( ! rqueue_.empty() ) {
@@ -99,11 +94,11 @@ public:
         return ! rqueue_.empty() || ! local_queue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
         ev_.reset( suspend_time);
     }
 
-    void notify() {
+    void notify() noexcept {
         ev_.set();
     }
 };

@@ -87,7 +87,7 @@ public:
     /*<< You must override the [member_link sched_algorithm_with_properties..awakened]
          method. This is how your scheduler receives notification of a
          fiber that has become ready to run. >>*/
-    virtual void awakened( boost::fibers::context * ctx, priority_props & props) {
+    virtual void awakened( boost::fibers::context * ctx, priority_props & props) noexcept {
         int f_priority = props.get_priority(); /*< `props` is the instance of
                                                    priority_props associated
                                                    with the passed fiber `f`. >*/
@@ -116,7 +116,7 @@ public:
     /*<< You must override the [member_link sched_algorithm_with_properties..pick_next]
          method. This is how your scheduler actually advises the fiber manager
          of the next fiber to run. >>*/
-    virtual boost::fibers::context * pick_next() {
+    virtual boost::fibers::context * pick_next() noexcept {
         // if ready queue is empty, just tell caller
         if ( rqueue_.empty() ) {
             return nullptr;
@@ -140,7 +140,7 @@ public:
          is optional. This override handles the case in which the running
          fiber changes the priority of another ready fiber: a fiber already in
          our queue. In that case, move the updated fiber within the queue. >>*/
-    virtual void property_change( boost::fibers::context * ctx, priority_props & props) {
+    virtual void property_change( boost::fibers::context * ctx, priority_props & props) noexcept {
         // Although our priority_props class defines multiple properties, only
         // one of them (priority) actually calls notify() when changed. The
         // point of a property_change() override is to reshuffle the ready
@@ -202,11 +202,11 @@ public:
     }
 //->
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
         ev_.reset( suspend_time);
     }
 
-    void notify() {
+    void notify() noexcept {
         ev_.set();
     }
 };

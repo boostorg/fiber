@@ -19,7 +19,7 @@ namespace boost {
 namespace fibers {
 
 void
-fiber_properties::notify() {
+fiber_properties::notify() noexcept {
     BOOST_ASSERT( nullptr != sched_algo_);
     // Application code might change an important property for any fiber at
     // any time. The fiber in question might be ready, running or waiting.

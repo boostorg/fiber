@@ -9,6 +9,7 @@
 
 #include <chrono>
 
+#include <boost/assert.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/context.hpp>
@@ -31,23 +32,26 @@ private:
 
     typedef context::wait_queue_t   wait_queue_t;
 
-    context                 *   owner_;
-    wait_queue_t                wait_queue_;
-    detail::spinlock            wait_queue_splk_;
+    context                 *   owner_{ nullptr };
+    wait_queue_t                wait_queue_{};
+    detail::spinlock            wait_queue_splk_{};
 
-    bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time);
+    bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) noexcept;
 
 public:
-    timed_mutex();
+    timed_mutex() = default;
 
-    ~timed_mutex();
+    ~timed_mutex() {
+        BOOST_ASSERT( nullptr == owner_);
+        BOOST_ASSERT( wait_queue_.empty() );
+    }
 
     timed_mutex( timed_mutex const&) = delete;
     timed_mutex & operator=( timed_mutex const&) = delete;
 
     void lock();
 
-    bool try_lock();
+    bool try_lock() noexcept;
 
     template< typename Clock, typename Duration >
     bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
@@ -57,7 +61,7 @@ public:
     }
 
     template< typename Rep, typename Period >
-    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
+    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) noexcept {
         return try_lock_until_( std::chrono::steady_clock::now() + timeout_duration);
     }
 
