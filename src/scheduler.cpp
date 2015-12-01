@@ -23,7 +23,7 @@ namespace boost {
 namespace fibers {
 
 void
-scheduler::resume_( context * active_ctx, context * ctx, std::function< void() > * func) {
+scheduler::resume_( context * active_ctx, context * ctx, std::function< void() > * func) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( nullptr != ctx);
     //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
@@ -44,7 +44,7 @@ scheduler::get_next_() noexcept {
 }
 
 void
-scheduler::release_terminated_() {
+scheduler::release_terminated_() noexcept {
     terminated_queue_t::iterator e( terminated_queue_.end() );
     for ( terminated_queue_t::iterator i( terminated_queue_.begin() );
             i != e;) {
@@ -69,7 +69,7 @@ scheduler::release_terminated_() {
 }
 
 void
-scheduler::remote_ready2ready_() {
+scheduler::remote_ready2ready_() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
     // get context from remote ready-queue
@@ -113,16 +113,7 @@ scheduler::sleep2ready_() noexcept {
 }
 
 scheduler::scheduler() noexcept :
-    sched_algo_( new round_robin() ),
-    main_ctx_( nullptr),
-    dispatcher_ctx_(),
-    worker_queue_(),
-    terminated_queue_(),
-    remote_ready_queue_(),
-    sleep_queue_(),
-    shutdown_( false),
-    remote_ready_splk_(),
-    worker_splk_() {
+    sched_algo_( new round_robin() ) {
 }
 
 scheduler::~scheduler() noexcept {
@@ -148,7 +139,7 @@ scheduler::~scheduler() noexcept {
 }
 
 void
-scheduler::dispatch() {
+scheduler::dispatch() noexcept {
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
     while ( ! shutdown_) {
         // release termianted context'
@@ -341,7 +332,7 @@ scheduler::has_ready_fibers() const noexcept {
 }
 
 void
-scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) {
+scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) noexcept {
     // move remaining cotnext in current scheduler to new one
     while ( sched_algo_->has_ready_fibers() ) {
         algo->awakened( sched_algo_->pick_next() );

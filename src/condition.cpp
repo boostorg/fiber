@@ -15,17 +15,8 @@
 namespace boost {
 namespace fibers {
 
-condition::condition() :
-    wait_queue_(),
-    wait_queue_splk_() {
-}
-
-condition::~condition() {
-    BOOST_ASSERT( wait_queue_.empty() );
-}
-
 void
-condition::notify_one() {
+condition::notify_one() noexcept {
     // get one context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( wait_queue_.empty() ) {
@@ -38,7 +29,7 @@ condition::notify_one() {
 }
 
 void
-condition::notify_all() {
+condition::notify_all() noexcept {
     // get all context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     // notify all context'

@@ -37,12 +37,12 @@ namespace detail {
 template< typename R >
 class shared_state {
 private:
-    std::atomic< std::size_t >                                      use_count_;
-    mutable mutex                                                   mtx_;
-    mutable condition                                               waiters_;
-    bool                                                            ready_;
-    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_[1];
-    std::exception_ptr                                              except_;
+    std::atomic< std::size_t >                                      use_count_{ 0 };
+    mutable mutex                                                   mtx_{};
+    mutable condition                                               waiters_{};
+    bool                                                            ready_{ false };
+    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_[1]{};
+    std::exception_ptr                                              except_{};
 
     void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
         ready_ = true;
@@ -121,10 +121,7 @@ protected:
 public:
     typedef intrusive_ptr< shared_state >    ptr_t;
 
-    shared_state() :
-        use_count_( 0), mtx_(), ready_( false),
-        storage_(), except_() {
-    }
+    shared_state() = default;
 
     virtual ~shared_state() noexcept {
         if ( ready_) {
@@ -202,12 +199,12 @@ public:
 template< typename R >
 class shared_state< R & > {
 private:
-    std::atomic< std::size_t >  use_count_;
-    mutable mutex               mtx_;
-    mutable condition           waiters_;
-    bool                        ready_;
-    R                       *   value_;
-    std::exception_ptr          except_;
+    std::atomic< std::size_t >  use_count_{ 0 };
+    mutable mutex               mtx_{};
+    mutable condition           waiters_{};
+    bool                        ready_{ false };
+    R                       *   value_{ nullptr };
+    std::exception_ptr          except_{};
 
     void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
         ready_ = true;
@@ -278,10 +275,7 @@ protected:
 public:
     typedef intrusive_ptr< shared_state >    ptr_t;
 
-    shared_state() :
-        use_count_( 0), mtx_(), ready_( false),
-        value_( 0), except_() {
-    }
+    shared_state() = default;
 
     virtual ~shared_state() noexcept {
     }
@@ -351,11 +345,11 @@ public:
 template<>
 class shared_state< void > {
 private:
-    std::atomic< std::size_t >  use_count_;
-    mutable mutex               mtx_;
-    mutable condition           waiters_;
-    bool                        ready_;
-    std::exception_ptr          except_;
+    std::atomic< std::size_t >  use_count_{ 0 };
+    mutable mutex               mtx_{};
+    mutable condition           waiters_{};
+    bool                        ready_{ false };
+    std::exception_ptr          except_{};
 
     inline
     void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
@@ -431,9 +425,7 @@ protected:
 public:
     typedef intrusive_ptr< shared_state >    ptr_t;
 
-    shared_state() :
-        use_count_( 0), mtx_(), ready_( false), except_() {
-    }
+    shared_state() = default;
 
     virtual ~shared_state() noexcept {
     }

@@ -28,7 +28,7 @@ private:
     std::atomic< atomic_spinlock_status >  state_{ atomic_spinlock_status::unlocked };
 
 public:
-    constexpr atomic_spinlock() noexcept = default;
+    atomic_spinlock() noexcept = default;
 
     atomic_spinlock( atomic_spinlock const&) = delete;
     atomic_spinlock & operator=( atomic_spinlock const&) = delete;

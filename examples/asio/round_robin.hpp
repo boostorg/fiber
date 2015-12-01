@@ -32,7 +32,7 @@ private:
     boost::asio::steady_timer               suspend_timer_;
     boost::asio::steady_timer               keepalive_timer_;
     std::chrono::steady_clock::duration     keepalive_interval_;
-    boost::fibers::scheduler::ready_queue_t ready_queue_;
+    boost::fibers::scheduler::ready_queue_t ready_queue_{};
 
 public:
     round_robin( boost::asio::io_service & io_svc,
@@ -40,18 +40,17 @@ public:
         io_svc_( io_svc),
         suspend_timer_( io_svc_),
         keepalive_timer_( io_svc_),
-        keepalive_interval_( keepalive_interval),
-        ready_queue_() {
+        keepalive_interval_( keepalive_interval) {
         on_empty_io_service();
     }
 
-    void awakened( boost::fibers::context * ctx) {
+    void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         ctx->ready_link( ready_queue_);
     }
 
-    boost::fibers::context * pick_next() {
+    boost::fibers::context * pick_next() noexcept {
         boost::fibers::context * ctx( nullptr);
         if ( ! ready_queue_.empty() ) {
             ctx = & ready_queue_.front();
@@ -66,13 +65,13 @@ public:
         return ! ready_queue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
         suspend_timer_.expires_at( suspend_time);
         boost::system::error_code ignored_ec;
         suspend_timer_.async_wait( boost::fibers::asio::yield[ignored_ec]);
     }
 
-    void notify() {
+    void notify() noexcept {
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
     }
 

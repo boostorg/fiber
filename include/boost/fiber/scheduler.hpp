@@ -31,7 +31,7 @@ namespace fibers {
 class BOOST_FIBERS_DECL scheduler {
 public:
     struct timepoint_less {
-        bool operator()( context const& l, context const& r) {
+        bool operator()( context const& l, context const& r) noexcept {
             return l.tp_ < r.tp_;
         }
     };
@@ -65,31 +65,31 @@ private:
                 intrusive::constant_time_size< false > >    worker_queue_t;
 
     std::unique_ptr< sched_algorithm >  sched_algo_;
-    context                         *   main_ctx_;
-    intrusive_ptr< context >            dispatcher_ctx_;
+    context                         *   main_ctx_{ nullptr };
+    intrusive_ptr< context >            dispatcher_ctx_{};
     // worker-queue contains all context' mananged by this scheduler
     // except main-context and dispatcher-context
     // unlink happens on destruction of a context
-    worker_queue_t                      worker_queue_;
+    worker_queue_t                      worker_queue_{};
     // terminated-queue contains context' which have been terminated
-    terminated_queue_t                  terminated_queue_;
+    terminated_queue_t                  terminated_queue_{};
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
-    remote_ready_queue_t                remote_ready_queue_;
+    remote_ready_queue_t                remote_ready_queue_{};
     // sleep-queue cotnains context' whic hahve been called
     // scheduler::wait_until()
-    sleep_queue_t                       sleep_queue_;
-    bool                                shutdown_;
-    detail::spinlock                    remote_ready_splk_;
-    detail::spinlock                    worker_splk_;
+    sleep_queue_t                       sleep_queue_{};
+    bool                                shutdown_{ false };
+    detail::spinlock                    remote_ready_splk_{};
+    detail::spinlock                    worker_splk_{};
 
-    void resume_( context *, context *, std::function< void() > *);
+    void resume_( context *, context *, std::function< void() > *) noexcept;
 
     context * get_next_() noexcept;
 
-    void release_terminated_();
+    void release_terminated_() noexcept;
 
-    void remote_ready2ready_();
+    void remote_ready2ready_() noexcept;
 
     void sleep2ready_() noexcept;
 
@@ -101,7 +101,7 @@ public:
 
     virtual ~scheduler() noexcept;
 
-    void dispatch();
+    void dispatch() noexcept;
 
     void set_ready( context *) noexcept;
 
@@ -120,7 +120,7 @@ public:
 
     bool has_ready_fibers() const noexcept;
 
-    void set_sched_algo( std::unique_ptr< sched_algorithm >);
+    void set_sched_algo( std::unique_ptr< sched_algorithm >) noexcept;
 
     void attach_main_context( context *) noexcept;
 

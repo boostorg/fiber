@@ -32,12 +32,12 @@ protected:
     // initialized by constructor
     context         *   ctx_;
     // set every time this fiber becomes READY
-    sched_algorithm *   sched_algo_;
+    sched_algorithm *   sched_algo_{ nullptr };
 
     // Inform the relevant sched_algorithm instance that something important
     // has changed, so it can (presumably) adjust its data structures
     // accordingly.
-    void notify();
+    void notify() noexcept;
 
 public:
     // Any specific property setter method, after updating the relevant
@@ -45,20 +45,19 @@ public:
 
     // fiber_properties, and by implication every subclass, must accept a back
     // pointer to its context.
-    fiber_properties( context * ctx):
-        ctx_( ctx),
-        sched_algo_( nullptr) {
+    fiber_properties( context * ctx) noexcept :
+        ctx_( ctx) {
     }
 
     // We need a virtual destructor (hence a vtable) because fiber_properties
     // is stored polymorphically (as fiber_properties*) in context, and
     // destroyed via that pointer.
-    virtual ~fiber_properties() {
+    virtual ~fiber_properties() noexcept {
     }
 
     // not really intended for public use, but sched_algorithm_with_properties
     // must be able to call this
-    void set_sched_algorithm( sched_algorithm * algo) {
+    void set_sched_algorithm( sched_algorithm * algo) noexcept {
         sched_algo_ = algo;
     }
 };

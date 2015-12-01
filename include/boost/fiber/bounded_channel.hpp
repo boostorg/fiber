@@ -45,14 +45,14 @@ private:
         T                   va;
         ptr                 nxt{};
 
-        explicit node( T const& t, allocator_type & alloc_) noexcept :
-            alloc( alloc_),
-            va( t) {
+        node( T const& t, allocator_type & alloc_) noexcept :
+            alloc{ alloc_ },
+            va{ t } {
         }
 
-        explicit node( T && t, allocator_type & alloc_) noexcept :
-            alloc( alloc_),
-            va( std::forward< T >( t) ) {
+        node( T && t, allocator_type & alloc_) noexcept :
+            alloc{ alloc_ },
+            va{ std::forward< T >( t) } {
         }
 
         friend
@@ -61,7 +61,7 @@ private:
         }
 
         friend
-        void intrusive_ptr_release( node * p) {
+        void intrusive_ptr_release( node * p) noexcept {
             if ( 0 == --p->use_count) {
                 allocator_type & alloc( p->alloc);
                 std::allocator_traits< allocator_type >::destroy( alloc, p);
@@ -92,7 +92,7 @@ private:
         return queue_status::closed == state_;
     }
 
-    void close_( std::unique_lock< boost::fibers::mutex > & lk) {
+    void close_( std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         state_ = queue_status::closed;
         lk.unlock();
         not_empty_cond_.notify_all();
@@ -123,7 +123,7 @@ private:
     }
 
     channel_op_status try_push_( typename node::ptr const& new_node,
-                                 std::unique_lock< boost::fibers::mutex > & lk) {
+                                 std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
@@ -149,47 +149,37 @@ private:
     }
 
     channel_op_status push_and_notify_( typename node::ptr const& new_node,
-                                        std::unique_lock< boost::fibers::mutex > & lk) {
-        try {
-            push_tail_( new_node);
-            lk.unlock();
-            not_empty_cond_.notify_one();
-            return channel_op_status::success;
-        } catch (...) {
-            close_( lk);
-            throw;
-        }
+                                        std::unique_lock< boost::fibers::mutex > & lk) noexcept {
+        push_tail_( new_node);
+        lk.unlock();
+        not_empty_cond_.notify_one();
+        return channel_op_status::success;
     }
 
-    void push_tail_( typename node::ptr new_node) {
+    void push_tail_( typename node::ptr new_node) noexcept {
         * tail_ = new_node;
         tail_ = & new_node->nxt;
         ++count_;
     }
 
-    value_type value_pop_( std::unique_lock< boost::fibers::mutex > & lk) {
+    value_type value_pop_( std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         BOOST_ASSERT( ! is_empty_() );
-        try {
-            auto old_head = pop_head_();
-            if ( size_() <= lwm_) {
-                if ( lwm_ == hwm_) {
-                    lk.unlock();
-                    not_full_cond_.notify_one();
-                } else {
-                    lk.unlock();
-                    // more than one producer could be waiting
-                    // to push a value
-                    not_full_cond_.notify_all();
-                }
+        auto old_head = pop_head_();
+        if ( size_() <= lwm_) {
+            if ( lwm_ == hwm_) {
+                lk.unlock();
+                not_full_cond_.notify_one();
+            } else {
+                lk.unlock();
+                // more than one producer could be waiting
+                // to push a value
+                not_full_cond_.notify_all();
             }
-            return std::move( old_head->va);
-        } catch (...) {
-            close_( lk);
-            throw;
         }
+        return std::move( old_head->va);
     }
 
-    typename node::ptr pop_head_() {
+    typename node::ptr pop_head_() noexcept {
         auto old_head = head_;
         head_ = old_head->nxt;
         if ( ! head_) {
@@ -203,10 +193,10 @@ private:
 public:
     bounded_channel( std::size_t hwm, std::size_t lwm,
                      Allocator const& alloc = Allocator() ) :
-        alloc_( alloc),
-        tail_( & head_),
-        hwm_( hwm),
-        lwm_( lwm) {
+        alloc_{ alloc },
+        tail_{ & head_ },
+        hwm_{ hwm },
+        lwm_{ lwm } {
         if ( hwm_ <= lwm_) {
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: high-watermark is less than or equal to low-watermark for bounded_channel");
@@ -219,29 +209,28 @@ public:
 
     bounded_channel( std::size_t wm,
                      Allocator const& alloc = Allocator() ) :
-        alloc_( alloc),
-        tail_( & head_),
-        hwm_( wm),
-        lwm_() {
+        alloc_{ alloc },
+        tail_{ & head_ },
+        hwm_{ wm },
+        lwm_{ wm - 1 } {
         if ( 0 == wm) {
             throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
                                     "boost fiber: watermark is zero");
         }
-        lwm_ = hwm_ - 1;
     }
 
     bounded_channel( bounded_channel const&) = delete;
     bounded_channel & operator=( bounded_channel const&) = delete;
 
-    std::size_t upper_bound() const {
+    std::size_t upper_bound() const noexcept {
         return hwm_;
     }
 
-    std::size_t lower_bound() const {
+    std::size_t lower_bound() const noexcept {
         return lwm_;
     }
 
-    void close() {
+    void close() noexcept {
         std::unique_lock< mutex > lk( mtx_);
         close_( lk);
     }
@@ -292,14 +281,14 @@ public:
         return push_wait_until_( new_node, timeout_time, lk);
     }
 
-    channel_op_status try_push( value_type const& va) {
+    channel_op_status try_push( value_type const& va) noexcept {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( va, alloc_) );
         std::unique_lock< mutex > lk( mtx_);
         return try_push_( new_node, lk);
     }
 
-    channel_op_status try_push( value_type && va) {
+    channel_op_status try_push( value_type && va) noexcept {
         typename node::ptr new_node(
             new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
         std::unique_lock< mutex > lk( mtx_);
@@ -329,7 +318,7 @@ public:
         return value_pop_( lk);
     }
 
-    channel_op_status try_pop( value_type & va) {
+    channel_op_status try_pop( value_type & va) noexcept {
         std::unique_lock< mutex > lk( mtx_);
         if ( is_closed_() && is_empty_() ) {
             // let other fibers run

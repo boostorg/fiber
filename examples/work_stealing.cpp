@@ -91,22 +91,20 @@ class victim_algo : public boost::fibers::sched_algorithm {
 private:
     typedef work_stealing_queue        rqueue_t;
 
-    rqueue_t                                    rqueue_;
-    boost::fibers::detail::autoreset_event      ev_;
+    rqueue_t                                    rqueue_{};
+    boost::fibers::detail::autoreset_event      ev_{};
 
 public:
-    victim_algo( rqueue_t * & rqueue) :
-        rqueue_(),
-        ev_() {
+    victim_algo( rqueue_t * & rqueue) {
         rqueue = & rqueue_;
     }
 
-    virtual void awakened( boost::fibers::context * ctx) {
+    virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         rqueue_.push_back( ctx);
     }
 
-    virtual boost::fibers::context * pick_next() {
+    virtual boost::fibers::context * pick_next() noexcept {
         return rqueue_.pick_next();
     }
 
@@ -114,11 +112,11 @@ public:
         return ! rqueue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
         ev_.reset( suspend_time);
     }
 
-    void notify() {
+    void notify() noexcept {
         ev_.set();
     }
 };
@@ -128,25 +126,23 @@ private:
     typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
     typedef work_stealing_queue                                ws_rqueue_t;
 
-    rqueue_t                                    rqueue_;
+    rqueue_t                                    rqueue_{};
     ws_rqueue_t                             *   ws_rqueue_;
     std::atomic< int >                      *   count_;
-    boost::fibers::detail::autoreset_event      ev_;
+    boost::fibers::detail::autoreset_event      ev_{};
 
 public:
     tief_algo( ws_rqueue_t * ws_rqueue, std::atomic< int > * count) :
-        rqueue_(),
         ws_rqueue_( ws_rqueue),
-        count_( count),
-        ev_() {
+        count_( count) {
     }
 
-    virtual void awakened( boost::fibers::context * ctx) {
+    virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         rqueue_.push_back( * ctx);
     }
 
-    virtual boost::fibers::context * pick_next() {
+    virtual boost::fibers::context * pick_next() noexcept {
         boost::fibers::context * ctx( nullptr);
         if ( ! rqueue_.empty() ) {
             ctx = & rqueue_.front();
@@ -169,11 +165,11 @@ public:
         return ! rqueue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
         ev_.reset( suspend_time);
     }
 
-    void notify() {
+    void notify() noexcept {
         ev_.set();
     }
 };

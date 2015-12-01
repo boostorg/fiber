@@ -16,7 +16,7 @@ namespace boost {
 namespace fibers {
 
 void
-round_robin::awakened( context * ctx) {
+round_robin::awakened( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
 
     BOOST_ASSERT( ! ctx->ready_is_linked() );
@@ -24,8 +24,8 @@ round_robin::awakened( context * ctx) {
 }
 
 context *
-round_robin::pick_next() {
-    context * victim( nullptr);
+round_robin::pick_next() noexcept {
+    context * victim{ nullptr };
     if ( ! ready_queue_.empty() ) {
         victim = & ready_queue_.front();
         ready_queue_.pop_front();
@@ -41,12 +41,12 @@ round_robin::has_ready_fibers() const noexcept {
 }
 
 void
-round_robin::suspend_until( std::chrono::steady_clock::time_point const& suspend_time) {
+round_robin::suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
     ev_.reset( suspend_time);
 }
 
 void
-round_robin::notify() {
+round_robin::notify() noexcept {
     ev_.set();
 }
 

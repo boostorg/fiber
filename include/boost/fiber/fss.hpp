@@ -25,7 +25,7 @@ template< typename T >
 class fiber_specific_ptr {
 private:
     struct default_cleanup_function : public detail::fss_cleanup_function {
-        void operator()( void * data) {
+        void operator()( void * data) noexcept {
             delete static_cast< T * >( data);
         }
     };
@@ -33,7 +33,7 @@ private:
     struct custom_cleanup_function : public detail::fss_cleanup_function {
         void (*fn)(T*);
 
-        explicit custom_cleanup_function( void(*fn_)(T*) ):
+        explicit custom_cleanup_function( void(*fn_)(T*) ) noexcept :
             fn( fn_) {
         }
 
@@ -49,15 +49,15 @@ private:
 public:
     typedef T   element_type;
 
-    fiber_specific_ptr() :
+    fiber_specific_ptr() noexcept :
         cleanup_fn_( new default_cleanup_function() ) {
     }
 
-    explicit fiber_specific_ptr( void(*fn)(T*) ) :
+    explicit fiber_specific_ptr( void(*fn)(T*) ) noexcept :
         cleanup_fn_( new custom_cleanup_function( fn) ) {
     }
 
-    ~fiber_specific_ptr() {
+    ~fiber_specific_ptr() noexcept {
         context * f( context::active() );
         if ( nullptr != f) {
             f->set_fss_data(
@@ -68,29 +68,29 @@ public:
     fiber_specific_ptr( fiber_specific_ptr const&) = delete;
     fiber_specific_ptr & operator=( fiber_specific_ptr const&) = delete;
 
-    T * get() const {
+    T * get() const noexcept {
         BOOST_ASSERT( context::active() );
 
         void * vp( context::active()->get_fss_data( this) );
         return static_cast< T * >( vp);
     }
 
-    T * operator->() const {
+    T * operator->() const noexcept {
         return get();
     }
 
-    T & operator*() const {
+    T & operator*() const noexcept {
         return * get();
     }
 
-    T * release() {
+    T * release() noexcept {
         T * tmp = get();
         context::active()->set_fss_data(
             this, cleanup_fn_, nullptr, false);
         return tmp;
     }
 
-    void reset( T * t) {
+    void reset( T * t) noexcept {
         T * c = get();
         if ( c != t) {
             context::active()->set_fss_data(

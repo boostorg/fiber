@@ -25,23 +25,23 @@ namespace fibers {
 class context;
 
 struct BOOST_FIBERS_DECL sched_algorithm {
-    virtual ~sched_algorithm() {}
+    virtual ~sched_algorithm() noexcept {}
 
-    virtual void awakened( context *) = 0;
+    virtual void awakened( context *) noexcept = 0;
 
-    virtual context * pick_next() = 0;
+    virtual context * pick_next() noexcept = 0;
 
     virtual bool has_ready_fibers() const noexcept = 0;
 
-    virtual void suspend_until( std::chrono::steady_clock::time_point const&) = 0;
+    virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept = 0;
 
-    virtual void notify() = 0;
+    virtual void notify() noexcept = 0;
 };
 
 class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {
 public:
     // called by fiber_properties::notify() -- don't directly call
-    virtual void property_change_( context * f, fiber_properties * props) = 0;
+    virtual void property_change_( context * f, fiber_properties * props) noexcept = 0;
 
 protected:
     static fiber_properties* get_properties( context * f) noexcept;
@@ -56,17 +56,17 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     // must override awakened() with properties parameter instead. Otherwise
     // you'd have to remember to start every subclass awakened() override
     // with: sched_algorithm_with_properties<PROPS>::awakened(fb);
-    virtual void awakened( context * f) final {
+    virtual void awakened( context * f) noexcept override final {
         fiber_properties * props = super::get_properties( f);
-        if ( ! props) {
+        if ( nullptr == props) {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
             props = new_properties( f);
             // It is not good for new_properties() to return 0.
             BOOST_ASSERT_MSG(props, "new_properties() must return non-NULL");
             // new_properties() must return instance of (a subclass of) PROPS
-            BOOST_ASSERT_MSG(dynamic_cast<PROPS*>(props),
-                             "new_properties() must return properties class");
+            BOOST_ASSERT_MSG( dynamic_cast< PROPS * >( props),
+                              "new_properties() must return properties class");
             super::set_properties( f, props);
         }
         // Set sched_algo_ again every time this fiber becomes READY. That
@@ -79,26 +79,26 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     }
 
     // subclasses override this method instead of the original awakened()
-    virtual void awakened( context *, PROPS& ) = 0;
+    virtual void awakened( context *, PROPS& ) noexcept = 0;
 
     // used for all internal calls
-    PROPS& properties( context * f) {
+    PROPS & properties( context * f) noexcept {
         return static_cast< PROPS & >( * super::get_properties( f) );
     }
 
     // override this to be notified by PROPS::notify()
-    virtual void property_change( context * f, PROPS & props) {
+    virtual void property_change( context * f, PROPS & props) noexcept {
     }
 
     // implementation for sched_algorithm_with_properties_base method
-    void property_change_( context * f, fiber_properties * props ) final {
+    void property_change_( context * f, fiber_properties * props ) noexcept override final {
         property_change( f, * static_cast< PROPS * >( props) );
     }
 
     // Override this to customize instantiation of PROPS, e.g. use a different
     // allocator. Each PROPS instance is associated with a particular
     // context.
-    virtual fiber_properties * new_properties( context * f) {
+    virtual fiber_properties * new_properties( context * f) noexcept {
         return new PROPS( f);
     }
 };

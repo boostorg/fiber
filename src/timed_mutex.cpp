@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <functional>
 
-#include <boost/assert.hpp>
-
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/scheduler.hpp"
 
@@ -21,15 +19,32 @@
 namespace boost {
 namespace fibers {
 
-timed_mutex::timed_mutex() :
-    owner_( nullptr),
-    wait_queue_(),
-    wait_queue_splk_() {
-}
-
-timed_mutex::~timed_mutex() {
-    BOOST_ASSERT( nullptr == owner_);
-    BOOST_ASSERT( wait_queue_.empty() );
+bool
+timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) noexcept {
+    if ( std::chrono::steady_clock::now() > timeout_time) {
+        return false;
+    }
+    context * ctx = context::active();
+    // store this fiber in order to be notified later
+    detail::spinlock_lock lk( wait_queue_splk_);
+    if ( nullptr == owner_) {
+        owner_ = ctx;
+        return true;
+    }
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    ctx->wait_link( wait_queue_);
+    std::function< void() > func([&lk](){
+            lk.unlock();
+            });
+    // suspend this fiber until notified or timed-out
+    if ( ! context::active()->wait_until( timeout_time, & func) ) {
+        // remove fiber from wait-queue 
+        lk.lock();
+        ctx->wait_unlink();
+        return false;
+    }
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    return true;
 }
 
 void
@@ -55,7 +70,7 @@ timed_mutex::lock() {
 }
 
 bool
-timed_mutex::try_lock() {
+timed_mutex::try_lock() noexcept {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( nullptr == owner_) {
@@ -65,37 +80,6 @@ timed_mutex::try_lock() {
     // let other fiber release the lock
     context::active()->yield();
     return ctx == owner_;
-}
-
-bool
-timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) {
-    if ( std::chrono::steady_clock::now() > timeout_time) {
-        return false;
-    }
-    context * ctx = context::active();
-    // store this fiber in order to be notified later
-    detail::spinlock_lock lk( wait_queue_splk_);
-    if ( ctx == owner_) {
-        throw lock_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
-                "boost fiber: a deadlock is detected");
-    } else if ( nullptr == owner_) {
-        owner_ = ctx;
-        return true;
-    }
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
-    ctx->wait_link( wait_queue_);
-    std::function< void() > func([&lk](){
-            lk.unlock();
-            });
-    // suspend this fiber until notified or timed-out
-    if ( ! context::active()->wait_until( timeout_time, & func) ) {
-        // remove fiber from wait-queue 
-        lk.lock();
-        ctx->wait_unlink();
-        return false;
-    }
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
-    return true;
 }
 
 void

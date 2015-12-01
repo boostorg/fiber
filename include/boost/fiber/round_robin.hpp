@@ -27,19 +27,19 @@ class context;
 
 class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
 private:
-    scheduler::ready_queue_t    ready_queue_;
-    detail::autoreset_event     ev_;
+    scheduler::ready_queue_t    ready_queue_{};
+    detail::autoreset_event     ev_{};
 
 public:
-    virtual void awakened( context *);
+    virtual void awakened( context *) noexcept;
 
-    virtual context * pick_next();
+    virtual context * pick_next() noexcept;
 
     virtual bool has_ready_fibers() const noexcept;
 
-    virtual void suspend_until( std::chrono::steady_clock::time_point const&);
+    virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
 
-    virtual void notify();
+    virtual void notify() noexcept;
 };
 
 }}
