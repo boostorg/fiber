@@ -34,17 +34,17 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-template< typename R >
-class shared_state {
+class shared_state_base {
 private:
-    std::atomic< std::size_t >                                      use_count_{ 0 };
-    mutable mutex                                                   mtx_{};
-    mutable condition                                               waiters_{};
-    bool                                                            ready_{ false };
-    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_[1]{};
-    std::exception_ptr                                              except_{};
+    std::atomic< std::size_t >  use_count_{ 0 };
+    mutable condition           waiters_{};
 
-    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
+protected:
+    mutable mutex               mtx_{};
+    bool                        ready_{ false };
+    std::exception_ptr          except_{};
+
+    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) noexcept {
         ready_ = true;
         lk.unlock();
         waiters_.notify_all();
@@ -57,6 +57,103 @@ private:
                     lk);
         }
     }
+
+    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
+        if ( ready_) {
+            throw promise_already_satisfied();
+        }
+        except_ = except;
+        mark_ready_and_notify_( lk);
+    }
+
+    std::exception_ptr get_exception_ptr_( std::unique_lock< mutex > & lk) {
+        wait_( lk);
+        return except_;
+    }
+
+    void wait_( std::unique_lock< mutex > & lk) const {
+        waiters_.wait( lk, [this](){ return ready_; });
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for_( std::unique_lock< mutex > & lk,
+                             std::chrono::duration< Rep, Period > const& timeout_duration) const {
+        return waiters_.wait_for( lk, timeout_duration, [this](){ return ready_; })
+                    ? future_status::ready
+                    : future_status::timeout;
+    }
+
+    template< typename Clock, typename Duration >
+    future_status wait_until_( std::unique_lock< mutex > & lk,
+                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
+        return waiters_.wait_until( lk, timeout_time, [this](){ return ready_; })
+                    ? future_status::ready
+                    : future_status::timeout;
+    }
+
+    virtual void deallocate_future() noexcept = 0;
+
+public:
+    shared_state_base() = default;
+
+    virtual ~shared_state_base() noexcept = default;
+
+    shared_state_base( shared_state_base const&) = delete;
+    shared_state_base & operator=( shared_state_base const&) = delete;
+
+    void owner_destroyed() {
+        std::unique_lock< mutex > lk( mtx_);
+        owner_destroyed_( lk);
+    }
+
+    void set_exception( std::exception_ptr except) {
+        std::unique_lock< mutex > lk( mtx_);
+        set_exception_( except, lk);
+    }
+
+    std::exception_ptr get_exception_ptr() {
+        std::unique_lock< mutex > lk( mtx_);
+        return get_exception_ptr_( lk);
+    }
+
+    void wait() const {
+        std::unique_lock< mutex > lk( mtx_);
+        wait_( lk);
+    }
+
+    template< class Rep, class Period >
+    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
+        std::unique_lock< mutex > lk( mtx_);
+        return wait_for_( lk, timeout_duration);
+    }
+
+    template< typename Clock, typename Duration >
+    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
+        std::unique_lock< mutex > lk( mtx_);
+        return wait_until_( lk, timeout_time);
+    }
+
+    void reset() noexcept {
+        ready_ = false;
+    }
+
+    friend inline
+    void intrusive_ptr_add_ref( shared_state_base * p) noexcept {
+        ++p->use_count_;
+    }
+
+    friend inline
+    void intrusive_ptr_release( shared_state_base * p) noexcept {
+        if ( 0 == --p->use_count_) {
+           p->deallocate_future();
+        }
+    }
+};
+
+template< typename R >
+class shared_state : public shared_state_base {
+private:
+    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_[1]{};
 
     void set_value_( R const& value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
@@ -74,14 +171,6 @@ private:
         mark_ready_and_notify_( lk);
     }
 
-    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
-        if ( ready_) {
-            throw promise_already_satisfied();
-        }
-        except_ = except;
-        mark_ready_and_notify_( lk);
-    }
-
     R & get_( std::unique_lock< mutex > & lk) {
         wait_( lk);
         if ( except_) {
@@ -89,34 +178,6 @@ private:
         }
         return * reinterpret_cast< R * >( storage_);
     }
-
-    std::exception_ptr get_exception_ptr_( std::unique_lock< mutex > & lk) {
-        wait_( lk);
-        return except_;
-    }
-
-    void wait_( std::unique_lock< mutex > & lk) const {
-        waiters_.wait( lk, [this](){ return ready_; });
-    }
-
-    template< class Rep, class Period >
-    future_status wait_for_( std::unique_lock< mutex > & lk,
-                             std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return waiters_.wait_for( lk, timeout_duration, [this](){ return ready_; })
-                    ? future_status::ready
-                    : future_status::timeout;
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return waiters_.wait_until( lk, timeout_time, [this](){ return ready_; })
-                    ? future_status::ready
-                    : future_status::timeout;
-    }
-
-protected:
-    virtual void deallocate_future() = 0;
 
 public:
     typedef intrusive_ptr< shared_state >    ptr_t;
@@ -132,11 +193,6 @@ public:
     shared_state( shared_state const&) = delete;
     shared_state & operator=( shared_state const&) = delete;
 
-    void owner_destroyed() {
-        std::unique_lock< mutex > lk( mtx_);
-        owner_destroyed_( lk);
-    }
-
     void set_value( R const& value) {
         std::unique_lock< mutex > lk( mtx_);
         set_value_( value, lk);
@@ -147,92 +203,22 @@ public:
         set_value_( std::move( value), lk);
     }
 
-    void set_exception( std::exception_ptr except) {
-        std::unique_lock< mutex > lk( mtx_);
-        set_exception_( except, lk);
-    }
-
     R & get() {
         std::unique_lock< mutex > lk( mtx_);
         return get_( lk);
     }
-
-    std::exception_ptr get_exception_ptr() {
-        std::unique_lock< mutex > lk( mtx_);
-        return get_exception_ptr_( lk);
-    }
-
-    void wait() const {
-        std::unique_lock< mutex > lk( mtx_);
-        wait_( lk);
-    }
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        std::unique_lock< mutex > lk( mtx_);
-        return wait_for_( lk, timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        std::unique_lock< mutex > lk( mtx_);
-        return wait_until_( lk, timeout_time);
-    }
-
-    void reset() {
-        ready_ = false;
-    }
-
-    friend inline
-    void intrusive_ptr_add_ref( shared_state * p) noexcept {
-        ++p->use_count_;
-    }
-
-    friend inline
-    void intrusive_ptr_release( shared_state * p) {
-        if ( 0 == --p->use_count_) {
-           p->deallocate_future();
-        }
-    }
 };
 
 template< typename R >
-class shared_state< R & > {
+class shared_state< R & > : public shared_state_base {
 private:
-    std::atomic< std::size_t >  use_count_{ 0 };
-    mutable mutex               mtx_{};
-    mutable condition           waiters_{};
-    bool                        ready_{ false };
     R                       *   value_{ nullptr };
-    std::exception_ptr          except_{};
-
-    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
-        ready_ = true;
-        lk.unlock();
-        waiters_.notify_all();
-    }
-
-    void owner_destroyed_( std::unique_lock< mutex > & lk) {
-        if ( ! ready_) {
-            set_exception_(
-                    std::make_exception_ptr( broken_promise() ),
-                    lk);
-        }
-    }
 
     void set_value_( R & value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
         value_ = std::addressof( value);
-        mark_ready_and_notify_( lk);
-    }
-
-    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
-        if ( ready_) {
-            throw promise_already_satisfied();
-        }
-        except_ = except;
         mark_ready_and_notify_( lk);
     }
 
@@ -244,143 +230,35 @@ private:
         return * value_;
     }
 
-    std::exception_ptr get_exception_ptr_( std::unique_lock< mutex > & lk) {
-        wait_( lk);
-        return except_;
-    }
-
-    void wait_( std::unique_lock< mutex > & lk) const {
-        waiters_.wait( lk, [this](){ return ready_; });
-    }
-
-    template< class Rep, class Period >
-    future_status wait_for_( std::unique_lock< mutex > & lk,
-                             std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return waiters_.wait_for( lk, timeout_duration, [this](){ return ready_; })
-                ? future_status::ready
-                : future_status::timeout;
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return waiters_.wait_until( lk, timeout_time, [this](){ return ready_; })
-                ? future_status::ready
-                : future_status::timeout;
-    }
-
-protected:
-    virtual void deallocate_future() = 0;
-
 public:
     typedef intrusive_ptr< shared_state >    ptr_t;
 
     shared_state() = default;
 
-    virtual ~shared_state() noexcept {
-    }
+    virtual ~shared_state() noexcept = default;
 
     shared_state( shared_state const&) = delete;
     shared_state & operator=( shared_state const&) = delete;
-
-    void owner_destroyed() {
-        std::unique_lock< mutex > lk( mtx_);
-        owner_destroyed_( lk);
-    }
 
     void set_value( R & value) {
         std::unique_lock< mutex > lk( mtx_);
         set_value_( value, lk);
     }
 
-    void set_exception( std::exception_ptr except) {
-        std::unique_lock< mutex > lk( mtx_);
-        set_exception_( except, lk);
-    }
-
     R & get() {
         std::unique_lock< mutex > lk( mtx_);
         return get_( lk);
     }
-
-    std::exception_ptr get_exception_ptr() {
-        std::unique_lock< mutex > lk( mtx_);
-        return get_exception_ptr_( lk);
-    }
-
-    void wait() const {
-        std::unique_lock< mutex > lk( mtx_);
-        wait_( lk);
-    }
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        std::unique_lock< mutex > lk( mtx_);
-        return wait_for_( lk, timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        std::unique_lock< mutex > lk( mtx_);
-        return wait_until_( lk, timeout_time);
-    }
-
-    void reset() {
-        ready_ = false;
-    }
-
-    friend inline
-    void intrusive_ptr_add_ref( shared_state * p) noexcept {
-        ++p->use_count_;
-    }
-
-    friend inline
-    void intrusive_ptr_release( shared_state * p) {
-        if ( 0 == --p->use_count_) {
-           p->deallocate_future();
-        }
-    }
 };
 
 template<>
-class shared_state< void > {
+class shared_state< void > : public shared_state_base {
 private:
-    std::atomic< std::size_t >  use_count_{ 0 };
-    mutable mutex               mtx_{};
-    mutable condition           waiters_{};
-    bool                        ready_{ false };
-    std::exception_ptr          except_{};
-
-    inline
-    void mark_ready_and_notify_( std::unique_lock< mutex > & lk) {
-        ready_ = true;
-        lk.unlock();
-        waiters_.notify_all();
-    }
-
-    inline
-    void owner_destroyed_( std::unique_lock< mutex > & lk) {
-        if ( ! ready_) {
-            set_exception_(
-                    std::make_exception_ptr( broken_promise() ),
-                    lk);
-        }
-    }
-
     inline
     void set_value_( std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        mark_ready_and_notify_( lk);
-    }
-
-    inline
-    void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
-        if ( ready_) {
-            throw promise_already_satisfied();
-        }
-        except_ = except;
         mark_ready_and_notify_( lk);
     }
 
@@ -392,52 +270,15 @@ private:
         }
     }
 
-    inline
-    std::exception_ptr get_exception_ptr_( std::unique_lock< mutex > & lk) {
-        wait_( lk);
-        return except_;
-    }
-
-    inline
-    void wait_( std::unique_lock< mutex > & lk) const {
-        waiters_.wait( lk, [this](){ return ready_; });
-    }
-
-    template< class Rep, class Period >
-    future_status wait_for_( std::unique_lock< mutex > & lk,
-                             std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return waiters_.wait_for( lk, timeout_duration, [this](){ return ready_; })
-                ? future_status::ready
-                : future_status::timeout;
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until_( std::unique_lock< mutex > & lk,
-                               std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return waiters_.wait_until( lk, timeout_time, [this](){ return ready_; })
-                ? future_status::ready
-                : future_status::timeout;
-    }
-
-protected:
-    virtual void deallocate_future() = 0;
-
 public:
     typedef intrusive_ptr< shared_state >    ptr_t;
 
     shared_state() = default;
 
-    virtual ~shared_state() noexcept {
-    }
+    virtual ~shared_state() noexcept = default;
 
     shared_state( shared_state const&) = delete;
     shared_state & operator=( shared_state const&) = delete;
-
-    inline
-    void owner_destroyed() {
-        std::unique_lock< mutex > lk( mtx_);
-        owner_destroyed_( lk);
-    }
 
     inline
     void set_value() {
@@ -446,56 +287,9 @@ public:
     }
 
     inline
-    void set_exception( std::exception_ptr except) {
-        std::unique_lock< mutex > lk( mtx_);
-        set_exception_( except, lk);
-    }
-
-    inline
     void get() {
         std::unique_lock< mutex > lk( mtx_);
         get_( lk);
-    }
-
-    inline
-    std::exception_ptr get_exception_ptr() {
-        std::unique_lock< mutex > lk( mtx_);
-        return get_exception_ptr_( lk);
-    }
-
-    inline
-    void wait() const {
-        std::unique_lock< mutex > lk( mtx_);
-        wait_( lk);
-    }
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        std::unique_lock< mutex > lk( mtx_);
-        return wait_for_( lk, timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        std::unique_lock< mutex > lk( mtx_);
-        return wait_until_( lk, timeout_time);
-    }
-
-    inline
-    void reset() {
-        ready_ = false;
-    }
-
-    friend inline
-    void intrusive_ptr_add_ref( shared_state * p) noexcept {
-        ++p->use_count_;
-    }
-
-    friend inline
-    void intrusive_ptr_release( shared_state * p) {
-        if ( 0 == --p->use_count_) {
-           p->deallocate_future();
-        }
     }
 };
 

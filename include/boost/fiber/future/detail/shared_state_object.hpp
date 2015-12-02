@@ -32,14 +32,14 @@ public:
     }
 
 protected:
-    void deallocate_future() {
+    void deallocate_future() noexcept override final {
         destroy_( alloc_, this);
     }
 
 private:
     allocator_t             alloc_;
 
-    static void destroy_( allocator_t & alloc, shared_state_object * p) {
+    static void destroy_( allocator_t & alloc, shared_state_object * p) noexcept {
         alloc.destroy( p);
         alloc.deallocate( p, 1);
     }
