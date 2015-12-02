@@ -42,7 +42,7 @@ public:
     }
 
     friend inline
-    void intrusive_ptr_release( fss_cleanup_function * p) {
+    void intrusive_ptr_release( fss_cleanup_function * p) noexcept {
         if ( --p->use_count_ == 0) {
             delete p;
         }

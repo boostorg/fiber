@@ -113,7 +113,7 @@ scheduler::sleep2ready_() noexcept {
 }
 
 scheduler::scheduler() noexcept :
-    sched_algo_( new round_robin() ) {
+    sched_algo_{ new round_robin() } {
 }
 
 scheduler::~scheduler() noexcept {

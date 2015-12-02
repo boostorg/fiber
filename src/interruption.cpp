@@ -20,7 +20,7 @@ namespace boost {
 namespace this_fiber {
 
 disable_interruption::disable_interruption() noexcept :
-    set_( ( fibers::context::active()->interruption_blocked() ) ) {
+    set_{ fibers::context::active()->interruption_blocked() } {
     if ( ! set_) {
         fibers::context::active()->interruption_blocked( true);
     }
@@ -33,7 +33,7 @@ disable_interruption::~disable_interruption() noexcept {
 }
 
 restore_interruption::restore_interruption( disable_interruption & disabler) noexcept :
-    disabler_( disabler) {
+    disabler_{ disabler } {
     if ( ! disabler_.set_) {
         fibers::context::active()->interruption_blocked( false);
     }

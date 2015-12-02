@@ -52,7 +52,7 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 }
 
 template< typename PROPS >
-PROPS & properties() {
+PROPS & properties() noexcept {
     fibers::fiber_properties * props =
         fibers::context::active()->get_properties();
     if ( ! props) {
@@ -76,12 +76,12 @@ PROPS & properties() {
 namespace fibers {
 
 inline
-bool has_ready_fibers() {
+bool has_ready_fibers() noexcept {
     return boost::fibers::context::active()->get_scheduler()->has_ready_fibers();
 }
 
 template< typename SchedAlgo, typename ... Args >
-void use_scheduling_algorithm( Args && ... args) {
+void use_scheduling_algorithm( Args && ... args) noexcept {
     boost::fibers::context::active()->get_scheduler()
         ->set_sched_algo(
             std::make_unique< SchedAlgo >(

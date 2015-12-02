@@ -46,13 +46,13 @@ public:
 
     template< typename Fn, typename ... Args >
     fiber( Fn && fn, Args && ... args) :
-        fiber( std::allocator_arg, default_stack(),
-               std::forward< Fn >( fn), std::forward< Args >( args) ... ) {
+        fiber{ std::allocator_arg, default_stack(),
+               std::forward< Fn >( fn), std::forward< Args >( args) ... } {
     }
 
     template< typename StackAllocator, typename Fn, typename ... Args >
     fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_( make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) ) {
+        impl_{ make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
         start_();
     }
 
@@ -66,7 +66,7 @@ public:
     fiber & operator=( fiber const&) = delete;
 
     fiber( fiber && other) noexcept :
-        impl_() {
+        impl_{} {
         impl_.swap( other.impl_);
     }
 
