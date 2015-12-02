@@ -34,7 +34,7 @@ private:
         void (*fn)(T*);
 
         explicit custom_cleanup_function( void(*fn_)(T*) ) noexcept :
-            fn( fn_) {
+            fn{ fn_ } {
         }
 
         void operator()( void* data) {
@@ -50,15 +50,15 @@ public:
     typedef T   element_type;
 
     fiber_specific_ptr() noexcept :
-        cleanup_fn_( new default_cleanup_function() ) {
+        cleanup_fn_{ new default_cleanup_function() } {
     }
 
     explicit fiber_specific_ptr( void(*fn)(T*) ) noexcept :
-        cleanup_fn_( new custom_cleanup_function( fn) ) {
+        cleanup_fn_{ new custom_cleanup_function( fn) } {
     }
 
     ~fiber_specific_ptr() noexcept {
-        context * f( context::active() );
+        context * f = context::active();
         if ( nullptr != f) {
             f->set_fss_data(
                 this, cleanup_fn_, nullptr, true);
@@ -70,8 +70,7 @@ public:
 
     T * get() const noexcept {
         BOOST_ASSERT( context::active() );
-
-        void * vp( context::active()->get_fss_data( this) );
+        void * vp = context::active()->get_fss_data( this);
         return static_cast< T * >( vp);
     }
 

@@ -46,14 +46,13 @@ public:
     // fiber_properties, and by implication every subclass, must accept a back
     // pointer to its context.
     fiber_properties( context * ctx) noexcept :
-        ctx_( ctx) {
+        ctx_{ ctx } {
     }
 
     // We need a virtual destructor (hence a vtable) because fiber_properties
     // is stored polymorphically (as fiber_properties*) in context, and
     // destroyed via that pointer.
-    virtual ~fiber_properties() noexcept {
-    }
+    virtual ~fiber_properties() noexcept = default;
 
     // not really intended for public use, but sched_algorithm_with_properties
     // must be able to call this
