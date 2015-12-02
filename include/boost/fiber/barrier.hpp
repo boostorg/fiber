@@ -31,7 +31,7 @@ private:
 	condition		cond_{};
 
 public:
-	barrier( std::size_t);
+	explicit barrier( std::size_t);
 
     barrier( barrier const&) = delete;
     barrier & operator=( barrier const&) = delete;
