@@ -260,16 +260,16 @@ public:
     context( worker_context_t,
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Args && ... args) :
-        use_count_( 1), // fiber instance or scheduler owner
-        flags_( flag_worker_context),
-        ctx_( std::allocator_arg, palloc, salloc,
+        use_count_{ 1 }, // fiber instance or scheduler owner
+        flags_{ flag_worker_context },
+        ctx_{ std::allocator_arg, palloc, salloc,
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
               [this,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
                ctx=boost::context::execution_context::current()] (void *) mutable noexcept {
                 try {
-                    auto fn( std::move( fn_) );
-                    auto tpl( std::move( tpl_) );
+                    auto fn = std::move( fn_);
+                    auto tpl = std::move( tpl_);
                     // jump back after initialization
                     void * vp = ctx();
                     // execute returned functor
@@ -283,7 +283,7 @@ public:
                 // terminate context
                 terminate();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
-              }) {
+              }} {
         // switch for initialization
         ctx_();
     }

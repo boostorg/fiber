@@ -148,16 +148,16 @@ context::reset_active() noexcept {
 
 // main fiber context
 context::context( main_context_t) noexcept :
-    use_count_( 1), // allocated on main- or thread-stack
-    flags_( flag_main_context),
-    ctx_( boost::context::execution_context::current() ) {
+    use_count_{ 1 }, // allocated on main- or thread-stack
+    flags_{ flag_main_context },
+    ctx_{ boost::context::execution_context::current() } {
 }
 
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   default_stack const& salloc, scheduler * sched) :
-    flags_( flag_dispatcher_context),
-    ctx_( std::allocator_arg, palloc, salloc,
+    flags_{ flag_dispatcher_context },
+    ctx_{ std::allocator_arg, palloc, salloc,
           [this,sched] (void * vp) noexcept {
             if ( nullptr != vp) {
                 std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
@@ -167,7 +167,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             sched->dispatch();
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
-          }) {
+          }} {
 }
 
 context::~context() noexcept {
