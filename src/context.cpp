@@ -58,7 +58,7 @@ static auto make_dispatcher_context( scheduler * sched) {
 thread_local static std::size_t counter;
 
 // schwarz counter
-context_initializer::context_initializer() noexcept {
+context_initializer::context_initializer() {
     if ( 0 == counter++) {
 # if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
         // allocate memory for main context and scheduler

@@ -427,7 +427,7 @@ public:
 };
 
 struct context_initializer {
-    context_initializer() noexcept;
+    context_initializer();
     ~context_initializer() noexcept;
 };
 

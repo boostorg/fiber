@@ -37,7 +37,7 @@ public:
         alloc_( alloc) {
     }
 
-    void run( Args && ... args) {
+    void run( Args && ... args) override final {
         try {
             this->set_value(
                     boost::context::detail::do_invoke(
@@ -48,7 +48,7 @@ public:
     }
 
 protected:
-    void deallocate_future() {
+    void deallocate_future() noexcept override final {
         destroy_( alloc_, this);
     }
 
@@ -56,7 +56,7 @@ private:
     Fn                  fn_;
     allocator_t         alloc_;
 
-    static void destroy_( allocator_t & alloc, task_object * p) {
+    static void destroy_( allocator_t & alloc, task_object * p) noexcept {
         alloc.destroy( p);
         alloc.deallocate( p, 1);
     }
@@ -75,7 +75,7 @@ public:
         alloc_( alloc) {
     }
 
-    void run( Args && ... args) {
+    void run( Args && ... args) override final {
         try {
             boost::context::detail::do_invoke(
                     fn_, std::make_tuple( std::forward< Args >( args) ... ) );
@@ -86,7 +86,7 @@ public:
     }
 
 protected:
-    void deallocate_future() {
+    void deallocate_future() noexcept override final {
         destroy_( alloc_, this);
     }
 
@@ -94,7 +94,7 @@ private:
     Fn                  fn_;
     allocator_t         alloc_;
 
-    static void destroy_( allocator_t & alloc, task_object * p) {
+    static void destroy_( allocator_t & alloc, task_object * p) noexcept {
         alloc.destroy( p);
         alloc.deallocate( p, 1);
     }
