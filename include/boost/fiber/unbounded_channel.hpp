@@ -137,7 +137,7 @@ private:
     }
 
 public:
-    unbounded_channel( Allocator const& alloc = Allocator() ) noexcept :
+    explicit unbounded_channel( Allocator const& alloc = Allocator() ) noexcept :
         alloc_{ alloc },
         tail_{ & head_ } {
     }
