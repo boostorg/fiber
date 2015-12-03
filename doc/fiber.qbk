@@ -249,15 +249,15 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         public:
             class        id;
 
-            fiber() noexcept;
+            constexpr fiber() noexcept;
 
             template< typename Fn, typename ... Args >
-            explicit fiber( Fn && fn, Args && ... args);
+            fiber( Fn && fn, Args && ... args);
 
             template< typename StackAllocator, typename Fn, typename ... Args >
-            explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
+            fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
 
-            ~fiber();
+            ~fiber() noexcept;
 
             fiber( fiber const& other) = delete;
 
@@ -277,14 +277,14 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
             id get_id() const noexcept;
 
-            void detach() noexcept;
+            void detach();
 
             void join();
 
             void interrupt() noexcept;
 
             template< typename PROPS >
-            PROPS & properties();
+            PROPS & properties() noexcept;
         };
 
         bool operator<( fiber const& l, fiber const& r) noexcept;
@@ -292,9 +292,9 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         void swap( fiber & l, fiber & r) noexcept;
 
         template< typename SchedAlgo, typename ... Args >
-        void use_scheduling_algorithm( Args && ... args);
+        void use_scheduling_algorithm( Args && ... args) noexcept;
 
-        std::size_t ready_fibers();
+        std::size_t ready_fibers() noexcept;
 
         template< typename Rep, typename Period >
         void wait_interval( std::chrono::duration< Rep, Period > const& wait_interval) noexcept;
@@ -304,7 +304,7 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
 [heading Default constructor]
 
-        fiber() noexcept;
+        constexpr fiber() noexcept;
 
 [variablelist
 [[Effects:] [Constructs a __fiber__ instance that refers to __not_a_fiber__.]]
@@ -316,10 +316,10 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 [heading Constructor]
 
         template< typename Fn, typename ... Args >
-        explicit fiber( Fn && fn, Args && ... args);
+        fiber( Fn && fn, Args && ... args);
 
         template< typename StackAllocator, typename Fn, typename ... Args >
-        explicit fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
+        fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
 
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
@@ -358,7 +358,7 @@ value of `other.get_id()` prior to the assignment.]]
 
 [heading Destructor]
 
-        ~fiber();
+        ~fiber() noexcept;
 
 [variablelist
 [[Effects:] [If the fiber is __joinable__, calls std::terminate. Destroys
@@ -426,7 +426,7 @@ default-constructed __fiber_id__.]]
 
 [member_heading fiber..interrupt]
 
-        void interrupt();
+        void interrupt() noexcept;
 
 [variablelist
 [[Effects:] [If `*this` refers to a fiber of execution, request that the fiber
@@ -440,7 +440,7 @@ interruption enabled.]]
 [template_member_heading fiber..properties]
 
         template< typename PROPS >
-        PROPS & properties();
+        PROPS & properties() noexcept;
 
 [variablelist
 [[Preconditions:] [`*this` refers to a fiber of execution. [function_link
@@ -505,7 +505,7 @@ prior to the call.]]
 [function_heading use_scheduling_algorithm]
 
     template< typename SchedAlgo, typename ... Args >
-    void use_scheduling_algorithm( Args && ... args);
+    void use_scheduling_algorithm( Args && ... args) noexcept;
 
 [variablelist
 [[Effects:] [Directs __boost_fiber__ to use `SchedAlgo`, which must be a
@@ -523,7 +523,7 @@ create a default [class_link round_robin] instance for this thread.]]
 
 [function_heading ready_fibers]
 
-    std::size_t ready_fibers();
+    std::size_t ready_fibers() noexcept;
 
 [variablelist
 [[Returns:] [the number of fibers ready to run.]]
@@ -565,7 +565,7 @@ application-specific.]]
 
         class id {
         public:
-            id() noexcept;
+            constexpr id() noexcept;
 
             bool operator==( id const& other) const noexcept;
 
@@ -586,7 +586,7 @@ application-specific.]]
 
 [heading Constructor]
 
-        id() noexcept;
+        constexpr id() noexcept;
 
 [variablelist
 [[Effects:] [Represents an instance of __not_a_fiber__.]]
@@ -671,13 +671,13 @@ implementation-defined total order of `fiber::id` values places `*this` before
         namespace this_fiber {
 
         fibers::fiber::id get_id() noexcept;
-        void yield();
+        void yield() noexcept;
         template< typename Clock, typename Duration >
         void sleep_until( std::chrono::time_point< Clock, Duration > const& abs_time)
         template< typename Rep, typename Period >
         void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         template< typename PROPS >
-        PROPS & properties();
+        PROPS & properties() noexcept;
 
         void interruption_point();
         bool interruption_requested() noexcept;
@@ -736,7 +736,7 @@ there are no guarantees about how soon after that it might resume.]]
 
         #include <boost/fiber/operations.hpp>
 
-        void yield();
+        void yield() noexcept;
 
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
@@ -751,7 +751,7 @@ to run.]]
         #include <boost/fiber/operations.hpp>
 
         template< typename PROPS >
-        PROPS & properties();
+        PROPS & properties() noexcept;
 
 [variablelist
 [[Preconditions:] [[function_link use_scheduling_algorithm] has been called

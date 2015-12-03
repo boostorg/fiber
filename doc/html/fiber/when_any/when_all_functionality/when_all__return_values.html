@@ -40,7 +40,7 @@
           available?
         </p>
 <p>
-          Fortunately we can present both APIs. Let's define <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code> to return <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">unbounded_channel</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>.<sup>[<a name="fiber.when_any.when_all_functionality.when_all__return_values.f0" href="#ftn.fiber.when_any.when_all_functionality.when_all__return_values.f0" class="footnote">5</a>]</sup>
+          Fortunately we can present both APIs. Let's define <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code> to return <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">unbounded_channel</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>.<sup>[<a name="fiber.when_any.when_all_functionality.when_all__return_values.f0" href="#ftn.fiber.when_any.when_all_functionality.when_all__return_values.f0" class="footnote">4</a>]</sup>
         </p>
 <p>
           <a name="wait_all_values"></a>Given <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code>, it's straightforward to implement <code class="computeroutput"><span class="identifier">wait_all_values</span><span class="special">()</span></code>:
@@ -203,7 +203,7 @@
         </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.when_any.when_all_functionality.when_all__return_values.f0" href="#fiber.when_any.when_all_functionality.when_all__return_values.f0" class="para">5</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.when_any.when_all_functionality.when_all__return_values.f0" href="#fiber.when_any.when_all_functionality.when_all__return_values.f0" class="para">4</a>] </sup>
             We could have used either <a class="link" href="../../synchronization/channels.html#class_bounded_channel"> <code class="computeroutput">bounded_channel&lt;&gt;</code></a> or
             <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"> <code class="computeroutput">unbounded_channel&lt;&gt;</code></a>. We chose <code class="computeroutput"><span class="identifier">unbounded_channel</span><span class="special">&lt;&gt;</span></code>
             on the assumption that its simpler semantics imply a cheaper implementation.

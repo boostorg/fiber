@@ -20,31 +20,31 @@ The columns labeled [*fiber (raw)] were compiled with [link cross_thread_sync
 
 [table Overhead of join (contains fiber-context destruction, fiber-stack deallocation)
     [[thread]     [fiber (atomics)] [fiber (raw)] [tbb]    [qthread]]
-    [[18 \u00b5s] [950 ns]          [850 ns]      [570 ns] [620 ns]]
+    [[18 \u00b5s] [950 ns]          [900 ns]      [570 ns] [620 ns]]
 ]
 (from [@../../performance/fiber/overhead_join.cpp overhead_join.cpp])
 
 [table Overhead of detach
     [[thread] [fiber (atomics)] [fiber (raw)]]
-    [[126 ns] [21 ns]           [15 ns]]
+    [[126 ns] [21 ns]           [20 ns]]
 ]
 (from [@../../performance/fiber/overhead_detach.cpp overhead_detach.cpp])
 
 [table Overhead of yield
     [[thread]      [fiber (atomics)] [fiber (raw)]]
-    [[1.5 \u00b5s] [189 ns]          [168 ns]]
+    [[1.5 \u00b5s] [310 ns]          [330 ns]]
 ]
 (from [@../../performance/fiber/overhead_yield.cpp overhead_yield.cpp])
 
 [table Overhead of waiting on a future
     [[thread]     [fiber (atomics)] [fiber (raw)]]
-    [[16 \u00b5s] [1.4 \u00b5s]     [1.4 \u00b5s]]
+    [[16 \u00b5s] [1.40 \u00b5s]     [1.38 \u00b5s]]
 ]
 (from [@../../performance/fiber/overhead_future.cpp overhead_future.cpp])
 
 [table Overhead of fiber creation (contains fiber-stack allocation and preparation, fiber-context construction, scheduler handling)
     [[thread]     [fiber (atomics)] [fiber (raw)]]
-    [[18 \u00b5s] [210 ns]          [205 ns]     ]
+    [[18 \u00b5s] [450 ns]          [445 ns]     ]
 ]
 (from [@../../performance/fiber/overhead_create.cpp overhead_create.cpp])
 

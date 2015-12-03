@@ -6,7 +6,6 @@
 ]
 
 [/ import path is relative to this .qbk file]
-[import ../examples/asio/loop.hpp]
 
 [#integration]
 [section:integration Sharing a Thread with Another Main Loop]

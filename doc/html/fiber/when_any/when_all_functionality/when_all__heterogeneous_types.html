@@ -77,7 +77,7 @@
     <span class="comment">// Run each of the passed functions on a separate fiber, passing all their</span>
     <span class="comment">// futures to helper function for processing.</span>
     <span class="keyword">return</span> <span class="identifier">wait_all_members_get</span><span class="special">&lt;</span> <span class="identifier">Result</span> <span class="special">&gt;(</span>
-            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">async</span><span class="special">(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
+            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">async</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fns</span> <span class="special">&gt;(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>

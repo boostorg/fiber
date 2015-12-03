@@ -160,7 +160,7 @@ constructor
 <p>
       If a detached fiber is still running when the thread's main fiber terminates,
       that fiber will be <a class="link" href="fiber_mgmt.html#interruption">interrupted</a> and shut
-      down.<sup>[<a name="fiber.fiber_mgmt.f0" href="#ftn.fiber.fiber_mgmt.f0" class="footnote">3</a>]</sup>
+      down.<sup>[<a name="fiber.fiber_mgmt.f0" href="#ftn.fiber.fiber_mgmt.f0" class="footnote">2</a>]</sup>
     </p>
 <h4>
 <a name="fiber.fiber_mgmt.h5"></a>
@@ -360,7 +360,7 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"> <code 
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.fiber_mgmt.f0" href="#fiber.fiber_mgmt.f0" class="para">3</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.fiber_mgmt.f0" href="#fiber.fiber_mgmt.f0" class="para">2</a>] </sup>
         This treatment of detached fibers depends on a detached fiber eventually
         either terminating or reaching one of the specified <a class="link" href="fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
         Note that since <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a> is <span class="emphasis"><em>not</em></span>
