@@ -46,7 +46,7 @@ private:
 public:
     condition() = default;
 
-    ~condition() noexcept {
+    ~condition() {
         BOOST_ASSERT( wait_queue_.empty() );
     }
 

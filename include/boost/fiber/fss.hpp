@@ -57,7 +57,7 @@ public:
         cleanup_fn_{ new custom_cleanup_function( fn) } {
     }
 
-    ~fiber_specific_ptr() noexcept {
+    ~fiber_specific_ptr() {
         context * f = context::active();
         if ( nullptr != f) {
             f->set_fss_data(

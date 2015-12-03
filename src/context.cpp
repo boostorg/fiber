@@ -222,7 +222,7 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     // active_ will point to `this`
     // prev will point to previous active context
     std::swap( active_, prev);
-    data_t d{ & lk, nullptr };
+    data_t d{ & lk };
     resume_( d);
 }
 
@@ -232,7 +232,7 @@ context::resume( context * ready_ctx) noexcept {
     // active_ will point to `this`
     // prev will point to previous active context
     std::swap( active_, prev);
-    data_t d{ nullptr, ready_ctx };
+    data_t d{ ready_ctx };
     resume_( d);
 }
 

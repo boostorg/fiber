@@ -31,7 +31,7 @@ private:
 public:
 	disable_interruption() noexcept;
 
-	~disable_interruption() noexcept;
+	~disable_interruption();
 
     disable_interruption( disable_interruption const&) = delete;
     disable_interruption & operator=( disable_interruption const&) = delete;
@@ -44,7 +44,7 @@ private:
 public:
 	explicit restore_interruption( disable_interruption & disabler) noexcept;
 
-	~restore_interruption() noexcept;
+	~restore_interruption();
 
     restore_interruption( restore_interruption const&) = delete;
     restore_interruption & operator=( restore_interruption const&) = delete;

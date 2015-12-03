@@ -141,7 +141,7 @@ private:
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
 
-        constexpr fss_data() noexcept = default;
+        constexpr fss_data() = default;
 
         fss_data( void * vp_,
                   detail::fss_cleanup_function::ptr_t const& fn) noexcept :
@@ -158,6 +158,16 @@ private:
     struct data_t {
         detail::spinlock_lock   *   lk{ nullptr };
         context                 *   ctx{ nullptr };
+
+        constexpr data_t() = default;
+
+        explicit data_t( detail::spinlock_lock * lk_) noexcept :
+            lk{ lk_ } {
+        }
+
+        explicit data_t( context * ctx_) noexcept :
+            ctx{ ctx_ } {
+        }
     };
 
     typedef std::map< uintptr_t, fss_data >     fss_data_t;
@@ -203,7 +213,7 @@ public:
         context  *   impl_{ nullptr };
 
     public:
-        constexpr id() noexcept = default;
+        constexpr id() = default;
 
         explicit id( context * impl) noexcept :
             impl_( impl) {
@@ -293,7 +303,7 @@ public:
               }} {
     }
 
-    virtual ~context() noexcept;
+    virtual ~context();
 
     scheduler * get_scheduler() const noexcept;
 
@@ -437,7 +447,7 @@ public:
 
 struct context_initializer {
     context_initializer();
-    ~context_initializer() noexcept;
+    ~context_initializer();
 };
 
 template< typename StackAlloc, typename Fn, typename ... Args >

@@ -52,7 +52,7 @@ public:
     // We need a virtual destructor (hence a vtable) because fiber_properties
     // is stored polymorphically (as fiber_properties*) in context, and
     // destroyed via that pointer.
-    virtual ~fiber_properties() noexcept = default;
+    virtual ~fiber_properties() = default;
 
     // not really intended for public use, but sched_algorithm_with_properties
     // must be able to call this

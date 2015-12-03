@@ -37,7 +37,7 @@ private:
 public:
     mutex() = default;
 
-    ~mutex() noexcept {
+    ~mutex() {
         BOOST_ASSERT( nullptr == owner_);
         BOOST_ASSERT( wait_queue_.empty() );
     }

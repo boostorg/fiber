@@ -101,7 +101,7 @@ public:
     scheduler( scheduler const&) = delete;
     scheduler & operator=( scheduler const&) = delete;
 
-    virtual ~scheduler() noexcept;
+    virtual ~scheduler();
 
     void dispatch() noexcept;
 

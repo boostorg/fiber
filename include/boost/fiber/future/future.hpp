@@ -28,13 +28,13 @@ struct future_base {
 
     ptr_t           state_{};
 
-    constexpr future_base() noexcept = default;
+    constexpr future_base() = default;
 
     explicit future_base( ptr_t const& p) noexcept :
         state_{ p } {
     }
 
-    ~future_base() noexcept = default;
+    ~future_base() = default;
 
     future_base( future_base const& other) :
         state_{ other.state_ } {
@@ -106,7 +106,7 @@ private:
     friend class shared_future< R >;
 
 public:
-    constexpr future() noexcept = default;
+    constexpr future() = default;
 
     explicit future( typename base_t::ptr_t const& p) noexcept :
         base_t{ p } {
@@ -159,7 +159,7 @@ private:
     friend class shared_future< R & >;
 
 public:
-    constexpr future() noexcept = default;
+    constexpr future() = default;
 
     explicit future( typename base_t::ptr_t const& p) noexcept :
         base_t{ p  } {
@@ -212,7 +212,7 @@ private:
     friend class shared_future< void >;
 
 public:
-    constexpr future() noexcept = default;
+    constexpr future() = default;
 
     explicit future( base_t::ptr_t const& p) noexcept :
         base_t{ p } {
@@ -271,9 +271,9 @@ private:
     }
 
 public:
-    constexpr shared_future() noexcept = default;
+    constexpr shared_future() = default;
 
-    ~shared_future() noexcept = default;
+    ~shared_future() = default;
 
     shared_future( shared_future const& other) :
         base_t{ other } {
@@ -336,9 +336,9 @@ private:
     }
 
 public:
-    constexpr shared_future() noexcept = default;
+    constexpr shared_future() = default;
 
-    ~shared_future() noexcept = default;
+    ~shared_future() = default;
 
     shared_future( shared_future const& other) :
         base_t{ other } {
@@ -401,9 +401,9 @@ private:
     }
 
 public:
-    constexpr shared_future() noexcept = default;
+    constexpr shared_future() = default;
 
-    ~shared_future() noexcept = default;
+    ~shared_future() = default;
 
     inline
     shared_future( shared_future const& other) :

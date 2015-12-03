@@ -42,7 +42,7 @@ private:
 public:
     typedef context::id    id;
 
-    constexpr fiber() noexcept = default;
+    constexpr fiber() = default;
 
     template< typename Fn, typename ... Args >
     fiber( Fn && fn, Args && ... args) :
@@ -56,7 +56,7 @@ public:
         start_();
     }
 
-    ~fiber() noexcept {
+    ~fiber() {
         if ( joinable() ) {
             std::terminate();
         }

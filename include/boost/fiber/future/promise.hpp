@@ -50,7 +50,7 @@ public:
             ::new( a.allocate( 1) ) object_t{ a } };
     }
 
-    ~promise() noexcept {
+    ~promise() {
         if ( future_) {
             future_->owner_destroyed();
         }
@@ -139,7 +139,7 @@ public:
             ::new( a.allocate( 1) ) object_t{ a } };
     }
 
-    ~promise() noexcept {
+    ~promise() {
         if ( future_) {
             future_->owner_destroyed();
         }
@@ -221,7 +221,7 @@ public:
             ::new( a.allocate( 1) ) object_t{ a } };
     }
 
-    ~promise() noexcept {
+    ~promise() {
         if ( future_) {
             future_->owner_destroyed();
         }

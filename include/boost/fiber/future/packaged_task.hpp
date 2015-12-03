@@ -33,9 +33,9 @@ private:
     ptr_t           task_{};
 
 public:
-    constexpr packaged_task() noexcept = default;
+    constexpr packaged_task() = default;
 
-    ~packaged_task() noexcept {
+    ~packaged_task() {
         if ( task_) {
             task_->owner_destroyed();
         }
