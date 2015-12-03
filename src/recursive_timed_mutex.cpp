@@ -37,11 +37,8 @@ recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point co
     }
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     ctx->wait_link( wait_queue_);
-    std::function< void() > func([&lk](){
-            lk.unlock();
-            });
     // suspend this fiber until notified or timed-out
-    if ( ! context::active()->wait_until( timeout_time, & func) ) {
+    if ( ! context::active()->wait_until( timeout_time, lk) ) {
         // remove fiber from wait-queue 
         lk.lock();
         ctx->wait_unlink();
@@ -66,11 +63,8 @@ recursive_timed_mutex::lock() {
     }
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     ctx->wait_link( wait_queue_);
-    std::function< void() > func([&lk](){
-            lk.unlock();
-            });
     // suspend this fiber
-    ctx->suspend( & func);
+    ctx->suspend( lk);
     BOOST_ASSERT( ! ctx->wait_is_linked() );
 }
 

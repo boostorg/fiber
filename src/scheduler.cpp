@@ -23,7 +23,7 @@ namespace boost {
 namespace fibers {
 
 void
-scheduler::resume_( context * active_ctx, context * ctx, std::function< void() > * func) noexcept {
+scheduler::resume_( context * active_ctx, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( nullptr != ctx);
     //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
@@ -32,14 +32,44 @@ scheduler::resume_( context * active_ctx, context * ctx, std::function< void() >
     BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
     BOOST_ASSERT( active_ctx != ctx);
     // resume active-fiber == ctx
-    ctx->resume( func);
+    ctx->resume();
+    BOOST_ASSERT( context::active() == active_ctx);
+}
+
+void
+scheduler::resume_( context * active_ctx, context * ctx, detail::spinlock_lock & lk) noexcept {
+    BOOST_ASSERT( nullptr != active_ctx);
+    BOOST_ASSERT( nullptr != ctx);
+    //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
+    BOOST_ASSERT( this == active_ctx->get_scheduler() );
+    BOOST_ASSERT( this == ctx->get_scheduler() );
+    BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
+    BOOST_ASSERT( active_ctx != ctx);
+    // resume active-fiber == ctx
+    ctx->resume( lk);
+    BOOST_ASSERT( context::active() == active_ctx);
+}
+
+void
+scheduler::resume_( context * active_ctx, context * ctx, context * ready_ctx) noexcept {
+    BOOST_ASSERT( nullptr != active_ctx);
+    BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( ready_ctx == active_ctx);
+    //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
+    BOOST_ASSERT( this == active_ctx->get_scheduler() );
+    BOOST_ASSERT( this == ctx->get_scheduler() );
+    BOOST_ASSERT( active_ctx->get_scheduler() == ctx->get_scheduler() );
+    BOOST_ASSERT( active_ctx != ctx);
+    // resume active-fiber == ctx
+    ctx->resume( ready_ctx);
     BOOST_ASSERT( context::active() == active_ctx);
 }
 
 context *
 scheduler::get_next_() noexcept {
     context * ctx = sched_algo_->pick_next();
-    BOOST_ASSERT( nullptr == ctx || this == ctx->get_scheduler() );
+    //BOOST_ASSERT( nullptr == ctx);
+    //BOOST_ASSERT( this == ctx->get_scheduler() );
     return ctx;
 }
 
@@ -123,7 +153,7 @@ scheduler::~scheduler() noexcept {
     // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
-    resume_( main_ctx_, get_next_(), nullptr);
+    resume_( main_ctx_, get_next_() );
     // no context' in worker-queue
     //BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
@@ -154,7 +184,7 @@ scheduler::dispatch() noexcept {
             // push dispatcher-context to ready-queue
             // so that ready-queue never becomes empty
             sched_algo_->awakened( dispatcher_ctx_.get() );
-            resume_( dispatcher_ctx_.get(), ctx, nullptr);
+            resume_( dispatcher_ctx_.get(), ctx);
             BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
         } else {
             // no ready context, wait till signaled
@@ -191,7 +221,7 @@ scheduler::dispatch() noexcept {
         if ( nullptr != ( ctx = get_next_() ) ) {
             // resume ready context's
             sched_algo_->awakened( dispatcher_ctx_.get() );
-            resume_( dispatcher_ctx_.get(), ctx, nullptr);
+            resume_( dispatcher_ctx_.get(), ctx);
             BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
         }
     }
@@ -199,7 +229,7 @@ scheduler::dispatch() noexcept {
     // release termianted context'
     release_terminated_();
     // return to main-context
-    resume_( dispatcher_ctx_.get(), main_ctx_, nullptr);
+    resume_( dispatcher_ctx_.get(), main_ctx_);
 }
 
 void
@@ -262,7 +292,7 @@ scheduler::set_terminated( context * active_ctx) noexcept {
     // intrusive_ptr_release( ctx);
     active_ctx->terminated_link( terminated_queue_);
     // resume another fiber
-    resume_( active_ctx, get_next_(), nullptr);
+    resume_( active_ctx, get_next_() );
 }
 
 void
@@ -280,17 +310,13 @@ scheduler::yield( context * active_ctx) noexcept {
     // from one ready-queue) the context must be
     // already suspended until another thread resumes it
     // (== maked as ready)
-    std::function< void() > func([this,active_ctx](){
-                                    set_ready( active_ctx);
-                                 });
     // resume another fiber
-    resume_( active_ctx, get_next_(), & func);
+    resume_( active_ctx, get_next_(), active_ctx);
 }
 
 bool
 scheduler::wait_until( context * active_ctx,
-                       std::chrono::steady_clock::time_point const& sleep_tp,
-                       std::function< void() > * func) noexcept {
+                       std::chrono::steady_clock::time_point const& sleep_tp) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
     BOOST_ASSERT( ! active_ctx->is_terminated() );
@@ -311,19 +337,57 @@ scheduler::wait_until( context * active_ctx,
     active_ctx->tp_ = sleep_tp;
     active_ctx->sleep_link( sleep_queue_);
     // resume another context
-    resume_( active_ctx, get_next_(), func);
+    resume_( active_ctx, get_next_() );
+    // context has been resumed
+    // check if deadline has reached
+    return std::chrono::steady_clock::now() < sleep_tp;
+}
+
+bool
+scheduler::wait_until( context * active_ctx,
+                       std::chrono::steady_clock::time_point const& sleep_tp,
+                       detail::spinlock_lock & lk) noexcept {
+    BOOST_ASSERT( nullptr != active_ctx);
+    //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
+    BOOST_ASSERT( ! active_ctx->is_terminated() );
+    // if the active-fiber running in this thread calls
+    // condition:wait() and code in another thread calls
+    // condition::notify_one(), it might happen that the
+    // other thread pushes the fiber to remote ready-queue first
+    // the dispatcher-context migh have been moved the fiber from
+    // the remote ready-queue to the local ready-queue
+    // so we do not check
+    //BOOST_ASSERT( active_ctx->ready_is_linked() );
+    BOOST_ASSERT( ! active_ctx->sleep_is_linked() );
+    // active_ctx->wait_is_linked() might return true
+    // if context was locked inside timed_mutex::try_lock_until()
+    // context::wait_is_linked() is not sychronized
+    // with other threads
+    // push active context to sleep-queue
+    active_ctx->tp_ = sleep_tp;
+    active_ctx->sleep_link( sleep_queue_);
+    // resume another context
+    resume_( active_ctx, get_next_(), lk);
     // context has been resumed
     // check if deadline has reached
     return std::chrono::steady_clock::now() < sleep_tp;
 }
 
 void
-scheduler::suspend( context * active_ctx,
-                        std::function< void() > * func) noexcept {
+scheduler::suspend( context * active_ctx) noexcept {
     BOOST_ASSERT( nullptr != active_ctx);
     //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
     // resume another context
-    resume_( active_ctx, get_next_(), func);
+    resume_( active_ctx, get_next_() );
+}
+
+void
+scheduler::suspend( context * active_ctx,
+                    detail::spinlock_lock & lk) noexcept {
+    BOOST_ASSERT( nullptr != active_ctx);
+    //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
+    // resume another context
+    resume_( active_ctx, get_next_(), lk);
 }
 
 bool

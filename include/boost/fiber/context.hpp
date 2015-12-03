@@ -155,6 +155,11 @@ private:
         }
     };
 
+    struct data_t {
+        detail::spinlock_lock   *   lk{ nullptr };
+        context                 *   ctx{ nullptr };
+    };
+
     typedef std::map< uintptr_t, fss_data >     fss_data_t;
 
     static thread_local context         *   active_;
@@ -168,6 +173,9 @@ private:
 #endif
     scheduler                           *   scheduler_{ nullptr };
     boost::context::execution_context       ctx_;
+
+    void resume_( data_t &) noexcept;
+    void set_ready_( context *) noexcept;
 
 public:
     detail::ready_hook                      ready_hook_{};
@@ -266,17 +274,16 @@ public:
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
               [this,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
-               ctx=boost::context::execution_context::current()] (void *) mutable noexcept {
+               ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
                 try {
+                    data_t * dp = static_cast< data_t * >( vp);
+                    if ( nullptr != dp->lk) {
+                        dp->lk->unlock();
+                    } else if ( nullptr != dp->ctx) {
+                        active_->set_ready_( dp->ctx);
+                    }
                     auto fn = std::move( fn_);
                     auto tpl = std::move( tpl_);
-                    // jump back after initialization
-                    void * vp = ctx();
-                    // execute returned functor
-                    if ( nullptr != vp) {
-                        std::function< void() > * func( static_cast< std::function< void() > * >( vp) );
-                        ( * func)();
-                    }
                     boost::context::detail::do_invoke( fn, tpl);
                 } catch ( fiber_interrupted const&) {
                 }
@@ -284,8 +291,6 @@ public:
                 terminate();
                 BOOST_ASSERT_MSG( false, "fiber already terminated");
               }} {
-        // switch for initialization
-        ctx_();
     }
 
     virtual ~context() noexcept;
@@ -294,9 +299,12 @@ public:
 
     id get_id() const noexcept;
 
-    void resume( std::function< void() > *) noexcept;
+    void resume() noexcept;
+    void resume( detail::spinlock_lock &) noexcept;
+    void resume( context *) noexcept;
 
-    void suspend( std::function< void() > * = nullptr) noexcept;
+    void suspend() noexcept;
+    void suspend( detail::spinlock_lock &) noexcept;
 
     void join();
 
@@ -304,8 +312,9 @@ public:
 
     void terminate() noexcept;
 
+    bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
     bool wait_until( std::chrono::steady_clock::time_point const&,
-                     std::function< void() > * = nullptr) noexcept;
+                     detail::spinlock_lock &) noexcept;
 
     void set_ready( context *) noexcept;
 

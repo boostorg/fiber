@@ -34,11 +34,8 @@ mutex::lock() {
     }
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     ctx->wait_link( wait_queue_);
-    std::function< void() > func([&lk](){
-            lk.unlock();
-            });
     // suspend this fiber
-    ctx->suspend( & func);
+    ctx->suspend( lk);
     BOOST_ASSERT( ! ctx->wait_is_linked() );
 }
 

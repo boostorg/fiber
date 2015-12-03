@@ -80,11 +80,13 @@ public:
             BOOST_ASSERT( nullptr != ctx);
             // attach context to current scheduler
             boost::fibers::context::active()->migrate( ctx);
-        } else if ( ! local_queue_.empty() ) {
+        } else {
             lk.unlock();
-            // nothing in the ready queue, return dispatcher_ctx_
-            ctx = local_queue_.front();
-            local_queue_.pop();
+            if ( ! local_queue_.empty() ) {
+                // nothing in the ready queue, return dispatcher_ctx_
+                ctx = local_queue_.front();
+                local_queue_.pop();
+            }
         }
         return ctx;
     }

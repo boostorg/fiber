@@ -83,7 +83,9 @@ private:
     detail::spinlock                    remote_ready_splk_{};
     detail::spinlock                    worker_splk_{};
 
-    void resume_( context *, context *, std::function< void() > *) noexcept;
+    void resume_( context *, context *) noexcept;
+    void resume_( context *, context *, detail::spinlock_lock &) noexcept;
+    void resume_( context *, context *, context *) noexcept;
 
     context * get_next_() noexcept;
 
@@ -112,11 +114,14 @@ public:
     void yield( context *) noexcept;
 
     bool wait_until( context *,
+                     std::chrono::steady_clock::time_point const&) noexcept;
+    bool wait_until( context *,
                      std::chrono::steady_clock::time_point const&,
-                     std::function< void() > * = nullptr) noexcept;
+                     detail::spinlock_lock &) noexcept;
 
+    void suspend( context *) noexcept;
     void suspend( context *,
-                      std::function< void() > * = nullptr) noexcept;
+                  detail::spinlock_lock &) noexcept;
 
     bool has_ready_fibers() const noexcept;
 
