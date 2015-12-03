@@ -61,7 +61,7 @@
     </h4>
 <p>
       The first essential point is that we must associate an integer priority with
-      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">7</a>]</sup>
+      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">6</a>]</sup>
     </p>
 <p>
       One might suggest deriving a custom <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> subclass to store such
@@ -98,8 +98,8 @@
 </p>
 <pre class="programlisting"><span class="keyword">class</span> <span class="identifier">priority_props</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber_properties</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">priority_props</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">p</span><span class="special">):</span>
-        <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">p</span><span class="special">),</span> <a class="co" name="fiber.custom.c0" href="custom.html#fiber.custom.c1"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
+    <span class="identifier">priority_props</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">):</span>
+        <span class="identifier">fiber_properties</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">),</span> <a class="co" name="fiber.custom.c0" href="custom.html#fiber.custom.c1"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
         <span class="identifier">priority_</span><span class="special">(</span> <span class="number">0</span><span class="special">)</span> <span class="special">{</span>
     <span class="special">}</span>
 
@@ -179,19 +179,20 @@
 </p>
 <pre class="programlisting"><span class="keyword">class</span> <span class="identifier">priority_scheduler</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">sched_algorithm_with_properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;</span> <span class="special">{</span>
 <span class="keyword">private</span><span class="special">:</span>
-    <span class="comment">// Much as we would like, we don't use std::priority_queue because it</span>
-    <span class="comment">// doesn't appear to provide any way to alter the priority (and hence</span>
-    <span class="comment">// queue position) of a particular item.</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span>    <span class="special">*</span>   <span class="identifier">head_</span><span class="special">;</span>
+    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">scheduler</span><span class="special">::</span><span class="identifier">ready_queue_t</span>   <span class="identifier">rqueue_t</span><span class="special">;</span>
+
+    <span class="identifier">rqueue_t</span>                                <span class="identifier">rqueue_</span><span class="special">;</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">autoreset_event</span>  <span class="identifier">ev_</span><span class="special">;</span>
 
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">priority_scheduler</span><span class="special">()</span> <span class="special">:</span>
-        <span class="identifier">head_</span><span class="special">(</span> <span class="keyword">nullptr</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">rqueue_</span><span class="special">(),</span>
+        <span class="identifier">ev_</span><span class="special">()</span> <span class="special">{</span>
     <span class="special">}</span>
 
     <span class="comment">// For a subclass of sched_algorithm_with_properties&lt;&gt;, it's important to</span>
     <span class="comment">// override the correct awakened() overload.</span>
-    <a class="co" name="fiber.custom.c8" href="custom.html#fiber.custom.c9"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="special">{</span>
+    <a class="co" name="fiber.custom.c8" href="custom.html#fiber.custom.c9"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
         <span class="keyword">int</span> <span class="identifier">f_priority</span> <span class="special">=</span> <span class="identifier">props</span><span class="special">.</span><span class="identifier">get_priority</span><span class="special">();</span> <a class="co" name="fiber.custom.c10" href="custom.html#fiber.custom.c11"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
         <span class="comment">// With this scheduler, fibers with higher priority values are</span>
         <span class="comment">// preferred over fibers with lower priority values. But fibers with</span>
@@ -199,41 +200,32 @@
         <span class="comment">// we're handed a new context*, put it at the end of the fibers</span>
         <span class="comment">// with that same priority. In other words: search for the first fiber</span>
         <span class="comment">// in the queue with LOWER priority, and insert before that one.</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">**</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">head_</span><span class="special">;</span>
-        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span> <span class="special">{</span>
-            <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">properties</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">f_priority</span><span class="special">)</span> <span class="special">{</span>
-                <a class="co" name="fiber.custom.c12" href="custom.html#fiber.custom.c13"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
+        <span class="identifier">rqueue_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">i</span><span class="special">(</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">begin</span><span class="special">()</span> <span class="special">),</span> <span class="identifier">e</span><span class="special">(</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">);</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="special">;</span> <span class="identifier">i</span> <span class="special">!=</span> <span class="identifier">e</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
+            <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">properties</span><span class="special">(</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">i</span><span class="special">)</span> <span class="special">).</span><span class="identifier">get_priority</span><span class="special">()</span> <span class="special">&lt;</span> <span class="identifier">f_priority</span><span class="special">)</span> <span class="special">{</span>
                 <span class="keyword">break</span><span class="special">;</span>
             <span class="special">}</span>
         <span class="special">}</span>
-        <span class="comment">// It doesn't matter whether we hit the end of the list or found</span>
-        <span class="comment">// another fiber with lower priority. Either way, insert f here.</span>
-        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <a class="co" name="fiber.custom.c14" href="custom.html#fiber.custom.c15"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
-        <span class="special">*</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
+        <span class="comment">// Now, whether or not we found a fiber with lower priority,</span>
+        <span class="comment">// insert this new fiber here.</span>
+        <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span> <span class="identifier">i</span><span class="special">,</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">);</span>
     <span class="special">}</span>
 
-    <a class="co" name="fiber.custom.c16" href="custom.html#fiber.custom.c17"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="special">{</span>
+    <a class="co" name="fiber.custom.c12" href="custom.html#fiber.custom.c13"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span>
         <span class="comment">// if ready queue is empty, just tell caller</span>
-        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">head_</span><span class="special">)</span> <span class="special">{</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span>
             <span class="keyword">return</span> <span class="keyword">nullptr</span><span class="special">;</span>
         <span class="special">}</span>
-        <span class="comment">// Here we have at least one ready fiber. Unlink and return that.</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span>
-        <span class="identifier">head_</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
-        <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
-
-        <span class="keyword">return</span> <span class="identifier">f</span><span class="special">;</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">(</span> <span class="special">&amp;</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">front</span><span class="special">()</span> <span class="special">);</span>
+        <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">pop_front</span><span class="special">();</span>
+        <span class="keyword">return</span> <span class="identifier">ctx</span><span class="special">;</span>
     <span class="special">}</span>
 
-    <a class="co" name="fiber.custom.c18" href="custom.html#fiber.custom.c19"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a><span class="keyword">virtual</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-        <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
-        <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">head_</span><span class="special">;</span> <span class="identifier">f</span><span class="special">;</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span><span class="special">)</span> <span class="special">{</span>
-            <span class="special">++</span><span class="identifier">count</span><span class="special">;</span>
-        <span class="special">}</span>
-        <span class="keyword">return</span> <span class="identifier">count</span><span class="special">;</span>
+    <a class="co" name="fiber.custom.c14" href="custom.html#fiber.custom.c15"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+        <span class="keyword">return</span> <span class="special">!</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">();</span>
     <span class="special">}</span>
 
-    <a class="co" name="fiber.custom.c20" href="custom.html#fiber.custom.c21"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="special">{</span>
+    <a class="co" name="fiber.custom.c16" href="custom.html#fiber.custom.c17"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">property_change</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
         <span class="comment">// Although our priority_props class defines multiple properties, only</span>
         <span class="comment">// one of them (priority) actually calls notify() when changed. The</span>
         <span class="comment">// point of a property_change() override is to reshuffle the ready</span>
@@ -242,12 +234,12 @@
         <span class="comment">// Find 'f' in the queue. Note that it might not be in our queue at</span>
         <span class="comment">// all, if caller is changing the priority of (say) the running fiber.</span>
         <span class="keyword">bool</span> <span class="identifier">found</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
-        <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">**</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">head_</span><span class="special">;</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">;</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">)</span> <span class="special">{</span>
-            <span class="keyword">if</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span> <span class="special">==</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">rqueue_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">e</span><span class="special">(</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">);</span>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">rqueue_t</span><span class="special">::</span><span class="identifier">iterator</span> <span class="identifier">i</span><span class="special">(</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">begin</span><span class="special">()</span> <span class="special">);</span> <span class="identifier">i</span> <span class="special">!=</span> <span class="identifier">e</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
+            <span class="keyword">if</span> <span class="special">(</span> <span class="special">&amp;</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">i</span><span class="special">)</span> <span class="special">==</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
                 <span class="comment">// found the passed fiber in our list -- unlink it</span>
                 <span class="identifier">found</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
-                <span class="special">*</span> <span class="identifier">fp</span> <span class="special">=</span> <span class="special">(</span> <span class="special">*</span> <span class="identifier">fp</span><span class="special">)-&gt;</span><span class="identifier">nxt</span><span class="special">;</span>
-                <span class="identifier">f</span><span class="special">-&gt;</span><span class="identifier">nxt</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
+                <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">erase</span><span class="special">(</span> <span class="identifier">i</span><span class="special">);</span>
                 <span class="keyword">break</span><span class="special">;</span>
             <span class="special">}</span>
         <span class="special">}</span>
@@ -256,14 +248,22 @@
         <span class="comment">// not on our ready queue. If it's not there, no need to move it:</span>
         <span class="comment">// we'll handle it next time it hits awakened().</span>
         <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">found</span><span class="special">)</span> <span class="special">{</span>
-            <a class="co" name="fiber.custom.c22" href="custom.html#fiber.custom.c23"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a>
+            <a class="co" name="fiber.custom.c18" href="custom.html#fiber.custom.c19"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a>
             <span class="keyword">return</span><span class="special">;</span>
         <span class="special">}</span>
 
         <span class="comment">// Here we know that f was in our ready queue, but we've unlinked it.</span>
         <span class="comment">// We happen to have a method that will (re-)add a context* to</span>
         <span class="comment">// the ready queue.</span>
-        <span class="identifier">awakened</span><span class="special">(</span><span class="identifier">f</span><span class="special">,</span> <span class="identifier">props</span><span class="special">);</span>
+        <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">,</span> <span class="identifier">props</span><span class="special">);</span>
+    <span class="special">}</span>
+
+    <span class="keyword">void</span> <span class="identifier">suspend_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">steady_clock</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">suspend_time</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+        <span class="identifier">ev_</span><span class="special">.</span><span class="identifier">reset</span><span class="special">(</span> <span class="identifier">suspend_time</span><span class="special">);</span>
+    <span class="special">}</span>
+
+    <span class="keyword">void</span> <span class="identifier">notify</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+        <span class="identifier">ev_</span><span class="special">.</span><span class="identifier">set</span><span class="special">();</span>
     <span class="special">}</span>
 <span class="special">};</span>
 </pre>
@@ -289,20 +289,6 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.custom.c13"></a><a href="#fiber.custom.c12"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          Use the <a class="link" href="scheduling.html#sched_algorithm_with_properties_properties"> <code class="computeroutput">sched_algorithm_with_properties::properties()</code></a>
-                method
-          to access properties for any <span class="emphasis"><em>other</em></span> fiber.
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c15"></a><a href="#fiber.custom.c14"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          Note use of the <a class="link" href="scheduling.html#context_nxt"> <code class="computeroutput">context::nxt</code></a> member.
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c17"></a><a href="#fiber.custom.c16"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
           You must override the <a class="link" href="scheduling.html#sched_algorithm_with_properties_pick_next"> <code class="computeroutput">sched_algorithm_with_properties::pick_next()</code></a>
          method.
           This is how your scheduler actually advises the fiber manager of the next
@@ -310,7 +296,7 @@
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c19"></a><a href="#fiber.custom.c18"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c15"></a><a href="#fiber.custom.c14"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           You must override <a class="link" href="scheduling.html#sched_algorithm_with_properties_ready_fibers"> <code class="computeroutput">sched_algorithm_with_properties::ready_fibers()</code></a>
       to
@@ -318,7 +304,7 @@
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c21"></a><a href="#fiber.custom.c20"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c17"></a><a href="#fiber.custom.c16"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           Overriding <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>
          is
@@ -328,7 +314,7 @@
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c23"></a><a href="#fiber.custom.c22"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.custom.c19"></a><a href="#fiber.custom.c18"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           Your <code class="computeroutput"><span class="identifier">property_change</span><span class="special">()</span></code>
           override must be able to handle the case in which the passed <code class="computeroutput"><span class="identifier">f</span></code> is not in your ready queue. It might
@@ -411,7 +397,7 @@
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">7</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">6</a>] </sup>
         A previous version of the Fiber library implicitly tracked an int priority
         for each fiber, even though the default scheduler ignored it. This has been
         dropped, since the library now supports arbitrary scheduler-specific fiber

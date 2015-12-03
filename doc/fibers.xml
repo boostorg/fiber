@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/09/07 15:34:21 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/12/03 18:43:29 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -224,31 +224,14 @@
       fibers between threads</link>
     </bridgehead>
     <para>
-      Support for migrating fibers between threads was removed. Especially in the
-      case of NUMA-architectures, it is not always advisable to migrate data between
-      threads. Suppose fiber <emphasis>f</emphasis> is running on logical CPU <emphasis>cpu0</emphasis>
-      which belongs to NUMA node <emphasis>node0</emphasis>. The data of <emphasis>f</emphasis>
-      are allocated on the physical memory located at <emphasis>node0</emphasis>.
-      Migrating the fiber from <emphasis>cpu0</emphasis> to another logical CPU
-      <emphasis>cpuX</emphasis> which is part of a different NUMA node <emphasis>nodeX</emphasis>
-      will reduce the performance of the application because of increased latency
-      of memory access.
-    </para>
-    <para>
-      A more <emphasis role="bold">important</emphasis> aspect is the problem with
-      thread-local-storage (<emphasis role="bold">TLS</emphasis>). Instead of recomputing
-      the address of a TLS variable, a compiler might, as an optimization, cache
-      its previously-computed address in various function stack frames.<footnote
-      id="fiber.rationale.f1">
-      <para>
-        dicussed in <ulink url="http://www.crystalclearsoftware.com/soc/coroutine/coroutine/coroutine_thread.html">'Interaction
-        between coroutines and threads' by Giovanni P. Deretta, <ulink url="https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/3g6ZIWedGJ8">'A
-        proposal to add coroutines to C++'</ulink></ulink>
-      </para>
-      </footnote> If a fiber was running on thread <emphasis>t0</emphasis> and then
-      migrated to thread <emphasis>t1</emphasis>, the cached TLS variable address(es)
-      would continue pointing to the TLS for thread <emphasis>t0</emphasis>. Bad
-      things would ensue.
+      Support for migrating fibers between threads has been integrated. The users-defined
+      scheduler has to call <code><phrase role="identifier">context</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">migrate</phrase><phrase
+      role="special">()</phrase></code> with the migrated fiber-context as argument
+      (see <link linkend="custom">Customization</link>; examles <code> <phrase role="identifier">work_sharing</phrase></code>
+      and <code><phrase role="identifier">work_stealing</phrase></code> in directory
+      <code><phrase role="identifier">examples</phrase></code> might be used as a
+      blue-print).
     </para>
     <bridgehead renderas="sect3" id="fiber.rationale.h4">
       <phrase id="fiber.rationale.support_for_boost_asio"/><link linkend="fiber.rationale.support_for_boost_asio">support
@@ -688,15 +671,15 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">class</phrase>        <phrase role="identifier">id</phrase><phrase role="special">;</phrase>
 
-    <phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">constexpr</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
-    <phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">();</phrase>
+    <phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
 
@@ -716,14 +699,14 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
     <phrase role="identifier">id</phrase> <phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">void</phrase> <phrase role="identifier">detach</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">join</phrase><phrase role="special">();</phrase>
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">interrupt</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
+    <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -731,9 +714,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">SchedAlgo</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">();</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">wait_interval</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -744,7 +727,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <phrase id="fiber.fiber_mgmt.fiber.default_constructor"/><link linkend="fiber.fiber_mgmt.fiber.default_constructor">Default
         constructor</link>
       </bridgehead>
-<programlisting><phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">constexpr</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -782,10 +765,10 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <phrase id="fiber.fiber_mgmt.fiber.constructor"/><link linkend="fiber.fiber_mgmt.fiber.constructor">Constructor</link>
       </bridgehead>
 <programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">explicit</phrase> <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -935,7 +918,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber.h4">
         <phrase id="fiber.fiber_mgmt.fiber.destructor"/><link linkend="fiber.fiber_mgmt.fiber.destructor">Destructor</link>
       </bridgehead>
-<programlisting><phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1178,7 +1161,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
   <link linkend="fiber_interrupt">Member function <code>interrupt</code>()</link>
 </bridgehead>
       </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">interrupt</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">interrupt</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1212,7 +1195,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 </bridgehead>
       </para>
 <programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1425,7 +1408,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 </bridgehead>
       </para>
 <programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">SchedAlgo</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1479,7 +1462,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
   <link linkend="ready_fibers">Non-member function <code>ready_fibers()</code></link>
 </bridgehead>
       </para>
-<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1565,7 +1548,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">id</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">constexpr</phrase> <phrase role="identifier">id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">==(</phrase> <phrase role="identifier">id</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
@@ -1587,7 +1570,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       <bridgehead renderas="sect4" id="fiber.fiber_mgmt.id.h0">
         <phrase id="fiber.fiber_mgmt.id.constructor"/><link linkend="fiber.fiber_mgmt.id.constructor">Constructor</link>
       </bridgehead>
-<programlisting><phrase role="identifier">id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">constexpr</phrase> <phrase role="identifier">id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1827,13 +1810,13 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">this_fiber</phrase> <phrase role="special">{</phrase>
 
 <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">();</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">abs_time</phrase><phrase role="special">)</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">interruption_point</phrase><phrase role="special">();</phrase>
 <phrase role="keyword">bool</phrase> <phrase role="identifier">interruption_requested</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -1993,7 +1976,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">();</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -2037,7 +2020,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
+<phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -3305,6 +3288,12 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         role="special">-</phrase><phrase role="identifier">stacks</phrase></code>,
         e.g. <emphasis role="bold">toolset=gcc segmented-stacks=on</emphasis> at
         b2/bjam command line.
+      </para>
+    </note>
+    <note>
+      <para>
+        If the library is compiled for segmented stacks, <link linkend="class_segmented_stack"> <code>segmented_stack</code></link> is
+        the only available stack allocator.
       </para>
     </note>
   </section>
@@ -8724,23 +8713,13 @@ encapsulates.
       is an instance of <code><phrase role="identifier">yield_t</phrase></code>:
     </para>
     <para>
-<programlisting><phrase role="comment">/// A special value, similar to std::nothrow.</phrase>
-<phrase role="identifier">BOOST_CONSTEXPR_OR_CONST</phrase> <phrase role="identifier">yield_t</phrase><phrase role="special">&lt;&gt;</phrase> <phrase role="identifier">yield</phrase><phrase role="special">;</phrase>
-</programlisting>
+      [fibers_asio_yield]
     </para>
     <para>
       which is a <code><phrase role="identifier">promise_completion_token</phrase></code>:
     </para>
     <para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">class</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">promise_completion_token</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
-<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="comment">/// Construct with default-constructed allocator.</phrase>
-    <phrase role="identifier">BOOST_CONSTEXPR</phrase> <phrase role="identifier">yield_t</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
-    <phrase role="special">}</phrase>
-    <phrase role="comment">// ... ways to use an alternate allocator or bind an error_code ...</phrase>
-<phrase role="special">};</phrase>
-</programlisting>
+      [fibers_asio_yield_t]
     </para>
     <para>
       <code><phrase role="identifier">promise_completion_token</phrase></code> is
@@ -8758,35 +8737,7 @@ encapsulates.
       for use by the actual handler.
     </para>
     <para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">class</phrase> <phrase role="identifier">promise_completion_token</phrase> <phrase role="special">{</phrase>
-<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="keyword">typedef</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="identifier">allocator_type</phrase><phrase role="special">;</phrase>
-
-    <phrase role="comment">/// Construct using default-constructed allocator.</phrase>
-    <phrase role="identifier">BOOST_CONSTEXPR</phrase> <phrase role="identifier">promise_completion_token</phrase><phrase role="special">()</phrase> <phrase role="special">:</phrase>
-        <phrase role="identifier">ec_</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-    <phrase role="special">}</phrase>
-
-    <phrase role="comment">/// Construct using specified allocator.</phrase>
-    <phrase role="keyword">explicit</phrase> <phrase role="identifier">promise_completion_token</phrase><phrase role="special">(</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">allocator</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
-        <phrase role="identifier">ec_</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">),</phrase>
-        <phrase role="identifier">allocator_</phrase><phrase role="special">(</phrase> <phrase role="identifier">allocator</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-    <phrase role="special">}</phrase>
-
-    <phrase role="comment">/// Obtain allocator.</phrase>
-    <phrase role="identifier">allocator_type</phrase> <phrase role="identifier">get_allocator</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="special">{</phrase>
-        <phrase role="keyword">return</phrase> <phrase role="identifier">allocator_</phrase><phrase role="special">;</phrase>
-    <phrase role="special">}</phrase>
-
-<phrase role="comment">//private:</phrase>
-    <phrase role="comment">// used by some subclasses to bind an error_code to suppress exceptions</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase>   <phrase role="special">*</phrase>   <phrase role="identifier">ec_</phrase><phrase role="special">;</phrase>
-
-<phrase role="keyword">private</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">Allocator</phrase>   <phrase role="identifier">allocator_</phrase><phrase role="special">;</phrase>
-<phrase role="special">};</phrase>
-</programlisting>
+      [fibers_asio_promise_completion_token]
     </para>
     <para>
       Asio customization is engaged by specializing <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/handler_type.html"><code><phrase
@@ -8795,12 +8746,7 @@ encapsulates.
       role="special">&lt;&gt;</phrase></code></ulink> for <code><phrase role="identifier">yield_t</phrase></code>:
     </para>
     <para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">ReturnType</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Arg2</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">struct</phrase> <phrase role="identifier">handler_type</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;,</phrase>
-                     <phrase role="identifier">ReturnType</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase><phrase role="special">,</phrase> <phrase role="identifier">Arg2</phrase><phrase role="special">)</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
-    <phrase role="keyword">typedef</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Arg2</phrase> <phrase role="special">&gt;</phrase>    <phrase role="identifier">type</phrase><phrase role="special">;</phrase>
-<phrase role="special">};</phrase>
-</programlisting>
+      [asio_handler_type]
     </para>
     <para>
       (There are actually four different specializations in <ulink url="../../examples/asio/detail/yield.hpp">detail/yield.hpp</ulink>,
@@ -8820,49 +8766,14 @@ encapsulates.
       machinery:
     </para>
     <para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">using</phrase> <phrase role="identifier">yield_handler</phrase> <phrase role="special">=</phrase> <phrase role="identifier">promise_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;;</phrase>
-</programlisting>
+      [fibers_asio_yield_handler]
     </para>
     <para>
       <code><phrase role="identifier">promise_handler</phrase></code> isa <code><phrase
       role="identifier">promise_handler_base</phrase></code>:
     </para>
     <para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">class</phrase> <phrase role="identifier">promise_handler_base</phrase> <phrase role="special">{</phrase>
-<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="keyword">typedef</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_ptr</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">promise_ptr</phrase><phrase role="special">;</phrase>
-
-    <phrase role="comment">// Construct from any promise_completion_token subclass special value.</phrase>
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">promise_handler_base</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">promise_completion_token</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">pct</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
-        <phrase role="identifier">promise_</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">make_shared</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;(</phrase>
-                      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg</phrase><phrase role="special">,</phrase> <phrase role="identifier">pct</phrase><phrase role="special">.</phrase><phrase role="identifier">get_allocator</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">)</phrase>
-    <phrase role="special">{}</phrase>
-
-    <phrase role="keyword">bool</phrase> <phrase role="identifier">should_set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-            <phrase role="comment">// whew, success</phrase>
-            <phrase role="keyword">return</phrase> <phrase role="keyword">true</phrase><phrase role="special">;</phrase>
-        <phrase role="special">}</phrase>
-
-        <phrase role="comment">// no bound error_code: cause promise_ to throw an exception</phrase>
-        <phrase role="identifier">promise_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">set_exception</phrase><phrase role="special">(</phrase>
-                <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">make_exception_ptr</phrase><phrase role="special">(</phrase>
-                    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">system_error</phrase><phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
-        <phrase role="comment">// caller should NOT call set_value()</phrase>
-        <phrase role="keyword">return</phrase> <phrase role="keyword">false</phrase><phrase role="special">;</phrase>
-    <phrase role="special">}</phrase>
-
-    <phrase role="identifier">promise_ptr</phrase> <phrase role="identifier">get_promise</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="special">{</phrase>
-        <phrase role="keyword">return</phrase> <phrase role="identifier">promise_</phrase><phrase role="special">;</phrase>
-    <phrase role="special">}</phrase>
-
-<phrase role="keyword">private</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">promise_ptr</phrase>                 <phrase role="identifier">promise_</phrase><phrase role="special">;</phrase>
-<phrase role="special">};</phrase>
-</programlisting>
+      [fibers_asio_promise_handler_base]
     </para>
     <para>
       As promised, <code><phrase role="identifier">promise_handler_base</phrase></code>
@@ -8881,23 +8792,7 @@ encapsulates.
       callback:
     </para>
     <para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">class</phrase> <phrase role="identifier">promise_handler</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">promise_handler_base</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
-<phrase role="keyword">private</phrase><phrase role="special">:</phrase>
-<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="comment">// Construct from any promise_completion_token subclass special value.</phrase>
-    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">promise_handler</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">promise_completion_token</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Allocator</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">pct</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
-        <phrase role="identifier">promise_handler_base</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">pct</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-    <phrase role="special">}</phrase>
-
-    <phrase role="keyword">void</phrase> <phrase role="keyword">operator</phrase><phrase role="special">()(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">T</phrase> <phrase role="identifier">t</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">should_set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase>
-            <phrase role="identifier">get_promise</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">t</phrase><phrase role="special">);</phrase>
-        <phrase role="special">}</phrase>
-    <phrase role="special">}</phrase>
-<phrase role="special">};</phrase>
-</programlisting>
+      [fibers_asio_promise_handler]
     </para>
     <para>
       Like the lambda callback in our <link linkend="Data_or_Exception"><code><phrase
@@ -10347,7 +10242,7 @@ to return that result
     <phrase role="comment">// Run each of the passed functions on a separate fiber, passing all their</phrase>
     <phrase role="comment">// futures to helper function for processing.</phrase>
     <phrase role="keyword">return</phrase> <phrase role="identifier">wait_all_members_get</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Result</phrase> <phrase role="special">&gt;(</phrase>
-            <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">async</phrase><phrase role="special">(</phrase> <phrase role="identifier">functions</phrase><phrase role="special">)</phrase> <phrase role="special">...</phrase> <phrase role="special">);</phrase>
+            <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">async</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">forward</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Fns</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">functions</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">...</phrase> <phrase role="special">);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
         </para>
@@ -10497,12 +10392,7 @@ to return that result
       handler function when the timer expires:
     </para>
     <para>
-<programlisting><phrase role="keyword">inline</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">run_service</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">io_service</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">high_resolution_timer</phrase> <phrase role="identifier">timer</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_service</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">seconds</phrase><phrase role="special">(</phrase><phrase role="number">0</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
-    <phrase role="identifier">timer</phrase><phrase role="special">.</phrase><phrase role="identifier">async_wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">(</phrase> <phrase role="identifier">timer_handler</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">timer</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
-    <phrase role="identifier">io_service</phrase><phrase role="special">.</phrase><phrase role="identifier">run</phrase><phrase role="special">();</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
+      [run_service]
     </para>
     <para>
       The handler function calls <code><phrase role="identifier">yield</phrase><phrase
@@ -10510,12 +10400,7 @@ to return that result
       up again on expiration:
     </para>
     <para>
-<programlisting><phrase role="keyword">inline</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">timer_handler</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">high_resolution_timer</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">timer</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">yield</phrase><phrase role="special">();</phrase>
-    <phrase role="identifier">timer</phrase><phrase role="special">.</phrase><phrase role="identifier">expires_from_now</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">wait_interval</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
-    <phrase role="identifier">timer</phrase><phrase role="special">.</phrase><phrase role="identifier">async_wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">(</phrase> <phrase role="identifier">timer_handler</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">timer</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
+      [timer_handler]
     </para>
     <para>
       Then instead of directly calling <code><phrase role="identifier">io_service</phrase><phrase
@@ -10613,7 +10498,7 @@ to return that result
             </entry>
             <entry>
               <para>
-                950 ns
+                750 ns
               </para>
             </entry>
             <entry>
@@ -11094,8 +10979,8 @@ to return that result
     <para>
 <programlisting><phrase role="keyword">class</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber_properties</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
-    <phrase role="identifier">priority_props</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">p</phrase><phrase role="special">):</phrase>
-        <phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">p</phrase><phrase role="special">),</phrase> <co id="fiber.custom.c0" linkends="fiber.custom.c1" />
+    <phrase role="identifier">priority_props</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">):</phrase>
+        <phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">),</phrase> <co id="fiber.custom.c0" linkends="fiber.custom.c1" />
         <phrase role="identifier">priority_</phrase><phrase role="special">(</phrase> <phrase role="number">0</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
 
@@ -11168,19 +11053,20 @@ to return that result
     <para>
 <programlisting><phrase role="keyword">class</phrase> <phrase role="identifier">priority_scheduler</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">sched_algorithm_with_properties</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">private</phrase><phrase role="special">:</phrase>
-    <phrase role="comment">// Much as we would like, we don't use std::priority_queue because it</phrase>
-    <phrase role="comment">// doesn't appear to provide any way to alter the priority (and hence</phrase>
-    <phrase role="comment">// queue position) of a particular item.</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase>    <phrase role="special">*</phrase>   <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">typedef</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">scheduler</phrase><phrase role="special">::</phrase><phrase role="identifier">ready_queue_t</phrase>   <phrase role="identifier">rqueue_t</phrase><phrase role="special">;</phrase>
+
+    <phrase role="identifier">rqueue_t</phrase>                                <phrase role="identifier">rqueue_</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">autoreset_event</phrase>  <phrase role="identifier">ev_</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">priority_scheduler</phrase><phrase role="special">()</phrase> <phrase role="special">:</phrase>
-        <phrase role="identifier">head_</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">rqueue_</phrase><phrase role="special">(),</phrase>
+        <phrase role="identifier">ev_</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
 
     <phrase role="comment">// For a subclass of sched_algorithm_with_properties&lt;&gt;, it's important to</phrase>
     <phrase role="comment">// override the correct awakened() overload.</phrase>
-    <co id="fiber.custom.c8" linkends="fiber.custom.c9" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <co id="fiber.custom.c8" linkends="fiber.custom.c9" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
         <phrase role="keyword">int</phrase> <phrase role="identifier">f_priority</phrase> <phrase role="special">=</phrase> <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">();</phrase> <co id="fiber.custom.c10" linkends="fiber.custom.c11" />
         <phrase role="comment">// With this scheduler, fibers with higher priority values are</phrase>
         <phrase role="comment">// preferred over fibers with lower priority values. But fibers with</phrase>
@@ -11188,41 +11074,32 @@ to return that result
         <phrase role="comment">// we're handed a new context*, put it at the end of the fibers</phrase>
         <phrase role="comment">// with that same priority. In other words: search for the first fiber</phrase>
         <phrase role="comment">// in the queue with LOWER priority, and insert before that one.</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">).</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">f_priority</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-                <co id="fiber.custom.c12" linkends="fiber.custom.c13" />
+        <phrase role="identifier">rqueue_t</phrase><phrase role="special">::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">i</phrase><phrase role="special">(</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">begin</phrase><phrase role="special">()</phrase> <phrase role="special">),</phrase> <phrase role="identifier">e</phrase><phrase role="special">(</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">end</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">e</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">properties</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">).</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">f_priority</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
             <phrase role="special">}</phrase>
         <phrase role="special">}</phrase>
-        <phrase role="comment">// It doesn't matter whether we hit the end of the list or found</phrase>
-        <phrase role="comment">// another fiber with lower priority. Either way, insert f here.</phrase>
-        <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <co id="fiber.custom.c14" linkends="fiber.custom.c15" />
-        <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
+        <phrase role="comment">// Now, whether or not we found a fiber with lower priority,</phrase>
+        <phrase role="comment">// insert this new fiber here.</phrase>
+        <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">insert</phrase><phrase role="special">(</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c16" linkends="fiber.custom.c17" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
+    <co id="fiber.custom.c12" linkends="fiber.custom.c13" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
         <phrase role="comment">// if ready queue is empty, just tell caller</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">head_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="keyword">return</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
-        <phrase role="comment">// Here we have at least one ready fiber. Unlink and return that.</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase>
-        <phrase role="identifier">head_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
-        <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
-
-        <phrase role="keyword">return</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">front</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
+        <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">pop_front</phrase><phrase role="special">();</phrase>
+        <phrase role="keyword">return</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c18" linkends="fiber.custom.c19" /><phrase role="keyword">virtual</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
-        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">count</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase><phrase role="special">;</phrase> <phrase role="identifier">f</phrase> <phrase role="special">=</phrase> <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-            <phrase role="special">++</phrase><phrase role="identifier">count</phrase><phrase role="special">;</phrase>
-        <phrase role="special">}</phrase>
-        <phrase role="keyword">return</phrase> <phrase role="identifier">count</phrase><phrase role="special">;</phrase>
+    <co id="fiber.custom.c14" linkends="fiber.custom.c15" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">return</phrase> <phrase role="special">!</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">();</phrase>
     <phrase role="special">}</phrase>
 
-    <co id="fiber.custom.c20" linkends="fiber.custom.c21" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <co id="fiber.custom.c16" linkends="fiber.custom.c17" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">property_change</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
         <phrase role="comment">// Although our priority_props class defines multiple properties, only</phrase>
         <phrase role="comment">// one of them (priority) actually calls notify() when changed. The</phrase>
         <phrase role="comment">// point of a property_change() override is to reshuffle the ready</phrase>
@@ -11231,12 +11108,12 @@ to return that result
         <phrase role="comment">// Find 'f' in the queue. Note that it might not be in our queue at</phrase>
         <phrase role="comment">// all, if caller is changing the priority of (say) the running fiber.</phrase>
         <phrase role="keyword">bool</phrase> <phrase role="identifier">found</phrase> <phrase role="special">=</phrase> <phrase role="keyword">false</phrase><phrase role="special">;</phrase>
-        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">**</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">head_</phrase><phrase role="special">;</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">;</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">==</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">rqueue_t</phrase><phrase role="special">::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">e</phrase><phrase role="special">(</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">end</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">rqueue_t</phrase><phrase role="special">::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">i</phrase><phrase role="special">(</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">begin</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase> <phrase role="identifier">i</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">e</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">==</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                 <phrase role="comment">// found the passed fiber in our list -- unlink it</phrase>
                 <phrase role="identifier">found</phrase> <phrase role="special">=</phrase> <phrase role="keyword">true</phrase><phrase role="special">;</phrase>
-                <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">fp</phrase><phrase role="special">)-&gt;</phrase><phrase role="identifier">nxt</phrase><phrase role="special">;</phrase>
-                <phrase role="identifier">f</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">nxt</phrase> <phrase role="special">=</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">;</phrase>
+                <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">erase</phrase><phrase role="special">(</phrase> <phrase role="identifier">i</phrase><phrase role="special">);</phrase>
                 <phrase role="keyword">break</phrase><phrase role="special">;</phrase>
             <phrase role="special">}</phrase>
         <phrase role="special">}</phrase>
@@ -11245,14 +11122,22 @@ to return that result
         <phrase role="comment">// not on our ready queue. If it's not there, no need to move it:</phrase>
         <phrase role="comment">// we'll handle it next time it hits awakened().</phrase>
         <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">found</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-            <co id="fiber.custom.c22" linkends="fiber.custom.c23" />
+            <co id="fiber.custom.c18" linkends="fiber.custom.c19" />
             <phrase role="keyword">return</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
 
         <phrase role="comment">// Here we know that f was in our ready queue, but we've unlinked it.</phrase>
         <phrase role="comment">// We happen to have a method that will (re-)add a context* to</phrase>
         <phrase role="comment">// the ready queue.</phrase>
-        <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase><phrase role="identifier">f</phrase><phrase role="special">,</phrase> <phrase role="identifier">props</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">,</phrase> <phrase role="identifier">props</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">suspend_time</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">ev_</phrase><phrase role="special">.</phrase><phrase role="identifier">reset</phrase><phrase role="special">(</phrase> <phrase role="identifier">suspend_time</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">ev_</phrase><phrase role="special">.</phrase><phrase role="identifier">set</phrase><phrase role="special">();</phrase>
     <phrase role="special">}</phrase>
 <phrase role="special">};</phrase>
 </programlisting>
@@ -11274,32 +11159,20 @@ to return that result
       </callout>
       <callout arearefs="fiber.custom.c12" id="fiber.custom.c13">
         <para>
-          Use the <link linkend="sched_algorithm_with_properties_properties"> <code>sched_algorithm_with_properties::properties()</code></link>
-                method
-          to access properties for any <emphasis>other</emphasis> fiber.
-        </para>
-      </callout>
-      <callout arearefs="fiber.custom.c14" id="fiber.custom.c15">
-        <para>
-          Note use of the <link linkend="context_nxt"> <code>context::nxt</code></link> member.
-        </para>
-      </callout>
-      <callout arearefs="fiber.custom.c16" id="fiber.custom.c17">
-        <para>
           You must override the <link linkend="sched_algorithm_with_properties_pick_next"> <code>sched_algorithm_with_properties::pick_next()</code></link>
          method.
           This is how your scheduler actually advises the fiber manager of the next
           fiber to run.
         </para>
       </callout>
-      <callout arearefs="fiber.custom.c18" id="fiber.custom.c19">
+      <callout arearefs="fiber.custom.c14" id="fiber.custom.c15">
         <para>
           You must override <link linkend="sched_algorithm_with_properties_ready_fibers"> <code>sched_algorithm_with_properties::ready_fibers()</code></link>
       to
           inform the fiber manager of the size of your ready queue.
         </para>
       </callout>
-      <callout arearefs="fiber.custom.c20" id="fiber.custom.c21">
+      <callout arearefs="fiber.custom.c16" id="fiber.custom.c17">
         <para>
           Overriding <link linkend="sched_algorithm_with_properties_property_change"> <code>sched_algorithm_with_properties::property_change()</code></link>
          is
@@ -11308,7 +11181,7 @@ to return that result
           case, move the updated fiber within the queue.
         </para>
       </callout>
-      <callout arearefs="fiber.custom.c22" id="fiber.custom.c23">
+      <callout arearefs="fiber.custom.c18" id="fiber.custom.c19">
         <para>
           Your <code><phrase role="identifier">property_change</phrase><phrase role="special">()</phrase></code>
           override must be able to handle the case in which the passed <code><phrase

@@ -133,9 +133,7 @@ and
 [heading Then There's __boost_asio__]
 
 [import ../examples/asio/yield.hpp]
-[import ../examples/asio/promise_completion_token.hpp]
 [import ../examples/asio/detail/yield.hpp]
-[import ../examples/asio/detail/promise_handler.hpp]
 
 Since the simplest form of Boost.Asio asynchronous operation completion token
 is a callback function, we could apply the same tactics for Asio as for our

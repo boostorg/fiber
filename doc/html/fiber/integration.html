@@ -94,28 +94,14 @@
       handler function when the timer expires:
     </p>
 <p>
-</p>
-<pre class="programlisting"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">run_service</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="special">&amp;</span> <span class="identifier">io_service</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">high_resolution_timer</span> <span class="identifier">timer</span><span class="special">(</span> <span class="identifier">io_service</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">seconds</span><span class="special">(</span><span class="number">0</span><span class="special">)</span> <span class="special">);</span>
-    <span class="identifier">timer</span><span class="special">.</span><span class="identifier">async_wait</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span> <span class="identifier">timer_handler</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">timer</span><span class="special">)</span> <span class="special">)</span> <span class="special">);</span>
-    <span class="identifier">io_service</span><span class="special">.</span><span class="identifier">run</span><span class="special">();</span>
-<span class="special">}</span>
-</pre>
-<p>
+      [run_service]
     </p>
 <p>
       The handler function calls <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>, then resets the timer and arranges to wake
       up again on expiration:
     </p>
 <p>
-</p>
-<pre class="programlisting"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">timer_handler</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">high_resolution_timer</span> <span class="special">&amp;</span> <span class="identifier">timer</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">yield</span><span class="special">();</span>
-    <span class="identifier">timer</span><span class="special">.</span><span class="identifier">expires_from_now</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">wait_interval</span><span class="special">()</span> <span class="special">);</span>
-    <span class="identifier">timer</span><span class="special">.</span><span class="identifier">async_wait</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span> <span class="identifier">timer_handler</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">timer</span><span class="special">)</span> <span class="special">)</span> <span class="special">);</span>
-<span class="special">}</span>
-</pre>
-<p>
+      [timer_handler]
     </p>
 <p>
       Then instead of directly calling <code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">run</span><span class="special">()</span></code>,
