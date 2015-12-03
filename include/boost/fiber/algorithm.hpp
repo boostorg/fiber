@@ -25,7 +25,7 @@ namespace fibers {
 class context;
 
 struct BOOST_FIBERS_DECL sched_algorithm {
-    virtual ~sched_algorithm() noexcept {}
+    virtual ~sched_algorithm() {}
 
     virtual void awakened( context *) noexcept = 0;
 

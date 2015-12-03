@@ -32,7 +32,7 @@ public:
 
     fss_cleanup_function() noexcept = default;
 
-    virtual ~fss_cleanup_function() noexcept = default;
+    virtual ~fss_cleanup_function() = default;
 
     virtual void operator()( void * data) = 0;
 

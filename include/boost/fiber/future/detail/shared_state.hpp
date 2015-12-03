@@ -96,7 +96,7 @@ protected:
 public:
     shared_state_base() = default;
 
-    virtual ~shared_state_base() noexcept = default;
+    virtual ~shared_state_base() = default;
 
     shared_state_base( shared_state_base const&) = delete;
     shared_state_base & operator=( shared_state_base const&) = delete;
@@ -184,7 +184,7 @@ public:
 
     shared_state() = default;
 
-    virtual ~shared_state() noexcept {
+    virtual ~shared_state() {
         if ( ready_) {
             reinterpret_cast< R const* >( storage_)->~R();
         }
@@ -235,7 +235,7 @@ public:
 
     shared_state() = default;
 
-    virtual ~shared_state() noexcept = default;
+    virtual ~shared_state() = default;
 
     shared_state( shared_state const&) = delete;
     shared_state & operator=( shared_state const&) = delete;
@@ -275,7 +275,7 @@ public:
 
     shared_state() = default;
 
-    virtual ~shared_state() noexcept = default;
+    virtual ~shared_state() = default;
 
     shared_state( shared_state const&) = delete;
     shared_state & operator=( shared_state const&) = delete;
