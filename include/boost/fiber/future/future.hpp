@@ -139,16 +139,8 @@ public:
     using base_t::valid;
     using base_t::get_exception_ptr;
     using base_t::wait;
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return base_t::wait_for( timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return base_t::wait_until( timeout_time);
-    }
+    using base_t::wait_for;
+    using base_t::wait_until;
 };
 
 template< typename R >
@@ -192,16 +184,8 @@ public:
     using base_t::valid;
     using base_t::get_exception_ptr;
     using base_t::wait;
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return base_t::wait_for( timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return base_t::wait_until( timeout_time);
-    }
+    using base_t::wait_for;
+    using base_t::wait_until;
 };
 
 template<>
@@ -248,16 +232,8 @@ public:
     using base_t::valid;
     using base_t::get_exception_ptr;
     using base_t::wait;
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return base_t::wait_for( timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return base_t::wait_until( timeout_time);
-    }
+    using base_t::wait_for;
+    using base_t::wait_until;
 };
 
 
@@ -314,16 +290,8 @@ public:
     using base_t::valid;
     using base_t::get_exception_ptr;
     using base_t::wait;
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return base_t::wait_for( timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return base_t::wait_until( timeout_time);
-    }
+    using base_t::wait_for;
+    using base_t::wait_until;
 };
 
 template< typename R >
@@ -379,16 +347,8 @@ public:
     using base_t::valid;
     using base_t::get_exception_ptr;
     using base_t::wait;
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return base_t::wait_for( timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return base_t::wait_until( timeout_time);
-    }
+    using base_t::wait_for;
+    using base_t::wait_until;
 };
 
 template<>
@@ -451,16 +411,8 @@ public:
     using base_t::valid;
     using base_t::get_exception_ptr;
     using base_t::wait;
-
-    template< class Rep, class Period >
-    future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
-        return base_t::wait_for( timeout_duration);
-    }
-
-    template< typename Clock, typename Duration >
-    future_status wait_until( std::chrono::time_point< Clock, Duration > const& timeout_time) const {
-        return base_t::wait_until( timeout_time);
-    }
+    using base_t::wait_for;
+    using base_t::wait_until;
 };
 
 
