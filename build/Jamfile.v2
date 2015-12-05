@@ -33,7 +33,6 @@ lib boost_fiber
       context.cpp
       detail/spinlock.cpp
       fiber.cpp
-      future.cpp
       interruption.cpp
       mutex.cpp
       properties.cpp

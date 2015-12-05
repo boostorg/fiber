@@ -9,6 +9,7 @@
 #ifndef BOOST_fiber_EXCEPTIONS_H
 #define BOOST_fiber_EXCEPTIONS_H
 
+#include <future>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -158,39 +159,8 @@ public:
     }
 };
 
-enum class future_errc {
-    unknown = 0,
-    broken_promise,
-    future_already_retrieved,
-    promise_already_satisfied,
-    no_state
-};
-
-BOOST_FIBERS_DECL
-std::error_category const& future_category() noexcept;
-
-}}
-
-namespace std {
-
-template<>
-struct is_error_code_enum< boost::fibers::future_errc > : public true_type {
-};
-
-inline
-std::error_code make_error_code( boost::fibers::future_errc e) noexcept {
-    return std::error_code( static_cast< int >( e), boost::fibers::future_category() );
-}
-
-inline
-std::error_condition make_error_condition( boost::fibers::future_errc e) noexcept {
-    return std::error_condition( static_cast< int >( e), boost::fibers::future_category() );
-}
-
-}
-
-namespace boost {
-namespace fibers {
+using std::future_errc;
+using std::future_category;
 
 class future_error : public std::logic_error {
 private:
