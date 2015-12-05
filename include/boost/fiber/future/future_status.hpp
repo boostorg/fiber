@@ -7,6 +7,8 @@
 #ifndef BOOST_FIBERS_FUTURE_STATUS_HPP
 #define BOOST_FIBERS_FUTURE_STATUS_HPP
 
+#include <future>
+
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -14,11 +16,7 @@
 namespace boost {
 namespace fibers {
 
-enum class future_status {
-    ready = 1,
-    timeout,
-    deferred
-};
+using std::future_status;
 
 }}
 
