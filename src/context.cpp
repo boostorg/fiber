@@ -115,7 +115,7 @@ context_initializer::context_initializer() {
     }
 }
 
-context_initializer::~context_initializer() noexcept {
+context_initializer::~context_initializer() {
     if ( 0 == --counter) {
         context * main_ctx = context::active_;
         BOOST_ASSERT( main_ctx->is_main_context() );
@@ -187,7 +187,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
           }} {
 }
 
-context::~context() noexcept {
+context::~context() {
     BOOST_ASSERT( wait_queue_.empty() );
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! remote_ready_is_linked() );

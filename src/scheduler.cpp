@@ -146,7 +146,7 @@ scheduler::scheduler() noexcept :
     sched_algo_{ new round_robin() } {
 }
 
-scheduler::~scheduler() noexcept {
+scheduler::~scheduler() {
     BOOST_ASSERT( nullptr != main_ctx_);
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
