@@ -26,7 +26,7 @@ disable_interruption::disable_interruption() noexcept :
     }
 }
 
-disable_interruption::~disable_interruption() noexcept {
+disable_interruption::~disable_interruption() {
     if ( ! set_) {
         fibers::context::active()->interruption_blocked( false);
     }
@@ -39,7 +39,7 @@ restore_interruption::restore_interruption( disable_interruption & disabler) noe
     }
 }
 
-restore_interruption::~restore_interruption() noexcept {
+restore_interruption::~restore_interruption() {
     if ( ! disabler_.set_) {
         fibers::context::active()->interruption_blocked( true);
     }
