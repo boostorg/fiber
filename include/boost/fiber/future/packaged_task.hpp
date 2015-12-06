@@ -13,6 +13,7 @@
 
 #include <boost/config.hpp>
 
+#include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/future/detail/task_base.hpp>
 #include <boost/fiber/future/detail/task_object.hpp>
@@ -42,31 +43,30 @@ public:
     }
 
     template< typename Fn >
-    explicit packaged_task( Fn && fn) {
-        typedef detail::task_object<
-            Fn,
-            std::allocator< packaged_task< R() > >,
-            R,
-            Args ...
-        >                                       object_t;
-        std::allocator< packaged_task< R() > > alloc;
-        typename object_t::allocator_t a{ alloc };
-        task_ = ptr_t{
-            // placement new
-            ::new( a.allocate( 1) ) object_t{ a, std::forward< Fn >( fn) } };
+    explicit packaged_task( Fn && fn) : 
+        packaged_task{ std::allocator_arg,
+                       std::allocator< packaged_task >{},
+                       std::forward< Fn >( fn)  } {
     }
 
     template< typename Fn, typename Allocator >
-    explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
+    packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
         typedef detail::task_object<
-            Fn,
-            Allocator,
-            R
+            Fn, Allocator, R, Args ...
         >                                       object_t;
+        typedef std::allocator_traits<
+            typename object_t::allocator_t
+        >                                       traits_t;
         typename object_t::allocator_t a{ alloc };
-        task_ = ptr_t{
-            // placement new
-            ::new( a.allocate( 1) ) object_t{ a, std::forward< Fn >( fn) } };
+        typename traits_t::pointer ptr{ traits_t::allocate( a, 1) };
+
+        try {
+            traits_t::construct( a, ptr, a, std::forward< Fn >( fn) );
+        } catch (...) {
+            traits_t::deallocate( a, ptr, 1);
+            throw;
+        }
+        task_.reset( convert( ptr) );
     }
 
     packaged_task( packaged_task const&) = delete;

@@ -37,22 +37,25 @@ public:
 
 private:
     struct node {
-        typedef intrusive_ptr< node >                                     ptr;
-        typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >  allocator_type;
+        typedef intrusive_ptr< node >                   ptr_t;
+        typedef typename std::allocator_traits< Allocator >::template rebind_alloc<
+            node
+        >                                               allocator_t;
+        typedef std::allocator_traits< allocator_t >    allocator_traits_t;
 
-        std::size_t         use_count{ 0 };
-        allocator_type  &   alloc;
-        T                   va;
-        ptr                 nxt{};
+        std::size_t     use_count{ 0 };
+        allocator_t     alloc;
+        T               va;
+        ptr_t           nxt{};
 
-        node( T const& t, allocator_type & alloc_) noexcept :
+        node( T const& t, allocator_t const& alloc_) noexcept :
             alloc{ alloc_ },
             va{ t } {
         }
 
-        node( T && t, allocator_type & alloc_) noexcept :
+        node( T && t, allocator_t & alloc_) noexcept :
             alloc{ alloc_ },
-            va{ std::forward< T >( t) } {
+            va{ std::move( t) } {
         }
 
         friend
@@ -63,30 +66,32 @@ private:
         friend
         void intrusive_ptr_release( node * p) noexcept {
             if ( 0 == --p->use_count) {
-                allocator_type & alloc( p->alloc);
-                std::allocator_traits< allocator_type >::destroy( alloc, p);
-                std::allocator_traits< allocator_type >::deallocate( alloc, p, 1);
+                allocator_t alloc( p->alloc);
+                allocator_traits_t::destroy( alloc, p);
+                allocator_traits_t::deallocate( alloc, p, 1);
             }
         }
     };
 
-    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< node >   allocator_type;
+    using ptr_t = typename node::ptr_t;
+    using allocator_t = typename node::allocator_t;
+    using allocator_traits_t = typename node::allocator_traits_t;
 
     enum class queue_status {
         open = 0,
         closed
     };
 
-    allocator_type         alloc_;
-    queue_status           state_{ queue_status::open };
-    std::size_t            count_{ 0 };
-    typename node::ptr     head_{};
-    typename node::ptr  *  tail_;
-    mutable mutex          mtx_{};
-    condition              not_empty_cond_{};
-    condition              not_full_cond_{};
-    std::size_t            hwm_;
-    std::size_t            lwm_;
+    allocator_t         alloc_;
+    queue_status        state_{ queue_status::open };
+    std::size_t         count_{ 0 };
+    ptr_t               head_{};
+    ptr_t           *   tail_;
+    mutable mutex       mtx_{};
+    condition           not_empty_cond_{};
+    condition           not_full_cond_{};
+    std::size_t         hwm_;
+    std::size_t         lwm_;
 
     bool is_closed_() const noexcept {
         return queue_status::closed == state_;
@@ -111,7 +116,7 @@ private:
         return count_ >= hwm_;
     }
 
-    channel_op_status push_( typename node::ptr const& new_node,
+    channel_op_status push_( ptr_t new_node,
                              std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
             return channel_op_status::closed;
@@ -122,7 +127,7 @@ private:
         return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status try_push_( typename node::ptr const& new_node,
+    channel_op_status try_push_( ptr_t new_node,
                                  std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         if ( is_closed_() ) {
             return channel_op_status::closed;
@@ -134,7 +139,7 @@ private:
     }
 
     template< typename Clock, typename Duration >
-    channel_op_status push_wait_until_( typename node::ptr const& new_node,
+    channel_op_status push_wait_until_( ptr_t new_node,
                                         std::chrono::time_point< Clock, Duration > const& timeout_time,
                                         std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
@@ -148,7 +153,7 @@ private:
         return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status push_and_notify_( typename node::ptr const& new_node,
+    channel_op_status push_and_notify_( ptr_t new_node,
                                         std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         push_tail_( new_node);
         lk.unlock();
@@ -156,7 +161,7 @@ private:
         return channel_op_status::success;
     }
 
-    void push_tail_( typename node::ptr new_node) noexcept {
+    void push_tail_( ptr_t new_node) noexcept {
         * tail_ = new_node;
         tail_ = & new_node->nxt;
         ++count_;
@@ -179,7 +184,7 @@ private:
         return std::move( old_head->va);
     }
 
-    typename node::ptr pop_head_() noexcept {
+    ptr_t pop_head_() noexcept {
         auto old_head = head_;
         head_ = old_head->nxt;
         if ( ! head_) {
@@ -236,17 +241,30 @@ public:
     }
 
     channel_op_status push( value_type const& va) {
-        typename node::ptr new_node(
-            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        typename allocator_traits_t::pointer ptr{
+            allocator_traits_t::allocate( alloc_, 1) };
+        try {
+            allocator_traits_t::construct( alloc_, ptr, va, alloc_);
+        } catch (...) {
+            allocator_traits_t::deallocate( alloc_, ptr, 1);
+            throw;
+        }
         std::unique_lock< mutex > lk( mtx_);
-        return push_( new_node, lk);
+        return push_( { detail::convert( ptr) }, lk);
     }
 
     channel_op_status push( value_type && va) {
-        typename node::ptr new_node(
-            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
+        typename allocator_traits_t::pointer ptr{
+            allocator_traits_t::allocate( alloc_, 1) };
+        try {
+            allocator_traits_t::construct(
+                    alloc_, ptr, std::move( va), alloc_);
+        } catch (...) {
+            allocator_traits_t::deallocate( alloc_, ptr, 1);
+            throw;
+        }
         std::unique_lock< mutex > lk( mtx_);
-        return push_( new_node, lk);
+        return push_( { detail::convert( ptr) }, lk);
     }
 
     template< typename Rep, typename Period >
@@ -266,33 +284,59 @@ public:
     template< typename Clock, typename Duration >
     channel_op_status push_wait_until( value_type const& va,
                                        std::chrono::time_point< Clock, Duration > const& timeout_time) {
-        typename node::ptr new_node(
-            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        typename allocator_traits_t::pointer ptr{
+            allocator_traits_t::allocate( alloc_, 1) };
+        try {
+            allocator_traits_t::construct( alloc_, ptr, va, alloc_);
+        } catch (...) {
+            allocator_traits_t::deallocate( alloc_, ptr, 1);
+            throw;
+        }
         std::unique_lock< mutex > lk( mtx_);
-        return push_wait_until_( new_node, timeout_time, lk);
+        return push_wait_until_( { detail::convert( ptr) }, timeout_time, lk);
     }
 
     template< typename Clock, typename Duration >
     channel_op_status push_wait_until( value_type && va,
                                        std::chrono::time_point< Clock, Duration > const& timeout_time) {
-        typename node::ptr new_node(
-            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
+        typename allocator_traits_t::pointer ptr{
+            allocator_traits_t::allocate( alloc_, 1) };
+        try {
+            allocator_traits_t::construct(
+                    alloc_, ptr, std::move( va), alloc_);
+        } catch (...) {
+            allocator_traits_t::deallocate( alloc_, ptr, 1);
+            throw;
+        }
         std::unique_lock< mutex > lk( mtx_);
-        return push_wait_until_( new_node, timeout_time, lk);
+        return push_wait_until_( { detail::convert( ptr) }, timeout_time, lk);
     }
 
     channel_op_status try_push( value_type const& va) noexcept {
-        typename node::ptr new_node(
-            new ( alloc_.allocate( 1) ) node( va, alloc_) );
+        typename allocator_traits_t::pointer ptr{
+            allocator_traits_t::allocate( alloc_, 1) };
+        try {
+            allocator_traits_t::construct( alloc_, ptr, va, alloc_);
+        } catch (...) {
+            allocator_traits_t::deallocate( alloc_, ptr, 1);
+            throw;
+        }
         std::unique_lock< mutex > lk( mtx_);
-        return try_push_( new_node, lk);
+        return try_push_( { detail::convert( ptr) }, lk);
     }
 
     channel_op_status try_push( value_type && va) noexcept {
-        typename node::ptr new_node(
-            new ( alloc_.allocate( 1) ) node( std::forward< value_type >( va), alloc_) );
+        typename allocator_traits_t::pointer ptr{
+            allocator_traits_t::allocate( alloc_, 1) };
+        try {
+            allocator_traits_t::construct(
+                    alloc_, ptr, std::move( va), alloc_);
+        } catch (...) {
+            allocator_traits_t::deallocate( alloc_, ptr, 1);
+            throw;
+        }
         std::unique_lock< mutex > lk( mtx_);
-        return try_push_( new_node, lk);
+        return try_push_( { detail::convert( ptr) }, lk);
     }
 
     channel_op_status pop( value_type & va) {

@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_DETAIL_CONVERT_H
 
 #include <chrono>
+#include <memory>
 
 #include <boost/config.hpp>
 
@@ -31,6 +32,22 @@ template< typename Clock, typename Duration >
 std::chrono::steady_clock::time_point convert(
         std::chrono::time_point< Clock, Duration > const& timeout_time) {
     return std::chrono::steady_clock::now() + ( timeout_time - Clock::now() );
+}
+
+// suggested by Howard Hinnant
+template< typename T >
+inline
+T * convert( T * p) noexcept {
+    return p;
+}
+
+template< typename Pointer >
+inline
+typename std::pointer_traits< Pointer >::element_type *
+convert( Pointer p) noexcept {
+    return nullptr != p
+        ? to_raw_pointer( p.operator->() )
+        : nullptr;
 }
 
 }}}

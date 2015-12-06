@@ -7,6 +7,8 @@
 #ifndef BOOST_FIBERS_DETAIL_SHARED_STATE_OBJECT_H
 #define BOOST_FIBERS_DETAIL_SHARED_STATE_OBJECT_H
 
+#include <memory>
+
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -23,9 +25,9 @@ namespace detail {
 template< typename R, typename Allocator >
 class shared_state_object : public shared_state< R > {
 public:
-    typedef typename Allocator::template rebind<
-        shared_state_object< R, Allocator >
-    >::other                                      allocator_t;
+    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< 
+        shared_state_object
+    >                                           allocator_t;
 
     shared_state_object( allocator_t const& alloc) :
         shared_state< R >(), alloc_( alloc) {

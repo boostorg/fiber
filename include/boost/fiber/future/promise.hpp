@@ -13,6 +13,7 @@
 
 #include <boost/config.hpp>
 
+#include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/future/detail/shared_state.hpp>
 #include <boost/fiber/future/detail/shared_state_object.hpp>
@@ -36,10 +37,17 @@ struct promise_base {
     template< typename Allocator >
     promise_base( std::allocator_arg_t, Allocator alloc) {
         typedef detail::shared_state_object< R, Allocator >  object_t;
+        typedef std::allocator_traits< typename object_t::allocator_t > traits_t;
         typename object_t::allocator_t a{ alloc };
-        future_ = ptr_t{
-            // placement new
-            ::new( a.allocate( 1) ) object_t{ a } };
+        typename traits_t::pointer ptr{ traits_t::allocate( a, 1) };
+
+        try {
+            traits_t::construct( a, ptr, a);
+        } catch (...) {
+            traits_t::deallocate( a, ptr, 1);
+            throw;
+        }
+        future_.reset( convert( ptr) );
     }
 
     ~promise_base() {

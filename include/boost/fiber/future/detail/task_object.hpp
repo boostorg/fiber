@@ -8,7 +8,8 @@
 #define BOOST_FIBERS_DETAIL_TASK_OBJECT_H
 
 #include <exception>
-#include <utility> // std::forward()
+#include <memory>
+#include <utility>
 
 #include <boost/config.hpp>
 #include <boost/context/detail/invoke.hpp>
@@ -27,13 +28,13 @@ namespace detail {
 template< typename Fn, typename Allocator, typename R, typename ... Args >
 class task_object : public task_base< R, Args ... > {
 public:
-    typedef typename Allocator::template rebind<
-        task_object< Fn, Allocator, R, Args ... >
-    >::other                                      allocator_t;
+    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< 
+        task_object
+    >                                           allocator_t;
 
-    explicit task_object( allocator_t const& alloc, Fn && fn) :
+    task_object( allocator_t const& alloc, Fn && fn) :
         task_base< R, Args ... >(),
-        fn_( std::forward< Fn >( fn) ),
+        fn_( std::move( fn) ),
         alloc_( alloc) {
     }
 
@@ -69,9 +70,9 @@ public:
         task_object< Fn, Allocator, void, Args ... >
     >::other                                      allocator_t;
 
-    explicit task_object( allocator_t const& alloc, Fn && fn) :
+    task_object( allocator_t const& alloc, Fn && fn) :
         task_base< void, Args ... >(),
-        fn_( std::forward< Fn >( fn) ),
+        fn_( std::move( fn) ),
         alloc_( alloc) {
     }
 
