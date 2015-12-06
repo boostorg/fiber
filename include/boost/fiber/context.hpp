@@ -17,7 +17,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/detail/invoke.hpp>
+#include <boost/context/detail/apply.hpp>
 #include <boost/context/execution_context.hpp>
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
@@ -294,7 +294,7 @@ public:
                     }
                     auto fn = std::move( fn_);
                     auto tpl = std::move( tpl_);
-                    boost::context::detail::do_invoke( fn, tpl);
+                    boost::context::detail::apply( fn, tpl);
                 } catch ( fiber_interrupted const&) {
                 }
                 // terminate context
