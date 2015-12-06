@@ -27,6 +27,22 @@ project boost/fiber/test
       <threading>multi
     ;
 
+run test_future.cpp :
+: :
+[ requires cxx11_constexpr
+           cxx11_decltype
+           cxx11_deleted_functions
+           cxx11_explicit_conversion_operators
+           cxx11_hdr_tuple
+           cxx11_lambdas
+           cxx11_noexcept
+           cxx11_nullptr
+           cxx11_template_aliases
+           cxx11_rvalue_references
+           cxx11_variadic_macros
+           cxx11_variadic_templates
+           cxx14_initialized_lambda_captures ] ;
+
 run test_fiber.cpp :
     : :
     [ requires cxx11_constexpr
@@ -124,22 +140,6 @@ run test_bounded_channel.cpp :
            cxx14_initialized_lambda_captures ] ;
 
 run test_fss.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
-
-run test_future.cpp :
 : :
 [ requires cxx11_constexpr
            cxx11_decltype
