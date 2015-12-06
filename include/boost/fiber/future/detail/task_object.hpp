@@ -12,7 +12,7 @@
 #include <utility>
 
 #include <boost/config.hpp>
-#include <boost/context/detail/invoke.hpp>
+#include <boost/context/detail/apply.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/future/detail/task_base.hpp>
@@ -41,7 +41,7 @@ public:
     void run( Args && ... args) override final {
         try {
             this->set_value(
-                    boost::context::detail::do_invoke(
+                    boost::context::detail::apply(
                         fn_, std::make_tuple( std::forward< Args >( args) ... ) ) );
         } catch (...) {
             this->set_exception( std::current_exception() );
@@ -78,7 +78,7 @@ public:
 
     void run( Args && ... args) override final {
         try {
-            boost::context::detail::do_invoke(
+            boost::context::detail::apply(
                     fn_, std::make_tuple( std::forward< Args >( args) ... ) );
             this->set_value();
         } catch (...) {
