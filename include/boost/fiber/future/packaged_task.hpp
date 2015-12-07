@@ -52,7 +52,7 @@ public:
     template< typename Fn, typename Allocator >
     explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
         typedef detail::task_object<
-            Fn, Allocator, R, Args ...
+            std::decay_t< Fn >, Allocator, R, Args ...
         >                                       object_t;
         typedef std::allocator_traits<
             typename object_t::allocator_t
