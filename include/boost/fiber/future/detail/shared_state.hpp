@@ -153,13 +153,13 @@ public:
 template< typename R >
 class shared_state : public shared_state_base {
 private:
-    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_[1]{};
+    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_{};
 
     void set_value_( R const& value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        new ( storage_) R( value);
+        ::new ( static_cast< void * >( std::addressof( storage_) ) ) R( value);
         mark_ready_and_notify_( lk);
     }
 
@@ -167,7 +167,7 @@ private:
         if ( ready_) {
             throw promise_already_satisfied();
         }
-        new ( storage_) R( std::move( value) );
+        ::new ( static_cast< void * >( std::addressof( storage_) ) ) R( std::move( value) );
         mark_ready_and_notify_( lk);
     }
 
@@ -176,7 +176,7 @@ private:
         if ( except_) {
             std::rethrow_exception( except_);
         }
-        return * reinterpret_cast< R * >( storage_);
+        return * reinterpret_cast< R * >( & storage_);
     }
 
 public:
@@ -185,8 +185,8 @@ public:
     shared_state() = default;
 
     virtual ~shared_state() {
-        if ( ready_) {
-            reinterpret_cast< R const* >( storage_)->~R();
+        if ( ready_ && ! except_) {
+            reinterpret_cast< R * >( & storage_)->~R();
         }
     }
 
