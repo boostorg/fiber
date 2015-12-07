@@ -50,7 +50,7 @@ public:
     }
 
     template< typename Fn, typename Allocator >
-    packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
+    explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
         typedef detail::task_object<
             Fn, Allocator, R, Args ...
         >                                       object_t;
