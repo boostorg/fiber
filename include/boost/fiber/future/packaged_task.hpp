@@ -57,9 +57,9 @@ public:
         typedef std::allocator_traits<
             typename object_t::allocator_t
         >                                       traits_t;
+
         typename object_t::allocator_t a{ alloc };
         typename traits_t::pointer ptr{ traits_t::allocate( a, 1) };
-
         try {
             traits_t::construct( a, ptr, a, std::forward< Fn >( fn) );
         } catch (...) {
