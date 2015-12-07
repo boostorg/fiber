@@ -40,9 +40,9 @@ private:
     mutable condition           waiters_{};
 
 protected:
-    mutable mutex               mtx_{};
-    bool                        ready_{ false };
-    std::exception_ptr          except_{};
+    mutable mutex       mtx_{};
+    bool                ready_{ false };
+    std::exception_ptr  except_{};
 
     void mark_ready_and_notify_( std::unique_lock< mutex > & lk) noexcept {
         ready_ = true;
@@ -208,7 +208,7 @@ public:
 template< typename R >
 class shared_state< R & > : public shared_state_base {
 private:
-    R                       *   value_{ nullptr };
+    R   *   value_{ nullptr };
 
     void set_value_( R & value, std::unique_lock< mutex > & lk) {
         if ( ready_) {
