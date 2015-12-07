@@ -34,7 +34,7 @@ private:
     ptr_t           task_{};
 
 public:
-    constexpr packaged_task() = default;
+    constexpr packaged_task() noexcept = default;
 
     ~packaged_task() {
         if ( task_) {

@@ -42,7 +42,7 @@ private:
 public:
     typedef context::id    id;
 
-    constexpr fiber() = default;
+    constexpr fiber() noexcept = default;
 
     template< typename Fn, typename ... Args >
     fiber( Fn && fn, Args && ... args) :
