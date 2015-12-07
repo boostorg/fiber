@@ -141,7 +141,7 @@ private:
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
 
-        constexpr fss_data() = default;
+        constexpr fss_data() noexcept = default;
 
         fss_data( void * vp_,
                   detail::fss_cleanup_function::ptr_t const& fn) noexcept :
@@ -159,7 +159,7 @@ private:
         detail::spinlock_lock   *   lk{ nullptr };
         context                 *   ctx{ nullptr };
 
-        constexpr data_t() = default;
+        constexpr data_t() noexcept = default;
 
         explicit data_t( detail::spinlock_lock * lk_) noexcept :
             lk{ lk_ } {
@@ -213,7 +213,7 @@ public:
         context  *   impl_{ nullptr };
 
     public:
-        constexpr id() = default;
+        constexpr id() noexcept = default;
 
         explicit id( context * impl) noexcept :
             impl_( impl) {
