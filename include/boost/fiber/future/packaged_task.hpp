@@ -118,7 +118,10 @@ public:
             throw packaged_task_uninitialized{};
         }
         obtained_ = false;
-        task_->reset();
+        packaged_task tmp;
+        tmp.task_ = task_;
+        obtained_ = false;
+        task_ = tmp.task_->reset();
     }
 };
 

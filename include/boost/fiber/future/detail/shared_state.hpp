@@ -133,10 +133,6 @@ public:
         return wait_until_( lk, timeout_time);
     }
 
-    void reset() noexcept {
-        ready_ = false;
-    }
-
     friend inline
     void intrusive_ptr_add_ref( shared_state_base * p) noexcept {
         ++p->use_count_;

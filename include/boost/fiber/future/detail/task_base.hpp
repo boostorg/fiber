@@ -28,6 +28,8 @@ struct task_base : public shared_state< R > {
     }
 
     virtual void run( Args && ... args) = 0;
+
+    virtual ptr_t reset() = 0;
 };
 
 }}}
