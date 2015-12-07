@@ -471,7 +471,7 @@ static auto make_worker_context( StackAlloc salloc, Fn && fn, Args && ... args) 
 #endif
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >( 
-            new ( sp) context(
+            ::new ( sp) context(
                 worker_context,
                 boost::context::preallocated( sp, size, sctx),
                 salloc,
