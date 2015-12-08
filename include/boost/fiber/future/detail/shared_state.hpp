@@ -172,7 +172,7 @@ private:
         if ( except_) {
             std::rethrow_exception( except_);
         }
-        return * reinterpret_cast< R * >( & storage_);
+        return * reinterpret_cast< R * >( std::addressof( storage_) );
     }
 
 public:
