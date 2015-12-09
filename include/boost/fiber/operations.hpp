@@ -84,8 +84,8 @@ template< typename SchedAlgo, typename ... Args >
 void use_scheduling_algorithm( Args && ... args) noexcept {
     boost::fibers::context::active()->get_scheduler()
         ->set_sched_algo(
-            std::make_unique< SchedAlgo >(
-                std::forward< Args >( args) ... ) );
+            std::unique_ptr< SchedAlgo >(
+                new SchedAlgo( std::forward< Args >( args) ... ) ) );
 }
 
 }}
