@@ -25,7 +25,7 @@ thread_local
 context *
 context::active_;
 
-static auto make_dispatcher_context( scheduler * sched) {
+static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     BOOST_ASSERT( nullptr != sched);
     default_stack salloc; // use default satck-size
     boost::context::stack_context sctx = salloc.allocate();
