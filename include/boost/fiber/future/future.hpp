@@ -116,12 +116,12 @@ public:
     future & operator=( future const&) = delete;
 
     future( future && other) noexcept :
-        base_t{ std::forward< future >( other) } {
+        base_t{ std::move( other) } {
     }
 
     future & operator=( future && other) noexcept {
         if ( this == & other) return * this;
-        base_t::operator=( std::forward< future >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
@@ -161,12 +161,12 @@ public:
     future & operator=( future const&) = delete;
 
     future( future && other) noexcept :
-        base_t{ std::forward< future >( other) } {
+        base_t{ std::move( other) } {
     }
 
     future & operator=( future && other) noexcept {
         if ( this == & other) return * this;
-        base_t::operator=( std::forward< future >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
@@ -207,13 +207,13 @@ public:
 
     inline
     future( future && other) noexcept :
-        base_t{ std::forward< future >( other) } {
+        base_t{ std::move( other) } {
     }
 
     inline
     future & operator=( future && other) noexcept {
         if ( this == & other) return * this;
-        base_t::operator=( std::forward< future >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
@@ -256,11 +256,11 @@ public:
     }
 
     shared_future( shared_future && other) noexcept :
-        base_t{ std::forward< shared_future >( other) } {
+        base_t{ std::move( other) } {
     }
 
     shared_future( future< R > && other) noexcept :
-        base_t{ std::forward< future< R > >( other) } {
+        base_t{ std::move( other) } {
     }
 
     shared_future & operator=( shared_future const& other) noexcept {
@@ -271,12 +271,12 @@ public:
 
     shared_future & operator=( shared_future && other) noexcept {
         if ( this == & other) return * this;
-        base_t::operator=( std::forward< shared_future >( other) ); 
+        base_t::operator=( std::move( other) ); 
         return * this;
     }
 
     shared_future & operator=( future< R > && other) noexcept {
-        base_t::operator=( std::forward< future< R > >( other) ); 
+        base_t::operator=( std::move( other) ); 
         return * this;
     }
 
@@ -313,11 +313,11 @@ public:
     }
 
     shared_future( shared_future && other) noexcept :
-        base_t{ std::forward< shared_future >( other) } {
+        base_t{ std::move( other) } {
     }
 
     shared_future( future< R & > && other) noexcept :
-        base_t{ std::forward< future< R & > >( other) } {
+        base_t{ std::move( other) } {
     }
 
     shared_future & operator=( shared_future const& other) noexcept {
@@ -328,12 +328,12 @@ public:
 
     shared_future & operator=( shared_future && other) noexcept {
         if ( this == & other) return * this;
-        base_t::operator=( std::forward< shared_future >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
     shared_future & operator=( future< R & > && other) noexcept {
-        base_t::operator=( std::forward< future< R & > >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
@@ -372,12 +372,12 @@ public:
 
     inline
     shared_future( shared_future && other) noexcept :
-        base_t{ std::forward< shared_future >( other) } {
+        base_t{ std::move( other) } {
     }
 
     inline
     shared_future( future< void > && other) noexcept :
-        base_t{ std::forward< future< void > >( other) } {
+        base_t{ std::move( other) } {
     }
 
     inline
@@ -390,13 +390,13 @@ public:
     inline
     shared_future & operator=( shared_future && other) noexcept {
         if ( this == & other) return * this;
-        base_t::operator=( std::forward< shared_future >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
     inline
     shared_future & operator=( future< void > && other) noexcept {
-        base_t::operator=( std::forward< future< void > >( other) );
+        base_t::operator=( std::move( other) );
         return * this;
     }
 
