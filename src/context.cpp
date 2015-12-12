@@ -47,7 +47,7 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
 #endif
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >( 
-            new ( sp) context(
+        ::new ( sp) context(
                 dispatcher_context,
                 boost::context::preallocated( sp, size, sctx),
                 salloc,
@@ -68,9 +68,9 @@ context_initializer::context_initializer() {
             throw std::bad_alloc();
         }
         // main fiber context of this thread
-        context * main_ctx = new ( vp) context( main_context);
+        context * main_ctx = ::new ( vp) context( main_context);
         // scheduler of this thread
-        scheduler * sched = new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
+        scheduler * sched = ::new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
         // attach main context to scheduler
         sched->attach_main_context( main_ctx);
         // create and attach dispatcher context to scheduler
@@ -97,13 +97,13 @@ context_initializer::context_initializer() {
         // store shifted size in fornt of context
         * shift = static_cast< char * >( vp1) - static_cast< char * >( vp);
         // main fiber context of this thread
-        context * main_ctx = new ( vp1) context( main_context);
+        context * main_ctx = ::new ( vp1) context( main_context);
         vp1 = static_cast< char * >( vp1) + ctx_size;
         // align scheduler pointer
         space = sched_size + alignment;
         vp1 = std::align( alignment, sched_size, vp1, space);
         // scheduler of this thread
-        scheduler * sched = new ( vp1) scheduler();
+        scheduler * sched = ::new ( vp1) scheduler();
         // attach main context to scheduler
         sched->attach_main_context( main_ctx);
         // create and attach dispatcher context to scheduler
@@ -190,7 +190,6 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 context::~context() {
     BOOST_ASSERT( wait_queue_.empty() );
     BOOST_ASSERT( ! ready_is_linked() );
-    BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
     delete properties_;

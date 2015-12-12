@@ -91,25 +91,25 @@ class victim_algo : public boost::fibers::sched_algorithm {
 private:
     typedef work_stealing_queue        rqueue_t;
 
-    rqueue_t                                    rqueue_{};
+    std::shared_ptr< rqueue_t >                 rqueue_{};
     boost::fibers::detail::autoreset_event      ev_{};
 
 public:
-    victim_algo( rqueue_t * & rqueue) {
-        rqueue = & rqueue_;
+    victim_algo( std::shared_ptr< rqueue_t > rqueue) :
+        rqueue_( rqueue) {
     }
 
     virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
-        rqueue_.push_back( ctx);
+        rqueue_->push_back( ctx);
     }
 
     virtual boost::fibers::context * pick_next() noexcept {
-        return rqueue_.pick_next();
+        return rqueue_->pick_next();
     }
 
     virtual bool has_ready_fibers() const noexcept {
-        return ! rqueue_.empty();
+        return ! rqueue_->empty();
     }
 
     void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
@@ -124,15 +124,15 @@ public:
 class tief_algo : public boost::fibers::sched_algorithm {
 private:
     typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
-    typedef work_stealing_queue                                ws_rqueue_t;
+    typedef work_stealing_queue                     ws_rqueue_t;
 
     rqueue_t                                    rqueue_{};
-    ws_rqueue_t                             *   ws_rqueue_;
+    std::shared_ptr< ws_rqueue_t >              ws_rqueue_;
     std::atomic< int >                      *   count_;
     boost::fibers::detail::autoreset_event      ev_{};
 
 public:
-    tief_algo( ws_rqueue_t * ws_rqueue, std::atomic< int > * count) :
+    tief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue, std::atomic< int > * count) :
         ws_rqueue_( ws_rqueue),
         count_( count) {
     }
@@ -198,7 +198,7 @@ boost::fibers::future< int > fibonacci( int n) {
     return f;
 }
 
-void thread( work_stealing_queue * ws_queue, std::atomic< int > * count, std::atomic< bool > * fini) {
+void thread( std::shared_ptr< work_stealing_queue > ws_queue, std::atomic< int > * count, std::atomic< bool > * fini) {
     boost::fibers::use_scheduling_algorithm< tief_algo >( ws_queue, count);
 
     while ( ! ( * fini) ) {
@@ -214,7 +214,8 @@ void thread( work_stealing_queue * ws_queue, std::atomic< int > * count, std::at
 }
 
 int main() {
-    work_stealing_queue * ws_queue = nullptr;
+    std::shared_ptr< work_stealing_queue > ws_queue(
+            new work_stealing_queue() );
     boost::fibers::use_scheduling_algorithm< victim_algo >( ws_queue);
 
     for ( int i = 0; i < 10; ++i) {

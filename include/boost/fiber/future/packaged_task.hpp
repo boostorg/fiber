@@ -36,12 +36,6 @@ private:
 public:
     constexpr packaged_task() noexcept = default;
 
-    ~packaged_task() {
-        if ( task_) {
-            task_->owner_destroyed();
-        }
-    }
-
     template< typename Fn >
     explicit packaged_task( Fn && fn) : 
         packaged_task{ std::allocator_arg,
@@ -67,6 +61,12 @@ public:
             throw;
         }
         task_.reset( convert( ptr) );
+    }
+
+    ~packaged_task() {
+        if ( task_) {
+            task_->owner_destroyed();
+        }
     }
 
     packaged_task( packaged_task const&) = delete;
