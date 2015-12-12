@@ -208,31 +208,34 @@ private:
     fiber_properties                    *   properties_{ nullptr };
 
 #if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-    template< typename Fn, typename Tpl >
-    std::function< void( void*) > create_( Fn && fn__, Tpl && tpl__) {
-        return std::bind(
+    template< typename StackAlloc, typename Fn, typename Tpl >
+    boost::context::execution_context create_( boost::context::preallocated palloc,
+                                               StackAlloc salloc, Fn && fn, Tpl && tpl) {
+        return boost::context::execution_context{
+            std::allocator_arg, palloc, salloc,
+            std::bind(
                 [this]( typename std::decay< Fn >::type & fn_, typename std::decay< Tpl >::type & tpl_,
                         boost::context::execution_context ctx, void * vp) mutable noexcept {
                     try {
+                        auto fn = std::move( fn_);
+                        auto tpl = std::move( tpl_);
                         data_t * dp = static_cast< data_t * >( vp);
                         if ( nullptr != dp->lk) {
                             dp->lk->unlock();
                         } else if ( nullptr != dp->ctx) {
                             active_->set_ready_( dp->ctx);
                         }
-                        auto fn = std::move( fn_);
-                        auto tpl = std::move( tpl_);
-                        boost::context::detail::apply( fn, tpl);
+                        boost::context::detail::apply( std::move( fn), std::move( tpl) );
                     } catch ( fiber_interrupted const&) {
                     }
                     // terminate context
                     terminate();
                     BOOST_ASSERT_MSG( false, "fiber already terminated");
                 },
-                std::forward< Fn >( fn__),
-                std::forward< Tpl >( tpl__),
+                std::forward< Fn >( fn),
+                std::forward< Tpl >( tpl),
                 boost::context::execution_context::current(),
-                std::placeholders::_1);
+                std::placeholders::_1) };
     }
 #endif
 
@@ -310,8 +313,7 @@ public:
         use_count_{ 1 }, // fiber instance or scheduler owner
         flags_{ flag_worker_context },
 #if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-        ctx_{ std::allocator_arg, palloc, salloc,
-              create_( std::forward< Fn >( fn), std::make_tuple( std::forward< Args >( args) ... ) ) }
+        ctx_{ create_( palloc, salloc, std::forward< Fn >( fn), std::make_tuple( std::forward< Args >( args) ... ) ) }
 #else
         ctx_{ std::allocator_arg, palloc, salloc,
               // mutable: generated operator() is not const -> enables std::move( fn)
@@ -319,15 +321,15 @@ public:
               [this,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
                ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
                 try {
+                    auto fn = std::move( fn_);
+                    auto tpl = std::move( tpl_);
                     data_t * dp = static_cast< data_t * >( vp);
                     if ( nullptr != dp->lk) {
                         dp->lk->unlock();
                     } else if ( nullptr != dp->ctx) {
                         active_->set_ready_( dp->ctx);
                     }
-                    auto fn = std::move( fn_);
-                    auto tpl = std::move( tpl_);
-                    boost::context::detail::apply( fn, tpl);
+                    boost::context::detail::apply( std::move( fn), std::move( tpl) );
                 } catch ( fiber_interrupted const&) {
                 }
                 // terminate context

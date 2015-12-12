@@ -21,9 +21,9 @@ namespace boost {
 namespace fibers {
 
 template< typename Fn, typename ... Args >
-future< typename std::result_of< Fn( Args ... ) >::type >
+future< typename std::result_of< Fn &&( Args && ... ) >::type >
 async( Fn && fn, Args && ... args) {
-    typedef typename std::result_of< Fn( Args ... ) >::type result_type;
+    typedef typename std::result_of< Fn &&( Args && ... ) >::type result_type;
 
     packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
             std::forward< Fn >( fn) };
@@ -33,9 +33,9 @@ async( Fn && fn, Args && ... args) {
 }
 
 template< typename StackAllocator, typename Fn, typename ... Args >
-future< typename std::result_of< Fn( Args ... ) >::type >
+future< typename std::result_of< Fn &&( Args && ... ) >::type >
 async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
-    typedef typename std::result_of< Fn( Args ... ) >::type result_type;
+    typedef typename std::result_of< Fn &&( Args && ... ) >::type result_type;
 
     packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
             std::forward< Fn >( fn) };

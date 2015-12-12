@@ -106,7 +106,6 @@ void test_fss_with_custom_cleanup() {
     boost::fibers::fiber( fss_with_custom_cleanup).join();
 }
 
-
 Dummy* fss_object=new Dummy;
 
 void fss_fiber_with_custom_cleanup_and_release() {
@@ -149,8 +148,8 @@ void fss_fiber_with_null_cleanup(dummy_class_tracks_deletions* delete_tracker) {
 
 void do_test_fss_does_no_cleanup_with_null_cleanup_function() {
     dummy_class_tracks_deletions* delete_tracker=new dummy_class_tracks_deletions;
-    boost::fibers::fiber f(
-        std::bind( fss_fiber_with_null_cleanup,delete_tracker) );
+    boost::fibers::fiber f([&delete_tracker](){
+        fss_fiber_with_null_cleanup( delete_tracker); });
     try {
         f.join();
     } catch(...) {
@@ -224,7 +223,6 @@ void fss_at_the_same_adress() {
 void test_fss_at_the_same_adress() {
     boost::fibers::fiber( fss_at_the_same_adress).join();
 }
-
 
 boost::unit_test::test_suite* init_unit_test_suite(int, char*[]) {
     boost::unit_test::test_suite* test =

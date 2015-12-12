@@ -42,7 +42,7 @@ void fn2() {
     boost::fibers::promise< int > p;
     boost::fibers::future< int > f( p.get_future() );
     boost::this_fiber::yield();
-    boost::fibers::fiber( std::bind( fn1, & p, 7) ).detach();
+    boost::fibers::fiber( fn1, & p, 7).detach();
     boost::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }
@@ -717,8 +717,7 @@ void test_future_wait_void() {
 
 void test_future_wait_with_fiber_1() {
     boost::fibers::promise< int > p1;
-    boost::fibers::fiber(
-        std::bind( fn1, & p1, 7) ).detach();
+    boost::fibers::fiber( fn1, & p1, 7).detach();
 
     boost::fibers::future< int > f1 = p1.get_future();
 

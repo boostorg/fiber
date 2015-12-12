@@ -27,178 +27,156 @@ project boost/fiber/test
       <threading>multi
     ;
 
-run test_future.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
-
 run test_fiber.cpp :
     : :
-    [ requires cxx11_constexpr
-               cxx11_decltype
-               cxx11_deleted_functions
-               cxx11_explicit_conversion_operators
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
                cxx11_hdr_tuple
                cxx11_lambdas
                cxx11_noexcept
                cxx11_nullptr
-               cxx11_template_aliases
                cxx11_rvalue_references
-               cxx11_variadic_macros
-               cxx11_variadic_templates
-               cxx14_initialized_lambda_captures ] ;
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_mutex.cpp :
     : :
-    [ requires cxx11_constexpr
-               cxx11_decltype
-               cxx11_deleted_functions
-               cxx11_explicit_conversion_operators
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
                cxx11_hdr_tuple
                cxx11_lambdas
                cxx11_noexcept
                cxx11_nullptr
-               cxx11_template_aliases
                cxx11_rvalue_references
-               cxx11_variadic_macros
-               cxx11_variadic_templates
-               cxx14_initialized_lambda_captures ] ;
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_condition.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_barrier.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_unbounded_channel.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_bounded_channel.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_fss.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_future.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_mutex_mt.cpp :
     : :
-    [ requires cxx11_constexpr
-               cxx11_decltype
-               cxx11_deleted_functions
-               cxx11_explicit_conversion_operators
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
                cxx11_hdr_tuple
                cxx11_lambdas
                cxx11_noexcept
                cxx11_nullptr
-               cxx11_template_aliases
                cxx11_rvalue_references
-               cxx11_variadic_macros
-               cxx11_variadic_templates
-               cxx14_initialized_lambda_captures ] ;
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_condition_mt.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
 
 run test_future_mt.cpp :
-: :
-[ requires cxx11_constexpr
-           cxx11_decltype
-           cxx11_deleted_functions
-           cxx11_explicit_conversion_operators
-           cxx11_hdr_tuple
-           cxx11_lambdas
-           cxx11_noexcept
-           cxx11_nullptr
-           cxx11_template_aliases
-           cxx11_rvalue_references
-           cxx11_variadic_macros
-           cxx11_variadic_templates
-           cxx14_initialized_lambda_captures ] ;
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;

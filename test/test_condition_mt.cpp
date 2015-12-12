@@ -66,12 +66,11 @@ void fn1( boost::barrier & b,
           boost::fibers::condition & cond,
           bool & flag) {
     boost::fibers::fiber(
-            std::bind(
                 wait_fn,
                 std::ref( b),
                 std::ref( mtx),
                 std::ref( cond),
-                std::ref( flag) ) ).join();
+                std::ref( flag) ).join();
 }
 
 void fn2( boost::barrier & b,
@@ -79,12 +78,11 @@ void fn2( boost::barrier & b,
           boost::fibers::condition & cond,
           bool & flag) {
 	boost::fibers::fiber(
-            std::bind(
                 notify_one_fn,
                 std::ref( b),
                 std::ref( mtx),
                 std::ref( cond),
-                std::ref( flag) ) ).join();
+                std::ref( flag) ).join();
 }
 
 void fn3( boost::barrier & b,
@@ -92,12 +90,11 @@ void fn3( boost::barrier & b,
           boost::fibers::condition & cond,
           bool & flag) {
 	boost::fibers::fiber(
-            std::bind(
                 notify_all_fn,
                 std::ref( b),
                 std::ref( mtx),
                 std::ref( cond),
-                std::ref( flag) ) ).join();
+                std::ref( flag) ).join();
 }
 
 void test_one_waiter_notify_one() {
