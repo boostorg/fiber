@@ -107,7 +107,7 @@ Integrating Fibers with Asynchronous Callbacks].
 __boost_fiber__ depends upon __boost_context__.
 Boost version 1.58.0 or greater is required.
 
-[note This library is C++14-only!]
+[note This library requires C++11!]
 
 
 [endsect]
