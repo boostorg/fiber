@@ -41,7 +41,7 @@ public:
         alloc_( alloc) {
     }
 
-    void run( Args && ... args) override final {
+    void run( Args ... args) override final {
         try {
             this->set_value(
                     boost::context::detail::apply(
@@ -95,7 +95,7 @@ public:
         alloc_( alloc) {
     }
 
-    void run( Args && ... args) override final {
+    void run( Args ... args) override final {
         try {
             boost::context::detail::apply(
                     fn_, std::make_tuple( std::forward< Args >( args) ... ) );

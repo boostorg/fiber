@@ -106,7 +106,7 @@ public:
              boost::static_pointer_cast< detail::shared_state< R > >( task_) };
     }
 
-    void operator()( Args && ... args) {
+    void operator()( Args ... args) {
         if ( ! valid() ) {
             throw packaged_task_uninitialized{};
         }
