@@ -11,7 +11,7 @@
 
 #include <boost/config.hpp>
 
-#include <boost/fiber/condition.hpp>
+#include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/mutex.hpp>
 
@@ -24,11 +24,11 @@ namespace fibers {
 
 class BOOST_FIBERS_DECL barrier {
 private:
-	std::size_t		initial_;
-	std::size_t		current_;
-	bool			cycle_{ true };
-	mutex			mtx_{};
-	condition		cond_{};
+	std::size_t         initial_;
+	std::size_t         current_;
+	bool                cycle_{ true };
+	mutex               mtx_{};
+	condition_variable  cond_{};
 
 public:
 	explicit barrier( std::size_t);

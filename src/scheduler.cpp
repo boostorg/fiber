@@ -321,8 +321,8 @@ scheduler::wait_until( context * active_ctx,
     //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     // if the active-fiber running in this thread calls
-    // condition:wait() and code in another thread calls
-    // condition::notify_one(), it might happen that the
+    // condition_variable:wait() and code in another thread calls
+    // condition_variable::notify_one(), it might happen that the
     // other thread pushes the fiber to remote ready-queue first
     // the dispatcher-context migh have been moved the fiber from
     // the remote ready-queue to the local ready-queue
@@ -351,8 +351,8 @@ scheduler::wait_until( context * active_ctx,
     //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
     BOOST_ASSERT( ! active_ctx->is_terminated() );
     // if the active-fiber running in this thread calls
-    // condition:wait() and code in another thread calls
-    // condition::notify_one(), it might happen that the
+    // condition_variable:wait() and code in another thread calls
+    // condition_variable::notify_one(), it might happen that the
     // other thread pushes the fiber to remote ready-queue first
     // the dispatcher-context migh have been moved the fiber from
     // the remote ready-queue to the local ready-queue

@@ -10,7 +10,7 @@
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/barrier.hpp>
 #include <boost/fiber/bounded_channel.hpp>
-#include <boost/fiber/condition.hpp>
+#include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fiber.hpp>

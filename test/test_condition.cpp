@@ -37,7 +37,7 @@ struct condition_test_data {
     condition_test_data() : notified(0), awoken(0) { }
 
     boost::fibers::mutex mutex;
-    boost::fibers::condition condition;
+    boost::fibers::condition_variable cond;
     int notified;
     int awoken;
 };
@@ -46,7 +46,7 @@ void condition_test_fiber(condition_test_data* data) {
     std::unique_lock<boost::fibers::mutex> lock(data->mutex);
     BOOST_CHECK(lock ? true : false);
     while (!(data->notified > 0))
-        data->condition.wait(lock);
+        data->cond.wait(lock);
     BOOST_CHECK(lock ? true : false);
     data->awoken++;
 }
@@ -63,17 +63,17 @@ private:
     
 };
 
-void notify_one_fn( boost::fibers::condition & cond) {
+void notify_one_fn( boost::fibers::condition_variable & cond) {
 	cond.notify_one();
 }
 
-void notify_all_fn( boost::fibers::condition & cond) {
+void notify_all_fn( boost::fibers::condition_variable & cond) {
 	cond.notify_all();
 }
 
 void wait_fn(
 	boost::fibers::mutex & mtx,
-	boost::fibers::condition & cond) {
+	boost::fibers::condition_variable & cond) {
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
 	cond.wait( lk);
 	++value;
@@ -101,7 +101,7 @@ void test_condition_wait_is_a_interruption_point() {
 void test_one_waiter_notify_one() {
 	value = 0;
 	boost::fibers::mutex mtx;
-	boost::fibers::condition cond;
+	boost::fibers::condition_variable cond;
 
     boost::fibers::fiber f1(
                 wait_fn,
@@ -124,7 +124,7 @@ void test_one_waiter_notify_one() {
 void test_two_waiter_notify_one() {
 	value = 0;
 	boost::fibers::mutex mtx;
-	boost::fibers::condition cond;
+	boost::fibers::condition_variable cond;
 
     boost::fibers::fiber f1(
                 wait_fn,
@@ -159,7 +159,7 @@ void test_two_waiter_notify_one() {
 void test_two_waiter_notify_all() {
 	value = 0;
 	boost::fibers::mutex mtx;
-	boost::fibers::condition cond;
+	boost::fibers::condition_variable cond;
 
     boost::fibers::fiber f1(
                 wait_fn,
@@ -487,7 +487,7 @@ void test_condition_wait_for_pred() {
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Fiber: condition test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: condition_variable test suite");
 
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );

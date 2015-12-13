@@ -22,7 +22,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/future/future_status.hpp>
-#include <boost/fiber/condition.hpp>
+#include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/mutex.hpp>
 
@@ -37,7 +37,7 @@ namespace detail {
 class shared_state_base {
 private:
     std::atomic< std::size_t >  use_count_{ 0 };
-    mutable condition           waiters_{};
+    mutable condition_variable  waiters_{};
 
 protected:
     mutable mutex       mtx_{};

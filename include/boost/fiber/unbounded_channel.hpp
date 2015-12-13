@@ -19,7 +19,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/channel_op_status.hpp>
-#include <boost/fiber/condition.hpp>
+#include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/mutex.hpp>
@@ -89,7 +89,7 @@ private:
     ptr_t               head_{};
     ptr_t           *   tail_;
     mutable mutex       mtx_{};
-    condition           not_empty_cond_{};
+    condition_variable  not_empty_cond_{};
 
     bool is_closed_() const noexcept {
         return queue_status::closed == state_;
