@@ -22,9 +22,12 @@ void test_async() {
         int n = 3;
         boost::fibers::packaged_task< int( int) > pt( fn);
         boost::fibers::future< int > f( pt.get_future() );
-        std::thread t([n=n,pt_=std::move( pt)] () mutable -> void {
-                boost::fibers::fiber( std::move( pt_), n).join();
-                });
+        std::thread t(
+                std::bind(
+                    [n](boost::fibers::packaged_task< int( int) > & pt) mutable -> void {
+                        boost::fibers::fiber( std::move( pt), n).join();
+                    },
+                    std::move( pt) ) );
         int result = f.get();
         BOOST_CHECK_EQUAL( n, result);
         t.join();
