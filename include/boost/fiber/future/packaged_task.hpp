@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 #include <boost/config.hpp>
@@ -28,6 +29,7 @@ class packaged_task;
 template< typename R, typename ... Args >
 class packaged_task< R( Args ... ) > {
 private:
+    typedef packaged_task< R( Args ... ) >  self_t;
     typedef typename detail::task_base< R, Args ... >::ptr_t   ptr_t;
 
     bool            obtained_{ false };
@@ -36,14 +38,28 @@ private:
 public:
     constexpr packaged_task() noexcept = default;
 
-    template< typename Fn >
+    template< typename Fn,
+              class = typename std::enable_if<
+                        ! std::is_same<
+                            typename std::decay< Fn >::type,
+                            self_t
+                          >::value
+                      >::type
+    >
     explicit packaged_task( Fn && fn) : 
         packaged_task{ std::allocator_arg,
                        std::allocator< packaged_task >{},
                        std::forward< Fn >( fn)  } {
     }
 
-    template< typename Fn, typename Allocator >
+    template< typename Fn, typename Allocator,
+              class = typename std::enable_if<
+                        ! std::is_same<
+                            typename std::decay< Fn >::type,
+                            self_t
+                          >::value
+                      >::type
+    >
     explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
         typedef detail::task_object<
             typename std::decay< Fn >::type, Allocator, R, Args ...
