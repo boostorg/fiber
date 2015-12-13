@@ -19,7 +19,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/condition.hpp>
+#include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/channel_op_status.hpp>
 
@@ -88,8 +88,8 @@ private:
     ptr_t               head_{};
     ptr_t           *   tail_;
     mutable mutex       mtx_{};
-    condition           not_empty_cond_{};
-    condition           not_full_cond_{};
+    condition_variable  not_empty_cond_{};
+    condition_variable  not_full_cond_{};
     std::size_t         hwm_;
     std::size_t         lwm_;
 

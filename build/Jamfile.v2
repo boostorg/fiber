@@ -29,7 +29,7 @@ project boost/fiber
 lib boost_fiber
     : algorithm.cpp
       barrier.cpp
-      condition.cpp
+      condition_variable.cpp
       context.cpp
       detail/spinlock.cpp
       fiber.cpp

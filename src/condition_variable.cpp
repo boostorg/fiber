@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/condition.hpp"
+#include "boost/fiber/condition_variable.hpp"
 
 #include "boost/fiber/context.hpp"
 
@@ -16,7 +16,7 @@ namespace boost {
 namespace fibers {
 
 void
-condition::notify_one() noexcept {
+condition_variable::notify_one() noexcept {
     // get one context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( wait_queue_.empty() ) {
@@ -29,7 +29,7 @@ condition::notify_one() noexcept {
 }
 
 void
-condition::notify_all() noexcept {
+condition_variable::notify_all() noexcept {
     // get all context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     // notify all context'

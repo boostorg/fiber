@@ -31,7 +31,7 @@ boost::atomic< int > value;
 
 void wait_fn( boost::barrier & b,
               boost::fibers::mutex & mtx,
-              boost::fibers::condition & cond,
+              boost::fibers::condition_variable & cond,
               bool & flag) {
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
@@ -41,7 +41,7 @@ void wait_fn( boost::barrier & b,
 
 void notify_one_fn( boost::barrier & b,
                     boost::fibers::mutex & mtx,
-                    boost::fibers::condition & cond,
+                    boost::fibers::condition_variable & cond,
                     bool & flag) {
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
@@ -52,7 +52,7 @@ void notify_one_fn( boost::barrier & b,
 
 void notify_all_fn( boost::barrier & b,
                     boost::fibers::mutex & mtx,
-                    boost::fibers::condition & cond,
+                    boost::fibers::condition_variable & cond,
                     bool & flag) {
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
@@ -63,7 +63,7 @@ void notify_all_fn( boost::barrier & b,
 
 void fn1( boost::barrier & b,
           boost::fibers::mutex & mtx,
-          boost::fibers::condition & cond,
+          boost::fibers::condition_variable & cond,
           bool & flag) {
     boost::fibers::fiber(
                 wait_fn,
@@ -75,7 +75,7 @@ void fn1( boost::barrier & b,
 
 void fn2( boost::barrier & b,
           boost::fibers::mutex & mtx,
-          boost::fibers::condition & cond,
+          boost::fibers::condition_variable & cond,
           bool & flag) {
 	boost::fibers::fiber(
                 notify_one_fn,
@@ -87,7 +87,7 @@ void fn2( boost::barrier & b,
 
 void fn3( boost::barrier & b,
           boost::fibers::mutex & mtx,
-          boost::fibers::condition & cond,
+          boost::fibers::condition_variable & cond,
           bool & flag) {
 	boost::fibers::fiber(
                 notify_all_fn,
@@ -104,7 +104,7 @@ void test_one_waiter_notify_one() {
         bool flag = false;
         value = 0;
         boost::fibers::mutex mtx;
-        boost::fibers::condition cond;
+        boost::fibers::condition_variable cond;
 
         BOOST_CHECK( 0 == value);
 
@@ -125,7 +125,7 @@ void test_two_waiter_notify_all() {
         bool flag = false;
         value = 0;
         boost::fibers::mutex mtx;
-        boost::fibers::condition cond;
+        boost::fibers::condition_variable cond;
 
         BOOST_CHECK( 0 == value);
 
@@ -147,7 +147,7 @@ void test_dummy() {
 boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
 {
     boost::unit_test::test_suite * test =
-        BOOST_TEST_SUITE("Boost.Fiber: multithreaded condition test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: multithreaded condition_variable test suite");
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     test->add( BOOST_TEST_CASE( & test_one_waiter_notify_one) );

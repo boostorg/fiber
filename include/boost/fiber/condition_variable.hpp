@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_CONDITION_H
-#define BOOST_FIBERS_CONDITION_H
+#ifndef BOOST_FIBERS_CONDITION_VARIABLE_H
+#define BOOST_FIBERS_CONDITION_VARIABLE_H
 
 #include <algorithm>
 #include <atomic>
@@ -36,7 +36,7 @@ enum class cv_status {
     timeout
 };
 
-class BOOST_FIBERS_DECL condition {
+class BOOST_FIBERS_DECL condition_variable {
 private:
     typedef context::wait_queue_t   wait_queue_t;
 
@@ -44,14 +44,14 @@ private:
     detail::spinlock    wait_queue_splk_{};
 
 public:
-    condition() = default;
+    condition_variable() = default;
 
-    ~condition() {
+    ~condition_variable() {
         BOOST_ASSERT( wait_queue_.empty() );
     }
 
-    condition( condition const&) = delete;
-    condition & operator=( condition const&) = delete;
+    condition_variable( condition_variable const&) = delete;
+    condition_variable & operator=( condition_variable const&) = delete;
 
     void notify_one() noexcept;
 
@@ -165,8 +165,7 @@ public:
     }
 };
 
-typedef condition condition_variable;
-typedef condition condition_variable_any;
+using condition_variable_any = condition_variable;
 
 }}
 
@@ -174,4 +173,4 @@ typedef condition condition_variable_any;
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_CONDITION_H
+#endif // BOOST_FIBERS_CONDITION_VARIABLE_H

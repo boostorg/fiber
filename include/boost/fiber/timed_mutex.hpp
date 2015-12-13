@@ -24,11 +24,11 @@
 namespace boost {
 namespace fibers {
 
-class condition;
+class condition_variable;
 
 class BOOST_FIBERS_DECL timed_mutex {
 private:
-    friend class condition;
+    friend class condition_variable;
 
     typedef context::wait_queue_t   wait_queue_t;
 
