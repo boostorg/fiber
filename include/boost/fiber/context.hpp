@@ -211,7 +211,7 @@ private:
     template< typename StackAlloc, typename Fn, typename Tpl >
     boost::context::execution_context create_( boost::context::preallocated palloc,
                                                StackAlloc salloc, Fn && fn, Tpl && tpl) {
-        return boost::context::execution_context{
+        return {
             std::allocator_arg, palloc, salloc,
             std::bind(
                 [this]( typename std::decay< Fn >::type & fn_, typename std::decay< Tpl >::type & tpl_,
