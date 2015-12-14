@@ -339,6 +339,9 @@ public:
 #endif
     {}
 
+    context( context const&) = delete;
+    context & operator=( context const&) = delete;
+
     virtual ~context();
 
     scheduler * get_scheduler() const noexcept;
