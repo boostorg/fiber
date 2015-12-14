@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 
@@ -31,10 +32,7 @@
 namespace boost {
 namespace fibers {
 
-enum class cv_status {
-    no_timeout = 1,
-    timeout
-};
+using cv_status = std::cv_status;
 
 class BOOST_FIBERS_DECL condition_variable {
 private:
