@@ -26,6 +26,7 @@
 #include <boost/intrusive/set.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/decay_copy.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -313,12 +314,14 @@ public:
         use_count_{ 1 }, // fiber instance or scheduler owner
         flags_{ flag_worker_context },
 #if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-        ctx_{ create_( palloc, salloc, std::forward< Fn >( fn), std::make_tuple( std::forward< Args >( args) ... ) ) }
+        ctx_{ create_( palloc, salloc,
+                       std::forward< Fn >( fn),
+                       std::make_tuple( detail::decay_copy( std::forward< Args >( args) ) ... ) ) }
 #else
         ctx_{ std::allocator_arg, palloc, salloc,
               // mutable: generated operator() is not const -> enables std::move( fn)
               // std::make_tuple: stores decayed copies of its args, implicitly unwraps std::reference_wrapper
-              [this,fn_=std::forward< Fn >( fn),tpl_=std::make_tuple( std::forward< Args >( args) ...),
+              [this,fn_=detail::decay_copy( std::forward< Fn >( fn) ),tpl_=std::make_tuple( detail::decay_copy( std::forward< Args >( args) ) ...),
                ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
                 try {
                     auto fn = std::move( fn_);
