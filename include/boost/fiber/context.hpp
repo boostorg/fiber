@@ -285,7 +285,7 @@ public:
         ctx_{ std::allocator_arg, palloc, salloc,
               std::bind(
                   [this]( typename std::decay< Fn >::type & fn_, typename std::decay< Tpl >::type & tpl_,
-                          boost::context::execution_context ctx, void * vp) mutable noexcept {
+                          boost::context::execution_context & ctx, void * vp) mutable noexcept {
                       try {
                           auto fn = std::move( fn_);
                           auto tpl = std::move( tpl_);
