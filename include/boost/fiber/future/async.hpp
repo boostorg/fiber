@@ -19,26 +19,37 @@
 
 namespace boost {
 namespace fibers {
+namespace detail {
+
+// based on libstdc++-v3
+template< typename Fn, typename ... Args >
+using result_of = 
+    typename std::result_of<
+        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    >::type;
+
+}
 
 template< typename Fn, typename ... Args >
-future< typename std::result_of< Fn( Args && ... ) >::type >
+future< detail::result_of< Fn, Args ... > >
 async( Fn && fn, Args && ... args) {
-    typedef typename std::result_of< Fn( Args && ... ) >::type result_type;
+    using result_t = detail::result_of< Fn, Args ... >;
 
-    packaged_task< result_type( Args && ... ) > pt{ std::forward< Fn >( fn) };
-    future< result_type > f{ pt.get_future() };
+    packaged_task< result_t( Args ... ) > pt{ std::forward< Fn >( fn) };
+    future< result_t > f{ pt.get_future() };
     fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 
 template< typename StackAllocator, typename Fn, typename ... Args >
-future< typename std::result_of< Fn( Args && ... ) >::type >
+future< detail::result_of< Fn, Args ... > >
 async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
-    typedef typename std::result_of< Fn( Args && ... ) >::type result_type;
+    using result_t = detail::result_of< Fn, Args ... >;
 
-    packaged_task< result_type( Args && ... ) > pt{ std::forward< Fn >( fn) };
-    future< result_type > f{ pt.get_future() };
-    fiber{ salloc, std::move( pt), std::forward< Args >( args) ... }.detach();
+    packaged_task< result_t( Args ... ) > pt{
+        std::allocator_arg, salloc, std::forward< Fn >( fn) };
+    future< result_t > f{ pt.get_future() };
+    fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 
