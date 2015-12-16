@@ -27,7 +27,6 @@
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/decay_copy.hpp>
-#include <boost/fiber/detail/disable_overload.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -278,8 +277,7 @@ public:
     // worker fiber context
     template< typename StackAlloc,
               typename Fn,
-              typename Tpl,
-              typename = detail::disable_overload< context, Fn >
+              typename Tpl
     >
     context( worker_context_t,
              boost::context::preallocated palloc, StackAlloc salloc,
