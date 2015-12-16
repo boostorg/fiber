@@ -312,7 +312,7 @@ public:
         return push_wait_until_( { detail::convert( ptr) }, timeout_time, lk);
     }
 
-    channel_op_status try_push( value_type const& va) noexcept {
+    channel_op_status try_push( value_type const& va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -325,7 +325,7 @@ public:
         return try_push_( { detail::convert( ptr) }, lk);
     }
 
-    channel_op_status try_push( value_type && va) noexcept {
+    channel_op_status try_push( value_type && va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
