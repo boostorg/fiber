@@ -17,6 +17,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/disable_overload.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 #include <boost/fiber/properties.hpp>
@@ -44,13 +45,20 @@ public:
 
     constexpr fiber() noexcept = default;
 
-    template< typename Fn, typename ... Args >
+    template< typename Fn,
+              typename ... Args,
+              typename = detail::disable_overload< fiber, Fn >
+    >
     fiber( Fn && fn, Args && ... args) :
         fiber{ std::allocator_arg, default_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... } {
     }
 
-    template< typename StackAllocator, typename Fn, typename ... Args >
+    template< typename StackAllocator,
+              typename Fn,
+              typename ... Args,
+              typename = detail::disable_overload< fiber, Fn >
+    >
     fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
         impl_{ make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
         start_();

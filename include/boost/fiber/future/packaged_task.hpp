@@ -15,6 +15,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/convert.hpp>
+#include <boost/fiber/detail/disable_overload.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/future/detail/task_base.hpp>
 #include <boost/fiber/future/detail/task_object.hpp>
@@ -29,7 +30,6 @@ class packaged_task;
 template< typename R, typename ... Args >
 class packaged_task< R( Args ... ) > {
 private:
-    typedef packaged_task< R( Args ... ) >  self_t;
     typedef typename detail::task_base< R, Args ... >::ptr_t   ptr_t;
 
     bool            obtained_{ false };
@@ -39,12 +39,7 @@ public:
     constexpr packaged_task() noexcept = default;
 
     template< typename Fn,
-              class = typename std::enable_if<
-                        ! std::is_same<
-                            typename std::decay< Fn >::type,
-                            self_t
-                          >::value
-                      >::type
+              typename = detail::disable_overload< packaged_task, Fn >
     >
     explicit packaged_task( Fn && fn) : 
         packaged_task{ std::allocator_arg,
@@ -52,13 +47,9 @@ public:
                        std::forward< Fn >( fn)  } {
     }
 
-    template< typename Fn, typename Allocator,
-              class = typename std::enable_if<
-                        ! std::is_same<
-                            typename std::decay< Fn >::type,
-                            self_t
-                          >::value
-                      >::type
+    template< typename Fn,
+              typename Allocator,
+              typename = detail::disable_overload< packaged_task, Fn >
     >
     explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
         typedef detail::task_object<
