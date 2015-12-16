@@ -56,8 +56,7 @@ public:
 
     template< typename StackAllocator,
               typename Fn,
-              typename ... Args,
-              typename = detail::disable_overload< fiber, Fn >
+              typename ... Args
     >
     fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
         impl_{ make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
