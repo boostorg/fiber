@@ -210,7 +210,7 @@ public:
 };
 
 template< typename R >
-void swap( promise< R > & l, promise< R > & r) {
+void swap( promise< R > & l, promise< R > & r) noexcept {
     l.swap( r);
 }
 
