@@ -123,11 +123,10 @@ public:
         if ( ! valid() ) {
             throw packaged_task_uninitialized{};
         }
-        obtained_ = false;
         packaged_task tmp;
         tmp.task_ = task_;
-        obtained_ = false;
         task_ = tmp.task_->reset();
+        obtained_ = false;
     }
 };
 
