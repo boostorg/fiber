@@ -205,6 +205,93 @@ void test_join_moveable() {
     BOOST_CHECK_EQUAL( value1, 7);
 }
 
+void test_join_lambda() {
+    {
+        value1 = 0;
+        value2 = "";
+        int i = 3;
+        std::string abc("abc");
+        boost::fibers::fiber f(
+                [i,abc]() {
+                    value1 = i;
+                    value2 = abc;
+                });
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 3);
+        BOOST_CHECK_EQUAL( value2, "abc");
+    }
+    {
+        value1 = 0;
+        value2 = "";
+        int i = 3;
+        std::string abc("abc");
+        boost::fibers::fiber f(
+                [](int i, std::string const& abc) {
+                    value1 = i;
+                    value2 = abc;
+                },
+                i, abc);
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 3);
+        BOOST_CHECK_EQUAL( value2, "abc");
+    }
+}
+
+void test_join_bind() {
+    {
+        value1 = 0;
+        value2 = "";
+        int i = 3;
+        std::string abc("abc");
+        boost::fibers::fiber f(
+            std::bind(
+                [i,abc]() {
+                    value1 = i;
+                    value2 = abc;
+                }
+            ));
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 3);
+        BOOST_CHECK_EQUAL( value2, "abc");
+    }
+    {
+        value1 = 0;
+        value2 = "";
+        int i = 3;
+        std::string abc("abc");
+        boost::fibers::fiber f(
+            std::bind(
+                []( int i, std::string & str) {
+                    value1 = 3;
+                    value2 = str;
+                },
+                i, abc
+            ));
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 3);
+        BOOST_CHECK_EQUAL( value2, "abc");
+    }
+    {
+        value1 = 0;
+        value2 = "";
+        int i = 3;
+        std::string abc("abc");
+        boost::fibers::fiber f(
+            std::bind(
+                []( int i, std::string & str) {
+                    value1 = 3;
+                    value2 = str;
+                },
+                std::placeholders::_1,
+                std::placeholders::_2
+            ),
+            i, abc);
+        f.join();
+        BOOST_CHECK_EQUAL( value1, 3);
+        BOOST_CHECK_EQUAL( value2, "abc");
+    }
+}
+
 void test_join_in_fiber() {
     // spawn fiber f
     // f spawns an new fiber f' in its fiber-fn
@@ -450,6 +537,8 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     test->add( BOOST_TEST_CASE( & test_join_memfn) );
     test->add( BOOST_TEST_CASE( & test_join_copyable) );
     test->add( BOOST_TEST_CASE( & test_join_moveable) );
+    test->add( BOOST_TEST_CASE( & test_join_lambda) );
+    test->add( BOOST_TEST_CASE( & test_join_bind) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
     test->add( BOOST_TEST_CASE( & test_move_fiber) );
     test->add( BOOST_TEST_CASE( & test_move_fiber) );
