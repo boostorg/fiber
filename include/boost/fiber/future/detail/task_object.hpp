@@ -35,6 +35,12 @@ public:
         task_object
     >                                           allocator_t;
 
+    task_object( allocator_t const& alloc, Fn const& fn) :
+        base_t(),
+        fn_( fn),
+        alloc_( alloc) {
+    }
+
     task_object( allocator_t const& alloc, Fn && fn) :
         base_t(),
         fn_( std::move( fn) ),
@@ -88,6 +94,12 @@ public:
     typedef typename Allocator::template rebind<
         task_object< Fn, Allocator, void, Args ... >
     >::other                                      allocator_t;
+
+    task_object( allocator_t const& alloc, Fn const& fn) :
+        base_t(),
+        fn_( fn),
+        alloc_( alloc) {
+    }
 
     task_object( allocator_t const& alloc, Fn && fn) :
         base_t(),
