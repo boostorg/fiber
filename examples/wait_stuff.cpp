@@ -2,19 +2,22 @@
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+//
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include <boost/fiber/all.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
-#include <type_traits>              // std::result_of
-#include <iostream>
-#include <sstream>
-#include <memory>                   // std::shared_ptr
-#include <chrono>
-#include <string>
-#include <cassert>
-#include <vector>
 
 // These are wait_something() functions rather than when_something()
 // functions. A big part of the point of the Fiber library is to model
@@ -254,10 +257,13 @@ Example wfv( runner, "wait_first_value()", [](){
 //[wait_first_outcome_impl
 template< typename T, typename Fn >
 void wait_first_outcome_impl( std::shared_ptr<
-                                 boost::fibers::bounded_channel<
-                                     boost::fibers::future< T > > > channel,
+                                  boost::fibers::bounded_channel<
+                                    boost::fibers::future< T > > > channel,
                               Fn && function) {
-    boost::fibers::fiber( [channel, function](){
+    boost::fibers::fiber(
+            std::bind(
+                []( std::shared_ptr< boost::fibers::bounded_channel< boost::fibers::future< T > > > & channel,
+                    typename std::decay< Fn >::type & function) {
                               // Instantiate a packaged_task to capture any exception thrown by
                               // function.
                               boost::fibers::packaged_task< T() > task( function);
@@ -268,14 +274,17 @@ void wait_first_outcome_impl( std::shared_ptr<
                               // returned by push(): might be closed, might be full; we simply don't
                               // care.
                               channel->push( task.get_future() );
-                          }).detach();
+                },
+                channel,
+                std::forward< Fn >( function)
+            )).detach();
 }
 //]
 
 // When there are two or more functions, call this overload
 template< typename T, typename Fn0, typename Fn1, typename ... Fns >
 void wait_first_outcome_impl( std::shared_ptr< boost::fibers::bounded_channel<
-                                 boost::fibers::future< T > > > channel,
+                              boost::fibers::future< T > > > channel,
                               Fn0 && function0,
                               Fn1 && function1,
                               Fns && ... functions) {
@@ -392,7 +401,7 @@ wait_first_success( Fn && function, Fns && ... functions) {
     // In this case, the value we pass through the channel is actually a
     // future -- which is already ready. future can carry either a value or an
     // exception.
-    typedef typename std::result_of< Fn() >::type return_t;
+    typedef typename std::result_of< typename std::decay< Fn >::type() >::type return_t;
     typedef boost::fibers::future< return_t > future_t;
     typedef boost::fibers::bounded_channel< future_t > channel_t;
     // make bounded_channel big enough to hold all results if need be
@@ -513,10 +522,16 @@ void wait_all_simple_impl( std::shared_ptr< boost::fibers::barrier >) {
 template< typename Fn, typename ... Fns >
 void wait_all_simple_impl( std::shared_ptr< boost::fibers::barrier > barrier,
                            Fn && function, Fns && ... functions) {
-    boost::fibers::fiber( [barrier, function](){
-                              function();
-                              barrier->wait();
-                          }).detach();
+    boost::fibers::fiber(
+            std::bind(
+                []( std::shared_ptr< boost::fibers::barrier > & barrier,
+                    typename std::decay< Fn >::type & function) mutable {
+                        function();
+                        barrier->wait();
+                },
+                barrier,
+                std::forward< Fn >( function)
+            )).detach();
     wait_all_simple_impl( barrier, std::forward< Fns >( functions) ... );
 }
 //]
@@ -693,16 +708,22 @@ Example wav( runner, "wait_all_values()", [](){
 template< typename T, typename Fn >
 void wait_all_until_error_impl( std::shared_ptr< nchannel< boost::fibers::future< T > > > channel,
                                 Fn && function) {
-    boost::fibers::fiber( [channel, function](){
-                              // Instantiate a packaged_task to capture any exception thrown by
-                              // function.
-                              boost::fibers::packaged_task< T() > task( function);
-                              // Immediately run this packaged_task on same fiber. We want
-                              // function() to have completed BEFORE we push the future.
-                              task();
-                              // Pass the corresponding future to consumer.
-                              channel->push( task.get_future() );
-                          }).detach();
+    boost::fibers::fiber(
+            std::bind(
+                [](std::shared_ptr< nchannel< boost::fibers::future< T > > > & channel,
+                    typename std::decay< Fn >::type & function){
+                    // Instantiate a packaged_task to capture any exception thrown by
+                    // function.
+                    boost::fibers::packaged_task< T() > task( function);
+                    // Immediately run this packaged_task on same fiber. We want
+                    // function() to have completed BEFORE we push the future.
+                    task();
+                    // Pass the corresponding future to consumer.
+                    channel->push( task.get_future() );
+                },
+                channel,
+                std::forward< Fn >( function)
+            )).detach();
 }
 //]
 
@@ -996,6 +1017,7 @@ Example wam( runner, "wait_all_members()", [](){
     std::cout << std::endl;
 //]
 });
+
 
 /*****************************************************************************
 *   main()
