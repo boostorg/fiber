@@ -131,7 +131,7 @@ public:
 };
 
 template< typename Signature >
-void swap( packaged_task< Signature > & l, packaged_task< Signature > & r) {
+void swap( packaged_task< Signature > & l, packaged_task< Signature > & r) noexcept {
     l.swap( r);
 }
 

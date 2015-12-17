@@ -126,7 +126,7 @@ bool operator<( fiber const& l, fiber const& r) {
 }
 
 inline
-void swap( fiber & l, fiber & r) {
+void swap( fiber & l, fiber & r) noexcept {
     return l.swap( r);
 }
 
