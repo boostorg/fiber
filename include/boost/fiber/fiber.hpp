@@ -121,7 +121,7 @@ public:
 };
 
 inline
-bool operator<( fiber const& l, fiber const& r) {
+bool operator<( fiber const& l, fiber const& r) noexcept {
     return l.get_id() < r.get_id();
 }
 
