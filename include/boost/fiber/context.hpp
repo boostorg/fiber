@@ -29,6 +29,7 @@
 #include <boost/fiber/detail/decay_copy.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
+#include <boost/fiber/detail/wrap.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
 #include <boost/fiber/properties.hpp>
@@ -188,6 +189,24 @@ private:
     void resume_( data_t &) noexcept;
     void set_ready_( context *) noexcept;
 
+    template< typename Fn, typename Tpl >
+    void run_( Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
+        try {
+            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active_->set_ready_( dp->ctx);
+            }
+            boost::context::detail::apply( fn, tpl);
+        } catch ( fiber_interrupted const&) {
+        }
+        // terminate context
+        terminate();
+        BOOST_ASSERT_MSG( false, "fiber already terminated");
+    }
+
 public:
     detail::ready_hook                      ready_hook_{};
     detail::remote_ready_hook               remote_ready_hook_{};
@@ -286,48 +305,19 @@ public:
         flags_{ flag_worker_context },
 #if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
-              std::bind(
-                  [this]( typename std::decay< Fn >::type & fn_, typename std::decay< Tpl >::type & tpl_,
+              detail::wrap(
+                  [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
                           boost::context::execution_context & ctx, void * vp) mutable noexcept {
-                      try {
-                          auto fn = std::move( fn_);
-                          auto tpl = std::move( tpl_);
-                          data_t * dp = static_cast< data_t * >( vp);
-                          if ( nullptr != dp->lk) {
-                              dp->lk->unlock();
-                          } else if ( nullptr != dp->ctx) {
-                              active_->set_ready_( dp->ctx);
-                          }
-                          boost::context::detail::apply( fn, tpl);
-                      } catch ( fiber_interrupted const&) {
-                      }
-                      // terminate context
-                      terminate();
-                      BOOST_ASSERT_MSG( false, "fiber already terminated");
+                        run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
                   },
                   std::forward< Fn >( fn),
                   std::forward< Tpl >( tpl),
-                  boost::context::execution_context::current(),
-                  std::placeholders::_1)}
+                  boost::context::execution_context::current())}
 #else
         ctx_{ std::allocator_arg, palloc, salloc,
-              [this,fn_=detail::decay_copy( std::forward< Fn >( fn) ),tpl_=std::forward< Tpl >( tpl),
+              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl),
                ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
-                try {
-                    auto fn = std::move( fn_);
-                    auto tpl = std::move( tpl_);
-                    data_t * dp = static_cast< data_t * >( vp);
-                    if ( nullptr != dp->lk) {
-                        dp->lk->unlock();
-                    } else if ( nullptr != dp->ctx) {
-                        active_->set_ready_( dp->ctx);
-                    }
-                    boost::context::detail::apply( fn, tpl);
-                } catch ( fiber_interrupted const&) {
-                }
-                // terminate context
-                terminate();
-                BOOST_ASSERT_MSG( false, "fiber already terminated");
+                    run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
               }}
 #endif
     {}
