@@ -16,7 +16,7 @@ namespace boost {
 namespace fibers {
 
 void
-condition_variable::notify_one() noexcept {
+condition_variable_any::notify_one() noexcept {
     // get one context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( wait_queue_.empty() ) {
@@ -29,7 +29,7 @@ condition_variable::notify_one() noexcept {
 }
 
 void
-condition_variable::notify_all() noexcept {
+condition_variable_any::notify_all() noexcept {
     // get all context' from wait-queue
     detail::spinlock_lock lk( wait_queue_splk_);
     // notify all context'
