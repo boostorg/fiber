@@ -55,7 +55,21 @@ run test_mutex.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_condition.cpp :
+run test_condition_variable_any.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_condition_variable.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
