@@ -27,7 +27,7 @@ struct task_base : public shared_state< R > {
     virtual ~task_base() {
     }
 
-    virtual void run( Args ... args) = 0;
+    virtual void run( Args && ... args) = 0;
 
     virtual ptr_t reset() = 0;
 };
