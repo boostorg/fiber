@@ -75,7 +75,7 @@ protected:
         waiters_.wait( lk, [this](){ return ready_; });
     }
 
-    template< class Rep, class Period >
+    template< typename Rep, typename Period >
     future_status wait_for_( std::unique_lock< mutex > & lk,
                              std::chrono::duration< Rep, Period > const& timeout_duration) const {
         return waiters_.wait_for( lk, timeout_duration, [this](){ return ready_; })
@@ -121,7 +121,7 @@ public:
         wait_( lk);
     }
 
-    template< class Rep, class Period >
+    template< typename Rep, typename Period >
     future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
         std::unique_lock< mutex > lk( mtx_);
         return wait_for_( lk, timeout_duration);
