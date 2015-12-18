@@ -76,7 +76,7 @@ struct future_base {
         state_->wait();
     }
 
-    template< class Rep, class Period >
+    template< typename Rep, typename Period >
     future_status wait_for( std::chrono::duration< Rep, Period > const& timeout_duration) const {
         if ( ! valid() ) {
             throw future_uninitialized{};
