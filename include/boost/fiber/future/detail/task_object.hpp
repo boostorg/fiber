@@ -79,9 +79,10 @@ private:
     Fn                  fn_;
     allocator_t         alloc_;
 
-    static void destroy_( allocator_t & alloc, task_object * p) noexcept {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
+    static void destroy_( allocator_t const& alloc, task_object * p) noexcept {
+        allocator_t a{ alloc };
+        a.destroy( p);
+        a.deallocate( p, 1);
     }
 };
 
@@ -139,9 +140,10 @@ private:
     Fn                  fn_;
     allocator_t         alloc_;
 
-    static void destroy_( allocator_t & alloc, task_object * p) noexcept {
-        alloc.destroy( p);
-        alloc.deallocate( p, 1);
+    static void destroy_( allocator_t const& alloc, task_object * p) noexcept {
+        allocator_t a{ alloc };
+        a.destroy( p);
+        a.deallocate( p, 1);
     }
 };
 
