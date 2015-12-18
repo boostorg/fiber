@@ -159,8 +159,39 @@ public:
     }
 };
 
-using std::future_errc;
-using std::future_category;
+
+enum class future_errc {
+    broken_promise             = 1,
+    future_already_retrieved   = 2,
+    promise_already_satisfied  = 3,
+    no_state                   = 4
+};
+
+BOOST_FIBERS_DECL
+std::error_category const& future_category() noexcept;
+
+}}
+
+namespace std {
+
+template<>
+struct is_error_code_enum< boost::fibers::future_errc > : public true_type {
+};
+
+inline
+std::error_code make_error_code( boost::fibers::future_errc e) noexcept {
+    return std::error_code( static_cast< int >( e), boost::fibers::future_category() );
+}
+
+inline
+std::error_condition make_error_condition( boost::fibers::future_errc e) noexcept {
+    return std::error_condition( static_cast< int >( e), boost::fibers::future_category() );
+}
+
+}
+
+namespace boost {
+namespace fibers {
 
 class future_error : public std::logic_error {
 private:
