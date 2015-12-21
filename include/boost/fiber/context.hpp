@@ -467,6 +467,11 @@ public:
     }
 };
 
+inline
+bool operator<( context const& l, context const& r) noexcept {
+    return l.get_id() < r.get_id();
+}
+
 struct context_initializer {
     context_initializer();
     ~context_initializer();
