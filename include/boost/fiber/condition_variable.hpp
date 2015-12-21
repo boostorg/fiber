@@ -33,7 +33,10 @@
 namespace boost {
 namespace fibers {
 
-using cv_status = std::cv_status;
+enum class cv_status {
+    no_timeout = 1,
+    timeout
+};
 
 class BOOST_FIBERS_DECL condition_variable_any {
 private:
