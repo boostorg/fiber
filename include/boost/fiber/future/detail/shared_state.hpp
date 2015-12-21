@@ -45,12 +45,14 @@ protected:
     std::exception_ptr  except_{};
 
     void mark_ready_and_notify_( std::unique_lock< mutex > & lk) noexcept {
+        BOOST_ASSERT( lk.owns_lock() );
         ready_ = true;
         lk.unlock();
         waiters_.notify_all();
     }
 
     void owner_destroyed_( std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         if ( ! ready_) {
             set_exception_(
                     std::make_exception_ptr( broken_promise() ),
@@ -59,6 +61,7 @@ protected:
     }
 
     void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         if ( ready_) {
             throw promise_already_satisfied();
         }
@@ -67,17 +70,20 @@ protected:
     }
 
     std::exception_ptr get_exception_ptr_( std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         wait_( lk);
         return except_;
     }
 
     void wait_( std::unique_lock< mutex > & lk) const {
+        BOOST_ASSERT( lk.owns_lock() );
         waiters_.wait( lk, [this](){ return ready_; });
     }
 
     template< typename Rep, typename Period >
     future_status wait_for_( std::unique_lock< mutex > & lk,
                              std::chrono::duration< Rep, Period > const& timeout_duration) const {
+        BOOST_ASSERT( lk.owns_lock() );
         return waiters_.wait_for( lk, timeout_duration, [this](){ return ready_; })
                     ? future_status::ready
                     : future_status::timeout;
@@ -86,6 +92,7 @@ protected:
     template< typename Clock, typename Duration >
     future_status wait_until_( std::unique_lock< mutex > & lk,
                                std::chrono::time_point< Clock, Duration > const& timeout_time) const {
+        BOOST_ASSERT( lk.owns_lock() );
         return waiters_.wait_until( lk, timeout_time, [this](){ return ready_; })
                     ? future_status::ready
                     : future_status::timeout;
@@ -152,6 +159,7 @@ private:
     typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_{};
 
     void set_value_( R const& value, std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         if ( ready_) {
             throw promise_already_satisfied();
         }
@@ -160,6 +168,7 @@ private:
     }
 
     void set_value_( R && value, std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         if ( ready_) {
             throw promise_already_satisfied();
         }
@@ -168,6 +177,7 @@ private:
     }
 
     R & get_( std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         wait_( lk);
         if ( except_) {
             std::rethrow_exception( except_);
@@ -211,6 +221,7 @@ private:
     R   *   value_{ nullptr };
 
     void set_value_( R & value, std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         if ( ready_) {
             throw promise_already_satisfied();
         }
@@ -219,6 +230,7 @@ private:
     }
 
     R & get_( std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         wait_( lk);
         if ( except_) {
             std::rethrow_exception( except_);
@@ -252,6 +264,7 @@ class shared_state< void > : public shared_state_base {
 private:
     inline
     void set_value_( std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         if ( ready_) {
             throw promise_already_satisfied();
         }
@@ -260,6 +273,7 @@ private:
 
     inline
     void get_( std::unique_lock< mutex > & lk) {
+        BOOST_ASSERT( lk.owns_lock() );
         wait_( lk);
         if ( except_) {
             std::rethrow_exception( except_);
