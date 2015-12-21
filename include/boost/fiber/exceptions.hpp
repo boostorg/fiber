@@ -161,10 +161,10 @@ public:
 
 
 enum class future_errc {
-    broken_promise             = 1,
-    future_already_retrieved   = 2,
-    promise_already_satisfied  = 3,
-    no_state                   = 4
+    broken_promise = 1,
+    future_already_retrieved,
+    promise_already_satisfied,
+    no_state
 };
 
 BOOST_FIBERS_DECL
