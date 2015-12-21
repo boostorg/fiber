@@ -20,12 +20,12 @@ namespace detail {
 
 class BOOST_FIBERS_DECL atomic_spinlock {
 private:
-    enum class atomic_spinlock_status {
+    enum class spinlock_status {
         locked = 0,
         unlocked
     };
 
-    std::atomic< atomic_spinlock_status >  state_{ atomic_spinlock_status::unlocked };
+    std::atomic< spinlock_status >  state_{ spinlock_status::unlocked };
 
 public:
     atomic_spinlock() noexcept = default;
