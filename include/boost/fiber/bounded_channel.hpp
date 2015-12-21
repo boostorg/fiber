@@ -121,9 +121,10 @@ private:
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
-        while ( is_full_() ) {
-            not_full_cond_.wait( lk);
-        }
+        not_full_cond_.wait( lk,
+                             [this](){
+                                return ! is_full_();
+                             });
         return push_and_notify_( new_node, lk);
     }
 
@@ -145,10 +146,11 @@ private:
         if ( is_closed_() ) {
             return channel_op_status::closed;
         }
-        while ( is_full_() ) {
-            if ( cv_status::timeout == not_full_cond_.wait_until( lk, timeout_time) ) {
-                return channel_op_status::timeout;
-            }
+        if ( ! not_full_cond_.wait_until( lk, timeout_time,
+                                          [this](){
+                                               return ! is_full_();
+                                          })) {
+            return channel_op_status::timeout;
         }
         return push_and_notify_( new_node, lk);
     }
@@ -341,9 +343,10 @@ public:
 
     channel_op_status pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
-        while ( ! is_closed_() && is_empty_() ) {
-            not_empty_cond_.wait( lk);
-        }
+        not_empty_cond_.wait( lk,
+                              [this](){
+                                return is_closed_() || ! is_empty_();
+                              });
         if ( is_closed_() && is_empty_() ) {
             return channel_op_status::closed;
         }
@@ -353,9 +356,10 @@ public:
 
     value_type value_pop() {
         std::unique_lock< mutex > lk( mtx_);
-        while ( ! is_closed_() && is_empty_() ) {
-            not_empty_cond_.wait( lk);
-        }
+        not_empty_cond_.wait( lk,
+                              [this](){
+                                return is_closed_() || ! is_empty_();
+                              });
         if ( is_closed_() && is_empty_() ) {
             throw logic_error("boost fiber: queue is closed");
         }
@@ -391,10 +395,12 @@ public:
     channel_op_status pop_wait_until( value_type & va,
                                       std::chrono::time_point< Clock, Duration > const& timeout_time) {
         std::unique_lock< mutex > lk( mtx_);
-        while ( ! is_closed_() && is_empty_() ) {
-            if ( cv_status::timeout == not_empty_cond_.wait_until( lk, timeout_time) ) {
-                return channel_op_status::timeout;
-            }
+        if ( ! not_empty_cond_.wait_until( lk,
+                                           timeout_time,
+                                           [this](){
+                                                return is_closed_() || ! is_empty_();
+                                           })) {
+            return channel_op_status::timeout;
         }
         if ( is_closed_() && is_empty_() ) {
             return channel_op_status::closed;
