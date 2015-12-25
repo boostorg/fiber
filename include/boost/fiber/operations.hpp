@@ -52,7 +52,7 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 }
 
 template< typename PROPS >
-PROPS & properties() noexcept {
+PROPS & properties() {
     fibers::fiber_properties * props =
         fibers::context::active()->get_properties();
     if ( ! props) {
