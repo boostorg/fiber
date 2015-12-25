@@ -86,14 +86,6 @@ public:
         return * this;
     }
 
-    explicit operator bool() const noexcept {
-        return nullptr != impl_.get();
-    }
-
-    bool operator!() const noexcept {
-        return nullptr == impl_.get();
-    }
-
     void swap( fiber & other) noexcept {
         impl_.swap( other.impl_);
     }

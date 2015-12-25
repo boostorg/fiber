@@ -146,10 +146,8 @@ void fn4() {
 
 void fn5() {
     boost::fibers::fiber f( fn4);
-    BOOST_CHECK( f);
     BOOST_CHECK( f.joinable() );
     f.join();
-    BOOST_CHECK( ! f);
     BOOST_CHECK( ! f.joinable() );
 }
 
@@ -298,27 +296,30 @@ void test_join_in_fiber() {
     // f' yields in its fiber-fn
     // f joins s' and gets suspended (waiting on s')
     boost::fibers::fiber f( fn5);
+    BOOST_CHECK( f.joinable() );
     // join() resumes f + f' which completes
     f.join();
-    BOOST_CHECK( ! f);
+    BOOST_CHECK( ! f.joinable() );
 }
 
 void test_move_fiber() {
     boost::fibers::fiber f1;
-    BOOST_CHECK( ! f1);
+    BOOST_CHECK( ! f1.joinable() );
     boost::fibers::fiber f2( fn1);
-    BOOST_CHECK( f2);
+    BOOST_CHECK( f2.joinable() );
     f1 = std::move( f2);
-    BOOST_CHECK( f1);
-    BOOST_CHECK( ! f2);
+    BOOST_CHECK( f1.joinable() );
+    BOOST_CHECK( ! f2.joinable() );
     f1.join();
+    BOOST_CHECK( ! f1.joinable() );
+    BOOST_CHECK( ! f2.joinable() );
 }
 
 void test_id() {
     boost::fibers::fiber f1;
     boost::fibers::fiber f2( fn1);
-    BOOST_CHECK( ! f1);
-    BOOST_CHECK( f2);
+    BOOST_CHECK( ! f1.joinable() );
+    BOOST_CHECK( f2.joinable() );
 
     BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), f1.get_id() );
     BOOST_CHECK( boost::fibers::fiber::id() != f2.get_id() );
@@ -327,8 +328,8 @@ void test_id() {
     BOOST_CHECK( f2.get_id() != f3.get_id() );
 
     f1 = std::move( f2);
-    BOOST_CHECK( f1);
-    BOOST_CHECK( ! f2);
+    BOOST_CHECK( f1.joinable() );
+    BOOST_CHECK( ! f2.joinable() );
 
     BOOST_CHECK( boost::fibers::fiber::id() != f1.get_id() );
     BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), f2.get_id() );
@@ -347,8 +348,8 @@ void test_yield() {
     boost::fibers::fiber f2( fn3, std::ref( v2) );
     f1.join();
     f2.join();
-    BOOST_CHECK( ! f1);
-    BOOST_CHECK( ! f2);
+    BOOST_CHECK( ! f1.joinable() );
+    BOOST_CHECK( ! f2.joinable() );
     BOOST_CHECK_EQUAL( 8, v1);
     BOOST_CHECK_EQUAL( 8, v2);
 }
