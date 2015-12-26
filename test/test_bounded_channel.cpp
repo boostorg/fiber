@@ -49,7 +49,7 @@ void test_zero_wm_1() {
     bool thrown = false;
     try {
         boost::fibers::bounded_channel< int > c( 0);
-    } catch ( boost::fibers::fiber_exception const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -59,7 +59,7 @@ void test_zero_wm_2() {
     bool thrown = false;
     try {
         boost::fibers::bounded_channel< int > c( 0, 0);
-    } catch ( boost::fibers::fiber_exception const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -69,7 +69,7 @@ void test_hwm_less_lwm() {
     bool thrown = false;
     try {
         boost::fibers::bounded_channel< int > c( 2, 3);
-    } catch ( boost::fibers::fiber_exception const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -79,7 +79,7 @@ void test_hwm_equal_lwm() {
     bool thrown = false;
     try {
         boost::fibers::bounded_channel< int > c( 3, 3);
-    } catch ( boost::fibers::fiber_exception const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -205,7 +205,7 @@ void test_value_pop_closed() {
     bool thrown = false;
     try {
         c.value_pop();
-    } catch ( boost::fibers::fiber_exception const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);

@@ -50,7 +50,8 @@ timed_mutex::lock() {
     // store this fiber in order to be notified later
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( ctx == owner_) {
-        throw lock_error( static_cast< int >( std::errc::resource_deadlock_would_occur),
+        throw lock_error(
+                std::make_error_code( std::errc::resource_deadlock_would_occur),
                 "boost fiber: a deadlock is detected");
     } else if ( nullptr == owner_) {
         owner_ = ctx;
@@ -81,7 +82,8 @@ timed_mutex::unlock() {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( ctx != owner_) {
-        throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+        throw lock_error(
+                std::make_error_code( std::errc::operation_not_permitted),
                 "boost fiber: no  privilege to perform the operation");
     }
     if ( ! wait_queue_.empty() ) {

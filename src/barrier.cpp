@@ -21,7 +21,7 @@ barrier::barrier( std::size_t initial) :
 	initial_{ initial },
 	current_{ initial_ } {
     if ( 0 == initial) {
-        throw invalid_argument( static_cast< int >( std::errc::invalid_argument),
+        throw invalid_argument( std::make_error_code( std::errc::invalid_argument),
                                 "boost fiber: zero initial barrier count");
     }
 }
