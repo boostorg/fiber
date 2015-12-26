@@ -54,7 +54,7 @@ public:
     bool try_lock() noexcept;
 
     template< typename Clock, typename Duration >
-    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) noexcept {
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert( timeout_time_) );
         return try_lock_until_( timeout_time);

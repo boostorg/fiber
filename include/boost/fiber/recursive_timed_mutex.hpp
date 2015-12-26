@@ -67,7 +67,7 @@ public:
     }
 
     template< typename Rep, typename Period >
-    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
+    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) noexcept {
         return try_lock_until_( std::chrono::steady_clock::now() + timeout_duration);
     }
 
