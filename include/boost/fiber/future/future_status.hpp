@@ -16,7 +16,11 @@
 namespace boost {
 namespace fibers {
 
-using std::future_status;
+enum class future_status {
+    ready = 1,
+    timeout,
+    deferred
+};
 
 }}
 
