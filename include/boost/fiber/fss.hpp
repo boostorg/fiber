@@ -89,7 +89,7 @@ public:
         return tmp;
     }
 
-    void reset( T * t) noexcept {
+    void reset( T * t) {
         T * c = get();
         if ( c != t) {
             context::active()->set_fss_data(

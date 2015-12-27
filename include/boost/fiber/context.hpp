@@ -152,7 +152,7 @@ private:
             BOOST_ASSERT( cleanup_function);
         }
 
-        void do_cleanup() noexcept {
+        void do_cleanup() {
             ( * cleanup_function)( vp);
         }
     };
