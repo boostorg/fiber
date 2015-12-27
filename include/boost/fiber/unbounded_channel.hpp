@@ -126,7 +126,7 @@ private:
         tail_ = & new_node->nxt;
     }
 
-    value_type value_pop_( std::unique_lock< mutex > & lk) noexcept {
+    value_type value_pop_( std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( ! is_empty_() );
         auto old_head = pop_head_();
         return std::move( old_head->va);
@@ -210,7 +210,7 @@ public:
         return value_pop_( lk);
     }
 
-    channel_op_status try_pop( value_type & va) noexcept {
+    channel_op_status try_pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
         if ( is_closed_() && is_empty_() ) {
             // let other fibers run
