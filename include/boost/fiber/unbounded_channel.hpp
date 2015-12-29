@@ -203,7 +203,7 @@ public:
                                 return is_closed_() || ! is_empty_();
                               });
         if ( is_closed_() && is_empty_() ) {
-            throw fiber_resource_error(
+            throw fiber_error(
                     std::make_error_code( std::errc::operation_not_permitted),
                     "boost fiber: queue is closed");
         }

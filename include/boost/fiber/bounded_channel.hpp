@@ -206,12 +206,12 @@ public:
         hwm_{ hwm },
         lwm_{ lwm } {
         if ( hwm_ <= lwm_) {
-            throw invalid_argument( std::make_error_code( std::errc::invalid_argument),
-                                    "boost fiber: high-watermark is less than or equal to low-watermark for bounded_channel");
+            throw fiber_error( std::make_error_code( std::errc::invalid_argument),
+                               "boost fiber: high-watermark is less than or equal to low-watermark for bounded_channel");
         }
         if ( 0 == hwm) {
-            throw invalid_argument( std::make_error_code( std::errc::invalid_argument),
-                                    "boost fiber: high-watermark is zero");
+            throw fiber_error( std::make_error_code( std::errc::invalid_argument),
+                               "boost fiber: high-watermark is zero");
         }
     }
 
@@ -222,8 +222,8 @@ public:
         hwm_{ wm },
         lwm_{ wm - 1 } {
         if ( 0 == wm) {
-            throw invalid_argument( std::make_error_code( std::errc::invalid_argument),
-                                    "boost fiber: watermark is zero");
+            throw fiber_error( std::make_error_code( std::errc::invalid_argument),
+                               "boost fiber: watermark is zero");
         }
     }
 
@@ -362,7 +362,7 @@ public:
                                 return is_closed_() || ! is_empty_();
                               });
         if ( is_closed_() && is_empty_() ) {
-            throw fiber_resource_error(
+            throw fiber_error(
                     std::make_error_code( std::errc::operation_not_permitted),
                     "boost fiber: queue is closed");
         }

@@ -57,36 +57,6 @@ public:
     }
 };
 
-class fiber_resource_error : public fiber_error {
-public:
-    fiber_resource_error( std::error_code ec) :
-        fiber_error( ec, "boost::fiber_resource_error") {
-    }
-
-    fiber_resource_error( std::error_code ec, const char * what_arg) :
-        fiber_error( ec, what_arg) {
-    }
-
-    fiber_resource_error( std::error_code ec, std::string const& what_arg) :
-        fiber_error( ec, what_arg) {
-    }
-};
-
-class invalid_argument : public fiber_error {
-public:
-    invalid_argument( std::error_code ec) :
-        fiber_error( ec, "boost::invalid_argument") {
-    }
-
-    invalid_argument( std::error_code ec, const char * what_arg) :
-        fiber_error( ec, what_arg) {
-    }
-
-    invalid_argument( std::error_code ec, std::string const& what_arg) :
-        fiber_error( ec, what_arg) {
-    }
-};
-
 class fiber_interrupted : public fiber_error {
 public:
     fiber_interrupted() :
