@@ -60,14 +60,14 @@ public:
     bool try_lock() noexcept;
 
     template< typename Clock, typename Duration >
-    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) noexcept {
+    bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert( timeout_time_) );
         return try_lock_until_( timeout_time);
     }
 
     template< typename Rep, typename Period >
-    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) noexcept {
+    bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
         return try_lock_until_( std::chrono::steady_clock::now() + timeout_duration);
     }
 
