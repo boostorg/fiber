@@ -372,13 +372,27 @@
       is an instance of <code class="computeroutput"><span class="identifier">yield_t</span></code>:
     </p>
 <p>
-      [fibers_asio_yield]
+</p>
+<pre class="programlisting"><span class="comment">/// A special value, similar to std::nothrow.</span>
+<span class="identifier">BOOST_CONSTEXPR_OR_CONST</span> <span class="identifier">yield_t</span><span class="special">&lt;&gt;</span> <span class="identifier">yield</span><span class="special">;</span>
+</pre>
+<p>
     </p>
 <p>
       which is a <code class="computeroutput"><span class="identifier">promise_completion_token</span></code>:
     </p>
 <p>
-      [fibers_asio_yield_t]
+</p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="keyword">void</span> <span class="special">&gt;</span> <span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">yield_t</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">promise_completion_token</span><span class="special">&lt;</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="comment">/// Construct with default-constructed allocator.</span>
+    <span class="identifier">BOOST_CONSTEXPR</span> <span class="identifier">yield_t</span><span class="special">()</span> <span class="special">{</span>
+    <span class="special">}</span>
+    <span class="comment">// ... ways to use an alternate allocator or bind an error_code ...</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
       <code class="computeroutput"><span class="identifier">promise_completion_token</span></code> is
@@ -399,7 +413,14 @@
       Asio customization is engaged by specializing <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/handler_type.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">handler_type</span><span class="special">&lt;&gt;</span></code></a> for <code class="computeroutput"><span class="identifier">yield_t</span></code>:
     </p>
 <p>
-      [asio_handler_type]
+</p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ReturnType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Arg2</span> <span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">handler_type</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_t</span><span class="special">&lt;</span> <span class="identifier">Allocator</span> <span class="special">&gt;,</span>
+                     <span class="identifier">ReturnType</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">,</span> <span class="identifier">Arg2</span><span class="special">)</span> <span class="special">&gt;</span> <span class="special">{</span>
+    <span class="keyword">typedef</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="identifier">Arg2</span> <span class="special">&gt;</span>    <span class="identifier">type</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
       (There are actually four different specializations in <a href="../../../examples/asio/detail/yield.hpp" target="_top">detail/yield.hpp</a>,
@@ -419,7 +440,11 @@
       machinery:
     </p>
 <p>
-      [fibers_asio_yield_handler]
+</p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="keyword">using</span> <span class="identifier">yield_handler</span> <span class="special">=</span> <span class="identifier">promise_handler</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;;</span>
+</pre>
+<p>
     </p>
 <p>
       <code class="computeroutput"><span class="identifier">promise_handler</span></code> isa <code class="computeroutput"><span class="identifier">promise_handler_base</span></code>:

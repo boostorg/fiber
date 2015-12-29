@@ -31,31 +31,27 @@
 
 <span class="keyword">class</span> <span class="identifier">fiber</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="keyword">class</span>        <span class="identifier">id</span><span class="special">;</span>
+    <span class="keyword">class</span> <span class="identifier">id</span><span class="special">;</span>
 
     <span class="keyword">constexpr</span> <span class="identifier">fiber</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
 
-    <span class="special">~</span><span class="identifier">fiber</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="special">~</span><span class="identifier">fiber</span><span class="special">();</span>
 
-    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-    <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">bool</span> <span class="identifier">joinable</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -68,22 +64,17 @@
     <span class="keyword">void</span> <span class="identifier">interrupt</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
-    <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
 <span class="special">};</span>
 
-<span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-<span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;,</span> <span class="identifier">fiber</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">SchedAlgo</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait_interval</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">wait_interval</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="identifier">wait_interval</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <h5>
 <a name="fiber.fiber_mgmt.fiber.h0"></a>
@@ -140,8 +131,8 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_exception</span></code> if
-              an error occurs.
+              <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
+              occurs.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -214,7 +205,7 @@
 <a name="fiber.fiber_mgmt.fiber.h4"></a>
         <span><a name="fiber.fiber_mgmt.fiber.destructor"></a></span><a class="link" href="fiber.html#fiber.fiber_mgmt.fiber.destructor">Destructor</a>
       </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">fiber</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="special">~</span><span class="identifier">fiber</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -224,16 +215,11 @@
               If the fiber is <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>, calls std::terminate.
               Destroys <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
             </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing.
-            </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               The programmer must ensure that the destructor is never executed while
               the fiber is still <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. Even if you know
-              (by calling <a class="link" href="fiber.html#fiber_operator%20bool"> <code class="computeroutput">fiber::operator bool()</code></a>) that the fiber
-              has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
+              that the fiber has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
               <a class="link" href="fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a> before destroying the <code class="computeroutput"><span class="identifier">fiber</span></code>
               object.
             </p></dd>
@@ -262,10 +248,6 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               Nothing
-            </p></dd>
-<dt><span class="term">See also:</span></dt>
-<dd><p>
-              <a class="link" href="fiber.html#fiber_operator%20bool"> <code class="computeroutput">fiber::operator bool()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -299,7 +281,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code> if
-              the current fiber is interrupted or <code class="computeroutput"><span class="identifier">system_error</span></code>
+              the current fiber is interrupted or <code class="computeroutput"><span class="identifier">fiber_error</span></code>
             </p></dd>
 <dt><span class="term">Error Conditions:</span></dt>
 <dd><p>
@@ -345,7 +327,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">system_error</span></code>
+              <code class="computeroutput"><span class="identifier">fiber_error</span></code>
             </p></dd>
 <dt><span class="term">Error Conditions:</span></dt>
 <dd><p>
@@ -424,7 +406,7 @@
 <p>
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
-<span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -455,70 +437,6 @@
 <dt><span class="term">See also:</span></dt>
 <dd><p>
               <a class="link" href="../custom.html#custom">Customization</a>
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="fiber_operator%20bool_bridgehead"></a>
-  <span><a name="fiber_operator%20bool"></a></span>
-  <a class="link" href="fiber.html#fiber_operator%20bool">Member
-        function <code class="computeroutput">operator bool</code>()</a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution which has not yet terminated, <code class="computeroutput"><span class="keyword">false</span></code> otherwise. Compare to <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>,
-              which does not distinguish whether the referenced fiber of execution
-              is still running.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
-<dt><span class="term">See also:</span></dt>
-<dd><p>
-              <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="fiber_operator_not_bridgehead"></a>
-  <span><a name="fiber_operator_not"></a></span>
-  <a class="link" href="fiber.html#fiber_operator_not">Member function
-        <code class="computeroutput">operator!</code>()</a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">!()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              does not refer to a fiber of execution or if its fiber of execution
-              has terminated, <code class="computeroutput"><span class="keyword">false</span></code>
-              otherwise.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
-<dt><span class="term">See also:</span></dt>
-<dd><p>
-              <a class="link" href="fiber.html#fiber_operator%20bool"> <code class="computeroutput">fiber::operator bool()</code></a>, <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -572,6 +490,39 @@
 <dd><p>
               Same as <code class="computeroutput"><span class="identifier">l</span><span class="special">.</span><span class="identifier">swap</span><span class="special">(</span> <span class="identifier">r</span><span class="special">)</span></code>.
             </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing
+            </p></dd>
+</dl>
+</div>
+<p>
+        </p>
+<h5>
+<a name="operator&lt;_bridgehead"></a>
+  <span><a name="operator&lt;"></a></span>
+  <a class="link" href="fiber.html#operator&lt;">Non-member function <code class="computeroutput">operator&lt;()</code></a>
+</h5>
+<p>
+      </p>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">l</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span>
+              <span class="special">&lt;</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span></code> is true and the implementation-defined
+              total order of <code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code>
+              values places <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              before <code class="computeroutput"><span class="identifier">other</span></code>, false
+              otherwise.
+            </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+              Nothing.
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -620,67 +571,26 @@
 <p>
         </p>
 <h5>
-<a name="ready_fibers_bridgehead"></a>
-  <span><a name="ready_fibers"></a></span>
-  <a class="link" href="fiber.html#ready_fibers">Non-member function <code class="computeroutput">ready_fibers()</code></a>
+<a name="has_ready_fibers_bridgehead"></a>
+  <span><a name="has_ready_fibers"></a></span>
+  <a class="link" href="fiber.html#has_ready_fibers">Non-member function
+        <code class="computeroutput">has_ready_fibers()</code></a>
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-              the number of fibers ready to run.
+              <code class="computeroutput"><span class="keyword">true</span></code> if scheduler has
+              fibers ready to run.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               Nothing
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="wait_interval_bridgehead"></a>
-  <span><a name="wait_interval"></a></span>
-  <a class="link" href="fiber.html#wait_interval">Non-member function <code class="computeroutput">wait_interval()</code></a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait_interval</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">wait_interval</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="identifier">wait_interval</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              Sets/returns the wait interval used to suspend the thread if no fibers
-              are ready to run.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
-            </p></dd>
-<dt><span class="term">Notes:</span></dt>
-<dd><p>
-              This setting can be used to adjust the "niceness" of an idle
-              thread: a thread whose fibers are all currently blocked for various
-              reasons. The default for each thread, if not specified, is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">milliseconds</span><span class="special">(</span><span class="number">10</span><span class="special">)</span></code>.
-              A longer <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> causes an idle thread to use less
-              CPU. A shorter <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> is more responsive to fibers becoming
-              ready. When a fiber becomes ready to resume, e.g. a mutex on which
-              it is blocked becomes available, control is not immediately passed
-              to that fiber; instead it is marked "ready to run." It won't
-              actually resume until the fiber manager wakes up to consult the scheduler.
-              It could take as long as <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> before the fiber manager notices
-              the fiber's readiness. It is likely that the optimal setting for <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code>
-              is application-specific.
             </p></dd>
 </dl>
 </div>

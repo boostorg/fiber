@@ -37,24 +37,23 @@ order.
 
             ~fiber_specific_ptr();
 
-            fiber_specific_ptr( fiber_specific_ptr const& other) = delete;
-            fiber_specific_ptr & operator=( fiber_specific_ptr const& other) = delete;
+            fiber_specific_ptr( fiber_specific_ptr const&) = delete;
+            fiber_specific_ptr & operator=( fiber_specific_ptr const&) = delete;
 
-            T * get() const;
+            T * get() const noexcept;
 
-            T * operator->() const;
+            T * operator->() const noexcept;
 
-            T & operator*() const;
+            T & operator*() const noexcept;
 
             T * release();
 
-            void reset( T * t);
+            void reset( T *);
         };
 
 [heading Constructor]
 
         fiber_specific_ptr();
-
         explicit fiber_specific_ptr( void(*fn)(T*) );
 
 [variablelist
@@ -65,7 +64,7 @@ type `T` specific to each fiber. When `reset()` is called, or the
 fiber exits, __fsp__ calls `fn(this->get())`. If the no-arguments constructor
 is used, the default `delete`-based cleanup function
 will be used to destroy the fiber-local objects.]]
-[[Throws:] [__fiber_resource_error__ if an error occurs.]]
+[[Throws:] [__fiber_error__ if an error occurs.]]
 ]
 
 [heading Destructor]
@@ -77,7 +76,6 @@ will be used to destroy the fiber-local objects.]]
 (except maybe the one associated to this fiber) must be nullptr.]]
 [[Effects:] [Calls `this->reset()` to clean up the associated value for the
 current fiber, and destroys `*this`.]]
-[[Throws:] [Nothing.]]
 [[Remarks:] [The requirement is an implementation restriction. If the
 destructor promised to delete instances for all fibers, the implementation
 would be forced to maintain a list of all the fibers having an associated
@@ -90,7 +88,7 @@ instance.]
 
 [member_heading fiber_specific_ptr..get]
 
-        T* get() const;
+        T * get() const noexcept;
 
 [variablelist
 [[Returns:] [The pointer associated with the current fiber.]]
@@ -101,7 +99,7 @@ each fiber.]
 
 [operator_heading fiber_specific_ptr..operator_arrow..operator->]
 
-        T* operator->() const;
+        T * operator->() const noexcept;
 
 [variablelist
 [[Requires:] [`this->get()` is not `nullptr`.]]
@@ -111,7 +109,7 @@ each fiber.]
 
 [operator_heading fiber_specific_ptr..operator_star..operator*]
 
-        T& operator*() const;
+        T & operator*() const noexcept;
 
 [variablelist
 [[Requires:] [`this->get()` is not `nullptr`.]]
@@ -121,25 +119,25 @@ each fiber.]
 
 [member_heading fiber_specific_ptr..release]
 
-        T* release();
+        T * release();
 
 [variablelist
 [[Effects:] [Return `this->get()` and store `nullptr` as the pointer associated
 with the current fiber without invoking the cleanup function.]]
 [[Postcondition:] [`this->get()==nullptr`]]
-[[Throws:] [Nothing.]]
+[[Throws:] [Exception raised during cleanup of previous value.]]
 ]
 
 [member_heading fiber_specific_ptr..reset]
 
-        void reset(T* new_value);
+        void reset( T * new_value);
 
 [variablelist
 [[Effects:] [If `this->get()!=new_value` and `this->get()` is not `nullptr`,
 invoke `delete this->get()` or `fn(this->get())` as appropriate. Store
 `new_value` as the pointer associated with the current fiber.]]
 [[Postcondition:] [`this->get()==new_value`]]
-[[Throws:] [__fiber_resource_error__ if an error occurs.]]
+[[Throws:] [Exception raised during cleanup of previous value.]]
 ]
 
 [endsect]

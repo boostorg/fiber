@@ -6,8 +6,8 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="prev" href="overview.html" title="Overview">
-<link rel="next" href="fiber_mgmt.html" title="Fiber management">
+<link rel="prev" href="custom.html" title="Customization">
+<link rel="next" href="acknowledgements.html" title="Acknowledgments">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="custom.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -47,7 +47,7 @@
       When a coroutine yields, it passes control directly to its caller (or, in the
       case of symmetric coroutines, a designated other coroutine). When a fiber blocks,
       it implicitly passes control to the fiber scheduler. Coroutines have no scheduler
-      because they need no scheduler. <sup>[<a name="fiber.rationale.f0" href="#ftn.fiber.rationale.f0" class="footnote">1</a>]</sup>.
+      because they need no scheduler. <sup>[<a name="fiber.rationale.f0" href="#ftn.fiber.rationale.f0" class="footnote">6</a>]</sup>.
     </p>
 <h4>
 <a name="fiber.rationale.h1"></a>
@@ -77,19 +77,37 @@
     </p>
 <h4>
 <a name="fiber.rationale.h3"></a>
+      <span><a name="fiber.rationale.spurious_wakeup"></a></span><a class="link" href="rationale.html#fiber.rationale.spurious_wakeup">spurious
+      wakeup</a>
+    </h4>
+<p>
+      Spurious wakeup happens in the context of condition variables; the condition
+      variable appears to be have been signaled while the awaited condition may be
+      still false. Spurious wakeup can happen repeatedly and is caused on some multiprocessor
+      systems where making condition wakeup completely predictable slows down all
+      condition variable operations <sup>[<a name="fiber.rationale.f1" href="#ftn.fiber.rationale.f1" class="footnote">7</a>]</sup>.
+    </p>
+<p>
+      Spurious wakup does not happen in the context with <a class="link" href="synchronization/conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a>.
+      But it is save to keep the test of condition in a loop as known from usage
+      of std::condition_variable.
+    </p>
+<h4>
+<a name="fiber.rationale.h4"></a>
       <span><a name="fiber.rationale.migrating_fibers_between_threads"></a></span><a class="link" href="rationale.html#fiber.rationale.migrating_fibers_between_threads">migrating
       fibers between threads</a>
     </h4>
 <p>
-      Support for migrating fibers between threads has been integrated. The users-defined
-      scheduler has to call <code class="computeroutput"><span class="identifier">context</span><span class="special">::</span><span class="identifier">migrate</span><span class="special">()</span></code> with the migrated fiber-context as argument
-      (see <a class="link" href="custom.html#custom">Customization</a>; examles <code class="computeroutput"> <span class="identifier">work_sharing</span></code>
-      and <code class="computeroutput"><span class="identifier">work_stealing</span></code> in directory
+      Support for migrating fibers between threads has been integrated. The user-defined
+      scheduler has to invoke <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> with the migrated
+      fiber-context as argument on the active fiber (see <a class="link" href="custom.html#custom">Customization</a>);
+      examples <code class="computeroutput"> <span class="identifier">work_sharing</span></code> and
+      <code class="computeroutput"><span class="identifier">work_stealing</span></code> in directory
       <code class="computeroutput"><span class="identifier">examples</span></code> might be used as a
-      blue-print).
+      blue-print.
     </p>
 <h4>
-<a name="fiber.rationale.h4"></a>
+<a name="fiber.rationale.h5"></a>
       <span><a name="fiber.rationale.support_for_boost_asio"></a></span><a class="link" href="rationale.html#fiber.rationale.support_for_boost_asio">support
       for Boost.Asio</a>
     </h4>
@@ -101,16 +119,15 @@
       To interface smoothly with an arbitrary Asio async I/O operation, see <a class="link" href="callbacks.html#callbacks_asio">Then There's <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a></a>.
     </p>
 <h4>
-<a name="fiber.rationale.h5"></a>
+<a name="fiber.rationale.h6"></a>
       <span><a name="fiber.rationale.tested_compilers"></a></span><a class="link" href="rationale.html#fiber.rationale.tested_compilers">tested
       compilers</a>
     </h4>
 <p>
-      The library was tested with GCC-4.9.2, GCC-5.1.1, Clang-3.6.0 and MSVC-14.0
-      in c++14-mode.
+      The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++11-mode.
     </p>
 <h4>
-<a name="fiber.rationale.h6"></a>
+<a name="fiber.rationale.h7"></a>
       <span><a name="fiber.rationale.supported_architectures"></a></span><a class="link" href="rationale.html#fiber.rationale.supported_architectures">supported
       architectures</a>
     </h4>
@@ -120,9 +137,12 @@
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f0" href="#fiber.rationale.f0" class="para">1</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f0" href="#fiber.rationale.f0" class="para">6</a>] </sup>
         <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4024.pdf" target="_top">'N4024:
         Distinguishing coroutines and fibers'</a>
+      </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f1" href="#fiber.rationale.f1" class="para">7</a>] </sup>
+        David R. Butenhof "Programming with POSIX Threads"
       </p></div>
 </div>
 </div>
@@ -136,7 +156,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="custom.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

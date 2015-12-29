@@ -48,6 +48,8 @@ Timed wait-operations (__wait_for__ and __wait_until__) return the state of the 
 [[Effects:] [The [link shared_state shared state] did not become ready before timeout has passed.]]
 ]
 
+[note Deferred futures are not supported.]
+
 
 [template_heading future]
 
@@ -58,21 +60,23 @@ A __future__ contains a [link shared_state shared state] which is not shared wit
         public:
             future() noexcept;
 
-            future( future && other) noexcept;
-
             future( future const& other) = delete;
 
-            ~future();
+            future & operator=( future const& other) = delete;
+
+            future( future && other) noexcept;
 
             future & operator=( future && other) noexcept;
 
-            future & operator=( future const& other) = delete;
+            ~future();
 
             bool valid() const noexcept;
 
             shared_future< R > share();
 
-            R get();
+            R get();    // member only of generic future template
+            R & get();  // member only of future< R & > template specialization
+            void get(); // member only of future< void > template specialization
 
             std::exception_ptr get_exception_ptr();
 
@@ -89,7 +93,7 @@ A __future__ contains a [link shared_state shared state] which is not shared wit
 
 [heading Default constructor]
 
-        future();
+        future() noexcept;
 
 [template future_ctor_variablelist[xfuture]
 [variablelist
@@ -120,7 +124,6 @@ After construction [post_valid].]]
 [template future_dtor_variablelist[xfuture end]
 [variablelist
 [[Effects:] [Destroys the [xfuture]; ownership is abandoned[end]]]
-[[Throws:] [Nothing.]]
 [[Note:] [[`~[xfuture]()] does ['not] block the calling fiber.]]
 ]
 ]
@@ -176,7 +179,9 @@ state] formerly belonging to `*this`.]]
 
 [member_heading future..get]
 
-        R get();
+        R get();    // member only of generic future template
+        R & get();  // member only of future< R & > template specialization
+        void get(); // member only of future< void > template specialization
 
 [template future_get_variablelist[]
 [variablelist
@@ -226,7 +231,8 @@ After calling `get_exception_ptr()`, you may still call [member_link
 [variablelist
 [[Effects:] [[future_method_wait , or `timeout_duration` has passed.]]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__ or
+timeout-related exceptions.]]
 ]
 
 [template_member_heading [xfuture]..wait_until]
@@ -237,7 +243,8 @@ After calling `get_exception_ptr()`, you may still call [member_link
 [variablelist
 [[Effects:] [[future_method_wait , or `timeout_time` has passed.]]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__ or
+timeout-related exceptions.]]
 ]
 ]
 [future_wait_etc future]
@@ -263,7 +270,7 @@ shared with other __shared_future__ instances.
 
             shared_future & operator=( shared_future && other) noexcept;
 
-            shared_future & operator=( future && other) noexcept;
+            shared_future & operator=( future< R > && other) noexcept;
 
             shared_future & operator=( shared_future const& other) noexcept;
 
@@ -294,7 +301,7 @@ shared with other __shared_future__ instances.
 
 [heading Move constructor]
 
-        shared_future( future && other) noexcept;
+        shared_future( future< R > && other) noexcept;
         shared_future( shared_future && other) noexcept;
 
 [future_move_copy_ctor_variablelist shared_future..`false == other.valid()`]
@@ -313,7 +320,7 @@ shared with other __shared_future__ instances.
 
 [operator_heading shared_future..operator_assign..operator=]
 
-        shared_future & operator=( future && other) noexcept;
+        shared_future & operator=( future< R > && other) noexcept;
         shared_future & operator=( shared_future && other) noexcept;
         shared_future & operator=( shared_future const& other) noexcept;
 
@@ -344,22 +351,36 @@ const&`, otherwise `false`.]]
         #include <boost/fiber/future/async.hpp>
 
         template< typename Fn, typename ... Args >
-        future< typename result_of< Fn&&( Args && ... ) >::type >
+        future<
+            typename std::result_of<
+                typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+            >::type
+        >
         async( Fn && fn, Args && ... args);
 
         template< typename StackAllocator, typename Fn, typename ... Args >
-        future< typename result_of< Fn&&( Args && ... ) >::type >
+        future<
+            typename std::result_of<
+                typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+            >::type
+        >
         async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
 
 [variablelist
 [[Effects:] [Executes `fn` in a [class_link fiber] and returns an associated
 [template_link future].]]
-[[Result:] [`future< typename result_of< Fn >::type >` representing the [link
+[[Result:] [`future<
+    typename std::result_of<
+        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    >::type
+>` representing the [link
 shared_state shared state] associated with the asynchronous execution of
 `fn`.]]
-[[Throws:] [__fiber_exception__ or __future_error__ if an error occurs.]]
+[[Throws:] [__fiber_error__ or __future_error__ if an error occurs.]]
 [[Notes:] [The overload accepting __allocator_arg_t__ uses the passed
 `StackAllocator` when constructing the launched `fiber`.]]
 ]
+
+[note Deferred futures are not supported.]
 
 [endsect]

@@ -83,7 +83,13 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              already owns the mutex.
             </p></dd>
 </dl>
 </div>
@@ -117,7 +123,13 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              already owns the mutex.
             </p></dd>
 </dl>
 </div>
@@ -146,7 +158,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>operation_not_permitted</strong></span>: if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              does not own the mutex.
             </p></dd>
 </dl>
 </div>
@@ -170,13 +187,13 @@
     <span class="identifier">timed_mutex</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">timed_mutex</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
     <span class="keyword">void</span> <span class="identifier">lock</span><span class="special">();</span>
-    <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+    <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -209,7 +226,13 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              already owns the mutex.
             </p></dd>
 </dl>
 </div>
@@ -244,7 +267,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>operation_not_permitted</strong></span>: if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              does not own the mutex.
             </p></dd>
 </dl>
 </div>
@@ -274,7 +302,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>operation_not_permitted</strong></span>: if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              does not own the mutex.
             </p></dd>
 </dl>
 </div>
@@ -289,7 +322,7 @@
 <p>
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -312,7 +345,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              Timeout-related exceptions.
             </p></dd>
 </dl>
 </div>
@@ -327,7 +360,7 @@
 <p>
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -350,7 +383,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              Timeout-related exceptions.
             </p></dd>
 </dl>
 </div>
@@ -424,7 +457,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -467,7 +500,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>operation_not_permitted</strong></span>: if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              does not own the mutex.
             </p></dd>
 </dl>
 </div>
@@ -496,9 +534,9 @@
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+    <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
 <p>
@@ -553,7 +591,7 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -596,7 +634,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>operation_not_permitted</strong></span>: if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              does not own the mutex.
             </p></dd>
 </dl>
 </div>
@@ -611,7 +654,7 @@
 <p>
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -630,7 +673,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              Timeout-related exceptions.
             </p></dd>
 </dl>
 </div>
@@ -645,7 +688,7 @@
 <p>
       </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">)</span>
+<span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -664,7 +707,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Nothing.
+              Timeout-related exceptions.
             </p></dd>
 </dl>
 </div>

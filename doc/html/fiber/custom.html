@@ -7,7 +7,7 @@
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="prev" href="performance.html" title="Performance">
-<link rel="next" href="acknowledgements.html" title="Acknowledgments">
+<link rel="next" href="rationale.html" title="Rationale">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -61,7 +61,7 @@
     </h4>
 <p>
       The first essential point is that we must associate an integer priority with
-      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">6</a>]</sup>
+      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">5</a>]</sup>
     </p>
 <p>
       One might suggest deriving a custom <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> subclass to store such
@@ -169,11 +169,6 @@
       Now we can derive a custom scheduler from <a class="link" href="scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a>,
       specifying our custom property class <code class="computeroutput"><span class="identifier">priority_props</span></code>
       as the template parameter.
-    </p>
-<p>
-      Your custom scheduler can track ready <code class="literal"> <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a>*</code>s
-      using whatever container tactic you prefer. In this example, we use <a class="link" href="scheduling.html#context_nxt"> <code class="computeroutput">context::nxt</code></a> to
-      hand-implement an intrusive singly-linked list.
     </p>
 <p>
 </p>
@@ -298,7 +293,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.custom.c15"></a><a href="#fiber.custom.c14"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          You must override <a class="link" href="scheduling.html#sched_algorithm_with_properties_ready_fibers"> <code class="computeroutput">sched_algorithm_with_properties::ready_fibers()</code></a>
+          You must override <a class="link" href="scheduling.html#sched_algorithm_with_properties_has_ready_fibers"> <code class="computeroutput">sched_algorithm_with_properties::has_ready_fibers()</code></a>
       to
           inform the fiber manager of the size of your ready queue.
         </p></td>
@@ -397,7 +392,7 @@
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">6</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">5</a>] </sup>
         A previous version of the Fiber library implicitly tracked an int priority
         for each fiber, even though the default scheduler ignored it. This has been
         dropped, since the library now supports arbitrary scheduler-specific fiber
@@ -415,7 +410,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="acknowledgements.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>
