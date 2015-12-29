@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="prev" href="rationale.html" title="Rationale">
+<link rel="prev" href="overview.html" title="Overview">
 <link rel="next" href="fiber_mgmt/fiber.html" title="Class fiber">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="rationale.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -31,7 +31,6 @@
       <code class="computeroutput"><span class="identifier">fiber</span></code></a></span></dt>
 <dt><span class="section"><a href="fiber_mgmt/id.html">Class fiber::id</a></span></dt>
 <dt><span class="section"><a href="fiber_mgmt/this_fiber.html">Namespace this_fiber</a></span></dt>
-<dt><span class="section"><a href="fiber_mgmt/winfibers.html">Using WinFiber-API</a></span></dt>
 </dl></div>
 <h4>
 <a name="fiber.fiber_mgmt.h0"></a>
@@ -52,12 +51,7 @@
 <span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">SchedAlgo</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">ready_fibers</span><span class="special">();</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait_interval</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">wait_interval</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="identifier">wait_interval</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">();</span>
 
 <span class="special">}</span>
 
@@ -66,9 +60,9 @@
 <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">();</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">sleep_time</span><span class="special">)</span>
+<span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">)</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">rel_time</span><span class="special">);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
 <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
 
@@ -160,7 +154,7 @@ constructor
 <p>
       If a detached fiber is still running when the thread's main fiber terminates,
       that fiber will be <a class="link" href="fiber_mgmt.html#interruption">interrupted</a> and shut
-      down.<sup>[<a name="fiber.fiber_mgmt.f0" href="#ftn.fiber.fiber_mgmt.f0" class="footnote">2</a>]</sup>
+      down.<sup>[<a name="fiber.fiber_mgmt.f0" href="#ftn.fiber.fiber_mgmt.f0" class="footnote">1</a>]</sup>
     </p>
 <h4>
 <a name="fiber.fiber_mgmt.h5"></a>
@@ -169,8 +163,7 @@ constructor
 <p>
       In order to wait for a fiber to finish, the <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> member function
       of the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object can be used. <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> will block
-      until the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object has completed. If the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> has
-      already completed then <a class="link" href="fiber_mgmt/fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> returns immediately.
+      until the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object has completed.
     </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">some_fn</span><span class="special">()</span> <span class="special">{</span>
     <span class="special">...</span>
@@ -255,12 +248,13 @@ constructor
           <a class="link" href="synchronization/conditions.html#condition_variable_wait_until"> <code class="computeroutput">condition_variable::wait_until()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="synchronization/mutex_types.html#mutex_lock"> <code class="computeroutput">mutex::lock()</code></a> ( <a class="link" href="synchronization/mutex_types.html#class_recursive_mutex"> <code class="computeroutput">recursive_mutex</code></a>, <a class="link" href="synchronization/mutex_types.html#class_recursive_timed_mutex"> <code class="computeroutput">recursive_timed_mutex</code></a>,
-          <a class="link" href="synchronization/mutex_types.html#class_timed_mutex"> <code class="computeroutput">timed_mutex</code></a>)
+          <a class="link" href="synchronization/conditions.html#condition_variable_any_wait"> <code class="computeroutput">condition_variable_any::wait()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="synchronization/mutex_types.html#mutex_try_lock"> <code class="computeroutput">mutex::try_lock()</code></a> ( <a class="link" href="synchronization/mutex_types.html#class_recursive_mutex"> <code class="computeroutput">recursive_mutex</code></a>,
-          <a class="link" href="synchronization/mutex_types.html#class_recursive_timed_mutex"> <code class="computeroutput">recursive_timed_mutex</code></a>, <a class="link" href="synchronization/mutex_types.html#class_timed_mutex"> <code class="computeroutput">timed_mutex</code></a>)
+          <a class="link" href="synchronization/conditions.html#condition_variable_any_wait_for"> <code class="computeroutput">condition_variable_any::wait_for()</code></a>
+        </li>
+<li class="listitem">
+          <a class="link" href="synchronization/conditions.html#condition_variable_any_wait_until"> <code class="computeroutput">condition_variable_any::wait_until()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_sleep_for"> <code class="computeroutput">this_fiber::sleep_for()</code></a>
@@ -360,7 +354,7 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"> <code 
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.fiber_mgmt.f0" href="#fiber.fiber_mgmt.f0" class="para">2</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.fiber_mgmt.f0" href="#fiber.fiber_mgmt.f0" class="para">1</a>] </sup>
         This treatment of detached fibers depends on a detached fiber eventually
         either terminating or reaching one of the specified <a class="link" href="fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
         Note that since <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a> is <span class="emphasis"><em>not</em></span>
@@ -380,7 +374,7 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"> <code 
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="rationale.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="overview.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="fiber_mgmt/fiber.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

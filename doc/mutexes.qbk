@@ -39,12 +39,14 @@ lock by calling __unlock__.
 [variablelist
 [[Precondition:] [The calling fiber doesn't own the mutex.]]
 [[Effects:] [The current fiber blocks until ownership can be obtained.]]
-[[Throws:] [__fiber_interrupted__]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*resource_deadlock_would_occur]: if `boost::this_fiber::get_id()` already owns the mutex.]]
 ]
 
 [member_heading mutex..try_lock]
 
-        bool try_lock();
+            bool try_lock();
 
 [variablelist
 [[Precondition:] [The calling fiber doesn't own the mutex.]]
@@ -52,7 +54,9 @@ lock by calling __unlock__.
 blocking.]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*resource_deadlock_would_occur]: if `boost::this_fiber::get_id()` already owns the mutex.]]
 ]
 
 [member_heading mutex..unlock]
@@ -62,7 +66,9 @@ otherwise.]]
 [variablelist
 [[Precondition:] [The current fiber owns `*this`.]]
 [[Effects:] [Releases a lock on `*this` by the current fiber.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*operation_not_permitted]: if `boost::this_fiber::get_id()` does not own the mutex.]]
 ]
 
 
@@ -79,13 +85,13 @@ otherwise.]]
             timed_mutex & operator=( timed_mutex const& other) = delete;
 
             void lock();
-            void unlock();
             bool try_lock();
+            void unlock();
 
             template< typename Clock, typename Duration >
-            bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
+            bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time);
             template< typename Rep, typename Period >
-            bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
+            bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         };
 
 __timed_mutex__ provides an exclusive-ownership mutex. At most one fiber can own
@@ -100,7 +106,9 @@ __unlock__ shall be permitted.
 [variablelist
 [[Precondition:] [The calling fiber doesn't own the mutex.]]
 [[Effects:] [The current fiber blocks until ownership can be obtained.]]
-[[Throws:] [__fiber_interrupted__]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*resource_deadlock_would_occur]: if `boost::this_fiber::get_id()` already owns the mutex.]]
 ]
 
 [member_heading timed_mutex..try_lock]
@@ -113,7 +121,9 @@ __unlock__ shall be permitted.
 blocking.]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*operation_not_permitted]: if `boost::this_fiber::get_id()` does not own the mutex.]]
 ]
 
 [member_heading timed_mutex..unlock]
@@ -123,13 +133,15 @@ otherwise.]]
 [variablelist
 [[Precondition:] [The current fiber owns `*this`.]]
 [[Effects:] [Releases a lock on `*this` by the current fiber.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*operation_not_permitted]: if `boost::this_fiber::get_id()` does not own the mutex.]]
 ]
 
 [template_member_heading timed_mutex..try_lock_until]
 
         template< typename Clock, typename Duration >
-        bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
+        bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time);
 
 [variablelist
 [[Precondition:] [The calling fiber doesn't own the mutex.]]
@@ -138,13 +150,13 @@ ownership can be obtained, or the specified time is reached. If the specified
 time has already passed, behaves as [member_link timed_mutex..try_lock].]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [Timeout-related exceptions.]]
 ]
 
 [template_member_heading timed_mutex..try_lock_for]
 
         template< typename Rep, typename Period >
-        bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
+        bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration);
 
 [variablelist
 [[Precondition:] [The calling fiber doesn't own the mutex.]]
@@ -153,7 +165,7 @@ ownership can be obtained, or the specified time is reached. If the specified
 time has already passed, behaves as [member_link timed_mutex..try_lock].]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [Timeout-related exceptions.]]
 ]
 
 
@@ -194,7 +206,7 @@ acquired by another fiber.
 
 [member_heading recursive_mutex..try_lock]
 
-        bool try_lock();
+        bool try_lock() noexcept;
 
 [variablelist
 [[Effects:] [Attempt to obtain ownership for the current fiber without
@@ -210,7 +222,9 @@ otherwise.]]
 
 [variablelist
 [[Effects:] [Releases a lock on `*this` by the current fiber.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*operation_not_permitted]: if `boost::this_fiber::get_id()` does not own the mutex.]]
 ]
 
 
@@ -231,9 +245,9 @@ otherwise.]]
             void unlock();
 
             template< typename Clock, typename Duration >
-            bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
+            bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time);
             template< typename Rep, typename Period >
-            bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
+            bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         };
 
 __recursive_timed_mutex__ provides an exclusive-ownership recursive mutex. At
@@ -258,7 +272,7 @@ fiber.
 
 [member_heading recursive_timed_mutex..try_lock]
 
-        bool try_lock();
+        bool try_lock() noexcept;
 
 [variablelist
 [[Effects:] [Attempt to obtain ownership for the current fiber without
@@ -274,13 +288,15 @@ otherwise.]]
 
 [variablelist
 [[Effects:] [Releases a lock on `*this` by the current fiber.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [`lock_error`]]
+[[Error Conditions:] [
+[*operation_not_permitted]: if `boost::this_fiber::get_id()` does not own the mutex.]]
 ]
 
 [template_member_heading recursive_timed_mutex..try_lock_until]
 
         template< typename Clock, typename Duration >
-        bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time)
+        bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time);
 
 [variablelist
 [[Effects:] [Attempt to obtain ownership for the current fiber. Blocks until
@@ -288,13 +304,13 @@ ownership can be obtained, or the specified time is reached. If the specified
 time has already passed, behaves as [member_link recursive_timed_mutex..try_lock].]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [Timeout-related exceptions.]]
 ]
 
 [template_member_heading recursive_timed_mutex..try_lock_for]
 
         template< typename Rep, typename Period >
-        bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration)
+        bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration);
 
 [variablelist
 [[Effects:] [Attempt to obtain ownership for the current fiber. Blocks until
@@ -302,7 +318,7 @@ ownership can be obtained, or the specified time is reached. If the specified
 time has already passed, behaves as [member_link recursive_timed_mutex..try_lock].]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Nothing.]]
+[[Throws:] [Timeout-related exceptions.]]
 ]
 
 

@@ -105,7 +105,7 @@ void test_value_pop_closed() {
     bool thrown = false;
     try {
         c.value_pop();
-    } catch ( boost::fibers::fiber_exception const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);

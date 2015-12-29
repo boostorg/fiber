@@ -96,21 +96,32 @@ struct future_base {
 }
 
 template< typename R >
+struct promise_base;
+
+}
+
+template< typename R >
 class shared_future;
+
+template< typename Signature >
+class packaged_task;
 
 template< typename R >
 class future : private detail::future_base< R > {
 private:
     typedef detail::future_base< R >  base_t;
 
+    friend struct detail::promise_base< R >;
     friend class shared_future< R >;
-
-public:
-    constexpr future() noexcept = default;
+    template< typename Signature >
+    friend class packaged_task;
 
     explicit future( typename base_t::ptr_t const& p) noexcept :
         base_t{ p } {
     }
+
+public:
+    constexpr future() noexcept = default;
 
     future( future const&) = delete;
     future & operator=( future const&) = delete;
@@ -148,14 +159,17 @@ class future< R & > : private detail::future_base< R & > {
 private:
     typedef detail::future_base< R & >  base_t;
 
+    friend struct detail::promise_base< R & >;
     friend class shared_future< R & >;
-
-public:
-    constexpr future() noexcept = default;
+    template< typename Signature >
+    friend class packaged_task;
 
     explicit future( typename base_t::ptr_t const& p) noexcept :
         base_t{ p  } {
     }
+
+public:
+    constexpr future() noexcept = default;
 
     future( future const&) = delete;
     future & operator=( future const&) = delete;
@@ -193,14 +207,17 @@ class future< void > : private detail::future_base< void > {
 private:
     typedef detail::future_base< void >  base_t;
 
+    friend struct detail::promise_base< void >;
     friend class shared_future< void >;
-
-public:
-    constexpr future() noexcept = default;
+    template< typename Signature >
+    friend class packaged_task;
 
     explicit future( base_t::ptr_t const& p) noexcept :
         base_t{ p } {
     }
+
+public:
+    constexpr future() noexcept = default;
 
     future( future const&) = delete;
     future & operator=( future const&) = delete;

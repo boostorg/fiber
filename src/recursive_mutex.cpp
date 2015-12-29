@@ -60,7 +60,8 @@ recursive_mutex::unlock() {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
     if ( ctx != owner_) {
-        throw lock_error( static_cast< int >( std::errc::operation_not_permitted),
+        throw lock_error(
+                std::make_error_code( std::errc::operation_not_permitted),
                 "boost fiber: no  privilege to perform the operation");
     }
     if ( 0 == --count_) {

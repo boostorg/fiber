@@ -71,25 +71,20 @@ wake up again on expiration:
 Then instead of directly calling `io_service::run()`, your application would
 call the above `run_service(io_service&)` wrapper.
 
-Note the use of [function_link wait_interval] to reset the timer. This
-replicates the default behavior of the fiber manager: when all fibers on the
-current thread are blocked, the fiber manager sleeps for `wait_interval()` to
-permit real work to proceed on other threads.
-
 Since, in this example, we always pass control to the fiber manager via
 `yield()`, the calling fiber is never blocked. Therefore there is always at
 least one ready fiber. Therefore the fiber manager never sleeps.
 
-Using `std::chrono::seconds(0)` for ['every] timer interval would be
+Using `std::chrono::seconds(0)` for ['every] keepalive timer interval would be
 unfriendly to other threads. When all I/O is pending and all fibers are
 blocked, the io_service and the fiber manager would simply spin the CPU,
 passing control back and forth to each other. Resetting the timer for
-`wait_interval()` allows tuning the responsiveness of this thread relative to
+`keepalive_iterval` allows tuning the responsiveness of this thread relative to
 others in the same way as when __boost_fiber__ is running without
 __boost_asio__.
 
 [/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
 The source code above is found in
-[@../../examples/asio/loop.hpp loop.hpp].
+[@../../examples/asio/round_robin.hpp round_robin.hpp].
 
 [endsect]

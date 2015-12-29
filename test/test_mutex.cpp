@@ -230,8 +230,8 @@ struct test_exclusive {
         mutex_type mtx;
         boost::fibers::fiber f1( & fn1< mutex_type >, std::ref( mtx) );
         boost::fibers::fiber f2( & fn2< mutex_type >, std::ref( mtx) );
-        BOOST_ASSERT( f1);
-        BOOST_ASSERT( f2);
+        BOOST_ASSERT( f1.joinable() );
+        BOOST_ASSERT( f2.joinable() );
 
         f1.join();
         f2.join();

@@ -52,11 +52,10 @@ members in the barrier object.]
 
     class barrier {
     public:
-        barrier( unsigned int initial);
+        explicit barrier( std::size_t);
 
-        barrier( barrier const& other) = delete;
-
-        barrier & operator=( barrier const& other) = delete;
+        barrier( barrier const&) = delete;
+        barrier & operator=( barrier const&) = delete;
 
         bool wait();
     };
@@ -66,11 +65,13 @@ Instances of __barrier__ are not copyable or movable.
 
 [heading Constructor]
 
-        barrier( std::size_t initial);
+        explicit barrier( std::size_t initial);
 
 [variablelist
 [[Effects:] [Construct a barrier for `initial` fibers.]]
-[[Throws:] [__invalid_argument__ if `initial` is zero]]
+[[Throws:] [`fiber_error`]]
+[[Error Conditions:] [
+[*invalid_argument]: if `initial` is zero.]]
 ]
 
 [member_heading barrier..wait]
@@ -83,7 +84,7 @@ the `initial`-th fiber calls `wait`, all waiting fibers are unblocked, and
 the barrier is reset. ]]
 [[Returns:] [`true` for exactly one fiber from each batch of waiting fibers,
 `false` otherwise.]]
-[[Throws:] [__fiber_exception__]]
+[[Throws:] [__fiber_error__]]
 [[Notes:] [`wait()` is one of the predefined __interruption_points__.]]
 ]
 

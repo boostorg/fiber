@@ -70,18 +70,18 @@
 
     <span class="special">~</span><span class="identifier">fiber_specific_ptr</span><span class="special">();</span>
 
-    <span class="identifier">fiber_specific_ptr</span><span class="special">(</span> <span class="identifier">fiber_specific_ptr</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-    <span class="identifier">fiber_specific_ptr</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber_specific_ptr</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">fiber_specific_ptr</span><span class="special">(</span> <span class="identifier">fiber_specific_ptr</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">fiber_specific_ptr</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">fiber_specific_ptr</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-    <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">release</span><span class="special">();</span>
 
-    <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">t</span><span class="special">);</span>
+    <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span> <span class="identifier">T</span> <span class="special">*);</span>
 <span class="special">};</span>
 </pre>
 <h4>
@@ -89,7 +89,6 @@
       <span><a name="fiber.fls.constructor"></a></span><a class="link" href="fls.html#fiber.fls.constructor">Constructor</a>
     </h4>
 <pre class="programlisting"><span class="identifier">fiber_specific_ptr</span><span class="special">();</span>
-
 <span class="keyword">explicit</span> <span class="identifier">fiber_specific_ptr</span><span class="special">(</span> <span class="keyword">void</span><span class="special">(*</span><span class="identifier">fn</span><span class="special">)(</span><span class="identifier">T</span><span class="special">*)</span> <span class="special">);</span>
 </pre>
 <div class="variablelist">
@@ -110,8 +109,8 @@
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">fiber_resource_error</span></code>
-            if an error occurs.
+            <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
+            occurs.
           </p></dd>
 </dl>
 </div>
@@ -135,10 +134,6 @@
             Calls <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">reset</span><span class="special">()</span></code>
             to clean up the associated value for the current fiber, and destroys
             <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-          </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-            Nothing.
           </p></dd>
 <dt><span class="term">Remarks:</span></dt>
 <dd><p>
@@ -171,7 +166,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="identifier">T</span><span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">T</span> <span class="special">*</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -206,7 +201,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="identifier">T</span><span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -236,7 +231,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="identifier">T</span><span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -266,7 +261,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="identifier">T</span><span class="special">*</span> <span class="identifier">release</span><span class="special">();</span>
+<pre class="programlisting"><span class="identifier">T</span> <span class="special">*</span> <span class="identifier">release</span><span class="special">();</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -284,7 +279,7 @@
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-            Nothing.
+            Exception raised during cleanup of previous value.
           </p></dd>
 </dl>
 </div>
@@ -298,7 +293,7 @@
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span><span class="identifier">T</span><span class="special">*</span> <span class="identifier">new_value</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span> <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">new_value</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -315,8 +310,7 @@
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">fiber_resource_error</span></code>
-            if an error occurs.
+            Exception raised during cleanup of previous value.
           </p></dd>
 </dl>
 </div>

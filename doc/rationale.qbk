@@ -45,13 +45,27 @@ build option to disable cross-thread fiber synchronization support; see [link
 cross_thread_sync this description].)
 
 
+[heading spurious wakeup]
+
+Spurious wakeup happens in the context of condition variables; the condition
+variable appears to be have been signaled while the awaited condition may be
+still false. Spurious wakeup can happen repeatedly and is caused on some
+multiprocessor systems where making condition wakeup completely predictable
+slows down all condition variable operations
+[footnote  David R. Butenhof "Programming with POSIX Threads"].
+
+Spurious wakup does not happen in the context with __condition__. But it is
+save to keep the test of condition in a loop as known from usage of
+std::condition_variable.
+
+
 [heading migrating fibers between threads]
 
 Support for migrating fibers between threads has been integrated.
-The users-defined scheduler has to call `context::migrate()` with
-the migrated fiber-context as argument (see [link custom Customization];
-examles ` work_sharing` and `work_stealing` in directory `examples` 
-might be used as a blue-print).
+The user-defined scheduler has to invoke __migrate__ with
+the migrated fiber-context as argument on the active fiber
+(see [link custom Customization]); examples ` work_sharing` and
+`work_stealing` in directory `examples` might be used as a blue-print.
 
 
 [heading support for Boost.Asio]
@@ -64,7 +78,7 @@ __boost_asio__].
 
 [heading tested compilers]
 
-The library was tested with GCC-4.9.2, GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++14-mode.
+The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++11-mode.
 
 
 [heading supported architectures]

@@ -108,27 +108,22 @@
       your application would call the above <code class="computeroutput"><span class="identifier">run_service</span><span class="special">(</span><span class="identifier">io_service</span><span class="special">&amp;)</span></code> wrapper.
     </p>
 <p>
-      Note the use of <a class="link" href="fiber_mgmt/fiber.html#wait_interval"> <code class="computeroutput">wait_interval()</code></a> to reset the timer. This replicates
-      the default behavior of the fiber manager: when all fibers on the current thread
-      are blocked, the fiber manager sleeps for <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code> to permit real work to proceed on other threads.
-    </p>
-<p>
       Since, in this example, we always pass control to the fiber manager via <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>,
       the calling fiber is never blocked. Therefore there is always at least one
       ready fiber. Therefore the fiber manager never sleeps.
     </p>
 <p>
       Using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">seconds</span><span class="special">(</span><span class="number">0</span><span class="special">)</span></code> for <span class="emphasis"><em>every</em></span>
-      timer interval would be unfriendly to other threads. When all I/O is pending
-      and all fibers are blocked, the io_service and the fiber manager would simply
-      spin the CPU, passing control back and forth to each other. Resetting the timer
-      for <code class="computeroutput"><span class="identifier">wait_interval</span><span class="special">()</span></code>
+      keepalive timer interval would be unfriendly to other threads. When all I/O
+      is pending and all fibers are blocked, the io_service and the fiber manager
+      would simply spin the CPU, passing control back and forth to each other. Resetting
+      the timer for <code class="computeroutput"><span class="identifier">keepalive_iterval</span></code>
       allows tuning the responsiveness of this thread relative to others in the same
       way as when <span class="bold"><strong>Boost.Fiber</strong></span> is running without
       <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>.
     </p>
 <p>
-      The source code above is found in <a href="../../../examples/asio/loop.hpp" target="_top">loop.hpp</a>.
+      The source code above is found in <a href="../../../examples/asio/round_robin.hpp" target="_top">round_robin.hpp</a>.
     </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

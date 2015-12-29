@@ -64,38 +64,41 @@ encapsulates.
     <span class="identifier">packaged_task</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
-    <span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
+    <span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;);</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-    <span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
+    <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;);</span>
 
-    <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="identifier">packaged_task</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+    <span class="identifier">packaged_task</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">packaged_task</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
     <span class="special">~</span><span class="identifier">packaged_task</span><span class="special">();</span>
 
-    <span class="identifier">packaged_task</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-    <span class="identifier">packaged_task</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">packaged_task</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-
-    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">bool</span> <span class="identifier">valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="identifier">get_future</span><span class="special">();</span>
 
-    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span> <span class="identifier">Args</span> <span class="special">...);</span>
 
     <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">();</span>
 <span class="special">};</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Signature</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">Signature</span> <span class="special">&gt;</span> <span class="special">&amp;,</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">Signature</span> <span class="special">&gt;</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <h6>
 <a name="fiber.synchronization.futures.packaged_task.h0"></a>
           <span><a name="fiber.synchronization.futures.packaged_task.default_constructor__code__phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="packaged_task.html#fiber.synchronization.futures.packaged_task.default_constructor__code__phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_">Default
           constructor <code class="computeroutput"><span class="identifier">packaged_task</span><span class="special">()</span></code></a>
         </h6>
-<pre class="programlisting"><span class="identifier">packaged_task</span><span class="special">();</span>
+<pre class="programlisting"><span class="identifier">packaged_task</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -121,7 +124,7 @@ encapsulates.
 <span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-<span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
+<span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -135,7 +138,7 @@ encapsulates.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-                Nothing.
+                Exceptions caused by memory allocation.
               </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -189,10 +192,6 @@ encapsulates.
                 and abandons the <a class="link" href="future.html#shared_state">shared state</a>
                 if shared state is ready; otherwise stores <code class="computeroutput"><span class="identifier">future_error</span></code>
                 with error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">broken_promise</span></code>.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
               </p></dd>
 </dl>
 </div>
@@ -360,6 +359,28 @@ encapsulates.
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>.
+              </p></dd>
+</dl>
+</div>
+<p>
+          </p>
+<h5>
+<a name="pt_swap_bridgehead"></a>
+  <span><a name="pt_swap"></a></span>
+  <a class="link" href="packaged_task.html#pt_swap">Non-member function <code class="computeroutput">pt_swap()</code></a>
+</h5>
+<p>
+        </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Signature</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">Signature</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">Signature</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+                Same as <code class="computeroutput"><span class="identifier">l</span><span class="special">.</span><span class="identifier">swap</span><span class="special">(</span>
+                <span class="identifier">r</span><span class="special">)</span></code>.
               </p></dd>
 </dl>
 </div>

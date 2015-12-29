@@ -130,7 +130,7 @@ public:
         return ctx;
     }
 
-    /*<< You must override [member_link sched_algorithm_with_properties..ready_fibers]
+    /*<< You must override [member_link sched_algorithm_with_properties..has_ready_fibers]
       to inform the fiber manager of the size of your ready queue. >>*/
     virtual bool has_ready_fibers() const noexcept {
         return ! rqueue_.empty();

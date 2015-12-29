@@ -23,9 +23,8 @@ instantiates [class_link round_robin] as the scheduler for each thread.
 You are explicitly permitted to code your own __algo__ subclass, and to
 specify it to [function_link use_scheduling_algorithm].
 
-
         void thread_fn() {
-            boost::fibers::use_scheduling_algorithm<my_fiber_scheduler>();
+            boost::fibers::use_scheduling_algorithm< my_fiber_scheduler >();
             ...
         }
 
@@ -41,18 +40,22 @@ fiber scheduler must implement.
         #include <boost/fiber/algorithm.hpp>
 
         struct sched_algorithm {
-            virtual ~sched_algorithm() {}
+            virtual ~sched_algorithm();
 
-            virtual void awakened( context *) = 0;
+            virtual void awakened( context *) noexcept = 0;
 
-            virtual context * pick_next() = 0;
+            virtual context * pick_next() noexcept = 0;
 
-            virtual std::size_t ready_fibers() const noexcept = 0;
+            virtual bool has_ready_fibers() const noexcept = 0;
+
+            virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept = 0;
+
+            virtual void notify() noexcept = 0;
         };
 
 [member_heading sched_algorithm..awakened]
 
-        virtual void awakened( context * f) = 0;
+        virtual void awakened( context * f) noexcept = 0;
 
 [variablelist
 [[Effects:] [Informs the scheduler that fiber `f` is ready to run. Fiber `f`
@@ -66,7 +69,7 @@ queue.]]
 
 [member_heading sched_algorithm..pick_next]
 
-        virtual context * pick_next() = 0;
+        virtual context * pick_next() noexcept = 0;
 
 [variablelist
 [[Returns:] [the fiber which is to be resumed next, or `nullptr` if there is no
@@ -77,14 +80,29 @@ queue.]]
 [[See also:] [[class_link round_robin]]]
 ]
 
-[member_heading sched_algorithm..ready_fibers]
+[member_heading sched_algorithm..has_ready_fibers]
 
-        virtual std::size_t ready_fibers() const noexcept = 0;
+        virtual bool has_ready_fibers() const noexcept = 0;
 
 [variablelist
-[[Returns:] [the number of fibers ready to run.]]
+[[Returns:] [`true` if scheduler has fibers ready to run.]]
 ]
 
+[member_heading sched_algorithm..suspend_until]
+
+        virtual void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept = 0;
+
+[variablelist
+[[Effects:] [Informs the scheduler that no ready fiber will be available till time-point `abs_time`.]]
+]
+
+[member_heading sched_algorithm..notify]
+
+        virtual void notify() noexcept = 0;
+
+[variablelist
+[[Effects:] [wake-up the scheduler, some fibers might ready.]]
+]
 
 [class_heading round_robin]
 
@@ -93,38 +111,65 @@ This class implements __algo__, scheduling fibers in round-robin fashion.
         #include <boost/fiber/round_robin.hpp>
 
         class round_robin : public sched_algorithm {
-            virtual void awakened( context *);
+            virtual void awakened( context *) noexcept;
 
-            virtual context * pick_next();
+            virtual context * pick_next() noexcept;
 
-            virtual std::size_t ready_fibers() const noexcept;
+            virtual bool has_ready_fibers() const noexcept;
+
+            virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
+
+            virtual void notify() noexcept;
         };
 
 [member_heading round_robin..awakened]
 
-        virtual void awakened( context * f);
+        virtual void awakened( context * f) noexcept;
 
 [variablelist
 [[Effects:] [Enqueues fiber `f` onto a ready queue.]]
+[[Throws:] [Nothing.]]
 ]
 
 [member_heading round_robin..pick_next]
 
-        virtual context * pick_next();
+        virtual context * pick_next() noexcept;
 
 [variablelist
 [[Returns:] [the fiber at the head of the ready queue, or 0 if the queue is
 empty.]]
+[[Throws:] [Nothing.]]
 [[Note:] [Placing ready fibers onto a queue, and returning them from the head
 of that queue, shares the thread between ready fibers in round-robin fashion.]]
 ]
 
-[member_heading round_robin..ready_fibers]
+[member_heading round_robin..has_ready_fibers]
 
-        virtual std::size_t ready_fibers() const noexcept;
+        virtual bool has_ready_fibers() const noexcept;
 
 [variablelist
-[[Returns:] [the number of fibers ready to run.]]
+[[Returns:] [`true` if scheduler has fibers ready to run.]]
+[[Throws:] [Nothing.]]
+]
+
+[member_heading round_robin..suspend_until]
+
+        virtual void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept;
+
+[variablelist
+[[Effects:] [Informs the scheduler that no ready fiber will be available till time-point `abs_time`.
+`round_robin` blocks in `std::condition_variable::wait_until()`.]]
+[[Throws:] [Nothing.]]
+]
+
+[member_heading round_robin..notify]
+
+        virtual void notify() noexcept = 0;
+
+[variablelist
+[[Effects:] [wake-up the scheduler, some fibers might ready.
+signals `round_robin` via `std::condition_variable::notify_all()`.]]
+[[Throws:] [Nothing.]]
 ]
 
 
@@ -147,32 +192,34 @@ A custom fiber properties class must be derived from `fiber_properties`.
 
         class fiber_properties {
         public:
-            fiber_properties( context* f);
+            fiber_properties( context *) noexcept;
 
-            virtual ~fiber_properties() {}
+            virtual ~fiber_properties();
 
         protected:
-            void notify();
+            void notify() noexcept;
         };
 
 [heading Constructor]
 
-        fiber_properties( context* f);
+        fiber_properties( context * f) noexcept;
 
 [variablelist
 [[Effects:] [Constructs base-class component of custom subclass.]]
+[[Throws:] [Nothing.]]
 [[Note:] [Your subclass constructor must accept a `context*` and pass it
 to the base-class `fiber_properties` constructor.]]
 ]
 
 [member_heading fiber_properties..notify]
 
-        void notify();
+        void notify() noexcept;
 
 [variablelist
 [[Effects:] [Pass control to the custom [template_link
 sched_algorithm_with_properties] subclass's [member_link
 sched_algorithm_with_properties..property_change] method.]]
+[[Throws:] [Nothing.]]
 [[Note:] [A custom scheduler's [member_link
 sched_algorithm_with_properties..pick_next] method might dynamically select
 from the ready fibers, or [member_link
@@ -200,62 +247,60 @@ derived from [class_link fiber_properties].
 
         template< typename PROPS >
         struct sched_algorithm_with_properties {
-            // override this method instead of sched_algorithm::awakened()
-            virtual void awakened( context * f, PROPS & properties) = 0;
+            virtual void awakened( context *, PROPS &) noexcept = 0;
 
-            virtual context * pick_next();
+            virtual context * pick_next() noexcept;
 
-            virtual std::size_t ready_fibers() const noexcept;
+            virtual bool has_ready_fibers() const noexcept;
 
-            // obtain f's associated PROPS instance
-            PROPS & properties( context * f);
+            PROPS & properties( context *) noexcept;
 
-            // override this to be notified by PROPS::notify()
-            virtual void property_change( context * f, PROPS & properties);
+            virtual void property_change( context *, PROPS &) noexcept;
 
-            // Override this to customize instantiation of PROPS, e.g. use a different
-            // allocator. Each PROPS instance is associated with a particular
-            // context.
-            virtual fiber_properties * new_properties( context * f);
+            virtual fiber_properties * new_properties( context *);
         };
 
 [member_heading sched_algorithm_with_properties..awakened]
 
-        virtual void awakened( context * f, PROPS & properties);
+        virtual void awakened( context * f, PROPS & properties) noexcept;
 
 [variablelist
 [[Effects:] [Informs the scheduler that fiber `f` is ready to run, like
 [member_link sched_algorithm..awakened]. Passes the fiber's associated `PROPS`
 instance.]]
+[[Throws:] [Nothing.]]
 [[Note:] [A `sched_algorithm_with_properties<>` subclass must override this
 method instead of `sched_algorithm::awakened()`.]]
 ]
 
 [member_heading sched_algorithm_with_properties..pick_next]
 
-        virtual context * pick_next();
+        virtual context * pick_next() noexcept;
 
 [variablelist
 [[Returns:] [the fiber which is to be resumed next, or `nullptr` if there is no
 ready fiber.]]
+[[Throws:] [Nothing.]]
 [[Note:] [same as [member_link sched_algorithm..pick_next]]]
 ]
 
-[member_heading sched_algorithm_with_properties..ready_fibers]
+[member_heading sched_algorithm_with_properties..has_ready_fibers]
 
-        virtual std::size_t ready_fibers() const noexcept;
+        virtual bool has_ready_fibers() const noexcept;
 
 [variablelist
 [[Returns:] [the number of fibers ready to run.]]
-[[Note:] [same as [member_link sched_algorithm..ready_fibers]]]
+[[Throws:] [Nothing.]]
+[[Note:] [same as [member_link sched_algorithm..has_ready_fibers]]]
 ]
 
 [member_heading sched_algorithm_with_properties..properties]
 
-        PROPS& properties( context * f);
+        PROPS& properties( context * f) noexcept;
 
 [variablelist
 [[Returns:] [the `PROPS` instance associated with fiber `f`.]]
+[[Throws:] [Nothing.]]
 [[Note:] [The fiber's associated `PROPS` instance is already passed to
 [member_link sched_algorithm_with_properties..awakened] and [member_link
 sched_algorithm_with_properties..property_change]. However, every [class_link
@@ -267,12 +312,13 @@ to retrieve the [class_link fiber_properties] subclass instance for any
 
 [member_heading sched_algorithm_with_properties..property_change]
 
-        virtual void property_change( context * f, PROPS & properties);
+        virtual void property_change( context * f, PROPS & properties) noexcept;
 
 [variablelist
 [[Effects:] [Notify the custom scheduler of a possibly-relevant change to a
 property belonging to fiber `f`. `properties` contains the new values of
 all relevant properties.]]
+[[Throws:] [Nothing.]]
 [[Note:] [This method is only called when a custom [class_link
 fiber_properties] subclass explicitly calls [member_link
 fiber_properties..notify].]]
@@ -292,6 +338,7 @@ Override this method to allocate `PROPS` some other way. The returned
 with fiber `f`.]]
 ]
 
+[#context]
 [class_heading context]
 
 While you are free to treat `context*` as an opaque token, certain
@@ -304,35 +351,222 @@ implementations of [class_link fiber] methods.)
 
         class context {
         public:
-            context   *   nxt;
+            class id;
 
-            static context * main_fiber();
+            static context * active() noexcept;
 
+            context( context const&) = delete;
+            context & operator=( context const&) = delete;
+
+            id get_id() const noexcept;
+                
+            void migrate( context *) noexcept;
+
+            bool is_main_context() const noexcept;
+            bool is_dispatcher_context() const noexcept;
+            bool is_worker_context() const noexcept;
+
+            bool is_terminated() const noexcept;
+
+            bool ready_is_linked() const noexcept;
+            bool remote_ready_is_linked() const noexcept;
+            bool wait_is_linked() const noexcept;
+
+            template< typename List >
+            void ready_link( List &) noexcept;
+            template< typename List >
+            void remote_ready_link( List &) noexcept;
+            template< typename List >
+            void wait_link( List &) noexcept;
+
+            void ready_unlink() noexcept;
+            void remote_ready_unlink() noexcept;
+            void wait_unlink() noexcept;
         };
 
-[data_member_heading context..nxt]
+        bool operator<( context const& l, context const& r) noexcept;
 
-        context   *   nxt;
+[static_member_heading context..active]
+
+        static context * active() noexcept;
 
 [variablelist
-[[Note:] [This link pointer may be used to help implement a custom scheduler's
-ready queue. It is overwritten by the fiber manager every time this
-`context` is returned by [member_link sched_algorithm..pick_next], but
-between the time the fiber manager passes this `context` to [member_link
-sched_algorithm..awakened] (or [member_link
-sched_algorithm_with_properties..awakened]) and the time your `pick_next()`
-returns it to the fiber manager, it is available for use by your custom
-scheduler.]]
+[[Returns:] [Pointer to instance of current fiber.]]
+[[Throws:] [Nothing]]
 ]
 
-[static_member_heading context..main_fiber]
+[member_heading context..get_id]
 
-        static context * main_fiber();
+        context::id get_id() const noexcept;
 
 [variablelist
-[[Returns:] [the `context` associated with the "main" fiber of the
-thread: the one implicitly created by the thread itself, rather than one
+[[Returns:] [If `*this` refers to a fiber of execution, an instance of
+__fiber_id__ that represents that fiber. Otherwise returns a
+default-constructed __fiber_id__.]]
+[[Throws:] [Nothing]]
+[[See also:] [[ns_function_link fiber..get_id]]]
+]
+
+[member_heading context..migrate]
+
+        void migrate( context * f) noexcept;
+
+[variablelist
+[[Effects:] [Migrate fiber `f` to scheduler running `*this`.]]
+[[Throws:] [Nothing]]
+]
+
+[member_heading context..is_main_context]
+
+        bool is_main_context() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is main context.]]
+[[Throws:] [Nothing]]
+[[Note:] [The `context` is associated with the "main" fiber of the thread:
+the one implicitly created by the thread itself, rather than one
 explicitly created by __boost_fiber__.]]
 ]
+
+[member_heading context..is_dispatcher_context]
+
+        bool is_dispatcher_context() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is dispatcher context.]]
+[[Throws:] [Nothing]]
+[[Note:] [The `context` is associated with a "dispatching" fiber,
+responsible for dispatching awakened fibers to scheduler's
+ready-queue.]]
+]
+
+[member_heading context..is_worker_context]
+
+        bool is_worker_context() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is worker context.]]
+[[Throws:] [Nothing]]
+[[Note:] [The `context` is associated with the fiber created by
+__boost_fiber__.]]
+]
+
+[member_heading context..is_terminated]
+
+        bool is_terminated() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is no longer an valid context.]]
+[[Throws:] [Nothing]]
+[[Note:] [The `context` has returned from its fiber-function and is
+no longer considered a an valid context.]]
+]
+
+[member_heading context..ready_is_linked]
+
+        bool ready_is_linked() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is stored in scheduler's ready-queue.]]
+[[Throws:] [Nothing]]
+]
+
+[member_heading context..remote_ready_is_linked]
+
+        bool remote_ready_is_linked() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is stored in scheduler's remote-ready-queue.]]
+[[Throws:] [Nothing]]
+[[Note:] [A `context` signaled as ready by another thread is always stored in scheduler's
+remote-ready-queue.]]
+]
+
+[member_heading context..wait_is_linked]
+
+        bool wait_is_linked() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if `*this` is stored in the wait-queue of some synchronization object.]]
+[[Throws:] [Nothing]]
+[[Note:] [The `context` of a fiber, waiting on an synchronization object (`mutex`,
+`condition_variable` etc.), is stored in the waiting-queue of that
+synchronization object.]]
+]
+
+[member_heading context..ready_link]
+
+        template< typename List >
+        void ready_link( List & lst) noexcept;
+
+[variablelist
+[[Effects:] [Stores `*this` in ready-queue `lst`.]]
+[[Throws:] [Nothing]]
+[[Note:] [Argument `lst` must be double-liked list from
+__boost_intrusive__.]]
+]
+
+[member_heading context..remote_ready_link]
+
+        template< typename List >
+        void remote_ready_link( List & lst) noexcept;
+
+[variablelist
+[[Effects:] [Stores `*this` in remote-ready-queue `lst`.]]
+[[Throws:] [Nothing]]
+[[Note:] [Argument `lst` must be double-liked list from
+__boost_intrusive__.]]
+]
+
+[member_heading context..wait_link]
+
+        template< typename List >
+        void wait_link( List & lst) noexcept;
+
+[variablelist
+[[Effects:] [Stores `*this` in wait-queue `lst`.]]
+[[Throws:] [Nothing]]
+[[Note:] [Argument `lst` must be double-liked list from
+__boost_intrusive__.]]
+]
+
+[member_heading context..ready_unlink]
+
+        void ready_unlink() noexcept;
+
+[variablelist
+[[Effects:] [Removes `*this` from ready-queue.]]
+[[Throws:] [Nothing]]
+]
+
+[member_heading context..remote_ready_unlink]
+
+        void remote_ready_unlink() noexcept;
+
+[variablelist
+[[Effects:] [Removes `*this` from remote-ready-queue.]]
+[[Throws:] [Nothing]]
+]
+
+[member_heading context..wait_unlink]
+
+        void wait_unlink() noexcept;
+
+[variablelist
+[[Effects:] [Removes `*this` from wait-queue.]]
+[[Throws:] [Nothing]]
+]
+
+[function_heading operator<]
+
+        bool operator<( context const& l, context const& r) noexcept;
+
+[variablelist
+[[Returns:] [`true` if `l.get_id() < r.get_id()` is true and the
+implementation-defined total order of `context::id` values places `*this` before
+`other`, false otherwise.]]
+[[Throws:] [Nothing.]]
+]
+
 
 [endsect]

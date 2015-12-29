@@ -441,8 +441,8 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
-    //BOOST_ASSERT( ! ctx->worker_is_linked() );
     std::unique_lock< detail::spinlock > lk( worker_splk_);
+    BOOST_ASSERT( ! ctx->worker_is_linked() );
     ctx->worker_link( worker_queue_);
     ctx->scheduler_ = this;
 }

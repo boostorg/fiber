@@ -94,6 +94,15 @@
               </p></dd>
 </dl>
 </div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../../../doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Deferred futures are not supported.
+          </p></td></tr>
+</table></div>
 <p>
           </p>
 <h5>
@@ -112,21 +121,23 @@
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">future</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">future</span><span class="special">(</span> <span class="identifier">future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
     <span class="identifier">future</span><span class="special">(</span> <span class="identifier">future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
-    <span class="special">~</span><span class="identifier">future</span><span class="special">();</span>
+    <span class="identifier">future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+    <span class="identifier">future</span><span class="special">(</span> <span class="identifier">future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    <span class="special">~</span><span class="identifier">future</span><span class="special">();</span>
 
     <span class="keyword">bool</span> <span class="identifier">valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">shared_future</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="identifier">share</span><span class="special">();</span>
 
-    <span class="identifier">R</span> <span class="identifier">get</span><span class="special">();</span>
+    <span class="identifier">R</span> <span class="identifier">get</span><span class="special">();</span>    <span class="comment">// member only of generic future template</span>
+    <span class="identifier">R</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">();</span>  <span class="comment">// member only of future&lt; R &amp; &gt; template specialization</span>
+    <span class="keyword">void</span> <span class="identifier">get</span><span class="special">();</span> <span class="comment">// member only of future&lt; void &gt; template specialization</span>
 
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span> <span class="identifier">get_exception_ptr</span><span class="special">();</span>
 
@@ -146,7 +157,7 @@
           <span><a name="fiber.synchronization.futures.future.default_constructor"></a></span><a class="link" href="future.html#fiber.synchronization.futures.future.default_constructor">Default
           constructor</a>
         </h6>
-<pre class="programlisting"><span class="identifier">future</span><span class="special">();</span>
+<pre class="programlisting"><span class="identifier">future</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -195,10 +206,6 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
                 Destroys the future; ownership is abandoned.
-              </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
               </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -329,7 +336,9 @@
 </h5>
 <p>
         </p>
-<pre class="programlisting"><span class="identifier">R</span> <span class="identifier">get</span><span class="special">();</span>
+<pre class="programlisting"><span class="identifier">R</span> <span class="identifier">get</span><span class="special">();</span>    <span class="comment">// member only of generic future template</span>
+<span class="identifier">R</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">();</span>  <span class="comment">// member only of future&lt; R &amp; &gt; template specialization</span>
+<span class="keyword">void</span> <span class="identifier">get</span><span class="special">();</span> <span class="comment">// member only of future&lt; void &gt; template specialization</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -458,7 +467,8 @@
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>
-                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>.
+                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+                or timeout-related exceptions.
               </p></dd>
 </dl>
 </div>
@@ -493,7 +503,8 @@
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>
-                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>.
+                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+                or timeout-related exceptions.
               </p></dd>
 </dl>
 </div>
@@ -526,7 +537,7 @@
 
     <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">shared_future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">shared_future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -575,7 +586,7 @@
 <a name="fiber.synchronization.futures.future.h8"></a>
           <span><a name="fiber.synchronization.futures.future.move_constructor0"></a></span><a class="link" href="future.html#fiber.synchronization.futures.future.move_constructor0">Move constructor</a>
         </h6>
-<pre class="programlisting"><span class="identifier">shared_future</span><span class="special">(</span> <span class="identifier">future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">shared_future</span><span class="special">(</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="identifier">shared_future</span><span class="special">(</span> <span class="identifier">shared_future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
@@ -626,10 +637,6 @@
 <dd><p>
                 Destroys the shared_future; ownership is abandoned if not shared.
               </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-                Nothing.
-              </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
                 <code class="computeroutput">~shared_future()</code> does <span class="emphasis"><em>not</em></span> block the calling fiber.
@@ -646,7 +653,7 @@
 </h5>
 <p>
         </p>
-<pre class="programlisting"><span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">shared_future</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="identifier">shared_future</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">shared_future</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
@@ -836,7 +843,8 @@
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>
-                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>.
+                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+                or timeout-related exceptions.
               </p></dd>
 </dl>
 </div>
@@ -871,7 +879,8 @@
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future_error</span></code> with
                 error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">no_state</span></code>
-                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>.
+                or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+                or timeout-related exceptions.
               </p></dd>
 </dl>
 </div>
@@ -887,11 +896,19 @@
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">future</span><span class="special">/</span><span class="identifier">async</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-<span class="identifier">future</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">&amp;&amp;(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="special">)</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">&gt;</span>
+<span class="identifier">future</span><span class="special">&lt;</span>
+    <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span>
+        <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;::</span><span class="identifier">type</span><span class="special">(</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Args</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">...</span> <span class="special">)</span>
+    <span class="special">&gt;::</span><span class="identifier">type</span>
+<span class="special">&gt;</span>
 <span class="identifier">async</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-<span class="identifier">future</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">&amp;&amp;(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="special">)</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">&gt;</span>
+<span class="identifier">future</span><span class="special">&lt;</span>
+    <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span>
+        <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;::</span><span class="identifier">type</span><span class="special">(</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Args</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">...</span> <span class="special">)</span>
+    <span class="special">&gt;::</span><span class="identifier">type</span>
+<span class="special">&gt;</span>
 <span class="identifier">async</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
@@ -905,16 +922,19 @@
 <dt><span class="term">Result:</span></dt>
 <dd><p>
                 <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span>
-                <span class="keyword">typename</span> <span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span>
+                <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="keyword">typename</span>
+                <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span>
+                <span class="identifier">Fn</span> <span class="special">&gt;::</span><span class="identifier">type</span><span class="special">(</span>
+                <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Args</span>
+                <span class="special">&gt;::</span><span class="identifier">type</span>
+                <span class="special">...</span> <span class="special">)</span>
                 <span class="special">&gt;::</span><span class="identifier">type</span>
                 <span class="special">&gt;</span></code> representing the <a class="link" href="future.html#shared_state">shared state</a> associated with the asynchronous
                 execution of <code class="computeroutput"><span class="identifier">fn</span></code>.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-                <code class="computeroutput"><span class="identifier">fiber_exception</span></code> or
-                <code class="computeroutput"><span class="identifier">future_error</span></code> if an
-                error occurs.
+                <code class="computeroutput"><span class="identifier">fiber_error</span></code> or <code class="computeroutput"><span class="identifier">future_error</span></code> if an error occurs.
               </p></dd>
 <dt><span class="term">Notes:</span></dt>
 <dd><p>
@@ -924,6 +944,15 @@
               </p></dd>
 </dl>
 </div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../../../doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Deferred futures are not supported.
+          </p></td></tr>
+</table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
