@@ -49,11 +49,11 @@ private:
 public:
     typedef T   element_type;
 
-    fiber_specific_ptr() noexcept :
+    fiber_specific_ptr() :
         cleanup_fn_{ new default_cleanup_function() } {
     }
 
-    explicit fiber_specific_ptr( void(*fn)(T*) ) noexcept :
+    explicit fiber_specific_ptr( void(*fn)(T*) ) :
         cleanup_fn_{ new custom_cleanup_function( fn) } {
     }
 
@@ -82,7 +82,7 @@ public:
         return * get();
     }
 
-    T * release() noexcept {
+    T * release() {
         T * tmp = get();
         context::active()->set_fss_data(
             this, cleanup_fn_, nullptr, false);
