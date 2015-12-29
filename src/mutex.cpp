@@ -41,10 +41,14 @@ mutex::lock() {
 }
 
 bool
-mutex::try_lock() noexcept {
+mutex::try_lock() {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-    if ( nullptr == owner_) {
+    if ( ctx == owner_) {
+        throw lock_error(
+                std::make_error_code( std::errc::resource_deadlock_would_occur),
+                "boost fiber: a deadlock is detected");
+    } else if ( nullptr == owner_) {
         owner_ = ctx;
     }
     lk.unlock();

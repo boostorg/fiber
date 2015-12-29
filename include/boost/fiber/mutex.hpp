@@ -47,7 +47,7 @@ public:
 
     void lock();
 
-    bool try_lock() noexcept;
+    bool try_lock();
 
     void unlock();
 };
