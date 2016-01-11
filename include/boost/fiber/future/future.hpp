@@ -93,8 +93,6 @@ struct future_base {
     }
 };
 
-}
-
 template< typename R >
 struct promise_base;
 
