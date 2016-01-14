@@ -78,7 +78,6 @@ int main( int argc, char * argv[])
             throw std::runtime_error("qthreads failed to initialize\n");
 
         duration_type overhead = overhead_clock();
-        std::cout << "overhead " << overhead.count() << " nano seconds" << std::endl;
         boost::uint64_t res = measure( overhead).count();
         std::cout << JOBS << " jobs: average of " << res << " nano seconds" << std::endl;
 

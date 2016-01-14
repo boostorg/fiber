@@ -87,7 +87,6 @@ int main( int argc, char * argv[])
         tbb::task_scheduler_init init( 1);
 
         duration_type overhead = overhead_clock();
-        std::cout << "overhead " << overhead.count() << " nano seconds" << std::endl;
         boost::uint64_t res = measure( overhead).count();
         std::cout << JOBS << " jobs: average of " << res << " nano seconds" << std::endl;
 

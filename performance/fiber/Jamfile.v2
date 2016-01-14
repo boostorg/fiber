@@ -29,6 +29,10 @@ project boost/fiber/performance/fiber
       <variant>release
     ;
 
+exe overhead_switch
+   : overhead_switch.cpp
+   ;
+
 exe overhead_create
    : overhead_create.cpp
    ;
