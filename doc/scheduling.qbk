@@ -359,7 +359,7 @@ implementations of [class_link fiber] methods.)
             context & operator=( context const&) = delete;
 
             id get_id() const noexcept;
-                
+
             void migrate( context *) noexcept;
 
             bool is_main_context() const noexcept;

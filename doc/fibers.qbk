@@ -142,6 +142,7 @@
 [def __cond_any_wait_for__ [member_link condition_variable_any..wait_for]]
 [def __cond_any_wait__ [member_link condition_variable_any..wait]]
 [def __cond_any_wait_until__ [member_link condition_variable_any..wait_until]]
+[def __context_migrate__ [member_link context..migrate]]
 [def __detach__ [member_link fiber..detach]]
 [def __fiber_id__ [dblink class_fiber_id..`fiber::id`]]
 [def __fsp__ [class_link fiber_specific_ptr]]

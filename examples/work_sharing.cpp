@@ -30,7 +30,9 @@ static std::atomic< std::size_t > fiber_count;
 class shared_ready_queue : public boost::fibers::sched_algorithm {
 private:
     typedef std::unique_lock< std::mutex >          lock_t;
+//[rqueue_t_ws
     typedef std::queue< boost::fibers::context * >  rqueue_t;
+//]]
 
     // The important point about this ready queue is that it's a class static,
     // common to all instances of shared_ready_queue.
@@ -49,6 +51,7 @@ private:
     boost::fibers::detail::autoreset_event      ev_{};
 
 public:
+//[awakend_ws
     virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
 
@@ -68,7 +71,8 @@ public:
             rqueue_.push( ctx);
         }
     }
-
+//]
+//[pick_next_ws
     virtual boost::fibers::context * pick_next() noexcept {
         boost::fibers::context * ctx( nullptr);
         lock_t lk( mtx_);
@@ -90,6 +94,7 @@ public:
         }
         return ctx;
     }
+//]
 
     virtual bool has_ready_fibers() const noexcept {
         lock_t lock( mtx_);
@@ -105,12 +110,15 @@ public:
     }
 };
 
+//[rqueue_ws
 shared_ready_queue::rqueue_t shared_ready_queue::rqueue_;
+//]
 std::mutex shared_ready_queue::mtx_;
 
 /*****************************************************************************
 *   example fiber function
 *****************************************************************************/
+//[fiber_fn_ws
 void whatevah( char me) {
     try {
         std::thread::id my_thread = std::this_thread::get_id();
@@ -133,6 +141,7 @@ void whatevah( char me) {
     }
     --fiber_count;
 }
+//]
 
 /*****************************************************************************
 *   example thread function
@@ -141,6 +150,7 @@ void whatevah( char me) {
 // to know that all example fibers use yield(), which leaves them in ready
 // state. A fiber blocked on a synchronization object is invisible to
 // ready_fibers().
+//[thread_fn_ws
 void drain() {
     std::ostringstream buffer;
     std::cout << buffer.str() << std::flush;
@@ -157,40 +167,40 @@ void thread() {
     boost::fibers::use_scheduling_algorithm< shared_ready_queue >();
     drain();
 }
-
+//]
 /*****************************************************************************
 *   main()
 *****************************************************************************/
 int main( int argc, char *argv[]) {
     std::cout << "main thread started " << std::this_thread::get_id() << std::endl;
+//[main_ws
     // use shared_ready_queue for main thread too, so we launch new fibers
     // into shared pool
     boost::fibers::use_scheduling_algorithm< shared_ready_queue >();
 
-    for ( int i = 0; i < 10; ++i) {
-        // launch a number of fibers
-        for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) {
-            boost::fibers::fiber([c](){ whatevah( c); }).detach();
-            ++fiber_count;
-        }
-
-        // launch a couple threads to help process them
-        std::thread threads[] = {
-            std::thread( thread),
-            std::thread( thread),
-            std::thread( thread),
-            std::thread( thread),
-            std::thread( thread)
-        };
-
-        // drain running fibers
-        drain();
-
-        // wait for threads to terminate
-        for ( std::thread & t : threads) {
-            t.join();
-        }
+    // launch a number of fibers
+    for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) {
+        boost::fibers::fiber([c](){ whatevah( c); }).detach();
+        ++fiber_count;
     }
+
+    // launch a couple threads to help process them
+    std::thread threads[] = {
+        std::thread( thread),
+        std::thread( thread),
+        std::thread( thread),
+        std::thread( thread),
+        std::thread( thread)
+    };
+
+    // drain running fibers
+    drain();
+
+    // wait for threads to terminate
+    for ( std::thread & t : threads) {
+        t.join();
+    }
+//]
 
     BOOST_ASSERT( 0 == fiber_count.load() );
 
@@ -198,4 +208,3 @@ int main( int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
-
