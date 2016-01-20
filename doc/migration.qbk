@@ -1,5 +1,5 @@
 [/
-      Copyright Oliver Kowalke, Nat Goodspeed 2015.
+      Copyright Oliver Kowalke 2016.
  Distributed under the Boost Software License, Version 1.0.
     (See accompanying file LICENSE_1_0.txt or copy at
           http://www.boost.org/LICENSE_1_0.txt
@@ -28,30 +28,75 @@ another logical CPU ['cpuX] which is part of a different NUMA node ['nodeX]
 will reduce the performance of the application because of increased latency of
 memory access.
 
-Only fibers, that are contained in __algo__'s ready-queue are allowed to be
+Only fibers, that are contained in __algo__'s ready queue are allowed to be
 migrated between threads.
 
 In__boost_fiber__ a fiber is migrated by invoking __context_migrate__ and pass
 the fiber as argument in the thread to which the fiber has to be moved.
 
+[heading Example of work sharing]
+
+In the example [@../../examples/work_sharing.cpp work_sharing.cpp]
+multiple worker fibers are created at the main thread. Each fiber gets a
+character as parameter at construction. This character is printed out ten times.
+Between each iteration the fiber calls __yield__, that puts the fiber in the
+ready queue of the fiber-scheduler ['shared_ready_queue], running in the current
+thread.
+The next fiber, ready to be executed, is dequeued from the ready queue and resumed
+by ['shared_ready_queue].
+
+All instances of ['shared_ready_queue] share one global concurrent queue, used
+as ready queue. This mechanism enables to share all worker fibers between all
+instances of ['shared_ready_queue], thus between all threads.
+
 
 [heading Setup of threads and fibers]
 
+In `main()` the fiber-scheduler is installed and the worker fibers and the
+threads are launched.
+
 [main_ws]
+
+The start of the threads is synchronized wit ha barrier. The main fiber of each
+thread (including main thread) is suspended till all worker fibers are complete.
+If the main fiber returns from __cond_wait__, the thread terminates (main thread
+joins all other threads).
 
 [thread_fn_ws]
 
+The worker fibers execute function `whatevah()` with character `me` as
+parameter. The fiber yield in a loop and prints out a message if it was migrated
+to another thread.
+
 [fiber_fn_ws]
+
 
 [heading Scheduling fibers]
 
-[rqueue_t_ws]
-[rqueue_ws]
-[awakended_ws]
+Th fiber scheduler `shared_ready_queue` is like `round_robin`, except that it
+shares a common ready queue among all participating threads. A thread
+participates in this pool by executing [function_link use_scheduling_algorithm]
+before any other __boost_fiber__ operation.
+
+The important point about the ready queue is that it's a class static, common
+to all instances of shared_ready_queue.
+Fibers that are enqueued via __algo_awakened__ (fibers that are ready to be
+resumed), are thus available to all threads.
+It is required to reserve a separate, scheduler-specific slot for the thread's
+main fiber. When we're passed the main fiber, stash it there instead of in the
+shared queue: it would be Bad News for thread B to retrieve and attempt to
+execute thread A's main fiber. This slot might be empty (`nullptr`) or full:
+__algo_pick_next__ must only return the main fiber's context* after it has been
+passed to __algo_awakened__.
+
+[awakened_ws]
+
+If __algo_pick_next__ gets called inside one thread, a fiber is  dequeued from
+['rqueue_] and will be resumed in that thread.
+
 [pick_next_ws]
 
 
-[/ @path link is relative to (eventual) doc/html/index.html, hence ../..]
 The source code above is found in
 [@../../examples/work_sharing.cpp work_sharing.cpp].
 

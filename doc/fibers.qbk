@@ -134,6 +134,8 @@
 [def __already_satisfied__ `future_errc::future_already_satisfied`]
 
 [def __algo__ [class_link sched_algorithm]]
+[def __algo_awakened__ [member_link sched_algorithm..awakened]]
+[def __algo_pick_next__ [member_link sched_algorithm..pick_next]]
 [def __async__ `async()`]
 [def __barrier_wait__ [member_link barrier..wait]]
 [def __cond_wait_for__ [member_link condition_variable..wait_for]]
@@ -200,6 +202,7 @@ object are running in the same thread.
 [endsect]
 [include fls.qbk]
 [/[include asio.qbk]]
+[include migration.qbk]
 [include callbacks.qbk]
 [include nonblocking.qbk]
 [include when_any.qbk]

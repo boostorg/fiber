@@ -557,7 +557,7 @@ __boost_intrusive__.]]
 [[Throws:] [Nothing]]
 ]
 
-[function_heading operator<]
+[hding context_less..Non-member function [`operator<()]]
 
         bool operator<( context const& l, context const& r) noexcept;
 

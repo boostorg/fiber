@@ -16,6 +16,7 @@ fiber/synchronization/futures/future.html
 fiber/synchronization/futures/promise.html
 fiber/synchronization/futures/packaged_task.html
 fiber/fls.html
+fiber/migration.html
 fiber/callbacks.html
 fiber/nonblocking.html
 fiber/when_any.html

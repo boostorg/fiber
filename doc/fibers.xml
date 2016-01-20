@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2015/12/29 14:00:25 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/01/20 18:41:26 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -3556,9 +3556,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="operator&lt;_bridgehead">
-  <phrase id="operator&lt;"/>
-  <link linkend="operator&lt;">Non-member function <code>operator&lt;()</code></link>
+      <bridgehead renderas="sect4" id="context_less_bridgehead">
+  <phrase id="context_less"/>
+  <link linkend="context_less">Non-member function <code>operator&lt;()</code></link>
 </bridgehead>
     </para>
 <programlisting><phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -9668,6 +9668,374 @@ encapsulates.
         </listitem>
       </varlistentry>
     </variablelist>
+  </section>
+  <section id="fiber.migration">
+    <title><anchor id="migration"/><link linkend="fiber.migration">Migrating fibers
+    between threads</link></title>
+    <bridgehead renderas="sect3" id="fiber.migration.h0">
+      <phrase id="fiber.migration.overview"/><link linkend="fiber.migration.overview">Overview</link>
+    </bridgehead>
+    <para>
+      Each fiber owns a stack and saves its execution state, including all registers
+      and CPU flags, the instruction pointer, and the stack pointer in order to restore
+      its state later. That means, in general, a fiber is not bound to a thread per
+      se (of course, the code executed inside the fiber must not use TLS).
+    </para>
+    <para>
+      Migrating a fiber from a logical CPU with heavy work-load to another idle logical
+      CPU (or with less work-load) might speed-up the overall execution. Note that
+      in the case of NUMA-architectures, it is not always advisable to migrate data
+      between threads. Suppose fiber <emphasis>f</emphasis> is running on logical
+      CPU <emphasis>cpu0</emphasis> which belongs to NUMA node <emphasis>node0</emphasis>.
+      The data of <emphasis>f</emphasis> are allocated on the physical memory located
+      at <emphasis>node0</emphasis>. Migrating the fiber from <emphasis>cpu0</emphasis>
+      to another logical CPU <emphasis>cpuX</emphasis> which is part of a different
+      NUMA node <emphasis>nodeX</emphasis> will reduce the performance of the application
+      because of increased latency of memory access.
+    </para>
+    <para>
+      Only fibers, that are contained in <link linkend="class_sched_algorithm"> <code>sched_algorithm</code></link>'s ready
+      queue are allowed to be migrated between threads.
+    </para>
+    <para>
+      In<emphasis role="bold">Boost.Fiber</emphasis> a fiber is migrated by invoking
+      <link linkend="context_migrate"> <code>context::migrate()</code></link> and pass the fiber as argument in the thread
+      to which the fiber has to be moved.
+    </para>
+    <bridgehead renderas="sect3" id="fiber.migration.h1">
+      <phrase id="fiber.migration.example_of_work_sharing"/><link linkend="fiber.migration.example_of_work_sharing">Example
+      of work sharing</link>
+    </bridgehead>
+    <para>
+      In the example <ulink url="../../examples/work_sharing.cpp">work_sharing.cpp</ulink>
+      multiple worker fibers are created at the main thread. Each fiber gets a character
+      as parameter at construction. This character is printed out ten times. Between
+      each iteration the fiber calls <link linkend="this_fiber_yield"> <code>this_fiber::yield()</code></link>, that puts
+      the fiber in the ready queue of the fiber-scheduler <emphasis>shared_ready_queue</emphasis>,
+      running in the current thread. The next fiber, ready to be executed, is dequeued
+      from the ready queue and resumed by <emphasis>shared_ready_queue</emphasis>.
+    </para>
+    <para>
+      All instances of <emphasis>shared_ready_queue</emphasis> share one global concurrent
+      queue, used as ready queue. This mechanism enables to share all worker fibers
+      between all instances of <emphasis>shared_ready_queue</emphasis>, thus between
+      all threads.
+    </para>
+    <bridgehead renderas="sect3" id="fiber.migration.h2">
+      <phrase id="fiber.migration.setup_of_threads_and_fibers"/><link linkend="fiber.migration.setup_of_threads_and_fibers">Setup
+      of threads and fibers</link>
+    </bridgehead>
+    <para>
+      In <code><phrase role="identifier">main</phrase><phrase role="special">()</phrase></code>
+      the fiber-scheduler is installed and the worker fibers and the threads are
+      launched.
+    </para>
+    <para>
+<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">shared_ready_queue</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c0" linkends="fiber.migration.c1" />
+
+<phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">char</phrase> <phrase role="identifier">c</phrase> <phrase role="special">:</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase><phrase role="special">(</phrase><phrase role="string">&quot;abcdefghijklmnopqrstuvwxyz&quot;</phrase><phrase role="special">))</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c2" linkends="fiber.migration.c3" />
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">([</phrase><phrase role="identifier">c</phrase><phrase role="special">](){</phrase> <phrase role="identifier">whatevah</phrase><phrase role="special">(</phrase> <phrase role="identifier">c</phrase><phrase role="special">);</phrase> <phrase role="special">}).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
+    <phrase role="special">++</phrase><phrase role="identifier">fiber_count</phrase><phrase role="special">;</phrase> <co id="fiber.migration.c4" linkends="fiber.migration.c5" />
+<phrase role="special">}</phrase>
+<phrase role="identifier">barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">(</phrase> <phrase role="number">4</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase> <phrase role="identifier">threads</phrase><phrase role="special">[]</phrase> <phrase role="special">=</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c6" linkends="fiber.migration.c7" />
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">)</phrase>
+<phrase role="special">};</phrase>
+<phrase role="identifier">b</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c8" linkends="fiber.migration.c9" />
+<phrase role="identifier">lock_count</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c10" linkends="fiber.migration.c11" />
+    <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c12" linkends="fiber.migration.c13" />
+<phrase role="special">}</phrase>
+<phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c14" linkends="fiber.migration.c15" />
+<phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">t</phrase> <phrase role="special">:</phrase> <phrase role="identifier">threads</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c16" linkends="fiber.migration.c17" />
+    <phrase role="identifier">t</phrase><phrase role="special">.</phrase><phrase role="identifier">join</phrase><phrase role="special">();</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    </para>
+    <calloutlist>
+      <callout arearefs="fiber.migration.c0" id="fiber.migration.c1">
+        <para>
+          Install the scheduling algorithm <code><phrase role="identifier">shared_ready_queue</phrase></code>
+          in the main thread too, so each new fiber gets launched into the shared
+          pool.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c2" id="fiber.migration.c3">
+        <para>
+          Launch a number of worker fibers; each worker fiber picks-up a character
+          that is passed as parameter to fiber-function <code><phrase role="identifier">whatevah</phrase></code>.
+          Each worker fiber gets detached, e.g. <code><phrase role="identifier">shared_ready_queue</phrase></code>
+          takes care of fibers life-time.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c4" id="fiber.migration.c5">
+        <para>
+          Increment fiber counter for each new fiber.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c6" id="fiber.migration.c7">
+        <para>
+          Launch a couple of threads that join the work sharing.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c8" id="fiber.migration.c9">
+        <para>
+          wait on other threads
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c10" id="fiber.migration.c11">
+        <para>
+          no spurious wakeup
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c12" id="fiber.migration.c13">
+        <para>
+          Suspend main fiber and resume worker fibers in the meanwhile. Main fiber
+          gets resumed (e.g returns from <code><phrase role="identifier">condition</phrase><phrase
+          role="special">-</phrase><phrase role="identifier">variable_any</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">wait</phrase><phrase
+          role="special">()</phrase></code>) if all worker fibers are complete.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c14" id="fiber.migration.c15">
+        <para>
+          Releasing lock of mtx_count is required before joining the threads, othwerwise
+          the other threads would be blocked inside condition_variable::wait() and
+          would never return (deadlock).
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c16" id="fiber.migration.c17">
+        <para>
+          wait for threads to terminate
+        </para>
+      </callout>
+    </calloutlist>
+    <para>
+      The start of the threads is synchronized wit ha barrier. The main fiber of
+      each thread (including main thread) is suspended till all worker fibers are
+      complete. If the main fiber returns from <link linkend="condition_variable_wait"> <code>condition_variable::wait()</code></link>,
+      the thread terminates (main thread joins all other threads).
+    </para>
+    <para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">barrier</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ostringstream</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">buffer</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;thread started &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">shared_ready_queue</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c18" linkends="fiber.migration.c19" />
+    <phrase role="identifier">b</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c20" linkends="fiber.migration.c21" />
+    <phrase role="identifier">lock_count</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c22" linkends="fiber.migration.c23" />
+        <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c24" linkends="fiber.migration.c25" />
+    <phrase role="special">}</phrase>
+    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">);</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    </para>
+    <calloutlist>
+      <callout arearefs="fiber.migration.c18" id="fiber.migration.c19">
+        <para>
+          Install the scheduling algorithm <code><phrase role="identifier">shared_ready_queue</phrase></code>
+          in order to join the work sharing.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c20" id="fiber.migration.c21">
+        <para>
+          wait on other threads
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c22" id="fiber.migration.c23">
+        <para>
+          no spurious wakeup
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c24" id="fiber.migration.c25">
+        <para>
+          Suspend main fiber and resume worker fibers in the meanwhile. Main fiber
+          gets resumed (e.g returns from <code><phrase role="identifier">condition</phrase><phrase
+          role="special">-</phrase><phrase role="identifier">variable_any</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">wait</phrase><phrase
+          role="special">()</phrase></code>) if all worker fibers are complete.
+        </para>
+      </callout>
+    </calloutlist>
+    <para>
+      The worker fibers execute function <code><phrase role="identifier">whatevah</phrase><phrase
+      role="special">()</phrase></code> with character <code><phrase role="identifier">me</phrase></code>
+      as parameter. The fiber yield in a loop and prints out a message if it was
+      migrated to another thread.
+    </para>
+    <para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">whatevah</phrase><phrase role="special">(</phrase> <phrase role="keyword">char</phrase> <phrase role="identifier">me</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">try</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">my_thread</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase role="identifier">get_id</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c26" linkends="fiber.migration.c27" />
+        <phrase role="special">{</phrase>
+            <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ostringstream</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">;</phrase>
+            <phrase role="identifier">buffer</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;fiber &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">me</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot; started on thread &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">my_thread</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="char">'\n'</phrase><phrase role="special">;</phrase>
+            <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
+        <phrase role="special">}</phrase>
+        <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">unsigned</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="number">10</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c28" linkends="fiber.migration.c29" />
+            <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">yield</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c30" linkends="fiber.migration.c31" />
+            <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">new_thread</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase role="identifier">get_id</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c32" linkends="fiber.migration.c33" />
+            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">new_thread</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">my_thread</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c34" linkends="fiber.migration.c35" />
+                <phrase role="identifier">my_thread</phrase> <phrase role="special">=</phrase> <phrase role="identifier">new_thread</phrase><phrase role="special">;</phrase>
+                <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ostringstream</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">;</phrase>
+                <phrase role="identifier">buffer</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;fiber &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">me</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot; switched to thread &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">my_thread</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="char">'\n'</phrase><phrase role="special">;</phrase>
+                <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
+            <phrase role="special">}</phrase>
+        <phrase role="special">}</phrase>
+    <phrase role="special">}</phrase> <phrase role="keyword">catch</phrase> <phrase role="special">(</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="special">}</phrase>
+    <phrase role="identifier">lock_count</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="special">--</phrase><phrase role="identifier">fiber_count</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c36" linkends="fiber.migration.c37" />
+        <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
+        <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">notify_all</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c38" linkends="fiber.migration.c39" />
+    <phrase role="special">}</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    </para>
+    <calloutlist>
+      <callout arearefs="fiber.migration.c26" id="fiber.migration.c27">
+        <para>
+          get ID of initial thread
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c28" id="fiber.migration.c29">
+        <para>
+          loop ten time
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c30" id="fiber.migration.c31">
+        <para>
+          yield this fiber
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c32" id="fiber.migration.c33">
+        <para>
+          get ID of current thread
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c34" id="fiber.migration.c35">
+        <para>
+          test if fiber was migrated to another thread
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c36" id="fiber.migration.c37">
+        <para>
+          Decrement fiber counter for each completed fiber.
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c38" id="fiber.migration.c39">
+        <para>
+          Notify all fibers waiting on <code><phrase role="identifier">cnd_count</phrase></code>.
+        </para>
+      </callout>
+    </calloutlist>
+    <bridgehead renderas="sect3" id="fiber.migration.h3">
+      <phrase id="fiber.migration.scheduling_fibers"/><link linkend="fiber.migration.scheduling_fibers">Scheduling
+      fibers</link>
+    </bridgehead>
+    <para>
+      Th fiber scheduler <code><phrase role="identifier">shared_ready_queue</phrase></code>
+      is like <code><phrase role="identifier">round_robin</phrase></code>, except
+      that it shares a common ready queue among all participating threads. A thread
+      participates in this pool by executing <link linkend="use_scheduling_algorithm"> <code>use_scheduling_algorithm()</code></link>
+before
+      any other <emphasis role="bold">Boost.Fiber</emphasis> operation.
+    </para>
+    <para>
+      The important point about the ready queue is that it's a class static, common
+      to all instances of shared_ready_queue. Fibers that are enqueued via <link linkend="sched_algorithm_awakened"> <code>sched_algorithm::awakened()</code></link> (fibers
+      that are ready to be resumed), are thus available to all threads. It is required
+      to reserve a separate, scheduler-specific slot for the thread's main fiber.
+      When we're passed the main fiber, stash it there instead of in the shared queue:
+      it would be Bad News for thread B to retrieve and attempt to execute thread
+      A's main fiber. This slot might be empty (<code><phrase role="keyword">nullptr</phrase></code>)
+      or full: <link linkend="sched_algorithm_pick_next"> <code>sched_algorithm::pick_next()</code></link> must only return
+      the main fiber's context* after it has been passed to <link linkend="sched_algorithm_awakened"> <code>sched_algorithm::awakened()</code></link>.
+    </para>
+    <para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
+
+    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">is_main_context</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c40" linkends="fiber.migration.c41" />
+        <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">is_dispatcher_context</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c42" linkends="fiber.migration.c43" />
+        <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase><phrase role="identifier">rqueue_mtx_</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c44" linkends="fiber.migration.c45" />
+        <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    </para>
+    <calloutlist>
+      <callout arearefs="fiber.migration.c40" id="fiber.migration.c41">
+        <para>
+          recognize when we're passed this thread's main fiber never put this thread's
+          main fiber on the queue stash it in separate slot
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c42" id="fiber.migration.c43">
+        <para>
+          recognize when we're passed this thread's dispatcher fiber never put this
+          thread's main fiber on the queue stash it in separate slot
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c44" id="fiber.migration.c45">
+        <para>
+          worker fiber, enqueue on shared queue
+        </para>
+      </callout>
+    </calloutlist>
+    <para>
+      If <link linkend="sched_algorithm_pick_next"> <code>sched_algorithm::pick_next()</code></link> gets called inside
+      one thread, a fiber is dequeued from <emphasis>rqueue_</emphasis> and will
+      be resumed in that thread.
+    </para>
+    <para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase><phrase role="identifier">rqueue_mtx_</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c46" linkends="fiber.migration.c47" />
+        <phrase role="identifier">ctx</phrase> <phrase role="special">=</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">front</phrase><phrase role="special">();</phrase>
+        <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">pop</phrase><phrase role="special">();</phrase>
+        <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
+        <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">migrate</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c48" linkends="fiber.migration.c49" />
+    <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c50" linkends="fiber.migration.c51" />
+            <phrase role="identifier">ctx</phrase> <phrase role="special">=</phrase> <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">front</phrase><phrase role="special">();</phrase>
+            <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">pop</phrase><phrase role="special">();</phrase>
+        <phrase role="special">}</phrase>
+    <phrase role="special">}</phrase>
+    <phrase role="keyword">return</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">;</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    </para>
+    <calloutlist>
+      <callout arearefs="fiber.migration.c46" id="fiber.migration.c47">
+        <para>
+          pop an item from the ready queue
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c48" id="fiber.migration.c49">
+        <para>
+          attach context to current scheduler via the active fiber of this thread
+        </para>
+      </callout>
+      <callout arearefs="fiber.migration.c50" id="fiber.migration.c51">
+        <para>
+          nothing in the ready queue, return main or dispatcher fiber
+        </para>
+      </callout>
+    </calloutlist>
+    <para>
+      The source code above is found in <ulink url="../../examples/work_sharing.cpp">work_sharing.cpp</ulink>.
+    </para>
   </section>
   <section id="fiber.callbacks">
     <title><anchor id="callbacks"/><link linkend="fiber.callbacks">Integrating Fibers
