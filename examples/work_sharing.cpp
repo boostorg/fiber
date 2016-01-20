@@ -157,7 +157,7 @@ void thread( barrier * b) {
     if ( 0 < fiber_count) { /*< no spurious wakeup >*/
         cnd_count.wait( lk); /*<
             Suspend main fiber and resume worker fibers in the meanwhile.
-            Main fiber gets resumed (e.g returns from `condition-variable_any::wait()`)
+            Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
             if all worker fibers are complete.
         >*/
     }
@@ -198,7 +198,7 @@ int main( int argc, char *argv[]) {
     if ( 0 < fiber_count) { /*< no spurious wakeup >*/
         cnd_count.wait( lk); /*<
             Suspend main fiber and resume worker fibers in the meanwhile.
-            Main fiber gets resumed (e.g returns from `condition-variable_any::wait()`)
+            Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
             if all worker fibers are complete.
         >*/
     }
