@@ -3,7 +3,6 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <atomic>
 #include <cstddef>
 #include <iomanip>
 #include <iostream>
@@ -18,56 +17,48 @@
 #include <boost/fiber/all.hpp>
 #include <boost/fiber/detail/autoreset_event.hpp>
 
-static std::atomic< std::size_t > fiber_count;
+#include "barrier.hpp"
+
+static std::size_t fiber_count{ 0 };
+static std::mutex mtx_count{};
+static boost::fibers::condition_variable_any cnd_count{};
+typedef std::unique_lock< std::mutex > lock_count;
 
 /*****************************************************************************
 *   shared_ready_queue scheduler
 *****************************************************************************/
-// This simple scheduler is like round_robin, except that it shares a common
-// ready queue among all participating threads. A thread participates in this
-// pool by executing use_scheduling_algorithm<shared_ready_queue>() before any
-// other Boost.Fiber operation.
 class shared_ready_queue : public boost::fibers::sched_algorithm {
 private:
     typedef std::unique_lock< std::mutex >          lock_t;
-//[rqueue_t_ws
     typedef std::queue< boost::fibers::context * >  rqueue_t;
-//]]
 
-    // The important point about this ready queue is that it's a class static,
-    // common to all instances of shared_ready_queue.
-    static rqueue_t                    rqueue_;
+    static rqueue_t     rqueue_;
+    static std::mutex   rqueue_mtx_;
 
-    // so is this mutex
-    static std::mutex                       mtx_;
-
-    // Reserve a separate, scheduler-specific slot for this thread's main
-    // fiber. When we're passed the main fiber, stash it there instead of in
-    // the shared queue: it would be Bad News for thread B to retrieve and
-    // attempt to execute thread A's main fiber. This slot might be empty
-    // (nullptr) or full: pick_next() must only return the main fiber's
-    // context* after it has been passed to awakened().
-    rqueue_t                                    local_queue_{};
-    boost::fibers::detail::autoreset_event      ev_{};
+    rqueue_t                                local_queue_{};
+    boost::fibers::detail::autoreset_event  ev_{};
 
 public:
-//[awakend_ws
+//[awakened_ws
     virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
 
-        // recognize when we're passed this thread's main fiber
-        if ( ctx->is_main_context() ) {
-            // never put this thread's main fiber on the queue
-            // stash it in separate slot
+        if ( ctx->is_main_context() ) { /*<
+            recognize when we're passed this thread's main fiber
+            never put this thread's main fiber on the queue stash
+            it in separate slot
+        >*/
             local_queue_.push( ctx);
-        // recognize when we're passed this thread's dispatcher fiber
-        } else if ( ctx->is_dispatcher_context() ) {
-            // never put this thread's main fiber on the queue
-            // stash it in separate slot
+        } else if ( ctx->is_dispatcher_context() ) { /*<
+            recognize when we're passed this thread's dispatcher fiber
+            never put this thread's main fiber on the queue
+            stash it in separate slot
+        >*/
             local_queue_.push( ctx);
         } else {
-            // ordinary fiber, enqueue on shared queue
-            lock_t lk( mtx_);
+            lock_t lk(rqueue_mtx_); /*<
+                worker fiber, enqueue on shared queue
+            >*/
             rqueue_.push( ctx);
         }
     }
@@ -75,19 +66,23 @@ public:
 //[pick_next_ws
     virtual boost::fibers::context * pick_next() noexcept {
         boost::fibers::context * ctx( nullptr);
-        lock_t lk( mtx_);
-        if ( ! rqueue_.empty() ) {
-            // good, we have an item in the ready queue, pop it
+        lock_t lk(rqueue_mtx_);
+        if ( ! rqueue_.empty() ) { /*<
+            pop an item from the ready queue
+        >*/
             ctx = rqueue_.front();
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
-            // attach context to current scheduler
-            boost::fibers::context::active()->migrate( ctx);
+            boost::fibers::context::active()->migrate( ctx); /*<
+                attach context to current scheduler via the active fiber
+                of this thread
+            >*/
         } else {
             lk.unlock();
-            if ( ! local_queue_.empty() ) {
-                // nothing in the ready queue, return dispatcher_ctx_
+            if ( ! local_queue_.empty() ) { /*<
+                nothing in the ready queue, return main or dispatcher fiber
+            >*/
                 ctx = local_queue_.front();
                 local_queue_.pop();
             }
@@ -97,7 +92,7 @@ public:
 //]
 
     virtual bool has_ready_fibers() const noexcept {
-        lock_t lock( mtx_);
+        lock_t lock(rqueue_mtx_);
         return ! rqueue_.empty() || ! local_queue_.empty();
     }
 
@@ -110,10 +105,8 @@ public:
     }
 };
 
-//[rqueue_ws
-shared_ready_queue::rqueue_t shared_ready_queue::rqueue_;
-//]
-std::mutex shared_ready_queue::mtx_;
+shared_ready_queue::rqueue_t shared_ready_queue::rqueue_{};
+std::mutex shared_ready_queue::rqueue_mtx_{};
 
 /*****************************************************************************
 *   example fiber function
@@ -121,16 +114,16 @@ std::mutex shared_ready_queue::mtx_;
 //[fiber_fn_ws
 void whatevah( char me) {
     try {
-        std::thread::id my_thread = std::this_thread::get_id();
+        std::thread::id my_thread = std::this_thread::get_id(); /*< get ID of initial thread >*/
         {
             std::ostringstream buffer;
             buffer << "fiber " << me << " started on thread " << my_thread << '\n';
             std::cout << buffer.str() << std::flush;
         }
-        for ( unsigned i = 0; i < 10; ++i) {
-            boost::this_fiber::yield();
-            std::thread::id new_thread = std::this_thread::get_id();
-            if ( new_thread != my_thread) {
+        for ( unsigned i = 0; i < 10; ++i) { /*< loop ten time >*/
+            boost::this_fiber::yield(); /*< yield this fiber >*/
+            std::thread::id new_thread = std::this_thread::get_id(); /*< get ID of current thread >*/
+            if ( new_thread != my_thread) { /*< test if fiber was migrated to another thread >*/
                 my_thread = new_thread;
                 std::ostringstream buffer;
                 buffer << "fiber " << me << " switched to thread " << my_thread << '\n';
@@ -139,72 +132,86 @@ void whatevah( char me) {
         }
     } catch ( ... ) {
     }
-    --fiber_count;
+    lock_count lk( mtx_count);
+    if ( 0 == --fiber_count) { /*< Decrement fiber counter for each completed fiber. >*/
+        lk.unlock();
+        cnd_count.notify_all(); /*< Notify all fibers waiting on `cnd_count`. >*/
+    }
 }
 //]
 
 /*****************************************************************************
 *   example thread function
 *****************************************************************************/
-// Wait until all running fibers have completed. This works because we happen
-// to know that all example fibers use yield(), which leaves them in ready
-// state. A fiber blocked on a synchronization object is invisible to
-// ready_fibers().
 //[thread_fn_ws
-void drain() {
-    std::ostringstream buffer;
-    std::cout << buffer.str() << std::flush;
-    // THIS fiber is running, so won't be counted among "ready" fibers
-    while ( 0 < fiber_count) {
-        boost::this_fiber::yield();
-    }
-}
-
-void thread() {
+void thread( barrier * b) {
     std::ostringstream buffer;
     buffer << "thread started " << std::this_thread::get_id() << std::endl;
     std::cout << buffer.str() << std::flush;
-    boost::fibers::use_scheduling_algorithm< shared_ready_queue >();
-    drain();
+    boost::fibers::use_scheduling_algorithm< shared_ready_queue >(); /*<
+        Install the scheduling algorithm `shared_ready_queue` in order to
+        join the work sharing.
+    >*/
+    b->wait(); /*< wait on other threads >*/
+    lock_count lk( mtx_count);
+    if ( 0 < fiber_count) { /*< no spurious wakeup >*/
+        cnd_count.wait( lk); /*<
+            Suspend main fiber and resume worker fibers in the meanwhile.
+            Main fiber gets resumed (e.g returns from `condition-variable_any::wait()`)
+            if all worker fibers are complete.
+        >*/
+    }
+    BOOST_ASSERT( 0 == fiber_count);
 }
 //]
+
 /*****************************************************************************
 *   main()
 *****************************************************************************/
 int main( int argc, char *argv[]) {
     std::cout << "main thread started " << std::this_thread::get_id() << std::endl;
 //[main_ws
-    // use shared_ready_queue for main thread too, so we launch new fibers
-    // into shared pool
-    boost::fibers::use_scheduling_algorithm< shared_ready_queue >();
+    boost::fibers::use_scheduling_algorithm< shared_ready_queue >(); /*<
+        Install the scheduling algorithm `shared_ready_queue` in the main thread
+        too, so each new fiber gets launched into the shared pool.
+    >*/
 
-    // launch a number of fibers
-    for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) {
+    for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) { /*<
+        Launch a number of worker fibers; each worker fiber picks-up a character
+        that is passed as parameter to fiber-function `whatevah`.
+        Each worker fiber gets detached, e.g. `shared_ready_queue` takes care
+        of fibers life-time.
+    >*/
         boost::fibers::fiber([c](){ whatevah( c); }).detach();
-        ++fiber_count;
+        ++fiber_count; /*< Increment fiber counter for each new fiber. >*/
     }
-
-    // launch a couple threads to help process them
-    std::thread threads[] = {
-        std::thread( thread),
-        std::thread( thread),
-        std::thread( thread),
-        std::thread( thread),
-        std::thread( thread)
+    barrier b( 4);
+    std::thread threads[] = { /*<
+        Launch a couple of threads that join the work sharing.
+    >*/
+        std::thread( thread, & b),
+        std::thread( thread, & b),
+        std::thread( thread, & b)
     };
-
-    // drain running fibers
-    drain();
-
-    // wait for threads to terminate
-    for ( std::thread & t : threads) {
+    b.wait(); /*< wait on other threads >*/
+    lock_count lk( mtx_count);
+    if ( 0 < fiber_count) { /*< no spurious wakeup >*/
+        cnd_count.wait( lk); /*<
+            Suspend main fiber and resume worker fibers in the meanwhile.
+            Main fiber gets resumed (e.g returns from `condition-variable_any::wait()`)
+            if all worker fibers are complete.
+        >*/
+    }
+    lk.unlock(); /*<
+        Releasing lock of mtx_count is required before joining the threads, othwerwise
+        the other threads would be blocked inside condition_variable::wait() and
+        would never return (deadlock).
+    >*/
+    BOOST_ASSERT( 0 == fiber_count);
+    for ( std::thread & t : threads) { /*< wait for threads to terminate >*/
         t.join();
     }
 //]
-
-    BOOST_ASSERT( 0 == fiber_count.load() );
-
     std::cout << "done." << std::endl;
-
     return EXIT_SUCCESS;
 }
