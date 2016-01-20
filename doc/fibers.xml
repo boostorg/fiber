@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/01/20 18:41:26 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/01/20 18:44:01 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -9794,8 +9794,7 @@ encapsulates.
       <callout arearefs="fiber.migration.c12" id="fiber.migration.c13">
         <para>
           Suspend main fiber and resume worker fibers in the meanwhile. Main fiber
-          gets resumed (e.g returns from <code><phrase role="identifier">condition</phrase><phrase
-          role="special">-</phrase><phrase role="identifier">variable_any</phrase><phrase
+          gets resumed (e.g returns from <code><phrase role="identifier">condition_variable_any</phrase><phrase
           role="special">::</phrase><phrase role="identifier">wait</phrase><phrase
           role="special">()</phrase></code>) if all worker fibers are complete.
         </para>
@@ -9854,8 +9853,7 @@ encapsulates.
       <callout arearefs="fiber.migration.c24" id="fiber.migration.c25">
         <para>
           Suspend main fiber and resume worker fibers in the meanwhile. Main fiber
-          gets resumed (e.g returns from <code><phrase role="identifier">condition</phrase><phrase
-          role="special">-</phrase><phrase role="identifier">variable_any</phrase><phrase
+          gets resumed (e.g returns from <code><phrase role="identifier">condition_variable_any</phrase><phrase
           role="special">::</phrase><phrase role="identifier">wait</phrase><phrase
           role="special">()</phrase></code>) if all worker fibers are complete.
         </para>
