@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
@@ -17,7 +19,6 @@
 #include <boost/assert.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/detail/autoreset_event.hpp>
 
 class work_stealing_queue {
 private:
@@ -91,8 +92,10 @@ class victim_algo : public boost::fibers::sched_algorithm {
 private:
     typedef work_stealing_queue        rqueue_t;
 
-    std::shared_ptr< rqueue_t >                 rqueue_{};
-    boost::fibers::detail::autoreset_event      ev_{};
+    std::shared_ptr< rqueue_t > rqueue_{};
+    std::mutex                  mtx_{};
+    std::condition_variable     cnd_{};
+    bool                        flag_{ false };
 
 public:
     victim_algo( std::shared_ptr< rqueue_t > rqueue) :
@@ -112,12 +115,23 @@ public:
         return ! rqueue_->empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
-        ev_.reset( suspend_time);
+    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
+        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait( lk, [&](){ return flag_; });
+            flag_ = false;
+        } else {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait_until( lk, time_point, [&](){ return flag_; });
+            flag_ = false;
+        }
     }
 
     void notify() noexcept {
-        ev_.set();
+        std::unique_lock< std::mutex > lk( mtx_);
+        flag_ = true;
+        lk.unlock();
+        cnd_.notify_all();
     }
 };
 
@@ -126,10 +140,12 @@ private:
     typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
     typedef work_stealing_queue                     ws_rqueue_t;
 
-    rqueue_t                                    rqueue_{};
-    std::shared_ptr< ws_rqueue_t >              ws_rqueue_;
-    std::atomic< int >                      *   count_;
-    boost::fibers::detail::autoreset_event      ev_{};
+    rqueue_t                        rqueue_{};
+    std::shared_ptr< ws_rqueue_t >  ws_rqueue_;
+    std::atomic< int >           *  count_;
+    std::mutex                      mtx_{};
+    std::condition_variable         cnd_{};
+    bool                            flag_{ false };
 
 public:
     tief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue, std::atomic< int > * count) :
@@ -165,12 +181,23 @@ public:
         return ! rqueue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
-        ev_.reset( suspend_time);
+    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
+        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait( lk, [&](){ return flag_; });
+            flag_ = false;
+        } else {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait_until( lk, time_point, [&](){ return flag_; });
+            flag_ = false;
+        }
     }
 
     void notify() noexcept {
-        ev_.set();
+        std::unique_lock< std::mutex > lk( mtx_);
+        flag_ = true;
+        lk.unlock();
+        cnd_.notify_all();
     }
 };
 

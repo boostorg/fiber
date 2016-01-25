@@ -2,11 +2,13 @@
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
-//
+
+#include <chrono>
+#include <condition_variable>
 #include <iostream>
+#include <mutex>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/detail/autoreset_event.hpp>
 #include <boost/fiber/scheduler.hpp>
 #include <boost/noncopyable.hpp>
 
@@ -74,12 +76,13 @@ private:
     typedef boost::fibers::scheduler::ready_queue_t   rqueue_t;
 
     rqueue_t                                rqueue_;
-    boost::fibers::detail::autoreset_event  ev_;
+    std::mutex                  mtx_{};
+    std::condition_variable     cnd_{};
+    bool                        flag_{ false };
 
 public:
     priority_scheduler() :
-        rqueue_(),
-        ev_() {
+        rqueue_() {
     }
 
     // For a subclass of sched_algorithm_with_properties<>, it's important to
@@ -202,12 +205,23 @@ public:
     }
 //->
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
-        ev_.reset( suspend_time);
+    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
+        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait( lk, [&](){ return flag_; });
+            flag_ = false;
+        } else {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait_until( lk, time_point, [&](){ return flag_; });
+            flag_ = false;
+        }
     }
 
     void notify() noexcept {
-        ev_.set();
+        std::unique_lock< std::mutex > lk( mtx_);
+        flag_ = true;
+        lk.unlock();
+        cnd_.notify_all();
     }
 };
 //]

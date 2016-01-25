@@ -3,6 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <iomanip>
 #include <iostream>
@@ -15,7 +17,6 @@
 #include <boost/assert.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/detail/autoreset_event.hpp>
 
 #include "barrier.hpp"
 
@@ -35,8 +36,10 @@ private:
     static rqueue_t     rqueue_;
     static std::mutex   rqueue_mtx_;
 
-    rqueue_t                                local_queue_{};
-    boost::fibers::detail::autoreset_event  ev_{};
+    rqueue_t                    local_queue_{};
+    std::mutex                  mtx_{};
+    std::condition_variable     cnd_{};
+    bool                        flag_{ false };
 
 public:
 //[awakened_ws
@@ -96,12 +99,23 @@ public:
         return ! rqueue_.empty() || ! local_queue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
-        ev_.reset( suspend_time);
+    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
+        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait( lk, [&](){ return flag_; });
+            flag_ = false;
+        } else {
+            std::unique_lock< std::mutex > lk( mtx_);
+            cnd_.wait_until( lk, time_point, [&](){ return flag_; });
+            flag_ = false;
+        }
     }
 
     void notify() noexcept {
-        ev_.set();
+        std::unique_lock< std::mutex > lk( mtx_);
+        flag_ = true;
+        lk.unlock();
+        cnd_.notify_all();
     }
 };
 
