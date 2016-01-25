@@ -81,7 +81,7 @@ int main( int argc, char* argv[]) {
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_service);
         boost::fibers::fiber(
             server, boost::ref( io_service), std::atoi( argv[1]) ).detach();
-        io_service.run();
+        boost::fibers::asio::run( io_service);
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";

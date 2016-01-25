@@ -74,6 +74,10 @@ void server( boost::asio::io_service & io_service, unsigned short port) {
     }
 }
 
+void foo( std::string const& msg) {
+    std::cout << "foo(): " << msg << std::endl;
+}
+
 int main( int argc, char* argv[]) {
     try {
         if ( 2 != argc) {
@@ -85,7 +89,16 @@ int main( int argc, char* argv[]) {
         boost::fibers::asio::spawn(
             io_service,
             boost::bind( server, boost::ref( io_service), std::atoi( argv[1]) ) );
-        io_service.run();
+        boost::fibers::fiber( foo, "abc").detach();
+        boost::fibers::fiber(
+            [](){
+                for ( int i = 0; i < 20; ++i) {
+                    std::cout << "loop " << i << std::endl;
+                    boost::this_fiber::sleep_for( std::chrono::seconds( 1) );
+                }
+            }
+        ).detach();
+        boost::fibers::asio::run( io_service);
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";

@@ -384,7 +384,7 @@ int main( int argc, char* argv[]) {
         boost::fibers::fiber(
             accept_subscriber, boost::ref( io_service), 9998, boost::ref( reg) ).detach();
         // dispatch
-        io_service.run();
+        boost::fibers::asio::run( io_service);
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";
