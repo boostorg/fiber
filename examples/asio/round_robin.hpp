@@ -14,9 +14,12 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/config.hpp>
 
+#include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/context.hpp>
+#include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 #include <boost/fiber/scheduler.hpp>
+
 #include "yield.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -30,10 +33,12 @@ namespace asio {
 class round_robin : public boost::fibers::sched_algorithm,
                     public boost::asio::io_service::service {
 private:
-    std::size_t                             worker_counter_{ 0 };
+    std::size_t                             counter_{ 0 };
     boost::asio::io_service             &   io_svc_;
     boost::asio::steady_timer               suspend_timer_;
     boost::fibers::scheduler::ready_queue_t ready_queue_{};
+    boost::fibers::mutex                    mtx_{};
+    boost::fibers::condition_variable       cnd_{};
 
 public:
     static boost::asio::io_service::id id;
@@ -50,7 +55,7 @@ public:
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         ctx->ready_link( ready_queue_);
         if ( ! ctx->is_dispatcher_context() ) {
-            ++worker_counter_;
+            ++counter_;
         }
     }
 
@@ -62,22 +67,24 @@ public:
             BOOST_ASSERT( nullptr != ctx);
             BOOST_ASSERT( ! ctx->ready_is_linked() );
             if ( ! ctx->is_dispatcher_context() ) {
-                BOOST_ASSERT( 0 < worker_counter_);
-                --worker_counter_;
+                --counter_;
             }
         }
         return ctx;
     }
 
     bool has_ready_fibers() const noexcept {
-        return 0 < worker_counter_;
+        return 0 < counter_;
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& suspend_time) noexcept {
-        fprintf(stderr,"round_robin::suspend_until()\n");
-        suspend_timer_.expires_at( suspend_time);
-        boost::system::error_code ignored_ec;
-        suspend_timer_.async_wait( boost::fibers::asio::yield[ignored_ec]);
+    void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept {
+        if ( (std::chrono::steady_clock::time_point::max)() != abs_time) {
+            suspend_timer_.expires_at( abs_time);
+            suspend_timer_.async_wait([](boost::system::error_code const&){
+                                        this_fiber::yield();
+                                      });
+        }
+        cnd_.notify_one();
     }
 
     void notify() noexcept {
@@ -85,7 +92,11 @@ public:
     }
 
     void poll() {
-        io_svc_.post([](){ boost::this_fiber::yield(); });
+        io_svc_.dispatch([this]() mutable {
+                            // boost::this_fiber::yield();
+                            std::unique_lock< boost::fibers::mutex > lk( mtx_);
+                            cnd_.wait( lk);
+                         });
     }
 
     void shutdown_service() {
@@ -97,17 +108,13 @@ boost::asio::io_service::id round_robin::id;
 void run( boost::asio::io_service & io_svc) {
     BOOST_ASSERT( boost::asio::has_service< round_robin >( io_svc) );
     while ( ! io_svc.stopped() ) {
-        if ( ! boost::asio::use_service< round_robin >( io_svc).has_ready_fibers() ) {
-            fprintf(stderr,"before io_svc.run_one()\n");
+        if ( boost::asio::use_service< round_robin >( io_svc).has_ready_fibers() ) {
+            while ( io_svc.poll() );
+            boost::asio::use_service< round_robin >( io_svc).poll();
+        } else {
             if ( ! io_svc.run_one() ) {
-                fprintf(stderr,"after io_svc.run_one() == false\n");
                 break;
             }
-            fprintf(stderr,"after io_svc.run_one() == true\n");
-        } else {
-            while ( io_svc.poll() ) {
-            }
-            boost::asio::use_service< round_robin >( io_svc).poll();
         }
     }
 }
