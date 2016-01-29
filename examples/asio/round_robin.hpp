@@ -30,8 +30,7 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-class round_robin : public boost::fibers::sched_algorithm,
-                    public boost::asio::io_service::service {
+class round_robin : public boost::fibers::sched_algorithm {
 private:
     std::size_t                             counter_{ 0 };
     boost::asio::io_service             &   io_svc_;
@@ -41,13 +40,27 @@ private:
     boost::fibers::condition_variable       cnd_{};
 
 public:
-    static boost::asio::io_service::id id;
-
     round_robin( boost::asio::io_service & io_svc) :
-        boost::asio::io_service::service( io_svc),
         io_svc_( io_svc),
         suspend_timer_( io_svc_) {
-        boost::asio::add_service( io_svc, this);
+        io_svc_.post([this]() mutable {
+                        while ( ! io_svc_.stopped() ) {
+                            if ( has_ready_fibers() ) {
+                                // run all pending handlers in round_robin
+                                while ( io_svc_.poll() );
+                                // block this fiber till all pending (ready) fibers are processed
+                                // == round_robin::suspend_until() has been called
+                                std::unique_lock< boost::fibers::mutex > lk( mtx_);
+                                cnd_.wait( lk);
+                            } else {
+                                // run one handler inside io_service
+                                // if no handler available, block this thread
+                                if ( ! io_svc_.run_one() ) {
+                                    break;
+                                }
+                            }
+                        }
+                    });
     }
 
     void awakened( boost::fibers::context * ctx) noexcept {
@@ -90,34 +103,7 @@ public:
     void notify() noexcept {
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
     }
-
-    void poll() {
-        io_svc_.dispatch([this]() mutable {
-                            // boost::this_fiber::yield();
-                            std::unique_lock< boost::fibers::mutex > lk( mtx_);
-                            cnd_.wait( lk);
-                         });
-    }
-
-    void shutdown_service() {
-    }
 };
-
-boost::asio::io_service::id round_robin::id;
-
-void run( boost::asio::io_service & io_svc) {
-    BOOST_ASSERT( boost::asio::has_service< round_robin >( io_svc) );
-    while ( ! io_svc.stopped() ) {
-        if ( boost::asio::use_service< round_robin >( io_svc).has_ready_fibers() ) {
-            while ( io_svc.poll() );
-            boost::asio::use_service< round_robin >( io_svc).poll();
-        } else {
-            if ( ! io_svc.run_one() ) {
-                break;
-            }
-        }
-    }
-}
 
 }}}
 

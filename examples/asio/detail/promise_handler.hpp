@@ -107,6 +107,7 @@ public:
     }
 //->
     void operator()( boost::system::error_code const& ec, T t) {
+        get_promise()->set_value( t);
         if ( should_set_value( ec) ) {
             get_promise()->set_value( t);
         }
@@ -145,25 +146,23 @@ public:
     using promise_handler_base< void >::get_promise;
 };
 
-}}}
-
-namespace asio {
-namespace detail {
-
 // Specialize asio_handler_invoke hook to ensure that any exceptions thrown
 // from the handler are propagated back to the caller via the future.
 template< typename Function, typename T >
-void asio_handler_invoke( Function f, fibers::asio::detail::promise_handler< T > * h) {
-    typename fibers::asio::detail::promise_handler< T >::promise_ptr
+void asio_handler_invoke( Function f, promise_handler< T > * h) {
+    typename promise_handler< T >::promise_ptr
         p( h->get_promise() );
     try {
+        fprintf(stderr, "before f()\n");
         f();
+        fprintf(stderr, "after f()\n");
     } catch (...) {
+        fprintf(stderr, "p->set_exception()\n");
         p->set_exception( std::current_exception() );
     }
 }
 
-}}}
+}}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

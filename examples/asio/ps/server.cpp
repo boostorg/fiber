@@ -27,7 +27,6 @@
 
 #include <boost/fiber/all.hpp>
 #include "../round_robin.hpp"
-#include "../spawn.hpp"
 #include "../yield.hpp"
 
 using boost::asio::ip::tcp;
@@ -384,7 +383,7 @@ int main( int argc, char* argv[]) {
         boost::fibers::fiber(
             accept_subscriber, boost::ref( io_service), 9998, boost::ref( reg) ).detach();
         // dispatch
-        boost::fibers::asio::run( io_service);
+        io_service.run();
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";

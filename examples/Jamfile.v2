@@ -40,8 +40,7 @@ exe work_sharing : work_sharing.cpp ;
 exe work_stealing : work_stealing.cpp ;
 
 exe asio/echo_client : asio/echo_client.cpp ;
-exe asio/echo_server_spawn : asio/echo_server_spawn.cpp ;
-exe asio/echo_server_yield : asio/echo_server_yield.cpp ;
+exe asio/echo_server : asio/echo_server.cpp ;
 exe asio/ps/publisher : asio/ps/publisher.cpp ;
 exe asio/ps/server : asio/ps/server.cpp ;
 exe asio/ps/subscriber : asio/ps/subscriber.cpp ;
