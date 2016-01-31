@@ -1,24 +1,14 @@
-//
-// yield.hpp
-// ~~~~~~~~~
-//
-// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-// modified by Oliver Kowalke and Nat Goodspeed
-//
-
 #ifndef BOOST_FIBERS_ASIO_DETAIL_YIELD_HPP
 #define BOOST_FIBERS_ASIO_DETAIL_YIELD_HPP
 
 #include <boost/asio/async_result.hpp>
+#include <boost/asio/detail/config.hpp>
 #include <boost/asio/handler_type.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
+#include <boost/throw_exception.hpp>
 
 #include <boost/fiber/all.hpp>
-
-#include "promise_handler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -29,78 +19,163 @@ namespace fibers {
 namespace asio {
 namespace detail {
 
-// yield_handler is just an alias for promise_handler -- but we must
-// distinguish this case to specialize async_result below.
-//[fibers_asio_yield_handler
 template< typename T >
-using yield_handler = promise_handler< T >;
-//]
-
-}}}
-
-namespace asio {
-
-// Handler traits specialisation for yield_handler.
-template< typename T >
-class async_result< fibers::asio::detail::yield_handler< T > > {
+class yield_handler
+{
 public:
-    // The initiating function will return a value of type T.
-    typedef T   type;
+    yield_handler( yield_t const& y) :
+        ctx_( boost::fibers::context::active() ),
+        ec_( y.ec_),
+        value_( nullptr)
+    {}
 
-    // Constructor creates a new promise for the async operation, and obtains the
-    // corresponding future.
-    explicit async_result( fibers::asio::detail::yield_handler< T > & h) {
-        future_ = h.get_promise()->get_future();
+    void operator()( T t)
+    {
+        * ec_ = boost::system::error_code();
+        * value_ = std::move( t);
+        boost::fibers::context::active()->set_ready( ctx_);
+    }
+
+    void operator()( boost::system::error_code const& ec, T t)
+    {
+        * ec_ = ec;
+        * value_ = std::move( t);
+        boost::fibers::context::active()->set_ready( ctx_);
+    }
+
+//private:
+    boost::fibers::context      *   ctx_;
+    boost::system::error_code   *   ec_;
+    T                           *   value_;
+};
+
+// Completion handler to adapt a void promise as a completion handler.
+template<>
+class yield_handler< void >
+{
+public:
+    yield_handler( yield_t const& y) :
+        ctx_( boost::fibers::context::active() ),
+        ec_( y.ec_)
+    {}
+    
+    void operator()()
+    {
+        * ec_ = boost::system::error_code();
+        boost::fibers::context::active()->set_ready( ctx_);
     }
     
-    // This blocks the calling fiber until the handler sets either a value or
-    // an exception.
-    type get() {
-        return future_.get();
+    void operator()( boost::system::error_code const& ec)
+    {
+        * ec_ = ec;
+        boost::fibers::context::active()->set_ready( ctx_);
+    }
+
+//private:
+    boost::fibers::context      *   ctx_;
+    boost::system::error_code   *   ec_;
+};
+
+// Specialize asio_handler_invoke hook to ensure that any exceptions thrown
+// from the handler are propagated back to the caller
+template< typename Fn, typename T >
+void asio_handler_invoke( Fn fn, yield_handler< T > * h) {
+        fn();
+}
+
+} // namespace detail
+} // namespace asio
+} // namespace fibers
+} // namespace boost
+
+namespace boost {
+namespace asio {
+
+template< typename T >
+class async_result< boost::fibers::asio::detail::yield_handler< T > >
+{
+public:
+    typedef T type;
+    
+    explicit async_result( boost::fibers::asio::detail::yield_handler< T > & h)
+    {
+        out_ec_ = h.ec_;
+        if ( ! out_ec_) h.ec_ = & ec_;
+        h.value_ = & value_;
+    }
+    
+    type get()
+    {
+        boost::fibers::context::active()->suspend();
+        if ( ! out_ec_ && ec_)
+            throw_exception( boost::system::system_error( ec_) );
+        return std::move( value_);
     }
 
 private:
-    fibers::future< T >     future_;
+    boost::system::error_code *   out_ec_;
+    boost::system::error_code     ec_;
+    type                          value_;
 };
 
-// Handler type specialisation for yield for a nullary callback.
-template< typename Allocator, typename ReturnType >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >,
-                     ReturnType() > {
-    typedef boost::fibers::asio::detail::yield_handler< void >    type;
+template<>
+class async_result< boost::fibers::asio::detail::yield_handler< void > >
+{
+public:
+    typedef void  type;
+
+    explicit async_result( boost::fibers::asio::detail::yield_handler< void > & h)
+    {
+        out_ec_ = h.ec_;
+        if ( ! out_ec_) h.ec_ = & ec_;
+    }
+
+    void get()
+    {
+        boost::fibers::context::active()->suspend();
+        if ( ! out_ec_ && ec_)
+            throw_exception( boost::system::system_error( ec_) );
+    }
+
+private:
+    boost::system::error_code *   out_ec_;
+    boost::system::error_code     ec_;
 };
 
-// Handler type specialisation for yield for a single-argument callback.
-template< typename Allocator, typename ReturnType, typename Arg1 >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >,
-                     ReturnType( Arg1) > {
-    typedef fibers::asio::detail::yield_handler< Arg1 >    type;
-};
+// Handler type specialisation for use_future.
+template< typename ReturnType >
+struct handler_type<
+    boost::fibers::asio::yield_t,
+    ReturnType()
+>
+{ typedef boost::fibers::asio::detail::yield_handler< void >    type; };
 
-// Handler type specialisation for yield for a callback passed only
-// boost::system::error_code. Note the use of yield_handler<void>: an
-// error_code indicating error will be conveyed to consumer code via an
-// exception. Normal return implies (! error_code).
-template< typename Allocator, typename ReturnType >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >,
-                     ReturnType( boost::system::error_code) > {
-    typedef fibers::asio::detail::yield_handler< void >    type;
-};
+// Handler type specialisation for use_future.
+template< typename ReturnType, typename Arg1 >
+struct handler_type<
+    boost::fibers::asio::yield_t,
+    ReturnType( Arg1)
+>
+{ typedef boost::fibers::asio::detail::yield_handler< Arg1 >    type; };
 
-// Handler type specialisation for yield for a callback passed
-// boost::system::error_code plus an arbitrary value. Note the use of a
-// single-argument yield_handler: an error_code indicating error will be
-// conveyed to consumer code via an exception. Normal return implies (!
-// error_code).
-//[asio_handler_type
-template< typename Allocator, typename ReturnType, typename Arg2 >
-struct handler_type< boost::fibers::asio::yield_t< Allocator >,
-                     ReturnType( boost::system::error_code, Arg2) > {
-    typedef fibers::asio::detail::yield_handler< Arg2 >    type;
-};
-//]
+// Handler type specialisation for use_future.
+template< typename ReturnType >
+struct handler_type<
+    boost::fibers::asio::yield_t,
+    ReturnType( boost::system::error_code)
+>
+{ typedef boost::fibers::asio::detail::yield_handler< void >    type; };
 
-}}
+// Handler type specialisation for use_future.
+template< typename ReturnType, typename Arg2 >
+struct handler_type<
+    boost::fibers::asio::yield_t,
+    ReturnType( boost::system::error_code, Arg2)
+>
+{ typedef boost::fibers::asio::detail::yield_handler< Arg2 >    type; };
+
+} // namespace asio
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

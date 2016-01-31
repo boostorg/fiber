@@ -69,9 +69,11 @@ void server( boost::asio::io_service & io_svc, unsigned short port) {
                 boost::fibers::asio::yield[ec]);
         if ( ec) {
             std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
-        } else {
-            boost::fibers::fiber( session, socket).detach();
         }
+        if ( io_svc.stopped() ) {
+            return;
+        }
+        boost::fibers::fiber( session, socket).detach();
     }
     std::cout << "fiber " << id << " terminates" << std::endl;
 }
