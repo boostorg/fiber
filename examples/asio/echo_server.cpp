@@ -53,14 +53,15 @@ void session( socket_ptr sock) {
             throw boost::system::system_error( ec); //some other error
         }
     }
+    std::cout << "fiber " << id << " terminates" << std::endl;
 }
 
-void server( boost::asio::io_service & io_service, unsigned short port) {
+void server( boost::asio::io_service & io_svc, unsigned short port) {
     boost::fibers::fiber::id id = boost::this_fiber::get_id();
     std::cout << "fiber " << id << " : echo-server started" << std::endl;
-    tcp::acceptor a( io_service, tcp::endpoint( tcp::v4(), port) );
+    tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), port) );
     for (;;) {
-        socket_ptr socket( new tcp::socket( io_service) );
+        socket_ptr socket( new tcp::socket( io_svc) );
         boost::system::error_code ec;
         std::cout << "fiber " << id << " : accept new connection" << std::endl;
         a.async_accept(
@@ -72,6 +73,7 @@ void server( boost::asio::io_service & io_service, unsigned short port) {
             boost::fibers::fiber( session, socket).detach();
         }
     }
+    std::cout << "fiber " << id << " terminates" << std::endl;
 }
 
 int main( int argc, char* argv[]) {
@@ -80,40 +82,50 @@ int main( int argc, char* argv[]) {
             std::cerr << "Usage: echo_server <port>\n";
             return EXIT_FAILURE;
         }
-        boost::asio::io_service io_service;
-        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_service);
+        boost::fibers::fiber::id id = boost::this_fiber::get_id();
+        std::cout << "fiber " << id << " : (main-fiber) started" << std::endl;
+
+        boost::asio::io_service io_svc;
+        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
         // server fiber
-        boost::fibers::fiber(
-            server, boost::ref( io_service), std::atoi( argv[1]) ).detach();
+        boost::fibers::fiber f(
+            server, boost::ref( io_svc), std::atoi( argv[1]) );
         // fiber unrelated to asio
         boost::fibers::fiber(
             [](){
                 boost::fibers::fiber::id id = boost::this_fiber::get_id();
-                std::cout << "fiber " << id << " : sleeper tarted" << std::endl;
-                for ( int i = 0; i < 1; ++i) {
+                std::cout << "fiber " << id << " : sleeper started" << std::endl;
+                for ( int i = 0; i < 5; ++i) {
                     std::cout << "fiber " << id << " : sleeps for 1 second" << std::endl;
                     boost::this_fiber::sleep_for( std::chrono::seconds( 1) );
                 }
                 std::cout << "fiber " << id << " : sleeps for 10 seconds" << std::endl;
-                boost::this_fiber::sleep_for( std::chrono::seconds( 2) );
-                for ( int i = 0; i < 1; ++i) {
+                boost::this_fiber::sleep_for( std::chrono::seconds( 10) );
+                for ( int i = 0; i < 5; ++i) {
                     std::cout << "fiber " << id << " : sleeps for 1 second" << std::endl;
                     boost::this_fiber::sleep_for( std::chrono::seconds( 1) );
                 }
+                std::cout << "fiber " << id << " sleeper terminates" << std::endl;
             }
         ).detach();
         // fiber does shutdown the io_service
-        boost::fibers::fiber f([&io_service]() mutable {
+        boost::fibers::fiber([&io_svc,&f]() mutable {
                         boost::fibers::fiber::id id = boost::this_fiber::get_id();
-                        std::cout << "fiber " << id << " : shutdown io_service in 10 seconds" << std::endl;
-                        boost::this_fiber::sleep_for( std::chrono::seconds( 10) );
+                        std::cout << "fiber " << id << " : shutdown io_service in 30 seconds" << std::endl;
+                        boost::this_fiber::sleep_for( std::chrono::seconds( 30) );
                         std::cout << "fiber " << id << " : shutdown" << std::endl;
-                        io_service.stop();
-                      });
+                        // stop io_service
+                        io_svc.stop();
+                        // interrupt acceptor fiber
+                        f.interrupt();
+                        std::cout << "fiber " << id << " terminates" << std::endl;
+                      }).detach();
         // run io_service
-        io_service.run();
-        // join fiber shutdown the io_service
+        //io_svc.run();
+        boost::fibers::asio::run( io_svc);
         f.join();
+        std::cout << "fiber " << id << " (main-fiber) terminates" << std::endl;
+        std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";

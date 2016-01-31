@@ -156,8 +156,8 @@ void asio_handler_invoke( Function f, promise_handler< T > * h) {
         fprintf(stderr, "before f()\n");
         f();
         fprintf(stderr, "after f()\n");
-    } catch (...) {
-        fprintf(stderr, "p->set_exception()\n");
+    } catch ( std::exception const& ec) {
+        fprintf(stderr, "p->set_exception() : %s\n", ec.what() );
         p->set_exception( std::current_exception() );
     }
 }

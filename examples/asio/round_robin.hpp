@@ -32,35 +32,51 @@ namespace asio {
 
 class round_robin : public boost::fibers::sched_algorithm {
 private:
-    std::size_t                             counter_{ 0 };
-    boost::asio::io_service             &   io_svc_;
-    boost::asio::steady_timer               suspend_timer_;
-    boost::fibers::scheduler::ready_queue_t ready_queue_{};
-    boost::fibers::mutex                    mtx_{};
-    boost::fibers::condition_variable       cnd_{};
+    boost::asio::io_service                         &   io_svc_;
+    boost::asio::steady_timer                           suspend_timer_;
+    boost::fibers::scheduler::ready_queue_t             ready_queue_{};
+    boost::fibers::mutex                                mtx_{};
+    boost::fibers::condition_variable                   cnd_{};
+    std::size_t                                         counter_{ 0 };
 
 public:
+    struct service : public boost::asio::io_service::service {
+        static boost::asio::io_service::id                  id;
+
+        round_robin                                 *       rr{ nullptr };
+        std::unique_ptr< boost::asio::io_service::work >    work_{};
+
+        service( boost::asio::io_service & io_svc) :
+            boost::asio::io_service::service( io_svc),
+            work_{ new boost::asio::io_service::work( io_svc) } {
+        }
+
+        service( service const&) = delete;
+        service & operator=( service const&) = delete;
+
+        bool has_ready_fibers() const noexcept {
+            return rr->has_ready_fibers();
+        }
+
+        void poll() {
+            // block this fiber till all pending (ready) fibers are processed
+            // == round_robin::suspend_until() has been called
+            std::unique_lock< boost::fibers::mutex > lk( rr->mtx_);
+            rr->cnd_.wait( lk);
+        }
+
+        void shutdown_service() override final {
+            work_.reset();
+            std::unique_lock< boost::fibers::mutex > lk( rr->mtx_);
+            rr->cnd_.notify_all();
+        }
+    };
+
     round_robin( boost::asio::io_service & io_svc) :
         io_svc_( io_svc),
         suspend_timer_( io_svc_) {
-        io_svc_.post([this]() mutable {
-                        while ( ! io_svc_.stopped() ) {
-                            if ( has_ready_fibers() ) {
-                                // run all pending handlers in round_robin
-                                while ( io_svc_.poll() );
-                                // block this fiber till all pending (ready) fibers are processed
-                                // == round_robin::suspend_until() has been called
-                                std::unique_lock< boost::fibers::mutex > lk( mtx_);
-                                cnd_.wait( lk);
-                            } else {
-                                // run one handler inside io_service
-                                // if no handler available, block this thread
-                                if ( ! io_svc_.run_one() ) {
-                                    break;
-                                }
-                            }
-                        }
-                    });
+        boost::asio::add_service< service >( io_svc_, new service( io_svc_) );
+        boost::asio::use_service< service >( io_svc_).rr = this;
     }
 
     void awakened( boost::fibers::context * ctx) noexcept {
@@ -105,6 +121,25 @@ public:
     }
 };
 
+boost::asio::io_service::id round_robin::service::id;
+
+void run( boost::asio::io_service & io_svc) {
+    BOOST_ASSERT( boost::asio::has_service< round_robin::service >( io_svc) );
+    while ( ! io_svc.stopped() ) {
+        if ( boost::asio::use_service< round_robin::service >( io_svc).has_ready_fibers() ) {
+            // run all pending handlers in round_robin
+            while ( io_svc.poll() );
+            boost::asio::use_service< round_robin::service >( io_svc).poll();
+        } else {
+            // run one handler inside io_service
+            // if no handler available, block this thread
+            if ( ! io_svc.run_one() ) {
+                break;
+            }
+        }
+    }
+}
+                    
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
