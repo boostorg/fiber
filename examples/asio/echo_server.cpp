@@ -118,14 +118,13 @@ int main( int argc, char* argv[]) {
                         std::cout << "fiber " << id << " : shutdown" << std::endl;
                         // stop io_service
                         io_svc.stop();
-                        // interrupt acceptor fiber
+                        // interrupt
                         f.interrupt();
+                        f.detach();
                         std::cout << "fiber " << id << " terminates" << std::endl;
                       }).detach();
         // run io_service
-        //io_svc.run();
-        boost::fibers::asio::run( io_svc);
-        f.join();
+        io_svc.run();
         std::cout << "fiber " << id << " (main-fiber) terminates" << std::endl;
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
