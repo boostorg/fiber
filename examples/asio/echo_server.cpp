@@ -31,27 +31,33 @@ typedef boost::shared_ptr< tcp::socket > socket_ptr;
 void session( socket_ptr sock) {
     boost::fibers::fiber::id id = boost::this_fiber::get_id();
     std::cout << "fiber " << id << " : echo-handler started" << std::endl;
-    for (;;) {
-        char data[max_length];
-        boost::system::error_code ec;
-        std::size_t length = sock->async_read_some(
-                boost::asio::buffer( data),
-                boost::fibers::asio::yield[ec]);
-        if ( ec == boost::asio::error::eof) {
-            break; //connection closed cleanly by peer
-        } else if ( ec) {
-            std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
-            return;
+    try {
+        for (;;) {
+            char data[max_length];
+            boost::system::error_code ec;
+            std::size_t length = sock->async_read_some(
+                    boost::asio::buffer( data),
+                    boost::fibers::asio::yield[ec]);
+            if ( ec == boost::asio::error::eof) {
+                break; //connection closed cleanly by peer
+            } else if ( ec) {
+                std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
+                return;
+            }
+            boost::asio::async_write(
+                    * sock,
+                    boost::asio::buffer( data, length),
+                    boost::fibers::asio::yield[ec]);
+            if ( ec == boost::asio::error::eof) {
+                break; //connection closed cleanly by peer
+            } else if ( ec) {
+                throw boost::system::system_error( ec); //some other error
+            }
         }
-        boost::asio::async_write(
-                * sock,
-                boost::asio::buffer( data, length),
-                boost::fibers::asio::yield[ec]);
-        if ( ec == boost::asio::error::eof) {
-            break; //connection closed cleanly by peer
-        } else if ( ec) {
-            throw boost::system::system_error( ec); //some other error
-        }
+    } catch ( boost::fibers::fiber_interrupted const&) {
+        std::cout << "fiber " << id << " : interrupted" << std::endl;
+    } catch ( std::exception const& ex) {
+        std::cout << "fiber " << id << " : catched exception : " << ex.what() << std::endl;
     }
     std::cout << "fiber " << id << " terminates" << std::endl;
 }
@@ -59,21 +65,25 @@ void session( socket_ptr sock) {
 void server( boost::asio::io_service & io_svc, unsigned short port) {
     boost::fibers::fiber::id id = boost::this_fiber::get_id();
     std::cout << "fiber " << id << " : echo-server started" << std::endl;
-    tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), port) );
-    for (;;) {
-        socket_ptr socket( new tcp::socket( io_svc) );
-        boost::system::error_code ec;
-        std::cout << "fiber " << id << " : accept new connection" << std::endl;
-        a.async_accept(
-                * socket,
-                boost::fibers::asio::yield[ec]);
-        if ( ec) {
-            std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
+    try {
+        tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), port) );
+        for (;;) {
+            socket_ptr socket( new tcp::socket( io_svc) );
+            boost::system::error_code ec;
+            std::cout << "fiber " << id << " : accept new connection" << std::endl;
+            a.async_accept(
+                    * socket,
+                    boost::fibers::asio::yield[ec]);
+            if ( ec) {
+                std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
+            } else {
+                boost::fibers::fiber( session, socket).detach();
+            }
         }
-        if ( io_svc.stopped() ) {
-            return;
-        }
-        boost::fibers::fiber( session, socket).detach();
+    } catch ( boost::fibers::fiber_interrupted const&) {
+        std::cout << "fiber " << id << " : interrupted" << std::endl;
+    } catch ( std::exception const& ex) {
+        std::cout << "fiber " << id << " : catched exception : " << ex.what() << std::endl;
     }
     std::cout << "fiber " << id << " terminates" << std::endl;
 }

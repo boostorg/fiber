@@ -32,12 +32,12 @@ namespace asio {
 
 class round_robin : public boost::fibers::sched_algorithm {
 private:
-    boost::asio::io_service                         &   io_svc_;
-    boost::asio::steady_timer                           suspend_timer_;
-    boost::fibers::scheduler::ready_queue_t             ready_queue_{};
-    boost::fibers::mutex                                mtx_{};
-    boost::fibers::condition_variable                   cnd_{};
-    std::size_t                                         counter_{ 0 };
+    boost::asio::io_service                     &   io_svc_;
+    boost::asio::steady_timer                       suspend_timer_;
+    boost::fibers::scheduler::ready_queue_t         ready_queue_{};
+    boost::fibers::mutex                            mtx_{};
+    boost::fibers::condition_variable               cnd_{};
+    std::size_t                                     counter_{ 0 };
 
 public:
     struct service : public boost::asio::io_service::service {

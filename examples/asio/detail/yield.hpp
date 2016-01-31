@@ -92,23 +92,24 @@ namespace boost {
 namespace asio {
 
 template< typename T >
-class async_result< boost::fibers::asio::detail::yield_handler< T > >
-{
+class async_result< boost::fibers::asio::detail::yield_handler< T > > {
 public:
     typedef T type;
     
-    explicit async_result( boost::fibers::asio::detail::yield_handler< T > & h)
-    {
+    explicit async_result( boost::fibers::asio::detail::yield_handler< T > & h) {
         out_ec_ = h.ec_;
-        if ( ! out_ec_) h.ec_ = & ec_;
+        if ( ! out_ec_) {
+            h.ec_ = & ec_;
+        }
         h.value_ = & value_;
     }
     
-    type get()
-    {
+    type get() {
         boost::fibers::context::active()->suspend();
-        if ( ! out_ec_ && ec_)
+        if ( ! out_ec_ && ec_) {
             throw_exception( boost::system::system_error( ec_) );
+        }
+        boost::this_fiber::interruption_point();
         return std::move( value_);
     }
 
@@ -119,22 +120,23 @@ private:
 };
 
 template<>
-class async_result< boost::fibers::asio::detail::yield_handler< void > >
-{
+class async_result< boost::fibers::asio::detail::yield_handler< void > > {
 public:
     typedef void  type;
 
-    explicit async_result( boost::fibers::asio::detail::yield_handler< void > & h)
-    {
+    explicit async_result( boost::fibers::asio::detail::yield_handler< void > & h) {
         out_ec_ = h.ec_;
-        if ( ! out_ec_) h.ec_ = & ec_;
+        if ( ! out_ec_) {
+            h.ec_ = & ec_;
+        }
     }
 
-    void get()
-    {
+    void get() {
         boost::fibers::context::active()->suspend();
-        if ( ! out_ec_ && ec_)
+        if ( ! out_ec_ && ec_) {
             throw_exception( boost::system::system_error( ec_) );
+        }
+        boost::this_fiber::interruption_point();
     }
 
 private:
