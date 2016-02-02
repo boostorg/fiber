@@ -37,9 +37,7 @@ barrier::wait() {
 		cond_.notify_all();
 		return true;
 	} else {
-		while ( cycle == cycle_) {
-			cond_.wait( lk);
-        }
+        cond_.wait( lk, [&](){ return cycle != cycle_; });
 	}
 	return false;
 }

@@ -126,9 +126,7 @@ public:
 
     void wait() {
         std::unique_lock< boost::fibers::mutex > lock( mutex);
-        while ( ! ready) {
-            cond.wait( lock);
-        }
+        cond.wait( lock, [this](){ return ready; });
     }
 
     void notify() {
