@@ -23,8 +23,9 @@ namespace fibers {
 
 void
 fiber::start_() noexcept {
-    context::active()->attach( impl_.get() );
-    context::active()->get_scheduler()->set_ready( impl_.get() );
+    context * ctx = context::active();
+    ctx->attach( impl_.get() );
+    ctx->get_scheduler()->set_ready( impl_.get() );
 }
 
 void
