@@ -39,7 +39,7 @@ public:
     boost::system::error_code   *   ec_{ nullptr };
 };
 
-BOOST_CONSTEXPR_OR_CONST yield_t yield;
+BOOST_CONSTEXPR_OR_CONST yield_t yield{};
 
 }}}
 
