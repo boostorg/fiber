@@ -273,10 +273,8 @@ context::join() {
 
 void
 context::yield() noexcept {
-    // get active context
-    context * active_ctx = context::active();
     // yield active context
-    scheduler_->yield( active_ctx);
+    scheduler_->yield( context::active() );
 }
 
 void
