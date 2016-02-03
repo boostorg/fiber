@@ -269,6 +269,7 @@ void test_join_bind() {
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
     }
+#if 0
     {
         value1 = 0;
         value2 = "";
@@ -288,6 +289,7 @@ void test_join_bind() {
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
     }
+#endif
 }
 
 void test_join_in_fiber() {
