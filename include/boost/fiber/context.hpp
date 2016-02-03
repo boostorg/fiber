@@ -199,7 +199,7 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active_->set_ready_( dp->ctx);
             }
-            boost::context::detail::apply( fn, tpl);
+            boost::context::detail::apply( std::move( fn), std::move( tpl) );
         } catch ( fiber_interrupted const&) {
         }
         // terminate context
