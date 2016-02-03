@@ -104,17 +104,6 @@ void test_async_6() {
     BOOST_CHECK( 3 == x.value);
 }
 
-void test_async_7() {
-    X x = {0};
-    BOOST_CHECK( 0 == x.value);
-    boost::fibers::future< void > f1 = boost::fibers::async(
-            & X::foo, std::ref( x), 3);
-    BOOST_CHECK( f1.valid() );
-
-    f1.get();
-    BOOST_CHECK( 3 == x.value);
-}
-
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     boost::unit_test_framework::test_suite* test =
@@ -126,7 +115,6 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     test->add(BOOST_TEST_CASE(test_async_4));
     test->add(BOOST_TEST_CASE(test_async_5));
     test->add(BOOST_TEST_CASE(test_async_6));
-    test->add(BOOST_TEST_CASE(test_async_7));
 
     return test;
 }
