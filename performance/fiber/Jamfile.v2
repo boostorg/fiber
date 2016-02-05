@@ -15,9 +15,7 @@ import toolset ;
 
 project boost/fiber/performance/fiber
     : requirements
-      <library>/boost/chrono//boost_chrono
       <library>/boost/fiber//boost_fiber
-      <library>/boost/program_options//boost_program_options
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
@@ -29,29 +27,25 @@ project boost/fiber/performance/fiber
       <variant>release
     ;
 
-exe overhead_switch
-   : overhead_switch.cpp
-   ;
-
 exe overhead_create
    : overhead_create.cpp
    ;
 
 exe overhead_join
-   : overhead_join.cpp
-   ;
-
-exe overhead_detach
-  : overhead_detach.cpp
+  : overhead_join.cpp
   ;
 
+exe overhead_detach
+ : overhead_detach.cpp
+ ;
+
 exe overhead_yield
-   : overhead_yield.cpp
-   ;
+  : overhead_yield.cpp
+  ;
 
 exe overhead_future
-   : overhead_future.cpp
-   ;
+  : overhead_future.cpp
+  ;
 
 #exe scale_join
 #   : scale_join.cpp

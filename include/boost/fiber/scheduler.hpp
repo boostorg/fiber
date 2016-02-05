@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include <boost/config.hpp>
+#include <boost/context/captured_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
@@ -103,13 +104,13 @@ public:
 
     virtual ~scheduler();
 
-    void dispatch() noexcept;
+    boost::context::captured_context dispatch() noexcept;
 
     void set_ready( context *) noexcept;
 
     void set_remote_ready( context *) noexcept;
 
-    void set_terminated( context *) noexcept;
+    boost::context::captured_context set_terminated( context *) noexcept;
 
     void yield( context *) noexcept;
 

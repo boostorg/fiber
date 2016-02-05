@@ -135,8 +135,6 @@ context_initializer::~context_initializer() {
 context *
 context::active() noexcept {
     // initialized the first time control passes; per thread
-    thread_local static boost::context::detail::activation_record_initializer rec_initializer;
-    // initialized the first time control passes; per thread
     thread_local static context_initializer ctx_initializer;
     return active_;
 }
@@ -148,11 +146,15 @@ context::reset_active() noexcept {
 
 void
 context::resume_( data_t & d) noexcept {
-    data_t * dp = static_cast< data_t * >( ctx_( & d) );
-    if ( nullptr != dp->lk) {
-        dp->lk->unlock();
-    } else if ( nullptr != dp->ctx) {
-        active_->set_ready_( dp->ctx);
+    auto result = ctx_( & d);
+    data_t * dp( static_cast< data_t * >( std::get< 1 >( result) ) );
+    if ( nullptr != dp) {
+        dp->from->ctx_ = std::move( std::get< 0 >( result) );
+        if ( nullptr != dp->lk) {
+            dp->lk->unlock();
+        } else if ( nullptr != dp->ctx) {
+            active_->set_ready_( dp->ctx);
+        }
     }
 }
 
@@ -165,7 +167,7 @@ context::set_ready_( context * ctx) noexcept {
 context::context( main_context_t) noexcept :
     use_count_{ 1 }, // allocated on main- or thread-stack
     flags_{ flag_main_context },
-    ctx_{ boost::context::execution_context::current() } {
+    ctx_{} {
 }
 
 // dispatcher fiber context
@@ -173,17 +175,17 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
                   default_stack const& salloc, scheduler * sched) :
     flags_{ flag_dispatcher_context },
     ctx_{ std::allocator_arg, palloc, salloc,
-          [this,sched] (void * vp) noexcept {
+          [this,sched] ( boost::context::captured_context ctx, void * vp) noexcept {
             data_t * dp = static_cast< data_t * >( vp);
+            // update captured_context of calling fiber
+            dp->from->ctx_ = std::move( ctx);
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
                 active_->set_ready_( dp->ctx);
             }
             // execute scheduler::dispatch()
-            sched->dispatch();
-            // dispatcher context should never return from scheduler::dispatch()
-            BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
+            return sched->dispatch();
           }} {
 }
 
@@ -205,13 +207,24 @@ context::get_id() const noexcept {
     return id( const_cast< context * >( this) );
 }
 
+boost::context::captured_context
+context::suspend_with_cc() noexcept {
+    context * prev = this;
+    // active_ will point to `this`
+    // prev will point to previous active context
+    std::swap( active_, prev);
+    data_t d{ prev };
+    // context switch
+    return std::move( std::get< 0 >( ctx_( & d) ) );
+}
+
 void
 context::resume() noexcept {
     context * prev = this;
     // active_ will point to `this`
     // prev will point to previous active context
     std::swap( active_, prev);
-    data_t d{};
+    data_t d{ prev };
     resume_( d);
 }
 
@@ -221,7 +234,7 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     // active_ will point to `this`
     // prev will point to previous active context
     std::swap( active_, prev);
-    data_t d{ & lk };
+    data_t d{ & lk, prev };
     resume_( d);
 }
 
@@ -231,7 +244,7 @@ context::resume( context * ready_ctx) noexcept {
     // active_ will point to `this`
     // prev will point to previous active context
     std::swap( active_, prev);
-    data_t d{ ready_ctx };
+    data_t d{ ready_ctx, prev };
     resume_( d);
 }
 
@@ -277,8 +290,8 @@ context::yield() noexcept {
     scheduler_->yield( context::active() );
 }
 
-void
-context::terminate() noexcept {
+boost::context::captured_context
+context::set_terminated() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
     // mark as terminated
@@ -298,7 +311,7 @@ context::terminate() noexcept {
     }
     fss_data_.clear();
     // switch to another context
-    scheduler_->set_terminated( this);
+    return scheduler_->set_terminated( this);
 }
 
 bool

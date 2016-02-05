@@ -29,15 +29,12 @@ private:
     typename std::decay< Fn1 >::type    fn1_;
     typename std::decay< Fn2 >::type    fn2_;
     typename std::decay< Tpl >::type    tpl_;
-    boost::context::execution_context   ctx_;
 
 public:
-    wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
-                      boost::context::execution_context const& ctx) :
+    wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) :
         fn1_( std::move( fn1) ),
         fn2_( std::move( fn2) ),
-        tpl_( std::move( tpl) ),
-        ctx_{ ctx } {
+        tpl_( std::move( tpl) ) {
     }
 
     wrapper( wrapper const&) = delete;
@@ -46,22 +43,21 @@ public:
     wrapper( wrapper && other) = default;
     wrapper & operator=( wrapper && other) = default;
 
-    void operator()( void * vp) {
-        boost::context::detail::invoke(
+    boost::context::captured_context
+    operator()( boost::context::captured_context ctx, void * vp) {
+        return boost::context::detail::invoke(
                 std::move( fn1_),
-                fn2_, tpl_, ctx_, vp);
+                fn2_, tpl_, std::move( ctx), vp);
     }
 };
 
 template< typename Fn1, typename Fn2, typename Tpl  >
 wrapper< Fn1, Fn2, Tpl >
-wrap( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
-               boost::context::execution_context const& ctx) {
+wrap( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) {
     return wrapper< Fn1, Fn2, Tpl >(
             std::forward< Fn1 >( fn1),
             std::forward< Fn2 >( fn2),
-            std::forward< Tpl >( tpl),
-            ctx);
+            std::forward< Tpl >( tpl) );
 }
 
 }}}

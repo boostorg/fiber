@@ -18,7 +18,7 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/context/detail/apply.hpp>
-#include <boost/context/execution_context.hpp>
+#include <boost/context/captured_context.hpp>
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
@@ -160,15 +160,22 @@ private:
     struct data_t {
         detail::spinlock_lock   *   lk{ nullptr };
         context                 *   ctx{ nullptr };
+        context                 *   from;
 
-        constexpr data_t() noexcept = default;
-
-        explicit data_t( detail::spinlock_lock * lk_) noexcept :
-            lk{ lk_ } {
+        explicit data_t( context * from_) noexcept :
+            from{ from_ } {
         }
 
-        explicit data_t( context * ctx_) noexcept :
-            ctx{ ctx_ } {
+        explicit data_t( detail::spinlock_lock * lk_,
+                         context * from_) noexcept :
+            lk{ lk_ },
+            from{ from_ } {
+        }
+
+        explicit data_t( context * ctx_,
+                         context * from_) noexcept :
+            ctx{ ctx_ },
+            from{ from_ } {
         }
     };
 
@@ -184,16 +191,19 @@ private:
     int                                     flags_;
 #endif
     scheduler                           *   scheduler_{ nullptr };
-    boost::context::execution_context       ctx_;
+    boost::context::captured_context        ctx_;
 
     void resume_( data_t &) noexcept;
     void set_ready_( context *) noexcept;
 
     template< typename Fn, typename Tpl >
-    void run_( Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
+    boost::context::captured_context
+    run_( boost::context::captured_context ctx, Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
         try {
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+            // update captured_context of calling fiber
+            dp->from->ctx_ = std::move( ctx);
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
@@ -203,8 +213,7 @@ private:
         } catch ( fiber_interrupted const&) {
         }
         // terminate context
-        terminate();
-        BOOST_ASSERT_MSG( false, "fiber already terminated");
+        return set_terminated();
     }
 
 public:
@@ -307,17 +316,17 @@ public:
         ctx_{ std::allocator_arg, palloc, salloc,
               detail::wrap(
                   [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                          boost::context::execution_context & ctx, void * vp) mutable noexcept {
-                        run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+                          boost::context::captured_context ctx, void * vp) mutable noexcept {
+                        return run_( std::move( ctx), std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
                   },
                   std::forward< Fn >( fn),
-                  std::forward< Tpl >( tpl),
-                  boost::context::execution_context::current())}
+                  std::forward< Tpl >( tpl) )}
+
 #else
         ctx_{ std::allocator_arg, palloc, salloc,
-              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl),
-               ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
-                    run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
+               (boost::context::captured_context ctx, void * vp) mutable noexcept {
+                    return run_( std::move( ctx), std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
               }}
 #endif
     {}
@@ -337,12 +346,13 @@ public:
 
     void suspend() noexcept;
     void suspend( detail::spinlock_lock &) noexcept;
+    boost::context::captured_context suspend_with_cc() noexcept;
 
     void join();
 
     void yield() noexcept;
 
-    void terminate() noexcept;
+    boost::context::captured_context set_terminated() noexcept;
 
     bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
     bool wait_until( std::chrono::steady_clock::time_point const&,
@@ -462,7 +472,11 @@ public:
     friend void intrusive_ptr_release( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         if ( 0 == --ctx->use_count_) {
+            boost::context::captured_context cc( std::move( ctx->ctx_) );
+            // destruct context
             ctx->~context();
+            // deallocated stack
+            cc();
         }
     }
 };
