@@ -12,7 +12,7 @@
 #include <mutex>
 
 #include <boost/config.hpp>
-#include <boost/context/captured_context.hpp>
+#include <boost/context/execution_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
@@ -104,14 +104,14 @@ public:
 
     void set_remote_ready( context *) noexcept;
 
-#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
-    boost::context::captured_context dispatch() noexcept;
-
-    boost::context::captured_context set_terminated( context *) noexcept;
-#else
+#if (BOOST_EXECUTION_CONTEXT==1)
     void dispatch() noexcept;
 
     void set_terminated( context *) noexcept;
+#else
+    boost::context::execution_context dispatch() noexcept;
+
+    boost::context::execution_context set_terminated( context *) noexcept;
 #endif
 
     void yield( context *) noexcept;
