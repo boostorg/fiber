@@ -84,10 +84,6 @@ private:
     detail::spinlock                    remote_ready_splk_{};
     detail::spinlock                    worker_splk_{};
 
-    void resume_( context *, context *) noexcept;
-    void resume_( context *, context *, detail::spinlock_lock &) noexcept;
-    void resume_( context *, context *, context *) noexcept;
-
     context * get_next_() noexcept;
 
     void release_terminated_() noexcept;
@@ -104,13 +100,19 @@ public:
 
     virtual ~scheduler();
 
-    boost::context::captured_context dispatch() noexcept;
-
     void set_ready( context *) noexcept;
 
     void set_remote_ready( context *) noexcept;
 
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
+    boost::context::captured_context dispatch() noexcept;
+
     boost::context::captured_context set_terminated( context *) noexcept;
+#else
+    void dispatch() noexcept;
+
+    void set_terminated( context *) noexcept;
+#endif
 
     void yield( context *) noexcept;
 

@@ -18,7 +18,11 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/context/detail/apply.hpp>
-#include <boost/context/captured_context.hpp>
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
+# include <boost/context/captured_context.hpp>
+#else
+# include <boost/context/execution_context.hpp>
+#endif
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
@@ -157,6 +161,7 @@ private:
         }
     };
 
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
     struct data_t {
         detail::spinlock_lock   *   lk{ nullptr };
         context                 *   ctx{ nullptr };
@@ -178,6 +183,22 @@ private:
             from{ from_ } {
         }
     };
+#else
+    struct data_t {
+        detail::spinlock_lock   *   lk{ nullptr };
+        context                 *   ctx{ nullptr };
+
+        constexpr data_t() noexcept = default;
+
+        explicit data_t( detail::spinlock_lock * lk_) noexcept :
+            lk{ lk_ } {
+        }
+
+        explicit data_t( context * ctx_) noexcept :
+            ctx{ ctx_ } {
+        }
+    };
+#endif
 
     typedef std::map< uintptr_t, fss_data >     fss_data_t;
 
@@ -191,11 +212,16 @@ private:
     int                                     flags_;
 #endif
     scheduler                           *   scheduler_{ nullptr };
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
     boost::context::captured_context        ctx_;
+#else
+    boost::context::execution_context       ctx_;
+#endif
 
     void resume_( data_t &) noexcept;
     void set_ready_( context *) noexcept;
 
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
     template< typename Fn, typename Tpl >
     boost::context::captured_context
     run_( boost::context::captured_context ctx, Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
@@ -215,6 +241,25 @@ private:
         // terminate context
         return set_terminated();
     }
+#else
+    template< typename Fn, typename Tpl >
+    void run_( Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
+        try {
+            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active_->set_ready_( dp->ctx);
+            }
+            boost::context::detail::apply( std::move( fn), std::move( tpl) );
+        } catch ( fiber_interrupted const&) {
+        }
+        // terminate context
+        set_terminated();
+        BOOST_ASSERT_MSG( false, "fiber already terminated");
+    }
+#endif
 
 public:
     detail::ready_hook                      ready_hook_{};
@@ -312,7 +357,8 @@ public:
              Fn && fn, Tpl && tpl) :
         use_count_{ 1 }, // fiber instance or scheduler owner
         flags_{ flag_worker_context },
-#if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
+# if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
               detail::wrap(
                   [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
@@ -322,12 +368,32 @@ public:
                   std::forward< Fn >( fn),
                   std::forward< Tpl >( tpl) )}
 
-#else
+# else
         ctx_{ std::allocator_arg, palloc, salloc,
               [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
                (boost::context::captured_context ctx, void * vp) mutable noexcept {
                     return run_( std::move( ctx), std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
               }}
+# endif
+#else
+# if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
+        ctx_{ std::allocator_arg, palloc, salloc,
+              detail::wrap(
+                  [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
+                          boost::context::execution_context & ctx, void * vp) mutable noexcept {
+                        run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+                  },
+                  std::forward< Fn >( fn),
+                  std::forward< Tpl >( tpl),
+                  boost::context::execution_context::current() )
+              }
+# else
+        ctx_{ std::allocator_arg, palloc, salloc,
+              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl),
+               ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
+                    run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+              }}
+# endif
 #endif
     {}
 
@@ -346,13 +412,16 @@ public:
 
     void suspend() noexcept;
     void suspend( detail::spinlock_lock &) noexcept;
-    boost::context::captured_context suspend_with_cc() noexcept;
 
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
+    boost::context::captured_context suspend_with_cc() noexcept;
+    boost::context::captured_context set_terminated() noexcept;
+#else
+    void set_terminated() noexcept;
+#endif
     void join();
 
     void yield() noexcept;
-
-    boost::context::captured_context set_terminated() noexcept;
 
     bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
     bool wait_until( std::chrono::steady_clock::time_point const&,
@@ -472,11 +541,18 @@ public:
     friend void intrusive_ptr_release( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         if ( 0 == --ctx->use_count_) {
+#if ! defined(BOOST_USE_EXECUTION_CONTEXT)
             boost::context::captured_context cc( std::move( ctx->ctx_) );
             // destruct context
             ctx->~context();
             // deallocated stack
             cc();
+#else
+            boost::context::execution_context ec( ctx->ctx_);
+            // destruct context
+            // deallocates stack (execution_context is ref counted)
+            ctx->~context();
+#endif
         }
     }
 };
