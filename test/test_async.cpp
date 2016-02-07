@@ -18,10 +18,19 @@ struct A {
     A() = default;
 
     A( A const&) = delete;
-    A( A &&) = default;
-
     A & operator=( A const&) = delete;
-    A & operator=( A &&) = default;
+
+    A( A && other) :
+        value{ other.value } {
+        other.value = 0;
+    }
+
+    A & operator=( A && other) {
+        if ( this == & other) return * this;
+        value = other.value;
+        other.value = 0;
+        return * this;
+    }
 
     int value{ 0 };
 };
