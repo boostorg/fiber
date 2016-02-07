@@ -133,7 +133,7 @@ ready; otherwise stores __future_error__ with error condition __broken_promise__
 [[Throws:] [__future_error__ with __already_satisfied__ or __no_state__.]]
 ]
 
-[function_heading pr_swap]
+[function_heading_for swap..promise]
 
     template< typename R >
     void swap( promise< R > & l, promise< R > & r) noexcept;

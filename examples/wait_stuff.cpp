@@ -188,7 +188,7 @@ Example wfs( runner, "wait_first_simple()", [](){
 // When there's only one function, call this overload
 //[wait_first_value_impl
 template< typename T, typename Fn >
-void wait_first_value_impl( std::shared_ptr< boost::fibers::bounded_channel< T > > channel,
+void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_channel< T > > channel,
                             Fn && function) {
     boost::fibers::fiber( [channel, function](){
                               // Ignore channel_op_status returned by push(): might be closed, might
@@ -200,7 +200,7 @@ void wait_first_value_impl( std::shared_ptr< boost::fibers::bounded_channel< T >
 
 // When there are two or more functions, call this overload
 template< typename T, typename Fn0, typename Fn1, typename ... Fns >
-void wait_first_value_impl( std::shared_ptr< boost::fibers::bounded_channel< T > > channel,
+void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_channel< T > > channel,
                             Fn0 && function0,
                             Fn1 && function1,
                             Fns && ... functions) {
@@ -221,9 +221,8 @@ template< typename Fn, typename ... Fns >
 typename std::result_of< Fn() >::type
 wait_first_value( Fn && function, Fns && ... functions) {
     typedef typename std::result_of< Fn() >::type return_t;
-    typedef boost::fibers::bounded_channel< return_t > channel_t;
-    // bounded_channel of size 1: only store the first value
-    auto channelp( std::make_shared< channel_t >( 1) );
+    typedef boost::fibers::unbounded_channel< return_t > channel_t;
+    auto channelp( std::make_shared< channel_t >() );
     // launch all the relevant fibers
     wait_first_value_impl< return_t >( channelp,
                                        std::forward< Fn >( function),
@@ -253,36 +252,35 @@ Example wfv( runner, "wait_first_value()", [](){
 *****************************************************************************/
 // When there's only one function, call this overload.
 //[wait_first_outcome_impl
-template< typename T, typename Fn >
-void wait_first_outcome_impl( std::shared_ptr<
-                                  boost::fibers::bounded_channel<
-                                    boost::fibers::future< T > > > channel,
-                              Fn && function) {
+template< typename T, typename CHANNELP, typename Fn >
+void wait_first_outcome_impl( CHANNELP channel, Fn && function) {
     boost::fibers::fiber(
-            std::bind(
-                []( std::shared_ptr< boost::fibers::bounded_channel< boost::fibers::future< T > > > & channel,
-                    typename std::decay< Fn >::type & function) {
-                              // Instantiate a packaged_task to capture any exception thrown by
-                              // function.
-                              boost::fibers::packaged_task< T() > task( function);
-                              // Immediately run this packaged_task on same fiber. We want
-                              // function() to have completed BEFORE we push the future.
-                              task();
-                              // Pass the corresponding future to consumer. Ignore channel_op_status
-                              // returned by push(): might be closed, might be full; we simply don't
-                              // care.
-                              channel->push( task.get_future() );
-                },
-                channel,
-                std::forward< Fn >( function)
-            )).detach();
+        // Use std::bind() here for C++11 compatibility. C++11 lambda capture
+        // can't move a move-only Fn type, but bind() can. Let bind() move the
+        // channel pointer and the function, passing references into the lambda.
+        std::bind(
+            []( CHANNELP & channel,
+                typename std::decay< Fn >::type & function) {
+                // Instantiate a packaged_task to capture any exception thrown by
+                // function.
+                boost::fibers::packaged_task< T() > task( function);
+                // Immediately run this packaged_task on same fiber. We want
+                // function() to have completed BEFORE we push the future.
+                task();
+                // Pass the corresponding future to consumer. Ignore channel_op_status
+                // returned by push(): might be closed, might be full; we simply don't
+                // care.
+                channel->push( task.get_future() );
+            },
+            channel,
+            std::forward< Fn >( function)
+        )).detach();
 }
 //]
 
 // When there are two or more functions, call this overload
-template< typename T, typename Fn0, typename Fn1, typename ... Fns >
-void wait_first_outcome_impl( std::shared_ptr< boost::fibers::bounded_channel<
-                              boost::fibers::future< T > > > channel,
+template< typename T, typename CHANNELP, typename Fn0, typename Fn1, typename ... Fns >
+void wait_first_outcome_impl( CHANNELP channel,
                               Fn0 && function0,
                               Fn1 && function1,
                               Fns && ... functions) {
@@ -307,9 +305,8 @@ wait_first_outcome( Fn && function, Fns && ... functions) {
     // exception.
     typedef typename std::result_of< Fn() >::type return_t;
     typedef boost::fibers::future< return_t > future_t;
-    typedef boost::fibers::bounded_channel< future_t > channel_t;
-    // bounded_channel of size 1: only store the first future
-    auto channelp(std::make_shared< channel_t >( 1) );
+    typedef boost::fibers::unbounded_channel< future_t > channel_t;
+    auto channelp(std::make_shared< channel_t >() );
     // launch all the relevant fibers
     wait_first_outcome_impl< return_t >( channelp,
                                          std::forward< Fn >( function),
@@ -401,11 +398,8 @@ wait_first_success( Fn && function, Fns && ... functions) {
     // exception.
     typedef typename std::result_of< typename std::decay< Fn >::type() >::type return_t;
     typedef boost::fibers::future< return_t > future_t;
-    typedef boost::fibers::bounded_channel< future_t > channel_t;
-    // make bounded_channel big enough to hold all results if need be
-    // (could use unbounded_channel this time, but let's just share
-    // wait_first_outcome_impl())
-    auto channelp( std::make_shared< channel_t >( count) );
+    typedef boost::fibers::unbounded_channel< future_t > channel_t;
+    auto channelp( std::make_shared< channel_t >() );
     // launch all the relevant fibers
     wait_first_outcome_impl< return_t >( channelp,
                                          std::forward< Fn >( function),
@@ -477,11 +471,10 @@ Example wfss( runner, "wait_first_success()", [](){
 template< typename ... Fns >
 boost::variant< typename std::result_of< Fns() >::type ... >
 wait_first_value_het( Fns && ... functions) {
-    // Use bounded_channel<boost::variant<T1, T2, ...>>; see remarks above.
+    // Use unbounded_channel<boost::variant<T1, T2, ...>>; see remarks above.
     typedef boost::variant< typename std::result_of< Fns() >::type ... > return_t;
-    typedef boost::fibers::bounded_channel< return_t > channel_t;
-    // bounded_channel of size 1: only store the first value
-    auto channelp( std::make_shared< channel_t >( 1) );
+    typedef boost::fibers::unbounded_channel< return_t > channel_t;
+    auto channelp( std::make_shared< channel_t >() );
     // launch all the relevant fibers
     wait_first_value_impl< return_t >( channelp,
                                        std::forward< Fns >( functions) ... );
@@ -701,45 +694,6 @@ Example wav( runner, "wait_all_values()", [](){
 /*****************************************************************************
 *   when_all, throw first exception
 *****************************************************************************/
-// When there's only one function, call this overload
-//[wait_all_until_error_impl
-template< typename T, typename Fn >
-void wait_all_until_error_impl( std::shared_ptr< nchannel< boost::fibers::future< T > > > channel,
-                                Fn && function) {
-    boost::fibers::fiber(
-            std::bind(
-                [](std::shared_ptr< nchannel< boost::fibers::future< T > > > & channel,
-                    typename std::decay< Fn >::type & function){
-                    // Instantiate a packaged_task to capture any exception thrown by
-                    // function.
-                    boost::fibers::packaged_task< T() > task( function);
-                    // Immediately run this packaged_task on same fiber. We want
-                    // function() to have completed BEFORE we push the future.
-                    task();
-                    // Pass the corresponding future to consumer.
-                    channel->push( task.get_future() );
-                },
-                channel,
-                std::forward< Fn >( function)
-            )).detach();
-}
-//]
-
-// When there are two or more functions, call this overload
-template< typename T, typename Fn0, typename Fn1, typename ... Fns >
-void wait_all_until_error_impl( std::shared_ptr< nchannel< boost::fibers::future< T > > > channel,
-                                Fn0 && function0,
-                                Fn1 && function1,
-                                Fns && ... functions) {
-    // process the first function using the single-function overload
-    wait_all_until_error_impl< T >( channel,
-                                    std::forward< Fn0 >( function0) );
-    // then recur to process the rest
-    wait_all_until_error_impl< T >( channel,
-                                    std::forward< Fn1 >( function1),
-                                    std::forward< Fns >( functions) ... );
-}
-
 //[wait_all_until_error_source
 // Return a shared_ptr<unbounded_channel<future<T>>> from which the caller can
 // get() each new result as it arrives, until 'closed'.
@@ -758,9 +712,9 @@ wait_all_until_error_source( Fn && function, Fns && ... functions) {
     // and make an nchannel facade to close it after 'count' items
     auto ncp( std::make_shared< nchannel< future_t > >( channelp, count) );
     // pass that nchannel facade to all the relevant fibers
-    wait_all_until_error_impl< return_t >( ncp,
-                                           std::forward< Fn >( function),
-                                           std::forward< Fns >( functions) ... );
+    wait_first_outcome_impl< return_t >( ncp,
+                                         std::forward< Fn >( function),
+                                         std::forward< Fns >( functions) ... );
     // then return the channel for consumer
     return channelp;
 }

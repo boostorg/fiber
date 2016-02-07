@@ -77,6 +77,11 @@
 ]
 [template function_link[function_name] [dblink [function_name]..[`[function_name]()]]]
 
+[template function_heading_for[function_name arg]
+[hding [function_name]\_for\_[arg]..Non-member function [`[function_name]()]]
+]
+[template function_link_for[function_name arg] [dblink [function_name]\_for\_[arg]..[`[function_name]()]]]
+
 [template ns_function_heading[namespace function_name]
 [hding [namespace]_[function_name]..Non-member function [`[namespace]::[function_name]()]]
 ]

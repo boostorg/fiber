@@ -313,8 +313,9 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]
 [[Note:] [StackAllocator is required to allocate a stack for the internal
-__econtext__. If StackAllocator is not explicitly passed, a
-__fixedsize_stack__ is used by default.]]
+__econtext__. If StackAllocator is not explicitly passed, the default stack
+allocator depends on `BOOST_USE_SEGMENTED_STACKS`: if defined, you will get a
+__segmented_stack__, else a __fixedsize_stack__.]]
 [[See also:] [__allocator_arg_t__, [link stack Stack allocation]]]
 ]
 
@@ -455,7 +456,7 @@ prior to the call.]]
 [[Throws:] [Nothing]]
 ]
 
-[function_heading swap]
+[function_heading_for swap..fiber]
 
     void swap( fiber & l, fiber & r) noexcept;
 

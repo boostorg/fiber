@@ -350,29 +350,29 @@ const&`, otherwise `false`.]]
 
         #include <boost/fiber/future/async.hpp>
 
-        template< typename Fn, typename ... Args >
+        template< class Function, class ... Args >
         future<
-            typename std::result_of<
-                typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-            >::type
+            std::result_of_t<
+                std::decay_t< Function >( std::decay_t< Args > ... )
+            >
         >
-        async( Fn && fn, Args && ... args);
+        async( Function && fn, Args && ... args);
 
-        template< typename StackAllocator, typename Fn, typename ... Args >
+        template< typename StackAllocator, class Function, class ... Args >
         future<
-            typename std::result_of<
-                typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-            >::type
+            std::result_of_t<
+                std::decay_t< Function >( std::decay_t< Args > ... )
+            >
         >
-        async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
+        async( std::allocator_arg_t, StackAllocator salloc, Function && fn, Args && ... args);
 
 [variablelist
 [[Effects:] [Executes `fn` in a [class_link fiber] and returns an associated
 [template_link future].]]
 [[Result:] [`future<
-    typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type
+    std::result_of_t<
+        std::decay_t< Function >( std::decay_t< Args > ... )
+    >
 >` representing the [link
 shared_state shared state] associated with the asynchronous execution of
 `fn`.]]

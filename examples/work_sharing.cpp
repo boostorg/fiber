@@ -168,13 +168,11 @@ void thread( barrier * b) {
     >*/
     b->wait(); /*< wait on other threads >*/
     lock_count lk( mtx_count);
-    if ( 0 < fiber_count) { /*< no spurious wakeup >*/
-        cnd_count.wait( lk); /*<
-            Suspend main fiber and resume worker fibers in the meanwhile.
-            Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
-            if all worker fibers are complete.
-        >*/
-    }
+    cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
+        Suspend main fiber and resume worker fibers in the meanwhile.
+        Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
+        if all worker fibers are complete.
+    >*/
     BOOST_ASSERT( 0 == fiber_count);
 }
 //]
@@ -209,12 +207,11 @@ int main( int argc, char *argv[]) {
     };
     b.wait(); /*< wait on other threads >*/
     lock_count lk( mtx_count);
-    if ( 0 < fiber_count) { /*< no spurious wakeup >*/
-        cnd_count.wait( lk); /*<
-            Suspend main fiber and resume worker fibers in the meanwhile.
-            Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
-            if all worker fibers are complete.
-        >*/
+    cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
+        Suspend main fiber and resume worker fibers in the meanwhile.
+        Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
+        if all worker fibers are complete.
+    >*/
     }
     lk.unlock(); /*<
         Releasing lock of mtx_count is required before joining the threads, othwerwise

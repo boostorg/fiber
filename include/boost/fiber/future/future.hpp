@@ -142,7 +142,7 @@ public:
         }
         typename base_t::ptr_t tmp{};
         tmp.swap( base_t::state_);
-        return std::move( tmp->get() );
+        return tmp->get();
     }
 
     using base_t::valid;

@@ -170,7 +170,7 @@ result of previous executions. A new shared state is constructed.]]
 [[Throws:] [__future_error__ with __no_state__.]]
 ]
 
-[function_heading pt_swap]
+[function_heading_for swap..packaged_task]
 
     template< typename Signature >
     void swap( packaged_task< Signature > & l, packaged_task< Signature > & r) noexcept;

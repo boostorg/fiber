@@ -87,12 +87,12 @@ A timed wait operation might return because of timeout or not.
 
 [heading `no_timeout`]
 [variablelist
-[[Effects:] [The condition variable was awakend with `notify_one` or `notify_all`.]]
+[[Effects:] [The condition variable was awakened with `notify_one` or `notify_all`.]]
 ]
 
 [heading `timeout`]
 [variablelist
-[[Effects:] [The condition variable was awakend by timeout.]]
+[[Effects:] [The condition variable was awakened by timeout.]]
 ]
 
 [class_heading condition_variable_any]
