@@ -138,7 +138,7 @@ an exception.
 One tactic would be to adapt our [link wait_done `Done`] class to store the
 first of the return values, rather than a simple `bool`. However, we choose
 instead to use a [template_link unbounded_channel]. We'll only need to enqueue
-the first value, so we'll [member_link unbounded_channel::close] it once we've
+the first value, so we'll [member_link unbounded_channel..close] it once we've
 retrieved that value. Subsequent `push()` calls will return `closed`.
 
 [#wait_first_value]
