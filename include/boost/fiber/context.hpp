@@ -26,6 +26,7 @@
 #include <boost/intrusive/set.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/decay_copy.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
@@ -143,7 +144,8 @@ private:
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
 
-        constexpr fss_data() noexcept = default;
+        fss_data() noexcept {
+        }
 
         fss_data( void * vp_,
                   detail::fss_cleanup_function::ptr_t const& fn) noexcept :
@@ -157,65 +159,30 @@ private:
         }
     };
 
-#if (BOOST_EXECUTION_CONTEXT==1)
-    struct data_t {
-        detail::spinlock_lock   *   lk{ nullptr };
-        context                 *   ctx{ nullptr };
-
-        constexpr data_t() noexcept = default;
-
-        explicit data_t( detail::spinlock_lock * lk_) noexcept :
-            lk{ lk_ } {
-        }
-
-        explicit data_t( context * ctx_) noexcept :
-            ctx{ ctx_ } {
-        }
-    };
-#else
-    struct data_t {
-        detail::spinlock_lock   *   lk{ nullptr };
-        context                 *   ctx{ nullptr };
-        context                 *   from;
-
-        explicit data_t( context * from_) noexcept :
-            from{ from_ } {
-        }
-
-        explicit data_t( detail::spinlock_lock * lk_,
-                         context * from_) noexcept :
-            lk{ lk_ },
-            from{ from_ } {
-        }
-
-        explicit data_t( context * ctx_,
-                         context * from_) noexcept :
-            ctx{ ctx_ },
-            from{ from_ } {
-        }
-    };
-#endif
-
     typedef std::map< uintptr_t, fss_data >     fss_data_t;
 
-    static thread_local context         *   active_;
+    static thread_local context                 *   active_;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic< std::size_t >              use_count_{ 0 };
-    std::atomic< int >                      flags_;
+    std::atomic< std::size_t >                      use_count_{ 0 };
+    std::atomic< int >                              flags_;
 #else
-    std::size_t                             use_count_{ 0 };
-    int                                     flags_;
+    std::size_t                                     use_count_{ 0 };
+    int                                             flags_;
 #endif
-    scheduler                           *   scheduler_{ nullptr };
-    boost::context::execution_context       ctx_;
+    scheduler                                   *   scheduler_{ nullptr };
+#if (BOOST_EXECUTION_CONTEXT==1)
+    boost::context::execution_context               ctx_;
+#else
+    boost::context::execution_context< detail::data_t * >   ctx_;
+#endif
 
-    void resume_( data_t &) noexcept;
+    void resume_( detail::data_t &) noexcept;
     void set_ready_( context *) noexcept;
 
 #if (BOOST_EXECUTION_CONTEXT==1)
     template< typename Fn, typename Tpl >
-    void run_( Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
+    void run_( Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
         try {
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
@@ -233,8 +200,8 @@ private:
     }
 #else
     template< typename Fn, typename Tpl >
-    boost::context::execution_context
-    run_( boost::context::execution_context ctx, Fn && fn_, Tpl && tpl_, data_t * dp) noexcept {
+    boost::context::execution_context< detail::data_t * >
+    run_( boost::context::execution_context< detail::data_t * > ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
         try {
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
@@ -279,7 +246,8 @@ public:
         context  *   impl_{ nullptr };
 
     public:
-        constexpr id() noexcept = default;
+        id() noexcept {
+        }
 
         explicit id( context * impl) noexcept :
             impl_( impl) {
@@ -355,7 +323,7 @@ public:
               detail::wrap(
                   [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
                           boost::context::execution_context & ctx, void * vp) mutable noexcept {
-                        run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+                        run_( std::move( fn), std::move( tpl), static_cast< detail::data_t * >( vp) );
                   },
                   std::forward< Fn >( fn),
                   std::forward< Tpl >( tpl),
@@ -365,7 +333,7 @@ public:
         ctx_{ std::allocator_arg, palloc, salloc,
               [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl),
                ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
-                    run_( std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+                    run_( std::move( fn), std::move( tpl), static_cast< detail::data_t * >( vp) );
               }}
 # endif
 #else
@@ -373,8 +341,8 @@ public:
         ctx_{ std::allocator_arg, palloc, salloc,
               detail::wrap(
                   [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                          boost::context::execution_context ctx, void * vp) mutable noexcept {
-                        return run_( std::move( ctx), std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+                          boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) mutable noexcept {
+                        return run_( std::move( ctx), std::move( fn), std::move( tpl), dp);
                   },
                   std::forward< Fn >( fn),
                   std::forward< Tpl >( tpl) )}
@@ -382,8 +350,8 @@ public:
 # else
         ctx_{ std::allocator_arg, palloc, salloc,
               [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
-               (boost::context::execution_context ctx, void * vp) mutable noexcept {
-                    return run_( std::move( ctx), std::move( fn), std::move( tpl), static_cast< data_t * >( vp) );
+               (boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) mutable noexcept {
+                    return run_( std::move( ctx), std::move( fn), std::move( tpl), dp);
               }}
 # endif
 #endif
@@ -408,8 +376,8 @@ public:
 #if (BOOST_EXECUTION_CONTEXT==1)
     void set_terminated() noexcept;
 #else
-    boost::context::execution_context suspend_with_cc() noexcept;
-    boost::context::execution_context set_terminated() noexcept;
+    boost::context::execution_context< detail::data_t * > suspend_with_cc() noexcept;
+    boost::context::execution_context< detail::data_t * > set_terminated() noexcept;
 #endif
     void join();
 
@@ -539,11 +507,11 @@ public:
             // deallocates stack (execution_context is ref counted)
             ctx->~context();
 #else
-            boost::context::execution_context cc( std::move( ctx->ctx_) );
+            boost::context::execution_context< detail::data_t * > cc( std::move( ctx->ctx_) );
             // destruct context
             ctx->~context();
             // deallocated stack
-            cc();
+            cc( nullptr);
 #endif
         }
     }

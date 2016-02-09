@@ -150,8 +150,8 @@ context::reset_active() noexcept {
 
 #if (BOOST_EXECUTION_CONTEXT==1)
 void
-context::resume_( data_t & d) noexcept {
-    data_t * dp = static_cast< data_t * >( ctx_( & d) );
+context::resume_( detail::data_t & d) noexcept {
+    detail::data_t * dp = static_cast< detail::data_t * >( ctx_( & d) );
     if ( nullptr != dp->lk) {
         dp->lk->unlock();
     } else if ( nullptr != dp->ctx) {
@@ -160,9 +160,9 @@ context::resume_( data_t & d) noexcept {
 }
 #else
 void
-context::resume_( data_t & d) noexcept {
+context::resume_( detail::data_t & d) noexcept {
     auto result = ctx_( & d);
-    data_t * dp( static_cast< data_t * >( std::get< 1 >( result) ) );
+    detail::data_t * dp( std::get< 1 >( result) );
     if ( nullptr != dp) {
         dp->from->ctx_ = std::move( std::get< 0 >( result) );
         if ( nullptr != dp->lk) {
@@ -186,7 +186,7 @@ context::context( main_context_t) noexcept :
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ boost::context::execution_context::current() } {
 #else
-    ctx_() {
+    ctx_{} {
 #endif
 }
 
@@ -197,7 +197,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ std::allocator_arg, palloc, salloc,
           [this,sched](void * vp) noexcept {
-            data_t * dp = static_cast< data_t * >( vp);
+              detail::data_t * dp = static_cast< detail::data_t * >( vp);
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
@@ -210,8 +210,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
           }}
 #else
     ctx_{ std::allocator_arg, palloc, salloc,
-          [this,sched](boost::context::execution_context ctx, void * vp) noexcept {
-            data_t * dp = static_cast< data_t * >( vp);
+          [this,sched](boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) noexcept {
             // update execution_context of calling fiber
             dp->from->ctx_ = std::move( ctx);
             if ( nullptr != dp->lk) {
@@ -250,9 +249,9 @@ context::resume() noexcept {
     // prev will point to previous active context
     std::swap( active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
-    data_t d{};
+    detail::data_t d{};
 #else
-    data_t d{ prev };
+    detail::data_t d{ prev };
 #endif
     resume_( d);
 }
@@ -264,9 +263,9 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     // prev will point to previous active context
     std::swap( active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
-    data_t d{ & lk };
+    detail::data_t d{ & lk };
 #else
-    data_t d{ & lk, prev };
+    detail::data_t d{ & lk, prev };
 #endif
     resume_( d);
 }
@@ -278,9 +277,9 @@ context::resume( context * ready_ctx) noexcept {
     // prev will point to previous active context
     std::swap( active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
-    data_t d{ ready_ctx };
+    detail::data_t d{ ready_ctx };
 #else
-    data_t d{ ready_ctx, prev };
+    detail::data_t d{ ready_ctx, prev };
 #endif
     resume_( d);
 }
@@ -328,13 +327,13 @@ context::yield() noexcept {
 }
 
 #if (BOOST_EXECUTION_CONTEXT>1)
-boost::context::execution_context
+boost::context::execution_context< detail::data_t * >
 context::suspend_with_cc() noexcept {
     context * prev = this;
     // active_ will point to `this`
     // prev will point to previous active context
     std::swap( active_, prev);
-    data_t d{ prev };
+    detail::data_t d{ prev };
     // context switch
     return std::move( std::get< 0 >( ctx_( & d) ) );
 }
@@ -343,7 +342,7 @@ context::suspend_with_cc() noexcept {
 #if (BOOST_EXECUTION_CONTEXT==1)
 void
 #else
-boost::context::execution_context
+boost::context::execution_context< detail::data_t * >
 #endif
 context::set_terminated() noexcept {
     // protect for concurrent access

@@ -20,6 +20,7 @@
 #include <boost/fiber/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -109,9 +110,9 @@ public:
 
     void set_terminated( context *) noexcept;
 #else
-    boost::context::execution_context dispatch() noexcept;
+    boost::context::execution_context< detail::data_t * > dispatch() noexcept;
 
-    boost::context::execution_context set_terminated( context *) noexcept;
+    boost::context::execution_context< detail::data_t * > set_terminated( context *) noexcept;
 #endif
 
     void yield( context *) noexcept;
