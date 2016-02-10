@@ -629,6 +629,10 @@ from an explicitly-launched thread's thread-function. That is, in many
 respects the main fiber on each thread can be treated like an
 explicitly-launched fiber.
 
+However, unlike an explicitly-launched fiber, if __fiber_interrupted__ is
+thrown (or rethrown) on a thread's main fiber without being caught, the Fiber
+library cannot catch it: `std::terminate()` will be called.
+
         namespace boost {
         namespace this_fiber {
 
@@ -860,7 +864,7 @@ constructed.]]
                 {
                     boost::this_fiber::restore_interruption ri( di);
                     // interruption now enabled
-                } // ri destroyed, interruption disable again
+                } // ri destroyed, interruption disabled again
             } // di destructed, interruption state restored
             // interruption now enabled
         }
