@@ -8,7 +8,7 @@
 [#stack]
 [section:stack Stack allocation]
 
-A __fiber__ uses internally a __econtext__ which manages a set of registers and a stack.
+A __fiber__ uses internally an __econtext__ which manages a set of registers and a stack.
 The memory used by the stack is allocated/deallocated via a __stack_allocator__
 which is required to model a __stack_allocator_concept__.
 
