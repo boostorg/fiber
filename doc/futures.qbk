@@ -44,7 +44,7 @@ __packaged_task__. A __packaged_task__ is a callable object with `void` return
 that wraps a function or callable object returning the specified type. When
 the __packaged_task__ is invoked, it invokes the contained function in turn, and
 populates a future with the contained function's return value. This is an
-answer to the perennial question: "How do I return a value from a fiber?"
+answer to the perennial question: ["How do I return a value from a fiber?]
 Package the function you wish to run as a __packaged_task__ and pass the
 packaged task to the fiber constructor. The future retrieved from the packaged
 task can then be used to obtain the return value. If the function throws an

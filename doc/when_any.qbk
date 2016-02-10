@@ -15,7 +15,7 @@
 
 A bit of wisdom from the early days of computing still holds true today:
 prefer to model program state using the instruction pointer rather than with
-Boolean flags. In other words, if the program must "do something" and then
+Boolean flags. In other words, if the program must ["do something] and then
 do something almost the same, but with minor changes... perhaps parts of that
 something should be broken out as smaller separate functions, rather than
 introducing flags to alter the internal behavior of a monolithic function.
@@ -35,7 +35,7 @@ services, these are valuable idioms. But of course when_any and when_all are
 closely tied to the use of chains of callbacks.
 
 This section presents recipes for achieving the same ends, in the context of a
-fiber that wants to "do something" when one or more other independent
+fiber that wants to ["do something] when one or more other independent
 activities have completed. Accordingly, these are `wait_something()`
 functions rather than `when_something()` functions. The expectation is that
 the calling fiber asks to launch those independent activities, then waits for
@@ -65,7 +65,7 @@ We found it convenient to model an asynchronous task using this function:
 
 [wait_sleeper]
 
-with type-specific `sleeper()` "front ends" for `std::string`, `double` and
+with type-specific `sleeper()` ["front ends] for `std::string`, `double` and
 `int`.
 
 `Verbose` simply prints a message to `std::cout` on construction and
@@ -215,7 +215,7 @@ Calling it might look like this:
 [endsect]
 [section when_any, produce first success]
 
-One scenario for "when_any" functionality is when we're redundantly contacting
+One scenario for ["when_any] functionality is when we're redundantly contacting
 some number of possibly-unreliable web services. Not only might they be slow
 [mdash] any one of them might produce a failure rather than the desired
 result.

@@ -423,7 +423,7 @@ default-constructed __fiber_id__.]]
 [variablelist
 [[Returns:] [`true` if `*this` is main context.]]
 [[Throws:] [Nothing]]
-[[Note:] [The `context` is associated with the "main" fiber of the thread:
+[[Note:] [The `context` is associated with the ["main] fiber of the thread:
 the one implicitly created by the thread itself, rather than one
 explicitly created by __boost_fiber__.]]
 ]
@@ -435,7 +435,7 @@ explicitly created by __boost_fiber__.]]
 [variablelist
 [[Returns:] [`true` if `*this` is dispatcher context.]]
 [[Throws:] [Nothing]]
-[[Note:] [The `context` is associated with a "dispatching" fiber,
+[[Note:] [The `context` is associated with a ["dispatching] fiber,
 responsible for dispatching awakened fibers to scheduler's
 ready-queue.]]
 ]

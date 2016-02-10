@@ -27,9 +27,9 @@ will continue blocking the ['remaining] fibers.
 
 Consider the following scenario:
 
-# Fiber "main" launches fibers A, B, C and D, then calls `barrier::wait()`.
+# Fiber ["main] launches fibers A, B, C and D, then calls `barrier::wait()`.
 # Fiber C finishes first and likewise calls `barrier::wait()`.
-# Fiber "main" is unblocked, as desired.
+# Fiber ["main] is unblocked, as desired.
 # Fiber B calls `barrier::wait()`. Fiber B is ['blocked!]
 # Fiber A calls `barrier::wait()`. Fibers A and B are unblocked.
 # Fiber D calls `barrier::wait()`. Fiber D is blocked indefinitely.
@@ -38,7 +38,7 @@ Consider the following scenario:
 
 [note It is unwise to tie the lifespan of a barrier to any one of its
 participating fibers. Although conceptually all waiting fibers awaken
-"simultaneously," because of the nature of fibers, in practice they will
+["simultaneously,] because of the nature of fibers, in practice they will
 awaken one by one in indeterminate order.[footnote The current implementation
 wakes fibers in FIFO order: the first to call `wait()` wakes first, and so
 forth. But it is perilous to rely on the order in which the various fibers

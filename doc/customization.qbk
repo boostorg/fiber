@@ -57,7 +57,7 @@ properties. There are a couple of reasons for the present mechanism.
   a particular `fiber` subclass, we would have to hunt down and modify every
   place that launches a fiber on that thread.
 
-The present mechanism allows you to "drop in" a custom scheduler with its
+The present mechanism allows you to ["drop in] a custom scheduler with its
 attendant custom properties ['without] altering the rest of your application.
 
 Instead of deriving a custom scheduler fiber properties subclass from
