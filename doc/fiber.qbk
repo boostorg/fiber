@@ -97,7 +97,7 @@ to it.
 
 An exception escaping from the function or callable object passed to the __fiber__
 constructor calls `std::terminate()`.
-If you need to know which exception was thrown, use __future__ and
+If you need to know which exception was thrown, use __future__ or
 __packaged_task__.
 
 
@@ -165,7 +165,10 @@ interruption enabled, a __fiber_interrupted__ exception will be thrown.
 If this exception is not caught, the fiber will be terminated, its stack unwound,
 its stack objects properly destroyed.
 
-With __disable_interruption__ a fiber can avoid being interrupted.
+(__fiber_interrupted__, being thrown by the library, is similarly caught by
+the library. It does not cause the program to terminate.)
+
+With __disable_interruption__ a fiber can defer being interrupted.
 
         // interruption enabled at this point
         {
@@ -181,6 +184,13 @@ With __disable_interruption__ a fiber can avoid being interrupted.
 
 At any point, the interruption state for the current thread can be queried by
 calling __interruption_enabled__.
+
+(But consider a fiber running a __packaged_task__. Suppose that fiber is
+interrupted. Its associated __future__ will be set with __fiber_interrupted__.
+When another fiber calls [member_link future..get] on that `future`, `get()`
+will immediately throw __fiber_interrupted__ [mdash] regardless of
+__disable_interruption__.)
+
 The following __interruption_points__ are defined and will throw
 __fiber_interrupted__ if __interruption_requested__ and
 __interruption_enabled__.
@@ -197,17 +207,14 @@ __interruption_enabled__.
 * __sleep_until__
 * __interruption_point__
 * [member_link bounded_channel..push]
-* [member_link bounded_channel..try_push]
 * [member_link bounded_channel..push_wait_for]
 * [member_link bounded_channel..push_wait_until]
 * [member_link bounded_channel..pop]
-* [member_link bounded_channel..try_pop]
 * [member_link bounded_channel..value_pop]
 * [member_link bounded_channel..pop_wait_for]
 * [member_link bounded_channel..pop_wait_until]
 * [member_link unbounded_channel..push]
 * [member_link unbounded_channel..pop]
-* [member_link unbounded_channel..try_pop]
 * [member_link unbounded_channel..value_pop]
 * [member_link unbounded_channel..pop_wait_for]
 * [member_link unbounded_channel..pop_wait_until]
@@ -470,9 +477,7 @@ prior to the call.]]
         bool operator<( fiber const& l, fiber const& r) noexcept;
 
 [variablelist
-[[Returns:] [`true` if `l.get_id() < r.get_id()` is true and the
-implementation-defined total order of `fiber::id` values places `*this` before
-`other`, false otherwise.]]
+[[Returns:] [`true` if `l.get_id() < r.get_id()` is `true`, false otherwise.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -502,6 +507,7 @@ create a default [class_link round_robin] instance for this thread.]]
 [variablelist
 [[Returns:] [`true` if scheduler has fibers ready to run.]]
 [[Throws:] [Nothing]]
+[[Note:] [Can be used for work-stealing to find an idle scheduler.]]
 ]
 
 [endsect] [/ section Class fiber]
@@ -606,7 +612,8 @@ implementation-defined total order of `fiber::id` values places `*this` before
         operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
 
 [variablelist
-[[Efects:] [Writes the representation of `other` to stream `os`.]]
+[[Efects:] [Writes the representation of `other` to stream `os`. The
+representation is unspecified.]]
 [[Returns:] [`os`]]
 ]
 
@@ -615,6 +622,12 @@ implementation-defined total order of `fiber::id` values places `*this` before
 
 
 [section:this_fiber Namespace this_fiber]
+
+In general, `this_fiber` operations may be called from the ["main] fiber
+[mdash] the fiber on which function `main()` is entered [mdash] as well as
+from an explicitly-launched thread's thread-function. That is, in many
+respects the main fiber on each thread can be treated like an
+explicitly-launched fiber.
 
         namespace boost {
         namespace this_fiber {
@@ -661,8 +674,13 @@ executing fiber.]]
 [[Throws:] [__fiber_interrupted__ if the current fiber is interrupted
 or timeout-related exceptions.]]
 [[Note:] [`sleep_until()` is one of the predefined __interruption_points__.]]
-[[Note:][The current fiber will not resume before `abs_time`, but there are no
+[[Note:] [The current fiber will not resume before `abs_time`, but there are no
 guarantees about how soon after `abs_time` it might resume.]]
+[[Note:] [["timeout-related exceptions] are as defined in the C++ Standard,
+section [*30.2.4 Timing specifications \[thread.req.timing\]]: ["A function
+that takes an argument which specifies a timeout will throw if, during its
+execution, a clock, time point, or time duration throws an exception. Such
+exceptions are referred to as ['timeout-related exceptions.]]]]
 ]
 
 [ns_function_heading this_fiber..sleep_for]
