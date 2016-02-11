@@ -44,19 +44,21 @@ threads as well as fibers running in the same thread. (However, there is a
 build option to disable cross-thread fiber synchronization support; see [link
 cross_thread_sync this description].)
 
-
+[#spurious_wakeup]
 [heading spurious wakeup]
 
-Spurious wakeup happens in the context of condition variables; the condition
-variable appears to be have been signaled while the awaited condition may be
-still false. Spurious wakeup can happen repeatedly and is caused on some
-multiprocessor systems where making condition wakeup completely predictable
-slows down all condition variable operations
-[footnote  David R. Butenhof ["Programming with POSIX Threads]].
+Spurious wakeup can happen when using
+[@http://en.cppreference.com/w/cpp/thread/condition_variable
+`std::condition_variable`]: the condition variable appears to be have been
+signaled while the awaited condition may be still false. Spurious wakeup can
+happen repeatedly and is caused on some multiprocessor systems where making
+`std::condition_variable` wakeup completely predictable slows down all
+`std::condition_variable` operations.[footnote David R. Butenhof ["Programming
+with POSIX Threads]]
 
-Spurious wakup does not happen in the context with __condition__. But it is
-save to keep the test of condition in a loop as known from usage of
-std::condition_variable.
+__condition__ is not subject to spurious wakeup. Nonetheless it is
+prudent to test the business-logic condition in a `wait()` loop [mdash] or,
+equivalently, use one of the `wait( lock, predicate )` overloads.
 
 
 [heading migrating fibers between threads]

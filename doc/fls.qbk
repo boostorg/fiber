@@ -125,7 +125,7 @@ each fiber.]
 [[Effects:] [Return `this->get()` and store `nullptr` as the pointer associated
 with the current fiber without invoking the cleanup function.]]
 [[Postcondition:] [`this->get()==nullptr`]]
-[[Throws:] [Exception raised during cleanup of previous value.]]
+[[Throws:] [Nothing.]]
 ]
 
 [member_heading fiber_specific_ptr..reset]

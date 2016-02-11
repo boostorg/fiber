@@ -74,9 +74,7 @@ A __future__ contains a [link shared_state shared state] which is not shared wit
 
             shared_future< R > share();
 
-            R get();    // member only of generic future template
-            R & get();  // member only of future< R & > template specialization
-            void get(); // member only of future< void > template specialization
+            R get();
 
             std::exception_ptr get_exception_ptr();
 
@@ -179,18 +177,18 @@ state] formerly belonging to `*this`.]]
 
 [member_heading future..get]
 
-        R get();    // member only of generic future template
-        R & get();  // member only of future< R & > template specialization
-        void get(); // member only of future< void > template specialization
+        R get();
 
 [template future_get_variablelist[]
 [variablelist
 [[Precondition:] [`true == valid()`]]
-[[Returns:] [[future_method_wait .] If `set_value()` is called, returns the
-value. If `set_exception()` is called, throws the indicated exception.]]
+[[Returns:] [[future_method_wait .] If [member_link promise..set_value] is
+called, returns the value. If [member_link promise..set_exception] is called,
+throws the indicated exception.]]
 [[Postcondition:] [`false == valid()`]]
-[[Throws:] [__future_error__ with error condition __no_state__, or
-__fiber_interrupted__. Any exception passed to `promise::set_exception()`.]]
+[[Throws:] [__future_error__ with error condition __no_state__,
+__fiber_interrupted__, __broken_promise__. Any exception passed to
+`promise::set_exception()`.]]
 ]
 ]
 [future_get_variablelist]
@@ -358,27 +356,27 @@ const&`, otherwise `false`.]]
         >
         async( Function && fn, Args && ... args);
 
-        template< typename StackAllocator, class Function, class ... Args >
+        template< typename __StackAllocator__, class Function, class ... Args >
         future<
             std::result_of_t<
                 std::decay_t< Function >( std::decay_t< Args > ... )
             >
         >
-        async( std::allocator_arg_t, StackAllocator salloc, Function && fn, Args && ... args);
+        async( __allocator_arg_t__, __StackAllocator__ salloc, Function && fn, Args && ... args);
 
 [variablelist
 [[Effects:] [Executes `fn` in a [class_link fiber] and returns an associated
 [template_link future].]]
-[[Result:] [`future<
+[[Result:] [``future<
     std::result_of_t<
         std::decay_t< Function >( std::decay_t< Args > ... )
     >
->` representing the [link
+>`` representing the [link
 shared_state shared state] associated with the asynchronous execution of
 `fn`.]]
 [[Throws:] [__fiber_error__ or __future_error__ if an error occurs.]]
 [[Notes:] [The overload accepting __allocator_arg_t__ uses the passed
-`StackAllocator` when constructing the launched `fiber`.]]
+__StackAllocator__ when constructing the launched `fiber`.]]
 ]
 
 [note Deferred futures are not supported.]

@@ -113,6 +113,10 @@ The interaction with `notify()` means that, for instance, calling
 [@http://en.cppreference.com/w/cpp/thread/condition_variable
 `std::condition_variable`] to coordinate with [member_link
 round_robin..notify].]]
+[[Note:] [Given that `notify()` might be called from another thread, your
+`suspend_until()` implementation [mdash] like the rest of your
+`sched_algorithm` implementation [mdash] must guard any data it shares with
+your `notify()` implementation.]]
 ]
 
 [member_heading sched_algorithm..notify]
@@ -122,6 +126,9 @@ round_robin..notify].]]
 [variablelist
 [[Effects:] [Requests the scheduler to return from a pending call to
 [member_link sched_algorithm..suspend_until].]]
+[[Note:] [Alone among the `sched_algorithm` methods, `notify()` may be called
+from another thread. Your `notify()` implementation must guard any data it
+shares with the rest of your `sched_algorithm` implementation.]]
 ]
 
 [class_heading round_robin]

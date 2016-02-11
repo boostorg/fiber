@@ -34,8 +34,8 @@ encapsulates.
             template< typename Fn >
             explicit packaged_task( Fn &&);
 
-            template< typename Fn, typename Allocator >
-            packaged_task( std::allocator_arg_t, Allocator const&, Fn &&);
+            template< typename Fn, typename __Allocator__ >
+            packaged_task( __allocator_arg_t__, Allocator const&, Fn &&);
 
             packaged_task( packaged_task &&) noexcept;
 
@@ -72,17 +72,18 @@ shared_state shared state].]]
 ]
 
 [#packaged_task_packaged_task]
-[heading Templated constructor `template<> packaged_task()`]
+[heading Templated constructor `packaged_task()`]
 
         template< typename Fn >
         explicit packaged_task( Fn && fn);
 
-        template< typename Fn, typename Allocator >
-        packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn);
+        template< typename Fn, typename __Allocator__ >
+        packaged_task( __allocator_arg_t__, Allocator const& alloc, Fn && fn);
 
 [variablelist
 [[Effects:] [Constructs an object of class `packaged_task` with a [link
-shared_state shared state] and stores the callable target `fn` internally.]]
+shared_state shared state] and copies or moves the callable target `fn` to
+internal storage.]]
 [[Throws:] [Exceptions caused by memory allocation.]]
 [[Note:] [The signature of `Fn` should have a return type convertible to `R`.]]
 [[See also:] [__allocator_arg_t__]]
@@ -106,7 +107,8 @@ state] from `other`.]]
 [variablelist
 [[Effects:] [Destroys `*this` and abandons the [link shared_state shared
 state] if shared state is ready; otherwise stores __future_error__ with error
-condition __broken_promise__.]]
+condition __broken_promise__ as if by [member_link promise..set_exception]:
+the shared state is set ready.]]
 ]
 
 [operator_heading packaged_task..operator_assign..operator=]
@@ -155,8 +157,9 @@ state].]]
 
 [variablelist
 [[Effects:] [Invokes the stored callable target. Any exception thrown by the
-callable target `fn` is stored in the [link shared_state shared state].
-Otherwise, the value returned by `fn` is stored in the shared state.]]
+callable target `fn` is stored in the [link shared_state shared state] as if
+by [member_link promise..set_exception]. Otherwise, the value returned by `fn`
+is stored in the shared state as if by [member_link promise..set_value].]]
 [[Throws:] [__future_error__ with __no_state__.]]
 ]
 
@@ -165,7 +168,7 @@ Otherwise, the value returned by `fn` is stored in the shared state.]]
         void reset();
 
 [variablelist
-[[Effects:] [Resets the [link shared_state shared state] and abondons the
+[[Effects:] [Resets the [link shared_state shared state] and abandons the
 result of previous executions. A new shared state is constructed.]]
 [[Throws:] [__future_error__ with __no_state__.]]
 ]

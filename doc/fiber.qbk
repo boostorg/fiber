@@ -185,11 +185,11 @@ With __disable_interruption__ a fiber can defer being interrupted.
 At any point, the interruption state for the current thread can be queried by
 calling __interruption_enabled__.
 
-(But consider a fiber running a __packaged_task__. Suppose that fiber is
+(But consider fiber `f1` running a __packaged_task__. Suppose `f1` is
 interrupted. Its associated __future__ will be set with __fiber_interrupted__.
-When another fiber calls [member_link future..get] on that `future`, `get()`
-will immediately throw __fiber_interrupted__ [mdash] regardless of
-__disable_interruption__.)
+When fiber `f2` calls [member_link future..get] on that `future`, `get()`
+will immediately rethrow __fiber_interrupted__ [mdash] regardless of
+any __disable_interruption__ instance `f2` might have constructed.)
 
 The following __interruption_points__ are defined and will throw
 __fiber_interrupted__ if __interruption_requested__ and
@@ -256,8 +256,8 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
             template< typename Fn, typename ... Args >
             fiber( Fn &&, Args && ...);
 
-            template< typename StackAllocator, typename Fn, typename ... Args >
-            fiber( std::allocator_arg_t, StackAllocator, Fn &&, Args && ...);
+            template< typename __StackAllocator__, typename Fn, typename ... Args >
+            fiber( __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
 
             ~fiber();
 
@@ -311,16 +311,16 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         template< typename Fn, typename ... Args >
         fiber( Fn && fn, Args && ... args);
 
-        template< typename StackAllocator, typename Fn, typename ... Args >
-        fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
+        template< typename __StackAllocator__, typename Fn, typename ... Args >
+        fiber( __allocator_arg_t__, StackAllocator salloc, Fn && fn, Args && ... args);
 
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
 [[Effects:] [`fn` is copied or moved into internal storage for access by the new fiber.]]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]
-[[Note:] [StackAllocator is required to allocate a stack for the internal
-__econtext__. If StackAllocator is not explicitly passed, the default stack
+[[Note:] [__StackAllocator__ is required to allocate a stack for the internal
+__econtext__. If `StackAllocator` is not explicitly passed, the default stack
 allocator depends on `BOOST_USE_SEGMENTED_STACKS`: if defined, you will get a
 __segmented_stack__, else a __fixedsize_stack__.]]
 [[See also:] [__allocator_arg_t__, [link stack Stack allocation]]]
@@ -802,6 +802,9 @@ interruption for the current fiber.]]
 [[Postconditions:] [__interruption_enabled__ returns `false` for the current
 fiber.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Nesting of `disable_interruption` instances matters. Constructing a
+`disable_interruption` while __interruption_enabled__ `== false` has no
+effect.]]
 ]
 
 [heading Destructor]
@@ -815,6 +818,8 @@ constructed.]]
 current fiber to the state saved at construction of `*this`.]]
 [[Postconditions:] [__interruption_enabled__ for the current fiber returns the
 value stored by the constructor of `*this`.]]
+[[Note:] [Destroying a `disable_interruption` constructed while
+__interruption_enabled__ `== false` has no effect.]]
 ]
 
 
@@ -842,6 +847,10 @@ current fiber to that saved in `disabler`.]]
 [[Postconditions:] [__interruption_enabled__ for the current fiber returns the
 value stored in the constructor of `disabler`.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Nesting of `restore_interruption` instances does not matter: only
+the [class_link disable_interruption] instance passed to the constructor
+matters. Constructing a `restore_interruption` with a `disable_interruption`
+constructed while __interruption_enabled__ `== false` has no effect.]]
 ]
 
 [heading Destructor]
@@ -854,6 +863,9 @@ constructed.]]
 [[Effects:] [Disables interruption for the current fiber.]]
 [[Postconditions:] [__interruption_enabled__ for the current fiber returns
 `false`.]]
+[[Note:] [Destroying a `restore_interruption` constructed with a [class_link
+disable_interruption] constructed while __interruption_enabled__ `== false`
+has no effect.]]
 ]
 
         void foo() {

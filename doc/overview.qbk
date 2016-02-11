@@ -78,6 +78,8 @@ some other thread, but that only transitions the fiber from ["blocked] to
 ["ready] on its current thread [mdash] it does not cause the fiber to
 resume on the thread that unblocked it.
 
+[#thread_local_storage]
+[heading thread-local storage]
 Unless migrated, a fiber may access thread-local storage; however that storage
 will be shared among all fibers running on the same thread. For fiber-local
 storage, please see __fsp__.

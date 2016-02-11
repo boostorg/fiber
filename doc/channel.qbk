@@ -75,12 +75,12 @@ channel operations return the state of the channel.
 
     #include <boost/fiber/unbounded_channel.hpp>
 
-    template< typename T, typename Allocator = std::allocator< T > >
+    template< typename T, typename __Allocator__ = __allocator__ >
     class unbounded_channel {
     public:
         typedef T   value_type;
 
-        explicit unbounded_channel( Allocator const& alloc = Allocator() ) noexcept;
+        explicit unbounded_channel( __Allocator__ const& alloc = Allocator() ) noexcept;
 
         unbounded_channel( unbounded_channel const& other) = delete;
         unbounded_channel & operator=( unbounded_channel const& other) = delete;
@@ -105,12 +105,13 @@ channel operations return the state of the channel.
 
 [heading Constructor]
 
-        explicit unbounded_channel( Allocator const& alloc = Allocator() ) noexcept;
+        explicit unbounded_channel( __Allocator__ const& alloc = Allocator() ) noexcept;
 
 [variablelist
 [[Effects:] [Constructs an object of class `unbounded_channel`.
 Internal nodes are allocated using `alloc` - C++11-allocators are supported.]]
 [[Throws:] [Nothing.]]
+[[See also:] [__Allocator__ concept, __allocator__]]
 ]
 
 [template xchannel_close[cls]
@@ -171,6 +172,7 @@ fiber gets suspended until at least one new item is `push()`ed (return value
 fiber gets suspended until at least one new item is `push()`ed or the channel
 gets `close()`d (which throws an exception)[unblocking]]]
 [[Throws:] [`fiber_error` if `*this` is closed or __fiber_interrupted__]]
+[[Error conditions:] [`std::errc::operation_not_permitted`]]
 ]
 ]
 [xchannel_value_pop unbounded_channel .]
@@ -234,13 +236,13 @@ time as (system time + `timeout_duration`).
 
     #include <boost/fiber/bounded_channel.hpp>
 
-    template< typename T, typename Allocator = std::allocator< T > >
+    template< typename T, typename __Allocator__ = __allocator__ >
     class bounded_channel {
     public:
         typedef T   value_type;
 
-        bounded_channel( std::size_t wm, Allocator const& alloc = Allocator() );
-        bounded_channel( std::size_t hwm, std::size_t lwm, Allocator const& alloc = Allocator() );
+        bounded_channel( std::size_t wm, __Allocator__ const& alloc = Allocator() );
+        bounded_channel( std::size_t hwm, std::size_t lwm, __Allocator__ const& alloc = Allocator() );
 
         bounded_channel( bounded_channel const& other) = delete; 
         bounded_channel & operator=( bounded_channel const& other) = delete; 
@@ -284,15 +286,15 @@ time as (system time + `timeout_duration`).
 
 [heading Constructor]
 
-        bounded_channel( std::size_t wm, Allocator const& alloc = Allocoator() );
-        bounded_channel( std::size_t hwm, std::size_t lwm, Allocator const& alloc = Allocator() );
+        bounded_channel( std::size_t wm, __Allocator__ const& alloc = Allocator() );
+        bounded_channel( std::size_t hwm, std::size_t lwm, __Allocator__ const& alloc = Allocator() );
 
 [variablelist
 [[Preconditions:] [`hwm > lwm`]]
 [[Effects:] [Constructs an object of class `bounded_channel`. The constructor
 with two arguments constructs an object of class `bounded_channel` with a
 high-watermark of `hwm` and a low-watermark of `lwm` items. The constructor
-with one argument is effectively the same as `bounded_channel(wm, (wm-1))`.
+with one `std::size_t` argument is effectively the same as `bounded_channel(wm, (wm-1), alloc)`.
 Internal nodes are allocated using `alloc` - C++11-allocators are supported.]]
 [[Throws:] [`fiber_error`]]
 [[Error Conditions:] [
@@ -303,6 +305,7 @@ of values in the channel is at most `lwm`. That is, if `lwm < (hwm-1)`, the
 channel can be in a state in which `push()`, `push_wait_for()` or `push_wait_until()`
 calls will block (channel is full) even though the number of values
 in the channel is less than `hwm`.]]
+[[See also:] [__Allocator__ concept, __allocator__]]
 ]
 
 [member_heading bounded_channel..upper_bound]
