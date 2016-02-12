@@ -14,6 +14,7 @@
 #include <boost/context/execution_context.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/data.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_PREFIX
@@ -85,11 +86,11 @@ public:
     wrapper( wrapper && other) = default;
     wrapper & operator=( wrapper && other) = default;
 
-    boost::context::execution_context
-    operator()( boost::context::execution_context ctx, void * vp) {
+    boost::context::execution_context< data_t * >
+    operator()( boost::context::execution_context< data_t * > ctx, data_t * dp) {
         return boost::context::detail::invoke(
                 std::move( fn1_),
-                fn2_, tpl_, std::move( ctx), vp);
+                fn2_, tpl_, std::move( ctx), dp);
     }
 };
 

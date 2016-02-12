@@ -129,7 +129,7 @@ scheduler::~scheduler() {
 void
 scheduler::dispatch() noexcept {
 #else
-boost::context::execution_context
+boost::context::execution_context< detail::data_t * >
 scheduler::dispatch() noexcept {
 #endif
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
@@ -246,7 +246,7 @@ scheduler::set_remote_ready( context * ctx) noexcept {
 void
 scheduler::set_terminated( context * active_ctx) noexcept {
 #else
-boost::context::execution_context
+boost::context::execution_context< detail::data_t * >
 scheduler::set_terminated( context * active_ctx) noexcept {
 #endif
     BOOST_ASSERT( nullptr != active_ctx);
