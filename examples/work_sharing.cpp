@@ -28,7 +28,7 @@ typedef std::unique_lock< std::mutex > lock_count;
 /*****************************************************************************
 *   shared_ready_queue scheduler
 *****************************************************************************/
-class shared_ready_queue : public boost::fibers::sched_algorithm {
+class shared_ready_queue : public boost::fibers::thread_sched_algorithm {
 private:
     typedef std::unique_lock< std::mutex >          lock_t;
     typedef std::queue< boost::fibers::context * >  rqueue_t;
@@ -37,9 +37,6 @@ private:
     static std::mutex   rqueue_mtx_;
 
     rqueue_t                    local_queue_{};
-    std::mutex                  mtx_{};
-    std::condition_variable     cnd_{};
-    bool                        flag_{ false };
 
 public:
 //[awakened_ws
@@ -97,25 +94,6 @@ public:
     virtual bool has_ready_fibers() const noexcept {
         lock_t lock(rqueue_mtx_);
         return ! rqueue_.empty() || ! local_queue_.empty();
-    }
-
-    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
-        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
-            std::unique_lock< std::mutex > lk( mtx_);
-            cnd_.wait( lk, [this](){ return flag_; });
-            flag_ = false;
-        } else {
-            std::unique_lock< std::mutex > lk( mtx_);
-            cnd_.wait_until( lk, time_point, [this](){ return flag_; });
-            flag_ = false;
-        }
-    }
-
-    void notify() noexcept {
-        std::unique_lock< std::mutex > lk( mtx_);
-        flag_ = true;
-        lk.unlock();
-        cnd_.notify_all();
     }
 };
 

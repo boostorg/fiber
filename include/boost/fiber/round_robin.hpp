@@ -26,12 +26,9 @@ namespace fibers {
 
 class context;
 
-class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
+class BOOST_FIBERS_DECL round_robin : public thread_sched_algorithm {
 private:
     scheduler::ready_queue_t    ready_queue_{};
-    std::mutex                  mtx_{};
-    std::condition_variable     cnd_{};
-    bool                        flag_{ false };
 
 public:
     round_robin() = default;
@@ -44,10 +41,6 @@ public:
     virtual context * pick_next() noexcept;
 
     virtual bool has_ready_fibers() const noexcept;
-
-    virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
-
-    virtual void notify() noexcept;
 };
 
 }}
