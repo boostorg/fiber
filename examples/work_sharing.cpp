@@ -46,16 +46,10 @@ public:
     virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
 
-        if ( ctx->is_main_context() ) { /*<
-            recognize when we're passed this thread's main fiber
+        if ( ctx->is_context( boost::fibers::type::pinned_context) ) { /*<
+            recognize when we're passed this thread's main or dispatcher fiber
             never put this thread's main fiber on the queue stash
             it in separate slot
-        >*/
-            local_queue_.push( ctx);
-        } else if ( ctx->is_dispatcher_context() ) { /*<
-            recognize when we're passed this thread's dispatcher fiber
-            never put this thread's main fiber on the queue
-            stash it in separate slot
         >*/
             local_queue_.push( ctx);
         } else {

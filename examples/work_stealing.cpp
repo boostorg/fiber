@@ -55,7 +55,7 @@ public:
         rqueue_t::iterator i = std::find_if( rqueue_.begin(), e,
                                              [](boost::fibers::context const& ctx){
                                                // prevent migrating main- and dispatcher-fiber
-                                               return ! ctx.is_main_context() && ! ctx.is_dispatcher_context();
+                                               return ! ctx.is_context( boost::fibers::type::pinned_context);
                                              });
         if ( i != e) {
             ctx = & ( * i);
@@ -82,7 +82,7 @@ public:
         rqueue_t::const_iterator e = rqueue_.end();
         rqueue_t::const_iterator i = std::find_if( rqueue_.begin(), e,
                                                    [](boost::fibers::context const& ctx){
-                                                     return ! ctx.is_main_context() && ! ctx.is_dispatcher_context();
+                                                     return ! ctx.is_context( boost::fibers::type::pinned_context);
                                                    });
         return i != e;
     }

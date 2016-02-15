@@ -118,7 +118,7 @@ context_initializer::context_initializer() {
 context_initializer::~context_initializer() {
     if ( 0 == --counter) {
         context * main_ctx = context::active_;
-        BOOST_ASSERT( main_ctx->is_main_context() );
+        BOOST_ASSERT( main_ctx->is_context( type::main_context) );
         scheduler * sched = main_ctx->get_scheduler();
         sched->~scheduler();
         main_ctx->~context();
@@ -182,7 +182,8 @@ context::set_ready_( context * ctx) noexcept {
 // main fiber context
 context::context( main_context_t) noexcept :
     use_count_{ 1 }, // allocated on main- or thread-stack
-    flags_{ flag_main_context },
+    flags_{ 0 },
+    type_{ type::main_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ boost::context::execution_context::current() } {
 #else
@@ -193,7 +194,8 @@ context::context( main_context_t) noexcept :
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   default_stack const& salloc, scheduler * sched) :
-    flags_{ flag_dispatcher_context },
+    flags_{ 0 },
+    type_{ type::dispatcher_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ std::allocator_arg, palloc, salloc,
           [this,sched](void * vp) noexcept {
@@ -415,7 +417,7 @@ context::interruption_blocked( bool blck) noexcept {
 
 void
 context::request_interruption( bool req) noexcept {
-    BOOST_ASSERT( ! is_main_context() && ! is_dispatcher_context() );
+    BOOST_ASSERT( ! is_context( type::main_context) && ! is_context( type::dispatcher_context) );
     if ( req) {
         flags_ |= flag_interruption_requested;
     } else {

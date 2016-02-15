@@ -17,6 +17,7 @@ import toolset ;
 project boost/fiber/example
     : requirements
       <library>../build//boost_fiber
+      <library>/boost/thread//boost_thread
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
