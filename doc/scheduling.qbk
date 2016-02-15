@@ -401,6 +401,7 @@ with fiber `f`.]]
 While you are free to treat `context*` as an opaque token, certain
 `context` members may be useful to a custom scheduler implementation.
 
+[#ready_queue_t]
 Of particular note is the fact that `context` contains a hook to participate
 in a [@http://www.boost.org/doc/libs/release/doc/html/intrusive/list.html
 `boost::intrusive::list`] typedef'ed as

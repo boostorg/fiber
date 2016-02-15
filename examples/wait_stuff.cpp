@@ -191,8 +191,8 @@ template< typename T, typename Fn >
 void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_channel< T > > channel,
                             Fn && function) {
     boost::fibers::fiber( [channel, function](){
-                              // Ignore channel_op_status returned by push(): might be closed, might
-                              // be full; we simply don't care.
+                              // Ignore channel_op_status returned by push():
+                              // might be closed; we simply don't care.
                               channel->push( function() );
                           }).detach();
 }
@@ -257,7 +257,8 @@ void wait_first_outcome_impl( CHANNELP channel, Fn && function) {
     boost::fibers::fiber(
         // Use std::bind() here for C++11 compatibility. C++11 lambda capture
         // can't move a move-only Fn type, but bind() can. Let bind() move the
-        // channel pointer and the function, passing references into the lambda.
+        // channel pointer and the function into the bound object, passing
+        // references into the lambda.
         std::bind(
             []( CHANNELP & channel,
                 typename std::decay< Fn >::type & function) {
@@ -267,9 +268,9 @@ void wait_first_outcome_impl( CHANNELP channel, Fn && function) {
                 // Immediately run this packaged_task on same fiber. We want
                 // function() to have completed BEFORE we push the future.
                 task();
-                // Pass the corresponding future to consumer. Ignore channel_op_status
-                // returned by push(): might be closed, might be full; we simply don't
-                // care.
+                // Pass the corresponding future to consumer. Ignore
+                // channel_op_status returned by push(): might be closed; we
+                // simply don't care.
                 channel->push( task.get_future() );
             },
             channel,
@@ -919,8 +920,8 @@ struct Data {
     double      inexact;
     int         exact;
 
-    friend std::ostream& operator<<( std::ostream& out, Data const& data)
-/*=    ...*/
+    friend std::ostream& operator<<( std::ostream& out, Data const& data)/*=;
+    ...*/
 //<-
     {
         return out << "Data{str='" << data.str << "', inexact=" << data.inexact

@@ -252,9 +252,9 @@ launch only `count` producer fibers, the `(count+1)`[superscript st]
 
 Given a ready `future<>`, we can distinguish failure by calling [member_link
 future..get_exception_ptr]. If the `future<>` in fact contains a result rather
-than an exception, `get_exception_ptr()` returns a `std::exception_ptr` which
-is `nullptr`. In that case, we can confidently call [member_link future..get]
-to return that result to our caller.
+than an exception, `get_exception_ptr()` returns `nullptr`. In that case, we
+can confidently call [member_link future..get] to return that result to our
+caller.
 
 If the `std::exception_ptr` is ['not] `nullptr`, though, we collect it into
 our pending `exception_list` and loop back for the next `future<>` from the
@@ -296,6 +296,21 @@ It might be called like this:
 [wait_first_value_het_ex]
 
 [endsect]
+[section when_any, a dubious alternative]
+
+Certain topics in C++ can arouse strong passions, and exceptions are no
+exception. We cannot resist mentioning [mdash] for purely informational
+purposes [mdash] that when you need only the ['first] result from some number
+of concurrently-running fibers, it would be possible to pass a
+[`shared_ptr<[template_link promise]>] to the participating fibers, then cause
+the initiating fiber to call [member_link future..get] on its [template_link
+future]. The first fiber to call [member_link promise..set_value] on that
+shared `promise` will succeed; subsequent `set_value()` calls on the same
+`promise` instance will throw `future_error`.
+
+Use this information at your own discretion. Beware the dark side.
+
+[endsect] 
 [endsect][/ when_any]
 
 [section when_all functionality]

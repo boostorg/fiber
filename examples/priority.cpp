@@ -71,9 +71,10 @@ private:
 //]
 
 //[priority_scheduler
-class priority_scheduler : public boost::fibers::sched_algorithm_with_properties< priority_props > {
+class priority_scheduler :
+    public boost::fibers::sched_algorithm_with_properties< priority_props > {
 private:
-    typedef boost::fibers::scheduler::ready_queue_t   rqueue_t;
+    typedef boost::fibers::scheduler::ready_queue_t/*< See [link ready_queue_t]. >*/   rqueue_t;
 
     rqueue_t                                rqueue_;
     std::mutex                  mtx_{};
