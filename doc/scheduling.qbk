@@ -438,7 +438,7 @@ of typical STL containers.
 
             void migrate( context *) noexcept;
 
-            bool is_context( type t) const noexcept;
+            bool is_context( type) const noexcept;
 
             bool is_terminated() const noexcept;
 
