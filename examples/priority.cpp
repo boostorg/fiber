@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
+#include <algorithm>                // std::find_if()
 
 #include <boost/fiber/all.hpp>
 #include <boost/fiber/scheduler.hpp>
@@ -92,21 +93,18 @@ public:
          method. This is how your scheduler receives notification of a
          fiber that has become ready to run. >>*/
     virtual void awakened( boost::fibers::context * ctx, priority_props & props) noexcept {
-        int f_priority = props.get_priority(); /*< `props` is the instance of
+        int ctx_priority = props.get_priority(); /*< `props` is the instance of
                                                    priority_props associated
-                                                   with the passed fiber `f`. >*/
+                                                   with the passed fiber `ctx`. >*/
         // With this scheduler, fibers with higher priority values are
         // preferred over fibers with lower priority values. But fibers with
         // equal priority values are processed in round-robin fashion. So when
         // we're handed a new context*, put it at the end of the fibers
         // with that same priority. In other words: search for the first fiber
         // in the queue with LOWER priority, and insert before that one.
-        rqueue_t::iterator i( rqueue_.begin() ), e( rqueue_.end() );
-        for ( ; i != e; ++i) {
-            if ( properties( & ( * i) ).get_priority() < f_priority) {
-                break;
-            }
-        }
+        rqueue_t::iterator i( std::find_if( rqueue_.begin(), rqueue_.end(),
+            [ctx_priority]( boost::fibers::context const& c)
+            { return properties( &c ).get_priority() < ctx_priority; }));
         // Now, whether or not we found a fiber with lower priority,
         // insert this new fiber here.
         rqueue_.insert( i, * ctx);
@@ -135,7 +133,7 @@ public:
     }
 
     /*<< You must override [member_link sched_algorithm_with_properties..has_ready_fibers]
-      to inform the fiber manager of the size of your ready queue. >>*/
+      to inform the fiber manager of the state of your ready queue. >>*/
     virtual bool has_ready_fibers() const noexcept {
         return ! rqueue_.empty();
     }
@@ -154,25 +152,12 @@ public:
                   << ")): ";
 //->
 
-        // Find 'f' in the queue. Note that it might not be in our queue at
-        // all, if caller is changing the priority of (say) the running fiber.
-        bool found = false;
-        rqueue_t::iterator e( rqueue_.end() );
-        for ( rqueue_t::iterator i( rqueue_.begin() ); i != e; ++i) {
-            if ( & ( * i) == ctx) {
-                // found the passed fiber in our list -- unlink it
-                found = true;
-                rqueue_.erase( i);
-                break;
-            }
-        }
-
-        // It's possible to get a property_change() call for a fiber that is
-        // not on our ready queue. If it's not there, no need to move it:
-        // we'll handle it next time it hits awakened().
-        if ( ! found) {
-            /*< Your `property_change()` override must be able to
-            handle the case in which the passed `f` is not in
+        // 'ctx' might not be in our queue at all, if caller is changing the
+        // priority of (say) the running fiber. If it's not there, no need to
+        // move it: we'll handle it next time it hits awakened().
+        if ( ! ctx->ready_is_linked()) {/*<
+            Your `property_change()` override must be able to
+            handle the case in which the passed `ctx` is not in
             your ready queue. It might be running, or it might be
             blocked. >*/
 //<-
@@ -184,9 +169,12 @@ public:
             return;
         }
 
-        // Here we know that f was in our ready queue, but we've unlinked it.
-        // We happen to have a method that will (re-)add a context* to
-        // the ready queue.
+        // Found ctx: unlink it
+        ctx->ready_unlink();
+
+        // Here we know that ctx was in our ready queue, but we've unlinked
+        // it. We happen to have a method that will (re-)add a context* to the
+        // right place in the ready queue.
         awakened( ctx, props);
     }
 //<-
@@ -196,8 +184,8 @@ public:
             std::cout << "[empty]";
         } else {
             const char * delim = "";
-            for ( boost::fibers::context & f : rqueue_) {
-                priority_props & props( properties( & f) );
+            for ( boost::fibers::context & ctx : rqueue_) {
+                priority_props & props( properties( & ctx) );
                 std::cout << delim << props.name << '(' << props.get_priority() << ')';
                 delim = ", ";
             }
