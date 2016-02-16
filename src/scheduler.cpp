@@ -36,8 +36,8 @@ scheduler::release_terminated_() noexcept {
     for ( terminated_queue_t::iterator i( terminated_queue_.begin() );
             i != e;) {
         context * ctx = & ( * i);
-        BOOST_ASSERT( ! ctx->is_main_context() );
-        BOOST_ASSERT( ! ctx->is_dispatcher_context() );
+        BOOST_ASSERT( ! ctx->is_context( type::main_context) );
+        BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
         //BOOST_ASSERT( ctx->worker_is_linked() );
         BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
@@ -78,7 +78,7 @@ scheduler::sleep2ready_() noexcept {
     sleep_queue_t::iterator e = sleep_queue_.end();
     for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
         context * ctx = & ( * i);
-        BOOST_ASSERT( ! ctx->is_dispatcher_context() );
+        BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
         //BOOST_ASSERT( main_ctx_ == ctx || ctx->worker_is_linked() );
         BOOST_ASSERT( ! ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
@@ -169,8 +169,8 @@ scheduler::dispatch() noexcept {
         worker_queue_t::iterator e = worker_queue_.end();
         for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e;) {
             context * ctx = & ( worker_queue_.front() );
-            BOOST_ASSERT( ! ctx->is_main_context() );
-            BOOST_ASSERT( ! ctx->is_dispatcher_context() );
+            BOOST_ASSERT( ! ctx->is_context( type::main_context) );
+            BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
             if ( ctx->is_terminated() ) {
                 i = worker_queue_.erase( i);
             } else {
@@ -203,7 +203,7 @@ scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
     // dispatcher-context will never be passed to set_ready()
-    BOOST_ASSERT( ! ctx->is_dispatcher_context() );
+    BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
     // we do not test for wait-queue because
     // context::wait_is_linked() is not synchronized
     // with other threads
@@ -225,11 +225,11 @@ scheduler::set_ready( context * ctx) noexcept {
 void
 scheduler::set_remote_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( ! ctx->is_dispatcher_context() );
+    BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
     BOOST_ASSERT( this == ctx->get_scheduler() );
     // another thread might signal the main-context
     // from this thread
-    //BOOST_ASSERT( ! ctx->is_main_context() );
+    //BOOST_ASSERT( ! ctx->is_context( type::main_context) );
     // context ctx might in wait-/ready-/sleep-queue
     // we do not test this in this function
     // scheduler::dispatcher() has to take care
@@ -251,8 +251,8 @@ scheduler::set_terminated( context * active_ctx) noexcept {
 #endif
     BOOST_ASSERT( nullptr != active_ctx);
     BOOST_ASSERT( context::active() == active_ctx);
-    BOOST_ASSERT( ! active_ctx->is_main_context() );
-    BOOST_ASSERT( ! active_ctx->is_dispatcher_context() );
+    BOOST_ASSERT( ! active_ctx->is_context( type::main_context) );
+    BOOST_ASSERT( ! active_ctx->is_context( type::dispatcher_context) );
     //BOOST_ASSERT( active_ctx->worker_is_linked() );
     BOOST_ASSERT( active_ctx->is_terminated() );
     BOOST_ASSERT( ! active_ctx->ready_is_linked() );

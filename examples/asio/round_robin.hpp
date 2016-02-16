@@ -86,7 +86,7 @@ public:
         BOOST_ASSERT( nullptr != ctx);
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         ctx->ready_link( ready_queue_);
-        if ( ! ctx->is_dispatcher_context() ) {
+        if ( ! ctx->is_context( boost::fibers::type::dispatcher_context) ) {
             ++counter_;
         }
     }
@@ -98,7 +98,7 @@ public:
             ready_queue_.pop_front();
             BOOST_ASSERT( nullptr != ctx);
             BOOST_ASSERT( ! ctx->ready_is_linked() );
-            if ( ! ctx->is_dispatcher_context() ) {
+            if ( ! ctx->is_context( boost::fibers::type::dispatcher_context) ) {
                 --counter_;
             }
         }
