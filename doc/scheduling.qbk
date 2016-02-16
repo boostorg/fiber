@@ -416,6 +416,14 @@ manage passed `context` instances. `ready_queue_t` avoids some of the overhead
 of typical STL containers.
 
         #include <boost/fiber/context.hpp>
+        
+        enum class type {
+          none               = 0,
+          main_context       = 1 << 1,  // fiber, associated with thread's stack
+          dispatcher_context = 1 << 2,  // special fiber for maintanance operations
+          worker_context     = 1 << 3,  // fiber not special to the library
+          pinned_context     = main_context | dispatcher_context  // context of fiber must not be migrated to another thread
+        };
 
         class context {
         public:
@@ -430,9 +438,7 @@ of typical STL containers.
 
             void migrate( context *) noexcept;
 
-            bool is_main_context() const noexcept;
-            bool is_dispatcher_context() const noexcept;
-            bool is_worker_context() const noexcept;
+            bool is_context( type t) const noexcept;
 
             bool is_terminated() const noexcept;
 
@@ -484,42 +490,24 @@ default-constructed __fiber_id__.]]
 [[Throws:] [Nothing]]
 ]
 
-[member_heading context..is_main_context]
+[member_heading context..is_context]
 
-        bool is_main_context() const noexcept;
+        bool is_context( type t) const noexcept;
 
 [variablelist
-[[Returns:] [`true` if `*this` is the thread's main context.]]
+[[Returns:] [`true` if `*this` is of the specific type.]]
 [[Throws:] [Nothing]]
-[[Note:] [The `context` is associated with the ["main] fiber of the thread:
+[[Note:] [For `type::main_context` the `context` is associated with the ["main] fiber of the thread:
 the one implicitly created by the thread itself, rather than one explicitly
-created by __boost_fiber__. This `context` must never be passed to
-[member_link context..migrate] for any other thread.]]
-]
-
-[member_heading context..is_dispatcher_context]
-
-        bool is_dispatcher_context() const noexcept;
-
-[variablelist
-[[Returns:] [`true` if `*this` is a dispatcher context.]]
-[[Throws:] [Nothing]]
-[[Note:] [The `context` is associated with a ["dispatching] fiber, responsible
+created by __boost_fiber__.
+For `type::disaptcher_context` the `context` is associated with a ["dispatching] fiber, responsible
 for dispatching awakened fibers to a scheduler's ready-queue. The
-["dispatching] fiber is an implementation detail of the fiber manager. This
-`context` must never be passed to [member_link context..migrate] for any other
-thread.]]
-]
-
-[member_heading context..is_worker_context]
-
-        bool is_worker_context() const noexcept;
-
-[variablelist
-[[Returns:] [`true` if `*this` is a worker context, that is, a context
+["dispatching] fiber is an implementation detail of the fiber manager.
+The context of ["main] and ["dispatching] fiber must never be passed to
+[member_link context..migrate] for any other thread.
+true` if `*this` is a worker context, that is, a context
 associated with a fiber explicitly launched by the application rather than
-implicitly.]]
-[[Throws:] [Nothing]]
+implicitly.]]]
 [[Note:] [The term ["worker] here means any fiber not special to the library.]]
 ]
 
