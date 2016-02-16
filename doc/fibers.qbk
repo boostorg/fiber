@@ -35,6 +35,7 @@
 [def __rendezvous__ ['rendezvous]]
 
 [template mdash[] '''&mdash;''']
+[template "[text] '''&#8220;'''[text]'''&#8221;''']
 [template superscript[exp] '''<superscript>'''[exp]'''</superscript>''']
 
 [template class_heading[class_name]
@@ -77,6 +78,11 @@
 ]
 [template function_link[function_name] [dblink [function_name]..[`[function_name]()]]]
 
+[template function_heading_for[function_name arg]
+[hding [function_name]\_for\_[arg]..Non-member function [`[function_name]()]]
+]
+[template function_link_for[function_name arg] [dblink [function_name]\_for\_[arg]..[`[function_name]()]]]
+
 [template ns_function_heading[namespace function_name]
 [hding [namespace]_[function_name]..Non-member function [`[namespace]::[function_name]()]]
 ]
@@ -92,8 +98,9 @@
 [template dblink[id text] '''<link linkend="'''[id]'''">'''[text]'''</link>''']
 [template `[text] '''<code>'''[text]'''</code>''']
 
-[def __allocator_arg_t__
-[@http://en.cppreference.com/w/cpp/memory/allocator_arg_t `std::allocator_arg_t`]]
+[def __allocator_arg_t__ [@http://en.cppreference.com/w/cpp/memory/allocator_arg_t `std::allocator_arg_t`]]
+[def __Allocator__ [@http://en.cppreference.com/w/cpp/concept/Allocator `Allocator`]]
+[def __allocator__ [@http://en.cppreference.com/w/cpp/memory/allocator `std::allocator< T >`]]
 [def __barrier__ [class_link barrier]]
 [def __condition__ [class_link condition_variable]]
 [def __disable_interruption__ [class_link disable_interruption]]
@@ -122,8 +129,10 @@
 [def __shared_future__ [template_link shared_future]]
 [def __stack_allocator__ ['stack_allocator]]
 [def __stack_allocator_concept__ [link stack_allocator_concept ['stack-allocator concept]]]
+[def __StackAllocator__ [link stack_allocator_concept `StackAllocator`]]
 [def __stack_context__ [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_context.html `stack_context`]]
 [def __timed_mutex__ [class_link timed_mutex]]
+[def __unique_lock__ [@http://en.cppreference.com/w/cpp/thread/unique_lock `std::unique_lock`]]
 [def __wait_for__ [member_link future..wait_for]]
 [def __wait__ [member_link future..wait]]
 [def __wait_until__ [member_link future..wait_until]]
@@ -174,6 +183,7 @@
 
 
 [include overview.qbk]
+[include installing.qbk]
 [include fiber.qbk]
 [include scheduling.qbk]
 [include stack.qbk]

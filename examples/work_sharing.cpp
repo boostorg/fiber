@@ -23,14 +23,13 @@
 static std::size_t fiber_count{ 0 };
 static std::mutex mtx_count{};
 static boost::fibers::condition_variable_any cnd_count{};
-typedef std::unique_lock< std::mutex > lock_count;
+typedef std::unique_lock< std::mutex > lock_t;
 
 /*****************************************************************************
 *   shared_ready_queue scheduler
 *****************************************************************************/
 class shared_ready_queue : public boost::fibers::sched_algorithm {
 private:
-    typedef std::unique_lock< std::mutex >          lock_t;
     typedef std::queue< boost::fibers::context * >  rqueue_t;
 
     static rqueue_t     rqueue_;
@@ -47,9 +46,9 @@ public:
         BOOST_ASSERT( nullptr != ctx);
 
         if ( ctx->is_context( boost::fibers::type::pinned_context) ) { /*<
-            recognize when we're passed this thread's main or dispatcher fiber
-            never put this thread's main fiber on the queue stash
-            it in separate slot
+            recognize when we're passed this thread's main fiber (or an
+            implicit library helper fiber): never put those on the shared
+            queue
         >*/
             local_queue_.push( ctx);
         } else {
@@ -73,7 +72,8 @@ public:
             BOOST_ASSERT( nullptr != ctx);
             boost::fibers::context::active()->migrate( ctx); /*<
                 attach context to current scheduler via the active fiber
-                of this thread
+                of this thread; benign if the fiber already belongs to this
+                thread
             >*/
         } else {
             lk.unlock();
@@ -95,18 +95,18 @@ public:
 
     void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
         if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
-            std::unique_lock< std::mutex > lk( mtx_);
+            lock_t lk( mtx_);
             cnd_.wait( lk, [this](){ return flag_; });
             flag_ = false;
         } else {
-            std::unique_lock< std::mutex > lk( mtx_);
+            lock_t lk( mtx_);
             cnd_.wait_until( lk, time_point, [this](){ return flag_; });
             flag_ = false;
         }
     }
 
     void notify() noexcept {
-        std::unique_lock< std::mutex > lk( mtx_);
+        lock_t lk( mtx_);
         flag_ = true;
         lk.unlock();
         cnd_.notify_all();
@@ -128,8 +128,8 @@ void whatevah( char me) {
             buffer << "fiber " << me << " started on thread " << my_thread << '\n';
             std::cout << buffer.str() << std::flush;
         }
-        for ( unsigned i = 0; i < 10; ++i) { /*< loop ten time >*/
-            boost::this_fiber::yield(); /*< yield this fiber >*/
+        for ( unsigned i = 0; i < 10; ++i) { /*< loop ten times >*/
+            boost::this_fiber::yield(); /*< yield to other fibers >*/
             std::thread::id new_thread = std::this_thread::get_id(); /*< get ID of current thread >*/
             if ( new_thread != my_thread) { /*< test if fiber was migrated to another thread >*/
                 my_thread = new_thread;
@@ -140,7 +140,7 @@ void whatevah( char me) {
         }
     } catch ( ... ) {
     }
-    lock_count lk( mtx_count);
+    lock_t lk( mtx_count);
     if ( 0 == --fiber_count) { /*< Decrement fiber counter for each completed fiber. >*/
         lk.unlock();
         cnd_count.notify_all(); /*< Notify all fibers waiting on `cnd_count`. >*/
@@ -160,15 +160,13 @@ void thread( barrier * b) {
         Install the scheduling algorithm `shared_ready_queue` in order to
         join the work sharing.
     >*/
-    b->wait(); /*< wait on other threads >*/
-    lock_count lk( mtx_count);
-    if ( 0 < fiber_count) { /*< no spurious wakeup >*/
-        cnd_count.wait( lk); /*<
-            Suspend main fiber and resume worker fibers in the meanwhile.
-            Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
-            if all worker fibers are complete.
-        >*/
-    }
+    b->wait(); /*< sync with other threads: allow them to start processing >*/
+    lock_t lk( mtx_count);
+    cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
+        Suspend main fiber and resume worker fibers in the meanwhile.
+        Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
+        if all worker fibers are complete.
+    >*/
     BOOST_ASSERT( 0 == fiber_count);
 }
 //]
@@ -185,10 +183,9 @@ int main( int argc, char *argv[]) {
     >*/
 
     for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) { /*<
-        Launch a number of worker fibers; each worker fiber picks-up a character
+        Launch a number of worker fibers; each worker fiber picks up a character
         that is passed as parameter to fiber-function `whatevah`.
-        Each worker fiber gets detached, e.g. `shared_ready_queue` takes care
-        of fibers life-time.
+        Each worker fiber gets detached.
     >*/
         boost::fibers::fiber([c](){ whatevah( c); }).detach();
         ++fiber_count; /*< Increment fiber counter for each new fiber. >*/
@@ -201,16 +198,15 @@ int main( int argc, char *argv[]) {
         std::thread( thread, & b),
         std::thread( thread, & b)
     };
-    b.wait(); /*< wait on other threads >*/
-    lock_count lk( mtx_count);
-    if ( 0 < fiber_count) { /*< no spurious wakeup >*/
-        cnd_count.wait( lk); /*<
+    b.wait(); /*< sync with other threads: allow them to start processing >*/
+    {
+        lock_t/*< `lock_t` is typedef'ed as __unique_lock__< [@http://en.cppreference.com/w/cpp/thread/mutex `std::mutex`] > >*/ lk( mtx_count);
+        cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
             Suspend main fiber and resume worker fibers in the meanwhile.
             Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
             if all worker fibers are complete.
         >*/
-    }
-    lk.unlock(); /*<
+    } /*<
         Releasing lock of mtx_count is required before joining the threads, othwerwise
         the other threads would be blocked inside condition_variable::wait() and
         would never return (deadlock).

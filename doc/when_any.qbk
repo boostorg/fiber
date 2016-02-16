@@ -15,7 +15,7 @@
 
 A bit of wisdom from the early days of computing still holds true today:
 prefer to model program state using the instruction pointer rather than with
-Boolean flags. In other words, if the program must "do something" and then
+Boolean flags. In other words, if the program must ["do something] and then
 do something almost the same, but with minor changes... perhaps parts of that
 something should be broken out as smaller separate functions, rather than
 introducing flags to alter the internal behavior of a monolithic function.
@@ -35,7 +35,7 @@ services, these are valuable idioms. But of course when_any and when_all are
 closely tied to the use of chains of callbacks.
 
 This section presents recipes for achieving the same ends, in the context of a
-fiber that wants to "do something" when one or more other independent
+fiber that wants to ["do something] when one or more other independent
 activities have completed. Accordingly, these are `wait_something()`
 functions rather than `when_something()` functions. The expectation is that
 the calling fiber asks to launch those independent activities, then waits for
@@ -65,7 +65,7 @@ We found it convenient to model an asynchronous task using this function:
 
 [wait_sleeper]
 
-with type-specific `sleeper()` "front ends" for `std::string`, `double` and
+with type-specific `sleeper()` ["front ends] for `std::string`, `double` and
 `int`.
 
 `Verbose` simply prints a message to `std::cout` on construction and
@@ -137,14 +137,9 @@ an exception.
 
 One tactic would be to adapt our [link wait_done `Done`] class to store the
 first of the return values, rather than a simple `bool`. However, we choose
-instead to use a [template_link bounded_channel] of size 1. We only need to
-enqueue the first value. All subsequent [member_link bounded_channel..push]
-calls can return `full`.
-
-In fact, once we've retrieved the first (only) value from the
-`bounded_channel`, we even [member_link bounded_channel..close] it. We still
-have no need of any subsequent values. Subsequent `push()` calls will return
-`closed`.
+instead to use a [template_link unbounded_channel]. We'll only need to enqueue
+the first value, so we'll [member_link unbounded_channel..close] it once we've
+retrieved that value. Subsequent `push()` calls will return `closed`.
 
 [#wait_first_value]
 [wait_first_value]
@@ -171,7 +166,7 @@ of our task fibers would cause `std::terminate()` to be called.
 Let's at least ensure that such an exception would propagate to the fiber
 awaiting the first result. We can use [template_link future] to transport
 either a return value or an exception. Therefore, we will change [link
-wait_first_value `wait_first_value()`]'s [template_link bounded_channel] to
+wait_first_value `wait_first_value()`]'s [template_link unbounded_channel] to
 hold `future< T >` items instead of simply `T`.
 
 Once we have a `future<>` in hand, all we need do is call [member_link
@@ -181,12 +176,12 @@ future..get], which will either return the value or rethrow the exception.
 [wait_first_outcome]
 
 So far so good [mdash] but there's a timing issue. How should we obtain the
-`future<>` to [member_link bounded_channel..push] on the channel?
+`future<>` to [member_link unbounded_channel..push] on the channel?
 
 We could call [ns_function_link fibers..async]. That would certainly produce a
 `future<>` for the task function. The trouble is that it would return too
 quickly! We only want `future<>` items for ['completed] tasks on our
-`bounded_channel<>`. In fact, we only want the `future<>` for the one that
+`unbounded_channel<>`. In fact, we only want the `future<>` for the one that
 completes first. If each fiber launched by `wait_first_outcome()` were to
 `push()` the result of calling `async()`, the channel would only ever report
 the result of the leftmost task item [mdash] ['not] the one that completes most
@@ -220,7 +215,7 @@ Calling it might look like this:
 [endsect]
 [section when_any, produce first success]
 
-One scenario for "when_any" functionality is when we're redundantly contacting
+One scenario for ["when_any] functionality is when we're redundantly contacting
 some number of possibly-unreliable web services. Not only might they be slow
 [mdash] any one of them might produce a failure rather than the desired
 result.
@@ -230,7 +225,7 @@ right approach. If one of the services produces an error quickly, while
 another follows up with a real answer, we don't want to prefer the error just
 because it arrived first!
 
-Given the `bounded_queue< future< T > >` we already constructed for
+Given the `unbounded_channel< future< T > >` we already constructed for
 `wait_first_outcome()`, though, we can readily recast the interface function
 to deliver the first ['successful] result.
 
@@ -247,22 +242,19 @@ an `exception_list` of our own:
 
 [exception_list]
 
-Now we can build `wait_first_success()`. We must enlarge our
-`bounded_channel<>`: it might need to hold a `future<>` for every one of our
-task functions. (As noted in comments, we could use [template_link
-unbounded_channel], but this tactic allows us to reuse [link
-wait_first_outcome_impl `wait_first_outcome_impl()`].)
+Now we can build `wait_first_success()`, using [link wait_first_outcome_impl
+`wait_first_outcome_impl()`].
 
 Instead of retrieving only the first `future<>` from the channel, we must now
 loop over `future<>` items. Of course we must limit that iteration! If we
 launch only `count` producer fibers, the `(count+1)`[superscript st]
-[member_link bounded_channel..pop] call would block forever.
+[member_link unbounded_channel..pop] call would block forever.
 
 Given a ready `future<>`, we can distinguish failure by calling [member_link
 future..get_exception_ptr]. If the `future<>` in fact contains a result rather
-than an exception, `get_exception_ptr()` returns a `std::exception_ptr` which
-is `nullptr`. In that case, we can confidently call [member_link future..get]
-to return that result to our caller.
+than an exception, `get_exception_ptr()` returns `nullptr`. In that case, we
+can confidently call [member_link future..get] to return that result to our
+caller.
 
 If the `std::exception_ptr` is ['not] `nullptr`, though, we collect it into
 our pending `exception_list` and loop back for the next `future<>` from the
@@ -304,6 +296,21 @@ It might be called like this:
 [wait_first_value_het_ex]
 
 [endsect]
+[section when_any, a dubious alternative]
+
+Certain topics in C++ can arouse strong passions, and exceptions are no
+exception. We cannot resist mentioning [mdash] for purely informational
+purposes [mdash] that when you need only the ['first] result from some number
+of concurrently-running fibers, it would be possible to pass a
+[`shared_ptr<[template_link promise]>] to the participating fibers, then cause
+the initiating fiber to call [member_link future..get] on its [template_link
+future]. The first fiber to call [member_link promise..set_value] on that
+shared `promise` will succeed; subsequent `set_value()` calls on the same
+`promise` instance will throw `future_error`.
+
+Use this information at your own discretion. Beware the dark side.
+
+[endsect] 
 [endsect][/ when_any]
 
 [section when_all functionality]
@@ -393,7 +400,7 @@ For example:
 [#wait_all_values_impl]
 `wait_all_values_impl()` really is just like [link wait_first_value_impl
 `wait_first_value_impl()`] except for the use of `nchannel<T>` rather than
-`bounded_channel<T>`:
+`unbounded_channel<T>`:
 
 [wait_all_values_impl]
 
@@ -422,20 +429,15 @@ of course, be possible to return a façade over the consumer end of the
 channel that would implicitly perform the `get()` and return a simple `T` (or
 throw).
 
-The implementation is just as you would expect.
+The implementation is just as you would expect. Notice, however, that we can
+reuse [link wait_first_outcome_impl `wait_first_outcome_impl()`], passing the
+`nchannel<T>` rather than `unbounded_channel<T>`.
 
 [wait_all_until_error_source]
 
 For example:
 
 [wait_all_until_error_source_ex]
-
-[#wait_all_until_error_impl]
-`wait_all_until_error_impl()` is just like [link wait_first_outcome_impl
-`wait_first_outcome_impl()`], but using [link wait_nchannel `nchannel<>`]
-instead of `bounded_channel<>`.
-
-[wait_all_until_error_impl]
 
 [endsect]
 [section wait_all, collecting all exceptions]

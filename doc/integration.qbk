@@ -13,7 +13,7 @@
 [heading Overview]
 
 As always with cooperative concurrency, it is important not to let any one
-fiber monopolize the processor too long: that could "starve" other ready
+fiber monopolize the processor too long: that could ["starve] other ready
 fibers. This section discusses a couple of solutions.
 
 [heading Event-Driven Program]

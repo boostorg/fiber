@@ -99,12 +99,15 @@ std::runtime_error make_exception( std::string const& desc, AsyncAPI::errorcode)
 AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     boost::fibers::promise< AsyncAPI::errorcode > promise;
     boost::fibers::future< AsyncAPI::errorcode > future( promise.get_future() );
-    // We can confidently bind a reference to local variable 'promise' into
-    // the lambda callback because we know for a fact we're going to suspend
-    // (preserving the lifespan of both 'promise' and 'future') until the
-    // callback has fired.
+    // In general, even though we block waiting for future::get() and therefore
+    // won't destroy 'promise' until promise::set_value() has been called, we
+    // are advised that with threads it's possible for ~promise() to be
+    // entered before promise::set_value() has returned. While that shouldn't
+    // happen with fibers::promise, a robust way to deal with the lifespan
+    // issue is to bind 'promise' into our lambda. Since promise is move-only,
+    // use initialization capture.
     api.init_write( data,
-                    [&promise]( AsyncAPI::errorcode ec){
+                    [promise = std::move(promise)]( AsyncAPI::errorcode ec){
                         promise.set_value( ec);
                     });
     return future.get();
