@@ -33,7 +33,7 @@ might reduce the performance of the application due to increased latency of
 memory access.
 
 Only fibers that are contained in __algo__'s ready queue can migrate between
-threads. You cannot migrate a running thread, nor one that is __blocked__.
+threads. You cannot migrate a running fiber, nor one that is __blocked__.
 
 In__boost_fiber__ a fiber is migrated by invoking __context_migrate__ on the
 [class_link context] instance for a fiber already associated with the
