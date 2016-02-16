@@ -103,7 +103,7 @@ public:
         // with that same priority. In other words: search for the first fiber
         // in the queue with LOWER priority, and insert before that one.
         rqueue_t::iterator i( std::find_if( rqueue_.begin(), rqueue_.end(),
-            [ctx_priority]( boost::fibers::context const& c)
+            [ctx_priority,this]( boost::fibers::context & c)
             { return properties( &c ).get_priority() < ctx_priority; }));
         // Now, whether or not we found a fiber with lower priority,
         // insert this new fiber here.
