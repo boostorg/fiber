@@ -183,7 +183,7 @@
 
 
 [include overview.qbk]
-[include installing.qbk]
+[/[include installing.qbk]]
 [include fiber.qbk]
 [include scheduling.qbk]
 [include stack.qbk]
