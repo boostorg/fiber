@@ -107,7 +107,7 @@ AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     // issue is to bind 'promise' into our lambda. Since promise is move-only,
     // use initialization capture.
     api.init_write( data,
-                    [promise = std::move(promise)]( AsyncAPI::errorcode ec){
+                    [&promise]( AsyncAPI::errorcode ec){
                         promise.set_value( ec);
                     });
     return future.get();
