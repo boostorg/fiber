@@ -74,7 +74,9 @@ A __future__ contains a [link shared_state shared state] which is not shared wit
 
             shared_future< R > share();
 
-            R get();
+            R get();    // member only of generic future template
+            R & get();  // member only of future< R & > template specialization
+            void get(); // member only of future< void > template specialization
 
             std::exception_ptr get_exception_ptr();
 
@@ -177,7 +179,9 @@ state] formerly belonging to `*this`.]]
 
 [member_heading future..get]
 
-        R get();
+        R get();    // member only of generic future template
+        R & get();  // member only of future< R & > template specialization
+        void get(); // member only of future< void > template specialization
 
 [template future_get_variablelist[]
 [variablelist
