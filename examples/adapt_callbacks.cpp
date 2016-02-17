@@ -106,10 +106,14 @@ AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     // happen with fibers::promise, a robust way to deal with the lifespan
     // issue is to bind 'promise' into our lambda. Since promise is move-only,
     // use initialization capture.
-    api.init_write( data,
-                    [&promise]( AsyncAPI::errorcode ec){
-                        promise.set_value( ec);
-                    });
+    api.init_write(
+        data,
+        std::bind([]( boost::fibers::promise< AsyncAPI::errorcode > & promise,
+                      AsyncAPI::errorcode ec) mutable {
+                            promise.set_value( ec);
+                  },
+                  std::ref( promise),
+                  std::placeholders::_1) );
     return future.get();
 }
 //]
@@ -130,9 +134,15 @@ std::pair< AsyncAPI::errorcode, std::string > read_ec( AsyncAPI & api) {
     boost::fibers::future< result_pair > future( promise.get_future() );
     // We promise that both 'promise' and 'future' will survive until our
     // lambda has been called.
-    api.init_read( [&promise]( AsyncAPI::errorcode ec, std::string const& data){
-                       promise.set_value( result_pair( ec, data) );
-                   });
+    api.init_read(
+        std::bind([]( boost::fibers::promise< result_pair > & promise,
+                      AsyncAPI::errorcode ec,
+                      std::string const& data) mutable {
+                            promise.set_value( result_pair( ec, data) );
+                  },
+                  std::ref( promise),
+                  std::placeholders::_1,
+                  std::placeholders::_2) );
     return future.get();
 }
 //]
@@ -143,15 +153,21 @@ std::string read( AsyncAPI & api) {
     boost::fibers::future< std::string > future( promise.get_future() );
     // Both 'promise' and 'future' will survive until our lambda has been
     // called.
-    api.init_read( [&promise]( AsyncAPI::errorcode ec, std::string const& data){
-                       if ( ! ec) {
-                           promise.set_value( data);
-                       } else {
-                           promise.set_exception(
-                                   std::make_exception_ptr(
-                                       make_exception("read", ec) ) );
-                       }
-                   });
+    api.init_read(
+        std::bind([]( boost::fibers::promise< std::string > & promise,
+                      AsyncAPI::errorcode ec,
+                      std::string const& data) mutable {
+                           if ( ! ec) {
+                               promise.set_value( data);
+                           } else {
+                               promise.set_exception(
+                                       std::make_exception_ptr(
+                                           make_exception("read", ec) ) );
+                           }
+                  },
+                  std::ref( promise),
+                  std::placeholders::_1,
+                  std::placeholders::_2) );
     return future.get();
 }
 //]
