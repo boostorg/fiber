@@ -19,6 +19,7 @@ project boost/fiber/test
     : requirements
       <library>../../test/build//boost_unit_test_framework
       <library>/boost/fiber//boost_fiber
+      <library>/boost/thread//boost_thread
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack

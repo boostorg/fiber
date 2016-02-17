@@ -8,7 +8,7 @@
 [#stack]
 [section:stack Stack allocation]
 
-A __fiber__ uses internally a __econtext__ which manages a set of registers and a stack.
+A __fiber__ uses internally an __econtext__ which manages a set of registers and a stack.
 The memory used by the stack is allocated/deallocated via a __stack_allocator__
 which is required to model a __stack_allocator_concept__.
 
@@ -16,8 +16,8 @@ A __stack_allocator__ can be passed to [link fiber_fiber `fiber::fiber()`] or
 to [ns_function_link fibers..async].
 
 [#stack_allocator_concept]
-[heading __stack_allocator_concept__]
-A __stack_allocator__ must satisfy the __stack_allocator_concept__ requirements
+[heading stack-allocator concept]
+A __stack_allocator__ must satisfy the ['stack-allocator concept] requirements
 shown in the following table, in which `a` is an object of a
 __stack_allocator__ type, `sctx` is a __stack_context__, and `size` is a `std::size_t`:
 

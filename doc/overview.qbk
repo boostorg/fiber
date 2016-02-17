@@ -24,8 +24,8 @@ run (context switching).
 __boost_fiber__ internally uses __econtext__ from __boost_context__; the classes in
 this library manage, schedule and, when needed, synchronize those execution contexts.
 A context switch between threads usually costs thousands of CPU cycles on x86,
-compared to a fiber switch with less than hundred cycles.
-A fiber can only run on a single thread at any point in time.
+compared to a fiber switch with less than a hundred cycles.
+A fiber runs on a single thread at any point in time.
 
 In order to use the classes and functions described here, you can either include
 the specific headers specified by the descriptions of each class or function, or
@@ -45,8 +45,9 @@ The namespaces used are:
 Control is cooperatively passed between fibers launched on a given thread. At
 a given moment, on a given thread, at most one fiber is running.
 
-Spawning additional fibers on a given thread does not increase your program's
-utilization of hardware cores.
+Spawning additional fibers on a given thread does not distribute your program
+across more hardware cores, though it can make more effective use of the core
+on which it's running.
 
 On the other hand, a fiber may safely access any resource exclusively owned by
 its parent thread without explicitly needing to defend that resource against
@@ -64,9 +65,24 @@ same thread to run. When the operation has completed, the suspended fiber
 resumes, without having to explicitly save or restore its state. Its local
 stack variables persist across the call.
 
-A fiber launched on a particular thread will always run on that thread. A
-fiber can count on thread-local storage; however that storage will be shared
-among all fibers running on the same thread.
+A fiber can be migrated from one thread to another, though the library does
+not do this by default. It is possible for you to supply a custom scheduler
+that migrates fibers between threads. You may specify custom fiber properties
+to help your scheduler decide which fibers are permitted to migrate. Please
+see [link migration Migrating fibers between threads] and [link custom
+Customization] for more details.
+
+A fiber launched on a particular thread continues running on that thread
+unless migrated. It might be unblocked (see [link blocking Blocking] below) by
+some other thread, but that only transitions the fiber from ["blocked] to
+["ready] on its current thread [mdash] it does not cause the fiber to
+resume on the thread that unblocked it.
+
+[#thread_local_storage]
+[heading thread-local storage]
+Unless migrated, a fiber may access thread-local storage; however that storage
+will be shared among all fibers running on the same thread. For fiber-local
+storage, please see __fsp__.
 
 [#cross_thread_sync]
 [heading BOOST_FIBERS_NO_ATOMICS]
@@ -77,8 +93,6 @@ synchronization can be removed (for performance) by building the library with
 you must ensure that all the fibers referencing a particular synchronization
 object are running in the same thread. Please see [link synchronization
 Synchronization].
-
-For fiber-local storage, please see __fsp__.
 
 [#blocking]
 [heading Blocking]

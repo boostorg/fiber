@@ -20,37 +20,37 @@
 namespace boost {
 namespace fibers {
 
-template< typename Fn, typename ... Args >
+template< class Function, class ... Args >
 future<
     typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( Fn && fn, Args && ... args) {
+async( Function && fn, Args && ... args) {
     typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type     result_t;
 
     packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
-        std::forward< Fn >( fn) };
+        std::forward< Function >( fn) };
     future< result_t > f{ pt.get_future() };
     fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 
-template< typename StackAllocator, typename Fn, typename ... Args >
+template< typename StackAllocator, class Function, class ... Args >
 future<
     typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
+async( std::allocator_arg_t, StackAllocator salloc, Function && fn, Args && ... args) {
     typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type     result_t;
 
     packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
-        std::allocator_arg, salloc, std::forward< Fn >( fn) };
+        std::allocator_arg, salloc, std::forward< Function >( fn) };
     future< result_t > f{ pt.get_future() };
     fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;

@@ -35,6 +35,7 @@
 #include <boost/fiber/fixedsize_stack.hpp>
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/segmented_stack.hpp>
+#include <boost/fiber/type.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -132,12 +133,9 @@ private:
     friend class scheduler;
 
     enum flag_t {
-        flag_main_context           = 1 << 1,
-        flag_dispatcher_context     = 1 << 2,
-        flag_worker_context         = 1 << 3,
-        flag_terminated             = 1 << 4,
-        flag_interruption_blocked   = 1 << 5,
-        flag_interruption_requested = 1 << 6
+        flag_terminated             = 1 << 1,
+        flag_interruption_blocked   = 1 << 2,
+        flag_interruption_requested = 1 << 3
     };
 
     struct BOOST_FIBERS_DECL fss_data {
@@ -165,10 +163,12 @@ private:
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                      use_count_{ 0 };
-    std::atomic< int >                              flags_;
+    std::atomic< unsigned int >                     flags_;
+    std::atomic< type >                             type_;
 #else
     std::size_t                                     use_count_{ 0 };
-    int                                             flags_;
+    unsigned int                                    flags_;
+    type                                            type_;
 #endif
     scheduler                                   *   scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -316,7 +316,8 @@ public:
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Tpl && tpl) :
         use_count_{ 1 }, // fiber instance or scheduler owner
-        flags_{ flag_worker_context },
+        flags_{ 0 },
+        type_{ type::worker_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
 # if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
@@ -389,16 +390,8 @@ public:
 
     void set_ready( context *) noexcept;
 
-    bool is_main_context() const noexcept {
-        return 0 != ( flags_ & flag_main_context);
-    }
-
-    bool is_dispatcher_context() const noexcept {
-        return 0 != ( flags_ & flag_dispatcher_context);
-    }
-
-    bool is_worker_context() const noexcept {
-        return 0 != ( flags_ & flag_worker_context);
+    bool is_context( type t) const noexcept {
+        return type::none != ( type_ & t);
     }
 
     bool is_terminated() const noexcept {

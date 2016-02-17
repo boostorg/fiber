@@ -97,7 +97,7 @@ to it.
 
 An exception escaping from the function or callable object passed to the __fiber__
 constructor calls `std::terminate()`.
-If you need to know which exception was thrown, use __future__ and
+If you need to know which exception was thrown, use __future__ or
 __packaged_task__.
 
 
@@ -165,7 +165,10 @@ interruption enabled, a __fiber_interrupted__ exception will be thrown.
 If this exception is not caught, the fiber will be terminated, its stack unwound,
 its stack objects properly destroyed.
 
-With __disable_interruption__ a fiber can avoid being interrupted.
+(__fiber_interrupted__, being thrown by the library, is similarly caught by
+the library. It does not cause the program to terminate.)
+
+With __disable_interruption__ a fiber can defer being interrupted.
 
         // interruption enabled at this point
         {
@@ -181,6 +184,13 @@ With __disable_interruption__ a fiber can avoid being interrupted.
 
 At any point, the interruption state for the current thread can be queried by
 calling __interruption_enabled__.
+
+(But consider fiber `f1` running a __packaged_task__. Suppose `f1` is
+interrupted. Its associated __future__ will be set with __fiber_interrupted__.
+When fiber `f2` calls [member_link future..get] on that `future`, `get()`
+will immediately rethrow __fiber_interrupted__ [mdash] regardless of
+any __disable_interruption__ instance `f2` might have constructed.)
+
 The following __interruption_points__ are defined and will throw
 __fiber_interrupted__ if __interruption_requested__ and
 __interruption_enabled__.
@@ -197,17 +207,14 @@ __interruption_enabled__.
 * __sleep_until__
 * __interruption_point__
 * [member_link bounded_channel..push]
-* [member_link bounded_channel..try_push]
 * [member_link bounded_channel..push_wait_for]
 * [member_link bounded_channel..push_wait_until]
 * [member_link bounded_channel..pop]
-* [member_link bounded_channel..try_pop]
 * [member_link bounded_channel..value_pop]
 * [member_link bounded_channel..pop_wait_for]
 * [member_link bounded_channel..pop_wait_until]
 * [member_link unbounded_channel..push]
 * [member_link unbounded_channel..pop]
-* [member_link unbounded_channel..try_pop]
 * [member_link unbounded_channel..value_pop]
 * [member_link unbounded_channel..pop_wait_for]
 * [member_link unbounded_channel..pop_wait_until]
@@ -249,8 +256,8 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
             template< typename Fn, typename ... Args >
             fiber( Fn &&, Args && ...);
 
-            template< typename StackAllocator, typename Fn, typename ... Args >
-            fiber( std::allocator_arg_t, StackAllocator, Fn &&, Args && ...);
+            template< typename __StackAllocator__, typename Fn, typename ... Args >
+            fiber( __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
 
             ~fiber();
 
@@ -304,17 +311,18 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         template< typename Fn, typename ... Args >
         fiber( Fn && fn, Args && ... args);
 
-        template< typename StackAllocator, typename Fn, typename ... Args >
-        fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args);
+        template< typename __StackAllocator__, typename Fn, typename ... Args >
+        fiber( __allocator_arg_t__, StackAllocator salloc, Fn && fn, Args && ... args);
 
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
 [[Effects:] [`fn` is copied or moved into internal storage for access by the new fiber.]]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]
-[[Note:] [StackAllocator is required to allocate a stack for the internal
-__econtext__. If StackAllocator is not explicitly passed, a
-__fixedsize_stack__ is used by default.]]
+[[Note:] [__StackAllocator__ is required to allocate a stack for the internal
+__econtext__. If `StackAllocator` is not explicitly passed, the default stack
+allocator depends on `BOOST_USE_SEGMENTED_STACKS`: if defined, you will get a
+__segmented_stack__, else a __fixedsize_stack__.]]
 [[See also:] [__allocator_arg_t__, [link stack Stack allocation]]]
 ]
 
@@ -455,7 +463,7 @@ prior to the call.]]
 [[Throws:] [Nothing]]
 ]
 
-[function_heading swap]
+[function_heading_for swap..fiber]
 
     void swap( fiber & l, fiber & r) noexcept;
 
@@ -469,9 +477,7 @@ prior to the call.]]
         bool operator<( fiber const& l, fiber const& r) noexcept;
 
 [variablelist
-[[Returns:] [`true` if `l.get_id() < r.get_id()` is true and the
-implementation-defined total order of `fiber::id` values places `*this` before
-`other`, false otherwise.]]
+[[Returns:] [`true` if `l.get_id() < r.get_id()` is `true`, false otherwise.]]
 [[Throws:] [Nothing.]]
 ]
 
@@ -501,6 +507,7 @@ create a default [class_link round_robin] instance for this thread.]]
 [variablelist
 [[Returns:] [`true` if scheduler has fibers ready to run.]]
 [[Throws:] [Nothing]]
+[[Note:] [Can be used for work-stealing to find an idle scheduler.]]
 ]
 
 [endsect] [/ section Class fiber]
@@ -605,7 +612,8 @@ implementation-defined total order of `fiber::id` values places `*this` before
         operator<<( std::basic_ostream< charT, traitsT > & os, id const& other);
 
 [variablelist
-[[Efects:] [Writes the representation of `other` to stream `os`.]]
+[[Efects:] [Writes the representation of `other` to stream `os`. The
+representation is unspecified.]]
 [[Returns:] [`os`]]
 ]
 
@@ -614,6 +622,16 @@ implementation-defined total order of `fiber::id` values places `*this` before
 
 
 [section:this_fiber Namespace this_fiber]
+
+In general, `this_fiber` operations may be called from the ["main] fiber
+[mdash] the fiber on which function `main()` is entered [mdash] as well as
+from an explicitly-launched thread's thread-function. That is, in many
+respects the main fiber on each thread can be treated like an
+explicitly-launched fiber.
+
+However, unlike an explicitly-launched fiber, if __fiber_interrupted__ is
+thrown (or rethrown) on a thread's main fiber without being caught, the Fiber
+library cannot catch it: `std::terminate()` will be called.
 
         namespace boost {
         namespace this_fiber {
@@ -660,8 +678,13 @@ executing fiber.]]
 [[Throws:] [__fiber_interrupted__ if the current fiber is interrupted
 or timeout-related exceptions.]]
 [[Note:] [`sleep_until()` is one of the predefined __interruption_points__.]]
-[[Note:][The current fiber will not resume before `abs_time`, but there are no
+[[Note:] [The current fiber will not resume before `abs_time`, but there are no
 guarantees about how soon after `abs_time` it might resume.]]
+[[Note:] [["timeout-related exceptions] are as defined in the C++ Standard,
+section [*30.2.4 Timing specifications \[thread.req.timing\]]: ["A function
+that takes an argument which specifies a timeout will throw if, during its
+execution, a clock, time point, or time duration throws an exception. Such
+exceptions are referred to as ['timeout-related exceptions.]]]]
 ]
 
 [ns_function_heading this_fiber..sleep_for]
@@ -779,6 +802,9 @@ interruption for the current fiber.]]
 [[Postconditions:] [__interruption_enabled__ returns `false` for the current
 fiber.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Nesting of `disable_interruption` instances matters. Constructing a
+`disable_interruption` while __interruption_enabled__ `== false` has no
+effect.]]
 ]
 
 [heading Destructor]
@@ -792,6 +818,8 @@ constructed.]]
 current fiber to the state saved at construction of `*this`.]]
 [[Postconditions:] [__interruption_enabled__ for the current fiber returns the
 value stored by the constructor of `*this`.]]
+[[Note:] [Destroying a `disable_interruption` constructed while
+__interruption_enabled__ `== false` has no effect.]]
 ]
 
 
@@ -819,6 +847,10 @@ current fiber to that saved in `disabler`.]]
 [[Postconditions:] [__interruption_enabled__ for the current fiber returns the
 value stored in the constructor of `disabler`.]]
 [[Throws:] [Nothing.]]
+[[Note:] [Nesting of `restore_interruption` instances does not matter: only
+the [class_link disable_interruption] instance passed to the constructor
+matters. Constructing a `restore_interruption` with a `disable_interruption`
+constructed while __interruption_enabled__ `== false` has no effect.]]
 ]
 
 [heading Destructor]
@@ -831,6 +863,9 @@ constructed.]]
 [[Effects:] [Disables interruption for the current fiber.]]
 [[Postconditions:] [__interruption_enabled__ for the current fiber returns
 `false`.]]
+[[Note:] [Destroying a `restore_interruption` constructed with a [class_link
+disable_interruption] constructed while __interruption_enabled__ `== false`
+has no effect.]]
 ]
 
         void foo() {
@@ -841,7 +876,7 @@ constructed.]]
                 {
                     boost::this_fiber::restore_interruption ri( di);
                     // interruption now enabled
-                } // ri destroyed, interruption disable again
+                } // ri destroyed, interruption disabled again
             } // di destructed, interruption state restored
             // interruption now enabled
         }

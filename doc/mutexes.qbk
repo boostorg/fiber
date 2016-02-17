@@ -123,7 +123,7 @@ blocking.]]
 otherwise.]]
 [[Throws:] [`lock_error`]]
 [[Error Conditions:] [
-[*operation_not_permitted]: if `boost::this_fiber::get_id()` does not own the mutex.]]
+[*resource_deadlock_would_occur]: if `boost::this_fiber::get_id()` already owns the mutex.]]
 ]
 
 [member_heading timed_mutex..unlock]
@@ -150,7 +150,9 @@ ownership can be obtained, or the specified time is reached. If the specified
 time has already passed, behaves as [member_link timed_mutex..try_lock].]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Timeout-related exceptions.]]
+[[Throws:] [`lock_error`, timeout-related exceptions.]]
+[[Error Conditions:] [
+[*resource_deadlock_would_occur]: if `boost::this_fiber::get_id()` already owns the mutex.]]
 ]
 
 [template_member_heading timed_mutex..try_lock_for]
@@ -165,7 +167,9 @@ ownership can be obtained, or the specified time is reached. If the specified
 time has already passed, behaves as [member_link timed_mutex..try_lock].]]
 [[Returns:] [`true` if ownership was obtained for the current fiber, `false`
 otherwise.]]
-[[Throws:] [Timeout-related exceptions.]]
+[[Throws:] [`lock_error`, timeout-related exceptions.]]
+[[Error Conditions:] [
+[*resource_deadlock_would_occur]: if `boost::this_fiber::get_id()` already owns the mutex.]]
 ]
 
 
