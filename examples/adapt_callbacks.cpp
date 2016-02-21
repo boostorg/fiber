@@ -108,12 +108,9 @@ AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     // use initialization capture.
     api.init_write(
         data,
-        std::bind([]( boost::fibers::promise< AsyncAPI::errorcode > & promise,
-                      AsyncAPI::errorcode ec) mutable {
+        [&promise]( AsyncAPI::errorcode ec) mutable {
                             promise.set_value( ec);
-                  },
-                  std::ref( promise),
-                  std::placeholders::_1) );
+                  });
     return future.get();
 }
 //]
@@ -134,15 +131,9 @@ std::pair< AsyncAPI::errorcode, std::string > read_ec( AsyncAPI & api) {
     boost::fibers::future< result_pair > future( promise.get_future() );
     // We promise that both 'promise' and 'future' will survive until our
     // lambda has been called.
-    api.init_read(
-        std::bind([]( boost::fibers::promise< result_pair > & promise,
-                      AsyncAPI::errorcode ec,
-                      std::string const& data) mutable {
+    api.init_read([&promise]( AsyncAPI::errorcode ec, std::string const& data) mutable {
                             promise.set_value( result_pair( ec, data) );
-                  },
-                  std::ref( promise),
-                  std::placeholders::_1,
-                  std::placeholders::_2) );
+                  });
     return future.get();
 }
 //]
@@ -153,10 +144,7 @@ std::string read( AsyncAPI & api) {
     boost::fibers::future< std::string > future( promise.get_future() );
     // Both 'promise' and 'future' will survive until our lambda has been
     // called.
-    api.init_read(
-        std::bind([]( boost::fibers::promise< std::string > & promise,
-                      AsyncAPI::errorcode ec,
-                      std::string const& data) mutable {
+    api.init_read([&promise]( AsyncAPI::errorcode ec, std::string const& data) mutable {
                            if ( ! ec) {
                                promise.set_value( data);
                            } else {
@@ -164,10 +152,7 @@ std::string read( AsyncAPI & api) {
                                        std::make_exception_ptr(
                                            make_exception("read", ec) ) );
                            }
-                  },
-                  std::ref( promise),
-                  std::placeholders::_1,
-                  std::placeholders::_2) );
+                  });
     return future.get();
 }
 //]

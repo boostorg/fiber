@@ -183,7 +183,6 @@
 
 
 [include overview.qbk]
-[/[include installing.qbk]]
 [include fiber.qbk]
 [include scheduling.qbk]
 [include stack.qbk]
@@ -221,3 +220,4 @@ object are running in the same thread.
 [include customization.qbk]
 [include rationale.qbk]
 [include acknowledgements.qbk]
+[include installing.qbk]
