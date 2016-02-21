@@ -71,8 +71,8 @@ private:
 
 //[priority_scheduler
 class priority_scheduler :
-    public boost::fibers::thread_sched_algorithm,  // suspend_until(), notify()
-    public boost::fibers::sched_algorithm_with_properties< priority_props > {
+    virtual public boost::fibers::thread_sched_algorithm,  // suspend_until(), notify()
+    virtual public boost::fibers::sched_algorithm_with_properties< priority_props > {
 private:
     typedef boost::fibers::scheduler::ready_queue_t/*< See [link ready_queue_t]. >*/   rqueue_t;
 

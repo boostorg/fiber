@@ -46,7 +46,7 @@ struct BOOST_FIBERS_DECL sched_algorithm {
 // the scheduler is idle. thread_sched_algorithm provides suspend_until() and
 // notify() implementations, allowing its subclasses to focus on awakened(),
 // pick_next() and has_ready_fibers().
-class BOOST_FIBERS_DECL thread_sched_algorithm : public sched_algorithm {
+class BOOST_FIBERS_DECL thread_sched_algorithm : virtual public sched_algorithm {
 private:
     std::mutex                  mtx_{};
     std::condition_variable     cnd_{};
@@ -60,7 +60,7 @@ public:
 
 // This sched_algorithm subclass provides common functionality for every
 // sched_algorithm_with_properties<> specialization.
-class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {
+class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : virtual public sched_algorithm {
 public:
     // called by fiber_properties::notify() -- don't directly call
     virtual void property_change_( context * f, fiber_properties * props) noexcept = 0;
@@ -73,7 +73,7 @@ protected:
 // This sched_algorithm subclass helps manage instances of a specified
 // fiber-specific properties class, which must be derived from fiber_properties.
 template< typename PROPS >
-struct sched_algorithm_with_properties : public sched_algorithm_with_properties_base {
+struct sched_algorithm_with_properties : virtual public sched_algorithm_with_properties_base {
     typedef sched_algorithm_with_properties_base super;
 
     // Mark this override 'final': sched_algorithm_with_properties subclasses
