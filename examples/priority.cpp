@@ -4,9 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <chrono>
-#include <condition_variable>
 #include <iostream>
-#include <mutex>
 #include <algorithm>                // std::find_if()
 
 #include <boost/fiber/all.hpp>
@@ -73,14 +71,12 @@ private:
 
 //[priority_scheduler
 class priority_scheduler :
-    public boost::fibers::sched_algorithm_with_properties< priority_props > {
+    virtual public boost::fibers::thread_sched_algorithm,  // suspend_until(), notify()
+    virtual public boost::fibers::sched_algorithm_with_properties< priority_props > {
 private:
     typedef boost::fibers::scheduler::ready_queue_t/*< See [link ready_queue_t]. >*/   rqueue_t;
 
     rqueue_t                                rqueue_;
-    std::mutex                  mtx_{};
-    std::condition_variable     cnd_{};
-    bool                        flag_{ false };
 
 public:
     priority_scheduler() :
@@ -193,25 +189,6 @@ public:
         std::cout << std::endl;
     }
 //->
-
-    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
-        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
-            std::unique_lock< std::mutex > lk( mtx_);
-            cnd_.wait( lk, [this](){ return flag_; });
-            flag_ = false;
-        } else {
-            std::unique_lock< std::mutex > lk( mtx_);
-            cnd_.wait_until( lk, time_point, [this](){ return flag_; });
-            flag_ = false;
-        }
-    }
-
-    void notify() noexcept {
-        std::unique_lock< std::mutex > lk( mtx_);
-        flag_ = true;
-        lk.unlock();
-        cnd_.notify_all();
-    }
 };
 //]
 

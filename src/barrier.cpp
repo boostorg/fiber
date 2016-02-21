@@ -7,6 +7,7 @@
 #include "boost/fiber/barrier.hpp"
 
 #include <system_error>
+#include <mutex>                    // std::unique_lock
 
 #include "boost/fiber/exceptions.hpp"
 

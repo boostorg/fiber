@@ -6,6 +6,7 @@
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include <iostream>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/test/unit_test.hpp>
 

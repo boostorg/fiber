@@ -10,7 +10,7 @@
 #define BOOST_FIBERS_SPINLOCK_H
 
 #include <atomic>
-#include <mutex>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/fiber/detail/config.hpp>
 

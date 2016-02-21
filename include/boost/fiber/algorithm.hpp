@@ -8,6 +8,8 @@
 
 #include <cstddef>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 
 #include <boost/config.hpp>
 #include <boost/assert.hpp>
@@ -24,6 +26,7 @@ namespace fibers {
 
 class context;
 
+// Abstract base class defines the sched_algorithm API
 struct BOOST_FIBERS_DECL sched_algorithm {
     virtual ~sched_algorithm() {}
 
@@ -38,7 +41,26 @@ struct BOOST_FIBERS_DECL sched_algorithm {
     virtual void notify() noexcept = 0;
 };
 
-class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {
+// This sched_algorithm subclass provides simple integration with std::thread
+// functionality, using std::condition_variable to yield the processor when
+// the scheduler is idle. thread_sched_algorithm provides suspend_until() and
+// notify() implementations, allowing its subclasses to focus on awakened(),
+// pick_next() and has_ready_fibers().
+class BOOST_FIBERS_DECL thread_sched_algorithm : virtual public sched_algorithm {
+private:
+    std::mutex                  mtx_{};
+    std::condition_variable     cnd_{};
+    bool                        flag_{ false };
+
+public:
+    virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
+
+    virtual void notify() noexcept;
+};
+
+// This sched_algorithm subclass provides common functionality for every
+// sched_algorithm_with_properties<> specialization.
+class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : virtual public sched_algorithm {
 public:
     // called by fiber_properties::notify() -- don't directly call
     virtual void property_change_( context * f, fiber_properties * props) noexcept = 0;
@@ -48,8 +70,10 @@ protected:
     static void set_properties( context * f, fiber_properties * p) noexcept;
 };
 
+// This sched_algorithm subclass helps manage instances of a specified
+// fiber-specific properties class, which must be derived from fiber_properties.
 template< typename PROPS >
-struct sched_algorithm_with_properties : public sched_algorithm_with_properties_base {
+struct sched_algorithm_with_properties : virtual public sched_algorithm_with_properties_base {
     typedef sched_algorithm_with_properties_base super;
 
     // Mark this override 'final': sched_algorithm_with_properties subclasses
