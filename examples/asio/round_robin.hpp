@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/asio.hpp>
 #include <boost/assert.hpp>

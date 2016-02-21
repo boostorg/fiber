@@ -4,9 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <chrono>
-#include <condition_variable>
 #include <iostream>
-#include <mutex>
 #include <algorithm>                // std::find_if()
 
 #include <boost/fiber/all.hpp>

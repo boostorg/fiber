@@ -12,7 +12,7 @@
 #include <chrono>
 #include <cstddef>
 #include <memory>
-#include <mutex>
+#include <mutex>                    // std::unique_lock
 #include <system_error>
 #include <utility>
 

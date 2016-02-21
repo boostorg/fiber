@@ -12,6 +12,7 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/atomic.hpp>
 #include <boost/bind.hpp>

@@ -13,6 +13,7 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/test/unit_test.hpp>
 

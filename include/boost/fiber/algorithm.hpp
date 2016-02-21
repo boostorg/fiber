@@ -8,6 +8,8 @@
 
 #include <cstddef>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 
 #include <boost/config.hpp>
 #include <boost/assert.hpp>

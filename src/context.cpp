@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <new>
+#include <mutex>                    // std::unique_lock
 
 #include "boost/fiber/exceptions.hpp"
 #include "boost/fiber/interruption.hpp"

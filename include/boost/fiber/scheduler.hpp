@@ -9,7 +9,6 @@
 #include <chrono>
 #include <functional>
 #include <memory>
-#include <mutex>
 
 #include <boost/config.hpp>
 #include <boost/context/execution_context.hpp>

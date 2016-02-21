@@ -6,9 +6,7 @@
 #ifndef BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
 #define BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
 
-#include <condition_variable>
 #include <chrono>
-#include <mutex>
 
 #include <boost/config.hpp>
 

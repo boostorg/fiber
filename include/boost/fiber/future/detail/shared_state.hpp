@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <exception>
 #include <memory>
-#include <mutex>
+#include <mutex>                    // std::unique_lock
 #include <type_traits>
 
 #include <boost/assert.hpp>

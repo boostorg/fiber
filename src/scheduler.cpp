@@ -7,7 +7,7 @@
 #include "boost/fiber/scheduler.hpp"
 
 #include <chrono>
-#include <mutex>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/assert.hpp>
 

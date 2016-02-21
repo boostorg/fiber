@@ -9,6 +9,7 @@
 #include <chrono>
 #include <sstream>
 #include <string>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/assert.hpp>
 #include <boost/test/unit_test.hpp>

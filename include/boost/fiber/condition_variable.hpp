@@ -10,9 +10,8 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <functional>
-#include <mutex>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>

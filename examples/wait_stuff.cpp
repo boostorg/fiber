@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <mutex>                    // std::unique_lock
 
 #include <boost/fiber/all.hpp>
 #include <boost/noncopyable.hpp>
