@@ -27,6 +27,46 @@ project boost/fiber/performance/fiber
       <variant>release
     ;
 
+alias pbind
+   : bind/bind_processor_aix.cpp
+   : <target-os>aix
+   ;
+
+alias pbind
+   : bind/bind_processor_freebsd.cpp
+   : <target-os>freebsd
+   ;
+
+alias pbind
+   : bind/bind_processor_hpux.cpp
+   : <target-os>hpux
+   ;
+
+alias pbind
+   : bind/bind_processor_linux.cpp
+   : <target-os>linux
+   ;
+
+alias pbind
+   : bind/bind_processor_solaris.cpp
+   : <target-os>solaris
+   ;
+
+alias pbind
+   : bind/bind_processor_windows.cpp
+   : <target-os>windows
+   ;
+
+explicit pbind ;
+
+exe skynet_mt :
+    pbind
+    skynet_mt.cpp ;
+
+exe skynet_st :
+    pbind
+    skynet_st.cpp ;
+
 exe overhead_create
    : overhead_create.cpp
    ;
