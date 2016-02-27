@@ -94,7 +94,8 @@
           (or throw).
         </p>
 <p>
-          The implementation is just as you would expect.
+          The implementation is just as you would expect. Notice, however, that we
+          can reuse <a class="link" href="../when_any/when_any__produce_first_outcome__whether_result_or_exception.html#wait_first_outcome_impl"><code class="computeroutput"><span class="identifier">wait_first_outcome_impl</span><span class="special">()</span></code></a>, passing the <code class="computeroutput"><span class="identifier">nchannel</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> rather than <code class="computeroutput"><span class="identifier">unbounded_channel</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>.
         </p>
 <p>
 </p>
@@ -115,9 +116,9 @@
     <span class="comment">// and make an nchannel facade to close it after 'count' items</span>
     <span class="keyword">auto</span> <span class="identifier">ncp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">nchannel</span><span class="special">&lt;</span> <span class="identifier">future_t</span> <span class="special">&gt;</span> <span class="special">&gt;(</span> <span class="identifier">channelp</span><span class="special">,</span> <span class="identifier">count</span><span class="special">)</span> <span class="special">);</span>
     <span class="comment">// pass that nchannel facade to all the relevant fibers</span>
-    <span class="identifier">wait_all_until_error_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">ncp</span><span class="special">,</span>
-                                           <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>
-                                           <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fns</span> <span class="special">&gt;(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
+    <span class="identifier">wait_first_outcome_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">ncp</span><span class="special">,</span>
+                                         <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>
+                                         <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fns</span> <span class="special">&gt;(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
     <span class="comment">// then return the channel for consumer</span>
     <span class="keyword">return</span> <span class="identifier">channelp</span><span class="special">;</span>
 <span class="special">}</span>
@@ -140,35 +141,6 @@
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">value</span><span class="special">(</span> <span class="identifier">future</span><span class="special">.</span><span class="identifier">get</span><span class="special">()</span> <span class="special">);</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"wait_all_until_error_source(success) =&gt; '"</span> <span class="special">&lt;&lt;</span> <span class="identifier">value</span>
               <span class="special">&lt;&lt;</span> <span class="string">"'"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
-<span class="special">}</span>
-</pre>
-<p>
-        </p>
-<p>
-          <a name="wait_all_until_error_impl"></a><code class="computeroutput"><span class="identifier">wait_all_until_error_impl</span><span class="special">()</span></code> is just like <a class="link" href="../when_any/when_any__produce_first_outcome__whether_result_or_exception.html#wait_first_outcome_impl"><code class="computeroutput"><span class="identifier">wait_first_outcome_impl</span><span class="special">()</span></code></a>,
-          but using <a class="link" href="when_all__return_values.html#wait_nchannel"><code class="computeroutput"><span class="identifier">nchannel</span><span class="special">&lt;&gt;</span></code></a> instead of <code class="computeroutput"><span class="identifier">bounded_channel</span><span class="special">&lt;&gt;</span></code>.
-        </p>
-<p>
-</p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait_all_until_error_impl</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">nchannel</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">channel</span><span class="special">,</span>
-                                <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">function</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span>
-            <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span>
-                <span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">nchannel</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">channel</span><span class="special">,</span>
-                    <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">&amp;</span> <span class="identifier">function</span><span class="special">){</span>
-                    <span class="comment">// Instantiate a packaged_task to capture any exception thrown by</span>
-                    <span class="comment">// function.</span>
-                    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">T</span><span class="special">()</span> <span class="special">&gt;</span> <span class="identifier">task</span><span class="special">(</span> <span class="identifier">function</span><span class="special">);</span>
-                    <span class="comment">// Immediately run this packaged_task on same fiber. We want</span>
-                    <span class="comment">// function() to have completed BEFORE we push the future.</span>
-                    <span class="identifier">task</span><span class="special">();</span>
-                    <span class="comment">// Pass the corresponding future to consumer.</span>
-                    <span class="identifier">channel</span><span class="special">-&gt;</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">task</span><span class="special">.</span><span class="identifier">get_future</span><span class="special">()</span> <span class="special">);</span>
-                <span class="special">},</span>
-                <span class="identifier">channel</span><span class="special">,</span>
-                <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">)</span>
-            <span class="special">)).</span><span class="identifier">detach</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
 <p>

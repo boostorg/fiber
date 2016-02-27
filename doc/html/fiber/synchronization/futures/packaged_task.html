@@ -66,8 +66,8 @@ encapsulates.
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
     <span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-    <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="special">&gt;</span>
+    <span class="identifier">packaged_task</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;);</span>
 
     <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">packaged_task</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -116,15 +116,14 @@ encapsulates.
 </div>
 <a name="packaged_task_packaged_task"></a><h6>
 <a name="fiber.synchronization.futures.packaged_task.h1"></a>
-          <span><a name="fiber.synchronization.futures.packaged_task.templated_constructor__code__phrase_role__keyword__template__phrase__phrase_role__special___lt__gt___phrase___phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="packaged_task.html#fiber.synchronization.futures.packaged_task.templated_constructor__code__phrase_role__keyword__template__phrase__phrase_role__special___lt__gt___phrase___phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_">Templated
-          constructor <code class="computeroutput"><span class="keyword">template</span><span class="special">&lt;&gt;</span>
-          <span class="identifier">packaged_task</span><span class="special">()</span></code></a>
+          <span><a name="fiber.synchronization.futures.packaged_task.templated_constructor__code__phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="packaged_task.html#fiber.synchronization.futures.packaged_task.templated_constructor__code__phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_">Templated
+          constructor <code class="computeroutput"><span class="identifier">packaged_task</span><span class="special">()</span></code></a>
         </h6>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
 <span class="keyword">explicit</span> <span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">&gt;</span>
-<span class="identifier">packaged_task</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="special">&gt;</span>
+<span class="identifier">packaged_task</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -132,9 +131,9 @@ encapsulates.
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
                 Constructs an object of class <code class="computeroutput"><span class="identifier">packaged_task</span></code>
-                with a <a class="link" href="future.html#shared_state">shared state</a> and stores
-                the callable target <code class="computeroutput"><span class="identifier">fn</span></code>
-                internally.
+                with a <a class="link" href="future.html#shared_state">shared state</a> and copies
+                or moves the callable target <code class="computeroutput"><span class="identifier">fn</span></code>
+                to internal storage.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -191,7 +190,9 @@ encapsulates.
                 Destroys <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
                 and abandons the <a class="link" href="future.html#shared_state">shared state</a>
                 if shared state is ready; otherwise stores <code class="computeroutput"><span class="identifier">future_error</span></code>
-                with error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">broken_promise</span></code>.
+                with error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">broken_promise</span></code>
+                as if by <a class="link" href="promise.html#promise_set_exception"> <code class="computeroutput">promise::set_exception()</code></a>: the shared
+                state is set ready.
               </p></dd>
 </dl>
 </div>
@@ -324,9 +325,10 @@ encapsulates.
 <dd><p>
                 Invokes the stored callable target. Any exception thrown by the callable
                 target <code class="computeroutput"><span class="identifier">fn</span></code> is stored
-                in the <a class="link" href="future.html#shared_state">shared state</a>. Otherwise,
-                the value returned by <code class="computeroutput"><span class="identifier">fn</span></code>
-                is stored in the shared state.
+                in the <a class="link" href="future.html#shared_state">shared state</a> as if by
+                <a class="link" href="promise.html#promise_set_exception"> <code class="computeroutput">promise::set_exception()</code></a>. Otherwise, the value
+                returned by <code class="computeroutput"><span class="identifier">fn</span></code> is
+                stored in the shared state as if by <a class="link" href="promise.html#promise_set_value"> <code class="computeroutput">promise::set_value()</code></a>.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -352,7 +354,7 @@ encapsulates.
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-                Resets the <a class="link" href="future.html#shared_state">shared state</a> and abondons
+                Resets the <a class="link" href="future.html#shared_state">shared state</a> and abandons
                 the result of previous executions. A new shared state is constructed.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>
@@ -365,9 +367,10 @@ encapsulates.
 <p>
           </p>
 <h5>
-<a name="pt_swap_bridgehead"></a>
-  <span><a name="pt_swap"></a></span>
-  <a class="link" href="packaged_task.html#pt_swap">Non-member function <code class="computeroutput">pt_swap()</code></a>
+<a name="swap_for_packaged_task_bridgehead"></a>
+  <span><a name="swap_for_packaged_task"></a></span>
+  <a class="link" href="packaged_task.html#swap_for_packaged_task">Non-member
+          function <code class="computeroutput">swap()</code></a>
 </h5>
 <p>
         </p>

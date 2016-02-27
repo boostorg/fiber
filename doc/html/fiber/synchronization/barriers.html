@@ -52,13 +52,14 @@
       </p>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
-            Fiber "main" launches fibers A, B, C and D, then calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>.
+            Fiber <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> launches fibers A, B, C and D, then calls
+            <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>.
           </li>
 <li class="listitem">
             Fiber C finishes first and likewise calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>.
           </li>
 <li class="listitem">
-            Fiber "main" is unblocked, as desired.
+            Fiber <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> is unblocked, as desired.
           </li>
 <li class="listitem">
             Fiber B calls <code class="computeroutput"><span class="identifier">barrier</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>. Fiber B is <span class="emphasis"><em>blocked!</em></span>
@@ -80,7 +81,7 @@
 </tr>
 <tr><td align="left" valign="top"><p>
           It is unwise to tie the lifespan of a barrier to any one of its participating
-          fibers. Although conceptually all waiting fibers awaken "simultaneously,"
+          fibers. Although conceptually all waiting fibers awaken <span class="quote">&#8220;<span class="quote">simultaneously,</span>&#8221;</span>
           because of the nature of fibers, in practice they will awaken one by one
           in indeterminate order.<sup>[<a name="fiber.synchronization.barriers.f0" href="#ftn.fiber.synchronization.barriers.f0" class="footnote">2</a>]</sup> The rest of the waiting fibers will still be blocked in <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>,
           which must, before returning, access data members in the barrier object.

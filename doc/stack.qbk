@@ -67,14 +67,80 @@ once allocated, this stack is just as efficient to use as __fixedsize_stack__.]
 [note The appended `guard page` is [*not] mapped to physical memory, only
 virtual addresses are used.]
 
+        #include <boost/fiber/protected_fixedsize.hpp>
+
+        struct protected_fixedsize {
+            protected_fixesize(std::size_t size = traits_type::default_size());
+
+            stack_context allocate();
+
+            void deallocate( stack_context &);
+        }
+
+[heading `stack_context allocate()`]
+[variablelist
+[[Preconditions:] [`traits_type::minimum:size() <= size` and
+`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= size)`.]]
+[[Effects:] [Allocates memory of at least `size` Bytes and stores a pointer
+to the stack and its actual size in `sctx`. Depending
+on the architecture (the stack grows downwards/upwards) the stored address is
+the highest/lowest address of the stack.]]
+]
+
+[heading `void deallocate( stack_context & sctx)`]
+[variablelist
+[[Preconditions:] [`sctx.sp` is valid, `traits_type::minimum:size() <= sctx.size` and
+`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= sctx.size)`.]]
+[[Effects:] [Deallocates the stack space.]]
+]
+
 
 [class_heading fixedsize_stack]
 
 __boost_fiber__ provides the class __fixedsize_stack__ which models
 the __stack_allocator_concept__.
-In contrast to __pfixedsize_stack__ it does not append a guard page at the
-end of each stack. The memory is simply managed by `std::malloc()` and
-`std::free()`.
+In contrast to __protected_fixedsize__ it does not append a guard page at the
+end of each stack. The memory is managed internally by
+[@http://www.boost.org/doc/libs/release/libs/pool/doc/html/boost/pool.html `boost::pool<>`].
+
+        #include <boost/fiber/fixedsize_stack.hpp>
+
+        struct fixedsize_stack {
+            fixesize_stack(std::size_t stack_size = traits_type::default_size(), std::size_t next_size = 32, std::size_t max_size = 0);
+
+            stack_context allocate();
+
+            void deallocate( stack_context &);
+        }
+
+[heading `basic_fixesize_stack(std::size_t stack_size, std::size_t next_size, std::size_t max_size)]
+[variablelist
+[[Preconditions:] [`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= stack_size)`
+and `0 < nest_size`.]]
+[[Effects:] [Allocates memory of at least `stack_size` Bytes and stores a pointer to
+the stack and its actual size in `sctx`. Depending on the architecture (the
+stack grows downwards/upwards) the stored address is the highest/lowest
+address of the stack. Argument `next_size` determines the number of stacks to
+request from the system the first time that `*this` needs to allocate system
+memory. The third argument `max_size` controls how many memory might be
+allocated for stacks - a value of zero means no uper limit.]]
+]
+
+[heading `stack_context allocate()`]
+[variablelist
+[[Preconditions:] [`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= stack_size)`.]]
+[[Effects:] [Allocates memory of at least `stack_size` Bytes and stores a pointer to
+the stack and its actual size in `sctx`. Depending on the architecture (the
+stack grows downwards/upwards) the stored address is the highest/lowest
+address of the stack.]]
+]
+
+[heading `void deallocate( stack_context & sctx)`]
+[variablelist
+[[Preconditions:] [`sctx.sp` is valid,
+`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= sctx.size)`.]]
+[[Effects:] [Deallocates the stack space.]]
+]
 
 
 [class_heading segmented_stack]
@@ -88,9 +154,36 @@ stack which grows on demand.
 
 [note Segmented stacks are currently only supported by [*gcc] from version
 [*4.7] and [*clang] from version [*3.4] onwards. In order to use a
-__segmented_stack__, __boost_fiber__ must be built with
+__segmented_stack__ __boost_fiber__ must be built with
 property `segmented-stacks`, e.g. [*toolset=gcc segmented-stacks=on] at b2/bjam
 command line.]
+
+        #include <boost/fiber/segmented_stack.hpp>
+
+        struct segmented_stack {
+            segmented_stack(std::size_t stack_size = traits_type::default_size());
+
+            stack_context allocate();
+
+            void deallocate( stack_context &);
+        }
+
+[heading `stack_context allocate()`]
+[variablelist
+[[Preconditions:] [`traits_type::minimum:size() <= size` and
+`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= size)`.]]
+[[Effects:] [Allocates memory of at least `size` Bytes and stores a pointer to
+the stack and its actual size in `sctx`. Depending on the architecture (the
+stack grows downwards/upwards) the stored address is the highest/lowest
+address of the stack.]]
+]
+
+[heading `void deallocate( stack_context & sctx)`]
+[variablelist
+[[Preconditions:] [`sctx.sp` is valid, `traits_type::minimum:size() <= sctx.size` and
+`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= sctx.size)`.]]
+[[Effects:] [Deallocates the stack space.]]
+]
 
 [note If the library is compiled for segmented stacks, __segmented_stack__ is the only
 available stack allocator.]

@@ -46,8 +46,8 @@
       from <a href="http://www.boost.org/doc/libs/release/libs/context/index.html" target="_top">Boost.Context</a>;
       the classes in this library manage, schedule and, when needed, synchronize
       those execution contexts. A context switch between threads usually costs thousands
-      of CPU cycles on x86, compared to a fiber switch with less than hundred cycles.
-      A fiber can only run on a single thread at any point in time.
+      of CPU cycles on x86, compared to a fiber switch with less than a hundred cycles.
+      A fiber runs on a single thread at any point in time.
     </p>
 <p>
       In order to use the classes and functions described here, you can either include
@@ -75,8 +75,9 @@
       At a given moment, on a given thread, at most one fiber is running.
     </p>
 <p>
-      Spawning additional fibers on a given thread does not increase your program's
-      utilization of hardware cores.
+      Spawning additional fibers on a given thread does not distribute your program
+      across more hardware cores, though it can make more effective use of the core
+      on which it's running.
     </p>
 <p>
       On the other hand, a fiber may safely access any resource exclusively owned
@@ -97,12 +98,32 @@
       across the call.
     </p>
 <p>
-      A fiber launched on a particular thread will always run on that thread. A fiber
-      can count on thread-local storage; however that storage will be shared among
-      all fibers running on the same thread.
+      A fiber can be migrated from one thread to another, though the library does
+      not do this by default. It is possible for you to supply a custom scheduler
+      that migrates fibers between threads. You may specify custom fiber properties
+      to help your scheduler decide which fibers are permitted to migrate. Please
+      see <a class="link" href="migration.html#migration">Migrating fibers between threads</a> and
+      <a class="link" href="custom.html#custom">Customization</a> for more details.
+    </p>
+<p>
+      A fiber launched on a particular thread continues running on that thread unless
+      migrated. It might be unblocked (see <a class="link" href="overview.html#blocking">Blocking</a>
+      below) by some other thread, but that only transitions the fiber from <span class="quote">&#8220;<span class="quote">blocked</span>&#8221;</span>
+      to <span class="quote">&#8220;<span class="quote">ready</span>&#8221;</span> on its current thread &#8212; it does not cause the fiber to
+      resume on the thread that unblocked it.
+    </p>
+<a name="thread_local_storage"></a><h4>
+<a name="fiber.overview.h1"></a>
+      <span><a name="fiber.overview.thread_local_storage"></a></span><a class="link" href="overview.html#fiber.overview.thread_local_storage">thread-local
+      storage</a>
+    </h4>
+<p>
+      Unless migrated, a fiber may access thread-local storage; however that storage
+      will be shared among all fibers running on the same thread. For fiber-local
+      storage, please see <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>.
     </p>
 <a name="cross_thread_sync"></a><h4>
-<a name="fiber.overview.h1"></a>
+<a name="fiber.overview.h2"></a>
       <span><a name="fiber.overview.boost_fibers_no_atomics"></a></span><a class="link" href="overview.html#fiber.overview.boost_fibers_no_atomics">BOOST_FIBERS_NO_ATOMICS</a>
     </h4>
 <p>
@@ -114,11 +135,8 @@
       the fibers referencing a particular synchronization object are running in the
       same thread. Please see <a class="link" href="synchronization.html#synchronization">Synchronization</a>.
     </p>
-<p>
-      For fiber-local storage, please see <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>.
-    </p>
 <a name="blocking"></a><h4>
-<a name="fiber.overview.h2"></a>
+<a name="fiber.overview.h3"></a>
       <span><a name="fiber.overview.blocking"></a></span><a class="link" href="overview.html#fiber.overview.blocking">Blocking</a>
     </h4>
 <p>

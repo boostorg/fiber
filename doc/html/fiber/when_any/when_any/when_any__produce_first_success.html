@@ -28,7 +28,7 @@
         produce first success</a>
 </h4></div></div></div>
 <p>
-          One scenario for "when_any" functionality is when we're redundantly
+          One scenario for <span class="quote">&#8220;<span class="quote">when_any</span>&#8221;</span> functionality is when we're redundantly
           contacting some number of possibly-unreliable web services. Not only might
           they be slow &#8212; any one of them might produce a failure rather than the desired
           result.
@@ -40,7 +40,7 @@
           first!
         </p>
 <p>
-          Given the <code class="computeroutput"><span class="identifier">bounded_queue</span><span class="special">&lt;</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span></code>
+          Given the <code class="computeroutput"><span class="identifier">unbounded_channel</span><span class="special">&lt;</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span></code>
           we already constructed for <code class="computeroutput"><span class="identifier">wait_first_outcome</span><span class="special">()</span></code>, though, we can readily recast the interface
           function to deliver the first <span class="emphasis"><em>successful</em></span> result.
         </p>
@@ -92,27 +92,22 @@
 <p>
         </p>
 <p>
-          Now we can build <code class="computeroutput"><span class="identifier">wait_first_success</span><span class="special">()</span></code>. We must enlarge our <code class="computeroutput"><span class="identifier">bounded_channel</span><span class="special">&lt;&gt;</span></code>: it might need to hold a <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
-          for every one of our task functions. (As noted in comments, we could use
-          <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"> <code class="computeroutput">unbounded_channel&lt;&gt;</code></a>, but this tactic allows
-          us to reuse <a class="link" href="when_any__produce_first_outcome__whether_result_or_exception.html#wait_first_outcome_impl"><code class="computeroutput"><span class="identifier">wait_first_outcome_impl</span><span class="special">()</span></code></a>.)
+          Now we can build <code class="computeroutput"><span class="identifier">wait_first_success</span><span class="special">()</span></code>, using <a class="link" href="when_any__produce_first_outcome__whether_result_or_exception.html#wait_first_outcome_impl"><code class="computeroutput"><span class="identifier">wait_first_outcome_impl</span><span class="special">()</span></code></a>.
         </p>
 <p>
           Instead of retrieving only the first <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> from the channel, we must now loop
           over <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           items. Of course we must limit that iteration! If we launch only <code class="computeroutput"><span class="identifier">count</span></code> producer fibers, the <code class="computeroutput"><span class="special">(</span><span class="identifier">count</span><span class="special">+</span><span class="number">1</span><span class="special">)</span></code>
           <sup>st</sup>
-   <a class="link" href="../../synchronization/channels.html#bounded_channel_pop"> <code class="computeroutput">bounded_channel::pop()</code></a> call would block forever.
+   <a class="link" href="../../synchronization/channels.html#unbounded_channel_pop"> <code class="computeroutput">unbounded_channel::pop()</code></a> call would block forever.
         </p>
 <p>
           Given a ready <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>,
           we can distinguish failure by calling <a class="link" href="../../synchronization/futures/future.html#future_get_exception_ptr"> <code class="computeroutput">future::get_exception_ptr()</code></a>.
           If the <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
-          in fact contains a result rather than an exception, <code class="computeroutput"><span class="identifier">get_exception_ptr</span><span class="special">()</span></code> returns a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span></code>
-          which is <code class="computeroutput"><span class="keyword">nullptr</span></code>. In that
-          case, we can confidently call <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>
-to return that result
-          to our caller.
+          in fact contains a result rather than an exception, <code class="computeroutput"><span class="identifier">get_exception_ptr</span><span class="special">()</span></code> returns <code class="computeroutput"><span class="keyword">nullptr</span></code>.
+          In that case, we can confidently call <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> to return
+          that result to our caller.
         </p>
 <p>
           If the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span></code> is <span class="emphasis"><em>not</em></span>
@@ -137,11 +132,8 @@ to return that result
     <span class="comment">// exception.</span>
     <span class="keyword">typedef</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;::</span><span class="identifier">type</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="identifier">return_t</span><span class="special">;</span>
     <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="identifier">future_t</span><span class="special">;</span>
-    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">bounded_channel</span><span class="special">&lt;</span> <span class="identifier">future_t</span> <span class="special">&gt;</span> <span class="identifier">channel_t</span><span class="special">;</span>
-    <span class="comment">// make bounded_channel big enough to hold all results if need be</span>
-    <span class="comment">// (could use unbounded_channel this time, but let's just share</span>
-    <span class="comment">// wait_first_outcome_impl())</span>
-    <span class="keyword">auto</span> <span class="identifier">channelp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">channel_t</span> <span class="special">&gt;(</span> <span class="identifier">count</span><span class="special">)</span> <span class="special">);</span>
+    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_channel</span><span class="special">&lt;</span> <span class="identifier">future_t</span> <span class="special">&gt;</span> <span class="identifier">channel_t</span><span class="special">;</span>
+    <span class="keyword">auto</span> <span class="identifier">channelp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">channel_t</span> <span class="special">&gt;()</span> <span class="special">);</span>
     <span class="comment">// launch all the relevant fibers</span>
     <span class="identifier">wait_first_outcome_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">channelp</span><span class="special">,</span>
                                          <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>

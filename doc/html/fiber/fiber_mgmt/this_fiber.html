@@ -26,6 +26,19 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="fiber.fiber_mgmt.this_fiber"></a><a class="link" href="this_fiber.html" title="Namespace this_fiber">Namespace this_fiber</a>
 </h3></div></div></div>
+<p>
+        In general, <code class="computeroutput"><span class="identifier">this_fiber</span></code> operations
+        may be called from the <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> fiber &#8212; the fiber on which function
+        <code class="computeroutput"><span class="identifier">main</span><span class="special">()</span></code>
+        is entered &#8212; as well as from an explicitly-launched thread's thread-function.
+        That is, in many respects the main fiber on each thread can be treated like
+        an explicitly-launched fiber.
+      </p>
+<p>
+        However, unlike an explicitly-launched fiber, if <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+        is thrown (or rethrown) on a thread's main fiber without being caught, the
+        Fiber library cannot catch it: <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span><span class="special">()</span></code> will be called.
+      </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">this_fiber</span> <span class="special">{</span>
 
@@ -111,6 +124,15 @@
               The current fiber will not resume before <code class="computeroutput"><span class="identifier">abs_time</span></code>,
               but there are no guarantees about how soon after <code class="computeroutput"><span class="identifier">abs_time</span></code>
               it might resume.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              <span class="quote">&#8220;<span class="quote">timeout-related exceptions</span>&#8221;</span> are as defined in the C++
+              Standard, section <span class="bold"><strong>30.2.4 Timing specifications
+              [thread.req.timing]</strong></span>: <span class="quote">&#8220;<span class="quote">A function that takes an argument
+              which specifies a timeout will throw if, during its execution, a clock,
+              time point, or time duration throws an exception. Such exceptions are
+              referred to as <span class="emphasis"><em>timeout-related exceptions.</em></span></span>&#8221;</span>
             </p></dd>
 </dl>
 </div>
@@ -377,6 +399,13 @@
 <dd><p>
               Nothing.
             </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Nesting of <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
+              instances matters. Constructing a <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
+              while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
+              has no effect.
+            </p></dd>
 </dl>
 </div>
 <h5>
@@ -401,6 +430,12 @@
 <dd><p>
               <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
               the current fiber returns the value stored by the constructor of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Destroying a <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
+              constructed while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
+              has no effect.
             </p></dd>
 </dl>
 </div>
@@ -452,6 +487,15 @@
 <dd><p>
               Nothing.
             </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Nesting of <code class="computeroutput"><span class="identifier">restore_interruption</span></code>
+              instances does not matter: only the <a class="link" href="this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> instance
+              passed to the constructor matters. Constructing a <code class="computeroutput"><span class="identifier">restore_interruption</span></code>
+              with a <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
+              constructed while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
+              has no effect.
+            </p></dd>
 </dl>
 </div>
 <h5>
@@ -476,6 +520,13 @@
               <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
               the current fiber returns <code class="computeroutput"><span class="keyword">false</span></code>.
             </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Destroying a <code class="computeroutput"><span class="identifier">restore_interruption</span></code>
+              constructed with a <a class="link" href="this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> constructed
+              while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
+              has no effect.
+            </p></dd>
 </dl>
 </div>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">foo</span><span class="special">()</span> <span class="special">{</span>
@@ -486,7 +537,7 @@
         <span class="special">{</span>
             <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">restore_interruption</span> <span class="identifier">ri</span><span class="special">(</span> <span class="identifier">di</span><span class="special">);</span>
             <span class="comment">// interruption now enabled</span>
-        <span class="special">}</span> <span class="comment">// ri destroyed, interruption disable again</span>
+        <span class="special">}</span> <span class="comment">// ri destroyed, interruption disabled again</span>
     <span class="special">}</span> <span class="comment">// di destructed, interruption state restored</span>
     <span class="comment">// interruption now enabled</span>
 <span class="special">}</span>

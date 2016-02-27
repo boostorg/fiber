@@ -271,8 +271,9 @@
             </p></dd>
 <dt><span class="term">Error Conditions:</span></dt>
 <dd><p>
-              <span class="bold"><strong>operation_not_permitted</strong></span>: if <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
-              does not own the mutex.
+              <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              already owns the mutex.
             </p></dd>
 </dl>
 </div>
@@ -345,7 +346,14 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Timeout-related exceptions.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>, timeout-related
+              exceptions.
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              already owns the mutex.
             </p></dd>
 </dl>
 </div>
@@ -383,7 +391,14 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              Timeout-related exceptions.
+              <code class="computeroutput"><span class="identifier">lock_error</span></code>, timeout-related
+              exceptions.
+            </p></dd>
+<dt><span class="term">Error Conditions:</span></dt>
+<dd><p>
+              <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>
+              already owns the mutex.
             </p></dd>
 </dl>
 </div>

@@ -146,12 +146,12 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">unbounded_channel</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="special">=</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span></code></a> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">unbounded_channel</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">typedef</span> <span class="identifier">T</span>   <span class="identifier">value_type</span><span class="special">;</span>
 
-    <span class="keyword">explicit</span> <span class="identifier">unbounded_channel</span><span class="special">(</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">explicit</span> <span class="identifier">unbounded_channel</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="identifier">unbounded_channel</span><span class="special">(</span> <span class="identifier">unbounded_channel</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
     <span class="identifier">unbounded_channel</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">unbounded_channel</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
@@ -178,7 +178,7 @@
 <a name="fiber.synchronization.channels.h6"></a>
         <span><a name="fiber.synchronization.channels.constructor"></a></span><a class="link" href="channels.html#fiber.synchronization.channels.constructor">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">unbounded_channel</span><span class="special">(</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">unbounded_channel</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -192,6 +192,11 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               Nothing.
+            </p></dd>
+<dt><span class="term">See also:</span></dt>
+<dd><p>
+              <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> concept, <a href="http://en.cppreference.com/w/cpp/memory/allocator" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span>
+              <span class="identifier">T</span> <span class="special">&gt;</span></code></a>
             </p></dd>
 </dl>
 </div>
@@ -314,6 +319,10 @@
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               is closed or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
             </p></dd>
+<dt><span class="term">Error conditions:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">errc</span><span class="special">::</span><span class="identifier">operation_not_permitted</span></code>
+            </p></dd>
 </dl>
 </div>
 <p>
@@ -434,13 +443,13 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">bounded_channel</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Allocator</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="special">=</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span></code></a> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">bounded_channel</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">typedef</span> <span class="identifier">T</span>   <span class="identifier">value_type</span><span class="special">;</span>
 
-    <span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
-    <span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
+    <span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
+    <span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
 
     <span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">bounded_channel</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
     <span class="identifier">bounded_channel</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">bounded_channel</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
@@ -486,8 +495,8 @@
 <a name="fiber.synchronization.channels.h7"></a>
         <span><a name="fiber.synchronization.channels.constructor0"></a></span><a class="link" href="channels.html#fiber.synchronization.channels.constructor0">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocoator</span><span class="special">()</span> <span class="special">);</span>
-<span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">,</span> <span class="identifier">Allocator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
+<pre class="programlisting"><span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">wm</span><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
+<span class="identifier">bounded_channel</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">hwm</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lwm</span><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">Allocator</span><span class="special">()</span> <span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -503,7 +512,8 @@
               The constructor with two arguments constructs an object of class <code class="computeroutput"><span class="identifier">bounded_channel</span></code> with a high-watermark
               of <code class="computeroutput"><span class="identifier">hwm</span></code> and a low-watermark
               of <code class="computeroutput"><span class="identifier">lwm</span></code> items. The constructor
-              with one argument is effectively the same as <code class="computeroutput"><span class="identifier">bounded_channel</span><span class="special">(</span><span class="identifier">wm</span><span class="special">,</span> <span class="special">(</span><span class="identifier">wm</span><span class="special">-</span><span class="number">1</span><span class="special">))</span></code>.
+              with one <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span></code> argument is effectively the
+              same as <code class="computeroutput"><span class="identifier">bounded_channel</span><span class="special">(</span><span class="identifier">wm</span><span class="special">,</span> <span class="special">(</span><span class="identifier">wm</span><span class="special">-</span><span class="number">1</span><span class="special">),</span> <span class="identifier">alloc</span><span class="special">)</span></code>.
               Internal nodes are allocated using <code class="computeroutput"><span class="identifier">alloc</span></code>
               - C++11-allocators are supported.
             </p></dd>
@@ -527,6 +537,11 @@
               <span class="special">(</span><span class="identifier">hwm</span><span class="special">-</span><span class="number">1</span><span class="special">)</span></code>,
               the channel can be in a state in which <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>, <code class="computeroutput"><span class="identifier">push_wait_for</span><span class="special">()</span></code> or <code class="computeroutput"><span class="identifier">push_wait_until</span><span class="special">()</span></code> calls will block (channel is full)
               even though the number of values in the channel is less than <code class="computeroutput"><span class="identifier">hwm</span></code>.
+            </p></dd>
+<dt><span class="term">See also:</span></dt>
+<dd><p>
+              <a href="http://en.cppreference.com/w/cpp/concept/Allocator" target="_top"><code class="computeroutput"><span class="identifier">Allocator</span></code></a> concept, <a href="http://en.cppreference.com/w/cpp/memory/allocator" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">&lt;</span>
+              <span class="identifier">T</span> <span class="special">&gt;</span></code></a>
             </p></dd>
 </dl>
 </div>
@@ -825,6 +840,10 @@
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               is closed or <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+            </p></dd>
+<dt><span class="term">Error conditions:</span></dt>
+<dd><p>
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">errc</span><span class="special">::</span><span class="identifier">operation_not_permitted</span></code>
             </p></dd>
 </dl>
 </div>

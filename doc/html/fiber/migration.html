@@ -32,31 +32,31 @@
       <span><a name="fiber.migration.overview"></a></span><a class="link" href="migration.html#fiber.migration.overview">Overview</a>
     </h4>
 <p>
-      Each fiber owns a stack and saves its execution state, including all registers
-      and CPU flags, the instruction pointer, and the stack pointer in order to restore
-      its state later. That means, in general, a fiber is not bound to a thread per
-      se (of course, the code executed inside the fiber must not use TLS).
+      Each fiber owns a stack and manages its execution state, including all registers
+      and CPU flags, the instruction pointer and the stack pointer. That means, in
+      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">3</a>]</sup> <sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">4</a>]</sup>
     </p>
 <p>
-      Migrating a fiber from a logical CPU with heavy work-load to another idle logical
-      CPU (or with less work-load) might speed-up the overall execution. Note that
+      Migrating a fiber from a logical CPU with heavy workload to another logical
+      CPU with a lighter workload might speed up the overall execution. Note that
       in the case of NUMA-architectures, it is not always advisable to migrate data
       between threads. Suppose fiber <span class="emphasis"><em>f</em></span> is running on logical
       CPU <span class="emphasis"><em>cpu0</em></span> which belongs to NUMA node <span class="emphasis"><em>node0</em></span>.
       The data of <span class="emphasis"><em>f</em></span> are allocated on the physical memory located
       at <span class="emphasis"><em>node0</em></span>. Migrating the fiber from <span class="emphasis"><em>cpu0</em></span>
       to another logical CPU <span class="emphasis"><em>cpuX</em></span> which is part of a different
-      NUMA node <span class="emphasis"><em>nodeX</em></span> will reduce the performance of the application
-      because of increased latency of memory access.
+      NUMA node <span class="emphasis"><em>nodeX</em></span> might reduce the performance of the application
+      due to increased latency of memory access.
     </p>
 <p>
-      Only fibers, that are contained in <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>'s ready
-      queue are allowed to be migrated between threads.
+      Only fibers that are contained in <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>'s ready
+      queue can migrate between threads. You cannot migrate a running fiber, nor
+      one that is <a class="link" href="overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>.
     </p>
 <p>
       In<span class="bold"><strong>Boost.Fiber</strong></span> a fiber is migrated by invoking
-      <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> and pass the fiber as argument in the thread
-      to which the fiber has to be moved.
+      <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> on the <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> instance for a
+      fiber already associated with the destination thread, passing the <code class="computeroutput"><span class="identifier">context</span></code> for the fiber to be migrated.
     </p>
 <h4>
 <a name="fiber.migration.h1"></a>
@@ -65,18 +65,19 @@
     </h4>
 <p>
       In the example <a href="../../../examples/work_sharing.cpp" target="_top">work_sharing.cpp</a>
-      multiple worker fibers are created at the main thread. Each fiber gets a character
+      multiple worker fibers are created on the main thread. Each fiber gets a character
       as parameter at construction. This character is printed out ten times. Between
-      each iteration the fiber calls <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a>, that puts
+      each iteration the fiber calls <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a>. That puts
       the fiber in the ready queue of the fiber-scheduler <span class="emphasis"><em>shared_ready_queue</em></span>,
-      running in the current thread. The next fiber, ready to be executed, is dequeued
-      from the ready queue and resumed by <span class="emphasis"><em>shared_ready_queue</em></span>.
+      running in the current thread. The next fiber ready to be executed is dequeued
+      from the shared ready queue and resumed by <span class="emphasis"><em>shared_ready_queue</em></span>
+      running on <span class="emphasis"><em>any participating thread</em></span>.
     </p>
 <p>
       All instances of <span class="emphasis"><em>shared_ready_queue</em></span> share one global concurrent
-      queue, used as ready queue. This mechanism enables to share all worker fibers
-      between all instances of <span class="emphasis"><em>shared_ready_queue</em></span>, thus between
-      all threads.
+      queue, used as ready queue. This mechanism shares all worker fibers between
+      all instances of <span class="emphasis"><em>shared_ready_queue</em></span>, thus between all
+      participating threads.
     </p>
 <h4>
 <a name="fiber.migration.h2"></a>
@@ -103,11 +104,10 @@
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">(</span> <span class="identifier">thread</span><span class="special">,</span> <span class="special">&amp;</span> <span class="identifier">b</span><span class="special">)</span>
 <span class="special">};</span>
 <span class="identifier">b</span><span class="special">.</span><span class="identifier">wait</span><span class="special">();</span> <a class="co" name="fiber.migration.c8" href="migration.html#fiber.migration.c9"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a>
-<span class="identifier">lock_count</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
-<span class="keyword">if</span> <span class="special">(</span> <span class="number">0</span> <span class="special">&lt;</span> <span class="identifier">fiber_count</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c10" href="migration.html#fiber.migration.c11"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a>
-    <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span> <a class="co" name="fiber.migration.c12" href="migration.html#fiber.migration.c13"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a>
-<span class="special">}</span>
-<span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span> <a class="co" name="fiber.migration.c14" href="migration.html#fiber.migration.c15"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a>
+<span class="special">{</span>
+    <span class="identifier">lock_t</span><a class="co" name="fiber.migration.c10" href="migration.html#fiber.migration.c11"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
+    <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="special">[](){</span> <span class="keyword">return</span> <span class="number">0</span> <span class="special">==</span> <span class="identifier">fiber_count</span><span class="special">;</span> <span class="special">}</span> <span class="special">);</span> <a class="co" name="fiber.migration.c12" href="migration.html#fiber.migration.c13"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a>
+<span class="special">}</span> <a class="co" name="fiber.migration.c14" href="migration.html#fiber.migration.c15"><img src="../../../../../doc/src/images/callouts/8.png" alt="8" border="0"></a>
 <span class="identifier">BOOST_ASSERT</span><span class="special">(</span> <span class="number">0</span> <span class="special">==</span> <span class="identifier">fiber_count</span><span class="special">);</span>
 <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span> <span class="special">&amp;</span> <span class="identifier">t</span> <span class="special">:</span> <span class="identifier">threads</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c16" href="migration.html#fiber.migration.c17"><img src="../../../../../doc/src/images/callouts/9.png" alt="9" border="0"></a>
     <span class="identifier">t</span><span class="special">.</span><span class="identifier">join</span><span class="special">();</span>
@@ -127,10 +127,9 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c3"></a><a href="#fiber.migration.c2"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          Launch a number of worker fibers; each worker fiber picks-up a character
+          Launch a number of worker fibers; each worker fiber picks up a character
           that is passed as parameter to fiber-function <code class="computeroutput"><span class="identifier">whatevah</span></code>.
-          Each worker fiber gets detached, e.g. <code class="computeroutput"><span class="identifier">shared_ready_queue</span></code>
-          takes care of fibers life-time.
+          Each worker fiber gets detached.
         </p></td>
 </tr>
 <tr>
@@ -148,13 +147,14 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c9"></a><a href="#fiber.migration.c8"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          wait on other threads
+          sync with other threads: allow them to start processing
         </p></td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c11"></a><a href="#fiber.migration.c10"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          no spurious wakeup
+          <code class="computeroutput"><span class="identifier">lock_t</span></code> is typedef'ed as
+          <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a>&lt; <a href="http://en.cppreference.com/w/cpp/thread/mutex" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">mutex</span></code></a> &gt;
         </p></td>
 </tr>
 <tr>
@@ -180,10 +180,10 @@
 </tr>
 </table></div>
 <p>
-      The start of the threads is synchronized wit ha barrier. The main fiber of
-      each thread (including main thread) is suspended till all worker fibers are
-      complete. If the main fiber returns from <a class="link" href="synchronization/conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>,
-      the thread terminates (main thread joins all other threads).
+      The start of the threads is synchronized with a barrier. The main fiber of
+      each thread (including main thread) is suspended until all worker fibers are
+      complete. When the main fiber returns from <a class="link" href="synchronization/conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>,
+      the thread terminates: the main thread joins all other threads.
     </p>
 <p>
 </p>
@@ -193,10 +193,8 @@
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">buffer</span><span class="special">.</span><span class="identifier">str</span><span class="special">()</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">flush</span><span class="special">;</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">shared_ready_queue</span> <span class="special">&gt;();</span> <a class="co" name="fiber.migration.c18" href="migration.html#fiber.migration.c19"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
     <span class="identifier">b</span><span class="special">-&gt;</span><span class="identifier">wait</span><span class="special">();</span> <a class="co" name="fiber.migration.c20" href="migration.html#fiber.migration.c21"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
-    <span class="identifier">lock_count</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
-    <span class="keyword">if</span> <span class="special">(</span> <span class="number">0</span> <span class="special">&lt;</span> <span class="identifier">fiber_count</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c22" href="migration.html#fiber.migration.c23"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
-        <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span> <a class="co" name="fiber.migration.c24" href="migration.html#fiber.migration.c25"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
-    <span class="special">}</span>
+    <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
+    <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="special">[](){</span> <span class="keyword">return</span> <span class="number">0</span> <span class="special">==</span> <span class="identifier">fiber_count</span><span class="special">;</span> <span class="special">}</span> <span class="special">);</span> <a class="co" name="fiber.migration.c22" href="migration.html#fiber.migration.c23"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
     <span class="identifier">BOOST_ASSERT</span><span class="special">(</span> <span class="number">0</span> <span class="special">==</span> <span class="identifier">fiber_count</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
@@ -213,17 +211,11 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c21"></a><a href="#fiber.migration.c20"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          wait on other threads
+          sync with other threads: allow them to start processing
         </p></td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c23"></a><a href="#fiber.migration.c22"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          no spurious wakeup
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c25"></a><a href="#fiber.migration.c24"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           Suspend main fiber and resume worker fibers in the meanwhile. Main fiber
           gets resumed (e.g returns from <code class="computeroutput"><span class="identifier">condition_variable_any</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>) if all worker fibers are complete.
@@ -231,24 +223,24 @@
 </tr>
 </table></div>
 <p>
-      The worker fibers execute function <code class="computeroutput"><span class="identifier">whatevah</span><span class="special">()</span></code> with character <code class="computeroutput"><span class="identifier">me</span></code>
-      as parameter. The fiber yield in a loop and prints out a message if it was
+      Each worker fiber executes function <code class="computeroutput"><span class="identifier">whatevah</span><span class="special">()</span></code> with character <code class="computeroutput"><span class="identifier">me</span></code>
+      as parameter. The fiber yields in a loop and prints out a message if it was
       migrated to another thread.
     </p>
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">whatevah</span><span class="special">(</span> <span class="keyword">char</span> <span class="identifier">me</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">try</span> <span class="special">{</span>
-        <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">my_thread</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">this_thread</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">();</span> <a class="co" name="fiber.migration.c26" href="migration.html#fiber.migration.c27"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">my_thread</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">this_thread</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">();</span> <a class="co" name="fiber.migration.c24" href="migration.html#fiber.migration.c25"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
         <span class="special">{</span>
             <span class="identifier">std</span><span class="special">::</span><span class="identifier">ostringstream</span> <span class="identifier">buffer</span><span class="special">;</span>
             <span class="identifier">buffer</span> <span class="special">&lt;&lt;</span> <span class="string">"fiber "</span> <span class="special">&lt;&lt;</span> <span class="identifier">me</span> <span class="special">&lt;&lt;</span> <span class="string">" started on thread "</span> <span class="special">&lt;&lt;</span> <span class="identifier">my_thread</span> <span class="special">&lt;&lt;</span> <span class="char">'\n'</span><span class="special">;</span>
             <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">buffer</span><span class="special">.</span><span class="identifier">str</span><span class="special">()</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">flush</span><span class="special">;</span>
         <span class="special">}</span>
-        <span class="keyword">for</span> <span class="special">(</span> <span class="keyword">unsigned</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="number">10</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c28" href="migration.html#fiber.migration.c29"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
-            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">yield</span><span class="special">();</span> <a class="co" name="fiber.migration.c30" href="migration.html#fiber.migration.c31"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
-            <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">new_thread</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">this_thread</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">();</span> <a class="co" name="fiber.migration.c32" href="migration.html#fiber.migration.c33"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
-            <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">new_thread</span> <span class="special">!=</span> <span class="identifier">my_thread</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c34" href="migration.html#fiber.migration.c35"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a>
+        <span class="keyword">for</span> <span class="special">(</span> <span class="keyword">unsigned</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="number">10</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c26" href="migration.html#fiber.migration.c27"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
+            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">yield</span><span class="special">();</span> <a class="co" name="fiber.migration.c28" href="migration.html#fiber.migration.c29"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
+            <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">new_thread</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">this_thread</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">();</span> <a class="co" name="fiber.migration.c30" href="migration.html#fiber.migration.c31"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a>
+            <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">new_thread</span> <span class="special">!=</span> <span class="identifier">my_thread</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c32" href="migration.html#fiber.migration.c33"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a>
                 <span class="identifier">my_thread</span> <span class="special">=</span> <span class="identifier">new_thread</span><span class="special">;</span>
                 <span class="identifier">std</span><span class="special">::</span><span class="identifier">ostringstream</span> <span class="identifier">buffer</span><span class="special">;</span>
                 <span class="identifier">buffer</span> <span class="special">&lt;&lt;</span> <span class="string">"fiber "</span> <span class="special">&lt;&lt;</span> <span class="identifier">me</span> <span class="special">&lt;&lt;</span> <span class="string">" switched to thread "</span> <span class="special">&lt;&lt;</span> <span class="identifier">my_thread</span> <span class="special">&lt;&lt;</span> <span class="char">'\n'</span><span class="special">;</span>
@@ -257,10 +249,10 @@
         <span class="special">}</span>
     <span class="special">}</span> <span class="keyword">catch</span> <span class="special">(</span> <span class="special">...</span> <span class="special">)</span> <span class="special">{</span>
     <span class="special">}</span>
-    <span class="identifier">lock_count</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
-    <span class="keyword">if</span> <span class="special">(</span> <span class="number">0</span> <span class="special">==</span> <span class="special">--</span><span class="identifier">fiber_count</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c36" href="migration.html#fiber.migration.c37"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a>
+    <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
+    <span class="keyword">if</span> <span class="special">(</span> <span class="number">0</span> <span class="special">==</span> <span class="special">--</span><span class="identifier">fiber_count</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c34" href="migration.html#fiber.migration.c35"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a>
         <span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span>
-        <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">notify_all</span><span class="special">();</span> <a class="co" name="fiber.migration.c38" href="migration.html#fiber.migration.c39"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a>
+        <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">notify_all</span><span class="special">();</span> <a class="co" name="fiber.migration.c36" href="migration.html#fiber.migration.c37"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a>
     <span class="special">}</span>
 <span class="special">}</span>
 </pre>
@@ -268,43 +260,43 @@
     </p>
 <div class="calloutlist"><table border="0" summary="Callout list">
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c27"></a><a href="#fiber.migration.c26"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c25"></a><a href="#fiber.migration.c24"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           get ID of initial thread
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c29"></a><a href="#fiber.migration.c28"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c27"></a><a href="#fiber.migration.c26"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          loop ten time
+          loop ten times
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c31"></a><a href="#fiber.migration.c30"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c29"></a><a href="#fiber.migration.c28"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          yield this fiber
+          yield to other fibers
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c33"></a><a href="#fiber.migration.c32"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c31"></a><a href="#fiber.migration.c30"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           get ID of current thread
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c35"></a><a href="#fiber.migration.c34"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c33"></a><a href="#fiber.migration.c32"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           test if fiber was migrated to another thread
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c37"></a><a href="#fiber.migration.c36"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c35"></a><a href="#fiber.migration.c34"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           Decrement fiber counter for each completed fiber.
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c39"></a><a href="#fiber.migration.c38"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c37"></a><a href="#fiber.migration.c36"><img src="../../../../../doc/src/images/callouts/7.png" alt="7" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           Notify all fibers waiting on <code class="computeroutput"><span class="identifier">cnd_count</span></code>.
         </p></td>
@@ -316,7 +308,7 @@
       fibers</a>
     </h4>
 <p>
-      Th fiber scheduler <code class="computeroutput"><span class="identifier">shared_ready_queue</span></code>
+      The fiber scheduler <code class="computeroutput"><span class="identifier">shared_ready_queue</span></code>
       is like <code class="computeroutput"><span class="identifier">round_robin</span></code>, except
       that it shares a common ready queue among all participating threads. A thread
       participates in this pool by executing <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a>
@@ -326,25 +318,22 @@ before
 <p>
       The important point about the ready queue is that it's a class static, common
       to all instances of shared_ready_queue. Fibers that are enqueued via <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a> (fibers
-      that are ready to be resumed), are thus available to all threads. It is required
-      to reserve a separate, scheduler-specific slot for the thread's main fiber.
-      When we're passed the main fiber, stash it there instead of in the shared queue:
-      it would be Bad News for thread B to retrieve and attempt to execute thread
-      A's main fiber. This slot might be empty (<code class="computeroutput"><span class="keyword">nullptr</span></code>)
-      or full: <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a> must only return
-      the main fiber's context* after it has been passed to <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a>.
+      that are ready to be resumed) are thus available to all threads. It is required
+      to reserve a separate, scheduler-specific queue for the thread's main fiber
+      and dispatcher fibers: these may <span class="emphasis"><em>not</em></span> be shared between
+      threads! When we're passed either of these fibers, push it there instead of
+      in the shared queue: it would be Bad News for thread B to retrieve and attempt
+      to execute thread A's main fiber.
     </p>
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
     <span class="identifier">BOOST_ASSERT</span><span class="special">(</span> <span class="keyword">nullptr</span> <span class="special">!=</span> <span class="identifier">ctx</span><span class="special">);</span>
 
-    <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ctx</span><span class="special">-&gt;</span><span class="identifier">is_main_context</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c40" href="migration.html#fiber.migration.c41"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
-        <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ctx</span><span class="special">-&gt;</span><span class="identifier">is_dispatcher_context</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c42" href="migration.html#fiber.migration.c43"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
+    <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ctx</span><span class="special">-&gt;</span><span class="identifier">is_context</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">type</span><span class="special">::</span><span class="identifier">pinned_context</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c38" href="migration.html#fiber.migration.c39"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
         <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span>
     <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-        <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span><span class="identifier">rqueue_mtx_</span><span class="special">);</span> <a class="co" name="fiber.migration.c44" href="migration.html#fiber.migration.c45"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
+        <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span><span class="identifier">rqueue_mtx_</span><span class="special">);</span> <a class="co" name="fiber.migration.c40" href="migration.html#fiber.migration.c41"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
         <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span>
     <span class="special">}</span>
 <span class="special">}</span>
@@ -353,28 +342,21 @@ before
     </p>
 <div class="calloutlist"><table border="0" summary="Callout list">
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c41"></a><a href="#fiber.migration.c40"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c39"></a><a href="#fiber.migration.c38"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          recognize when we're passed this thread's main fiber never put this thread's
-          main fiber on the queue stash it in separate slot
+          recognize when we're passed this thread's main fiber (or an implicit library
+          helper fiber): never put those on the shared queue
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c43"></a><a href="#fiber.migration.c42"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          recognize when we're passed this thread's dispatcher fiber never put this
-          thread's main fiber on the queue stash it in separate slot
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c45"></a><a href="#fiber.migration.c44"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c41"></a><a href="#fiber.migration.c40"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           worker fiber, enqueue on shared queue
         </p></td>
 </tr>
 </table></div>
 <p>
-      If <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a> gets called inside
+      When <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a> gets called inside
       one thread, a fiber is dequeued from <span class="emphasis"><em>rqueue_</em></span> and will
       be resumed in that thread.
     </p>
@@ -383,15 +365,15 @@ before
 <pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">(</span> <span class="keyword">nullptr</span><span class="special">);</span>
     <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span><span class="identifier">rqueue_mtx_</span><span class="special">);</span>
-    <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c46" href="migration.html#fiber.migration.c47"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
+    <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c42" href="migration.html#fiber.migration.c43"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
         <span class="identifier">ctx</span> <span class="special">=</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span>
         <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">pop</span><span class="special">();</span>
         <span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span>
         <span class="identifier">BOOST_ASSERT</span><span class="special">(</span> <span class="keyword">nullptr</span> <span class="special">!=</span> <span class="identifier">ctx</span><span class="special">);</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">migrate</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span> <a class="co" name="fiber.migration.c48" href="migration.html#fiber.migration.c49"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">migrate</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span> <a class="co" name="fiber.migration.c44" href="migration.html#fiber.migration.c45"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
     <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
         <span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span>
-        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c50" href="migration.html#fiber.migration.c51"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c46" href="migration.html#fiber.migration.c47"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
             <span class="identifier">ctx</span> <span class="special">=</span> <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span>
             <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">pop</span><span class="special">();</span>
         <span class="special">}</span>
@@ -403,19 +385,20 @@ before
     </p>
 <div class="calloutlist"><table border="0" summary="Callout list">
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c47"></a><a href="#fiber.migration.c46"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c43"></a><a href="#fiber.migration.c42"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           pop an item from the ready queue
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c49"></a><a href="#fiber.migration.c48"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c45"></a><a href="#fiber.migration.c44"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          attach context to current scheduler via the active fiber of this thread
+          attach context to current scheduler via the active fiber of this thread;
+          benign if the fiber already belongs to this thread
         </p></td>
 </tr>
 <tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c51"></a><a href="#fiber.migration.c50"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c47"></a><a href="#fiber.migration.c46"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
           nothing in the ready queue, return main or dispatcher fiber
         </p></td>
@@ -424,6 +407,17 @@ before
 <p>
       The source code above is found in <a href="../../../examples/work_sharing.cpp" target="_top">work_sharing.cpp</a>.
     </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">3</a>] </sup>
+        The <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> fiber on each thread, that is, the fiber on which
+        the thread is launched, cannot migrate to any other thread. Also <span class="bold"><strong>Boost.Fiber</strong></span> implicitly creates a dispatcher fiber
+        for each thread &#8212; this cannot migrate either.
+      </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">4</a>] </sup>
+        Of course it would be problematic to migrate a fiber that relies on <a class="link" href="overview.html#thread_local_storage">thread-local storage</a>.
+      </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

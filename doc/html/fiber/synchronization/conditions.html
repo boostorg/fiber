@@ -39,13 +39,12 @@
 <span class="keyword">class</span> <span class="identifier">condition_variable_any</span><span class="special">;</span>
 </pre>
 <p>
-        The class <code class="computeroutput"><span class="identifier">condition_variable</span></code>
-        provides a mechanism for a fiber to wait for notification from another fiber.
-        When the fiber awakens from the wait, then it checks to see if the appropriate
-        condition is now true, and continues if so. If the condition is not true,
-        then the fiber calls <code class="computeroutput"><span class="identifier">wait</span></code>
-        again to resume waiting. In the simplest case, this condition is just a boolean
-        variable:
+        The class <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> provides a mechanism
+        for a fiber to wait for notification from another fiber. When the fiber awakens
+        from the wait, then it checks to see if the appropriate condition is now
+        true, and continues if so. If the condition is not true, then the fiber calls
+        <code class="computeroutput"><span class="identifier">wait</span></code> again to resume waiting.
+        In the simplest case, this condition is just a boolean variable:
       </p>
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable</span> <span class="identifier">cond</span><span class="special">;</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="identifier">mtx</span><span class="special">;</span>
@@ -65,19 +64,32 @@
 </pre>
 <p>
         Notice that the <code class="computeroutput"><span class="identifier">lk</span></code> is passed
-        to <code class="computeroutput"><span class="identifier">wait</span></code>: <code class="computeroutput"><span class="identifier">wait</span></code>
-        will atomically add the fiber to the set of fibers waiting on the condition
-        variable, and unlock the mutex. When the fiber is awakened, the mutex will
-        be locked again before the call to <code class="computeroutput"><span class="identifier">wait</span></code>
-        returns. This allows other fibers to acquire the mutex in order to update
+        to <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>: <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> will atomically add the fiber to the set
+        of fibers waiting on the condition variable, and unlock the <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>.
+        When the fiber is awakened, the <code class="computeroutput"><span class="identifier">mutex</span></code>
+        will be locked again before the call to <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> returns. This allows other fibers to acquire
+        the <code class="computeroutput"><span class="identifier">mutex</span></code> in order to update
         the shared data, and ensures that the data associated with the condition
         is correctly synchronized.
       </p>
 <p>
+        <code class="computeroutput"><span class="identifier">wait_for_data_to_process</span><span class="special">()</span></code> could equivalently be written:
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">wait_for_data_to_process</span><span class="special">()</span> <span class="special">{</span>
+    <span class="special">{</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx</span><span class="special">);</span>
+        <span class="comment">// make condition_variable::wait() perform the loop</span>
+        <span class="identifier">cond</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="special">[](){</span> <span class="keyword">return</span> <span class="identifier">data_ready</span><span class="special">;</span> <span class="special">});</span>
+    <span class="special">}</span>   <span class="comment">// release lk</span>
+    <span class="identifier">process_data</span><span class="special">();</span>
+<span class="special">}</span>
+</pre>
+<p>
         In the meantime, another fiber sets <code class="computeroutput"><span class="identifier">data_ready</span></code>
         to <code class="computeroutput"><span class="keyword">true</span></code>, and then calls either
-        <code class="computeroutput"><span class="identifier">notify_one</span></code> or <code class="computeroutput"><span class="identifier">notify_all</span></code> on the condition variable <code class="computeroutput"><span class="identifier">cond</span></code> to wake one waiting fiber or all the
-        waiting fibers respectively.
+        <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a> or <a class="link" href="conditions.html#condition_variable_notify_all"> <code class="computeroutput">condition_variable::notify_all()</code></a> on
+        the <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> <code class="computeroutput"><span class="identifier">cond</span></code>
+        to wake one waiting fiber or all the waiting fibers respectively.
       </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">retrieve_data</span><span class="special">();</span>
 <span class="keyword">void</span> <span class="identifier">prepare_data</span><span class="special">();</span>
@@ -93,20 +105,56 @@
 <span class="special">}</span>
 </pre>
 <p>
-        Note that the same mutex is locked before the shared data is updated, but
-        that the mutex does not have to be locked across the call to <code class="computeroutput"><span class="identifier">notify_one</span></code>.
+        Note that the same <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a> is locked before the shared data is updated,
+        but that the <code class="computeroutput"><span class="identifier">mutex</span></code> does not
+        have to be locked across the call to <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a>.
       </p>
 <p>
         Locking is important because the synchronization objects provided by <span class="bold"><strong>Boost.Fiber</strong></span> can be used to synchronize fibers running
         on different threads.
       </p>
 <p>
-        <span class="bold"><strong>Boost.Fiber</strong></span> provides both <code class="computeroutput"><span class="identifier">condition_variable</span></code> and <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>.
-        <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">condition_variable</span></code> can only wait on <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span></code> while <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable_any</span></code>
-        can wait on user-defined lock types.
+        <span class="bold"><strong>Boost.Fiber</strong></span> provides both <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> and
+        <a class="link" href="conditions.html#class_condition_variable_any"> <code class="computeroutput">condition_variable_any</code></a>. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable</span></code>
+        can only wait on <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a><code class="computeroutput"><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span></code> <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a><code class="computeroutput"> <span class="special">&gt;</span></code>
+        while <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable_any</span></code> can wait on user-defined
+        lock types.
+      </p>
+<a name="condition_variable_spurious_wakeups"></a><h5>
+<a name="fiber.synchronization.conditions.h1"></a>
+        <span><a name="fiber.synchronization.conditions.no_spurious_wakeups"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.no_spurious_wakeups">No Spurious
+        Wakeups</a>
+      </h5>
+<p>
+        Neither <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> nor <a class="link" href="conditions.html#class_condition_variable_any"> <code class="computeroutput">condition_variable_any</code></a> are
+        subject to spurious wakeup: <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a> can
+        only wake up when <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a> or
+        <a class="link" href="conditions.html#condition_variable_notify_all"> <code class="computeroutput">condition_variable::notify_all()</code></a> is called. Even
+        so, it is prudent to use one of the <code class="computeroutput"><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lock</span><span class="special">,</span> <span class="identifier">predicate</span> <span class="special">)</span></code> overloads.
+      </p>
+<p>
+        Consider a set of consumer fibers processing items from a <a href="http://en.cppreference.com/w/cpp/container/queue" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">queue</span></code></a>.
+        The queue is continually populated by a set of producer fibers.
+      </p>
+<p>
+        The consumer fibers might reasonably wait on a <code class="computeroutput"><span class="identifier">condition_variable</span></code>
+        as long as the queue remains <a href="http://en.cppreference.com/w/cpp/container/queue/empty" target="_top"><code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code></a>.
+      </p>
+<p>
+        Because producer fibers might <a href="http://en.cppreference.com/w/cpp/container/queue/push" target="_top"><code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code></a>
+        items to the queue in bursts, they call <a class="link" href="conditions.html#condition_variable_notify_all"> <code class="computeroutput">condition_variable::notify_all()</code></a> rather
+        than <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a>.
+      </p>
+<p>
+        But a given consumer fiber might well wake up from <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a> and
+        find the queue <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code>,
+        because other consumer fibers might already have processed all pending items.
+      </p>
+<p>
+        (See also <a class="link" href="../rationale.html#spurious_wakeup">spurious wakeup</a>.)
       </p>
 <a name="class_cv_status"></a><h5>
-<a name="fiber.synchronization.conditions.h1"></a>
+<a name="fiber.synchronization.conditions.h2"></a>
         <span><a name="fiber.synchronization.conditions.enumeration__code__phrase_role__identifier__cv_status__phrase___code_"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.enumeration__code__phrase_role__identifier__cv_status__phrase___code_">Enumeration
         <code class="computeroutput"><span class="identifier">cv_status</span></code></a>
       </h5>
@@ -119,7 +167,7 @@
 <span class="special">};</span>
 </pre>
 <h5>
-<a name="fiber.synchronization.conditions.h2"></a>
+<a name="fiber.synchronization.conditions.h3"></a>
         <span><a name="fiber.synchronization.conditions._code__phrase_role__identifier__no_timeout__phrase___code_"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions._code__phrase_role__identifier__no_timeout__phrase___code_"><code class="computeroutput"><span class="identifier">no_timeout</span></code></a>
       </h5>
 <div class="variablelist">
@@ -127,13 +175,13 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              The condition variable was awakend with <code class="computeroutput"><span class="identifier">notify_one</span></code>
+              The condition variable was awakened with <code class="computeroutput"><span class="identifier">notify_one</span></code>
               or <code class="computeroutput"><span class="identifier">notify_all</span></code>.
             </p></dd>
 </dl>
 </div>
 <h5>
-<a name="fiber.synchronization.conditions.h3"></a>
+<a name="fiber.synchronization.conditions.h4"></a>
         <span><a name="fiber.synchronization.conditions._code__phrase_role__identifier__timeout__phrase___code_"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions._code__phrase_role__identifier__timeout__phrase___code_"><code class="computeroutput"><span class="identifier">timeout</span></code></a>
       </h5>
 <div class="variablelist">
@@ -141,7 +189,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              The condition variable was awakend by timeout.
+              The condition variable was awakened by timeout.
             </p></dd>
 </dl>
 </div>
@@ -157,47 +205,47 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">condition_variable</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">condition_variable_any</span> <span class="special">{</span>
+<span class="keyword">class</span> condition_variable_any <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">condition_variable_any</span><span class="special">();</span>
-    <span class="special">~</span><span class="identifier">condition_variable_any</span><span class="special">();</span>
+    condition_variable_any<span class="special">();</span>
+    <span class="special">~</span>condition_variable_any<span class="special">();</span>
 
-    <span class="identifier">condition_variable_any</span><span class="special">(</span> <span class="identifier">condition_variable_any</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-    <span class="identifier">condition_variable_any</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">condition_variable_any</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    condition_variable_any<span class="special">(</span> condition_variable_any <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    condition_variable_any <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> condition_variable_any <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
     <span class="keyword">void</span> <span class="identifier">notify_one</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="keyword">void</span> <span class="identifier">notify_all</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span> <span class="special">&gt;</span>
-    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;);</span>
+    template&lt; typename LockType &gt;
+    void <span class="identifier">wait</span><span class="special">(</span> LockType <span class="special">&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;,</span> <span class="identifier">Pred</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> LockType <span class="special">&amp;,</span> <span class="identifier">Pred</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-    <span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+    <span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> LockType <span class="special">&amp;,</span>
                           <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> LockType <span class="special">&amp;,</span>
                      <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;,</span>
                      <span class="identifier">Pred</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+    <span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> LockType <span class="special">&amp;,</span>
                         <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> LockType <span class="special">&amp;,</span>
                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;,</span>
                    <span class="identifier">Pred</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
 <h5>
-<a name="fiber.synchronization.conditions.h4"></a>
+<a name="fiber.synchronization.conditions.h5"></a>
         <span><a name="fiber.synchronization.conditions.constructor"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.constructor">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="identifier">condition_variable_any</span><span class="special">()</span>
+<pre class="programlisting">condition_variable_any<span class="special">()</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -213,10 +261,10 @@
 </dl>
 </div>
 <h5>
-<a name="fiber.synchronization.conditions.h5"></a>
+<a name="fiber.synchronization.conditions.h6"></a>
         <span><a name="fiber.synchronization.conditions.destructor"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.destructor">Destructor</a>
       </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">condition_variable_any</span><span class="special">()</span>
+<pre class="programlisting"><span class="special">~</span>condition_variable_any<span class="special">()</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -297,9 +345,10 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               This is why a waiting fiber must <span class="emphasis"><em>also</em></span> check for
-              the desired program state using a mechanism external to the <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>, and retry
-              the wait until that state is reached. A fiber waiting on a <code class="computeroutput"><span class="identifier">condition_variable_any</span></code> might well
-              wake up a number of times before the desired state is reached.
+              the desired program state using a mechanism external to the <code class="computeroutput">condition_variable_any</code>,
+              and retry the wait until that state is reached. A fiber waiting on
+              a <code class="computeroutput">condition_variable_any</code> might well wake up a number of times before
+              the desired state is reached.
             </p></dd>
 </dl>
 </div>
@@ -313,11 +362,11 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">);</span>
+<pre class="programlisting">template&lt; typename LockType &gt;
+    void <span class="identifier">wait</span><span class="special">(</span> LockType <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> LockType <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -326,9 +375,10 @@
 <dd><p>
               <code class="computeroutput"><span class="identifier">lk</span></code> is locked by the
               current fiber, and either no other fiber is currently waiting on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>,
-              or the execution of the <code class="computeroutput"><span class="identifier">mutex</span><span class="special">()</span></code> member function on the <code class="computeroutput"><span class="identifier">lk</span></code> objects supplied in the calls
-              to <code class="computeroutput"><span class="identifier">wait</span></code> in all the
-              fibers currently waiting on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> would return the same value as
+              or the execution of the <a href="http://en.cppreference.com/w/cpp/thread/unique_lock/mutex" target="_top"><code class="computeroutput"><span class="identifier">mutex</span><span class="special">()</span></code></a>
+              member function on the <code class="computeroutput"><span class="identifier">lk</span></code>
+              objects supplied in the calls to <code class="computeroutput"><span class="identifier">wait</span></code>
+              in all the fibers currently waiting on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> would return the same value as
               <code class="computeroutput"><span class="identifier">lk</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">()</span></code>
               for this call to <code class="computeroutput"><span class="identifier">wait</span></code>.
             </p></dd>
@@ -336,9 +386,8 @@
 <dd>
 <p>
               Atomically call <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">()</span></code> and blocks the current fiber. The
-              fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>, or spuriously. When the fiber is
-              unblocked (for whatever reason), the lock is reacquired by invoking
-              <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
+              fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>. When the fiber is unblocked (for
+              whatever reason), the lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
               before the call to <code class="computeroutput"><span class="identifier">wait</span></code>
               returns. The lock is also reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> if the function exits with an exception.
               The member function accepting <code class="computeroutput"><span class="identifier">pred</span></code>
@@ -366,21 +415,19 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               The Precondition is a bit dense. It merely states that all the fibers
-              calling <code class="computeroutput"><span class="identifier">wait</span></code> on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              concurrently calling <code class="computeroutput"><span class="identifier">wait</span></code>
+              on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               must wait on <code class="computeroutput"><span class="identifier">lk</span></code> objects
-              governing the <span class="emphasis"><em>same</em></span> <code class="computeroutput"><span class="identifier">mutex</span></code>.
-              Three distinct objects are involved in any <code class="computeroutput"><span class="identifier">condition_variable_any</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code> call: the <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>
-              itself, the <code class="computeroutput"><span class="identifier">mutex</span></code> coordinating
-              access between fibers and a lock object (e.g. <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code>).
-              In some sense it would be nice if the <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>'s
-              constructor could accept the related <code class="computeroutput"><span class="identifier">mutex</span></code>
-              object, enforcing agreement across all <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> calls; but the existing APIs prevent
-              that. Instead we must require the <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> call to accept a reference to the
-              local lock object. It is an error to reuse a given <code class="computeroutput"><span class="identifier">condition_variable_any</span></code>
-              instance with lock objects that reference <span class="emphasis"><em>different</em></span>
-              underlying <code class="computeroutput"><span class="identifier">mutex</span></code> objects.
-              It would be like a road intersection with traffic lights independent
-              of one another: sooner or later a collision will result.
+              governing the <span class="emphasis"><em>same</em></span> <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>. Three distinct
+              objects are involved in any <code class="computeroutput">condition_variable_any::wait()</code> call: the
+              <code class="computeroutput">condition_variable_any</code> itself, the <code class="computeroutput"><span class="identifier">mutex</span></code>
+              coordinating access between fibers and a local lock object (e.g. <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a>). In general,
+              you can partition the lifespan of a given <code class="computeroutput">condition_variable_any</code> instance
+              into periods with one or more fibers waiting on it, separated by periods
+              when no fibers are waiting on it. When more than one fiber is waiting
+              on that <code class="computeroutput">condition_variable_any</code>, all must pass lock objects referencing
+              the <span class="emphasis"><em>same</em></span> <code class="computeroutput"><span class="identifier">mutex</span></code>
+              instance.
             </p></dd>
 </dl>
 </div>
@@ -394,12 +441,12 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+<span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> LockType <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                       <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> LockType <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">,</span>
                  <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
@@ -421,10 +468,11 @@
 <p>
               Atomically call <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">()</span></code> and blocks the current fiber. The
               fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>, when the system time would be equal
-              to or later than the specified <code class="computeroutput"><span class="identifier">abs_time</span></code>,
-              or spuriously. When the fiber is unblocked (for whatever reason), the
-              lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> before the call to <code class="computeroutput"><span class="identifier">wait_until</span></code> returns. The lock is also
-              reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> if the function exits with an exception.
+              to or later than the specified <code class="computeroutput"><span class="identifier">abs_time</span></code>.
+              When the fiber is unblocked (for whatever reason), the lock is reacquired
+              by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
+              before the call to <code class="computeroutput"><span class="identifier">wait_until</span></code>
+              returns. The lock is also reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> if the function exits with an exception.
               The member function accepting <code class="computeroutput"><span class="identifier">pred</span></code>
               is shorthand for:
 </p>
@@ -484,12 +532,12 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+<span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> LockType <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">rel_time</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">LockType</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">LockType</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<span class="keyword">template</span><span class="special">&lt;</span> typename LockType, typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> LockType <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">rel_time</span><span class="special">,</span>
                <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
@@ -512,8 +560,8 @@
               Atomically call <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">()</span></code> and blocks the current fiber. The
               fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>, when a time interval equal to or
               greater than the specified <code class="computeroutput"><span class="identifier">rel_time</span></code>
-              has elapsed, or spuriously. When the fiber is unblocked (for whatever
-              reason), the lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> before the call to <code class="computeroutput"><span class="identifier">wait</span></code> returns. The lock is also reacquired
+              has elapsed. When the fiber is unblocked (for whatever reason), the
+              lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> before the call to <code class="computeroutput"><span class="identifier">wait</span></code> returns. The lock is also reacquired
               by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
               if the function exits with an exception. The <code class="computeroutput"><span class="identifier">wait_for</span><span class="special">()</span></code> member function accepting <code class="computeroutput"><span class="identifier">pred</span></code> is shorthand for:
 </p>
@@ -579,46 +627,46 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">condition_variable</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="keyword">class</span> <span class="identifier">condition_variable</span> <span class="special">{</span>
+<span class="keyword">class</span> condition_variable <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">condition_variable</span><span class="special">();</span>
-    <span class="special">~</span><span class="identifier">condition_variable</span><span class="special">();</span>
+    condition_variable<span class="special">();</span>
+    <span class="special">~</span>condition_variable<span class="special">();</span>
 
-    <span class="identifier">condition_variable</span><span class="special">(</span> <span class="identifier">condition_variable</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-    <span class="identifier">condition_variable</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> <span class="identifier">condition_variable</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    condition_variable<span class="special">(</span> condition_variable <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+    condition_variable <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span> condition_variable <span class="keyword">const</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
 
     <span class="keyword">void</span> <span class="identifier">notify_one</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="keyword">void</span> <span class="identifier">notify_all</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;);</span>
+    void <span class="identifier">wait</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;,</span> <span class="identifier">Pred</span><span class="special">);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;,</span> <span class="identifier">Pred</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-    <span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+    <span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;,</span>
                           <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;,</span>
                      <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;,</span>
                      <span class="identifier">Pred</span><span class="special">);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-    <span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+    <span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;,</span>
                         <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-    <span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;,</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+    <span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;,</span>
                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;,</span>
                    <span class="identifier">Pred</span><span class="special">);</span>
 <span class="special">};</span>
 </pre>
 <h5>
-<a name="fiber.synchronization.conditions.h6"></a>
+<a name="fiber.synchronization.conditions.h7"></a>
         <span><a name="fiber.synchronization.conditions.constructor0"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.constructor0">Constructor</a>
       </h5>
-<pre class="programlisting"><span class="identifier">condition_variable</span><span class="special">()</span>
+<pre class="programlisting">condition_variable<span class="special">()</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -634,10 +682,10 @@
 </dl>
 </div>
 <h5>
-<a name="fiber.synchronization.conditions.h7"></a>
+<a name="fiber.synchronization.conditions.h8"></a>
         <span><a name="fiber.synchronization.conditions.destructor0"></a></span><a class="link" href="conditions.html#fiber.synchronization.conditions.destructor0">Destructor</a>
       </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">condition_variable</span><span class="special">()</span>
+<pre class="programlisting"><span class="special">~</span>condition_variable<span class="special">()</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -718,9 +766,10 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               This is why a waiting fiber must <span class="emphasis"><em>also</em></span> check for
-              the desired program state using a mechanism external to the <code class="computeroutput"><span class="identifier">condition_variable</span></code>, and retry the
-              wait until that state is reached. A fiber waiting on a <code class="computeroutput"><span class="identifier">condition_variable</span></code> might well wake
-              up a number of times before the desired state is reached.
+              the desired program state using a mechanism external to the <code class="computeroutput">condition_variable</code>,
+              and retry the wait until that state is reached. A fiber waiting on
+              a <code class="computeroutput">condition_variable</code> might well wake up a number of times before the
+              desired state is reached.
             </p></dd>
 </dl>
 </div>
@@ -734,10 +783,10 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">);</span>
+<pre class="programlisting">void <span class="identifier">wait</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">wait</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span> <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -746,9 +795,10 @@
 <dd><p>
               <code class="computeroutput"><span class="identifier">lk</span></code> is locked by the
               current fiber, and either no other fiber is currently waiting on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>,
-              or the execution of the <code class="computeroutput"><span class="identifier">mutex</span><span class="special">()</span></code> member function on the <code class="computeroutput"><span class="identifier">lk</span></code> objects supplied in the calls
-              to <code class="computeroutput"><span class="identifier">wait</span></code> in all the
-              fibers currently waiting on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> would return the same value as
+              or the execution of the <a href="http://en.cppreference.com/w/cpp/thread/unique_lock/mutex" target="_top"><code class="computeroutput"><span class="identifier">mutex</span><span class="special">()</span></code></a>
+              member function on the <code class="computeroutput"><span class="identifier">lk</span></code>
+              objects supplied in the calls to <code class="computeroutput"><span class="identifier">wait</span></code>
+              in all the fibers currently waiting on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> would return the same value as
               <code class="computeroutput"><span class="identifier">lk</span><span class="special">-&gt;</span><span class="identifier">mutex</span><span class="special">()</span></code>
               for this call to <code class="computeroutput"><span class="identifier">wait</span></code>.
             </p></dd>
@@ -756,9 +806,8 @@
 <dd>
 <p>
               Atomically call <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">()</span></code> and blocks the current fiber. The
-              fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>, or spuriously. When the fiber is
-              unblocked (for whatever reason), the lock is reacquired by invoking
-              <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
+              fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>. When the fiber is unblocked (for
+              whatever reason), the lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
               before the call to <code class="computeroutput"><span class="identifier">wait</span></code>
               returns. The lock is also reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> if the function exits with an exception.
               The member function accepting <code class="computeroutput"><span class="identifier">pred</span></code>
@@ -786,21 +835,19 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               The Precondition is a bit dense. It merely states that all the fibers
-              calling <code class="computeroutput"><span class="identifier">wait</span></code> on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+              concurrently calling <code class="computeroutput"><span class="identifier">wait</span></code>
+              on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               must wait on <code class="computeroutput"><span class="identifier">lk</span></code> objects
-              governing the <span class="emphasis"><em>same</em></span> <code class="computeroutput"><span class="identifier">mutex</span></code>.
-              Three distinct objects are involved in any <code class="computeroutput"><span class="identifier">condition_variable</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code> call: the <code class="computeroutput"><span class="identifier">condition_variable</span></code>
-              itself, the <code class="computeroutput"><span class="identifier">mutex</span></code> coordinating
-              access between fibers and a lock object (e.g. <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code>).
-              In some sense it would be nice if the <code class="computeroutput"><span class="identifier">condition_variable</span></code>'s
-              constructor could accept the related <code class="computeroutput"><span class="identifier">mutex</span></code>
-              object, enforcing agreement across all <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> calls; but the existing APIs prevent
-              that. Instead we must require the <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> call to accept a reference to the
-              local lock object. It is an error to reuse a given <code class="computeroutput"><span class="identifier">condition_variable</span></code>
-              instance with lock objects that reference <span class="emphasis"><em>different</em></span>
-              underlying <code class="computeroutput"><span class="identifier">mutex</span></code> objects.
-              It would be like a road intersection with traffic lights independent
-              of one another: sooner or later a collision will result.
+              governing the <span class="emphasis"><em>same</em></span> <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>. Three distinct
+              objects are involved in any <code class="computeroutput">condition_variable::wait()</code> call: the <code class="computeroutput">condition_variable</code> itself,
+              the <code class="computeroutput"><span class="identifier">mutex</span></code> coordinating
+              access between fibers and a local lock object (e.g. <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a>). In general,
+              you can partition the lifespan of a given <code class="computeroutput">condition_variable</code> instance
+              into periods with one or more fibers waiting on it, separated by periods
+              when no fibers are waiting on it. When more than one fiber is waiting
+              on that <code class="computeroutput">condition_variable</code>, all must pass lock objects referencing
+              the <span class="emphasis"><em>same</em></span> <code class="computeroutput"><span class="identifier">mutex</span></code>
+              instance.
             </p></dd>
 </dl>
 </div>
@@ -814,12 +861,12 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
-<span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
+<span class="identifier">cv_status</span> <span class="identifier">wait_until</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                       <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">wait_until</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">,</span>
                  <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
@@ -841,10 +888,11 @@
 <p>
               Atomically call <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">()</span></code> and blocks the current fiber. The
               fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>, when the system time would be equal
-              to or later than the specified <code class="computeroutput"><span class="identifier">abs_time</span></code>,
-              or spuriously. When the fiber is unblocked (for whatever reason), the
-              lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> before the call to <code class="computeroutput"><span class="identifier">wait_until</span></code> returns. The lock is also
-              reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> if the function exits with an exception.
+              to or later than the specified <code class="computeroutput"><span class="identifier">abs_time</span></code>.
+              When the fiber is unblocked (for whatever reason), the lock is reacquired
+              by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
+              before the call to <code class="computeroutput"><span class="identifier">wait_until</span></code>
+              returns. The lock is also reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> if the function exits with an exception.
               The member function accepting <code class="computeroutput"><span class="identifier">pred</span></code>
               is shorthand for:
 </p>
@@ -904,12 +952,12 @@
 </h5>
 <p>
       </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
-<span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
+<span class="identifier">cv_status</span> <span class="identifier">wait_for</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                     <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">rel_time</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
-<span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
+<span class="keyword">template</span><span class="special">&lt;</span> typename <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Pred</span> <span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="identifier">wait_for</span><span class="special">(</span> std::unique_lock&lt; mutex &gt; <span class="special">&amp;</span> <span class="identifier">lk</span><span class="special">,</span>
                <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">rel_time</span><span class="special">,</span>
                <span class="identifier">Pred</span> <span class="identifier">pred</span><span class="special">);</span>
 </pre>
@@ -932,8 +980,8 @@
               Atomically call <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">()</span></code> and blocks the current fiber. The
               fiber will unblock when notified by a call to <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_one</span><span class="special">()</span></code> or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">notify_all</span><span class="special">()</span></code>, when a time interval equal to or
               greater than the specified <code class="computeroutput"><span class="identifier">rel_time</span></code>
-              has elapsed, or spuriously. When the fiber is unblocked (for whatever
-              reason), the lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> before the call to <code class="computeroutput"><span class="identifier">wait</span></code> returns. The lock is also reacquired
+              has elapsed. When the fiber is unblocked (for whatever reason), the
+              lock is reacquired by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code> before the call to <code class="computeroutput"><span class="identifier">wait</span></code> returns. The lock is also reacquired
               by invoking <code class="computeroutput"><span class="identifier">lk</span><span class="special">.</span><span class="identifier">lock</span><span class="special">()</span></code>
               if the function exits with an exception. The <code class="computeroutput"><span class="identifier">wait_for</span><span class="special">()</span></code> member function accepting <code class="computeroutput"><span class="identifier">pred</span></code> is shorthand for:
 </p>

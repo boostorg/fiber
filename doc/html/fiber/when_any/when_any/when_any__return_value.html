@@ -35,15 +35,9 @@
 <p>
           One tactic would be to adapt our <a class="link" href="when_any__simple_completion.html#wait_done"><code class="computeroutput"><span class="identifier">Done</span></code></a> class to store the first
           of the return values, rather than a simple <code class="computeroutput"><span class="keyword">bool</span></code>.
-          However, we choose instead to use a <a class="link" href="../../synchronization/channels.html#class_bounded_channel"> <code class="computeroutput">bounded_channel&lt;&gt;</code></a> of
-          size 1. We only need to enqueue the first value. All subsequent <a class="link" href="../../synchronization/channels.html#bounded_channel_push"> <code class="computeroutput">bounded_channel::push()</code></a>
-calls
-          can return <code class="computeroutput"><span class="identifier">full</span></code>.
-        </p>
-<p>
-          In fact, once we've retrieved the first (only) value from the <code class="computeroutput"><span class="identifier">bounded_channel</span></code>, we even <a class="link" href="../../synchronization/channels.html#bounded_channel_close"> <code class="computeroutput">bounded_channel::close()</code></a> it.
-          We still have no need of any subsequent values. Subsequent <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code>
-          calls will return <code class="computeroutput"><span class="identifier">closed</span></code>.
+          However, we choose instead to use a <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"> <code class="computeroutput">unbounded_channel&lt;&gt;</code></a>.
+          We'll only need to enqueue the first value, so we'll <a class="link" href="../../synchronization/channels.html#unbounded_channel_close"> <code class="computeroutput">unbounded_channel::close()</code></a> it
+          once we've retrieved that value. Subsequent <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code> calls will return <code class="computeroutput"><span class="identifier">closed</span></code>.
         </p>
 <p>
           <a name="wait_first_value"></a>
@@ -55,9 +49,8 @@ calls
 <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span>
 <span class="identifier">wait_first_value</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">function</span><span class="special">,</span> <span class="identifier">Fns</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">typedef</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="identifier">return_t</span><span class="special">;</span>
-    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">bounded_channel</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="identifier">channel_t</span><span class="special">;</span>
-    <span class="comment">// bounded_channel of size 1: only store the first value</span>
-    <span class="keyword">auto</span> <span class="identifier">channelp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">channel_t</span> <span class="special">&gt;(</span> <span class="number">1</span><span class="special">)</span> <span class="special">);</span>
+    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_channel</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="identifier">channel_t</span><span class="special">;</span>
+    <span class="keyword">auto</span> <span class="identifier">channelp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">channel_t</span> <span class="special">&gt;()</span> <span class="special">);</span>
     <span class="comment">// launch all the relevant fibers</span>
     <span class="identifier">wait_first_value_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">channelp</span><span class="special">,</span>
                                        <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>
@@ -77,11 +70,11 @@ calls
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait_first_value_impl</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">bounded_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">channel</span><span class="special">,</span>
+<span class="keyword">void</span> <span class="identifier">wait_first_value_impl</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">channel</span><span class="special">,</span>
                             <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">function</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="special">[</span><span class="identifier">channel</span><span class="special">,</span> <span class="identifier">function</span><span class="special">](){</span>
-                              <span class="comment">// Ignore channel_op_status returned by push(): might be closed, might</span>
-                              <span class="comment">// be full; we simply don't care.</span>
+                              <span class="comment">// Ignore channel_op_status returned by push():</span>
+                              <span class="comment">// might be closed; we simply don't care.</span>
                               <span class="identifier">channel</span><span class="special">-&gt;</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">function</span><span class="special">()</span> <span class="special">);</span>
                           <span class="special">}).</span><span class="identifier">detach</span><span class="special">();</span>
 <span class="special">}</span>

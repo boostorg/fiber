@@ -129,7 +129,7 @@
       An exception escaping from the function or callable object passed to the <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a>
 constructor
       calls <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span><span class="special">()</span></code>.
-      If you need to know which exception was thrown, use <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> and
+      If you need to know which exception was thrown, use <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> or
       <a class="link" href="synchronization/futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a>.
     </p>
 <h4>
@@ -208,7 +208,12 @@ constructor
       terminated, its stack unwound, its stack objects properly destroyed.
     </p>
 <p>
-      With <a class="link" href="fiber_mgmt/this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> a fiber can avoid being
+      (<code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>, being thrown
+      by the library, is similarly caught by the library. It does not cause the program
+      to terminate.)
+    </p>
+<p>
+      With <a class="link" href="fiber_mgmt/this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> a fiber can defer being
       interrupted.
     </p>
 <pre class="programlisting"><span class="comment">// interruption enabled at this point</span>
@@ -226,6 +231,18 @@ constructor
 <p>
       At any point, the interruption state for the current thread can be queried
       by calling <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a>.
+    </p>
+<p>
+      (But consider fiber <code class="computeroutput"><span class="identifier">f1</span></code> running
+      a <a class="link" href="synchronization/futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a>. Suppose <code class="computeroutput"><span class="identifier">f1</span></code>
+      is interrupted. Its associated <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> will be set with
+      <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>. When fiber
+      <code class="computeroutput"><span class="identifier">f2</span></code> calls <a class="link" href="synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> on
+      that <code class="computeroutput"><span class="identifier">future</span></code>, <code class="computeroutput"><span class="identifier">get</span><span class="special">()</span></code> will
+      immediately rethrow <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
+      &#8212; regardless of any <a class="link" href="fiber_mgmt/this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> instance <code class="computeroutput"><span class="identifier">f2</span></code> might have constructed.)
+    </p>
+<p>
       The following <a class="link" href="fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>
       are defined and will throw <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
       if <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_interruption_requested"> <code class="computeroutput">this_fiber::interruption_requested()</code></a> and
@@ -269,9 +286,6 @@ constructor
           <a class="link" href="synchronization/channels.html#bounded_channel_push"> <code class="computeroutput">bounded_channel::push()</code></a>
         </li>
 <li class="listitem">
-          <a class="link" href="synchronization/channels.html#bounded_channel_try_push"> <code class="computeroutput">bounded_channel::try_push()</code></a>
-        </li>
-<li class="listitem">
           <a class="link" href="synchronization/channels.html#bounded_channel_push_wait_for"> <code class="computeroutput">bounded_channel::push_wait_for()</code></a>
         </li>
 <li class="listitem">
@@ -279,9 +293,6 @@ constructor
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/channels.html#bounded_channel_pop"> <code class="computeroutput">bounded_channel::pop()</code></a>
-        </li>
-<li class="listitem">
-          <a class="link" href="synchronization/channels.html#bounded_channel_try_pop"> <code class="computeroutput">bounded_channel::try_pop()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/channels.html#bounded_channel_value_pop"> <code class="computeroutput">bounded_channel::value_pop()</code></a>
@@ -297,9 +308,6 @@ constructor
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/channels.html#unbounded_channel_pop"> <code class="computeroutput">unbounded_channel::pop()</code></a>
-        </li>
-<li class="listitem">
-          <a class="link" href="synchronization/channels.html#unbounded_channel_try_pop"> <code class="computeroutput">unbounded_channel::try_pop()</code></a>
         </li>
 <li class="listitem">
           <a class="link" href="synchronization/channels.html#unbounded_channel_value_pop"> <code class="computeroutput">unbounded_channel::value_pop()</code></a>

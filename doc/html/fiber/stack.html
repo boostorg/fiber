@@ -27,7 +27,7 @@
 <a name="fiber.stack"></a><a name="stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
 </h2></div></div></div>
 <p>
-      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally a <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
+      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally an <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
       which manages a set of registers and a stack. The memory used by the stack
       is allocated/deallocated via a <span class="emphasis"><em>stack_allocator</em></span> which is
       required to model a <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
@@ -38,12 +38,12 @@
     </p>
 <a name="stack_allocator_concept"></a><h4>
 <a name="fiber.stack.h0"></a>
-      <span><a name="fiber.stack._link_linkend__stack_allocator_concept___emphasis_stack_allocator_concept__emphasis___link_"></a></span><a class="link" href="stack.html#fiber.stack._link_linkend__stack_allocator_concept___emphasis_stack_allocator_concept__emphasis___link_"><a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator concept</em></span></a></a>
+      <span><a name="fiber.stack.stack_allocator_concept"></a></span><a class="link" href="stack.html#fiber.stack.stack_allocator_concept">stack-allocator
+      concept</a>
     </h4>
 <p>
-      A <span class="emphasis"><em>stack_allocator</em></span> must satisfy the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
-      concept</em></span></a> requirements shown in the following table, in which
-      <code class="computeroutput"><span class="identifier">a</span></code> is an object of a <span class="emphasis"><em>stack_allocator</em></span>
+      A <span class="emphasis"><em>stack_allocator</em></span> must satisfy the <span class="emphasis"><em>stack-allocator
+      concept</em></span> requirements shown in the following table, in which <code class="computeroutput"><span class="identifier">a</span></code> is an object of a <span class="emphasis"><em>stack_allocator</em></span>
       type, <code class="computeroutput"><span class="identifier">sctx</span></code> is a <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_context.html" target="_top"><code class="computeroutput"><span class="identifier">stack_context</span></code></a>, and <code class="computeroutput"><span class="identifier">size</span></code> is a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span></code>:
     </p>
 <div class="informaltable"><table class="table">
@@ -199,6 +199,59 @@
         addresses are used.
       </p></td></tr>
 </table></div>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">protected_fixedsize</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">struct</span> <span class="identifier">protected_fixedsize</span> <span class="special">{</span>
+    <span class="identifier">protected_fixesize</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">());</span>
+
+    <span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">();</span>
+
+    <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
+<span class="special">}</span>
+</pre>
+<h4>
+<a name="fiber.stack.h1"></a>
+      <span><a name="fiber.stack._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"></a></span><a class="link" href="stack.html#fiber.stack._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"><code class="computeroutput"><span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">()</span></code></a>
+    </h4>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">size</span></code>
+            and <code class="computeroutput"><span class="special">!</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">&amp;&amp;</span>
+            <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Allocates memory of at least <code class="computeroutput"><span class="identifier">size</span></code>
+            Bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            (the stack grows downwards/upwards) the stored address is the highest/lowest
+            address of the stack.
+          </p></dd>
+</dl>
+</div>
+<h4>
+<a name="fiber.stack.h2"></a>
+      <span><a name="fiber.stack._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"></a></span><a class="link" href="stack.html#fiber.stack._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"><code class="computeroutput"><span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span>
+      <span class="special">&amp;</span> <span class="identifier">sctx</span><span class="special">)</span></code></a>
+    </h4>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span></code> and <code class="computeroutput"><span class="special">!</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">&amp;&amp;</span> <span class="special">(</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Deallocates the stack space.
+          </p></dd>
+</dl>
+</div>
 <p>
       </p>
 <h5>
@@ -212,11 +265,98 @@
 <p>
       <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> which
       models the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
-      concept</em></span></a>. In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> it
-      does not append a guard page at the end of each stack. The memory is simply
-      managed by <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">malloc</span><span class="special">()</span></code>
-      and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">free</span><span class="special">()</span></code>.
+      concept</em></span></a>. In contrast to __protected_fixedsize__ it does not
+      append a guard page at the end of each stack. The memory is managed internally
+      by <a href="http://www.boost.org/doc/libs/release/libs/pool/doc/html/boost/pool.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">pool</span><span class="special">&lt;&gt;</span></code></a>.
     </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fixedsize_stack</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">struct</span> <span class="identifier">fixedsize_stack</span> <span class="special">{</span>
+    <span class="identifier">fixesize_stack</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">stack_size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">(),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">next_size</span> <span class="special">=</span> <span class="number">32</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">max_size</span> <span class="special">=</span> <span class="number">0</span><span class="special">);</span>
+
+    <span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">();</span>
+
+    <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
+<span class="special">}</span>
+</pre>
+<h4>
+<a name="fiber.stack.h3"></a>
+      <span><a name="fiber.stack._code__phrase_role__identifier__basic_fixesize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__variablelist__phrase___phrase_role__special______phrase__phrase_role__identifier__preconditions__phrase__phrase_role__special______phrase___phrase_role__special_____phrase___code___traits_type__is_unbounded____amp__amp____traits_type__maximum_size____gt___stack_size__code___phrase_role__keyword__and__phrase____code_0__lt__nest_size_code__phrase_role__special_______phrase___phrase_role__special______phrase__phrase_role__identifier__effects__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__allocates__phrase___phrase_role__identifier__memory__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__at__phrase___phrase_role__identifier__least__phrase____code_stack_size_code___phrase_role__identifier__bytes__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__stores__phrase___phrase_role__identifier__a__phrase___phrase_role__identifier__pointer__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__its__phrase___phrase_role__identifier__actual__phrase___phrase_role__identifier__size__phrase___phrase_role__identifier__in__phrase____code_sctx_code__phrase_role__special_____phrase___phrase_role__identifier__depending__phrase___phrase_role__identifier__on__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__architecture__phrase___phrase_role__special_____phrase__phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__identifier__grows__phrase___phrase_role__identifier__downwards__phrase__phrase_role__special_____phrase__phrase_role__identifier__upwards__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stored__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__is__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__highest__phrase__phrase_role__special_____phrase__phrase_role__identifier__lowest__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase__phrase_role__special_____phrase___phrase_role__identifier__argument__phrase____code_next_size_code___phrase_role__identifier__determines__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__number__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__stacks__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__request__phrase___phrase_role__identifier__from__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__first__phrase___phrase_role__identifier__time__phrase___phrase_role__identifier__that__phrase____code__this_code___phrase_role__identifier__needs__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__allocate__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__memory__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__third__phrase___phrase_role__identifier__argument__phrase____code_max_size__controls_how_many_memory_might_be_allocated_for_stacks___a_value_of_zero_means_no_uper_limit_"></a></span><a class="link" href="stack.html#fiber.stack._code__phrase_role__identifier__basic_fixesize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__variablelist__phrase___phrase_role__special______phrase__phrase_role__identifier__preconditions__phrase__phrase_role__special______phrase___phrase_role__special_____phrase___code___traits_type__is_unbounded____amp__amp____traits_type__maximum_size____gt___stack_size__code___phrase_role__keyword__and__phrase____code_0__lt__nest_size_code__phrase_role__special_______phrase___phrase_role__special______phrase__phrase_role__identifier__effects__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__allocates__phrase___phrase_role__identifier__memory__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__at__phrase___phrase_role__identifier__least__phrase____code_stack_size_code___phrase_role__identifier__bytes__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__stores__phrase___phrase_role__identifier__a__phrase___phrase_role__identifier__pointer__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__its__phrase___phrase_role__identifier__actual__phrase___phrase_role__identifier__size__phrase___phrase_role__identifier__in__phrase____code_sctx_code__phrase_role__special_____phrase___phrase_role__identifier__depending__phrase___phrase_role__identifier__on__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__architecture__phrase___phrase_role__special_____phrase__phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__identifier__grows__phrase___phrase_role__identifier__downwards__phrase__phrase_role__special_____phrase__phrase_role__identifier__upwards__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stored__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__is__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__highest__phrase__phrase_role__special_____phrase__phrase_role__identifier__lowest__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase__phrase_role__special_____phrase___phrase_role__identifier__argument__phrase____code_next_size_code___phrase_role__identifier__determines__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__number__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__stacks__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__request__phrase___phrase_role__identifier__from__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__first__phrase___phrase_role__identifier__time__phrase___phrase_role__identifier__that__phrase____code__this_code___phrase_role__identifier__needs__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__allocate__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__memory__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__third__phrase___phrase_role__identifier__argument__phrase____code_max_size__controls_how_many_memory_might_be_allocated_for_stacks___a_value_of_zero_means_no_uper_limit_"><code class="computeroutput"><span class="identifier">basic_fixesize_stack</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span>
+      <span class="identifier">stack_size</span><span class="special">,</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">next_size</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">max_size</span><span class="special">)]</span> <span class="special">[</span><span class="identifier">variablelist</span>
+      <span class="special">[[</span><span class="identifier">Preconditions</span><span class="special">:]</span> <span class="special">[</span></code>! traits_type::is_unbounded()
+      &amp;&amp; ( traits_type::maximum:size() &gt;= stack_size)<code class="computeroutput"> <span class="keyword">and</span>
+      </code>0 &lt; nest_size<code class="computeroutput"><span class="special">.]]</span> <span class="special">[[</span><span class="identifier">Effects</span><span class="special">:]</span> <span class="special">[</span><span class="identifier">Allocates</span> <span class="identifier">memory</span> <span class="identifier">of</span> <span class="identifier">at</span> <span class="identifier">least</span> </code>stack_size<code class="computeroutput">
+      <span class="identifier">Bytes</span> <span class="keyword">and</span>
+      <span class="identifier">stores</span> <span class="identifier">a</span>
+      <span class="identifier">pointer</span> <span class="identifier">to</span>
+      <span class="identifier">the</span> <span class="identifier">stack</span>
+      <span class="keyword">and</span> <span class="identifier">its</span>
+      <span class="identifier">actual</span> <span class="identifier">size</span>
+      <span class="identifier">in</span> </code>sctx<code class="computeroutput"><span class="special">.</span>
+      <span class="identifier">Depending</span> <span class="identifier">on</span>
+      <span class="identifier">the</span> <span class="identifier">architecture</span>
+      <span class="special">(</span><span class="identifier">the</span> <span class="identifier">stack</span> <span class="identifier">grows</span>
+      <span class="identifier">downwards</span><span class="special">/</span><span class="identifier">upwards</span><span class="special">)</span> <span class="identifier">the</span> <span class="identifier">stored</span> <span class="identifier">address</span> <span class="identifier">is</span> <span class="identifier">the</span> <span class="identifier">highest</span><span class="special">/</span><span class="identifier">lowest</span> <span class="identifier">address</span> <span class="identifier">of</span> <span class="identifier">the</span> <span class="identifier">stack</span><span class="special">.</span> <span class="identifier">Argument</span> </code>next_size<code class="computeroutput">
+      <span class="identifier">determines</span> <span class="identifier">the</span>
+      <span class="identifier">number</span> <span class="identifier">of</span>
+      <span class="identifier">stacks</span> <span class="identifier">to</span>
+      <span class="identifier">request</span> <span class="identifier">from</span>
+      <span class="identifier">the</span> <span class="identifier">system</span>
+      <span class="identifier">the</span> <span class="identifier">first</span>
+      <span class="identifier">time</span> <span class="identifier">that</span>
+      </code>*this<code class="computeroutput"> <span class="identifier">needs</span> <span class="identifier">to</span>
+      <span class="identifier">allocate</span> <span class="identifier">system</span>
+      <span class="identifier">memory</span><span class="special">.</span>
+      <span class="identifier">The</span> <span class="identifier">third</span>
+      <span class="identifier">argument</span> </code>max_size` controls how many
+      memory might be allocated for stacks - a value of zero means no uper limit.</a>
+    </h4>
+<p>
+      ] ]
+    </p>
+<h4>
+<a name="fiber.stack.h4"></a>
+      <span><a name="fiber.stack.code_phrase_role_identifier_sta0"></a></span><a class="link" href="stack.html#fiber.stack.code_phrase_role_identifier_sta0"><code class="computeroutput"><span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">()</span></code></a>
+    </h4>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="special">!</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">&amp;&amp;</span>
+            <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">stack_size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Allocates memory of at least <code class="computeroutput"><span class="identifier">stack_size</span></code>
+            Bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            (the stack grows downwards/upwards) the stored address is the highest/lowest
+            address of the stack.
+          </p></dd>
+</dl>
+</div>
+<h4>
+<a name="fiber.stack.h5"></a>
+      <span><a name="fiber.stack.code_phrase_role_keyword_void_p0"></a></span><a class="link" href="stack.html#fiber.stack.code_phrase_role_keyword_void_p0"><code class="computeroutput"><span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span>
+      <span class="special">&amp;</span> <span class="identifier">sctx</span><span class="special">)</span></code></a>
+    </h4>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="special">!</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">&amp;&amp;</span> <span class="special">(</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Deallocates the stack space.
+          </p></dd>
+</dl>
+</div>
 <p>
       </p>
 <h5>
@@ -244,12 +384,65 @@
         Segmented stacks are currently only supported by <span class="bold"><strong>gcc</strong></span>
         from version <span class="bold"><strong>4.7</strong></span> and <span class="bold"><strong>clang</strong></span>
         from version <span class="bold"><strong>3.4</strong></span> onwards. In order to use
-        a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a>, <span class="bold"><strong>Boost.Fiber</strong></span>
+        a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> <span class="bold"><strong>Boost.Fiber</strong></span>
         must be built with property <code class="computeroutput"><span class="identifier">segmented</span><span class="special">-</span><span class="identifier">stacks</span></code>,
         e.g. <span class="bold"><strong>toolset=gcc segmented-stacks=on</strong></span> at
         b2/bjam command line.
       </p></td></tr>
 </table></div>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">segmented_stack</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">struct</span> <span class="identifier">segmented_stack</span> <span class="special">{</span>
+    <span class="identifier">segmented_stack</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">stack_size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">());</span>
+
+    <span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">();</span>
+
+    <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
+<span class="special">}</span>
+</pre>
+<h4>
+<a name="fiber.stack.h6"></a>
+      <span><a name="fiber.stack.code_phrase_role_identifier_sta1"></a></span><a class="link" href="stack.html#fiber.stack.code_phrase_role_identifier_sta1"><code class="computeroutput"><span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">()</span></code></a>
+    </h4>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">size</span></code>
+            and <code class="computeroutput"><span class="special">!</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">&amp;&amp;</span>
+            <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Allocates memory of at least <code class="computeroutput"><span class="identifier">size</span></code>
+            Bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            (the stack grows downwards/upwards) the stored address is the highest/lowest
+            address of the stack.
+          </p></dd>
+</dl>
+</div>
+<h4>
+<a name="fiber.stack.h7"></a>
+      <span><a name="fiber.stack.code_phrase_role_keyword_void_p1"></a></span><a class="link" href="stack.html#fiber.stack.code_phrase_role_keyword_void_p1"><code class="computeroutput"><span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span>
+      <span class="special">&amp;</span> <span class="identifier">sctx</span><span class="special">)</span></code></a>
+    </h4>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span></code> and <code class="computeroutput"><span class="special">!</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">&amp;&amp;</span> <span class="special">(</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Deallocates the stack space.
+          </p></dd>
+</dl>
+</div>
 <div class="note"><table border="0" summary="Note">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../doc/src/images/note.png"></td>

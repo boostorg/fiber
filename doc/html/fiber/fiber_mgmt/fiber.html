@@ -38,8 +38,8 @@
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
     <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
 
-    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-    <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
 
     <span class="special">~</span><span class="identifier">fiber</span><span class="special">();</span>
 
@@ -108,8 +108,8 @@
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
-<span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="identifier">fiber</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -136,9 +136,11 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              StackAllocator is required to allocate a stack for the internal <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
-              If StackAllocator is not explicitly passed, a <a class="link" href="../stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> is
-              used by default.
+              <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a>
+              is required to allocate a stack for the internal <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
+              If <code class="computeroutput"><span class="identifier">StackAllocator</span></code> is
+              not explicitly passed, the default stack allocator depends on <code class="computeroutput"><span class="identifier">BOOST_USE_SEGMENTED_STACKS</span></code>: if defined,
+              you will get a <a class="link" href="../stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a>, else a <a class="link" href="../stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a>.
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
@@ -475,9 +477,10 @@
 <p>
         </p>
 <h5>
-<a name="swap_bridgehead"></a>
-  <span><a name="swap"></a></span>
-  <a class="link" href="fiber.html#swap">Non-member function <code class="computeroutput">swap()</code></a>
+<a name="swap_for_fiber_bridgehead"></a>
+  <span><a name="swap_for_fiber"></a></span>
+  <a class="link" href="fiber.html#swap_for_fiber">Non-member function
+        <code class="computeroutput">swap()</code></a>
 </h5>
 <p>
       </p>
@@ -513,11 +516,8 @@
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="identifier">l</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span>
-              <span class="special">&lt;</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span></code> is true and the implementation-defined
-              total order of <code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code>
-              values places <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              before <code class="computeroutput"><span class="identifier">other</span></code>, false
-              otherwise.
+              <span class="special">&lt;</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">get_id</span><span class="special">()</span></code> is <code class="computeroutput"><span class="keyword">true</span></code>,
+              false otherwise.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -591,6 +591,10 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               Nothing
+            </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+              Can be used for work-stealing to find an idle scheduler.
             </p></dd>
 </dl>
 </div>

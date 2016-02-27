@@ -51,9 +51,7 @@
 
     <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">()</span> <span class="special">{</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="special">&gt;</span> <span class="identifier">lock</span><span class="special">(</span> <span class="identifier">mutex</span><span class="special">);</span>
-        <span class="keyword">while</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">ready</span><span class="special">)</span> <span class="special">{</span>
-            <span class="identifier">cond</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lock</span><span class="special">);</span>
-        <span class="special">}</span>
+        <span class="identifier">cond</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lock</span><span class="special">,</span> <span class="special">[</span><span class="keyword">this</span><span class="special">](){</span> <span class="keyword">return</span> <span class="identifier">ready</span><span class="special">;</span> <span class="special">});</span>
     <span class="special">}</span>
 
     <span class="keyword">void</span> <span class="identifier">notify</span><span class="special">()</span> <span class="special">{</span>

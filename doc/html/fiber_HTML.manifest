@@ -26,6 +26,7 @@ fiber/when_any/when_any/when_any__return_value.html
 fiber/when_any/when_any/when_any__produce_first_outcome__whether_result_or_exception.html
 fiber/when_any/when_any/when_any__produce_first_success.html
 fiber/when_any/when_any/when_any__heterogeneous_types.html
+fiber/when_any/when_any/when_any__a_dubious_alternative.html
 fiber/when_any/when_all_functionality.html
 fiber/when_any/when_all_functionality/when_all__simple_completion.html
 fiber/when_any/when_all_functionality/when_all__return_values.html
@@ -37,3 +38,4 @@ fiber/performance.html
 fiber/custom.html
 fiber/rationale.html
 fiber/acknowledgements.html
+fiber/installing.html
