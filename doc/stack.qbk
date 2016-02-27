@@ -113,7 +113,7 @@ end of each stack. The memory is managed internally by
             void deallocate( stack_context &);
         }
 
-[heading `basic_fixesize_stack(std::size_t stack_size, std::size_t next_size, std::size_t max_size)]
+[heading `fixesize_stack(std::size_t stack_size, std::size_t next_size, std::size_t max_size)]
 [variablelist
 [[Preconditions:] [`! traits_type::is_unbounded() && ( traits_type::maximum:size() >= stack_size)`
 and `0 < nest_size`.]]
