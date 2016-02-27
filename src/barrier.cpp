@@ -6,6 +6,7 @@
 
 #include "boost/fiber/barrier.hpp"
 
+#include <mutex>
 #include <system_error>
 
 #include "boost/fiber/exceptions.hpp"

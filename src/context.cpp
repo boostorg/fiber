@@ -7,6 +7,7 @@
 #include "boost/fiber/context.hpp"
 
 #include <cstdlib>
+#include <mutex>
 #include <new>
 
 #include "boost/fiber/exceptions.hpp"
