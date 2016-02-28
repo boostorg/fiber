@@ -53,8 +53,8 @@ int main() {
         boost::fibers::fiber{
                 std::allocator_arg, salloc,
                 [&salloc,&num,&div,&result,&duration](){
-                    time_point_type start{ clock_type::now() };
                     channel_type rc;
+                    time_point_type start{ clock_type::now() };
                     for ( std::size_t i = 0; i < div; ++i) {
                         auto r = num / div;
                         auto sub_num = num + i * r;
