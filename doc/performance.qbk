@@ -60,4 +60,12 @@ The columns labeled [*fiber (raw)] were compiled with [link cross_thread_sync
 ]
 (from [@../../performance/fiber/scale_join.cpp scale_join.cpp])
 
+Numbers of the [@https://github.com/atemerev/skynet microbenchmark ['syknet]] from Alexander Temerev
+[footnote Intel Core2 Q6700, x86_64, 3GHz]:
+
+[table performance of N=100000 actors/goroutines/fibers
+    [[Haskel]       [fiber (single threaded/raw)] [fiber (single threaded/atomics)] [Erlang]       [Go]]
+    [[58ms - 108ms] [205ms - 263ms]               [221ms - 278ms]                   [237ms- 470ms] [614ms - 883ms]]
+]
+
 [endsect]

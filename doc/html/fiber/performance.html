@@ -488,9 +488,82 @@
 <br class="table-break"><p>
       (from <a href="../../../performance/fiber/scale_join.cpp" target="_top">scale_join.cpp</a>)
     </p>
-<div class="footnotes">
+<p>
+      Numbers of the <a href="https://github.com/atemerev/skynet" target="_top">microbenchmark
+      <span class="emphasis"><em>syknet</em></span></a> from Alexander Temerev <sup>[<a name="fiber.performance.f1" href="#ftn.fiber.performance.f1" class="footnote">7</a>]</sup>:
+    </p>
+<div class="table">
+<a name="fiber.performance.performance_of_n_100000_actors_goroutines_fibers"></a><p class="title"><b>Table&#160;1.7.&#160;performance of N=100000 actors/goroutines/fibers</b></p>
+<div class="table-contents"><table class="table" summary="performance of N=100000 actors/goroutines/fibers">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+              <p>
+                Haskel
+              </p>
+            </th>
+<th>
+              <p>
+                fiber (single threaded/raw)
+              </p>
+            </th>
+<th>
+              <p>
+                fiber (single threaded/atomics)
+              </p>
+            </th>
+<th>
+              <p>
+                Erlang
+              </p>
+            </th>
+<th>
+              <p>
+                Go
+              </p>
+            </th>
+</tr></thead>
+<tbody><tr>
+<td>
+              <p>
+                58ms - 108ms
+              </p>
+            </td>
+<td>
+              <p>
+                205ms - 263ms
+              </p>
+            </td>
+<td>
+              <p>
+                221ms - 278ms
+              </p>
+            </td>
+<td>
+              <p>
+                237ms- 470ms
+              </p>
+            </td>
+<td>
+              <p>
+                614ms - 883ms
+              </p>
+            </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="footnotes">
 <br><hr width="100" align="left">
 <div class="footnote"><p><sup>[<a name="ftn.fiber.performance.f0" href="#fiber.performance.f0" class="para">6</a>] </sup>
+        Intel Core2 Q6700, x86_64, 3GHz
+      </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.performance.f1" href="#fiber.performance.f1" class="para">7</a>] </sup>
         Intel Core2 Q6700, x86_64, 3GHz
       </p></div>
 </div>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/02/27 19:28:09 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/02/28 14:55:30 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -13194,6 +13194,77 @@ before
     <para>
       (from <ulink url="../../performance/fiber/scale_join.cpp">scale_join.cpp</ulink>)
     </para>
+    <para>
+      Numbers of the <ulink url="https://github.com/atemerev/skynet">microbenchmark
+      <emphasis>syknet</emphasis></ulink> from Alexander Temerev <footnote id="fiber.performance.f1">
+      <para>
+        Intel Core2 Q6700, x86_64, 3GHz
+      </para>
+      </footnote>:
+    </para>
+    <table frame="all" id="fiber.performance.performance_of_n_100000_actors_goroutines_fibers">
+      <title>performance of N=100000 actors/goroutines/fibers</title>
+      <tgroup cols="5">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                Haskel
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (single threaded/raw)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (single threaded/atomics)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                Erlang
+              </para>
+            </entry>
+            <entry>
+              <para>
+                Go
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                58ms - 108ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                205ms - 263ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                221ms - 278ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                237ms- 470ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                614ms - 883ms
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
   </section>
   <section id="fiber.custom">
     <title><anchor id="custom"/><link linkend="fiber.custom">Customization</link></title>
