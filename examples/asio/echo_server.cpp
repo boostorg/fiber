@@ -62,11 +62,11 @@ void session( socket_ptr sock) {
     std::cout << "fiber " << id << " terminates" << std::endl;
 }
 
-void server( boost::asio::io_service & io_svc, unsigned short port) {
+void server( boost::asio::io_service & io_svc) {
     boost::fibers::fiber::id id = boost::this_fiber::get_id();
     std::cout << "fiber " << id << " : echo-server started" << std::endl;
     try {
-        tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), port) );
+        tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), 9999) );
         for (;;) {
             socket_ptr socket( new tcp::socket( io_svc) );
             boost::system::error_code ec;
@@ -88,20 +88,46 @@ void server( boost::asio::io_service & io_svc, unsigned short port) {
     std::cout << "fiber " << id << " terminates" << std::endl;
 }
 
+void client( boost::asio::io_service & io_svc) {
+    tcp::resolver resolver( io_svc);
+    tcp::resolver::query query( tcp::v4(), "127.0.0.1", "9999");
+    tcp::resolver::iterator iterator = resolver.resolve( query);
+    tcp::socket s( io_svc);
+    boost::asio::connect( s, iterator);
+    std::cout << "Enter message: ";
+    char request[max_length];
+    std::cin.getline( request, max_length);
+    boost::system::error_code ec;
+    size_t request_length = std::strlen( request);
+            boost::asio::async_write(
+                    s,
+                    boost::asio::buffer( request, request_length),
+                    boost::fibers::asio::yield[ec]);
+            if ( ec == boost::asio::error::eof) {
+                return; //connection closed cleanly by peer
+            } else if ( ec) {
+                throw boost::system::system_error( ec); //some other error
+            }
+    char reply[max_length];
+    size_t reply_length = s.async_read_some(
+            boost::asio::buffer( reply, request_length),
+            boost::fibers::asio::yield[ec]);
+    std::cout << "Reply is: ";
+    std::cout.write( reply, reply_length);
+}
+
 int main( int argc, char* argv[]) {
     try {
-        if ( 2 != argc) {
-            std::cerr << "Usage: echo_server <port>\n";
-            return EXIT_FAILURE;
-        }
         boost::fibers::fiber::id id = boost::this_fiber::get_id();
         std::cout << "fiber " << id << " : (main-fiber) started" << std::endl;
-
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
         // server fiber
         boost::fibers::fiber f(
-            server, boost::ref( io_svc), std::atoi( argv[1]) );
+            server, boost::ref( io_svc) );
+        // client fiber
+        boost::fibers::fiber(
+            client, boost::ref( io_svc) ).detach();
         // fiber unrelated to asio
         boost::fibers::fiber(
             [](){
