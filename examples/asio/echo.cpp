@@ -94,26 +94,34 @@ void client( boost::asio::io_service & io_svc) {
     tcp::resolver::iterator iterator = resolver.resolve( query);
     tcp::socket s( io_svc);
     boost::asio::connect( s, iterator);
-    std::cout << "Enter message: ";
-    char request[max_length];
-    std::cin.getline( request, max_length);
-    boost::system::error_code ec;
-    size_t request_length = std::strlen( request);
-            boost::asio::async_write(
-                    s,
-                    boost::asio::buffer( request, request_length),
-                    boost::fibers::asio::yield[ec]);
-            if ( ec == boost::asio::error::eof) {
-                return; //connection closed cleanly by peer
-            } else if ( ec) {
-                throw boost::system::system_error( ec); //some other error
-            }
-    char reply[max_length];
-    size_t reply_length = s.async_read_some(
-            boost::asio::buffer( reply, request_length),
-            boost::fibers::asio::yield[ec]);
-    std::cout << "Reply is: ";
-    std::cout.write( reply, reply_length);
+    for (;;) {
+        char request[max_length];
+        std::cout << "Enter message: ";
+        std::cin.getline( request, max_length);
+        boost::system::error_code ec;
+        size_t request_length = std::strlen( request);
+        boost::asio::async_write(
+                s,
+                boost::asio::buffer( request, request_length),
+                boost::fibers::asio::yield[ec]);
+        if ( ec == boost::asio::error::eof) {
+            return; //connection closed cleanly by peer
+        } else if ( ec) {
+            throw boost::system::system_error( ec); //some other error
+        }
+        char reply[max_length];
+        size_t reply_length = s.async_read_some(
+                boost::asio::buffer( reply, request_length),
+                boost::fibers::asio::yield[ec]);
+        if ( ec == boost::asio::error::eof) {
+            return; //connection closed cleanly by peer
+        } else if ( ec) {
+            throw boost::system::system_error( ec); //some other error
+        }
+        std::cout << "Reply is: ";
+        std::cout.write( reply, reply_length);
+        std::cout << std::endl;
+    }
 }
 
 int main( int argc, char* argv[]) {
@@ -128,37 +136,6 @@ int main( int argc, char* argv[]) {
         // client fiber
         boost::fibers::fiber(
             client, boost::ref( io_svc) ).detach();
-        // fiber unrelated to asio
-        boost::fibers::fiber(
-            [](){
-                boost::fibers::fiber::id id = boost::this_fiber::get_id();
-                std::cout << "fiber " << id << " : sleeper started" << std::endl;
-                for ( int i = 0; i < 5; ++i) {
-                    std::cout << "fiber " << id << " : sleeps for 1 second" << std::endl;
-                    boost::this_fiber::sleep_for( std::chrono::seconds( 1) );
-                }
-                std::cout << "fiber " << id << " : sleeps for 10 seconds" << std::endl;
-                boost::this_fiber::sleep_for( std::chrono::seconds( 10) );
-                for ( int i = 0; i < 5; ++i) {
-                    std::cout << "fiber " << id << " : sleeps for 1 second" << std::endl;
-                    boost::this_fiber::sleep_for( std::chrono::seconds( 1) );
-                }
-                std::cout << "fiber " << id << " sleeper terminates" << std::endl;
-            }
-        ).detach();
-        // fiber does shutdown the io_service
-        boost::fibers::fiber([&io_svc,&f]() mutable {
-                        boost::fibers::fiber::id id = boost::this_fiber::get_id();
-                        std::cout << "fiber " << id << " : shutdown io_service in 30 seconds" << std::endl;
-                        boost::this_fiber::sleep_for( std::chrono::seconds( 30) );
-                        std::cout << "fiber " << id << " : shutdown" << std::endl;
-                        // stop io_service
-                        io_svc.stop();
-                        // interrupt
-                        f.interrupt();
-                        f.detach();
-                        std::cout << "fiber " << id << " terminates" << std::endl;
-                      }).detach();
         // run io_service
         io_svc.run();
         std::cout << "fiber " << id << " (main-fiber) terminates" << std::endl;
