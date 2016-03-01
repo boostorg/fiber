@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <thread>
 
 #include <boost/asio.hpp>
@@ -30,7 +31,6 @@ typedef boost::shared_ptr< tcp::socket > socket_ptr;
 
 void session( socket_ptr sock) {
     boost::fibers::fiber::id id = boost::this_fiber::get_id();
-    std::cout << "fiber " << id << " : echo-handler started" << std::endl;
     try {
         for (;;) {
             char data[max_length];
@@ -41,8 +41,7 @@ void session( socket_ptr sock) {
             if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
             } else if ( ec) {
-                std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
-                return;
+                throw boost::system::system_error( ec); //some other error
             }
             boost::asio::async_write(
                     * sock,
@@ -55,40 +54,51 @@ void session( socket_ptr sock) {
             }
         }
     } catch ( boost::fibers::fiber_interrupted const&) {
-        std::cout << "fiber " << id << " : interrupted" << std::endl;
+        std::ostringstream buffer;
+        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : interrupted" << std::endl;
+        std::cerr << buffer.str() << std::flush;
     } catch ( std::exception const& ex) {
-        std::cout << "fiber " << id << " : catched exception : " << ex.what() << std::endl;
+        std::ostringstream buffer;
+        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : catched exception : " << ex.what() << std::endl;
+        std::cerr << buffer.str() << std::flush;
     }
-    std::cout << "fiber " << id << " terminates" << std::endl;
 }
 
 void server( boost::asio::io_service & io_svc) {
     boost::fibers::fiber::id id = boost::this_fiber::get_id();
-    std::cout << "fiber " << id << " : echo-server started" << std::endl;
+    std::ostringstream buffer;
+    buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : echo-server started" << std::endl;
+    std::cout << buffer.str() << std::flush;
     try {
         tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), 9999) );
         for (;;) {
             socket_ptr socket( new tcp::socket( io_svc) );
             boost::system::error_code ec;
-            std::cout << "fiber " << id << " : accept new connection" << std::endl;
             a.async_accept(
                     * socket,
                     boost::fibers::asio::yield[ec]);
             if ( ec) {
-                std::cerr << "fiber " << id << " : error occured : " << ec.message() << std::endl;
+                throw boost::system::system_error( ec); //some other error
             } else {
                 boost::fibers::fiber( session, socket).detach();
             }
         }
     } catch ( boost::fibers::fiber_interrupted const&) {
-        std::cout << "fiber " << id << " : interrupted" << std::endl;
+        std::ostringstream buffer;
+        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : interrupted" << std::endl;
+        std::cerr << buffer.str() << std::flush;
     } catch ( std::exception const& ex) {
-        std::cout << "fiber " << id << " : catched exception : " << ex.what() << std::endl;
+        std::ostringstream buffer;
+        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : catched exception : " << ex.what() << std::endl;
+        std::cerr << buffer.str() << std::flush;
     }
-    std::cout << "fiber " << id << " terminates" << std::endl;
 }
 
 void client( boost::asio::io_service & io_svc) {
+    boost::fibers::fiber::id id = boost::this_fiber::get_id();
+    std::ostringstream buffer;
+    buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : echo-client started" << std::endl;
+    std::cout << buffer.str() << std::flush;
     tcp::resolver resolver( io_svc);
     tcp::resolver::query query( tcp::v4(), "127.0.0.1", "9999");
     tcp::resolver::iterator iterator = resolver.resolve( query);
@@ -96,7 +106,9 @@ void client( boost::asio::io_service & io_svc) {
     boost::asio::connect( s, iterator);
     for (;;) {
         char request[max_length];
-        std::cout << "Enter message: ";
+        std::ostringstream buffer;
+        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : Enter message: ";
+        std::cout << buffer.str() << std::flush;
         std::cin.getline( request, max_length);
         boost::system::error_code ec;
         size_t request_length = std::strlen( request);
@@ -118,27 +130,31 @@ void client( boost::asio::io_service & io_svc) {
         } else if ( ec) {
             throw boost::system::system_error( ec); //some other error
         }
-        std::cout << "Reply is: ";
-        std::cout.write( reply, reply_length);
-        std::cout << std::endl;
+        std::ostringstream result;
+        result << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : Reply is: ";
+        result.write( reply, reply_length);
+        result << std::endl;
+        std::cout << result.str() << std::flush;
     }
 }
 
 int main( int argc, char* argv[]) {
     try {
-        boost::fibers::fiber::id id = boost::this_fiber::get_id();
-        std::cout << "fiber " << id << " : (main-fiber) started" << std::endl;
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-        // server fiber
+        // server
         boost::fibers::fiber f(
             server, boost::ref( io_svc) );
-        // client fiber
+        // client
         boost::fibers::fiber(
             client, boost::ref( io_svc) ).detach();
-        // run io_service
+        // run io_service in two threads
+        std::thread t([&io_svc](){
+                    boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+                    io_svc.run();
+                });
         io_svc.run();
-        std::cout << "fiber " << id << " (main-fiber) terminates" << std::endl;
+        t.join();
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {

@@ -33,6 +33,7 @@ public:
     {
         * ec_ = boost::system::error_code();
         * value_ = std::move( t);
+        boost::fibers::context::active()->migrate( ctx_);
         boost::fibers::context::active()->set_ready( ctx_);
     }
 
@@ -40,6 +41,7 @@ public:
     {
         * ec_ = ec;
         * value_ = std::move( t);
+        boost::fibers::context::active()->migrate( ctx_);
         boost::fibers::context::active()->set_ready( ctx_);
     }
 
@@ -62,12 +64,14 @@ public:
     void operator()()
     {
         * ec_ = boost::system::error_code();
+        boost::fibers::context::active()->migrate( ctx_);
         boost::fibers::context::active()->set_ready( ctx_);
     }
     
     void operator()( boost::system::error_code const& ec)
     {
         * ec_ = ec;
+        boost::fibers::context::active()->migrate( ctx_);
         boost::fibers::context::active()->set_ready( ctx_);
     }
 
