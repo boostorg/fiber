@@ -59,13 +59,9 @@ alias pbind
 
 explicit pbind ;
 
-exe skynet_mt :
+exe skynet :
     pbind
-    skynet_mt.cpp ;
-
-exe skynet_st :
-    pbind
-    skynet_st.cpp ;
+    skynet.cpp ;
 
 exe overhead_create
    : overhead_create.cpp
