@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/02/28 14:55:30 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/04 18:09:31 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -4064,25 +4064,25 @@ implementation's
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="class_fixedsize_stack_bridgehead">
-  <phrase id="class_fixedsize_stack"/>
-  <link linkend="class_fixedsize_stack">Class
-      <code>fixedsize_stack</code></link>
+      <bridgehead renderas="sect4" id="class_pooled_fixedsize_stack_bridgehead">
+  <phrase id="class_pooled_fixedsize_stack"/>
+  <link linkend="class_pooled_fixedsize_stack">Class
+      <code>pooled_fixedsize_stack</code></link>
 </bridgehead>
     </para>
     <para>
-      <emphasis role="bold">Boost.Fiber</emphasis> provides the class <link linkend="class_fixedsize_stack"> <code>fixedsize_stack</code></link> which
+      <emphasis role="bold">Boost.Fiber</emphasis> provides the class <link linkend="class_pooled_fixedsize_stack"> <code>pooled_fixedsize_stack</code></link> which
       models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
-      concept</emphasis></link>. In contrast to __protected_fixedsize__ it does not
-      append a guard page at the end of each stack. The memory is managed internally
-      by <ulink url="http://www.boost.org/doc/libs/release/libs/pool/doc/html/boost/pool.html"><code><phrase
+      concept</emphasis></link>. In contrast to <link linkend="class_protected_fixedsize_stack"> <code>protected_fixedsize_stack</code></link> it
+      does not append a guard page at the end of each stack. The memory is managed
+      internally by <ulink url="http://www.boost.org/doc/libs/release/libs/pool/doc/html/boost/pool.html"><code><phrase
       role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">pool</phrase><phrase
       role="special">&lt;&gt;</phrase></code></ulink>.
     </para>
-<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">fixedsize_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">struct</phrase> <phrase role="identifier">fixedsize_stack</phrase> <phrase role="special">{</phrase>
-    <phrase role="identifier">fixesize_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">stack_size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">(),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">next_size</phrase> <phrase role="special">=</phrase> <phrase role="number">32</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">max_size</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">pooled_fixedsize_stack</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">stack_size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">(),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">next_size</phrase> <phrase role="special">=</phrase> <phrase role="number">32</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">max_size</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">);</phrase>
 
     <phrase role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase role="special">();</phrase>
 
@@ -4090,65 +4090,16 @@ implementation's
 <phrase role="special">}</phrase>
 </programlisting>
     <bridgehead renderas="sect3" id="fiber.stack.h3">
-      <phrase id="fiber.stack._code__phrase_role__identifier__fixesize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__variablelist__phrase___phrase_role__special______phrase__phrase_role__identifier__preconditions__phrase__phrase_role__special______phrase___phrase_role__special_____phrase___code___traits_type__is_unbounded____amp__amp____traits_type__maximum_size____gt___stack_size__code___phrase_role__keyword__and__phrase____code_0__lt__nest_size_code__phrase_role__special_______phrase___phrase_role__special______phrase__phrase_role__identifier__effects__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__allocates__phrase___phrase_role__identifier__memory__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__at__phrase___phrase_role__identifier__least__phrase____code_stack_size_code___phrase_role__identifier__bytes__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__stores__phrase___phrase_role__identifier__a__phrase___phrase_role__identifier__pointer__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__its__phrase___phrase_role__identifier__actual__phrase___phrase_role__identifier__size__phrase___phrase_role__identifier__in__phrase____code_sctx_code__phrase_role__special_____phrase___phrase_role__identifier__depending__phrase___phrase_role__identifier__on__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__architecture__phrase___phrase_role__special_____phrase__phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__identifier__grows__phrase___phrase_role__identifier__downwards__phrase__phrase_role__special_____phrase__phrase_role__identifier__upwards__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stored__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__is__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__highest__phrase__phrase_role__special_____phrase__phrase_role__identifier__lowest__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase__phrase_role__special_____phrase___phrase_role__identifier__argument__phrase____code_next_size_code___phrase_role__identifier__determines__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__number__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__stacks__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__request__phrase___phrase_role__identifier__from__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__first__phrase___phrase_role__identifier__time__phrase___phrase_role__identifier__that__phrase____code__this_code___phrase_role__identifier__needs__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__allocate__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__memory__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__third__phrase___phrase_role__identifier__argument__phrase____code_max_size__controls_how_many_memory_might_be_allocated_for_stacks___a_value_of_zero_means_no_uper_limit_"/><link
-      linkend="fiber.stack._code__phrase_role__identifier__fixesize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__variablelist__phrase___phrase_role__special______phrase__phrase_role__identifier__preconditions__phrase__phrase_role__special______phrase___phrase_role__special_____phrase___code___traits_type__is_unbounded____amp__amp____traits_type__maximum_size____gt___stack_size__code___phrase_role__keyword__and__phrase____code_0__lt__nest_size_code__phrase_role__special_______phrase___phrase_role__special______phrase__phrase_role__identifier__effects__phrase__phrase_role__special______phrase___phrase_role__special_____phrase__phrase_role__identifier__allocates__phrase___phrase_role__identifier__memory__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__at__phrase___phrase_role__identifier__least__phrase____code_stack_size_code___phrase_role__identifier__bytes__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__stores__phrase___phrase_role__identifier__a__phrase___phrase_role__identifier__pointer__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__keyword__and__phrase___phrase_role__identifier__its__phrase___phrase_role__identifier__actual__phrase___phrase_role__identifier__size__phrase___phrase_role__identifier__in__phrase____code_sctx_code__phrase_role__special_____phrase___phrase_role__identifier__depending__phrase___phrase_role__identifier__on__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__architecture__phrase___phrase_role__special_____phrase__phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase___phrase_role__identifier__grows__phrase___phrase_role__identifier__downwards__phrase__phrase_role__special_____phrase__phrase_role__identifier__upwards__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stored__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__is__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__highest__phrase__phrase_role__special_____phrase__phrase_role__identifier__lowest__phrase___phrase_role__identifier__address__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__stack__phrase__phrase_role__special_____phrase___phrase_role__identifier__argument__phrase____code_next_size_code___phrase_role__identifier__determines__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__number__phrase___phrase_role__identifier__of__phrase___phrase_role__identifier__stacks__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__request__phrase___phrase_role__identifier__from__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__first__phrase___phrase_role__identifier__time__phrase___phrase_role__identifier__that__phrase____code__this_code___phrase_role__identifier__needs__phrase___phrase_role__identifier__to__phrase___phrase_role__identifier__allocate__phrase___phrase_role__identifier__system__phrase___phrase_role__identifier__memory__phrase__phrase_role__special_____phrase___phrase_role__identifier__the__phrase___phrase_role__identifier__third__phrase___phrase_role__identifier__argument__phrase____code_max_size__controls_how_many_memory_might_be_allocated_for_stacks___a_value_of_zero_means_no_uper_limit_"><code><phrase
-      role="identifier">fixesize_stack</phrase><phrase role="special">(</phrase><phrase
+      <phrase id="fiber.stack._code__phrase_role__identifier__pooled_fixedsize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special_____phrase___code_"/><link
+      linkend="fiber.stack._code__phrase_role__identifier__pooled_fixedsize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special_____phrase___code_"><code><phrase
+      role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">(</phrase><phrase
       role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase>
       <phrase role="identifier">stack_size</phrase><phrase role="special">,</phrase>
       <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
       role="identifier">size_t</phrase> <phrase role="identifier">next_size</phrase><phrase
       role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
       role="identifier">size_t</phrase> <phrase role="identifier">max_size</phrase><phrase
-      role="special">)]</phrase> <phrase role="special">[</phrase><phrase role="identifier">variablelist</phrase>
-      <phrase role="special">[[</phrase><phrase role="identifier">Preconditions</phrase><phrase
-      role="special">:]</phrase> <phrase role="special">[</phrase></code>! traits_type::is_unbounded()
-      &amp;&amp; ( traits_type::maximum:size() &gt;= stack_size)<code> <phrase role="keyword">and</phrase>
-      </code>0 &lt; nest_size<code><phrase role="special">.]]</phrase> <phrase role="special">[[</phrase><phrase
-      role="identifier">Effects</phrase><phrase role="special">:]</phrase> <phrase
-      role="special">[</phrase><phrase role="identifier">Allocates</phrase> <phrase
-      role="identifier">memory</phrase> <phrase role="identifier">of</phrase> <phrase
-      role="identifier">at</phrase> <phrase role="identifier">least</phrase> </code>stack_size<code>
-      <phrase role="identifier">Bytes</phrase> <phrase role="keyword">and</phrase>
-      <phrase role="identifier">stores</phrase> <phrase role="identifier">a</phrase>
-      <phrase role="identifier">pointer</phrase> <phrase role="identifier">to</phrase>
-      <phrase role="identifier">the</phrase> <phrase role="identifier">stack</phrase>
-      <phrase role="keyword">and</phrase> <phrase role="identifier">its</phrase>
-      <phrase role="identifier">actual</phrase> <phrase role="identifier">size</phrase>
-      <phrase role="identifier">in</phrase> </code>sctx<code><phrase role="special">.</phrase>
-      <phrase role="identifier">Depending</phrase> <phrase role="identifier">on</phrase>
-      <phrase role="identifier">the</phrase> <phrase role="identifier">architecture</phrase>
-      <phrase role="special">(</phrase><phrase role="identifier">the</phrase> <phrase
-      role="identifier">stack</phrase> <phrase role="identifier">grows</phrase>
-      <phrase role="identifier">downwards</phrase><phrase role="special">/</phrase><phrase
-      role="identifier">upwards</phrase><phrase role="special">)</phrase> <phrase
-      role="identifier">the</phrase> <phrase role="identifier">stored</phrase> <phrase
-      role="identifier">address</phrase> <phrase role="identifier">is</phrase> <phrase
-      role="identifier">the</phrase> <phrase role="identifier">highest</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">lowest</phrase> <phrase
-      role="identifier">address</phrase> <phrase role="identifier">of</phrase> <phrase
-      role="identifier">the</phrase> <phrase role="identifier">stack</phrase><phrase
-      role="special">.</phrase> <phrase role="identifier">Argument</phrase> </code>next_size<code>
-      <phrase role="identifier">determines</phrase> <phrase role="identifier">the</phrase>
-      <phrase role="identifier">number</phrase> <phrase role="identifier">of</phrase>
-      <phrase role="identifier">stacks</phrase> <phrase role="identifier">to</phrase>
-      <phrase role="identifier">request</phrase> <phrase role="identifier">from</phrase>
-      <phrase role="identifier">the</phrase> <phrase role="identifier">system</phrase>
-      <phrase role="identifier">the</phrase> <phrase role="identifier">first</phrase>
-      <phrase role="identifier">time</phrase> <phrase role="identifier">that</phrase>
-      </code>*this<code> <phrase role="identifier">needs</phrase> <phrase role="identifier">to</phrase>
-      <phrase role="identifier">allocate</phrase> <phrase role="identifier">system</phrase>
-      <phrase role="identifier">memory</phrase><phrase role="special">.</phrase>
-      <phrase role="identifier">The</phrase> <phrase role="identifier">third</phrase>
-      <phrase role="identifier">argument</phrase> </code>max_size` controls how many
-      memory might be allocated for stacks - a value of zero means no uper limit.</link>
-    </bridgehead>
-    <para>
-      ] ]
-    </para>
-    <bridgehead renderas="sect3" id="fiber.stack.h4">
-      <phrase id="fiber.stack.code_phrase_role_identifier_sta0"/><link linkend="fiber.stack.code_phrase_role_identifier_sta0"><code><phrase
-      role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
-      role="special">()</phrase></code></link>
+      role="special">)</phrase></code></link>
     </bridgehead>
     <variablelist>
       <title></title>
@@ -4163,7 +4114,9 @@ implementation's
             role="special">::</phrase><phrase role="identifier">maximum</phrase><phrase
             role="special">:</phrase><phrase role="identifier">size</phrase><phrase
             role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
-            role="identifier">stack_size</phrase><phrase role="special">)</phrase></code>.
+            role="identifier">stack_size</phrase><phrase role="special">)</phrase></code>
+            and <code><phrase role="number">0</phrase> <phrase role="special">&lt;</phrase>
+            <phrase role="identifier">nest_size</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -4175,11 +4128,29 @@ implementation's
             Bytes and stores a pointer to the stack and its actual size in <code><phrase
             role="identifier">sctx</phrase></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
-            address of the stack.
+            address of the stack. Argument <code><phrase role="identifier">next_size</phrase></code>
+            determines the number of stacks to request from the system the first
+            time that <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+            needs to allocate system memory. The third argument <code><phrase role="identifier">max_size</phrase></code>
+            controls how many memory might be allocated for stacks - a value of zero
+            means no uper limit.
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
+    <bridgehead renderas="sect3" id="fiber.stack.h4">
+      <phrase id="fiber.stack.code_phrase_role_identifier_sta0"/><link linkend="fiber.stack.code_phrase_role_identifier_sta0"><code><phrase
+      role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
+      role="special">()</phrase></code></link>
+    </bridgehead>
+    <para>
+      [variablelis_stackt [[Preconditions:] <code>! traits_type::is_unbounded() &amp;&amp;
+      ( traits_type::maximum:size() &gt;= stack_size)`.</code>] [[Effects:] [Allocates memory
+      of at least <code><phrase role="identifier">stack_size</phrase></code> Bytes
+      and stores a pointer to the stack and its actual size in <code><phrase role="identifier">sctx</phrase></code>.
+      Depending on the architecture (the stack grows downwards/upwards) the stored
+      address is the highest/lowest address of the stack.]] ]
+    </para>
     <bridgehead renderas="sect3" id="fiber.stack.h5">
       <phrase id="fiber.stack.code_phrase_role_keyword_void_p0"/><link linkend="fiber.stack.code_phrase_role_keyword_void_p0"><code><phrase
       role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
@@ -4216,6 +4187,111 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
+    <section id="fiber.stack.fixedsize">
+      <title><link linkend="fiber.stack.fixedsize">Class <emphasis>fixedsize_stack</emphasis></link></title>
+      <para>
+        <emphasis role="bold">Boost.Fiber</emphasis> provides the class __fixedsize__
+        which models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
+        concept</emphasis></link>. In contrast to __protected_fixedsize__ it does
+        not append a guard page at the end of each stack. The memory is simply managed
+        by <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+        role="identifier">malloc</phrase><phrase role="special">()</phrase></code>
+        and <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+        role="identifier">free</phrase><phrase role="special">()</phrase></code>.
+      </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">/</phrase><phrase role="identifier">fixedsize_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">struct</phrase> <phrase role="identifier">fixedsize_stack</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">fixedsize_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">());</phrase>
+
+    <phrase role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase role="special">();</phrase>
+
+    <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+      <bridgehead renderas="sect4" id="fiber.stack.fixedsize.h0">
+        <phrase id="fiber.stack.fixedsize._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"/><link
+        linkend="fiber.stack.fixedsize._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"><code><phrase
+        role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
+        role="special">()</phrase></code></link>
+      </bridgehead>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Preconditions:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">minimum</phrase><phrase role="special">:</phrase><phrase
+              role="identifier">size</phrase><phrase role="special">()</phrase>
+              <phrase role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
+              and <code><phrase role="special">!</phrase> <phrase role="identifier">traits_type</phrase><phrase
+              role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
+              role="special">()</phrase> <phrase role="special">&amp;&amp;</phrase>
+              <phrase role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
+              role="special">::</phrase><phrase role="identifier">maximum</phrase><phrase
+              role="special">:</phrase><phrase role="identifier">size</phrase><phrase
+              role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
+              role="identifier">size</phrase><phrase role="special">)</phrase></code>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Effects:</term>
+          <listitem>
+            <para>
+              Allocates memory of at least <code><phrase role="identifier">size</phrase></code>
+              Bytes and stores a pointer to the stack and its actual size in <code><phrase
+              role="identifier">sctx</phrase></code>. Depending on the architecture
+              (the stack grows downwards/upwards) the stored address is the highest/lowest
+              address of the stack.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <bridgehead renderas="sect4" id="fiber.stack.fixedsize.h1">
+        <phrase id="fiber.stack.fixedsize._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"/><link
+        linkend="fiber.stack.fixedsize._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"><code><phrase
+        role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
+        role="special">(</phrase> <phrase role="identifier">stack_context</phrase>
+        <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase
+        role="special">)</phrase></code></link>
+      </bridgehead>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Preconditions:</term>
+          <listitem>
+            <para>
+              <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+              role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
+              role="special">::</phrase><phrase role="identifier">minimum</phrase><phrase
+              role="special">:</phrase><phrase role="identifier">size</phrase><phrase
+              role="special">()</phrase> <phrase role="special">&lt;=</phrase> <phrase
+              role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+              role="identifier">size</phrase></code> and <code><phrase role="special">!</phrase>
+              <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+              <phrase role="special">&amp;&amp;</phrase> <phrase role="special">(</phrase>
+              <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">maximum</phrase><phrase role="special">:</phrase><phrase
+              role="identifier">size</phrase><phrase role="special">()</phrase>
+              <phrase role="special">&gt;=</phrase> <phrase role="identifier">sctx</phrase><phrase
+              role="special">.</phrase><phrase role="identifier">size</phrase><phrase
+              role="special">)</phrase></code>.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Effects:</term>
+          <listitem>
+            <para>
+              Deallocates the stack space.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
     <para>
       <bridgehead renderas="sect4" id="class_segmented_stack_bridgehead">
   <phrase id="class_segmented_stack"/>

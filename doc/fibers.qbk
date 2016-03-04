@@ -118,6 +118,7 @@
 [def __joinable__ [member_link fiber..joinable]]
 [def __lock_error__ `lock_error`]
 [def __mutex__ [class_link mutex]]
+[def __ofixedsize_stack__ [class_link pooled_fixedsize_stack]]
 [def __packaged_task__ [template_link packaged_task]]
 [def __pfixedsize_stack__ [class_link protected_fixedsize_stack]]
 [def __promise__ [template_link promise]]
