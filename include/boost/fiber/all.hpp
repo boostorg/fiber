@@ -19,6 +19,7 @@
 #include <boost/fiber/fss.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
+#include <boost/fiber/pooled_fixedsize_stack.hpp>
 #include <boost/fiber/protected_fixedsize_stack.hpp>
 #include <boost/fiber/recursive_mutex.hpp>
 #include <boost/fiber/recursive_timed_mutex.hpp>
