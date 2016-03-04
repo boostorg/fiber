@@ -31,7 +31,10 @@
 #define JOIN(z, n, _) \
     BOOST_PP_CAT(f,n) .join();
 
+void worker() {}
+
 duration_type measure( duration_type overhead) {
+    boost::fibers::fiber( worker).join();
     duration_type total = duration_type::zero();
     BOOST_PP_REPEAT_FROM_TO(1, JOBS, CREATE, _)
     BOOST_PP_REPEAT_FROM_TO(1, JOBS, JOIN, _);
