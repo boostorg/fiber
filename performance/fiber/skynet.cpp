@@ -19,7 +19,7 @@ using clock_type = std::chrono::steady_clock;
 using duration_type = clock_type::duration;
 using time_point_type = clock_type::time_point;
 using channel_type = boost::fibers::unbounded_channel< std::uint64_t >;
-using allocator_type = boost::fibers::fixedsize_stack;
+using allocator_type = boost::fibers::pooled_fixedsize_stack;
 
 // microbenchmark
 void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::size_t size, std::size_t div) {
