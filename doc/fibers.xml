@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/04 18:09:31 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/04 18:14:46 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -13285,27 +13285,27 @@ before
           <row>
             <entry>
               <para>
-                Haskel
+                Haskel | stack-1.0.4
               </para>
             </entry>
             <entry>
               <para>
-                fiber (single threaded/raw)
+                fiber (single threaded/raw) | gcc-5.2.1
               </para>
             </entry>
             <entry>
               <para>
-                fiber (single threaded/atomics)
+                fiber (single threaded/atomics) | gcc-5.2.1
               </para>
             </entry>
             <entry>
               <para>
-                Erlang
+                Erlang | erts-7.0
               </para>
             </entry>
             <entry>
               <para>
-                Go
+                Go | go1.4.2
               </para>
             </entry>
           </row>
