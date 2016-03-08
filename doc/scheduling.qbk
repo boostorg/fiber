@@ -418,11 +418,11 @@ of typical STL containers.
         #include <boost/fiber/context.hpp>
         
         enum class type {
-          none               = 0,
-          main_context       = 1 << 1,  // fiber, associated with thread's stack
-          dispatcher_context = 1 << 2,  // special fiber for maintanance operations
-          worker_context     = 1 << 3,  // fiber not special to the library
-          pinned_context     = main_context | dispatcher_context  // context of fiber must not be migrated to another thread
+          none,
+          main_context,       // fiber associated with thread's stack
+          dispatcher_context, // special fiber for maintenance operations
+          worker_context,     // fiber not special to the library
+          pinned_context      // fiber must not be migrated to another thread
         };
 
         class context {
@@ -495,20 +495,18 @@ default-constructed __fiber_id__.]]
         bool is_context( type t) const noexcept;
 
 [variablelist
-[[Returns:] [`true` if `*this` is of the specific type.]]
+[[Returns:] [`true` if `*this` is of the specified type.]]
 [[Throws:] [Nothing]]
-[[Note:] [For `type::main_context` the `context` is associated with the ["main] fiber of the thread:
-the one implicitly created by the thread itself, rather than one explicitly
-created by __boost_fiber__.
-For `type::disaptcher_context` the `context` is associated with a ["dispatching] fiber, responsible
-for dispatching awakened fibers to a scheduler's ready-queue. The
-["dispatching] fiber is an implementation detail of the fiber manager.
-The context of ["main] and ["dispatching] fiber must never be passed to
-[member_link context..migrate] for any other thread.
-true` if `*this` is a worker context, that is, a context
-associated with a fiber explicitly launched by the application rather than
-implicitly.]]]
-[[Note:] [The term ["worker] here means any fiber not special to the library.]]
+[[Note:] [`type::worker_context` here means any fiber not special to the
+library. For `type::main_context` the `context` is associated with the ["main]
+fiber of the thread: the one implicitly created by the thread itself, rather
+than one explicitly created by __boost_fiber__. For `type::dispatcher_context`
+the `context` is associated with a ["dispatching] fiber, responsible for
+dispatching awakened fibers to a scheduler's ready-queue. The ["dispatching]
+fiber is an implementation detail of the fiber manager. The context of the
+["main] or ["dispatching] fiber [mdash] any fiber for which
+`is_context(pinned_context)` is `true` [mdash] must never be passed to
+[member_link context..migrate] for any other thread.]]
 ]
 
 [member_heading context..is_terminated]
