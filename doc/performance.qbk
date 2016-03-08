@@ -64,7 +64,7 @@ Numbers of the [@https://github.com/atemerev/skynet microbenchmark ['syknet]] fr
 [footnote Intel Core2 Q6700, x86_64, 3GHz]:
 
 [table performance of N=100000 actors/goroutines/fibers
-    [[Haskel | stack-1.0.4] [fiber (single threaded/raw) | gcc-5.2.1] [fiber (single threaded/atomics) | gcc-5.2.1] [Erlang | erts-7.0] [Go | go1.4.2]]
+    [[Haskell | stack-1.0.4] [fiber (single threaded/raw) | gcc-5.2.1] [fiber (single threaded/atomics) | gcc-5.2.1] [Erlang | erts-7.0] [Go | go1.4.2]]
     [[58ms - 108ms]         [205ms - 263ms]                           [221ms - 278ms]                               [237ms- 470ms]      [614ms - 883ms]]
 ]
 
