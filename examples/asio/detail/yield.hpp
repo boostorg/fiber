@@ -11,6 +11,7 @@
 #include <boost/fiber/all.hpp>
 
 #include <mutex>                    // std::unique_lock
+#include <memory>                   // std::shared_ptr
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,14 +38,14 @@ public:
     void operator()( boost::system::error_code const& ec)
     {
         // We can't afford a wait() call during this method.
-        std::unique_lock< fibers::mutex > lk( mtx_ );
+        std::unique_lock< fibers::mutex > lk( *mtx_ );
         // Notify a subsequent wait() call that it need not suspend.
         completed_ = true;
         // set the error_code bound by yield_t
         * yb_.ec_ = ec;
         // Are we permitted to wake up the suspended fiber on this thread, the
         // thread that called the completion handler?
-        if ( ctx_->is_context( pinned_context ) || ( ! yb_.allow_hop_ )) {
+        if ( ctx_->is_context( fibers::type::pinned_context ) || ( ! yb_.allow_hop_ )) {
             // We must not migrate a pinned_context to another thread.
             // If the application passed yield_t rather than yield_hop_t, we
             // are forbidden to migrate this fiber.
@@ -62,7 +63,7 @@ public:
     void wait()
     {
         // do not interleave operator() with wait()
-        std::unique_lock< fibers::mutex > lk( mtx_ );
+        std::unique_lock< fibers::mutex > lk( *mtx_ );
         // if operator() has not yet been called
         if ( ! completed_ ) {
             // then permit it to be called
@@ -77,8 +78,9 @@ public:
     yield_base                      yb_;
 
 private:
-    // completed_ tracks whether complete() is called before get()
-    fibers::mutex                   mtx_;
+    // completed_ tracks whether complete() is called before get().
+    // We use a shared_ptr<mutex> because yield_handler_base is copied.
+    std::shared_ptr<fibers::mutex>  mtx_{std::make_shared<fibers::mutex>()};
     bool                            completed_{ false };
 };
 
@@ -155,7 +157,6 @@ namespace asio {
 class async_result_base
 {
 public:
-    template< typename T >
     explicit async_result_base( boost::fibers::asio::detail::yield_handler_base & h):
         // bind this yield_handler_base for later use
         yh_( h)

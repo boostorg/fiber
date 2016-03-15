@@ -27,7 +27,7 @@ namespace asio {
 
 class yield_base {
 public:
-    constexpr yield_t() = default;
+    constexpr yield_base() = default;
 
     /**
      * @code
