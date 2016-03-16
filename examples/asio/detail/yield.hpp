@@ -20,35 +20,42 @@ namespace asio {
 namespace detail {
 
 template< typename T >
-class yield_handler
-{
+class yield_handler {
 public:
     yield_handler( yield_t const& y) :
         ctx_( boost::fibers::context::active() ),
-        ec_( y.ec_),
-        value_( nullptr)
-    {}
+        ec_( y.ec_) {
+    }
 
-    void operator()( T t)
-    {
+    void operator()( T t) {
+        std::unique_lock< fibers::detail::spinlock > lk( * mtx_);
+        * completed_ = true;
         * ec_ = boost::system::error_code();
         * value_ = std::move( t);
-        boost::fibers::context::active()->migrate( ctx_);
+        if ( ! ctx_->is_context( fibers::type::pinned_context) ) {
+            boost::fibers::context::active()->migrate( ctx_);
+        }
         boost::fibers::context::active()->set_ready( ctx_);
     }
 
-    void operator()( boost::system::error_code const& ec, T t)
-    {
+    void operator()( boost::system::error_code const& ec, T t) {
+        std::unique_lock< fibers::detail::spinlock > lk( * mtx_);
+        * completed_ = true;
         * ec_ = ec;
         * value_ = std::move( t);
-        boost::fibers::context::active()->migrate( ctx_);
+        if ( ! ctx_->is_context( fibers::type::pinned_context) &&
+             boost::fibers::context::active() != ctx_) {
+            boost::fibers::context::active()->migrate( ctx_);
+        }
         boost::fibers::context::active()->set_ready( ctx_);
     }
 
 //private:
     boost::fibers::context      *   ctx_;
     boost::system::error_code   *   ec_;
-    T                           *   value_;
+    T                           *   value_{ nullptr };
+    fibers::detail::spinlock    *   mtx_{ nullptr };
+    bool                        *   completed_{ nullptr };
 };
 
 // Completion handler to adapt a void promise as a completion handler.
@@ -58,26 +65,35 @@ class yield_handler< void >
 public:
     yield_handler( yield_t const& y) :
         ctx_( boost::fibers::context::active() ),
-        ec_( y.ec_)
-    {}
+        ec_( y.ec_) {
+    }
     
-    void operator()()
-    {
+    void operator()() {
+        std::unique_lock< fibers::detail::spinlock > lk( * mtx_);
+        * completed_ = true;
         * ec_ = boost::system::error_code();
-        boost::fibers::context::active()->migrate( ctx_);
+        if ( ! ctx_->is_context( fibers::type::pinned_context) ) {
+            boost::fibers::context::active()->migrate( ctx_);
+        }
         boost::fibers::context::active()->set_ready( ctx_);
     }
     
-    void operator()( boost::system::error_code const& ec)
-    {
+    void operator()( boost::system::error_code const& ec) {
+        std::unique_lock< fibers::detail::spinlock > lk( * mtx_);
+        * completed_ = true;
         * ec_ = ec;
-        boost::fibers::context::active()->migrate( ctx_);
+        if ( ! ctx_->is_context( fibers::type::pinned_context) &&
+             boost::fibers::context::active() != ctx_) {
+            boost::fibers::context::active()->migrate( ctx_);
+        }
         boost::fibers::context::active()->set_ready( ctx_);
     }
 
 //private:
     boost::fibers::context      *   ctx_;
     boost::system::error_code   *   ec_;
+    fibers::detail::spinlock    *   mtx_{ nullptr };
+    bool                        *   completed_{ nullptr };
 };
 
 // Specialize asio_handler_invoke hook to ensure that any exceptions thrown
@@ -106,10 +122,16 @@ public:
             h.ec_ = & ec_;
         }
         h.value_ = & value_;
+        h.mtx_ = & mtx_;
+        h.completed_ = & completed_;
     }
     
     type get() {
-        boost::fibers::context::active()->suspend();
+        std::unique_lock< fibers::detail::spinlock > lk( mtx_);
+        if ( ! completed_) {
+            boost::fibers::context::active()->suspend( lk);
+        }
+        //lk.unlock();
         if ( ! out_ec_ && ec_) {
             throw_exception( boost::system::system_error( ec_) );
         }
@@ -118,9 +140,11 @@ public:
     }
 
 private:
-    boost::system::error_code *   out_ec_;
-    boost::system::error_code     ec_;
-    type                          value_;
+    boost::system::error_code   *   out_ec_{ nullptr };
+    boost::system::error_code       ec_{};
+    type                            value_{};
+    fibers::detail::spinlock        mtx_{};
+    bool                            completed_{ false };
 };
 
 template<>
@@ -133,10 +157,16 @@ public:
         if ( ! out_ec_) {
             h.ec_ = & ec_;
         }
+        h.mtx_ = & mtx_;
+        h.completed_ = & completed_;
     }
 
     void get() {
-        boost::fibers::context::active()->suspend();
+        std::unique_lock< fibers::detail::spinlock > lk( mtx_);
+        if ( ! completed_) {
+            boost::fibers::context::active()->suspend( lk);
+        }
+        //lk.unlock();
         if ( ! out_ec_ && ec_) {
             throw_exception( boost::system::system_error( ec_) );
         }
@@ -144,8 +174,10 @@ public:
     }
 
 private:
-    boost::system::error_code *   out_ec_;
-    boost::system::error_code     ec_;
+    boost::system::error_code   *   out_ec_{ nullptr };
+    boost::system::error_code       ec_{};
+    fibers::detail::spinlock        mtx_{};
+    bool                            completed_{ false };
 };
 
 // Handler type specialisation for use_future.
