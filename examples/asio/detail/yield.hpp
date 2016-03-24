@@ -54,11 +54,11 @@ struct yield_completion {
 // should be instantiated only once.
 class yield_handler_base {
 public:
-    yield_handler_base( yield_base const& y) :
+    yield_handler_base( yield_t const& y) :
         // capture the context* associated with the running fiber
         ctx_( boost::fibers::context::active() ),
-        // capture the passed yield_base
-        yb_( y )
+        // capture the passed yield_t
+        yt_( y )
     {}
 
     // completion callback passing only (error_code)
@@ -67,7 +67,7 @@ public:
         BOOST_ASSERT_MSG( ycomp_,
                           "Must inject yield_completion* "
                           "before calling yield_handler_base::operator()()");
-        BOOST_ASSERT_MSG( yb_.ec_,
+        BOOST_ASSERT_MSG( yt_.ec_,
                           "Must inject boost::system::error_code* "
                           "before calling yield_handler_base::operator()()");
         // If originating fiber is busy testing completed_ flag, wait until it
@@ -77,13 +77,13 @@ public:
         // suspend.
         ycomp_->completed_ = true;
         // set the error_code bound by yield_t
-        * yb_.ec_ = ec;
+        * yt_.ec_ = ec;
         // Are we permitted to wake up the suspended fiber on this thread, the
         // thread that called the completion handler?
-        if ( (! ctx_->is_context( fibers::type::pinned_context )) && yb_.allow_hop_ ) {
+        if ( (! ctx_->is_context( fibers::type::pinned_context )) && yt_.allow_hop_ ) {
             // We must not migrate a pinned_context to another thread. If this
-            // isn't a pinned_context, and the application passed yield_hop_t
-            // rather than yield_t, migrate this fiber to the running thread.
+            // isn't a pinned_context, and the application passed yield_hop
+            // rather than yield, migrate this fiber to the running thread.
             fibers::context::active()->migrate( ctx_);
         }
         // either way, wake the fiber
@@ -92,7 +92,7 @@ public:
 
 //private:
     boost::fibers::context      *   ctx_;
-    yield_base                      yb_;
+    yield_t                         yt_;
     // We depend on this pointer to yield_completion, which will be injected
     // by async_result.
     yield_completion            *   ycomp_{ nullptr };
@@ -107,7 +107,7 @@ template< typename T >
 class yield_handler: public yield_handler_base {
 public:
     // asio passes the completion token to the handler constructor
-    explicit yield_handler( yield_base const& y) :
+    explicit yield_handler( yield_t const& y) :
         yield_handler_base( y)
     {}
 
@@ -142,7 +142,7 @@ public:
 template<>
 class yield_handler< void >: public yield_handler_base {
 public:
-    explicit yield_handler( yield_base const& y) :
+    explicit yield_handler( yield_t const& y) :
         yield_handler_base( y)
     {}
 
@@ -175,8 +175,8 @@ public:
         // error_code* point to an error_code local to this object so
         // yield_handler_base::operator() can unconditionally store through
         // its error_code*
-        if ( ! h.yb_.ec_) {
-            h.yb_.ec_ = & ec_;
+        if ( ! h.yt_.ec_) {
+            h.yt_.ec_ = & ec_;
         }
     }
     
@@ -255,13 +255,7 @@ public:
 // When 'yield' is passed as a completion handler which accepts no parameters,
 // use yield_handler<void>.
 template< typename ReturnType >
-struct handler_type< fibers::asio::yield_base, ReturnType() >
-{ typedef fibers::asio::detail::yield_handler< void >    type; };
-template< typename ReturnType >
 struct handler_type< fibers::asio::yield_t, ReturnType() >
-{ typedef fibers::asio::detail::yield_handler< void >    type; };
-template< typename ReturnType >
-struct handler_type< fibers::asio::yield_hop_t, ReturnType() >
 { typedef fibers::asio::detail::yield_handler< void >    type; };
 
 // Handler type specialisation for fibers::asio::yield.
@@ -269,13 +263,7 @@ struct handler_type< fibers::asio::yield_hop_t, ReturnType() >
 // parameter, use yield_handler<parameter type> to return that parameter to
 // the caller.
 template< typename ReturnType, typename Arg1 >
-struct handler_type< fibers::asio::yield_base, ReturnType( Arg1) >
-{ typedef fibers::asio::detail::yield_handler< Arg1 >    type; };
-template< typename ReturnType, typename Arg1 >
 struct handler_type< fibers::asio::yield_t, ReturnType( Arg1) >
-{ typedef fibers::asio::detail::yield_handler< Arg1 >    type; };
-template< typename ReturnType, typename Arg1 >
-struct handler_type< fibers::asio::yield_hop_t, ReturnType( Arg1) >
 { typedef fibers::asio::detail::yield_handler< Arg1 >    type; };
 
 // Handler type specialisation for fibers::asio::yield.
@@ -283,13 +271,7 @@ struct handler_type< fibers::asio::yield_hop_t, ReturnType( Arg1) >
 // error_code, use yield_handler<void>. yield_handler will take care of the
 // error_code one way or another.
 template< typename ReturnType >
-struct handler_type< fibers::asio::yield_base, ReturnType( boost::system::error_code) >
-{ typedef fibers::asio::detail::yield_handler< void >    type; };
-template< typename ReturnType >
 struct handler_type< fibers::asio::yield_t, ReturnType( boost::system::error_code) >
-{ typedef fibers::asio::detail::yield_handler< void >    type; };
-template< typename ReturnType >
-struct handler_type< fibers::asio::yield_hop_t, ReturnType( boost::system::error_code) >
 { typedef fibers::asio::detail::yield_handler< void >    type; };
 
 // Handler type specialisation for fibers::asio::yield.
@@ -298,13 +280,7 @@ struct handler_type< fibers::asio::yield_hop_t, ReturnType( boost::system::error
 // just the parameter to the caller. yield_handler will take care of the
 // error_code one way or another.
 template< typename ReturnType, typename Arg2 >
-struct handler_type< fibers::asio::yield_base, ReturnType( boost::system::error_code, Arg2) >
-{ typedef fibers::asio::detail::yield_handler< Arg2 >    type; };
-template< typename ReturnType, typename Arg2 >
 struct handler_type< fibers::asio::yield_t, ReturnType( boost::system::error_code, Arg2) >
-{ typedef fibers::asio::detail::yield_handler< Arg2 >    type; };
-template< typename ReturnType, typename Arg2 >
-struct handler_type< fibers::asio::yield_hop_t, ReturnType( boost::system::error_code, Arg2) >
 { typedef fibers::asio::detail::yield_handler< Arg2 >    type; };
 
 } // namespace asio
