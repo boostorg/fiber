@@ -7,11 +7,11 @@
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/assert.hpp>
 
 #include <boost/fiber/all.hpp>
 
 #include <mutex>                    // std::unique_lock
-#include <memory>                   // std::shared_ptr
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -22,9 +22,36 @@ namespace fibers {
 namespace asio {
 namespace detail {
 
+// Bundle a completion bool flag with a spinlock to protect it.
+struct yield_completion {
+    typedef mutex_t fibers::detail::spinlock;
+    typedef lock_t  std::unique_lock< mutex_t >;
+
+    mutex_t mtx_{};
+    bool    completed_{ false };
+
+    void wait() {
+        // yield_handler_base::operator()() will set completed_ true and
+        // attempt to wake a suspended fiber. It would be Bad if that call
+        // happened between our detecting (! completed_) and suspending.
+        lock_t lk( mtx_);
+        // If completed_ is already set, we're done here: don't suspend.
+        if ( ! completed_) {
+            // suspend(unique_lock<spinlock>) unlocks the lock in the act of
+            // resuming another fiber
+            fibers::context::active()->suspend( lk);
+        }
+    }
+};
+
 // This class encapsulates common elements between yield_handler<T> (capturing
 // a value to return from asio async function) and yield_handler<void> (no
-// such value). See yield_handler<T> and its <void> specialization below.
+// such value). See yield_handler<T> and its <void> specialization below. Both
+// yield_handler<T> and yield_handler<void> are passed by value through
+// various layers of asio functions. In other words, they're potentially
+// copied multiple times. So key data such as the yield_completion instance
+// must be stored in our async_result<yield_handler<>> specialization, which
+// should be instantiated only once.
 class yield_handler_base {
 public:
     yield_handler_base( yield_base const& y) :
@@ -37,92 +64,83 @@ public:
     // completion callback passing only (error_code)
     void operator()( boost::system::error_code const& ec)
     {
-        // We can't afford a wait() call during this method.
-        std::unique_lock< fibers::mutex > lk( *mtx_ );
-        // Notify a subsequent wait() call that it need not suspend.
-        completed_ = true;
+        BOOST_ASSERT_MSG( ycomp_,
+                          "Must inject yield_completion* "
+                          "before calling yield_handler_base::operator()()");
+        BOOST_ASSERT_MSG( yb_.ec_,
+                          "Must inject boost::system::error_code* "
+                          "before calling yield_handler_base::operator()()");
+        // If originating fiber is busy testing completed_ flag, wait until it
+        // has observed (! completed_).
+        yield_completion::lock_t lk( ycomp_->mtx_);
+        // Notify a subsequent yield_completion::wait() call that it need not
+        // suspend.
+        ycomp_->completed_ = true;
         // set the error_code bound by yield_t
         * yb_.ec_ = ec;
         // Are we permitted to wake up the suspended fiber on this thread, the
         // thread that called the completion handler?
-        if ( ctx_->is_context( fibers::type::pinned_context ) || ( ! yb_.allow_hop_ )) {
-            // We must not migrate a pinned_context to another thread.
-            // If the application passed yield_t rather than yield_hop_t, we
-            // are forbidden to migrate this fiber.
-            // Just wake this fiber on its original scheduler.
-            ctx_->set_ready( ctx_);
-        } else {
-            // seems okay to migrate this context
-            // migrate the waiting fiber to the running thread
-            boost::fibers::context::active()->migrate( ctx_);
-            // and wake the fiber
-            boost::fibers::context::active()->set_ready( ctx_);
+        if ( (! ctx_->is_context( fibers::type::pinned_context )) && yb_.allow_hop_ ) {
+            // We must not migrate a pinned_context to another thread. If this
+            // isn't a pinned_context, and the application passed yield_hop_t
+            // rather than yield_t, migrate this fiber to the running thread.
+            fibers::context::active()->migrate( ctx_);
         }
-    }
-
-    void wait()
-    {
-        // do not interleave operator() with wait()
-        std::unique_lock< fibers::mutex > lk( *mtx_ );
-        // if operator() has not yet been called
-        if ( ! completed_ ) {
-            // then permit it to be called
-            lk.unlock();
-            // and wait for that call
-            fibers::context::active()->suspend();
-        }
+        // either way, wake the fiber
+        fibers::context::active()->set_ready( ctx_);
     }
 
 //private:
     boost::fibers::context      *   ctx_;
     yield_base                      yb_;
-
-private:
-    // completed_ tracks whether complete() is called before get().
-    // We use a shared_ptr<mutex> because yield_handler_base is copied.
-    std::shared_ptr<fibers::mutex>  mtx_{std::make_shared<fibers::mutex>()};
-    bool                            completed_{ false };
+    // We depend on this pointer to yield_completion, which will be injected
+    // by async_result.
+    yield_completion            *   ycomp_{ nullptr };
 };
 
-// handler_type< yield_t, ... >::type is yield_handler<>. When you pass an
-// instance of yield_t as an asio completion token, asio uses
-// handler_type<>::type to select yield_handler<> as the actual handler class.
+// asio uses handler_type<completion token type, signature>::type to decide
+// what to instantiate as the actual handler. Below, we specialize
+// handler_type< yield_t, ... > to indicate yield_handler<>. So when you pass
+// an instance of yield_t as an asio completion token, asio selects
+// yield_handler<> as the actual handler class.
 template< typename T >
-class yield_handler: public yield_handler_base
-{
+class yield_handler: public yield_handler_base {
 public:
     // asio passes the completion token to the handler constructor
     explicit yield_handler( yield_base const& y) :
-        yield_handler_base( y),
-        // pointer to destination for eventual value
-        value_( nullptr)
+        yield_handler_base( y)
     {}
 
     // completion callback passing only value (T)
     void operator()( T t)
     {
-        // just like a callback passing success error_code
+        // just like callback passing success error_code
         (*this)( boost::system::error_code(), std::move(t) );
     }
 
     // completion callback passing (error_code, T)
     void operator()( boost::system::error_code const& ec, T t)
     {
-        // move the value to async_result<> instance
+        BOOST_ASSERT_MSG( value_,
+                          "Must inject value ptr "
+                          "before caling yield_handler<T>::operator()()");
+        // move the value to async_result<> instance BEFORE waking up a
+        // suspended fiber
         * value_ = std::move( t);
         // forward the call to base-class completion handler
         yield_handler_base::operator()( ec);
     }
 
 //private:
-    T                           *   value_;
+    // pointer to destination for eventual value
+    // this must be injected by async_result before operator()() is called
+    T                           *   value_{ nullptr };
 };
 
 // yield_handler<void> is like yield_handler<T> without value_. In fact it's
 // just like yield_handler_base.
 template<>
-class yield_handler< void >: public yield_handler_base
-{
+class yield_handler< void >: public yield_handler_base {
 public:
     explicit yield_handler( yield_base const& y) :
         yield_handler_base( y)
@@ -136,7 +154,6 @@ public:
 
     // inherit operator()(error_code) overload from base class
     using yield_handler_base::operator();
-
 };
 
 // Specialize asio_handler_invoke hook to ensure that any exceptions thrown
@@ -146,21 +163,14 @@ void asio_handler_invoke( Fn fn, yield_handler< T > * h) {
         fn();
 }
 
-} // namespace detail
-} // namespace asio
-} // namespace fibers
-} // namespace boost
-
-namespace boost {
-namespace asio {
-
-class async_result_base
-{
+// Factor out commonality between async_result<yield_handler<T>> and
+// async_result<yield_handler<void>>
+class async_result_base {
 public:
-    explicit async_result_base( boost::fibers::asio::detail::yield_handler_base & h):
-        // bind this yield_handler_base for later use
-        yh_( h)
-    {
+    explicit async_result_base( yield_handler_base & h) {
+        // Inject ptr to our yield_completion instance into this
+        // yield_handler<>.
+        h->ycomp_ = &this->ycomp_;
         // if yield_t didn't bind an error_code, make yield_handler_base's
         // error_code* point to an error_code local to this object so
         // yield_handler_base::operator() can unconditionally store through
@@ -169,11 +179,11 @@ public:
             h.yb_.ec_ = & ec_;
         }
     }
-
+    
     void get() {
         // Unless yield_handler_base::operator() has already been called,
         // suspend the calling fiber until that call.
-        yh_.wait();
+        ycomp_.wait();
         // The only way our own ec_ member could have a non-default value is
         // if our yield_handler did not have a bound error_code AND the
         // completion callback passed a non-default error_code.
@@ -183,12 +193,21 @@ public:
         boost::this_fiber::interruption_point();
     }
 
-protected:
-    boost::system::error_code ec_;
-
 private:
-    fibers::asio::detail::yield_handler_base& yh_;
+    // If yield_t does not bind an error_code instance, store into here.
+    boost::system::error_code       ec_{};
+    // async_result_base owns the yield_completion because, unlike
+    // yield_handler<>, async_result<> is only instantiated once.
+    yield_completion                ycomp_{};
 };
+
+} // namespace detail
+} // namespace asio
+} // namespace fibers
+} // namespace boost
+
+namespace boost {
+namespace asio {
 
 // asio constructs an async_result<> instance from the yield_handler specified
 // by handler_type<>::type. A particular asio async method constructs the
@@ -196,40 +215,39 @@ private:
 // returns the result of calling its get() method.
 template< typename T >
 class async_result< boost::fibers::asio::detail::yield_handler< T > >:
-    public async_result_base {
+    public boost::fibers::asio::detail::async_result_base {
 public:
     // type returned by get()
     typedef T type;
 
-    // async_result is constructed with a non-const yield_handler instance
     explicit async_result( boost::fibers::asio::detail::yield_handler< T > & h):
-        async_result_base(h)
+        boost::fibers::asio::detail::async_result_base( h)
     {
-        // set yield_handler's T* to this object's value_ member so
-        // yield_handler::operator() will store the callback value here
+        // Inject ptr to our value_ member into yield_handler<>: result will
+        // be stored here.
         h.value_ = & value_;
     }
 
     // asio async method returns result of calling get()
     type get() {
-        async_result_base::get();
+        boost::fibers::asio::detail::async_result_base::get();
         return std::move( value_);
     }
 
 private:
-    type                          value_;
+    type                            value_{};
 };
 
 // Without the need to handle a passed value, our yield_handler<void>
 // specialization is just like async_result_base.
 template<>
 class async_result< boost::fibers::asio::detail::yield_handler< void > >:
-    public async_result_base {
+    public boost::fibers::asio::detail::async_result_base {
 public:
-    typedef void  type;
+    typedef void type;
 
     explicit async_result( boost::fibers::asio::detail::yield_handler< void > & h):
-        async_result_base(h)
+        boost::fibers::asio::detail::async_result_base( h)
     {}
 };
 
