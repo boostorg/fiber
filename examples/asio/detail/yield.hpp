@@ -24,8 +24,8 @@ namespace detail {
 
 // Bundle a completion bool flag with a spinlock to protect it.
 struct yield_completion {
-    typedef mutex_t fibers::detail::spinlock;
-    typedef lock_t  std::unique_lock< mutex_t >;
+    typedef fibers::detail::spinlock    mutex_t;
+    typedef std::unique_lock< mutex_t > lock_t;
 
     mutex_t mtx_{};
     bool    completed_{ false };
@@ -170,7 +170,7 @@ public:
     explicit async_result_base( yield_handler_base & h) {
         // Inject ptr to our yield_completion instance into this
         // yield_handler<>.
-        h->ycomp_ = &this->ycomp_;
+        h.ycomp_ = &this->ycomp_;
         // if yield_t didn't bind an error_code, make yield_handler_base's
         // error_code* point to an error_code local to this object so
         // yield_handler_base::operator() can unconditionally store through

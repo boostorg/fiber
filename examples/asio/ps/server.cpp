@@ -200,7 +200,7 @@ public:
                 } else if ( ec) {
                     throw boost::system::system_error( ec); //some other error
                 }
-                std::cout << "subscriber::run(): '" << data << " written" << std::endl;
+                std::cout << "subscriber::run(): '" << data << "' written" << std::endl;
             }
         } catch ( std::exception const& e) {
             std::cerr << "subscriber [" << channel << "] failed: " << e.what() << std::endl;
