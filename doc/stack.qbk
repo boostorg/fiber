@@ -145,7 +145,7 @@ address of the stack.]]
 [[Effects:] [Deallocates the stack space.]]
 ]
 
-
+[#class_fixedsize_stack]
 [section:fixedsize Class ['fixedsize_stack]]
 
 __boost_fiber__ provides the class __fixedsize__ which models

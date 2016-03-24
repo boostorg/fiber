@@ -46,8 +46,8 @@ public:
 
     // Call this method to alter priority, because we must notify
     // priority_scheduler of any change.
-    void set_priority( int p) {
-        /*< It's important to call notify() on any
+    void set_priority( int p) { /*<
+            It's important to call `notify()` on any
             change in a property that can affect the
             scheduler's behavior. Therefore, such
             modifications should only be performed
@@ -155,7 +155,7 @@ public:
         // 'ctx' might not be in our queue at all, if caller is changing the
         // priority of (say) the running fiber. If it's not there, no need to
         // move it: we'll handle it next time it hits awakened().
-        if ( ! ctx->ready_is_linked()) {/*<
+        if ( ! ctx->ready_is_linked()) { /*<
             Your `property_change()` override must be able to
             handle the case in which the passed `ctx` is not in
             your ready queue. It might be running, or it might be
