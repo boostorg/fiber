@@ -1,14 +1,9 @@
-//
-// yield.hpp
-// ~~~~~~~~~~~~~~
-//
-// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-// modified by Oliver Kowalke and Nat Goodspeed
-//
+//          Copyright 2003-2013 Christopher M. Kohlhoff
+//          Copyright Oliver Kowalke, Nat Goodspeed 2015.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 
 #ifndef BOOST_FIBERS_ASIO_YIELD_HPP
 #define BOOST_FIBERS_ASIO_YIELD_HPP
@@ -26,9 +21,9 @@ namespace asio {
 //[fibers_asio_yield
 class yield_t {
 public:
-    yield_t(bool hop):
-        allow_hop_( hop)
-    {}
+    yield_t( bool hop) :
+        allow_hop_( hop) {
+    }
 
     /**
      * @code
@@ -43,7 +38,7 @@ public:
      * boost::system::system_error.
      */
     yield_t operator[]( boost::system::error_code & ec) const {
-        yield_t tmp{ *this };
+        yield_t tmp{ * this };
         tmp.ec_ = & ec;
         return tmp;
     }
@@ -59,9 +54,9 @@ public:
 
 //[fibers_asio_yield_and_hop
 // canonical instance with allow_hop_ == false
-thread_local yield_t yield(false);
+thread_local yield_t yield{ false };
 // canonical instance with allow_hop_ == true
-thread_local yield_t yield_hop(true);
+thread_local yield_t yield_hop{ true };
 //]
 
 }}}

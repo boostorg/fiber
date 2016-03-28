@@ -1,13 +1,7 @@
-//
-// server.cpp
-// ~~~~~~~~~~~~~~~
-//
-// Copyright (c) 2013 Oliver Kowalke
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-//
+//          Copyright Oliver Kowalke 2015.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cstddef>
 #include <cstdlib>
@@ -200,7 +194,7 @@ public:
                 } else if ( ec) {
                     throw boost::system::system_error( ec); //some other error
                 }
-                std::cout << "subscriber::run(): '" << data << " written" << std::endl;
+                std::cout << "subscriber::run(): '" << data << "' written" << std::endl;
             }
         } catch ( std::exception const& e) {
             std::cerr << "subscriber [" << channel << "] failed: " << e.what() << std::endl;
