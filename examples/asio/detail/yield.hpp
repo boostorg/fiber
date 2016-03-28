@@ -22,6 +22,7 @@ namespace fibers {
 namespace asio {
 namespace detail {
 
+//[fibers_asio_yield_completion
 // Bundle a completion bool flag with a spinlock to protect it.
 struct yield_completion {
     typedef mutex_t fibers::detail::spinlock;
@@ -43,7 +44,9 @@ struct yield_completion {
         }
     }
 };
+//]
 
+//[fibers_asio_yield_handler_base
 // This class encapsulates common elements between yield_handler<T> (capturing
 // a value to return from asio async function) and yield_handler<void> (no
 // such value). See yield_handler<T> and its <void> specialization below. Both
@@ -97,7 +100,9 @@ public:
     // by async_result.
     yield_completion            *   ycomp_{ nullptr };
 };
+//]
 
+//[fibers_asio_yield_handler_T
 // asio uses handler_type<completion token type, signature>::type to decide
 // what to instantiate as the actual handler. Below, we specialize
 // handler_type< yield_t, ... > to indicate yield_handler<>. So when you pass
@@ -136,7 +141,9 @@ public:
     // this must be injected by async_result before operator()() is called
     T                           *   value_{ nullptr };
 };
+//]
 
+//[fibers_asio_yield_handler_void
 // yield_handler<void> is like yield_handler<T> without value_. In fact it's
 // just like yield_handler_base.
 template<>
@@ -155,6 +162,7 @@ public:
     // inherit operator()(error_code) overload from base class
     using yield_handler_base::operator();
 };
+//]
 
 // Specialize asio_handler_invoke hook to ensure that any exceptions thrown
 // from the handler are propagated back to the caller
@@ -163,6 +171,7 @@ void asio_handler_invoke( Fn fn, yield_handler< T > * h) {
         fn();
 }
 
+//[fibers_asio_async_result_base
 // Factor out commonality between async_result<yield_handler<T>> and
 // async_result<yield_handler<void>>
 class async_result_base {
@@ -200,6 +209,7 @@ private:
     // yield_handler<>, async_result<> is only instantiated once.
     yield_completion                ycomp_{};
 };
+//]
 
 } // namespace detail
 } // namespace asio
@@ -209,6 +219,7 @@ private:
 namespace boost {
 namespace asio {
 
+//[fibers_asio_async_result_T
 // asio constructs an async_result<> instance from the yield_handler specified
 // by handler_type<>::type. A particular asio async method constructs the
 // yield_handler, constructs this async_result specialization from it, then
@@ -237,7 +248,9 @@ public:
 private:
     type                            value_{};
 };
+//]
 
+//[fibers_asio_async_result_void
 // Without the need to handle a passed value, our yield_handler<void>
 // specialization is just like async_result_base.
 template<>
@@ -250,6 +263,7 @@ public:
         boost::fibers::asio::detail::async_result_base( h)
     {}
 };
+//]
 
 // Handler type specialisation for fibers::asio::yield.
 // When 'yield' is passed as a completion handler which accepts no parameters,
@@ -266,6 +280,7 @@ template< typename ReturnType, typename Arg1 >
 struct handler_type< fibers::asio::yield_t, ReturnType( Arg1) >
 { typedef fibers::asio::detail::yield_handler< Arg1 >    type; };
 
+//[asio_handler_type
 // Handler type specialisation for fibers::asio::yield.
 // When 'yield' is passed as a completion handler which accepts only
 // error_code, use yield_handler<void>. yield_handler will take care of the
@@ -273,6 +288,7 @@ struct handler_type< fibers::asio::yield_t, ReturnType( Arg1) >
 template< typename ReturnType >
 struct handler_type< fibers::asio::yield_t, ReturnType( boost::system::error_code) >
 { typedef fibers::asio::detail::yield_handler< void >    type; };
+//]
 
 // Handler type specialisation for fibers::asio::yield.
 // When 'yield' is passed as a completion handler which accepts a data
