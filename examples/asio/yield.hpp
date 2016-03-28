@@ -18,6 +18,7 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
+//[fibers_asio_yield
 class yield_t {
 public:
     yield_t( bool hop) :
@@ -49,11 +50,14 @@ public:
     // quickly that way
     bool                            allow_hop_;
 };
+//]
 
+//[fibers_asio_yield_and_hop
 // canonical instance with allow_hop_ == false
 thread_local yield_t yield{ false };
 // canonical instance with allow_hop_ == true
 thread_local yield_t yield_hop{ true };
+//]
 
 }}}
 
