@@ -6,7 +6,6 @@ fiber/fiber_mgmt/id.html
 fiber/fiber_mgmt/this_fiber.html
 fiber/scheduling.html
 fiber/stack.html
-fiber/stack/fixedsize.html
 fiber/synchronization.html
 fiber/synchronization/mutex_types.html
 fiber/synchronization/conditions.html

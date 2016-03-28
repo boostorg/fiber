@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/28 16:12:31 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/28 18:22:40 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -4105,12 +4105,15 @@ implementation's
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
-    <bridgehead renderas="sect3" id="fiber.stack.h1">
-      <phrase id="fiber.stack._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"/><link
-      linkend="fiber.stack._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"><code><phrase
-      role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
-      role="special">()</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="protected_fixedsize_allocate_bridgehead">
+  <phrase id="protected_fixedsize_allocate"/>
+  <link linkend="protected_fixedsize_allocate">Member
+      function <code>allocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase role="special">();</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
@@ -4143,14 +4146,15 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
-    <bridgehead renderas="sect3" id="fiber.stack.h2">
-      <phrase id="fiber.stack._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"/><link
-      linkend="fiber.stack._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"><code><phrase
-      role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
-      role="special">(</phrase> <phrase role="identifier">stack_context</phrase>
-      <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase
-      role="special">)</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="protected_fixesize_deallocate_bridgehead">
+  <phrase id="protected_fixesize_deallocate"/>
+  <link linkend="protected_fixesize_deallocate">Member
+      function <code>deallocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase role="special">);</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
@@ -4208,18 +4212,14 @@ implementation's
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
-    <bridgehead renderas="sect3" id="fiber.stack.h3">
-      <phrase id="fiber.stack._code__phrase_role__identifier__pooled_fixedsize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special_____phrase___code_"/><link
-      linkend="fiber.stack._code__phrase_role__identifier__pooled_fixedsize_stack__phrase__phrase_role__special_____phrase__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__stack_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__next_size__phrase__phrase_role__special_____phrase___phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__size_t__phrase___phrase_role__identifier__max_size__phrase__phrase_role__special_____phrase___code_"><code><phrase
-      role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">(</phrase><phrase
-      role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase>
-      <phrase role="identifier">stack_size</phrase><phrase role="special">,</phrase>
-      <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-      role="identifier">size_t</phrase> <phrase role="identifier">next_size</phrase><phrase
-      role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-      role="identifier">size_t</phrase> <phrase role="identifier">max_size</phrase><phrase
-      role="special">)</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="pooled_fixedsize_bridgehead">
+  <phrase id="pooled_fixedsize"/>
+  <link linkend="pooled_fixedsize">Constructor</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">stack_size</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">next_size</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">max_size</phrase><phrase role="special">);</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
@@ -4255,11 +4255,15 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
-    <bridgehead renderas="sect3" id="fiber.stack.h4">
-      <phrase id="fiber.stack.code_phrase_role_identifier_sta0"/><link linkend="fiber.stack.code_phrase_role_identifier_sta0"><code><phrase
-      role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
-      role="special">()</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="pooled_fixedsize_allocate_bridgehead">
+  <phrase id="pooled_fixedsize_allocate"/>
+  <link linkend="pooled_fixedsize_allocate">Member
+      function <code>allocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase role="special">();</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
@@ -4289,13 +4293,15 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
-    <bridgehead renderas="sect3" id="fiber.stack.h5">
-      <phrase id="fiber.stack.code_phrase_role_keyword_void_p0"/><link linkend="fiber.stack.code_phrase_role_keyword_void_p0"><code><phrase
-      role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
-      role="special">(</phrase> <phrase role="identifier">stack_context</phrase>
-      <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase
-      role="special">)</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="pooled_fixesize_deallocate_bridgehead">
+  <phrase id="pooled_fixesize_deallocate"/>
+  <link linkend="pooled_fixesize_deallocate">Member
+      function <code>deallocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase role="special">);</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
@@ -4323,19 +4329,23 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
-    <section id="fiber.stack.fixedsize">
-      <title><anchor id="class_fixedsize_stack"/><link linkend="fiber.stack.fixedsize">Class
-      <emphasis>fixedsize_stack</emphasis></link></title>
-      <para>
-        <emphasis role="bold">Boost.Fiber</emphasis> provides the class __fixedsize__
-        which models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
-        concept</emphasis></link>. In contrast to __protected_fixedsize__ it does
-        not append a guard page at the end of each stack. The memory is simply managed
-        by <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-        role="identifier">malloc</phrase><phrase role="special">()</phrase></code>
-        and <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
-        role="identifier">free</phrase><phrase role="special">()</phrase></code>.
-      </para>
+    <para>
+      <bridgehead renderas="sect4" id="class_fixedsize_stack_bridgehead">
+  <phrase id="class_fixedsize_stack"/>
+  <link linkend="class_fixedsize_stack">Class
+      <code>fixedsize_stack</code></link>
+</bridgehead>
+    </para>
+    <para>
+      <emphasis role="bold">Boost.Fiber</emphasis> provides the class __fixedsize__
+      which models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
+      concept</emphasis></link>. In contrast to __protected_fixedsize__ it does not
+      append a guard page at the end of each stack. The memory is simply managed
+      by <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">malloc</phrase><phrase role="special">()</phrase></code>
+      and <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">free</phrase><phrase role="special">()</phrase></code>.
+    </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">/</phrase><phrase role="identifier">fixedsize_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">struct</phrase> <phrase role="identifier">fixedsize_stack</phrase> <phrase role="special">{</phrase>
@@ -4346,84 +4356,87 @@ implementation's
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
-      <bridgehead renderas="sect4" id="fiber.stack.fixedsize.h0">
-        <phrase id="fiber.stack.fixedsize._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"/><link
-        linkend="fiber.stack.fixedsize._code__phrase_role__identifier__stack_context__phrase___phrase_role__identifier__allocate__phrase__phrase_role__special______phrase___code_"><code><phrase
-        role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
-        role="special">()</phrase></code></link>
-      </bridgehead>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Preconditions:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">minimum_size</phrase><phrase role="special">()</phrase>
-              <phrase role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
-              and <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
-              <phrase role="special">||</phrase> <phrase role="special">(</phrase>
-              <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
-              <phrase role="special">&gt;=</phrase> <phrase role="identifier">size</phrase><phrase
-              role="special">)</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Allocates memory of at least <code><phrase role="identifier">size</phrase></code>
-              bytes and stores a pointer to the stack and its actual size in <code><phrase
-              role="identifier">sctx</phrase></code>. Depending on the architecture
-              (the stack grows downwards/upwards) the stored address is the highest/lowest
-              address of the stack.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <bridgehead renderas="sect4" id="fiber.stack.fixedsize.h1">
-        <phrase id="fiber.stack.fixedsize._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"/><link
-        linkend="fiber.stack.fixedsize._code__phrase_role__keyword__void__phrase___phrase_role__identifier__deallocate__phrase__phrase_role__special_____phrase___phrase_role__identifier__stack_context__phrase___phrase_role__special___amp___phrase___phrase_role__identifier__sctx__phrase__phrase_role__special_____phrase___code_"><code><phrase
-        role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
-        role="special">(</phrase> <phrase role="identifier">stack_context</phrase>
-        <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase
-        role="special">)</phrase></code></link>
-      </bridgehead>
-      <variablelist>
-        <title></title>
-        <varlistentry>
-          <term>Preconditions:</term>
-          <listitem>
-            <para>
-              <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-              role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">minimum_size</phrase><phrase
-              role="special">()</phrase> <phrase role="special">&lt;=</phrase> <phrase
-              role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-              role="identifier">size</phrase></code> and <code><phrase role="identifier">traits_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
-              role="special">()</phrase> <phrase role="special">||</phrase> <phrase
-              role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">maximum_size</phrase><phrase
-              role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
-              role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-              role="identifier">size</phrase><phrase role="special">)</phrase></code>.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>Effects:</term>
-          <listitem>
-            <para>
-              Deallocates the stack space.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-    </section>
+    <para>
+      <bridgehead renderas="sect4" id="fixedsize_allocate_bridgehead">
+  <phrase id="fixedsize_allocate"/>
+  <link linkend="fixedsize_allocate">Member function
+      <code>allocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase role="special">();</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Preconditions:</term>
+        <listitem>
+          <para>
+            <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">minimum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
+            and <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+            <phrase role="special">||</phrase> <phrase role="special">(</phrase>
+            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&gt;=</phrase> <phrase role="identifier">size</phrase><phrase
+            role="special">)</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Allocates memory of at least <code><phrase role="identifier">size</phrase></code>
+            bytes and stores a pointer to the stack and its actual size in <code><phrase
+            role="identifier">sctx</phrase></code>. Depending on the architecture
+            (the stack grows downwards/upwards) the stored address is the highest/lowest
+            address of the stack.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="fixesize_deallocate_bridgehead">
+  <phrase id="fixesize_deallocate"/>
+  <link linkend="fixesize_deallocate">Member
+      function <code>deallocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase role="special">);</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Preconditions:</term>
+        <listitem>
+          <para>
+            <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+            role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">minimum_size</phrase><phrase
+            role="special">()</phrase> <phrase role="special">&lt;=</phrase> <phrase
+            role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+            role="identifier">size</phrase></code> and <code><phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
+            role="special">()</phrase> <phrase role="special">||</phrase> <phrase
+            role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">maximum_size</phrase><phrase
+            role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
+            role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+            role="identifier">size</phrase><phrase role="special">)</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Deallocates the stack space.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
     <para>
       <bridgehead renderas="sect4" id="class_segmented_stack_bridgehead">
   <phrase id="class_segmented_stack"/>
@@ -4461,11 +4474,15 @@ implementation's
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
-    <bridgehead renderas="sect3" id="fiber.stack.h6">
-      <phrase id="fiber.stack.code_phrase_role_identifier_sta1"/><link linkend="fiber.stack.code_phrase_role_identifier_sta1"><code><phrase
-      role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
-      role="special">()</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="segmented_allocate_bridgehead">
+  <phrase id="segmented_allocate"/>
+  <link linkend="segmented_allocate">Member function
+      <code>allocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase role="special">();</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
@@ -4498,13 +4515,15 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
-    <bridgehead renderas="sect3" id="fiber.stack.h7">
-      <phrase id="fiber.stack.code_phrase_role_keyword_void_p1"/><link linkend="fiber.stack.code_phrase_role_keyword_void_p1"><code><phrase
-      role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
-      role="special">(</phrase> <phrase role="identifier">stack_context</phrase>
-      <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase
-      role="special">)</phrase></code></link>
-    </bridgehead>
+    <para>
+      <bridgehead renderas="sect4" id="segmented_deallocate_bridgehead">
+  <phrase id="segmented_deallocate"/>
+  <link linkend="segmented_deallocate">Member
+      function <code>deallocate</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">sctx</phrase><phrase role="special">);</phrase>
+</programlisting>
     <variablelist>
       <title></title>
       <varlistentry>

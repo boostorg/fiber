@@ -80,7 +80,10 @@ virtual addresses are used.]
             void deallocate( stack_context &);
         }
 
-[heading `stack_context allocate()`]
+[member_heading protected_fixedsize..allocate]
+
+        stack_context allocate();
+
 [variablelist
 [[Preconditions:] [`traits_type::minimum_size() <= size` and
 `traits_type::is_unbounded() || ( size <= traits_type::maximum_size() )`.]]
@@ -90,7 +93,10 @@ on the architecture (the stack grows downwards/upwards) the stored address is
 the highest/lowest address of the stack.]]
 ]
 
-[heading `void deallocate( stack_context & sctx)`]
+[member_heading protected_fixesize..deallocate]
+
+        void deallocate( stack_context & sctx);
+
 [variablelist
 [[Preconditions:] [`sctx.sp` is valid, `traits_type::minimum_size() <= sctx.size` and
 `traits_type::is_unbounded() || ( sctx.size <= traits_type::maximum_size() )`.]]
@@ -116,7 +122,10 @@ end of each stack. The memory is managed internally by
             void deallocate( stack_context &);
         }
 
-[heading `pooled_fixedsize_stack(std::size_t stack_size, std::size_t next_size, std::size_t max_size)`]
+[hding pooled_fixedsize..Constructor]
+
+        pooled_fixedsize_stack(std::size_t stack_size, std::size_t next_size, std::size_t max_size);
+
 [variablelist
 [[Preconditions:] [`traits_type::is_unbounded() || ( traits_type::maximum_size() >= stack_size)`
 and `0 < next_size`.]]
@@ -129,7 +138,10 @@ memory. The third argument `max_size` controls how much memory might be
 allocated for stacks [mdash] a value of zero means no upper limit.]]
 ]
 
-[heading `stack_context allocate()`]
+[member_heading pooled_fixedsize..allocate]
+
+        stack_context allocate();
+
 [variablelist
 [[Preconditions:] [`traits_type::is_unbounded() || ( traits_type::maximum_size() >= stack_size)`.]]
 [[Effects:] [Allocates memory of at least `stack_size` bytes and stores a pointer to
@@ -138,15 +150,18 @@ stack grows downwards/upwards) the stored address is the highest/lowest
 address of the stack.]]
 ]
 
-[heading `void deallocate( stack_context & sctx)`]
+[member_heading pooled_fixesize..deallocate]
+
+        void deallocate( stack_context & sctx);
+
 [variablelist
 [[Preconditions:] [`sctx.sp` is valid,
 `traits_type::is_unbounded() || ( traits_type::maximum_size() >= sctx.size)`.]]
 [[Effects:] [Deallocates the stack space.]]
 ]
 
-[#class_fixedsize_stack]
-[section:fixedsize Class ['fixedsize_stack]]
+
+[class_heading fixedsize_stack]
 
 __boost_fiber__ provides the class __fixedsize__ which models
 the __stack_allocator_concept__.
@@ -164,7 +179,10 @@ end of each stack. The memory is simply managed by `std::malloc()` and
             void deallocate( stack_context &);
         }
 
-[heading `stack_context allocate()`]
+[member_heading fixedsize..allocate]
+
+        stack_context allocate();
+
 [variablelist
 [[Preconditions:] [`traits_type::minimum_size() <= size` and
 `traits_type::is_unbounded() || ( traits_type::maximum_size() >= size)`.]]
@@ -174,14 +192,15 @@ stack grows downwards/upwards) the stored address is the highest/lowest
 address of the stack.]]
 ]
 
-[heading `void deallocate( stack_context & sctx)`]
+[member_heading fixesize..deallocate]
+
+        void deallocate( stack_context & sctx);
+
 [variablelist
 [[Preconditions:] [`sctx.sp` is valid, `traits_type::minimum_size() <= sctx.size` and
 `traits_type::is_unbounded() || ( traits_type::maximum_size() >= sctx.size)`.]]
 [[Effects:] [Deallocates the stack space.]]
 ]
-
-[endsect]
 
 
 [class_heading segmented_stack]
@@ -209,7 +228,10 @@ command line.]
             void deallocate( stack_context &);
         }
 
-[heading `stack_context allocate()`]
+[member_heading segmented..allocate]
+
+        stack_context allocate();
+
 [variablelist
 [[Preconditions:] [`traits_type::minimum_size() <= size` and
 `traits_type::is_unbounded() || ( traits_type::maximum_size() >= size)`.]]
@@ -219,7 +241,11 @@ stack grows downwards/upwards) the stored address is the highest/lowest
 address of the stack.]]
 ]
 
-[heading `void deallocate( stack_context & sctx)`]
+[member_heading segmented..deallocate]
+
+        void deallocate( stack_context & sctx);
+
+
 [variablelist
 [[Preconditions:] [`sctx.sp` is valid, `traits_type::minimum_size() <= sctx.size` and
 `traits_type::is_unbounded() || ( traits_type::maximum_size() >= sctx.size)`.]]
