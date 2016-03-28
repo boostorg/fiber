@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/28 18:22:40 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/28 18:28:45 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -4337,11 +4337,11 @@ implementation's
 </bridgehead>
     </para>
     <para>
-      <emphasis role="bold">Boost.Fiber</emphasis> provides the class __fixedsize__
-      which models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
-      concept</emphasis></link>. In contrast to __protected_fixedsize__ it does not
-      append a guard page at the end of each stack. The memory is simply managed
-      by <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+      <emphasis role="bold">Boost.Fiber</emphasis> provides the class <link linkend="class_fixedsize_stack"> <code>fixedsize_stack</code></link> which
+      models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
+      concept</emphasis></link>. In contrast to <link linkend="class_protected_fixedsize_stack"> <code>protected_fixedsize_stack</code></link> it
+      does not append a guard page at the end of each stack. The memory is simply
+      managed by <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
       role="identifier">malloc</phrase><phrase role="special">()</phrase></code>
       and <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
       role="identifier">free</phrase><phrase role="special">()</phrase></code>.

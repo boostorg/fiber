@@ -163,9 +163,9 @@ address of the stack.]]
 
 [class_heading fixedsize_stack]
 
-__boost_fiber__ provides the class __fixedsize__ which models
+__boost_fiber__ provides the class __fixedsize_stack__ which models
 the __stack_allocator_concept__.
-In contrast to __protected_fixedsize__ it does not append a guard page at the
+In contrast to __pfixedsize_stack__ it does not append a guard page at the
 end of each stack. The memory is simply managed by `std::malloc()` and
 `std::free()`.
 

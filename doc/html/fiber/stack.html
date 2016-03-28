@@ -399,11 +399,11 @@
 <p>
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class __fixedsize__
-      which models the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
-      concept</em></span></a>. In contrast to __protected_fixedsize__ it does not
-      append a guard page at the end of each stack. The memory is simply managed
-      by <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">malloc</span><span class="special">()</span></code>
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> which
+      models the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
+      concept</em></span></a>. In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> it
+      does not append a guard page at the end of each stack. The memory is simply
+      managed by <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">malloc</span><span class="special">()</span></code>
       and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">free</span><span class="special">()</span></code>.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">context</span><span class="special">/</span><span class="identifier">fixedsize_stack</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
