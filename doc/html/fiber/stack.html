@@ -26,7 +26,8 @@
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="fiber.stack"></a><a name="stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
 </h2></div></div></div>
-<div class="toc"><dl><dt><span class="section"><a href="stack/fixedsize.html">Class <span class="emphasis"><em>fixedsize_stack</em></span></a></span></dt></dl></div>
+<div class="toc"><dl><dt><span class="section"><a href="stack/fixedsize.html">Class
+      <span class="emphasis"><em>fixedsize_stack</em></span></a></span></dt></dl></div>
 <p>
       A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally an <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
       which manages a set of registers and a stack. The memory used by the stack
@@ -157,7 +158,8 @@
 </table></div>
 <p>
       See also <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack.html" target="_top">Boost.Context
-      stack allocation</a>.
+      stack allocation</a>. In particular, <code class="computeroutput"><span class="identifier">traits_type</span></code>
+      methods are as described for <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_traits.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">stack_traits</span></code></a>.
     </p>
 <p>
       </p>
@@ -186,7 +188,7 @@
         Using <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> is expensive.
         Launching a new fiber with a stack of this type incurs the overhead of setting
         the memory protection; once allocated, this stack is just as efficient to
-        use as <a class="link" href="../"> <code class="computeroutput">fixedsize_stack</code></a>.
+        use as <a class="link" href="stack/fixedsize.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a>.
       </p></td></tr>
 </table></div>
 <div class="note"><table border="0" summary="Note">
@@ -219,14 +221,18 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">size</span></code>
-            and <code class="computeroutput"><span class="special">!</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">&amp;&amp;</span>
-            <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">size</span><span class="special">)</span></code>.
+            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum_size</span><span class="special">()</span>
+            <span class="special">&lt;=</span> <span class="identifier">size</span></code>
+            and <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">||</span> <span class="special">(</span>
+            <span class="identifier">size</span> <span class="special">&lt;=</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span>
+            <span class="special">)</span></code>.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
             Allocates memory of at least <code class="computeroutput"><span class="identifier">size</span></code>
-            Bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
             address of the stack.
           </p></dd>
@@ -242,10 +248,7 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span></code> and <code class="computeroutput"><span class="special">!</span>
-            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
-            <span class="special">&amp;&amp;</span> <span class="special">(</span>
-            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
+            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum_size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span></code> and <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">||</span> <span class="special">(</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span> <span class="special">&lt;=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span> <span class="special">)</span></code>.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -291,22 +294,23 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="special">!</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">&amp;&amp;</span>
-            <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">stack_size</span><span class="special">)</span></code>
-            and <code class="computeroutput"><span class="number">0</span> <span class="special">&lt;</span>
-            <span class="identifier">nest_size</span></code>.
+            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">||</span> <span class="special">(</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span>
+            <span class="special">&gt;=</span> <span class="identifier">stack_size</span><span class="special">)</span></code> and <code class="computeroutput"><span class="number">0</span>
+            <span class="special">&lt;</span> <span class="identifier">next_size</span></code>.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
             Allocates memory of at least <code class="computeroutput"><span class="identifier">stack_size</span></code>
-            Bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
             address of the stack. Argument <code class="computeroutput"><span class="identifier">next_size</span></code>
             determines the number of stacks to request from the system the first
             time that <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
             needs to allocate system memory. The third argument <code class="computeroutput"><span class="identifier">max_size</span></code>
-            controls how many memory might be allocated for stacks - a value of zero
-            means no uper limit.
+            controls how much memory might be allocated for stacks &#8212; a value of zero
+            means no upper limit.
           </p></dd>
 </dl>
 </div>
@@ -314,14 +318,25 @@
 <a name="fiber.stack.h4"></a>
       <span><a name="fiber.stack.code_phrase_role_identifier_sta0"></a></span><a class="link" href="stack.html#fiber.stack.code_phrase_role_identifier_sta0"><code class="computeroutput"><span class="identifier">stack_context</span> <span class="identifier">allocate</span><span class="special">()</span></code></a>
     </h4>
-<p>
-      [variablelis_stackt [[Preconditions:] <code class="computeroutput">! traits_type::is_unbounded() &amp;&amp;
-      ( traits_type::maximum:size() &gt;= stack_size)`.</code>] [[Effects:] [Allocates memory
-      of at least <code class="computeroutput"><span class="identifier">stack_size</span></code> Bytes
-      and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>.
-      Depending on the architecture (the stack grows downwards/upwards) the stored
-      address is the highest/lowest address of the stack.]] ]
-    </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Preconditions:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">||</span> <span class="special">(</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span>
+            <span class="special">&gt;=</span> <span class="identifier">stack_size</span><span class="special">)</span></code>.
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Allocates memory of at least <code class="computeroutput"><span class="identifier">stack_size</span></code>
+            bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            (the stack grows downwards/upwards) the stored address is the highest/lowest
+            address of the stack.
+          </p></dd>
+</dl>
+</div>
 <h4>
 <a name="fiber.stack.h5"></a>
       <span><a name="fiber.stack.code_phrase_role_keyword_void_p0"></a></span><a class="link" href="stack.html#fiber.stack.code_phrase_role_keyword_void_p0"><code class="computeroutput"><span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span>
@@ -332,10 +347,7 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="special">!</span>
-            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
-            <span class="special">&amp;&amp;</span> <span class="special">(</span>
-            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
+            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">||</span> <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -359,7 +371,7 @@
       which will be increased as required. Class <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> models
       the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator concept</em></span></a>.
       In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> and
-      <a class="link" href="../"> <code class="computeroutput">fixedsize_stack</code></a> it creates a stack which grows on demand.
+      <a class="link" href="stack/fixedsize.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> it creates a stack which grows on demand.
     </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -395,14 +407,17 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">size</span></code>
-            and <code class="computeroutput"><span class="special">!</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">&amp;&amp;</span>
-            <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">size</span><span class="special">)</span></code>.
+            <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum_size</span><span class="special">()</span>
+            <span class="special">&lt;=</span> <span class="identifier">size</span></code>
+            and <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
+            <span class="special">||</span> <span class="special">(</span>
+            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span>
+            <span class="special">&gt;=</span> <span class="identifier">size</span><span class="special">)</span></code>.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
             Allocates memory of at least <code class="computeroutput"><span class="identifier">size</span></code>
-            Bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
+            bytes and stores a pointer to the stack and its actual size in <code class="computeroutput"><span class="identifier">sctx</span></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
             address of the stack.
           </p></dd>
@@ -418,10 +433,7 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span></code> and <code class="computeroutput"><span class="special">!</span>
-            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span>
-            <span class="special">&amp;&amp;</span> <span class="special">(</span>
-            <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum</span><span class="special">:</span><span class="identifier">size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
+            <code class="computeroutput"><span class="identifier">sctx</span><span class="special">.</span><span class="identifier">sp</span></code> is valid, <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">minimum_size</span><span class="special">()</span> <span class="special">&lt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span></code> and <code class="computeroutput"><span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">is_unbounded</span><span class="special">()</span> <span class="special">||</span> <span class="special">(</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">maximum_size</span><span class="special">()</span> <span class="special">&gt;=</span> <span class="identifier">sctx</span><span class="special">.</span><span class="identifier">size</span><span class="special">)</span></code>.
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>

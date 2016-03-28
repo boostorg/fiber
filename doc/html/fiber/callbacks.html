@@ -363,47 +363,129 @@
       operations.
     </p>
 <p>
-      Fortunately we need not. Boost.Asio incorporates a mechanism by which the caller
-      can customize the notification behavior of every async operation. Therefore
-      we can construct a <span class="emphasis"><em>completion token</em></span> which, when passed
-      to a <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>
-      async operation, requests blocking for the calling fiber. The underlying implementation
-      uses the same mechanism as described above.
+      Fortunately we need not. Boost.Asio incorporates a mechanism<sup>[<a name="fiber.callbacks.f0" href="#ftn.fiber.callbacks.f0" class="footnote">5</a>]</sup> by which the caller can customize the notification behavior of
+      every async operation. Therefore we can construct a <span class="emphasis"><em>completion token</em></span>
+      which, when passed to a <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>
+      async operation, requests blocking for the calling fiber.
     </p>
 <p>
+      A typical Asio async function might look something like this:<sup>[<a name="fiber.callbacks.f1" href="#ftn.fiber.callbacks.f1" class="footnote">6</a>]</sup>
+    </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span> <span class="special">...,</span> <span class="keyword">class</span> <span class="identifier">CompletionToken</span> <span class="special">&gt;</span>
+<span class="emphasis"><em>deduced_return_type</em></span>
+<span class="identifier">async_something</span><span class="special">(</span> <span class="special">...</span> <span class="special">,</span> <span class="identifier">CompletionToken</span><span class="special">&amp;&amp;</span> <span class="identifier">token</span><span class="special">)</span>
+<span class="special">{</span>
+    <span class="comment">// construct handler_type instance from CompletionToken</span>
+    <span class="identifier">handler_type</span><span class="special">&lt;</span><span class="identifier">CompletionToken</span><span class="special">,</span> <span class="special">...&gt;::</span><span class="identifier">type</span> <span class="identifier">handler</span><span class="special">(</span><span class="identifier">token</span><span class="special">);</span>
+    <span class="comment">// construct async_result instance from handler_type</span>
+    <span class="identifier">async_result</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">handler</span><span class="special">)&gt;</span> <span class="identifier">result</span><span class="special">(</span><span class="identifier">handler</span><span class="special">);</span>
+
+    <span class="comment">// ... arrange to call handler on completion ...</span>
+    <span class="comment">// ... initiate actual I/O operation ...</span>
+
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
+<span class="special">}</span>
+</pre>
+<p>
+      We will engage that mechanism, which is based on specializing Asio's <code class="computeroutput"><span class="identifier">handler_type</span><span class="special">&lt;&gt;</span></code>
+      template for the <code class="computeroutput"><span class="identifier">CompletionToken</span></code>
+      type and the signature of the specific callback. The remainder of this discussion
+      will refer back to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code> as the Asio async function under consideration.
+    </p>
+<p>
+      The implementation described below uses lower-level facilities than <code class="computeroutput"><span class="identifier">promise</span></code> and <code class="computeroutput"><span class="identifier">future</span></code>
+      for two reasons:
+    </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+          The <code class="computeroutput"><span class="identifier">promise</span></code> mechanism interacts
+          badly with <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/stop.html" target="_top"><code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">stop</span><span class="special">()</span></code></a>.
+          It produces <code class="computeroutput"><span class="identifier">broken_promise</span></code>
+          exceptions.
+        </li>
+<li class="listitem">
+          If more than one thread is calling the <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html" target="_top"><code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">run</span><span class="special">()</span></code></a>
+          method, the implementation described below allows resuming the suspended
+          fiber on whichever thread gets there first with completion notification.
+          More on this later.
+        </li>
+</ol></div>
+<p>
       <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield</span></code>
-      is such a completion token. <code class="computeroutput"><span class="identifier">yield</span></code>
+      is a completion token of this kind. <code class="computeroutput"><span class="identifier">yield</span></code>
       is an instance of <code class="computeroutput"><span class="identifier">yield_t</span></code>:
     </p>
 <p>
-      [fibers_asio_yield]
+</p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">yield_t</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">yield_t</span><span class="special">(</span> <span class="keyword">bool</span> <span class="identifier">hop</span><span class="special">)</span> <span class="special">:</span>
+        <span class="identifier">allow_hop_</span><span class="special">(</span> <span class="identifier">hop</span><span class="special">)</span> <span class="special">{</span>
+    <span class="special">}</span>
+
+    <span class="comment">/**
+     * @code
+     * static yield_t yield;
+     * boost::system::error_code myec;
+     * func(yield[myec]);
+     * @endcode
+     * @c yield[myec] returns an instance of @c yield_t whose @c ec_ points
+     * to @c myec. The expression @c yield[myec] "binds" @c myec to that
+     * (anonymous) @c yield_t instance, instructing @c func() to store any
+     * @c error_code it might produce into @c myec rather than throwing @c
+     * boost::system::system_error.
+     */</span>
+    <span class="identifier">yield_t</span> <span class="keyword">operator</span><span class="special">[](</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span> <span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+        <span class="identifier">yield_t</span> <span class="identifier">tmp</span><span class="special">{</span> <span class="special">*</span> <span class="keyword">this</span> <span class="special">};</span>
+        <span class="identifier">tmp</span><span class="special">.</span><span class="identifier">ec_</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">;</span>
+        <span class="keyword">return</span> <span class="identifier">tmp</span><span class="special">;</span>
+    <span class="special">}</span>
+
+<span class="comment">//private:</span>
+    <span class="comment">// ptr to bound error_code instance if any</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span>   <span class="special">*</span>   <span class="identifier">ec_</span><span class="special">{</span> <span class="keyword">nullptr</span> <span class="special">};</span>
+    <span class="comment">// allow calling fiber to "hop" to another thread if it could resume more</span>
+    <span class="comment">// quickly that way</span>
+    <span class="keyword">bool</span>                            <span class="identifier">allow_hop_</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
-      which is a <code class="computeroutput"><span class="identifier">promise_completion_token</span></code>:
-    </p>
-<p>
-      [fibers_asio_yield_t]
-    </p>
-<p>
-      <code class="computeroutput"><span class="identifier">promise_completion_token</span></code> is
-      common to both <code class="computeroutput"><span class="identifier">yield</span></code> and <code class="computeroutput"><span class="identifier">use_future</span></code>. (The interested reader is encouraged
-      to learn more about <code class="computeroutput"><span class="identifier">use_future</span></code>
-      in <a href="../../../examples/asio/use_future.hpp" target="_top">example source code</a>.)
-    </p>
-<p>
-      <code class="computeroutput"><span class="identifier">promise_completion_token</span></code> is
-      in fact only a placeholder, a way to trigger Boost.Asio customization. It can
-      bind a custom allocator or <a href="http://www.boost.org/doc/libs/release/libs/system/doc/reference.html#Class-error_code" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span></code></a>
+      <code class="computeroutput"><span class="identifier">yield_t</span></code> is in fact only a placeholder,
+      a way to trigger Boost.Asio customization. It can bind a <a href="http://www.boost.org/doc/libs/release/libs/system/doc/reference.html#Class-error_code" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span></code></a>
       for use by the actual handler.
     </p>
 <p>
-      [fibers_asio_promise_completion_token]
+      In fact there are two canonical instances of <code class="computeroutput"><span class="identifier">yield_t</span></code>
+      &#8212; <code class="computeroutput"><span class="identifier">yield</span></code> and <code class="computeroutput"><span class="identifier">yield_hop</span></code>:
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// canonical instance with allow_hop_ == false</span>
+<span class="keyword">thread_local</span> <span class="identifier">yield_t</span> <span class="identifier">yield</span><span class="special">{</span> <span class="keyword">false</span> <span class="special">};</span>
+<span class="comment">// canonical instance with allow_hop_ == true</span>
+<span class="keyword">thread_local</span> <span class="identifier">yield_t</span> <span class="identifier">yield_hop</span><span class="special">{</span> <span class="keyword">true</span> <span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      We'll get to the differences between these shortly.
     </p>
 <p>
       Asio customization is engaged by specializing <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/handler_type.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">handler_type</span><span class="special">&lt;&gt;</span></code></a> for <code class="computeroutput"><span class="identifier">yield_t</span></code>:
     </p>
 <p>
-      [asio_handler_type]
+</p>
+<pre class="programlisting"><span class="comment">// Handler type specialisation for fibers::asio::yield.</span>
+<span class="comment">// When 'yield' is passed as a completion handler which accepts only</span>
+<span class="comment">// error_code, use yield_handler&lt;void&gt;. yield_handler will take care of the</span>
+<span class="comment">// error_code one way or another.</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">ReturnType</span> <span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">handler_type</span><span class="special">&lt;</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">yield_t</span><span class="special">,</span> <span class="identifier">ReturnType</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">)</span> <span class="special">&gt;</span>
+<span class="special">{</span> <span class="keyword">typedef</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="keyword">void</span> <span class="special">&gt;</span>    <span class="identifier">type</span><span class="special">;</span> <span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
       (There are actually four different specializations in <a href="../../../examples/asio/detail/yield.hpp" target="_top">detail/yield.hpp</a>,
@@ -413,51 +495,489 @@
 <p>
       The above directs Asio to use <code class="computeroutput"><span class="identifier">yield_handler</span></code>
       as the actual handler for an async operation to which <code class="computeroutput"><span class="identifier">yield</span></code>
-      is passed.
+      is passed. There's a generic <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+      implementation and a <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code>
+      specialization. Let's start with the <code class="computeroutput"><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code> specialization:
     </p>
 <p>
-      <code class="computeroutput"><span class="identifier">yield_handler</span></code> is simply an
-      alias for <code class="computeroutput"><span class="identifier">promise_handler</span></code>,
-      because <code class="computeroutput"><span class="identifier">promise_handler</span></code> is
-      shared with the <code class="computeroutput"><span class="identifier">use_future</span></code>
-      machinery:
+</p>
+<pre class="programlisting"><span class="comment">// yield_handler&lt;void&gt; is like yield_handler&lt;T&gt; without value_. In fact it's</span>
+<span class="comment">// just like yield_handler_base.</span>
+<span class="keyword">template</span><span class="special">&lt;&gt;</span>
+<span class="keyword">class</span> <span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="keyword">void</span> <span class="special">&gt;:</span> <span class="keyword">public</span> <span class="identifier">yield_handler_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="keyword">explicit</span> <span class="identifier">yield_handler</span><span class="special">(</span> <span class="identifier">yield_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">:</span>
+        <span class="identifier">yield_handler_base</span><span class="special">{</span> <span class="identifier">y</span> <span class="special">}</span> <span class="special">{</span>
+    <span class="special">}</span>
+
+    <span class="comment">// nullary completion callback</span>
+    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()()</span> <span class="special">{</span>
+        <span class="special">(</span> <span class="special">*</span> <span class="keyword">this</span><span class="special">)(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">()</span> <span class="special">);</span>
+    <span class="special">}</span>
+
+    <span class="comment">// inherit operator()(error_code) overload from base class</span>
+    <span class="keyword">using</span> <span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">();</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
-      [fibers_asio_yield_handler]
+      <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>,
+      having consulted the <code class="computeroutput"><span class="identifier">handler_type</span><span class="special">&lt;&gt;</span></code> traits specialization, instantiates
+      a <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code> to
+      be passed as the actual callback for the async operation. <code class="computeroutput"><span class="identifier">yield_handler</span></code>'s
+      constructor accepts the <code class="computeroutput"><span class="identifier">yield_t</span></code>
+      instance (the <code class="computeroutput"><span class="identifier">yield</span></code> object
+      passed to the async function) and passes it along to <code class="computeroutput"><span class="identifier">yield_handler_base</span></code>:
     </p>
 <p>
-      <code class="computeroutput"><span class="identifier">promise_handler</span></code> isa <code class="computeroutput"><span class="identifier">promise_handler_base</span></code>:
+</p>
+<pre class="programlisting"><span class="comment">// This class encapsulates common elements between yield_handler&lt;T&gt; (capturing</span>
+<span class="comment">// a value to return from asio async function) and yield_handler&lt;void&gt; (no</span>
+<span class="comment">// such value). See yield_handler&lt;T&gt; and its &lt;void&gt; specialization below. Both</span>
+<span class="comment">// yield_handler&lt;T&gt; and yield_handler&lt;void&gt; are passed by value through</span>
+<span class="comment">// various layers of asio functions. In other words, they're potentially</span>
+<span class="comment">// copied multiple times. So key data such as the yield_completion instance</span>
+<span class="comment">// must be stored in our async_result&lt;yield_handler&lt;&gt;&gt; specialization, which</span>
+<span class="comment">// should be instantiated only once.</span>
+<span class="keyword">class</span> <span class="identifier">yield_handler_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="identifier">yield_handler_base</span><span class="special">(</span> <span class="identifier">yield_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">:</span>
+        <span class="comment">// capture the context* associated with the running fiber</span>
+        <span class="identifier">ctx_</span><span class="special">{</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()</span> <span class="special">},</span>
+        <span class="comment">// capture the passed yield_t</span>
+        <span class="identifier">yt_</span><span class="special">{</span> <span class="identifier">y</span> <span class="special">}</span> <span class="special">{</span>
+    <span class="special">}</span>
+
+    <span class="comment">// completion callback passing only (error_code)</span>
+    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">BOOST_ASSERT_MSG</span><span class="special">(</span> <span class="identifier">ycomp_</span><span class="special">,</span>
+                          <span class="string">"Must inject yield_completion* "</span>
+                          <span class="string">"before calling yield_handler_base::operator()()"</span><span class="special">);</span>
+        <span class="identifier">BOOST_ASSERT_MSG</span><span class="special">(</span> <span class="identifier">yt_</span><span class="special">.</span><span class="identifier">ec_</span><span class="special">,</span>
+                          <span class="string">"Must inject boost::system::error_code* "</span>
+                          <span class="string">"before calling yield_handler_base::operator()()"</span><span class="special">);</span>
+        <span class="comment">// If originating fiber is busy testing completed_ flag, wait until it</span>
+        <span class="comment">// has observed (! completed_).</span>
+        <span class="identifier">yield_completion</span><span class="special">::</span><span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">{</span> <span class="identifier">ycomp_</span><span class="special">-&gt;</span><span class="identifier">mtx_</span> <span class="special">};</span>
+        <span class="comment">// Notify a subsequent yield_completion::wait() call that it need not</span>
+        <span class="comment">// suspend.</span>
+        <span class="identifier">ycomp_</span><span class="special">-&gt;</span><span class="identifier">completed_</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+        <span class="comment">// set the error_code bound by yield_t</span>
+        <span class="special">*</span> <span class="identifier">yt_</span><span class="special">.</span><span class="identifier">ec_</span> <span class="special">=</span> <span class="identifier">ec</span><span class="special">;</span>
+        <span class="comment">// Are we permitted to wake up the suspended fiber on this thread, the</span>
+        <span class="comment">// thread that called the completion handler?</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">ctx_</span><span class="special">-&gt;</span><span class="identifier">is_context</span><span class="special">(</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">type</span><span class="special">::</span><span class="identifier">pinned_context</span><span class="special">)</span> <span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="identifier">yt_</span><span class="special">.</span><span class="identifier">allow_hop_</span><span class="special">)</span> <span class="special">{</span>
+            <span class="comment">// We must not migrate a pinned_context to another thread. If this</span>
+            <span class="comment">// isn't a pinned_context, and the application passed yield_hop</span>
+            <span class="comment">// rather than yield, migrate this fiber to the running thread.</span>
+            <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">migrate</span><span class="special">(</span> <span class="identifier">ctx_</span><span class="special">);</span>
+        <span class="special">}</span>
+        <span class="comment">// either way, wake the fiber</span>
+        <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">set_ready</span><span class="special">(</span> <span class="identifier">ctx_</span><span class="special">);</span>
+    <span class="special">}</span>
+
+<span class="comment">//private:</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span>      <span class="special">*</span>   <span class="identifier">ctx_</span><span class="special">;</span>
+    <span class="identifier">yield_t</span>                         <span class="identifier">yt_</span><span class="special">;</span>
+    <span class="comment">// We depend on this pointer to yield_completion, which will be injected</span>
+    <span class="comment">// by async_result.</span>
+    <span class="identifier">yield_completion</span>            <span class="special">*</span>   <span class="identifier">ycomp_</span><span class="special">{</span> <span class="keyword">nullptr</span> <span class="special">};</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
-      [fibers_asio_promise_handler_base]
+      <code class="computeroutput"><span class="identifier">yield_handler_base</span></code> stores a
+      copy of the <code class="computeroutput"><span class="identifier">yield_t</span></code> instance
+      &#8212; which, as shown above, is only an <code class="computeroutput"><span class="identifier">error_code</span></code>
+      and a <code class="computeroutput"><span class="keyword">bool</span></code>. It also captures the
+      <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a>* for the currently-running fiber by calling <a class="link" href="scheduling.html#context_active"> <code class="computeroutput">context::active()</code></a>.
     </p>
 <p>
-      As promised, <code class="computeroutput"><span class="identifier">promise_handler_base</span></code>
-      binds a <a class="link" href="synchronization/futures/promise.html#class_promise"> <code class="computeroutput">promise&lt;&gt;</code></a> of appropriate type. (We store a <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span>
-      <span class="identifier">promise</span><span class="special">&lt;</span>
-      <span class="identifier">T</span> <span class="special">&gt;</span>
-      <span class="special">&gt;</span></code> because the <code class="computeroutput"><span class="identifier">promise_handler</span></code>
-      instance is copied on its way into underlying Asio machinery.)
+      You will notice that <code class="computeroutput"><span class="identifier">yield_handler_base</span></code>
+      has one more data member (<code class="computeroutput"><span class="identifier">ycomp_</span></code>)
+      that is initialized to <code class="computeroutput"><span class="keyword">nullptr</span></code>
+      by its constructor &#8212; though its <code class="computeroutput"><span class="keyword">operator</span><span class="special">()()</span></code> method relies on <code class="computeroutput"><span class="identifier">ycomp_</span></code>
+      being non-null. More on this in a moment.
     </p>
 <p>
-      Asio, having consulted the <code class="computeroutput"><span class="identifier">handler_type</span><span class="special">&lt;&gt;</span></code> traits specialization, instantiates
-      a <code class="computeroutput"><span class="identifier">yield_handler</span></code> (aka <code class="computeroutput"><span class="identifier">promise_handler</span></code>) as the async operation's
-      callback:
+      Having constructed the <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code>
+      instance, <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>
+      goes on to construct an <code class="computeroutput"><span class="identifier">async_result</span></code>
+      specialized for the <code class="computeroutput"><span class="identifier">handler_type</span><span class="special">&lt;&gt;::</span><span class="identifier">type</span></code>:
+      in this case, <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;&gt;</span></code>.
+      It passes the <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code>
+      instance to the new <code class="computeroutput"><span class="identifier">async_result</span></code>
+      instance.
     </p>
 <p>
-      [fibers_asio_promise_handler]
+</p>
+<pre class="programlisting"><span class="comment">// Without the need to handle a passed value, our yield_handler&lt;void&gt;</span>
+<span class="comment">// specialization is just like async_result_base.</span>
+<span class="keyword">template</span><span class="special">&lt;&gt;</span>
+<span class="keyword">class</span> <span class="identifier">async_result</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="keyword">void</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">:</span>
+    <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">async_result_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="keyword">typedef</span> <span class="keyword">void</span> <span class="identifier">type</span><span class="special">;</span>
+
+    <span class="keyword">explicit</span> <span class="identifier">async_result</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="keyword">void</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">h</span><span class="special">):</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">async_result_base</span><span class="special">{</span> <span class="identifier">h</span> <span class="special">}</span> <span class="special">{</span>
+    <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
 <p>
-      Like the lambda callback in our <a class="link" href="callbacks.html#Data_or_Exception"><code class="computeroutput"><span class="identifier">read</span><span class="special">(</span><span class="identifier">AsyncAPI</span><span class="special">&amp;)</span></code></a> presented earlier, <code class="computeroutput"><span class="identifier">promise_handler</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()()</span></code>
-      either calls <a class="link" href="synchronization/futures/promise.html#promise_set_value"> <code class="computeroutput">promise::set_value()</code></a> or <a class="link" href="synchronization/futures/promise.html#promise_set_exception"> <code class="computeroutput">promise::set_exception()</code></a> (via
-      <code class="computeroutput"><span class="identifier">promise_handler_base</span><span class="special">::</span><span class="identifier">should_set_value</span><span class="special">()</span></code>).
+      Naturally that leads us straight to <code class="computeroutput"><span class="identifier">async_result_base</span></code>:
     </p>
 <p>
-      The source code above is found in <a href="../../../examples/asio/yield.hpp" target="_top">yield.hpp</a>,
-      <a href="../../../examples/asio/promise_completion_token.hpp" target="_top">promise_completion_token.hpp</a>,
-      <a href="../../../examples/asio/detail/yield.hpp" target="_top">detail/yield.hpp</a>
-      and <a href="../../../examples/asio/detail/promise_handler.hpp" target="_top">detail/promise_handler.hpp</a>.
+</p>
+<pre class="programlisting"><span class="comment">// Factor out commonality between async_result&lt;yield_handler&lt;T&gt;&gt; and</span>
+<span class="comment">// async_result&lt;yield_handler&lt;void&gt;&gt;</span>
+<span class="keyword">class</span> <span class="identifier">async_result_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="keyword">explicit</span> <span class="identifier">async_result_base</span><span class="special">(</span> <span class="identifier">yield_handler_base</span> <span class="special">&amp;</span> <span class="identifier">h</span><span class="special">)</span> <span class="special">{</span>
+        <span class="comment">// Inject ptr to our yield_completion instance into this</span>
+        <span class="comment">// yield_handler&lt;&gt;.</span>
+        <span class="identifier">h</span><span class="special">.</span><span class="identifier">ycomp_</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">ycomp_</span><span class="special">;</span>
+        <span class="comment">// if yield_t didn't bind an error_code, make yield_handler_base's</span>
+        <span class="comment">// error_code* point to an error_code local to this object so</span>
+        <span class="comment">// yield_handler_base::operator() can unconditionally store through</span>
+        <span class="comment">// its error_code*</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">h</span><span class="special">.</span><span class="identifier">yt_</span><span class="special">.</span><span class="identifier">ec_</span><span class="special">)</span> <span class="special">{</span>
+            <span class="identifier">h</span><span class="special">.</span><span class="identifier">yt_</span><span class="special">.</span><span class="identifier">ec_</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">ec_</span><span class="special">;</span>
+        <span class="special">}</span>
+    <span class="special">}</span>
+
+    <span class="keyword">void</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">{</span>
+        <span class="comment">// Unless yield_handler_base::operator() has already been called,</span>
+        <span class="comment">// suspend the calling fiber until that call.</span>
+        <span class="identifier">ycomp_</span><span class="special">.</span><span class="identifier">wait</span><span class="special">();</span>
+        <span class="comment">// The only way our own ec_ member could have a non-default value is</span>
+        <span class="comment">// if our yield_handler did not have a bound error_code AND the</span>
+        <span class="comment">// completion callback passed a non-default error_code.</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ec_</span><span class="special">)</span> <span class="special">{</span>
+            <span class="identifier">throw_exception</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">system_error</span><span class="special">{</span> <span class="identifier">ec_</span> <span class="special">}</span> <span class="special">);</span>
+        <span class="special">}</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">interruption_point</span><span class="special">();</span>
+    <span class="special">}</span>
+
+<span class="keyword">private</span><span class="special">:</span>
+    <span class="comment">// If yield_t does not bind an error_code instance, store into here.</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span>       <span class="identifier">ec_</span><span class="special">{};</span>
+    <span class="comment">// async_result_base owns the yield_completion because, unlike</span>
+    <span class="comment">// yield_handler&lt;&gt;, async_result&lt;&gt; is only instantiated once.</span>
+    <span class="identifier">yield_completion</span>                <span class="identifier">ycomp_</span><span class="special">{};</span>
+<span class="special">};</span>
+</pre>
+<p>
     </p>
+<p>
+      This is how <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="identifier">ycomp_</span></code>
+      becomes non-null: <code class="computeroutput"><span class="identifier">async_result_base</span></code>'s
+      constructor injects a pointer back to its own <code class="computeroutput"><span class="identifier">yield_completion</span></code>
+      member.
+    </p>
+<p>
+      Recall that both of the canonical <code class="computeroutput"><span class="identifier">yield_t</span></code>
+      instances <code class="computeroutput"><span class="identifier">yield</span></code> and <code class="computeroutput"><span class="identifier">yield_hop</span></code> initialize their <code class="computeroutput"><span class="identifier">error_code</span><span class="special">*</span></code>
+      member <code class="computeroutput"><span class="identifier">ec_</span></code> to <code class="computeroutput"><span class="keyword">nullptr</span></code>. If either of these instances is passed
+      to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>
+      (<code class="computeroutput"><span class="identifier">ec_</span></code> is still <code class="computeroutput"><span class="keyword">nullptr</span></code>), the copy stored in <code class="computeroutput"><span class="identifier">yield_handler_base</span></code>
+      will likewise have null <code class="computeroutput"><span class="identifier">ec_</span></code>.
+      <code class="computeroutput"><span class="identifier">async_result_base</span></code>'s constructor
+      sets <code class="computeroutput"><span class="identifier">yield_handler_base</span></code>'s
+      <code class="computeroutput"><span class="identifier">yield_t</span></code>'s <code class="computeroutput"><span class="identifier">ec_</span></code>
+      member to point to its own <code class="computeroutput"><span class="identifier">error_code</span></code>
+      member.
+    </p>
+<p>
+      The stage is now set. <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code> initiates the actual async operation, arranging
+      to call its <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code> instance
+      on completion. Let's say, for the sake of argument, that the actual async operation's
+      callback has signature <code class="computeroutput"><span class="keyword">void</span><span class="special">(</span><span class="identifier">error_code</span><span class="special">)</span></code>.
+    </p>
+<p>
+      But since it's an async operation, control returns at once to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>.
+      <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>
+      calls <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;&gt;::</span><span class="identifier">get</span><span class="special">()</span></code>, and
+      will return its return value.
+    </p>
+<p>
+      <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;&gt;::</span><span class="identifier">get</span><span class="special">()</span></code> inherits
+      <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code>.
+    </p>
+<p>
+      <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code> immediately
+      calls <code class="computeroutput"><span class="identifier">yield_completion</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>.
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// Bundle a completion bool flag with a spinlock to protect it.</span>
+<span class="keyword">struct</span> <span class="identifier">yield_completion</span> <span class="special">{</span>
+    <span class="keyword">typedef</span> <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">spinlock</span>    <span class="identifier">mutex_t</span><span class="special">;</span>
+    <span class="keyword">typedef</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span><span class="special">&lt;</span> <span class="identifier">mutex_t</span> <span class="special">&gt;</span> <span class="identifier">lock_t</span><span class="special">;</span>
+
+    <span class="identifier">mutex_t</span> <span class="identifier">mtx_</span><span class="special">{};</span>
+    <span class="keyword">bool</span>    <span class="identifier">completed_</span><span class="special">{</span> <span class="keyword">false</span> <span class="special">};</span>
+
+    <span class="keyword">void</span> <span class="identifier">wait</span><span class="special">()</span> <span class="special">{</span>
+        <span class="comment">// yield_handler_base::operator()() will set completed_ true and</span>
+        <span class="comment">// attempt to wake a suspended fiber. It would be Bad if that call</span>
+        <span class="comment">// happened between our detecting (! completed_) and suspending.</span>
+        <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">{</span> <span class="identifier">mtx_</span> <span class="special">};</span>
+        <span class="comment">// If completed_ is already set, we're done here: don't suspend.</span>
+        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">completed_</span><span class="special">)</span> <span class="special">{</span>
+            <span class="comment">// suspend(unique_lock&lt;spinlock&gt;) unlocks the lock in the act of</span>
+            <span class="comment">// resuming another fiber</span>
+            <span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">suspend</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">);</span>
+        <span class="special">}</span>
+    <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      Supposing that the pending async operation has not yet completed, <code class="computeroutput"><span class="identifier">yield_completion</span><span class="special">::</span><span class="identifier">completed_</span></code> will still be <code class="computeroutput"><span class="keyword">false</span></code>,
+      and <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>
+      will call <a class="link" href="scheduling.html#context_suspend"> <code class="computeroutput">context::suspend()</code></a> on the currently-running fiber.
+    </p>
+<p>
+      Other fibers will now have a chance to run.
+    </p>
+<p>
+      Some time later, the async operation completes. It calls <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;::</span><span class="keyword">operator</span><span class="special">()(</span><span class="identifier">error_code</span> <span class="keyword">const</span><span class="special">&amp;)</span></code> with an <code class="computeroutput"><span class="identifier">error_code</span></code>
+      indicating either success or failure. We'll consider both cases.
+    </p>
+<p>
+      <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code> explicitly
+      inherits <code class="computeroutput"><span class="keyword">operator</span><span class="special">()(</span><span class="identifier">error_code</span> <span class="keyword">const</span><span class="special">&amp;)</span></code> from <code class="computeroutput"><span class="identifier">yield_handler_base</span></code>.
+    </p>
+<p>
+      <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()(</span><span class="identifier">error_code</span> <span class="keyword">const</span><span class="special">&amp;)</span></code> first sets <code class="computeroutput"><span class="identifier">yield_completion</span><span class="special">::</span><span class="identifier">completed_</span></code>
+      <code class="computeroutput"><span class="keyword">true</span></code>. This way, if <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>'s
+      async operation completes immediately &#8212; if <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code>
+      is called even before <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code>
+      &#8212; the calling fiber will <span class="emphasis"><em>not</em></span> suspend.
+    </p>
+<p>
+      The actual <code class="computeroutput"><span class="identifier">error_code</span></code> produced
+      by the async operation is then stored through the stored <code class="computeroutput"><span class="identifier">yield_t</span><span class="special">::</span><span class="identifier">ec_</span></code> pointer.
+      If <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>'s
+      caller used (e.g.) <code class="computeroutput"><span class="identifier">yield</span><span class="special">[</span><span class="identifier">my_ec</span><span class="special">]</span></code> to
+      bind a local <code class="computeroutput"><span class="identifier">error_code</span></code> instance,
+      the actual <code class="computeroutput"><span class="identifier">error_code</span></code> value
+      is stored into the caller's variable. Otherwise, it is stored into <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">ec_</span></code>.
+    </p>
+<p>
+      Finally we get to the distinction between <code class="computeroutput"><span class="identifier">yield</span></code>
+      and <code class="computeroutput"><span class="identifier">yield_hop</span></code>.
+    </p>
+<p>
+      As described for <a class="link" href="scheduling.html#context_is_context"> <code class="computeroutput">context::is_context()</code></a>, a <code class="computeroutput"><span class="identifier">pinned_context</span></code>
+      fiber is special to the library and must never be passed to <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a>.
+      We must detect and avoid that case here.
+    </p>
+<p>
+      The <code class="computeroutput"><span class="identifier">yield_t</span><span class="special">::</span><span class="identifier">allow_hop_</span></code> <code class="computeroutput"><span class="keyword">bool</span></code>
+      indicates whether <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>'s caller is willing to allow the running
+      fiber to <span class="quote">&#8220;<span class="quote">hop</span>&#8221;</span> to another thread (<code class="computeroutput"><span class="identifier">yield_hop</span></code>)
+      or whether s/he insists that the fiber resume on the same thread (<code class="computeroutput"><span class="identifier">yield</span></code>).
+    </p>
+<p>
+      If the caller passed <code class="computeroutput"><span class="identifier">yield_hop</span></code>
+      to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>,
+      and the running fiber isn't a <code class="computeroutput"><span class="identifier">pinned_context</span></code>,
+      <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code> passes
+      the <code class="computeroutput"><span class="identifier">context</span></code> of the original
+      fiber &#8212; the one on which <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code> was called, captured in <code class="computeroutput"><span class="identifier">yield_handler_base</span></code>'s
+      constructor &#8212; to the current thread's <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a>.
+    </p>
+<p>
+      If the running application has more than one thread calling <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html" target="_top"><code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">run</span><span class="special">()</span></code></a>,
+      that fiber could return from <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code> on a different thread (the one calling <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code>)
+      than the one on which it entered <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>.
+    </p>
+<p>
+      In any case, the fiber is marked as ready to run by passing it to <a class="link" href="scheduling.html#context_set_ready"> <code class="computeroutput">context::set_ready()</code></a>.
+      Control then returns from <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code>:
+      the callback is done.
+    </p>
+<p>
+      In due course, the fiber <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="identifier">ctx_</span></code> is
+      resumed. Control returns from <a class="link" href="scheduling.html#context_suspend"> <code class="computeroutput">context::suspend()</code></a> to <code class="computeroutput"><span class="identifier">yield_completion</span><span class="special">::</span><span class="identifier">wait</span><span class="special">()</span></code>, which
+      returns to <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code>.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+          If the original caller passed <code class="computeroutput"><span class="identifier">yield</span><span class="special">[</span><span class="identifier">my_ec</span><span class="special">]</span></code> to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code> to bind a local <code class="computeroutput"><span class="identifier">error_code</span></code>
+          instance, then <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code> stored its <code class="computeroutput"><span class="identifier">error_code</span></code>
+          to the caller's <code class="computeroutput"><span class="identifier">my_ec</span></code> instance,
+          leaving <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">ec_</span></code>
+          initialized to success.
+        </li>
+<li class="listitem">
+          If the original caller passed <code class="computeroutput"><span class="identifier">yield</span></code>
+          to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>
+          without binding a local <code class="computeroutput"><span class="identifier">error_code</span></code>
+          variable, then <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code> stored its <code class="computeroutput"><span class="identifier">error_code</span></code>
+          into <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">ec_</span></code>.
+          If in fact that <code class="computeroutput"><span class="identifier">error_code</span></code>
+          is success, then all is well.
+        </li>
+<li class="listitem">
+          Otherwise &#8212; the original caller did not bind a local <code class="computeroutput"><span class="identifier">error_code</span></code>
+          and <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code> was called with an <code class="computeroutput"><span class="identifier">error_code</span></code>
+          indicating error &#8212; <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code> throws <code class="computeroutput"><span class="identifier">system_error</span></code>
+          with that <code class="computeroutput"><span class="identifier">error_code</span></code>.
+        </li>
+</ul></div>
+<p>
+      The case in which <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>'s completion callback has signature <code class="computeroutput"><span class="keyword">void</span><span class="special">()</span></code> is similar.
+      <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;::</span><span class="keyword">operator</span><span class="special">()()</span></code> invokes the machinery above with a <span class="quote">&#8220;<span class="quote">success</span>&#8221;</span>
+      <code class="computeroutput"><span class="identifier">error_code</span></code>.
+    </p>
+<p>
+      A completion callback with signature <code class="computeroutput"><span class="keyword">void</span><span class="special">(</span><span class="identifier">error_code</span><span class="special">,</span> <span class="identifier">T</span><span class="special">)</span></code>
+      (that is: in addition to <code class="computeroutput"><span class="identifier">error_code</span></code>,
+      callback receives some data item) is handled somewhat differently. For this
+      kind of signature, <code class="computeroutput"><span class="identifier">handler_type</span><span class="special">&lt;&gt;::</span><span class="identifier">type</span></code>
+      specifies <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> (for
+      <code class="computeroutput"><span class="identifier">T</span></code> other than <code class="computeroutput"><span class="keyword">void</span></code>).
+    </p>
+<p>
+      A <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> reserves
+      a <code class="computeroutput"><span class="identifier">value_</span></code> pointer to a value
+      of type <code class="computeroutput"><span class="identifier">T</span></code>:
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// asio uses handler_type&lt;completion token type, signature&gt;::type to decide</span>
+<span class="comment">// what to instantiate as the actual handler. Below, we specialize</span>
+<span class="comment">// handler_type&lt; yield_t, ... &gt; to indicate yield_handler&lt;&gt;. So when you pass</span>
+<span class="comment">// an instance of yield_t as an asio completion token, asio selects</span>
+<span class="comment">// yield_handler&lt;&gt; as the actual handler class.</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">yield_handler</span><span class="special">:</span> <span class="keyword">public</span> <span class="identifier">yield_handler_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="comment">// asio passes the completion token to the handler constructor</span>
+    <span class="keyword">explicit</span> <span class="identifier">yield_handler</span><span class="special">(</span> <span class="identifier">yield_t</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">:</span>
+        <span class="identifier">yield_handler_base</span><span class="special">{</span> <span class="identifier">y</span> <span class="special">}</span> <span class="special">{</span>
+    <span class="special">}</span>
+
+    <span class="comment">// completion callback passing only value (T)</span>
+    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span> <span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+        <span class="comment">// just like callback passing success error_code</span>
+        <span class="special">(*</span><span class="keyword">this</span><span class="special">)(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">(),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">t</span><span class="special">)</span> <span class="special">);</span>
+    <span class="special">}</span>
+
+    <span class="comment">// completion callback passing (error_code, T)</span>
+    <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">,</span> <span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">BOOST_ASSERT_MSG</span><span class="special">(</span> <span class="identifier">value_</span><span class="special">,</span>
+                          <span class="string">"Must inject value ptr "</span>
+                          <span class="string">"before caling yield_handler&lt;T&gt;::operator()()"</span><span class="special">);</span>
+        <span class="comment">// move the value to async_result&lt;&gt; instance BEFORE waking up a</span>
+        <span class="comment">// suspended fiber</span>
+        <span class="special">*</span> <span class="identifier">value_</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span> <span class="identifier">t</span><span class="special">);</span>
+        <span class="comment">// forward the call to base-class completion handler</span>
+        <span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()(</span> <span class="identifier">ec</span><span class="special">);</span>
+    <span class="special">}</span>
+
+<span class="comment">//private:</span>
+    <span class="comment">// pointer to destination for eventual value</span>
+    <span class="comment">// this must be injected by async_result before operator()() is called</span>
+    <span class="identifier">T</span>                           <span class="special">*</span>   <span class="identifier">value_</span><span class="special">{</span> <span class="keyword">nullptr</span> <span class="special">};</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      This pointer is initialized to <code class="computeroutput"><span class="keyword">nullptr</span></code>.
+    </p>
+<p>
+      When <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>
+      instantiates <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>:
+    </p>
+<p>
+</p>
+<pre class="programlisting"><span class="comment">// asio constructs an async_result&lt;&gt; instance from the yield_handler specified</span>
+<span class="comment">// by handler_type&lt;&gt;::type. A particular asio async method constructs the</span>
+<span class="comment">// yield_handler, constructs this async_result specialization from it, then</span>
+<span class="comment">// returns the result of calling its get() method.</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">async_result</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">:</span>
+    <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">async_result_base</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+    <span class="comment">// type returned by get()</span>
+    <span class="keyword">typedef</span> <span class="identifier">T</span> <span class="identifier">type</span><span class="special">;</span>
+
+    <span class="keyword">explicit</span> <span class="identifier">async_result</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">yield_handler</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">h</span><span class="special">)</span> <span class="special">:</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">async_result_base</span><span class="special">{</span> <span class="identifier">h</span> <span class="special">}</span> <span class="special">{</span>
+        <span class="comment">// Inject ptr to our value_ member into yield_handler&lt;&gt;: result will</span>
+        <span class="comment">// be stored here.</span>
+        <span class="identifier">h</span><span class="special">.</span><span class="identifier">value_</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">value_</span><span class="special">;</span>
+    <span class="special">}</span>
+
+    <span class="comment">// asio async method returns result of calling get()</span>
+    <span class="identifier">type</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">{</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">();</span>
+        <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span> <span class="identifier">value_</span><span class="special">);</span>
+    <span class="special">}</span>
+
+<span class="keyword">private</span><span class="special">:</span>
+    <span class="identifier">type</span>                            <span class="identifier">value_</span><span class="special">{};</span>
+<span class="special">};</span>
+</pre>
+<p>
+    </p>
+<p>
+      this <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;&gt;</span></code>
+      specialization reserves a member of type <code class="computeroutput"><span class="identifier">T</span></code>
+      to receive the passed data item, and sets <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value_</span></code> to point to its own data member.
+    </p>
+<p>
+      <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>
+      overrides <code class="computeroutput"><span class="identifier">get</span><span class="special">()</span></code>.
+      The override calls <code class="computeroutput"><span class="identifier">async_result_base</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code>,
+      so the calling fiber suspends as described above.
+    </p>
+<p>
+      <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="keyword">operator</span><span class="special">()(</span><span class="identifier">error_code</span><span class="special">,</span> <span class="identifier">T</span><span class="special">)</span></code>
+      stores its passed <code class="computeroutput"><span class="identifier">T</span></code> value into
+      <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value_</span></code>.
+    </p>
+<p>
+      Then it passes control to <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()(</span><span class="identifier">error_code</span><span class="special">)</span></code>
+      to deal with waking (and possibly migrating) the original fiber as described
+      above.
+    </p>
+<p>
+      When <code class="computeroutput"><span class="identifier">async_result</span><span class="special">&lt;</span><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">get</span><span class="special">()</span></code> resumes,
+      it returns the stored <code class="computeroutput"><span class="identifier">value_</span></code>
+      to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>
+      and ultimately to <code class="computeroutput"><span class="identifier">async_something</span><span class="special">()</span></code>'s caller.
+    </p>
+<p>
+      The case of a callback signature <code class="computeroutput"><span class="keyword">void</span><span class="special">(</span><span class="identifier">T</span><span class="special">)</span></code>
+      is handled by having <code class="computeroutput"><span class="identifier">yield_handler</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="keyword">operator</span><span class="special">()(</span><span class="identifier">T</span><span class="special">)</span></code> engage
+      the <code class="computeroutput"><span class="keyword">void</span><span class="special">(</span><span class="identifier">error_code</span><span class="special">,</span> <span class="identifier">T</span><span class="special">)</span></code> machinery,
+      passing a <span class="quote">&#8220;<span class="quote">success</span>&#8221;</span> <code class="computeroutput"><span class="identifier">error_code</span></code>.
+    </p>
+<p>
+      The source code above is found in <a href="../../../examples/asio/yield.hpp" target="_top">yield.hpp</a>
+      and <a href="../../../examples/asio/detail/yield.hpp" target="_top">detail/yield.hpp</a>.
+    </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.callbacks.f0" href="#fiber.callbacks.f0" class="para">5</a>] </sup>
+        This mechanism has been proposed as a conventional way to allow the caller
+        of an async function to specify completion handling: <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4045.pdf" target="_top">N4045</a>.
+      </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.callbacks.f1" href="#fiber.callbacks.f1" class="para">6</a>] </sup>
+        per <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4045.pdf" target="_top">N4045</a>
+      </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/04 18:14:46 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/03/28 16:12:31 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -3203,11 +3203,11 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">enum</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">type</phrase> <phrase role="special">{</phrase>
-  <phrase role="identifier">none</phrase>               <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">,</phrase>
-  <phrase role="identifier">main_context</phrase>       <phrase role="special">=</phrase> <phrase role="number">1</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="number">1</phrase><phrase role="special">,</phrase>  <phrase role="comment">// fiber, associated with thread's stack</phrase>
-  <phrase role="identifier">dispatcher_context</phrase> <phrase role="special">=</phrase> <phrase role="number">1</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="number">2</phrase><phrase role="special">,</phrase>  <phrase role="comment">// special fiber for maintanance operations</phrase>
-  <phrase role="identifier">worker_context</phrase>     <phrase role="special">=</phrase> <phrase role="number">1</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="number">3</phrase><phrase role="special">,</phrase>  <phrase role="comment">// fiber not special to the library</phrase>
-  <phrase role="identifier">pinned_context</phrase>     <phrase role="special">=</phrase> <phrase role="identifier">main_context</phrase> <phrase role="special">|</phrase> <phrase role="identifier">dispatcher_context</phrase>  <phrase role="comment">// context of fiber must not be migrated to another thread</phrase>
+  <phrase role="identifier">none</phrase><phrase role="special">,</phrase>
+  <phrase role="identifier">main_context</phrase><phrase role="special">,</phrase>       <phrase role="comment">// fiber associated with thread's stack</phrase>
+  <phrase role="identifier">dispatcher_context</phrase><phrase role="special">,</phrase> <phrase role="comment">// special fiber for maintenance operations</phrase>
+  <phrase role="identifier">worker_context</phrase><phrase role="special">,</phrase>     <phrase role="comment">// fiber not special to the library</phrase>
+  <phrase role="identifier">pinned_context</phrase>      <phrase role="comment">// fiber must not be migrated to another thread</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">context</phrase> <phrase role="special">{</phrase>
@@ -3241,6 +3241,9 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
     <phrase role="keyword">void</phrase> <phrase role="identifier">ready_unlink</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">remote_ready_unlink</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">wait_unlink</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">void</phrase> <phrase role="identifier">suspend</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">set_ready</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -3357,7 +3360,7 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <listitem>
           <para>
             <code><phrase role="keyword">true</phrase></code> if <code><phrase role="special">*</phrase><phrase
-            role="keyword">this</phrase></code> is of the specific type.
+            role="keyword">this</phrase></code> is of the specified type.
           </para>
         </listitem>
       </varlistentry>
@@ -3373,29 +3376,29 @@ by calling the <link linkend="fiber_get_id"> <code>fiber::get_id()</code></link>
         <term>Note:</term>
         <listitem>
           <para>
-            For <code><phrase role="identifier">type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">main_context</phrase></code> the <code><phrase role="identifier">context</phrase></code>
-            is associated with the <quote>main</quote> fiber of the thread: the one
-            implicitly created by the thread itself, rather than one explicitly created
-            by <emphasis role="bold">Boost.Fiber</emphasis>. For <code><phrase role="identifier">type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">disaptcher_context</phrase></code>
+            <code><phrase role="identifier">type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">worker_context</phrase></code> here means any fiber
+            not special to the library. For <code><phrase role="identifier">type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">main_context</phrase></code>
+            the <code><phrase role="identifier">context</phrase></code> is associated
+            with the <quote>main</quote> fiber of the thread: the one implicitly
+            created by the thread itself, rather than one explicitly created by
+            <emphasis role="bold">Boost.Fiber</emphasis>. For <code><phrase role="identifier">type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">dispatcher_context</phrase></code>
             the <code><phrase role="identifier">context</phrase></code> is associated
             with a <quote>dispatching</quote> fiber, responsible for dispatching
             awakened fibers to a scheduler's ready-queue. The <quote>dispatching</quote>
             fiber is an implementation detail of the fiber manager. The context of
-            <quote>main</quote> and <quote>dispatching</quote> fiber must never be
-            passed to <link linkend="context_migrate"> <code>context::migrate()</code></link> for any other thread. true<code>
-            <phrase role="keyword">if</phrase> </code>*this` is a worker context,
-            that is, a context associated with a fiber explicitly launched by the
-            application rather than implicitly.
+            the <quote>main</quote> or <quote>dispatching</quote> fiber &mdash; any fiber
+            for which <code><phrase role="identifier">is_context</phrase><phrase
+            role="special">(</phrase><phrase role="identifier">pinned_context</phrase><phrase
+            role="special">)</phrase></code> is <code><phrase role="keyword">true</phrase></code>
+            &mdash; must never be passed to <link linkend="context_migrate"> <code>context::migrate()</code></link> for any other
+            thread.
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
-    <para>
-      [[Note:] [The term <quote>worker</quote> here means any fiber not special to
-      the library.]] ]
-    </para>
     <para>
       <bridgehead renderas="sect4" id="context_is_terminated_bridgehead">
   <phrase id="context_is_terminated"/>
@@ -3773,6 +3776,124 @@ implementation's
       </varlistentry>
     </variablelist>
     <para>
+      <bridgehead renderas="sect4" id="context_suspend_bridgehead">
+  <phrase id="context_suspend"/>
+  <link linkend="context_suspend">Member function <code>suspend</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">suspend</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Suspends the running fiber (the fiber associated with <code><phrase role="special">*</phrase><phrase
+            role="keyword">this</phrase></code>) until some other fiber passes <code><phrase
+            role="keyword">this</phrase></code> to <link linkend="context_set_ready"> <code>context::set_ready()</code></link>.
+            <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+            is marked as not-ready, and control passes to the scheduler to select
+            another fiber to run.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            This is a low-level API potentially useful for integration with other
+            frameworks. It is not intended to be directly invoked by a typical application
+            program.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            The burden is on the caller to arrange for a call to <code><phrase role="identifier">set_ready</phrase><phrase
+            role="special">()</phrase></code> with a pointer to <code><phrase role="keyword">this</phrase></code>
+            at some future time.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="context_set_ready_bridgehead">
+  <phrase id="context_set_ready"/>
+  <link linkend="context_set_ready">Member function
+      <code>set_ready</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">set_ready</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase> <phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Mark the fiber associated with context <code><phrase role="special">*</phrase><phrase
+            role="identifier">ctx</phrase></code> as being ready to run. This does
+            not immediately resume that fiber; rather it passes the fiber to the
+            scheduler for subsequent resumption. If the scheduler is idle (has not
+            returned from a call to <link linkend="sched_algorithm_suspend_until"> <code>sched_algorithm::suspend_until()</code></link>),
+            <link linkend="sched_algorithm_notify"> <code>sched_algorithm::notify()</code></link> is called to wake it up.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            This is a low-level API potentially useful for integration with other
+            frameworks. It is not intended to be directly invoked by a typical application
+            program.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            It is explicitly supported to call <code><phrase role="identifier">set_ready</phrase><phrase
+            role="special">(</phrase><phrase role="identifier">ctx</phrase><phrase
+            role="special">)</phrase></code> from a thread other than the one on
+            which <code><phrase role="special">*</phrase><phrase role="identifier">ctx</phrase></code>
+            is currently suspended. The corresponding fiber will be resumed on its
+            original thread in due course.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            See <link linkend="context_migrate"> <code>context::migrate()</code></link> for a way to migrate the suspended
+            thread to the thread calling <code><phrase role="identifier">set_ready</phrase><phrase
+            role="special">()</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
       <bridgehead renderas="sect4" id="context_less_bridgehead">
   <phrase id="context_less"/>
   <link linkend="context_less">Non-member function <code>operator&lt;()</code></link>
@@ -3939,7 +4060,10 @@ implementation's
     </note>
     <para>
       See also <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack.html">Boost.Context
-      stack allocation</ulink>.
+      stack allocation</ulink>. In particular, <code><phrase role="identifier">traits_type</phrase></code>
+      methods are as described for <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/stack/stack_traits.html"><code><phrase
+      role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">stack_traits</phrase></code></ulink>.
     </para>
     <para>
       <bridgehead renderas="sect4" id="class_protected_fixedsize_stack_bridgehead">
@@ -3994,17 +4118,15 @@ implementation's
         <listitem>
           <para>
             <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">minimum</phrase><phrase role="special">:</phrase><phrase
-            role="identifier">size</phrase><phrase role="special">()</phrase> <phrase
-            role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
-            and <code><phrase role="special">!</phrase> <phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
-            role="special">()</phrase> <phrase role="special">&amp;&amp;</phrase>
-            <phrase role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">maximum</phrase><phrase
-            role="special">:</phrase><phrase role="identifier">size</phrase><phrase
-            role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
-            role="identifier">size</phrase><phrase role="special">)</phrase></code>.
+            role="identifier">minimum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
+            and <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+            <phrase role="special">||</phrase> <phrase role="special">(</phrase>
+            <phrase role="identifier">size</phrase> <phrase role="special">&lt;=</phrase>
+            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">)</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -4013,7 +4135,7 @@ implementation's
         <listitem>
           <para>
             Allocates memory of at least <code><phrase role="identifier">size</phrase></code>
-            Bytes and stores a pointer to the stack and its actual size in <code><phrase
+            bytes and stores a pointer to the stack and its actual size in <code><phrase
             role="identifier">sctx</phrase></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
             address of the stack.
@@ -4037,20 +4159,17 @@ implementation's
           <para>
             <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
             role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">minimum</phrase><phrase
-            role="special">:</phrase><phrase role="identifier">size</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">minimum_size</phrase><phrase
             role="special">()</phrase> <phrase role="special">&lt;=</phrase> <phrase
             role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-            role="identifier">size</phrase></code> and <code><phrase role="special">!</phrase>
-            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
-            <phrase role="special">&amp;&amp;</phrase> <phrase role="special">(</phrase>
-            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">maximum</phrase><phrase role="special">:</phrase><phrase
-            role="identifier">size</phrase><phrase role="special">()</phrase> <phrase
-            role="special">&gt;=</phrase> <phrase role="identifier">sctx</phrase><phrase
-            role="special">.</phrase><phrase role="identifier">size</phrase><phrase
-            role="special">)</phrase></code>.
+            role="identifier">size</phrase></code> and <code><phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
+            role="special">()</phrase> <phrase role="special">||</phrase> <phrase
+            role="special">(</phrase> <phrase role="identifier">sctx</phrase><phrase
+            role="special">.</phrase><phrase role="identifier">size</phrase> <phrase
+            role="special">&lt;=</phrase> <phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">maximum_size</phrase><phrase
+            role="special">()</phrase> <phrase role="special">)</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -4107,16 +4226,14 @@ implementation's
         <term>Preconditions:</term>
         <listitem>
           <para>
-            <code><phrase role="special">!</phrase> <phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
-            role="special">()</phrase> <phrase role="special">&amp;&amp;</phrase>
-            <phrase role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">maximum</phrase><phrase
-            role="special">:</phrase><phrase role="identifier">size</phrase><phrase
-            role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
-            role="identifier">stack_size</phrase><phrase role="special">)</phrase></code>
-            and <code><phrase role="number">0</phrase> <phrase role="special">&lt;</phrase>
-            <phrase role="identifier">nest_size</phrase></code>.
+            <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+            <phrase role="special">||</phrase> <phrase role="special">(</phrase>
+            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&gt;=</phrase> <phrase role="identifier">stack_size</phrase><phrase
+            role="special">)</phrase></code> and <code><phrase role="number">0</phrase>
+            <phrase role="special">&lt;</phrase> <phrase role="identifier">next_size</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -4125,15 +4242,15 @@ implementation's
         <listitem>
           <para>
             Allocates memory of at least <code><phrase role="identifier">stack_size</phrase></code>
-            Bytes and stores a pointer to the stack and its actual size in <code><phrase
+            bytes and stores a pointer to the stack and its actual size in <code><phrase
             role="identifier">sctx</phrase></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
             address of the stack. Argument <code><phrase role="identifier">next_size</phrase></code>
             determines the number of stacks to request from the system the first
             time that <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
             needs to allocate system memory. The third argument <code><phrase role="identifier">max_size</phrase></code>
-            controls how many memory might be allocated for stacks - a value of zero
-            means no uper limit.
+            controls how much memory might be allocated for stacks &mdash; a value of zero
+            means no upper limit.
           </para>
         </listitem>
       </varlistentry>
@@ -4143,14 +4260,35 @@ implementation's
       role="identifier">stack_context</phrase> <phrase role="identifier">allocate</phrase><phrase
       role="special">()</phrase></code></link>
     </bridgehead>
-    <para>
-      [variablelis_stackt [[Preconditions:] <code>! traits_type::is_unbounded() &amp;&amp;
-      ( traits_type::maximum:size() &gt;= stack_size)`.</code>] [[Effects:] [Allocates memory
-      of at least <code><phrase role="identifier">stack_size</phrase></code> Bytes
-      and stores a pointer to the stack and its actual size in <code><phrase role="identifier">sctx</phrase></code>.
-      Depending on the architecture (the stack grows downwards/upwards) the stored
-      address is the highest/lowest address of the stack.]] ]
-    </para>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Preconditions:</term>
+        <listitem>
+          <para>
+            <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+            <phrase role="special">||</phrase> <phrase role="special">(</phrase>
+            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&gt;=</phrase> <phrase role="identifier">stack_size</phrase><phrase
+            role="special">)</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Allocates memory of at least <code><phrase role="identifier">stack_size</phrase></code>
+            bytes and stores a pointer to the stack and its actual size in <code><phrase
+            role="identifier">sctx</phrase></code>. Depending on the architecture
+            (the stack grows downwards/upwards) the stored address is the highest/lowest
+            address of the stack.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
     <bridgehead renderas="sect3" id="fiber.stack.h5">
       <phrase id="fiber.stack.code_phrase_role_keyword_void_p0"/><link linkend="fiber.stack.code_phrase_role_keyword_void_p0"><code><phrase
       role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase
@@ -4165,16 +4303,14 @@ implementation's
         <listitem>
           <para>
             <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-            role="identifier">sp</phrase></code> is valid, <code><phrase role="special">!</phrase>
-            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
-            <phrase role="special">&amp;&amp;</phrase> <phrase role="special">(</phrase>
-            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">maximum</phrase><phrase role="special">:</phrase><phrase
-            role="identifier">size</phrase><phrase role="special">()</phrase> <phrase
-            role="special">&gt;=</phrase> <phrase role="identifier">sctx</phrase><phrase
-            role="special">.</phrase><phrase role="identifier">size</phrase><phrase
-            role="special">)</phrase></code>.
+            role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
+            role="special">()</phrase> <phrase role="special">||</phrase> <phrase
+            role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">maximum_size</phrase><phrase
+            role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
+            role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+            role="identifier">size</phrase><phrase role="special">)</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -4188,7 +4324,8 @@ implementation's
       </varlistentry>
     </variablelist>
     <section id="fiber.stack.fixedsize">
-      <title><link linkend="fiber.stack.fixedsize">Class <emphasis>fixedsize_stack</emphasis></link></title>
+      <title><anchor id="class_fixedsize_stack"/><link linkend="fiber.stack.fixedsize">Class
+      <emphasis>fixedsize_stack</emphasis></link></title>
       <para>
         <emphasis role="bold">Boost.Fiber</emphasis> provides the class __fixedsize__
         which models the <link linkend="stack_allocator_concept"><emphasis>stack-allocator
@@ -4222,17 +4359,15 @@ implementation's
           <listitem>
             <para>
               <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">minimum</phrase><phrase role="special">:</phrase><phrase
-              role="identifier">size</phrase><phrase role="special">()</phrase>
+              role="identifier">minimum_size</phrase><phrase role="special">()</phrase>
               <phrase role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
-              and <code><phrase role="special">!</phrase> <phrase role="identifier">traits_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
-              role="special">()</phrase> <phrase role="special">&amp;&amp;</phrase>
-              <phrase role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">maximum</phrase><phrase
-              role="special">:</phrase><phrase role="identifier">size</phrase><phrase
-              role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
-              role="identifier">size</phrase><phrase role="special">)</phrase></code>.
+              and <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+              <phrase role="special">||</phrase> <phrase role="special">(</phrase>
+              <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+              role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
+              <phrase role="special">&gt;=</phrase> <phrase role="identifier">size</phrase><phrase
+              role="special">)</phrase></code>.
             </para>
           </listitem>
         </varlistentry>
@@ -4241,7 +4376,7 @@ implementation's
           <listitem>
             <para>
               Allocates memory of at least <code><phrase role="identifier">size</phrase></code>
-              Bytes and stores a pointer to the stack and its actual size in <code><phrase
+              bytes and stores a pointer to the stack and its actual size in <code><phrase
               role="identifier">sctx</phrase></code>. Depending on the architecture
               (the stack grows downwards/upwards) the stored address is the highest/lowest
               address of the stack.
@@ -4265,20 +4400,17 @@ implementation's
             <para>
               <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
               role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
-              role="special">::</phrase><phrase role="identifier">minimum</phrase><phrase
-              role="special">:</phrase><phrase role="identifier">size</phrase><phrase
+              role="special">::</phrase><phrase role="identifier">minimum_size</phrase><phrase
               role="special">()</phrase> <phrase role="special">&lt;=</phrase> <phrase
               role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-              role="identifier">size</phrase></code> and <code><phrase role="special">!</phrase>
-              <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
-              <phrase role="special">&amp;&amp;</phrase> <phrase role="special">(</phrase>
-              <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-              role="identifier">maximum</phrase><phrase role="special">:</phrase><phrase
-              role="identifier">size</phrase><phrase role="special">()</phrase>
-              <phrase role="special">&gt;=</phrase> <phrase role="identifier">sctx</phrase><phrase
-              role="special">.</phrase><phrase role="identifier">size</phrase><phrase
-              role="special">)</phrase></code>.
+              role="identifier">size</phrase></code> and <code><phrase role="identifier">traits_type</phrase><phrase
+              role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
+              role="special">()</phrase> <phrase role="special">||</phrase> <phrase
+              role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
+              role="special">::</phrase><phrase role="identifier">maximum_size</phrase><phrase
+              role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
+              role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+              role="identifier">size</phrase><phrase role="special">)</phrase></code>.
             </para>
           </listitem>
         </varlistentry>
@@ -4341,17 +4473,15 @@ implementation's
         <listitem>
           <para>
             <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">minimum</phrase><phrase role="special">:</phrase><phrase
-            role="identifier">size</phrase><phrase role="special">()</phrase> <phrase
-            role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
-            and <code><phrase role="special">!</phrase> <phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
-            role="special">()</phrase> <phrase role="special">&amp;&amp;</phrase>
-            <phrase role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">maximum</phrase><phrase
-            role="special">:</phrase><phrase role="identifier">size</phrase><phrase
-            role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
-            role="identifier">size</phrase><phrase role="special">)</phrase></code>.
+            role="identifier">minimum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&lt;=</phrase> <phrase role="identifier">size</phrase></code>
+            and <code><phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
+            <phrase role="special">||</phrase> <phrase role="special">(</phrase>
+            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">maximum_size</phrase><phrase role="special">()</phrase>
+            <phrase role="special">&gt;=</phrase> <phrase role="identifier">size</phrase><phrase
+            role="special">)</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -4360,7 +4490,7 @@ implementation's
         <listitem>
           <para>
             Allocates memory of at least <code><phrase role="identifier">size</phrase></code>
-            Bytes and stores a pointer to the stack and its actual size in <code><phrase
+            bytes and stores a pointer to the stack and its actual size in <code><phrase
             role="identifier">sctx</phrase></code>. Depending on the architecture
             (the stack grows downwards/upwards) the stored address is the highest/lowest
             address of the stack.
@@ -4383,20 +4513,17 @@ implementation's
           <para>
             <code><phrase role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
             role="identifier">sp</phrase></code> is valid, <code><phrase role="identifier">traits_type</phrase><phrase
-            role="special">::</phrase><phrase role="identifier">minimum</phrase><phrase
-            role="special">:</phrase><phrase role="identifier">size</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">minimum_size</phrase><phrase
             role="special">()</phrase> <phrase role="special">&lt;=</phrase> <phrase
             role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
-            role="identifier">size</phrase></code> and <code><phrase role="special">!</phrase>
-            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">is_unbounded</phrase><phrase role="special">()</phrase>
-            <phrase role="special">&amp;&amp;</phrase> <phrase role="special">(</phrase>
-            <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase
-            role="identifier">maximum</phrase><phrase role="special">:</phrase><phrase
-            role="identifier">size</phrase><phrase role="special">()</phrase> <phrase
-            role="special">&gt;=</phrase> <phrase role="identifier">sctx</phrase><phrase
-            role="special">.</phrase><phrase role="identifier">size</phrase><phrase
-            role="special">)</phrase></code>.
+            role="identifier">size</phrase></code> and <code><phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">is_unbounded</phrase><phrase
+            role="special">()</phrase> <phrase role="special">||</phrase> <phrase
+            role="special">(</phrase> <phrase role="identifier">traits_type</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">maximum_size</phrase><phrase
+            role="special">()</phrase> <phrase role="special">&gt;=</phrase> <phrase
+            role="identifier">sctx</phrase><phrase role="special">.</phrase><phrase
+            role="identifier">size</phrase><phrase role="special">)</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -11087,46 +11214,134 @@ before
       operations.
     </para>
     <para>
-      Fortunately we need not. Boost.Asio incorporates a mechanism by which the caller
-      can customize the notification behavior of every async operation. Therefore
-      we can construct a <emphasis>completion token</emphasis> which, when passed
-      to a <ulink url="http://www.boost.org/doc/libs/release/libs/asio/index.html">Boost.Asio</ulink>
-      async operation, requests blocking for the calling fiber. The underlying implementation
-      uses the same mechanism as described above.
+      Fortunately we need not. Boost.Asio incorporates a mechanism<footnote id="fiber.callbacks.f0">
+      <para>
+        This mechanism has been proposed as a conventional way to allow the caller
+        of an async function to specify completion handling: <ulink url="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4045.pdf">N4045</ulink>.
+      </para>
+      </footnote> by which the caller can customize the notification behavior of
+      every async operation. Therefore we can construct a <emphasis>completion token</emphasis>
+      which, when passed to a <ulink url="http://www.boost.org/doc/libs/release/libs/asio/index.html">Boost.Asio</ulink>
+      async operation, requests blocking for the calling fiber.
     </para>
+    <para>
+      A typical Asio async function might look something like this:<footnote id="fiber.callbacks.f1">
+      <para>
+        per <ulink url="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4045.pdf">N4045</ulink>
+      </para>
+      </footnote>
+    </para>
+<programlisting><phrase role="keyword">template</phrase> <phrase role="special">&lt;</phrase> <phrase role="special">...,</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">CompletionToken</phrase> <phrase role="special">&gt;</phrase>
+<emphasis>deduced_return_type</emphasis>
+<phrase role="identifier">async_something</phrase><phrase role="special">(</phrase> <phrase role="special">...</phrase> <phrase role="special">,</phrase> <phrase role="identifier">CompletionToken</phrase><phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">token</phrase><phrase role="special">)</phrase>
+<phrase role="special">{</phrase>
+    <phrase role="comment">// construct handler_type instance from CompletionToken</phrase>
+    <phrase role="identifier">handler_type</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">CompletionToken</phrase><phrase role="special">,</phrase> <phrase role="special">...&gt;::</phrase><phrase role="identifier">type</phrase> <phrase role="identifier">handler</phrase><phrase role="special">(</phrase><phrase role="identifier">token</phrase><phrase role="special">);</phrase>
+    <phrase role="comment">// construct async_result instance from handler_type</phrase>
+    <phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase role="keyword">decltype</phrase><phrase role="special">(</phrase><phrase role="identifier">handler</phrase><phrase role="special">)&gt;</phrase> <phrase role="identifier">result</phrase><phrase role="special">(</phrase><phrase role="identifier">handler</phrase><phrase role="special">);</phrase>
+
+    <phrase role="comment">// ... arrange to call handler on completion ...</phrase>
+    <phrase role="comment">// ... initiate actual I/O operation ...</phrase>
+
+    <phrase role="keyword">return</phrase> <phrase role="identifier">result</phrase><phrase role="special">.</phrase><phrase role="identifier">get</phrase><phrase role="special">();</phrase>
+<phrase role="special">}</phrase>
+</programlisting>
+    <para>
+      We will engage that mechanism, which is based on specializing Asio's <code><phrase
+      role="identifier">handler_type</phrase><phrase role="special">&lt;&gt;</phrase></code>
+      template for the <code><phrase role="identifier">CompletionToken</phrase></code>
+      type and the signature of the specific callback. The remainder of this discussion
+      will refer back to <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code> as the Asio async function under consideration.
+    </para>
+    <para>
+      The implementation described below uses lower-level facilities than <code><phrase
+      role="identifier">promise</phrase></code> and <code><phrase role="identifier">future</phrase></code>
+      for two reasons:
+    </para>
+    <orderedlist>
+      <listitem>
+        <simpara>
+          The <code><phrase role="identifier">promise</phrase></code> mechanism interacts
+          badly with <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/stop.html"><code><phrase
+          role="identifier">io_service</phrase><phrase role="special">::</phrase><phrase
+          role="identifier">stop</phrase><phrase role="special">()</phrase></code></ulink>.
+          It produces <code><phrase role="identifier">broken_promise</phrase></code>
+          exceptions.
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          If more than one thread is calling the <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html"><code><phrase
+          role="identifier">io_service</phrase><phrase role="special">::</phrase><phrase
+          role="identifier">run</phrase><phrase role="special">()</phrase></code></ulink>
+          method, the implementation described below allows resuming the suspended
+          fiber on whichever thread gets there first with completion notification.
+          More on this later.
+        </simpara>
+      </listitem>
+    </orderedlist>
     <para>
       <code><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase
       role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase
       role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">yield</phrase></code>
-      is such a completion token. <code><phrase role="identifier">yield</phrase></code>
+      is a completion token of this kind. <code><phrase role="identifier">yield</phrase></code>
       is an instance of <code><phrase role="identifier">yield_t</phrase></code>:
     </para>
     <para>
-      [fibers_asio_yield]
+<programlisting><phrase role="keyword">class</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="identifier">yield_t</phrase><phrase role="special">(</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">hop</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
+        <phrase role="identifier">allow_hop_</phrase><phrase role="special">(</phrase> <phrase role="identifier">hop</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">/**
+     * @code
+     * static yield_t yield;
+     * boost::system::error_code myec;
+     * func(yield[myec]);
+     * @endcode
+     * @c yield[myec] returns an instance of @c yield_t whose @c ec_ points
+     * to @c myec. The expression @c yield[myec] &quot;binds&quot; @c myec to that
+     * (anonymous) @c yield_t instance, instructing @c func() to store any
+     * @c error_code it might produce into @c myec rather than throwing @c
+     * boost::system::system_error.
+     */</phrase>
+    <phrase role="identifier">yield_t</phrase> <phrase role="keyword">operator</phrase><phrase role="special">[](</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="keyword">const</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">yield_t</phrase> <phrase role="identifier">tmp</phrase><phrase role="special">{</phrase> <phrase role="special">*</phrase> <phrase role="keyword">this</phrase> <phrase role="special">};</phrase>
+        <phrase role="identifier">tmp</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">return</phrase> <phrase role="identifier">tmp</phrase><phrase role="special">;</phrase>
+    <phrase role="special">}</phrase>
+
+<phrase role="comment">//private:</phrase>
+    <phrase role="comment">// ptr to bound error_code instance if any</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase>   <phrase role="special">*</phrase>   <phrase role="identifier">ec_</phrase><phrase role="special">{</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">};</phrase>
+    <phrase role="comment">// allow calling fiber to &quot;hop&quot; to another thread if it could resume more</phrase>
+    <phrase role="comment">// quickly that way</phrase>
+    <phrase role="keyword">bool</phrase>                            <phrase role="identifier">allow_hop_</phrase><phrase role="special">;</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
     </para>
     <para>
-      which is a <code><phrase role="identifier">promise_completion_token</phrase></code>:
-    </para>
-    <para>
-      [fibers_asio_yield_t]
-    </para>
-    <para>
-      <code><phrase role="identifier">promise_completion_token</phrase></code> is
-      common to both <code><phrase role="identifier">yield</phrase></code> and <code><phrase
-      role="identifier">use_future</phrase></code>. (The interested reader is encouraged
-      to learn more about <code><phrase role="identifier">use_future</phrase></code>
-      in <ulink url="../../examples/asio/use_future.hpp">example source code</ulink>.)
-    </para>
-    <para>
-      <code><phrase role="identifier">promise_completion_token</phrase></code> is
-      in fact only a placeholder, a way to trigger Boost.Asio customization. It can
-      bind a custom allocator or <ulink url="http://www.boost.org/doc/libs/release/libs/system/doc/reference.html#Class-error_code"><code><phrase
+      <code><phrase role="identifier">yield_t</phrase></code> is in fact only a placeholder,
+      a way to trigger Boost.Asio customization. It can bind a <ulink url="http://www.boost.org/doc/libs/release/libs/system/doc/reference.html#Class-error_code"><code><phrase
       role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase
       role="special">::</phrase><phrase role="identifier">error_code</phrase></code></ulink>
       for use by the actual handler.
     </para>
     <para>
-      [fibers_asio_promise_completion_token]
+      In fact there are two canonical instances of <code><phrase role="identifier">yield_t</phrase></code>
+      &mdash; <code><phrase role="identifier">yield</phrase></code> and <code><phrase role="identifier">yield_hop</phrase></code>:
+    </para>
+    <para>
+<programlisting><phrase role="comment">// canonical instance with allow_hop_ == false</phrase>
+<phrase role="keyword">thread_local</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="identifier">yield</phrase><phrase role="special">{</phrase> <phrase role="keyword">false</phrase> <phrase role="special">};</phrase>
+<phrase role="comment">// canonical instance with allow_hop_ == true</phrase>
+<phrase role="keyword">thread_local</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="identifier">yield_hop</phrase><phrase role="special">{</phrase> <phrase role="keyword">true</phrase> <phrase role="special">};</phrase>
+</programlisting>
+    </para>
+    <para>
+      We'll get to the differences between these shortly.
     </para>
     <para>
       Asio customization is engaged by specializing <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/handler_type.html"><code><phrase
@@ -11135,7 +11350,14 @@ before
       role="special">&lt;&gt;</phrase></code></ulink> for <code><phrase role="identifier">yield_t</phrase></code>:
     </para>
     <para>
-      [asio_handler_type]
+<programlisting><phrase role="comment">// Handler type specialisation for fibers::asio::yield.</phrase>
+<phrase role="comment">// When 'yield' is passed as a completion handler which accepts only</phrase>
+<phrase role="comment">// error_code, use yield_handler&lt;void&gt;. yield_handler will take care of the</phrase>
+<phrase role="comment">// error_code one way or another.</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">ReturnType</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">handler_type</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">ReturnType</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase><phrase role="special">)</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="special">{</phrase> <phrase role="keyword">typedef</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase> <phrase role="special">&gt;</phrase>    <phrase role="identifier">type</phrase><phrase role="special">;</phrase> <phrase role="special">};</phrase>
+</programlisting>
     </para>
     <para>
       (There are actually four different specializations in <ulink url="../../examples/asio/detail/yield.hpp">detail/yield.hpp</ulink>,
@@ -11145,59 +11367,583 @@ before
     <para>
       The above directs Asio to use <code><phrase role="identifier">yield_handler</phrase></code>
       as the actual handler for an async operation to which <code><phrase role="identifier">yield</phrase></code>
-      is passed.
+      is passed. There's a generic <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="identifier">T</phrase><phrase role="special">&gt;</phrase></code>
+      implementation and a <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="keyword">void</phrase><phrase role="special">&gt;</phrase></code>
+      specialization. Let's start with the <code><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;</phrase></code> specialization:
     </para>
     <para>
-      <code><phrase role="identifier">yield_handler</phrase></code> is simply an
-      alias for <code><phrase role="identifier">promise_handler</phrase></code>,
-      because <code><phrase role="identifier">promise_handler</phrase></code> is
-      shared with the <code><phrase role="identifier">use_future</phrase></code>
-      machinery:
+<programlisting><phrase role="comment">// yield_handler&lt;void&gt; is like yield_handler&lt;T&gt; without value_. In fact it's</phrase>
+<phrase role="comment">// just like yield_handler_base.</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;&gt;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase> <phrase role="special">&gt;:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">yield_handler_base</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">yield_handler</phrase><phrase role="special">(</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">y</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
+        <phrase role="identifier">yield_handler_base</phrase><phrase role="special">{</phrase> <phrase role="identifier">y</phrase> <phrase role="special">}</phrase> <phrase role="special">{</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">// nullary completion callback</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="keyword">operator</phrase><phrase role="special">()()</phrase> <phrase role="special">{</phrase>
+        <phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="keyword">this</phrase><phrase role="special">)(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">// inherit operator()(error_code) overload from base class</phrase>
+    <phrase role="keyword">using</phrase> <phrase role="identifier">yield_handler_base</phrase><phrase role="special">::</phrase><phrase role="keyword">operator</phrase><phrase role="special">();</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
     </para>
     <para>
-      [fibers_asio_yield_handler]
-    </para>
-    <para>
-      <code><phrase role="identifier">promise_handler</phrase></code> isa <code><phrase
-      role="identifier">promise_handler_base</phrase></code>:
-    </para>
-    <para>
-      [fibers_asio_promise_handler_base]
-    </para>
-    <para>
-      As promised, <code><phrase role="identifier">promise_handler_base</phrase></code>
-      binds a <link linkend="class_promise"> <code>promise&lt;&gt;</code></link> of appropriate type. (We store a <code><phrase
-      role="identifier">shared_ptr</phrase><phrase role="special">&lt;</phrase>
-      <phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase>
-      <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
-      <phrase role="special">&gt;</phrase></code> because the <code><phrase role="identifier">promise_handler</phrase></code>
-      instance is copied on its way into underlying Asio machinery.)
-    </para>
-    <para>
-      Asio, having consulted the <code><phrase role="identifier">handler_type</phrase><phrase
+      <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>,
+      having consulted the <code><phrase role="identifier">handler_type</phrase><phrase
       role="special">&lt;&gt;</phrase></code> traits specialization, instantiates
-      a <code><phrase role="identifier">yield_handler</phrase></code> (aka <code><phrase
-      role="identifier">promise_handler</phrase></code>) as the async operation's
-      callback:
+      a <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;</phrase></code> to
+      be passed as the actual callback for the async operation. <code><phrase role="identifier">yield_handler</phrase></code>'s
+      constructor accepts the <code><phrase role="identifier">yield_t</phrase></code>
+      instance (the <code><phrase role="identifier">yield</phrase></code> object
+      passed to the async function) and passes it along to <code><phrase role="identifier">yield_handler_base</phrase></code>:
     </para>
     <para>
-      [fibers_asio_promise_handler]
+<programlisting><phrase role="comment">// This class encapsulates common elements between yield_handler&lt;T&gt; (capturing</phrase>
+<phrase role="comment">// a value to return from asio async function) and yield_handler&lt;void&gt; (no</phrase>
+<phrase role="comment">// such value). See yield_handler&lt;T&gt; and its &lt;void&gt; specialization below. Both</phrase>
+<phrase role="comment">// yield_handler&lt;T&gt; and yield_handler&lt;void&gt; are passed by value through</phrase>
+<phrase role="comment">// various layers of asio functions. In other words, they're potentially</phrase>
+<phrase role="comment">// copied multiple times. So key data such as the yield_completion instance</phrase>
+<phrase role="comment">// must be stored in our async_result&lt;yield_handler&lt;&gt;&gt; specialization, which</phrase>
+<phrase role="comment">// should be instantiated only once.</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">yield_handler_base</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="identifier">yield_handler_base</phrase><phrase role="special">(</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">y</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
+        <phrase role="comment">// capture the context* associated with the running fiber</phrase>
+        <phrase role="identifier">ctx_</phrase><phrase role="special">{</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="special">},</phrase>
+        <phrase role="comment">// capture the passed yield_t</phrase>
+        <phrase role="identifier">yt_</phrase><phrase role="special">{</phrase> <phrase role="identifier">y</phrase> <phrase role="special">}</phrase> <phrase role="special">{</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">// completion callback passing only (error_code)</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="keyword">operator</phrase><phrase role="special">()(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">BOOST_ASSERT_MSG</phrase><phrase role="special">(</phrase> <phrase role="identifier">ycomp_</phrase><phrase role="special">,</phrase>
+                          <phrase role="string">&quot;Must inject yield_completion* &quot;</phrase>
+                          <phrase role="string">&quot;before calling yield_handler_base::operator()()&quot;</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">BOOST_ASSERT_MSG</phrase><phrase role="special">(</phrase> <phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase><phrase role="special">,</phrase>
+                          <phrase role="string">&quot;Must inject boost::system::error_code* &quot;</phrase>
+                          <phrase role="string">&quot;before calling yield_handler_base::operator()()&quot;</phrase><phrase role="special">);</phrase>
+        <phrase role="comment">// If originating fiber is busy testing completed_ flag, wait until it</phrase>
+        <phrase role="comment">// has observed (! completed_).</phrase>
+        <phrase role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">{</phrase> <phrase role="identifier">ycomp_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">mtx_</phrase> <phrase role="special">};</phrase>
+        <phrase role="comment">// Notify a subsequent yield_completion::wait() call that it need not</phrase>
+        <phrase role="comment">// suspend.</phrase>
+        <phrase role="identifier">ycomp_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">completed_</phrase> <phrase role="special">=</phrase> <phrase role="keyword">true</phrase><phrase role="special">;</phrase>
+        <phrase role="comment">// set the error_code bound by yield_t</phrase>
+        <phrase role="special">*</phrase> <phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">ec</phrase><phrase role="special">;</phrase>
+        <phrase role="comment">// Are we permitted to wake up the suspended fiber on this thread, the</phrase>
+        <phrase role="comment">// thread that called the completion handler?</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">ctx_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">is_context</phrase><phrase role="special">(</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">type</phrase><phrase role="special">::</phrase><phrase role="identifier">pinned_context</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">allow_hop_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="comment">// We must not migrate a pinned_context to another thread. If this</phrase>
+            <phrase role="comment">// isn't a pinned_context, and the application passed yield_hop</phrase>
+            <phrase role="comment">// rather than yield, migrate this fiber to the running thread.</phrase>
+            <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">migrate</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx_</phrase><phrase role="special">);</phrase>
+        <phrase role="special">}</phrase>
+        <phrase role="comment">// either way, wake the fiber</phrase>
+        <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">set_ready</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx_</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+<phrase role="comment">//private:</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase>      <phrase role="special">*</phrase>   <phrase role="identifier">ctx_</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">yield_t</phrase>                         <phrase role="identifier">yt_</phrase><phrase role="special">;</phrase>
+    <phrase role="comment">// We depend on this pointer to yield_completion, which will be injected</phrase>
+    <phrase role="comment">// by async_result.</phrase>
+    <phrase role="identifier">yield_completion</phrase>            <phrase role="special">*</phrase>   <phrase role="identifier">ycomp_</phrase><phrase role="special">{</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">};</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
     </para>
     <para>
-      Like the lambda callback in our <link linkend="Data_or_Exception"><code><phrase
-      role="identifier">read</phrase><phrase role="special">(</phrase><phrase role="identifier">AsyncAPI</phrase><phrase
-      role="special">&amp;)</phrase></code></link> presented earlier, <code><phrase
-      role="identifier">promise_handler</phrase><phrase role="special">::</phrase><phrase
-      role="keyword">operator</phrase><phrase role="special">()()</phrase></code>
-      either calls <link linkend="promise_set_value"> <code>promise::set_value()</code></link> or <link linkend="promise_set_exception"> <code>promise::set_exception()</code></link> (via
-      <code><phrase role="identifier">promise_handler_base</phrase><phrase role="special">::</phrase><phrase
-      role="identifier">should_set_value</phrase><phrase role="special">()</phrase></code>).
+      <code><phrase role="identifier">yield_handler_base</phrase></code> stores a
+      copy of the <code><phrase role="identifier">yield_t</phrase></code> instance
+      &mdash; which, as shown above, is only an <code><phrase role="identifier">error_code</phrase></code>
+      and a <code><phrase role="keyword">bool</phrase></code>. It also captures the
+      <link linkend="class_context"> <code>context</code></link>* for the currently-running fiber by calling <link linkend="context_active"> <code>context::active()</code></link>.
     </para>
     <para>
-      The source code above is found in <ulink url="../../examples/asio/yield.hpp">yield.hpp</ulink>,
-      <ulink url="../../examples/asio/promise_completion_token.hpp">promise_completion_token.hpp</ulink>,
-      <ulink url="../../examples/asio/detail/yield.hpp">detail/yield.hpp</ulink>
-      and <ulink url="../../examples/asio/detail/promise_handler.hpp">detail/promise_handler.hpp</ulink>.
+      You will notice that <code><phrase role="identifier">yield_handler_base</phrase></code>
+      has one more data member (<code><phrase role="identifier">ycomp_</phrase></code>)
+      that is initialized to <code><phrase role="keyword">nullptr</phrase></code>
+      by its constructor &mdash; though its <code><phrase role="keyword">operator</phrase><phrase
+      role="special">()()</phrase></code> method relies on <code><phrase role="identifier">ycomp_</phrase></code>
+      being non-null. More on this in a moment.
+    </para>
+    <para>
+      Having constructed the <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="keyword">void</phrase><phrase role="special">&gt;</phrase></code>
+      instance, <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>
+      goes on to construct an <code><phrase role="identifier">async_result</phrase></code>
+      specialized for the <code><phrase role="identifier">handler_type</phrase><phrase
+      role="special">&lt;&gt;::</phrase><phrase role="identifier">type</phrase></code>:
+      in this case, <code><phrase role="identifier">async_result</phrase><phrase
+      role="special">&lt;</phrase><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="keyword">void</phrase><phrase role="special">&gt;&gt;</phrase></code>.
+      It passes the <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="keyword">void</phrase><phrase role="special">&gt;</phrase></code>
+      instance to the new <code><phrase role="identifier">async_result</phrase></code>
+      instance.
+    </para>
+    <para>
+<programlisting><phrase role="comment">// Without the need to handle a passed value, our yield_handler&lt;void&gt;</phrase>
+<phrase role="comment">// specialization is just like async_result_base.</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;&gt;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">:</phrase>
+    <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">async_result_base</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="keyword">typedef</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">type</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">async_result</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">h</phrase><phrase role="special">):</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">async_result_base</phrase><phrase role="special">{</phrase> <phrase role="identifier">h</phrase> <phrase role="special">}</phrase> <phrase role="special">{</phrase>
+    <phrase role="special">}</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
+    </para>
+    <para>
+      Naturally that leads us straight to <code><phrase role="identifier">async_result_base</phrase></code>:
+    </para>
+    <para>
+<programlisting><phrase role="comment">// Factor out commonality between async_result&lt;yield_handler&lt;T&gt;&gt; and</phrase>
+<phrase role="comment">// async_result&lt;yield_handler&lt;void&gt;&gt;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">async_result_base</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">async_result_base</phrase><phrase role="special">(</phrase> <phrase role="identifier">yield_handler_base</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">h</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="comment">// Inject ptr to our yield_completion instance into this</phrase>
+        <phrase role="comment">// yield_handler&lt;&gt;.</phrase>
+        <phrase role="identifier">h</phrase><phrase role="special">.</phrase><phrase role="identifier">ycomp_</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">ycomp_</phrase><phrase role="special">;</phrase>
+        <phrase role="comment">// if yield_t didn't bind an error_code, make yield_handler_base's</phrase>
+        <phrase role="comment">// error_code* point to an error_code local to this object so</phrase>
+        <phrase role="comment">// yield_handler_base::operator() can unconditionally store through</phrase>
+        <phrase role="comment">// its error_code*</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">h</phrase><phrase role="special">.</phrase><phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="identifier">h</phrase><phrase role="special">.</phrase><phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">ec_</phrase><phrase role="special">;</phrase>
+        <phrase role="special">}</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="keyword">void</phrase> <phrase role="identifier">get</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
+        <phrase role="comment">// Unless yield_handler_base::operator() has already been called,</phrase>
+        <phrase role="comment">// suspend the calling fiber until that call.</phrase>
+        <phrase role="identifier">ycomp_</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase>
+        <phrase role="comment">// The only way our own ec_ member could have a non-default value is</phrase>
+        <phrase role="comment">// if our yield_handler did not have a bound error_code AND the</phrase>
+        <phrase role="comment">// completion callback passed a non-default error_code.</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ec_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="identifier">throw_exception</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">system_error</phrase><phrase role="special">{</phrase> <phrase role="identifier">ec_</phrase> <phrase role="special">}</phrase> <phrase role="special">);</phrase>
+        <phrase role="special">}</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">interruption_point</phrase><phrase role="special">();</phrase>
+    <phrase role="special">}</phrase>
+
+<phrase role="keyword">private</phrase><phrase role="special">:</phrase>
+    <phrase role="comment">// If yield_t does not bind an error_code instance, store into here.</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase>       <phrase role="identifier">ec_</phrase><phrase role="special">{};</phrase>
+    <phrase role="comment">// async_result_base owns the yield_completion because, unlike</phrase>
+    <phrase role="comment">// yield_handler&lt;&gt;, async_result&lt;&gt; is only instantiated once.</phrase>
+    <phrase role="identifier">yield_completion</phrase>                <phrase role="identifier">ycomp_</phrase><phrase role="special">{};</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
+    </para>
+    <para>
+      This is how <code><phrase role="identifier">yield_handler_base</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">ycomp_</phrase></code>
+      becomes non-null: <code><phrase role="identifier">async_result_base</phrase></code>'s
+      constructor injects a pointer back to its own <code><phrase role="identifier">yield_completion</phrase></code>
+      member.
+    </para>
+    <para>
+      Recall that both of the canonical <code><phrase role="identifier">yield_t</phrase></code>
+      instances <code><phrase role="identifier">yield</phrase></code> and <code><phrase
+      role="identifier">yield_hop</phrase></code> initialize their <code><phrase
+      role="identifier">error_code</phrase><phrase role="special">*</phrase></code>
+      member <code><phrase role="identifier">ec_</phrase></code> to <code><phrase
+      role="keyword">nullptr</phrase></code>. If either of these instances is passed
+      to <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>
+      (<code><phrase role="identifier">ec_</phrase></code> is still <code><phrase
+      role="keyword">nullptr</phrase></code>), the copy stored in <code><phrase role="identifier">yield_handler_base</phrase></code>
+      will likewise have null <code><phrase role="identifier">ec_</phrase></code>.
+      <code><phrase role="identifier">async_result_base</phrase></code>'s constructor
+      sets <code><phrase role="identifier">yield_handler_base</phrase></code>'s
+      <code><phrase role="identifier">yield_t</phrase></code>'s <code><phrase role="identifier">ec_</phrase></code>
+      member to point to its own <code><phrase role="identifier">error_code</phrase></code>
+      member.
+    </para>
+    <para>
+      The stage is now set. <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code> initiates the actual async operation, arranging
+      to call its <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;</phrase></code> instance
+      on completion. Let's say, for the sake of argument, that the actual async operation's
+      callback has signature <code><phrase role="keyword">void</phrase><phrase role="special">(</phrase><phrase
+      role="identifier">error_code</phrase><phrase role="special">)</phrase></code>.
+    </para>
+    <para>
+      But since it's an async operation, control returns at once to <code><phrase
+      role="identifier">async_something</phrase><phrase role="special">()</phrase></code>.
+      <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>
+      calls <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;&gt;::</phrase><phrase
+      role="identifier">get</phrase><phrase role="special">()</phrase></code>, and
+      will return its return value.
+    </para>
+    <para>
+      <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;&gt;::</phrase><phrase
+      role="identifier">get</phrase><phrase role="special">()</phrase></code> inherits
+      <code><phrase role="identifier">async_result_base</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">get</phrase><phrase role="special">()</phrase></code>.
+    </para>
+    <para>
+      <code><phrase role="identifier">async_result_base</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">get</phrase><phrase role="special">()</phrase></code> immediately
+      calls <code><phrase role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">wait</phrase><phrase role="special">()</phrase></code>.
+    </para>
+    <para>
+<programlisting><phrase role="comment">// Bundle a completion bool flag with a spinlock to protect it.</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">yield_completion</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">typedef</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase>    <phrase role="identifier">mutex_t</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">typedef</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">mutex_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">lock_t</phrase><phrase role="special">;</phrase>
+
+    <phrase role="identifier">mutex_t</phrase> <phrase role="identifier">mtx_</phrase><phrase role="special">{};</phrase>
+    <phrase role="keyword">bool</phrase>    <phrase role="identifier">completed_</phrase><phrase role="special">{</phrase> <phrase role="keyword">false</phrase> <phrase role="special">};</phrase>
+
+    <phrase role="keyword">void</phrase> <phrase role="identifier">wait</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
+        <phrase role="comment">// yield_handler_base::operator()() will set completed_ true and</phrase>
+        <phrase role="comment">// attempt to wake a suspended fiber. It would be Bad if that call</phrase>
+        <phrase role="comment">// happened between our detecting (! completed_) and suspending.</phrase>
+        <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">{</phrase> <phrase role="identifier">mtx_</phrase> <phrase role="special">};</phrase>
+        <phrase role="comment">// If completed_ is already set, we're done here: don't suspend.</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">completed_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="comment">// suspend(unique_lock&lt;spinlock&gt;) unlocks the lock in the act of</phrase>
+            <phrase role="comment">// resuming another fiber</phrase>
+            <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">suspend</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">);</phrase>
+        <phrase role="special">}</phrase>
+    <phrase role="special">}</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
+    </para>
+    <para>
+      Supposing that the pending async operation has not yet completed, <code><phrase
+      role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">completed_</phrase></code> will still be <code><phrase role="keyword">false</phrase></code>,
+      and <code><phrase role="identifier">wait</phrase><phrase role="special">()</phrase></code>
+      will call <link linkend="context_suspend"> <code>context::suspend()</code></link> on the currently-running fiber.
+    </para>
+    <para>
+      Other fibers will now have a chance to run.
+    </para>
+    <para>
+      Some time later, the async operation completes. It calls <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="keyword">void</phrase><phrase role="special">&gt;::</phrase><phrase
+      role="keyword">operator</phrase><phrase role="special">()(</phrase><phrase
+      role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase
+      role="special">&amp;)</phrase></code> with an <code><phrase role="identifier">error_code</phrase></code>
+      indicating either success or failure. We'll consider both cases.
+    </para>
+    <para>
+      <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;</phrase></code> explicitly
+      inherits <code><phrase role="keyword">operator</phrase><phrase role="special">()(</phrase><phrase
+      role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase
+      role="special">&amp;)</phrase></code> from <code><phrase role="identifier">yield_handler_base</phrase></code>.
+    </para>
+    <para>
+      <code><phrase role="identifier">yield_handler_base</phrase><phrase role="special">::</phrase><phrase
+      role="keyword">operator</phrase><phrase role="special">()(</phrase><phrase
+      role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase
+      role="special">&amp;)</phrase></code> first sets <code><phrase role="identifier">yield_completion</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">completed_</phrase></code>
+      <code><phrase role="keyword">true</phrase></code>. This way, if <code><phrase
+      role="identifier">async_something</phrase><phrase role="special">()</phrase></code>'s
+      async operation completes immediately &mdash; if <code><phrase role="identifier">yield_handler_base</phrase><phrase
+      role="special">::</phrase><phrase role="keyword">operator</phrase><phrase role="special">()</phrase></code>
+      is called even before <code><phrase role="identifier">async_result_base</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">()</phrase></code>
+      &mdash; the calling fiber will <emphasis>not</emphasis> suspend.
+    </para>
+    <para>
+      The actual <code><phrase role="identifier">error_code</phrase></code> produced
+      by the async operation is then stored through the stored <code><phrase role="identifier">yield_t</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">ec_</phrase></code> pointer.
+      If <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>'s
+      caller used (e.g.) <code><phrase role="identifier">yield</phrase><phrase role="special">[</phrase><phrase
+      role="identifier">my_ec</phrase><phrase role="special">]</phrase></code> to
+      bind a local <code><phrase role="identifier">error_code</phrase></code> instance,
+      the actual <code><phrase role="identifier">error_code</phrase></code> value
+      is stored into the caller's variable. Otherwise, it is stored into <code><phrase
+      role="identifier">async_result_base</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">ec_</phrase></code>.
+    </para>
+    <para>
+      Finally we get to the distinction between <code><phrase role="identifier">yield</phrase></code>
+      and <code><phrase role="identifier">yield_hop</phrase></code>.
+    </para>
+    <para>
+      As described for <link linkend="context_is_context"> <code>context::is_context()</code></link>, a <code><phrase role="identifier">pinned_context</phrase></code>
+      fiber is special to the library and must never be passed to <link linkend="context_migrate"> <code>context::migrate()</code></link>.
+      We must detect and avoid that case here.
+    </para>
+    <para>
+      The <code><phrase role="identifier">yield_t</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">allow_hop_</phrase></code> <code><phrase role="keyword">bool</phrase></code>
+      indicates whether <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code>'s caller is willing to allow the running
+      fiber to <quote>hop</quote> to another thread (<code><phrase role="identifier">yield_hop</phrase></code>)
+      or whether s/he insists that the fiber resume on the same thread (<code><phrase
+      role="identifier">yield</phrase></code>).
+    </para>
+    <para>
+      If the caller passed <code><phrase role="identifier">yield_hop</phrase></code>
+      to <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>,
+      and the running fiber isn't a <code><phrase role="identifier">pinned_context</phrase></code>,
+      <code><phrase role="identifier">yield_handler_base</phrase><phrase role="special">::</phrase><phrase
+      role="keyword">operator</phrase><phrase role="special">()</phrase></code> passes
+      the <code><phrase role="identifier">context</phrase></code> of the original
+      fiber &mdash; the one on which <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code> was called, captured in <code><phrase role="identifier">yield_handler_base</phrase></code>'s
+      constructor &mdash; to the current thread's <link linkend="context_migrate"> <code>context::migrate()</code></link>.
+    </para>
+    <para>
+      If the running application has more than one thread calling <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html"><code><phrase
+      role="identifier">io_service</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">run</phrase><phrase role="special">()</phrase></code></ulink>,
+      that fiber could return from <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code> on a different thread (the one calling <code><phrase
+      role="identifier">yield_handler_base</phrase><phrase role="special">::</phrase><phrase
+      role="keyword">operator</phrase><phrase role="special">()</phrase></code>)
+      than the one on which it entered <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code>.
+    </para>
+    <para>
+      In any case, the fiber is marked as ready to run by passing it to <link linkend="context_set_ready"> <code>context::set_ready()</code></link>.
+      Control then returns from <code><phrase role="identifier">yield_handler_base</phrase><phrase
+      role="special">::</phrase><phrase role="keyword">operator</phrase><phrase role="special">()</phrase></code>:
+      the callback is done.
+    </para>
+    <para>
+      In due course, the fiber <code><phrase role="identifier">yield_handler_base</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">ctx_</phrase></code> is
+      resumed. Control returns from <link linkend="context_suspend"> <code>context::suspend()</code></link> to <code><phrase
+      role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase
+      role="identifier">wait</phrase><phrase role="special">()</phrase></code>, which
+      returns to <code><phrase role="identifier">async_result_base</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">()</phrase></code>.
+    </para>
+    <itemizedlist>
+      <listitem>
+        <simpara>
+          If the original caller passed <code><phrase role="identifier">yield</phrase><phrase
+          role="special">[</phrase><phrase role="identifier">my_ec</phrase><phrase
+          role="special">]</phrase></code> to <code><phrase role="identifier">async_something</phrase><phrase
+          role="special">()</phrase></code> to bind a local <code><phrase role="identifier">error_code</phrase></code>
+          instance, then <code><phrase role="identifier">yield_handler_base</phrase><phrase
+          role="special">::</phrase><phrase role="keyword">operator</phrase><phrase
+          role="special">()</phrase></code> stored its <code><phrase role="identifier">error_code</phrase></code>
+          to the caller's <code><phrase role="identifier">my_ec</phrase></code> instance,
+          leaving <code><phrase role="identifier">async_result_base</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">ec_</phrase></code>
+          initialized to success.
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          If the original caller passed <code><phrase role="identifier">yield</phrase></code>
+          to <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>
+          without binding a local <code><phrase role="identifier">error_code</phrase></code>
+          variable, then <code><phrase role="identifier">yield_handler_base</phrase><phrase
+          role="special">::</phrase><phrase role="keyword">operator</phrase><phrase
+          role="special">()</phrase></code> stored its <code><phrase role="identifier">error_code</phrase></code>
+          into <code><phrase role="identifier">async_result_base</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">ec_</phrase></code>.
+          If in fact that <code><phrase role="identifier">error_code</phrase></code>
+          is success, then all is well.
+        </simpara>
+      </listitem>
+      <listitem>
+        <simpara>
+          Otherwise &mdash; the original caller did not bind a local <code><phrase role="identifier">error_code</phrase></code>
+          and <code><phrase role="identifier">yield_handler_base</phrase><phrase
+          role="special">::</phrase><phrase role="keyword">operator</phrase><phrase
+          role="special">()</phrase></code> was called with an <code><phrase role="identifier">error_code</phrase></code>
+          indicating error &mdash; <code><phrase role="identifier">async_result_base</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">get</phrase><phrase
+          role="special">()</phrase></code> throws <code><phrase role="identifier">system_error</phrase></code>
+          with that <code><phrase role="identifier">error_code</phrase></code>.
+        </simpara>
+      </listitem>
+    </itemizedlist>
+    <para>
+      The case in which <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code>'s completion callback has signature <code><phrase
+      role="keyword">void</phrase><phrase role="special">()</phrase></code> is similar.
+      <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="keyword">void</phrase><phrase role="special">&gt;::</phrase><phrase role="keyword">operator</phrase><phrase
+      role="special">()()</phrase></code> invokes the machinery above with a <quote>success</quote>
+      <code><phrase role="identifier">error_code</phrase></code>.
+    </para>
+    <para>
+      A completion callback with signature <code><phrase role="keyword">void</phrase><phrase
+      role="special">(</phrase><phrase role="identifier">error_code</phrase><phrase
+      role="special">,</phrase> <phrase role="identifier">T</phrase><phrase role="special">)</phrase></code>
+      (that is: in addition to <code><phrase role="identifier">error_code</phrase></code>,
+      callback receives some data item) is handled somewhat differently. For this
+      kind of signature, <code><phrase role="identifier">handler_type</phrase><phrase
+      role="special">&lt;&gt;::</phrase><phrase role="identifier">type</phrase></code>
+      specifies <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;</phrase></code> (for
+      <code><phrase role="identifier">T</phrase></code> other than <code><phrase
+      role="keyword">void</phrase></code>).
+    </para>
+    <para>
+      A <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;</phrase></code> reserves
+      a <code><phrase role="identifier">value_</phrase></code> pointer to a value
+      of type <code><phrase role="identifier">T</phrase></code>:
+    </para>
+    <para>
+<programlisting><phrase role="comment">// asio uses handler_type&lt;completion token type, signature&gt;::type to decide</phrase>
+<phrase role="comment">// what to instantiate as the actual handler. Below, we specialize</phrase>
+<phrase role="comment">// handler_type&lt; yield_t, ... &gt; to indicate yield_handler&lt;&gt;. So when you pass</phrase>
+<phrase role="comment">// an instance of yield_t as an asio completion token, asio selects</phrase>
+<phrase role="comment">// yield_handler&lt;&gt; as the actual handler class.</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">yield_handler</phrase><phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">yield_handler_base</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="comment">// asio passes the completion token to the handler constructor</phrase>
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">yield_handler</phrase><phrase role="special">(</phrase> <phrase role="identifier">yield_t</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">y</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
+        <phrase role="identifier">yield_handler_base</phrase><phrase role="special">{</phrase> <phrase role="identifier">y</phrase> <phrase role="special">}</phrase> <phrase role="special">{</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">// completion callback passing only value (T)</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="keyword">operator</phrase><phrase role="special">()(</phrase> <phrase role="identifier">T</phrase> <phrase role="identifier">t</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="comment">// just like callback passing success error_code</phrase>
+        <phrase role="special">(*</phrase><phrase role="keyword">this</phrase><phrase role="special">)(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase><phrase role="special">(),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase><phrase role="identifier">t</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">// completion callback passing (error_code, T)</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="keyword">operator</phrase><phrase role="special">()(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">T</phrase> <phrase role="identifier">t</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">BOOST_ASSERT_MSG</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_</phrase><phrase role="special">,</phrase>
+                          <phrase role="string">&quot;Must inject value ptr &quot;</phrase>
+                          <phrase role="string">&quot;before caling yield_handler&lt;T&gt;::operator()()&quot;</phrase><phrase role="special">);</phrase>
+        <phrase role="comment">// move the value to async_result&lt;&gt; instance BEFORE waking up a</phrase>
+        <phrase role="comment">// suspended fiber</phrase>
+        <phrase role="special">*</phrase> <phrase role="identifier">value_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">t</phrase><phrase role="special">);</phrase>
+        <phrase role="comment">// forward the call to base-class completion handler</phrase>
+        <phrase role="identifier">yield_handler_base</phrase><phrase role="special">::</phrase><phrase role="keyword">operator</phrase><phrase role="special">()(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+<phrase role="comment">//private:</phrase>
+    <phrase role="comment">// pointer to destination for eventual value</phrase>
+    <phrase role="comment">// this must be injected by async_result before operator()() is called</phrase>
+    <phrase role="identifier">T</phrase>                           <phrase role="special">*</phrase>   <phrase role="identifier">value_</phrase><phrase role="special">{</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">};</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
+    </para>
+    <para>
+      This pointer is initialized to <code><phrase role="keyword">nullptr</phrase></code>.
+    </para>
+    <para>
+      When <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>
+      instantiates <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;&gt;</phrase></code>:
+    </para>
+    <para>
+<programlisting><phrase role="comment">// asio constructs an async_result&lt;&gt; instance from the yield_handler specified</phrase>
+<phrase role="comment">// by handler_type&lt;&gt;::type. A particular asio async method constructs the</phrase>
+<phrase role="comment">// yield_handler, constructs this async_result specialization from it, then</phrase>
+<phrase role="comment">// returns the result of calling its get() method.</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">:</phrase>
+    <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">async_result_base</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">public</phrase><phrase role="special">:</phrase>
+    <phrase role="comment">// type returned by get()</phrase>
+    <phrase role="keyword">typedef</phrase> <phrase role="identifier">T</phrase> <phrase role="identifier">type</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">explicit</phrase> <phrase role="identifier">async_result</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">h</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">async_result_base</phrase><phrase role="special">{</phrase> <phrase role="identifier">h</phrase> <phrase role="special">}</phrase> <phrase role="special">{</phrase>
+        <phrase role="comment">// Inject ptr to our value_ member into yield_handler&lt;&gt;: result will</phrase>
+        <phrase role="comment">// be stored here.</phrase>
+        <phrase role="identifier">h</phrase><phrase role="special">.</phrase><phrase role="identifier">value_</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">value_</phrase><phrase role="special">;</phrase>
+    <phrase role="special">}</phrase>
+
+    <phrase role="comment">// asio async method returns result of calling get()</phrase>
+    <phrase role="identifier">type</phrase> <phrase role="identifier">get</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">async_result_base</phrase><phrase role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">();</phrase>
+        <phrase role="keyword">return</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+
+<phrase role="keyword">private</phrase><phrase role="special">:</phrase>
+    <phrase role="identifier">type</phrase>                            <phrase role="identifier">value_</phrase><phrase role="special">{};</phrase>
+<phrase role="special">};</phrase>
+</programlisting>
+    </para>
+    <para>
+      this <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;&gt;</phrase></code>
+      specialization reserves a member of type <code><phrase role="identifier">T</phrase></code>
+      to receive the passed data item, and sets <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="identifier">T</phrase><phrase role="special">&gt;::</phrase><phrase
+      role="identifier">value_</phrase></code> to point to its own data member.
+    </para>
+    <para>
+      <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;&gt;</phrase></code>
+      overrides <code><phrase role="identifier">get</phrase><phrase role="special">()</phrase></code>.
+      The override calls <code><phrase role="identifier">async_result_base</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">()</phrase></code>,
+      so the calling fiber suspends as described above.
+    </para>
+    <para>
+      <code><phrase role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;::</phrase><phrase role="keyword">operator</phrase><phrase
+      role="special">()(</phrase><phrase role="identifier">error_code</phrase><phrase
+      role="special">,</phrase> <phrase role="identifier">T</phrase><phrase role="special">)</phrase></code>
+      stores its passed <code><phrase role="identifier">T</phrase></code> value into
+      <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;&gt;::</phrase><phrase
+      role="identifier">value_</phrase></code>.
+    </para>
+    <para>
+      Then it passes control to <code><phrase role="identifier">yield_handler_base</phrase><phrase
+      role="special">::</phrase><phrase role="keyword">operator</phrase><phrase role="special">()(</phrase><phrase
+      role="identifier">error_code</phrase><phrase role="special">)</phrase></code>
+      to deal with waking (and possibly migrating) the original fiber as described
+      above.
+    </para>
+    <para>
+      When <code><phrase role="identifier">async_result</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">yield_handler</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">&gt;&gt;::</phrase><phrase
+      role="identifier">get</phrase><phrase role="special">()</phrase></code> resumes,
+      it returns the stored <code><phrase role="identifier">value_</phrase></code>
+      to <code><phrase role="identifier">async_something</phrase><phrase role="special">()</phrase></code>
+      and ultimately to <code><phrase role="identifier">async_something</phrase><phrase
+      role="special">()</phrase></code>'s caller.
+    </para>
+    <para>
+      The case of a callback signature <code><phrase role="keyword">void</phrase><phrase
+      role="special">(</phrase><phrase role="identifier">T</phrase><phrase role="special">)</phrase></code>
+      is handled by having <code><phrase role="identifier">yield_handler</phrase><phrase
+      role="special">&lt;</phrase><phrase role="identifier">T</phrase><phrase role="special">&gt;::</phrase><phrase
+      role="keyword">operator</phrase><phrase role="special">()(</phrase><phrase
+      role="identifier">T</phrase><phrase role="special">)</phrase></code> engage
+      the <code><phrase role="keyword">void</phrase><phrase role="special">(</phrase><phrase
+      role="identifier">error_code</phrase><phrase role="special">,</phrase> <phrase
+      role="identifier">T</phrase><phrase role="special">)</phrase></code> machinery,
+      passing a <quote>success</quote> <code><phrase role="identifier">error_code</phrase></code>.
+    </para>
+    <para>
+      The source code above is found in <ulink url="../../examples/asio/yield.hpp">yield.hpp</ulink>
+      and <ulink url="../../examples/asio/detail/yield.hpp">detail/yield.hpp</ulink>.
     </para>
   </section>
   <section id="fiber.nonblocking">
@@ -13285,7 +14031,7 @@ before
           <row>
             <entry>
               <para>
-                Haskel | stack-1.0.4
+                Haskell | stack-1.0.4
               </para>
             </entry>
             <entry>
@@ -13442,8 +14188,7 @@ before
 
     <phrase role="comment">// Call this method to alter priority, because we must notify</phrase>
     <phrase role="comment">// priority_scheduler of any change.</phrase>
-    <phrase role="keyword">void</phrase> <phrase role="identifier">set_priority</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">p</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
-        <co id="fiber.custom.c4" linkends="fiber.custom.c5" />
+    <phrase role="keyword">void</phrase> <phrase role="identifier">set_priority</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">p</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.custom.c4" linkends="fiber.custom.c5" />
         <phrase role="comment">// Of course, it's only worth reshuffling the queue and all if we're</phrase>
         <phrase role="comment">// actually changing the priority.</phrase>
         <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">p</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">priority_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
@@ -13477,9 +14222,10 @@ before
       </callout>
       <callout arearefs="fiber.custom.c4" id="fiber.custom.c5">
         <para>
-          It's important to call notify() on any change in a property that can affect
-          the scheduler's behavior. Therefore, such modifications should only be
-          performed through an access method.
+          It's important to call <code><phrase role="identifier">notify</phrase><phrase
+          role="special">()</phrase></code> on any change in a property that can
+          affect the scheduler's behavior. Therefore, such modifications should only
+          be performed through an access method.
         </para>
       </callout>
       <callout arearefs="fiber.custom.c6" id="fiber.custom.c7">
@@ -13554,11 +14300,7 @@ before
         <phrase role="comment">// 'ctx' might not be in our queue at all, if caller is changing the</phrase>
         <phrase role="comment">// priority of (say) the running fiber. If it's not there, no need to</phrase>
         <phrase role="comment">// move it: we'll handle it next time it hits awakened().</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">ready_is_linked</phrase><phrase role="special">())</phrase> <phrase role="special">{/*&lt;</phrase>
-            <phrase role="identifier">Your</phrase> <phrase role="error">`</phrase><phrase role="identifier">property_change</phrase><phrase role="special">()</phrase><phrase role="error">`</phrase> <phrase role="identifier">override</phrase> <phrase role="identifier">must</phrase> <phrase role="identifier">be</phrase> <phrase role="identifier">able</phrase> <phrase role="identifier">to</phrase>
-            <phrase role="identifier">handle</phrase> <phrase role="identifier">the</phrase> <phrase role="keyword">case</phrase> <phrase role="identifier">in</phrase> <phrase role="identifier">which</phrase> <phrase role="identifier">the</phrase> <phrase role="identifier">passed</phrase> <phrase role="error">`</phrase><phrase role="identifier">ctx</phrase><phrase role="error">`</phrase> <phrase role="identifier">is</phrase> <phrase role="keyword">not</phrase> <phrase role="identifier">in</phrase>
-            <phrase role="identifier">your</phrase> <phrase role="identifier">ready</phrase> <phrase role="identifier">queue</phrase><phrase role="special">.</phrase> <phrase role="identifier">It</phrase> <phrase role="identifier">might</phrase> <phrase role="identifier">be</phrase> <phrase role="identifier">running</phrase><phrase role="special">,</phrase> <phrase role="keyword">or</phrase> <phrase role="identifier">it</phrase> <phrase role="identifier">might</phrase> <phrase role="identifier">be</phrase>
-            <phrase role="identifier">blocked</phrase><phrase role="special">.</phrase> <phrase role="special">&gt;*/</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">ready_is_linked</phrase><phrase role="special">())</phrase> <phrase role="special">{</phrase> <co id="fiber.custom.c20" linkends="fiber.custom.c21" />
             <phrase role="keyword">return</phrase><phrase role="special">;</phrase>
         <phrase role="special">}</phrase>
 
@@ -13634,6 +14376,14 @@ before
           optional. This override handles the case in which the running fiber changes
           the priority of another ready fiber: a fiber already in our queue. In that
           case, move the updated fiber within the queue.
+        </para>
+      </callout>
+      <callout arearefs="fiber.custom.c20" id="fiber.custom.c21">
+        <para>
+          Your <code><phrase role="identifier">property_change</phrase><phrase role="special">()</phrase></code>
+          override must be able to handle the case in which the passed <code><phrase
+          role="identifier">ctx</phrase></code> is not in your ready queue. It might
+          be running, or it might be blocked.
         </para>
       </callout>
     </calloutlist>
