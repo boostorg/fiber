@@ -87,18 +87,10 @@ public:
         * yt_.ec_ = ec;
         // If ctx_ is still active, e.g. because the async operation
         // immediately called its callback (this method!) before the asio
-        // async function called async_result_base::get(), we must neither
-        // migrate it nor set it ready.
+        // async function called async_result_base::get(), we must not set it
+        // ready.
         if ( fibers::context::active() != ctx_ ) {
-            // Are we permitted to wake up the suspended fiber on this thread, the
-            // thread that called the completion handler?
-            if ( ( ! ctx_->is_context( fibers::type::pinned_context) ) && yt_.allow_hop_) {
-                // We must not migrate a pinned_context to another thread. If this
-                // isn't a pinned_context, and the application passed yield_hop
-                // rather than yield, migrate this fiber to the running thread.
-                fibers::context::active()->migrate( ctx_);
-            }
-            // either way, wake the fiber
+            // wake the fiber
             fibers::context::active()->set_ready( ctx_);
         }
     }
