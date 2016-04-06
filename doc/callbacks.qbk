@@ -184,7 +184,7 @@ and `future` for two reasons:
 `boost::fibers::asio::yield` is a completion token of this kind. `yield` is an
 instance of `yield_t`:
 
-[fibers_asio_yield]
+[fibers_asio_yield_t]
 
 `yield_t` is in fact only a placeholder, a way to trigger Boost.Asio
 customization. It can bind a
@@ -195,7 +195,7 @@ for use by the actual handler.
 In fact there are two canonical instances of `yield_t` [mdash] `yield` and
 `yield_hop`:
 
-[fibers_asio_yield_and_hop]
+[fibers_asio_yield]
 
 We'll get to the differences between these shortly.
 

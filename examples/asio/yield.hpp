@@ -18,12 +18,10 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-//[fibers_asio_yield
+//[fibers_asio_yield_t
 class yield_t {
 public:
-    yield_t( bool hop) :
-        allow_hop_( hop) {
-    }
+    yield_t() = default;
 
     /**
      * @code
@@ -46,17 +44,12 @@ public:
 //private:
     // ptr to bound error_code instance if any
     boost::system::error_code   *   ec_{ nullptr };
-    // allow calling fiber to "hop" to another thread if it could resume more
-    // quickly that way
-    bool                            allow_hop_;
 };
 //]
 
-//[fibers_asio_yield_and_hop
-// canonical instance with allow_hop_ == false
-thread_local yield_t yield{ false };
-// canonical instance with allow_hop_ == true
-thread_local yield_t yield_hop{ true };
+//[fibers_asio_yield
+// canonical instance
+thread_local yield_t yield{};
 //]
 
 }}}
