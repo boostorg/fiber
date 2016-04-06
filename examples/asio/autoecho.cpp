@@ -236,19 +236,19 @@ int main( int argc, char* argv[]) {
         // server
         boost::fibers::fiber f(
             server, boost::ref( io_svc) );
-        // client
-        const unsigned iterations = 20;
-        const unsigned clients = 3;
-        boost::fibers::barrier barrier(clients);
-        for (unsigned c = 0; c < clients; ++c) {
-            boost::fibers::fiber(
-                client, boost::ref( io_svc), boost::ref( barrier),
-                iterations ).detach();
-        }
         // run io_service in two threads
         std::thread t([&io_svc](){
                     boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
                     print( "Thread ", thread_names.lookup(), ": started");
+                    // client
+                    const unsigned iterations = 20;
+                    const unsigned clients = 3;
+                    boost::fibers::barrier barrier(clients);
+                    for (unsigned c = 0; c < clients; ++c) {
+                        boost::fibers::fiber(
+                            client, boost::ref( io_svc), boost::ref( barrier),
+                            iterations ).detach();
+                    }
                     io_svc.run();
                     print( "Thread ", thread_names.lookup(), ": stopping");
                 });
