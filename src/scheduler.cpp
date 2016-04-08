@@ -168,7 +168,7 @@ scheduler::dispatch() noexcept {
         // interrupt all context' in worker-queue
         worker_queue_t::iterator e = worker_queue_.end();
         for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e;) {
-            context * ctx = & ( worker_queue_.front() );
+            context * ctx = & ( * i);
             BOOST_ASSERT( ! ctx->is_context( type::main_context) );
             BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
             if ( ctx->is_terminated() ) {
