@@ -533,8 +533,10 @@ void
 context::migrate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() != ctx);
-    ctx->scheduler_->detach_worker_context( ctx);
-    scheduler_->attach_worker_context( ctx);
+    if ( scheduler_ != ctx->scheduler_) {
+        ctx->scheduler_->detach_worker_context( ctx);
+        scheduler_->attach_worker_context( ctx);
+    }
 }
 
 }}
