@@ -120,6 +120,7 @@ public:
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
+            BOOST_ASSERT( boost::fibers::context::active() != ctx);
             boost::fibers::context::active()->migrate( ctx); /*<
                 attach context to current scheduler via the active fiber
                 of this thread; benign if the fiber already belongs to this
