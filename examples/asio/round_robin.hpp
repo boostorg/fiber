@@ -44,8 +44,6 @@ private:
     boost::asio::io_service                     &   io_svc_;
     boost::asio::steady_timer                       suspend_timer_;
     rqueue_t                                        local_queue_{};
-    boost::fibers::mutex                            mtx_{};
-    boost::fibers::condition_variable               cnd_{};
     std::size_t                                     counter_{ 0 };
 
 public:
@@ -71,24 +69,6 @@ public:
         io_svc_( io_svc),
         suspend_timer_( io_svc_) {
         boost::asio::use_service< service >( io_svc_);
-        io_svc_.post([this]() mutable {
-                while ( ! io_svc_.stopped() ) {
-                    if ( has_ready_fibers() ) {
-                        // run all pending handlers in round_robin
-                        while ( io_svc_.poll() );
-                        // block this fiber till all pending (ready) fibers are processed
-                        // == round_robin::suspend_until() has been called
-                        std::unique_lock< boost::fibers::mutex > lk( mtx_);
-                        cnd_.wait( lk);
-                    } else {
-                        // run one handler inside io_service
-                        // if no handler available, block this thread
-                        if ( ! io_svc_.run_one() ) {
-                            break;
-                        }
-                    }
-                }
-            });
     }
 
     void awakened( boost::fibers::context * ctx) noexcept {
@@ -154,13 +134,29 @@ public:
                                         this_fiber::yield();
                                       });
         }
-        cnd_.notify_one();
     }
 
     void notify() noexcept {
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
     }
 };
+
+void run_svc( boost::asio::io_service & io_svc) {
+    while ( ! io_svc.stopped() ) {
+        if ( has_ready_fibers() ) {
+            // run all pending handlers in round_robin
+            while ( io_svc.poll() );
+            // run pending (ready) fibers
+            this_fiber::yield();
+        } else {
+            // run one handler inside io_service
+            // if no handler available, block this thread
+            if ( ! io_svc.run_one() ) {
+                break;
+            }
+        }
+    }
+}
 
 boost::asio::io_service::id round_robin::service::id;
 round_robin::rqueue_t round_robin::rqueue_{};
