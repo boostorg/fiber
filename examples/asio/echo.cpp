@@ -146,9 +146,9 @@ int main( int argc, char* argv[]) {
         // run io_service in two threads
         std::thread t([&io_svc](){
                     boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-                    io_svc.run();
+                    boost::fibers::asio::run_svc( io_svc);
                 });
-        io_svc.run();
+        boost::fibers::asio::run_svc( io_svc);
         t.join();
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;

@@ -233,32 +233,38 @@ int main( int argc, char* argv[]) {
     try {
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+        print( "Thread ", thread_names.lookup(), ": started");
         // server
         boost::fibers::fiber f(
             server, boost::ref( io_svc) );
         // run io_service in two threads
         std::thread t([&io_svc](){
-                    boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-                    print( "Thread ", thread_names.lookup(), ": started");
-                    // client
-                    const unsigned iterations = 20;
-                    const unsigned clients = 3;
-                    boost::fibers::barrier barrier(clients);
-                    for (unsigned c = 0; c < clients; ++c) {
-                        boost::fibers::fiber(
-                            client, boost::ref( io_svc), boost::ref( barrier),
-                            iterations ).detach();
-                    }
-                    io_svc.run();
-                    print( "Thread ", thread_names.lookup(), ": stopping");
+                        try {
+                            boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+                            print( "Thread ", thread_names.lookup(), ": started");
+                            // client
+                            const unsigned iterations = 2;
+                            const unsigned clients = 3;
+                            boost::fibers::barrier barrier(clients);
+                            for (unsigned c = 0; c < clients; ++c) {
+                            boost::fibers::fiber(
+                                    client, boost::ref( io_svc), boost::ref( barrier),
+                                    iterations ).detach();
+                            }
+                            boost::fibers::asio::run_svc( io_svc);
+                            print( "Thread ", thread_names.lookup(), ": stopping");
+                        } catch ( boost::fibers::fiber_interrupted const&) {
+                            print( tag(), " : interrupted");
+                        } catch ( std::exception const& ex) {
+                            print( tag(), " : catched exception : ", ex.what());
+                        }
                 });
-        io_svc.run();
         print( tag(), " : back from io_service::run(), waiting for thread");
         t.join();
         print( tag(), " : back from thread.join(), waiting for server fiber");
         f.interrupt();
         f.join();
-        print( "done.");
+        print( "Thread ", thread_names.lookup(), ": stopping");
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         print("Exception: ", e.what(), "\n");
