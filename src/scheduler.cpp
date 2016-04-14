@@ -110,16 +110,20 @@ scheduler::~scheduler() {
     // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
-    get_next_()->resume();
+    context * ctx = get_next_();
+    if ( nullptr != ctx) {
+        ctx->resume();
+    } 
     // no context' in worker-queue
-    //BOOST_ASSERT( worker_queue_.empty() );
+    std::unique_lock< detail::spinlock > lk( worker_splk_);
+    BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
-    BOOST_ASSERT( ! sched_algo_->has_ready_fibers() );
     BOOST_ASSERT( remote_ready_queue_.empty() );
     BOOST_ASSERT( sleep_queue_.empty() );
     // set active context to nullptr
     context::reset_active();
     // deallocate dispatcher-context
+    BOOST_ASSERT( ! dispatcher_ctx_->ready_is_linked() );
     dispatcher_ctx_.reset();
     // set main-context to nullptr
     main_ctx_ = nullptr;
@@ -133,8 +137,14 @@ boost::context::execution_context< detail::data_t * >
 scheduler::dispatch() noexcept {
 #endif
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
-    while ( ! shutdown_) {
-        // release termianted context'
+    for (;;) {
+        std::unique_lock< detail::spinlock > lk( worker_splk_);
+        bool no_worker = worker_queue_.empty();
+        lk.unlock();
+        if ( shutdown_ && no_worker) {
+            break;
+        }
+        // release terminated context'
         release_terminated_();
         // get context' from remote ready-queue
         remote_ready2ready_();
@@ -162,32 +172,6 @@ scheduler::dispatch() noexcept {
             sched_algo_->suspend_until( suspend_time);
         }
     }
-    // loop till all context' have been terminated
-    std::unique_lock< detail::spinlock > lk( worker_splk_);
-    while ( ! worker_queue_.empty() ) {
-        // interrupt all context' in worker-queue
-        worker_queue_t::iterator e = worker_queue_.end();
-        for ( worker_queue_t::iterator i = worker_queue_.begin(); i != e;) {
-            context * ctx = & ( * i);
-            BOOST_ASSERT( ! ctx->is_context( type::main_context) );
-            BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
-            if ( ctx->is_terminated() ) {
-                i = worker_queue_.erase( i);
-            } else {
-                ctx->request_interruption( true);
-                set_ready( ctx);
-                ++i;
-            }
-        }
-        context * ctx = nullptr;
-        if ( nullptr != ( ctx = get_next_() ) ) {
-            // resume ready context's
-            sched_algo_->awakened( dispatcher_ctx_.get() );
-            ctx->resume();
-            BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
-        }
-    }
-    lk.unlock();
     // release termianted context'
     release_terminated_();
     // return to main-context
