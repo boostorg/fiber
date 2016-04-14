@@ -259,11 +259,12 @@ int main( int argc, char* argv[]) {
                             print( tag(), " : catched exception : ", ex.what());
                         }
                 });
-        print( tag(), " : back from io_service::run(), waiting for thread");
-        t.join();
-        print( tag(), " : back from thread.join(), waiting for server fiber");
+        boost::fibers::asio::run_svc( io_svc);
+        print( tag(), " : back from io_service::run(), waiting for server fiber");
         f.interrupt();
         f.join();
+        print( tag(), " : back from thread.join(), waiting for thread");
+        t.join();
         print( "Thread ", thread_names.lookup(), ": stopping");
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
