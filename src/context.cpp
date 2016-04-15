@@ -358,7 +358,7 @@ context::set_terminated() noexcept {
         // remove fiber from wait-queue
         wait_queue_.pop_front();
         // notify scheduler
-        scheduler_->set_ready( ctx);
+        set_ready( ctx);
     }
     lk.unlock();
     // release fiber-specific-data
