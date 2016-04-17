@@ -141,8 +141,12 @@ scheduler::dispatch() noexcept {
         std::unique_lock< detail::spinlock > lk( worker_splk_);
         bool no_worker = worker_queue_.empty();
         lk.unlock();
-        if ( shutdown_ && no_worker) {
-            break;
+        if ( shutdown_) {
+            // notify sched-algorithm about termination
+            sched_algo_->notify();
+            if ( no_worker) {
+                break;
+            }
         }
         // release terminated context'
         release_terminated_();
