@@ -61,7 +61,6 @@ public:
             ctx = & ( * i);
             rqueue_.erase( i);
             BOOST_ASSERT( ! ctx->ready_is_linked() );
-            BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
             BOOST_ASSERT( ! ctx->sleep_is_linked() );
             BOOST_ASSERT( ! ctx->terminated_is_linked() );
             BOOST_ASSERT( ! ctx->wait_is_linked() );

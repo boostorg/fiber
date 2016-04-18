@@ -10,6 +10,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include <boost/config.hpp>
 #include <boost/context/execution_context.hpp>
@@ -44,11 +45,7 @@ public:
                     context, detail::ready_hook, & context::ready_hook_ >,
                 intrusive::constant_time_size< false > >    ready_queue_t;
 private:
-    typedef intrusive::list<
-                context,
-                intrusive::member_hook<
-                    context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
-                intrusive::constant_time_size< false > >    remote_ready_queue_t;
+    typedef std::vector< context * >                        remote_ready_queue_t;
     typedef intrusive::set<
                 context,
                 intrusive::member_hook<

@@ -60,12 +60,11 @@ scheduler::remote_ready2ready_() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
     // get context from remote ready-queue
-    while ( ! remote_ready_queue_.empty() ) {
-        context * ctx = & remote_ready_queue_.front();
-        remote_ready_queue_.pop_front();
+    for ( context * ctx : remote_ready_queue_) {
         // store context in local queues
         set_ready( ctx);
     }
+    remote_ready_queue_.clear();
 }
 
 void
@@ -224,7 +223,7 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
     // push new context to remote ready-queue
-    ctx->remote_ready_link( remote_ready_queue_);
+    remote_ready_queue_.push_back( ctx);
     lk.unlock();
     // notify scheduler
     sched_algo_->notify();
@@ -400,7 +399,6 @@ void
 scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
@@ -414,7 +412,6 @@ void
 scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );

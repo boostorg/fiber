@@ -484,11 +484,6 @@ context::ready_is_linked() const noexcept {
 }
 
 bool
-context::remote_ready_is_linked() const noexcept {
-    return remote_ready_hook_.is_linked();
-}
-
-bool
 context::sleep_is_linked() const noexcept {
     return sleep_hook_.is_linked();
 }
@@ -506,11 +501,6 @@ context::worker_unlink() noexcept {
 void
 context::ready_unlink() noexcept {
     ready_hook_.unlink();
-}
-
-void
-context::remote_ready_unlink() noexcept {
-    remote_ready_hook_.unlink();
 }
 
 void

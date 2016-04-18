@@ -84,14 +84,6 @@ typedef intrusive::list_member_hook<
     >
 >                                       ready_hook;
 
-struct remote_ready_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< remote_ready_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       remote_ready_hook;
-
 struct sleep_tag;
 typedef intrusive::set_member_hook<
     intrusive::tag< sleep_tag >,
@@ -222,7 +214,6 @@ private:
 
 public:
     detail::ready_hook                      ready_hook_{};
-    detail::remote_ready_hook               remote_ready_hook_{};
     detail::sleep_hook                      sleep_hook_{};
     detail::terminated_hook                 terminated_hook_{};
     detail::wait_hook                       wait_hook_{};
@@ -426,8 +417,6 @@ public:
 
     bool ready_is_linked() const noexcept;
 
-    bool remote_ready_is_linked() const noexcept;
-
     bool sleep_is_linked() const noexcept;
 
     bool terminated_is_linked() const noexcept;
@@ -439,12 +428,6 @@ public:
     template< typename List >
     void ready_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::ready_hook >::value, "not a ready-queue");
-        lst.push_back( * this);
-    }
-
-    template< typename List >
-    void remote_ready_link( List & lst) noexcept {
-        static_assert( std::is_same< typename List::value_traits::hook_type, detail::remote_ready_hook >::value, "not a remote ready-queue");
         lst.push_back( * this);
     }
 
@@ -473,8 +456,6 @@ public:
     }
 
     void ready_unlink() noexcept;
-
-    void remote_ready_unlink() noexcept;
 
     void sleep_unlink() noexcept;
 
