@@ -57,15 +57,6 @@ public:
     }
 };
 
-class fiber_interrupted : public fiber_error {
-public:
-    fiber_interrupted() :
-        fiber_error(
-            std::make_error_code( std::errc::interrupted) ) {
-    }
-};
-
-
 enum class future_errc {
     broken_promise = 1,
     future_already_retrieved,

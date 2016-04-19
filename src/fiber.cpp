@@ -11,7 +11,6 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/interruption.hpp"
 #include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -42,13 +41,6 @@ fiber::join() {
 
     impl_->join();
     impl_.reset();
-}
-
-void
-fiber::interrupt() noexcept {
-    BOOST_ASSERT( nullptr != impl_.get() );
-    impl_->request_interruption( true);
-    context::active()->set_ready( impl_.get() );
 }
 
 void

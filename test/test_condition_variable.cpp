@@ -80,25 +80,6 @@ void wait_fn(
 	++value;
 }
 
-void test_condition_wait_is_a_interruption_point() {
-    {
-        condition_test_data data;
-        boost::fibers::fiber f( & condition_test_fiber, &data);
-
-        f.interrupt();
-        f.join();
-        BOOST_CHECK_EQUAL(data.awoken,0);
-    }
-    {
-        condition_test_data data;
-        boost::fibers::fiber f( & condition_test_fiber, &data);
-        boost::this_fiber::yield();
-        f.interrupt();
-        f.join();
-        BOOST_CHECK_EQUAL(data.awoken,0);
-    }
-}
-
 void test_one_waiter_notify_one() {
 	value = 0;
 	boost::fibers::mutex mtx;
@@ -494,7 +475,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* [])
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_one) );
     test->add( BOOST_TEST_CASE( & test_two_waiter_notify_all) );
     test->add( BOOST_TEST_CASE( & test_condition_wait) );
-    test->add( BOOST_TEST_CASE( & test_condition_wait_is_a_interruption_point) );
     test->add( BOOST_TEST_CASE( & test_condition_wait_until) );
     test->add( BOOST_TEST_CASE( & test_condition_wait_until_pred) );
     test->add( BOOST_TEST_CASE( & test_condition_wait_for) );

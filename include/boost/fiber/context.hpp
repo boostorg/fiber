@@ -125,9 +125,7 @@ private:
     friend class scheduler;
 
     enum flag_t {
-        flag_terminated             = 1 << 1,
-        flag_interruption_blocked   = 1 << 2,
-        flag_interruption_requested = 1 << 3
+        flag_terminated = 1 << 1
     };
 
     struct BOOST_FIBERS_DECL fss_data {
@@ -175,17 +173,14 @@ private:
 #if (BOOST_EXECUTION_CONTEXT==1)
     template< typename Fn, typename Tpl >
     void run_( Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        try {
-            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
-            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                active_->set_ready_( dp->ctx);
-            }
-            boost::context::detail::apply( std::move( fn), std::move( tpl) );
-        } catch ( fiber_interrupted const&) {
+        typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+        typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+        if ( nullptr != dp->lk) {
+            dp->lk->unlock();
+        } else if ( nullptr != dp->ctx) {
+            active_->set_ready_( dp->ctx);
         }
+        boost::context::detail::apply( std::move( fn), std::move( tpl) );
         // terminate context
         set_terminated();
         BOOST_ASSERT_MSG( false, "fiber already terminated");
@@ -194,19 +189,16 @@ private:
     template< typename Fn, typename Tpl >
     boost::context::execution_context< detail::data_t * >
     run_( boost::context::execution_context< detail::data_t * > ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        try {
-            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
-            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-            // update execution_context of calling fiber
-            dp->from->ctx_ = std::move( ctx);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                active_->set_ready_( dp->ctx);
-            }
-            boost::context::detail::apply( std::move( fn), std::move( tpl) );
-        } catch ( fiber_interrupted const&) {
+        typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+        typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+        // update execution_context of calling fiber
+        dp->from->ctx_ = std::move( ctx);
+        if ( nullptr != dp->lk) {
+            dp->lk->unlock();
+        } else if ( nullptr != dp->ctx) {
+            active_->set_ready_( dp->ctx);
         }
+        boost::context::detail::apply( std::move( fn), std::move( tpl) );
         // terminate context
         return set_terminated();
     }
@@ -388,18 +380,6 @@ public:
     bool is_terminated() const noexcept {
         return 0 != ( flags_ & flag_terminated);
     }
-
-    bool interruption_blocked() const noexcept {
-        return 0 != ( flags_ & flag_interruption_blocked);
-    }
-
-    void interruption_blocked( bool blck) noexcept;
-
-    bool interruption_requested() const noexcept {
-        return 0 != ( flags_ & flag_interruption_requested);
-    }
-
-    void request_interruption( bool req) noexcept;
 
     void * get_fss_data( void const * vp) const;
 

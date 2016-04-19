@@ -100,8 +100,6 @@ public:
 
     void join();
 
-    void interrupt() noexcept;
-
     void detach();
 
     template< typename PROPS >

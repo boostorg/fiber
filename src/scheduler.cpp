@@ -202,8 +202,6 @@ scheduler::set_ready( context * ctx) noexcept {
         ctx->sleep_unlink();
     }
     // for safety unlink it from ready-queue
-    // this might happen if a newly created fiber was
-    // signaled to interrupt
     ctx->ready_unlink();
     // push new context to ready-queue
     sched_algo_->awakened( ctx);

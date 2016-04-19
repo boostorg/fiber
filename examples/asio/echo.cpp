@@ -48,10 +48,6 @@ void session( socket_ptr sock) {
                 throw boost::system::system_error( ec); //some other error
             }
         }
-    } catch ( boost::fibers::fiber_interrupted const&) {
-        std::ostringstream buffer;
-        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : interrupted" << std::endl;
-        std::cerr << buffer.str() << std::flush;
     } catch ( std::exception const& ex) {
         std::ostringstream buffer;
         buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : catched exception : " << ex.what() << std::endl;
@@ -78,10 +74,6 @@ void server( boost::asio::io_service & io_svc) {
                 boost::fibers::fiber( session, socket).detach();
             }
         }
-    } catch ( boost::fibers::fiber_interrupted const&) {
-        std::ostringstream buffer;
-        buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : interrupted" << std::endl;
-        std::cerr << buffer.str() << std::flush;
     } catch ( std::exception const& ex) {
         std::ostringstream buffer;
         buffer << "tid=" << std::this_thread::get_id() << ", fid=" << id << " : catched exception : " << ex.what() << std::endl;

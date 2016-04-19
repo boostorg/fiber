@@ -34,7 +34,6 @@ lib boost_fiber
       detail/spinlock.cpp
       fiber.cpp
       future.cpp
-      interruption.cpp
       mutex.cpp
       properties.cpp
       recursive_mutex.cpp

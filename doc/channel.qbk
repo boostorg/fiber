@@ -157,7 +157,7 @@ blocked on `this->pop()`, `this->value_pop()`, `this->pop_wait_for()` or
 fiber gets suspended until at least one new item is `push()`ed (return value
 `success` and `va` contains dequeued value) or the channel gets `close()`d
 (return value `closed`)[unblocking]]]
-[[Throws:] [__fiber_interrupted__]]
+[[Throws:] [Nothing]]
 ]
 ]
 [xchannel_pop unbounded_channel .]
@@ -171,7 +171,7 @@ fiber gets suspended until at least one new item is `push()`ed (return value
 [[Effects:] [Dequeues a value from the channel. If the channel is empty, the
 fiber gets suspended until at least one new item is `push()`ed or the channel
 gets `close()`d (which throws an exception)[unblocking]]]
-[[Throws:] [`fiber_error` if `*this` is closed or __fiber_interrupted__]]
+[[Throws:] [`fiber_error` if `*this` is closed]]
 [[Error conditions:] [`std::errc::operation_not_permitted`]]
 ]
 ]
@@ -210,7 +210,7 @@ value `success` and `va` contains dequeued value), or the channel gets
 [[Effects:] [Accepts `std::chrono::duration` and internally computes a timeout
 time as (system time + `timeout_duration`).
 [xchannel_pop_wait_until_effects the computed timeout time..[unblocking]]]]
-[[Throws:] [__fiber_interrupted__ or timeout-related exceptions.]]
+[[Throws:] [timeout-related exceptions.]]
 ]
 ]
 [xchannel_pop_wait_for unbounded_channel .]
@@ -226,7 +226,7 @@ time as (system time + `timeout_duration`).
 [variablelist
 [[Effects:] [Accepts a `std::chrono::time_point< Clock, Duration >`.
 [xchannel_pop_wait_until_effects the passed `time_point`..[unblocking]]]]
-[[Throws:] [__fiber_interrupted__ or timeout-related exceptions.]]
+[[Throws:] [timeout-related exceptions.]]
 ]
 ]
 [xchannel_pop_wait_until unbounded_channel .]
@@ -340,7 +340,7 @@ the number of values in the channel drops to `lwm` (return value
 
 [variablelist
 [[Effects:] [[bounded_channel_push_effects  or].]]
-[[Throws:] [__fiber_interrupted__ or exceptions thrown by memory
+[[Throws:] [exceptions thrown by memory
 allocation and copying or moving `va`.]]
 ]
 
@@ -361,7 +361,7 @@ allocation and copying or moving `va`.]]
 time_point as (system time + `timeout_duration`).
 [bounded_channel_push_effects ,], or the system time reaches the computed
 time_point (return value `timeout`).]]
-[[Throws:] [__fiber_interrupted__, exceptions thrown by memory
+[[Throws:] [exceptions thrown by memory
 allocation and copying or moving `va` or timeout-related exceptions.]]
 ]
 
@@ -381,7 +381,7 @@ allocation and copying or moving `va` or timeout-related exceptions.]]
 [[Effects:] [Accepts an absolute `timeout_time` in any supported time_point
 type. [bounded_channel_push_effects ,], or the system time reaches the passed
 time_point (return value `timeout`).]]
-[[Throws:] [__fiber_interrupted__ or exceptions thrown by memory
+[[Throws:] [exceptions thrown by memory
 allocation and copying or moving `va` or timeout-related exceptions.]]
 ]
 

@@ -95,7 +95,6 @@ void fss_with_custom_cleanup() {
     try {
         f.join();
     } catch(...) {
-        f.interrupt();
         f.join();
         throw;
     }
@@ -120,7 +119,6 @@ void do_test_fss_does_no_cleanup_after_release() {
     try {
         f.join();
     } catch(...) {
-        f.interrupt();
         f.join();
         throw;
     }
@@ -154,7 +152,6 @@ void do_test_fss_does_no_cleanup_with_null_cleanup_function() {
     try {
         f.join();
     } catch(...) {
-        f.interrupt();
         f.join();
         throw;
     }

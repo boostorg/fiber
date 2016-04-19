@@ -198,7 +198,6 @@ public:
         if ( ec_) {
             throw_exception( boost::system::system_error{ ec_ } );
         }
-        boost::this_fiber::interruption_point();
     }
 
 private:

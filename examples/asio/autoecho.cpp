@@ -144,8 +144,6 @@ void session( socket_ptr sock) {
             }
         }
         print( tag(), " : connection closed");
-    } catch ( boost::fibers::fiber_interrupted const&) {
-        print( tag(), " : interrupted");
     } catch ( std::exception const& ex) {
         print( tag(), " : caught exception : ", ex.what());
     }
@@ -170,8 +168,6 @@ void server( boost::asio::io_service & io_svc) {
                 boost::fibers::fiber( session, socket).detach();
             }
         }
-    } catch ( boost::fibers::fiber_interrupted const&) {
-        print( tag(), " : interrupted");
     } catch ( std::exception const& ex) {
         print( tag(), " : catched exception : ", ex.what());
     }
@@ -253,15 +249,12 @@ int main( int argc, char* argv[]) {
                             }
                             boost::fibers::asio::run_svc( io_svc);
                             print( "Thread ", thread_names.lookup(), ": stopping");
-                        } catch ( boost::fibers::fiber_interrupted const&) {
-                            print( tag(), " : interrupted");
                         } catch ( std::exception const& ex) {
                             print( tag(), " : catched exception : ", ex.what());
                         }
                 });
         boost::fibers::asio::run_svc( io_svc);
         print( tag(), " : back from io_service::run(), waiting for server fiber");
-        f.interrupt();
         f.join();
         print( tag(), " : back from thread.join(), waiting for thread");
         t.join();

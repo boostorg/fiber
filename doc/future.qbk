@@ -191,7 +191,7 @@ called, returns the value. If [member_link promise..set_exception] is called,
 throws the indicated exception.]]
 [[Postcondition:] [`false == valid()`]]
 [[Throws:] [__future_error__ with error condition __no_state__,
-__fiber_interrupted__, __broken_promise__. Any exception passed to
+__broken_promise__. Any exception passed to
 `promise::set_exception()`.]]
 ]
 ]
@@ -207,7 +207,7 @@ __fiber_interrupted__, __broken_promise__. Any exception passed to
 [[Returns:] [[future_method_wait .] If `set_value()` is called, returns a
 default-constructed `std::exception_ptr`. If `set_exception()` is called,
 returns the passed `std::exception_ptr`.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Throws:] [__future_error__ with error condition __no_state__.]]
 [[Note:] [ `get_exception_ptr()` does ['not] invalidate the [`[xfuture]].
 After calling `get_exception_ptr()`, you may still call [member_link
 [xfuture]..get].]]
@@ -222,7 +222,7 @@ After calling `get_exception_ptr()`, you may still call [member_link
 
 [variablelist
 [[Effects:] [[future_method_wait .]]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Throws:] [__future_error__ with error condition __no_state__.]]
 ]
 
 [template_member_heading [xfuture]..wait_for]
@@ -233,7 +233,7 @@ After calling `get_exception_ptr()`, you may still call [member_link
 [variablelist
 [[Effects:] [[future_method_wait , or `timeout_duration` has passed.]]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__ or
+[[Throws:] [__future_error__ with error condition __no_state__ or
 timeout-related exceptions.]]
 ]
 
@@ -245,7 +245,7 @@ timeout-related exceptions.]]
 [variablelist
 [[Effects:] [[future_method_wait , or `timeout_time` has passed.]]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__ or
+[[Throws:] [__future_error__ with error condition __no_state__ or
 timeout-related exceptions.]]
 ]
 ]
