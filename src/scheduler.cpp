@@ -109,10 +109,10 @@ scheduler::~scheduler() {
     // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
-    context * ctx = get_next_();
-    if ( nullptr != ctx) {
-        ctx->resume();
-    } 
+    // by resuming dispatcher-context
+    // (unlink it from ready-queuei before)
+    dispatcher_ctx_->ready_unlink();
+    dispatcher_ctx_->resume();
     // no context' in worker-queue
     std::unique_lock< detail::spinlock > lk( worker_splk_);
     BOOST_ASSERT( worker_queue_.empty() );
