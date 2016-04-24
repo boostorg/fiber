@@ -132,7 +132,7 @@ void session( socket_ptr sock) {
             } else if ( ec) {
                 throw boost::system::system_error( ec); //some other error
             }
-            print( tag(), " : handled: ", std::string(data, length));
+            print( tag(), ": handled: ", std::string(data, length));
             boost::asio::async_write(
                     * sock,
                     boost::asio::buffer( data, length),
@@ -143,9 +143,9 @@ void session( socket_ptr sock) {
                 throw boost::system::system_error( ec); //some other error
             }
         }
-        print( tag(), " : connection closed");
+        print( tag(), ": connection closed");
     } catch ( std::exception const& ex) {
-        print( tag(), " : caught exception : ", ex.what());
+        print( tag(), ": caught exception : ", ex.what());
     }
 }
 
@@ -153,7 +153,7 @@ void session( socket_ptr sock) {
 *   listening server
 *****************************************************************************/
 void server( boost::asio::io_service & io_svc) {
-    print( tag(), " : echo-server started");
+    print( tag(), ": echo-server started");
     try {
         tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), 9999) );
         for (;;) {
@@ -169,7 +169,7 @@ void server( boost::asio::io_service & io_svc) {
             }
         }
     } catch ( std::exception const& ex) {
-        print( tag(), " : catched exception : ", ex.what());
+        print( tag(), ": catched exception : ", ex.what());
     }
 }
 
@@ -178,7 +178,7 @@ void server( boost::asio::io_service & io_svc) {
 *****************************************************************************/
 void client( boost::asio::io_service & io_svc, boost::fibers::barrier& barrier,
              unsigned iterations) {
-    print( tag(), " : echo-client started");
+    print( tag(), ": echo-client started");
     for (unsigned count = 0; count < iterations; ++count) {
         tcp::resolver resolver( io_svc);
         tcp::resolver::query query( tcp::v4(), "127.0.0.1", "9999");
@@ -189,7 +189,7 @@ void client( boost::asio::io_service & io_svc, boost::fibers::barrier& barrier,
             std::ostringstream msgbuf;
             msgbuf << "from " << fiber_names.lookup() << " " << count << "." << msg;
             std::string message(msgbuf.str());
-            print( tag(), " : Sending: ", message);
+            print( tag(), ": Sending: ", message);
             boost::system::error_code ec;
             boost::asio::async_write(
                     s,
@@ -209,16 +209,16 @@ void client( boost::asio::io_service & io_svc, boost::fibers::barrier& barrier,
             } else if ( ec) {
                 throw boost::system::system_error( ec); //some other error
             }
-            print( tag(), " : Reply  : ", std::string( reply, reply_length));
+            print( tag(), ": Reply  : ", std::string( reply, reply_length));
         }
     }
-    print( tag(), " : done");
+    print( tag(), ": done");
     // done with all iterations, wait for rest of client fibers
     if ( barrier.wait()) {
         // exactly one barrier.wait() call returns true
         // we're the lucky one
-        print( tag(), " : stopping io_service");
         io_svc.stop();
+        print( tag(), ": io_service stopped");
     }
 }
 
@@ -229,40 +229,47 @@ int main( int argc, char* argv[]) {
     try {
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-        print( "Thread ", thread_names.lookup(), ": started");
+        print( "Thread ", thread_names.lookup(), ": started, main fiber == ", boost::this_fiber::get_id() );
         // server
-        boost::fibers::fiber f(
-            server, boost::ref( io_svc) );
+        boost::fibers::fiber sf( server, std::ref( io_svc) );
+        // client
+        const unsigned iterations = 2;
+        const unsigned clients = 3;
+        boost::fibers::barrier barrier(clients);
+        boost::fibers::fiber f1(
+                client, std::ref( io_svc), std::ref( barrier), iterations);
+        boost::fibers::fiber f2(
+                client, std::ref( io_svc), std::ref( barrier), iterations);
+        boost::fibers::fiber f3(
+                client, std::ref( io_svc), std::ref( barrier), iterations);
         // run io_service in two threads
         std::thread t([&io_svc](){
                         try {
                             boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-                            print( "Thread ", thread_names.lookup(), ": started");
-                            // client
-                            const unsigned iterations = 2;
-                            const unsigned clients = 3;
-                            boost::fibers::barrier barrier(clients);
-                            for (unsigned c = 0; c < clients; ++c) {
-                            boost::fibers::fiber(
-                                    client, boost::ref( io_svc), boost::ref( barrier),
-                                    iterations ).detach();
-                            }
+                            print( "Thread ", thread_names.lookup(), ": started, main fiber == ", boost::this_fiber::get_id() );
                             boost::fibers::asio::run_svc( io_svc);
+                            print( tag(), ": io_service returned");
                             print( "Thread ", thread_names.lookup(), ": stopping");
                         } catch ( std::exception const& ex) {
-                            print( tag(), " : catched exception : ", ex.what());
+                            print( tag(), ": catched exception: ", ex.what());
                         }
                 });
         boost::fibers::asio::run_svc( io_svc);
-        print( tag(), " : back from io_service::run(), waiting for server fiber");
-        f.join();
-        print( tag(), " : back from thread.join(), waiting for thread");
+        print( tag(), ": io_service returned");
+        f1.join();
+        print( tag(), ": f1 joined");
+        f2.join();
+        print( tag(), ": f2 joined");
+        f3.join();
+        print( tag(), ": f3 joined");
+        sf.join();
+        print( tag(), ": server fiber joined");
         t.join();
+        print( tag(), ": thread joined");
         print( "Thread ", thread_names.lookup(), ": stopping");
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         print("Exception: ", e.what(), "\n");
     }
-
     return EXIT_FAILURE;
 }
