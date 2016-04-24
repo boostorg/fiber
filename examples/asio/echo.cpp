@@ -130,18 +130,11 @@ int main( int argc, char* argv[]) {
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
         // server
-        boost::fibers::fiber f(
-            server, boost::ref( io_svc) );
+        boost::fibers::fiber( server, boost::ref( io_svc) ).detach();
         // client
-        boost::fibers::fiber(
-            client, boost::ref( io_svc) ).detach();
-        // run io_service in two threads
-        std::thread t([&io_svc](){
-                    boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-                    boost::fibers::asio::run_svc( io_svc);
-                });
+        boost::fibers::fiber( client, boost::ref( io_svc) ).detach();
+        // run io_service
         boost::fibers::asio::run_svc( io_svc);
-        t.join();
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
