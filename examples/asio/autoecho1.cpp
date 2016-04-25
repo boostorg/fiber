@@ -242,18 +242,6 @@ int main( int argc, char* argv[]) {
                 client, std::ref( io_svc), std::ref( barrier), iterations);
         boost::fibers::fiber f3(
                 client, std::ref( io_svc), std::ref( barrier), iterations);
-        // run io_service in two threads
-        std::thread t([&io_svc](){
-                        try {
-                            boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-                            print( "Thread ", thread_names.lookup(), ": started, main fiber == ", boost::this_fiber::get_id() );
-                            boost::fibers::asio::run_svc( io_svc);
-                            print( tag(), ": io_service returned");
-                            print( "Thread ", thread_names.lookup(), ": stopping");
-                        } catch ( std::exception const& ex) {
-                            print( tag(), ": catched exception: ", ex.what());
-                        }
-                });
         boost::fibers::asio::run_svc( io_svc);
         print( tag(), ": io_service returned");
         f1.join();
@@ -264,8 +252,6 @@ int main( int argc, char* argv[]) {
         print( tag(), ": f3 joined");
         sf.join();
         print( tag(), ": server fiber joined");
-        t.join();
-        print( tag(), ": thread joined");
         print( "Thread ", thread_names.lookup(), ": stopping");
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
