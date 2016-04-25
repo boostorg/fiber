@@ -9,6 +9,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
+#include <deque>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
@@ -22,7 +23,7 @@
 
 class work_stealing_queue {
 private:
-    typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
+    typedef std::deque< boost::fibers::context * > rqueue_t;
 
     mutable std::mutex  mtx_;
     rqueue_t            rqueue_;
@@ -31,19 +32,15 @@ public:
     void push_back( boost::fibers::context * ctx) {
         BOOST_ASSERT( nullptr != ctx);
         std::unique_lock< std::mutex > lk( mtx_);
-        BOOST_ASSERT( ! ctx->ready_is_linked() );
-        ctx->ready_link( rqueue_);
-        BOOST_ASSERT( ctx->ready_is_linked() );
+        rqueue_.push_back( ctx);
     }
 
     boost::fibers::context * pick_next() {
         boost::fibers::context * ctx( nullptr);
         std::unique_lock< std::mutex > lk( mtx_);
         if ( ! rqueue_.empty() ) {
-            ctx = & rqueue_.front();
-            BOOST_ASSERT( ctx->ready_is_linked() );
+            ctx = rqueue_.front();
             rqueue_.pop_front();
-            BOOST_ASSERT( ! ctx->ready_is_linked() );
         }
         return ctx;
     }
@@ -53,12 +50,13 @@ public:
         std::unique_lock< std::mutex > lk( mtx_);
         rqueue_t::iterator e = rqueue_.end();
         rqueue_t::iterator i = std::find_if( rqueue_.begin(), e,
-                                             [](boost::fibers::context const& ctx){
+                                             [](boost::fibers::context * ctx){
                                                // prevent migrating main- and dispatcher-fiber
-                                               return ! ctx.is_context( boost::fibers::type::pinned_context);
+                                               return ! ctx->is_context( boost::fibers::type::pinned_context);
                                              });
         if ( i != e) {
-            ctx = & ( * i);
+            ctx = * i;
+            BOOST_ASSERT( ! ctx->is_context( boost::fibers::type::pinned_context) );
             rqueue_.erase( i);
             BOOST_ASSERT( ! ctx->ready_is_linked() );
             BOOST_ASSERT( ! ctx->sleep_is_linked() );
@@ -80,8 +78,8 @@ public:
         std::unique_lock< std::mutex > lk( mtx_);
         rqueue_t::const_iterator e = rqueue_.end();
         rqueue_t::const_iterator i = std::find_if( rqueue_.begin(), e,
-                                                   [](boost::fibers::context const& ctx){
-                                                     return ! ctx.is_context( boost::fibers::type::pinned_context);
+                                                   [](boost::fibers::context * ctx){
+                                                     return ! ctx->is_context( boost::fibers::type::pinned_context);
                                                    });
         return i != e;
     }
