@@ -288,12 +288,12 @@ context::resume( context * ready_ctx) noexcept {
 
 void
 context::suspend() noexcept {
-    scheduler_->suspend( this);
+    scheduler_->suspend();
 }
 
 void
 context::suspend( detail::spinlock_lock & lk) noexcept {
-    scheduler_->suspend( this, lk);
+    scheduler_->suspend( lk);
 }
 
 void
@@ -310,7 +310,7 @@ context::join() {
         active_ctx->wait_link( wait_queue_);
         lk.unlock();
         // suspend active context
-        scheduler_->suspend( active_ctx);
+        scheduler_->suspend();
         // remove from wait-queue
         active_ctx->wait_unlink();
         // active context resumed

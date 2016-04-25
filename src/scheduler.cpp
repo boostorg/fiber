@@ -332,18 +332,13 @@ scheduler::wait_until( context * active_ctx,
 }
 
 void
-scheduler::suspend( context * active_ctx) noexcept {
-    BOOST_ASSERT( nullptr != active_ctx);
-    //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
+scheduler::suspend() noexcept {
     // resume another context
     get_next_()->resume();
 }
 
 void
-scheduler::suspend( context * active_ctx,
-                    detail::spinlock_lock & lk) noexcept {
-    BOOST_ASSERT( nullptr != active_ctx);
-    //BOOST_ASSERT( main_ctx_ == active_ctx || dispatcher_ctx_.get() == active_ctx || active_ctx->worker_is_linked() );
+scheduler::suspend( detail::spinlock_lock & lk) noexcept {
     // resume another context
     get_next_()->resume( lk);
 }

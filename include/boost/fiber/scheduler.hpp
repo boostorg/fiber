@@ -120,9 +120,8 @@ public:
                      std::chrono::steady_clock::time_point const&,
                      detail::spinlock_lock &) noexcept;
 
-    void suspend( context *) noexcept;
-    void suspend( context *,
-                  detail::spinlock_lock &) noexcept;
+    void suspend() noexcept;
+    void suspend( detail::spinlock_lock &) noexcept;
 
     bool has_ready_fibers() const noexcept;
 
