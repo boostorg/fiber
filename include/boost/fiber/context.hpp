@@ -173,14 +173,17 @@ private:
 #if (BOOST_EXECUTION_CONTEXT==1)
     template< typename Fn, typename Tpl >
     void run_( Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
-        typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            active_->set_ready_( dp->ctx);
+        {
+            // fn and tpl must be destroyed before calling set_terminated()
+            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active_->set_ready_( dp->ctx);
+            }
+            boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
-        boost::context::detail::apply( std::move( fn), std::move( tpl) );
         // terminate context
         set_terminated();
         BOOST_ASSERT_MSG( false, "fiber already terminated");
@@ -189,16 +192,19 @@ private:
     template< typename Fn, typename Tpl >
     boost::context::execution_context< detail::data_t * >
     run_( boost::context::execution_context< detail::data_t * > ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
-        typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-        // update execution_context of calling fiber
-        dp->from->ctx_ = std::move( ctx);
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            active_->set_ready_( dp->ctx);
+        {
+            // fn and tpl must be destroyed before calling set_terminated()
+            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+            // update execution_context of calling fiber
+            dp->from->ctx_ = std::move( ctx);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active_->set_ready_( dp->ctx);
+            }
+            boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
-        boost::context::detail::apply( std::move( fn), std::move( tpl) );
         // terminate context
         return set_terminated();
     }
