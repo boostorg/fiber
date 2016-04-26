@@ -32,25 +32,22 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-typedef std::unique_lock< std::mutex > lock_t;
-
 class round_robin : public boost::fibers::sched_algorithm {
 private:
-    typedef std::queue< boost::fibers::context * >  rqueue_t;
-
-    static rqueue_t     rqueue_;
-    static std::mutex   rqueue_mtx_;
+    typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
 
     boost::asio::io_service                     &   io_svc_;
     boost::asio::steady_timer                       suspend_timer_;
-    rqueue_t                                        local_queue_{};
+    rqueue_t                                        rqueue_{};
     std::size_t                                     counter_{ 0 };
 
 public:
     struct service : public boost::asio::io_service::service {
         static boost::asio::io_service::id                  id;
 
-        std::unique_ptr< boost::asio::io_service::work >    work_{};
+        std::unique_ptr< boost::asio::io_service::work >    work_;
+        boost::fibers::mutex                                mtx_{};
+        boost::fibers::condition_variable                   cnd_{};
 
         service( boost::asio::io_service & io_svc) :
             boost::asio::io_service::service( io_svc),
@@ -59,6 +56,17 @@ public:
 
         service( service const&) = delete;
         service & operator=( service const&) = delete;
+
+        void wait() {
+            // block this fiber till all pending (ready) fibers are processed
+            // == round_robin::suspend_until() has been called
+            std::unique_lock< boost::fibers::mutex > lk( mtx_);
+            cnd_.wait( lk);
+        }
+
+        void notify() {
+            cnd_.notify_one();
+        }
 
         void shutdown_service() override final {
             work_.reset();
@@ -73,57 +81,23 @@ public:
 
     void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
-        if ( ctx->is_context( boost::fibers::type::pinned_context) ) { /*<
-            recognize when we're passed this thread's main fiber (or an
-            implicit library helper fiber): never put those on the shared
-            queue
-        >*/
-            local_queue_.push( ctx);
-            if ( ctx->is_context( boost::fibers::type::dispatcher_context) ) {
-                ++counter_;
-            }
-        } else {
-            lock_t lk(rqueue_mtx_); /*<
-                worker fiber, enqueue on shared queue
-            >*/
-            rqueue_.push( ctx);
-        }
+        ctx->ready_link( rqueue_); /*< fiber, enqueue on ready queue >*/
     }
 
     boost::fibers::context * pick_next() noexcept {
         boost::fibers::context * ctx( nullptr);
-        lock_t lk(rqueue_mtx_);
         if ( ! rqueue_.empty() ) { /*<
             pop an item from the ready queue
         >*/
-            ctx = rqueue_.front();
-            rqueue_.pop();
-            lk.unlock();
+            ctx = & rqueue_.front();
+            rqueue_.pop_front();
             BOOST_ASSERT( nullptr != ctx);
             BOOST_ASSERT( boost::fibers::context::active() != ctx);
-            boost::fibers::context::active()->migrate( ctx); /*<
-                attach context to current scheduler via the active fiber
-                of this thread; benign if the fiber already belongs to this
-                thread
-            >*/
-        } else {
-            lk.unlock();
-            if ( ! local_queue_.empty() ) { /*<
-                nothing in the ready queue, return main or dispatcher fiber
-            >*/
-                ctx = local_queue_.front();
-                local_queue_.pop();
-                BOOST_ASSERT ( ctx->is_context( boost::fibers::type::pinned_context) );
-                if ( ctx->is_context( boost::fibers::type::dispatcher_context) ) {
-                    --counter_;
-                }
-            }
         }
         return ctx;
     }
 
     bool has_ready_fibers() const noexcept {
-        lock_t lock(rqueue_mtx_);
         return 0 < counter_ || ! rqueue_.empty();
     }
 
@@ -134,6 +108,7 @@ public:
                                         this_fiber::yield();
                                       });
         }
+        boost::asio::use_service< round_robin::service >( io_svc_).notify();
     }
 
     void notify() noexcept {
@@ -147,7 +122,7 @@ void run_svc( boost::asio::io_service & io_svc) {
             // run all pending handlers in round_robin
             while ( io_svc.poll() );
             // run pending (ready) fibers
-            this_fiber::yield();
+            boost::asio::use_service< round_robin::service >( io_svc).wait();
         } else {
             // run one handler inside io_service
             // if no handler available, block this thread
@@ -159,8 +134,6 @@ void run_svc( boost::asio::io_service & io_svc) {
 }
 
 boost::asio::io_service::id round_robin::service::id;
-round_robin::rqueue_t round_robin::rqueue_{};
-std::mutex round_robin::rqueue_mtx_{};
 
 }}}
 
