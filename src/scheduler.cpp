@@ -156,8 +156,7 @@ scheduler::dispatch() noexcept {
         if ( nullptr != ctx) {
             // push dispatcher-context to ready-queue
             // so that ready-queue never becomes empty
-            sched_algo_->awakened( dispatcher_ctx_.get() );
-            ctx->resume();
+            ctx->resume( dispatcher_ctx_.get() );
             BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
         } else {
             // no ready context, wait till signaled
@@ -187,8 +186,6 @@ void
 scheduler::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
-    // dispatcher-context will never be passed to set_ready()
-    BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
     // we do not test for wait-queue because
     // context::wait_is_linked() is not synchronized
     // with other threads
