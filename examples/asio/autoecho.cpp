@@ -230,7 +230,7 @@ int main( int argc, char* argv[]) {
     try {
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
-        print( "Thread ", thread_names.lookup(), ": started, main fiber == ", boost::this_fiber::get_id() );
+        print( "Thread ", thread_names.lookup(), ": started");
         // server
         tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), 9999) );
         boost::fibers::fiber sf( server, std::ref( io_svc), std::ref( a) );
