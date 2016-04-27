@@ -170,6 +170,7 @@ void server( boost::asio::io_service & io_svc, tcp::acceptor & a) {
     } catch ( std::exception const& ex) {
         print( tag(), ": catched exception : ", ex.what());
     }
+    io_svc.stop();
     print( tag(), ": echo-server stopped");
 }
 
