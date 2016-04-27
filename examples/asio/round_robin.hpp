@@ -50,6 +50,22 @@ public:
         service( boost::asio::io_service & io_svc) :
             boost::asio::io_service::service( io_svc),
             work_{ new boost::asio::io_service::work( io_svc) } {
+            io_svc.post([&io_svc](){
+                            while ( ! io_svc.stopped() ) {
+                                if ( boost::fibers::has_ready_fibers() ) {
+                                    // run all pending handlers in round_robin
+                                    while ( io_svc.poll() );
+                                    // run pending (ready) fibers
+                                    this_fiber::yield();
+                                } else {
+                                    // run one handler inside io_service
+                                    // if no handler available, block this thread
+                                    if ( ! io_svc.run_one() ) {
+                                        break;
+                                    }
+                                }
+                            }
+                        });
         }
 
         service( service const&) = delete;
@@ -101,23 +117,6 @@ public:
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
     }
 };
-
-void run_svc( boost::asio::io_service & io_svc) {
-    while ( ! io_svc.stopped() ) {
-        if ( has_ready_fibers() ) {
-            // run all pending handlers in round_robin
-            while ( io_svc.poll() );
-            // run pending (ready) fibers
-            this_fiber::yield();
-        } else {
-            // run one handler inside io_service
-            // if no handler available, block this thread
-            if ( ! io_svc.run_one() ) {
-                break;
-            }
-        }
-    }
-}
 
 boost::asio::io_service::id round_robin::service::id;
 

@@ -242,7 +242,7 @@ int main( int argc, char* argv[]) {
             boost::fibers::fiber(
                     client, std::ref( io_svc), std::ref( a), std::ref( b), iterations).detach();
         }
-        boost::fibers::asio::run_svc( io_svc);
+        io_svc.run();
         print( tag(), ": io_service returned");
         sf.join();
         print( tag(), ": server fiber joined");
