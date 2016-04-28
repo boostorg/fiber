@@ -233,7 +233,7 @@ int main( int argc, char* argv[]) {
         print( "Thread ", thread_names.lookup(), ": started");
         // server
         tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), 9999) );
-        boost::fibers::fiber sf( server, std::ref( io_svc), std::ref( a) );
+        boost::fibers::fiber( server, std::ref( io_svc), std::ref( a) ).detach();
         // client
         const unsigned iterations = 2;
         const unsigned clients = 3;
@@ -244,8 +244,6 @@ int main( int argc, char* argv[]) {
         }
         io_svc.run();
         print( tag(), ": io_service returned");
-        sf.join();
-        print( tag(), ": server fiber joined");
         print( "Thread ", thread_names.lookup(), ": stopping");
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
