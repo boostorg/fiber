@@ -39,7 +39,6 @@ private:
     boost::asio::io_service                     &   io_svc_;
     boost::asio::steady_timer                       suspend_timer_;
     rqueue_t                                        rqueue_{};
-    std::size_t                                     counter_{ 0 };
 
 public:
     struct service : public boost::asio::io_service::service {
@@ -101,7 +100,7 @@ public:
     }
 
     bool has_ready_fibers() const noexcept {
-        return 0 < counter_ || ! rqueue_.empty();
+        return ! rqueue_.empty();
     }
 
     void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept {
