@@ -49,11 +49,11 @@ void fss() {
     fss_instances = 0;
     fss_total = 0;
 
-    boost::fibers::fiber f1( fss_fiber);
-    boost::fibers::fiber f2( fss_fiber);
-    boost::fibers::fiber f3( fss_fiber);
-    boost::fibers::fiber f4( fss_fiber);
-    boost::fibers::fiber f5( fss_fiber);
+    boost::fibers::fiber f1( boost::fibers::launch_policy::post, fss_fiber);
+    boost::fibers::fiber f2( boost::fibers::launch_policy::post, fss_fiber);
+    boost::fibers::fiber f3( boost::fibers::launch_policy::post, fss_fiber);
+    boost::fibers::fiber f4( boost::fibers::launch_policy::post, fss_fiber);
+    boost::fibers::fiber f5( boost::fibers::launch_policy::post, fss_fiber);
     f1.join();
     f2.join();
     f3.join();
@@ -71,7 +71,7 @@ void fss() {
 }
 
 void test_fss() {
-    boost::fibers::fiber( fss).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fss).join();
 }
 
 bool fss_cleanup_called=false;
@@ -91,7 +91,7 @@ void fss_fiber_with_custom_cleanup() {
 }
 
 void fss_with_custom_cleanup() {
-    boost::fibers::fiber f(fss_fiber_with_custom_cleanup);
+    boost::fibers::fiber f( boost::fibers::launch_policy::post, fss_fiber_with_custom_cleanup);
     try {
         f.join();
     } catch(...) {
@@ -103,7 +103,7 @@ void fss_with_custom_cleanup() {
 }
 
 void test_fss_with_custom_cleanup() {
-    boost::fibers::fiber( fss_with_custom_cleanup).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fss_with_custom_cleanup).join();
 }
 
 Dummy* fss_object=new Dummy;
@@ -115,7 +115,7 @@ void fss_fiber_with_custom_cleanup_and_release() {
 
 void do_test_fss_does_no_cleanup_after_release() {
     fss_cleanup_called=false;
-    boost::fibers::fiber f(fss_fiber_with_custom_cleanup_and_release);
+    boost::fibers::fiber f( boost::fibers::launch_policy::post, fss_fiber_with_custom_cleanup_and_release);
     try {
         f.join();
     } catch(...) {
@@ -147,7 +147,7 @@ void fss_fiber_with_null_cleanup(dummy_class_tracks_deletions* delete_tracker) {
 
 void do_test_fss_does_no_cleanup_with_null_cleanup_function() {
     dummy_class_tracks_deletions* delete_tracker=new dummy_class_tracks_deletions;
-    boost::fibers::fiber f([&delete_tracker](){
+    boost::fibers::fiber f( boost::fibers::launch_policy::post, [&delete_tracker](){
         fss_fiber_with_null_cleanup( delete_tracker); });
     try {
         f.join();
@@ -163,11 +163,11 @@ void do_test_fss_does_no_cleanup_with_null_cleanup_function() {
 }
 
 void test_fss_does_no_cleanup_after_release() {
-    boost::fibers::fiber( do_test_fss_does_no_cleanup_after_release).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, do_test_fss_does_no_cleanup_after_release).join();
 }
 
 void test_fss_does_no_cleanup_with_null_cleanup_function() {
-    boost::fibers::fiber( do_test_fss_does_no_cleanup_with_null_cleanup_function).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, do_test_fss_does_no_cleanup_with_null_cleanup_function).join();
 }
 
 
@@ -182,12 +182,12 @@ void fiber_with_local_fss_ptr() {
 }
 
 void fss_does_not_call_cleanup_after_ptr_destroyed() {
-    boost::fibers::fiber(fiber_with_local_fss_ptr).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fiber_with_local_fss_ptr).join();
     BOOST_CHECK(!fss_cleanup_called);
 }
 
 void test_fss_does_not_call_cleanup_after_ptr_destroyed() {
-    boost::fibers::fiber( fss_does_not_call_cleanup_after_ptr_destroyed).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fss_does_not_call_cleanup_after_ptr_destroyed).join();
 }
 
 
@@ -203,7 +203,7 @@ void fss_cleanup_not_called_for_null_pointer() {
 }
 
 void test_fss_cleanup_not_called_for_null_pointer() {
-    boost::fibers::fiber( fss_cleanup_not_called_for_null_pointer).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fss_cleanup_not_called_for_null_pointer).join();
 }
 
 
@@ -219,7 +219,7 @@ void fss_at_the_same_adress() {
 }
 
 void test_fss_at_the_same_adress() {
-    boost::fibers::fiber( fss_at_the_same_adress).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fss_at_the_same_adress).join();
 }
 
 boost::unit_test::test_suite* init_unit_test_suite(int, char*[]) {

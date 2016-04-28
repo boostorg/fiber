@@ -47,7 +47,7 @@ void fn2() {
     boost::fibers::promise< int > p;
     boost::fibers::shared_future< int > f( p.get_future().share() );
     boost::this_fiber::yield();
-    boost::fibers::fiber( fn1, & p, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn1, & p, 7).detach();
     boost::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }
@@ -379,7 +379,7 @@ void test_shared_future_wait_for() {
     boost::fibers::promise< int > p1;
     boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn11, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn11, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -399,7 +399,7 @@ void test_shared_future_wait_for_ref() {
     boost::fibers::promise< int& > p1;
     boost::fibers::shared_future< int& > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn12, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn12, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -419,7 +419,7 @@ void test_shared_future_wait_for_void() {
     boost::fibers::promise< void > p1;
     boost::fibers::shared_future< void > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn13, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn13, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -439,7 +439,7 @@ void test_shared_future_wait_until() {
     boost::fibers::promise< int > p1;
     boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn11, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn11, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -459,7 +459,7 @@ void test_shared_future_wait_until_ref() {
     boost::fibers::promise< int& > p1;
     boost::fibers::shared_future< int& > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn12, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn12, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -479,7 +479,7 @@ void test_shared_future_wait_until_void() {
     boost::fibers::promise< void > p1;
     boost::fibers::shared_future< void > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn13, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn13, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -496,7 +496,7 @@ void test_shared_future_wait_until_void() {
 
 void test_shared_future_wait_with_fiber_1() {
     boost::fibers::promise< int > p1;
-    boost::fibers::fiber( fn1, & p1, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn1, & p1, 7).detach();
 
     boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
@@ -505,7 +505,7 @@ void test_shared_future_wait_with_fiber_1() {
 }
 
 void test_shared_future_wait_with_fiber_2() {
-    boost::fibers::fiber( fn2).join();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn2).join();
 }
 
 void test_shared_future_move() {

@@ -45,9 +45,9 @@ void fn1( boost::fibers::promise< int > * p, int i) {
 
 void fn2() {
     boost::fibers::promise< int > p;
-    boost::fibers::future< int > f( p.get_future() );
+    boost::fibers::shared_future< int > f( p.get_future().share() );
     boost::this_fiber::yield();
-    boost::fibers::fiber( fn1, & p, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn1, & p, 7).detach();
     boost::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }
@@ -103,108 +103,81 @@ void fn13( boost::fibers::promise< void > p) {
   p.set_value();
 }
 
-// future
-void test_future_create() {
-    // default constructed future is not valid
-    boost::fibers::future< int > f1;
-    BOOST_CHECK( ! f1.valid() );
+// shared_future
+void test_shared_future_create() {
+    {
+        // default constructed and assigned shared_future is not valid
+        boost::fibers::shared_future< int > f1;
+        boost::fibers::shared_future< int > f2 = f1;
+        BOOST_CHECK( ! f1.valid() );
+        BOOST_CHECK( ! f2.valid() );
+    }
 
-    // future retrieved from promise is valid (if it is the first)
-    boost::fibers::promise< int > p2;
-    boost::fibers::future< int > f2 = p2.get_future();
-    BOOST_CHECK( f2.valid() );
+    {
+        // shared_future retrieved from promise is valid
+        boost::fibers::promise< int > p;
+        boost::fibers::shared_future< int > f1 = p.get_future();
+        boost::fibers::shared_future< int > f2 = f1;
+        BOOST_CHECK( f1.valid() );
+        BOOST_CHECK( f2.valid() );
+    }
 }
 
-void test_future_create_ref() {
-    // default constructed future is not valid
-    boost::fibers::future< int& > f1;
-    BOOST_CHECK( ! f1.valid() );
+void test_shared_future_create_ref() {
+    {
+        // default constructed and assigned shared_future is not valid
+        boost::fibers::shared_future< int& > f1;
+        boost::fibers::shared_future< int& > f2 = f1;
+        BOOST_CHECK( ! f1.valid() );
+        BOOST_CHECK( ! f2.valid() );
+    }
 
-    // future retrieved from promise is valid (if it is the first)
-    boost::fibers::promise< int& > p2;
-    boost::fibers::future< int& > f2 = p2.get_future();
-    BOOST_CHECK( f2.valid() );
+    {
+        // shared_future retrieved from promise is valid
+        boost::fibers::promise< int& > p;
+        boost::fibers::shared_future< int& > f1 = p.get_future();
+        boost::fibers::shared_future< int& > f2 = f1;
+        BOOST_CHECK( f1.valid() );
+        BOOST_CHECK( f2.valid() );
+    }
 }
 
-void test_future_create_void() {
-    // default constructed future is not valid
-    boost::fibers::future< void > f1;
-    BOOST_CHECK( ! f1.valid() );
+void test_shared_future_create_void() {
+    {
+        // default constructed and assigned shared_future is not valid
+        boost::fibers::shared_future< void > f1;
+        boost::fibers::shared_future< void > f2 = f1;
+        BOOST_CHECK( ! f1.valid() );
+        BOOST_CHECK( ! f2.valid() );
+    }
 
-    // future retrieved from promise is valid (if it is the first)
-    boost::fibers::promise< void > p2;
-    boost::fibers::future< void > f2 = p2.get_future();
-    BOOST_CHECK( f2.valid() );
+    {
+        // shared_future retrieved from promise is valid
+        boost::fibers::promise< void > p;
+        boost::fibers::shared_future< void > f1 = p.get_future();
+        boost::fibers::shared_future< void > f2 = f1;
+        BOOST_CHECK( f1.valid() );
+        BOOST_CHECK( f2.valid() );
+    }
 }
 
-void test_future_move() {
-    // future retrieved from promise is valid (if it is the first)
-    boost::fibers::promise< int > p1;
-    boost::fibers::future< int > f1 = p1.get_future();
-    BOOST_CHECK( f1.valid() );
-
-    // move construction
-    boost::fibers::future< int > f2( std::move( f1) );
-    BOOST_CHECK( ! f1.valid() );
-    BOOST_CHECK( f2.valid() );
-
-    // move assignment
-    f1 = std::move( f2);
-    BOOST_CHECK( f1.valid() );
-    BOOST_CHECK( ! f2.valid() );
-}
-
-void test_future_move_ref() {
-    // future retrieved from promise is valid (if it is the first)
-    boost::fibers::promise< int& > p1;
-    boost::fibers::future< int& > f1 = p1.get_future();
-    BOOST_CHECK( f1.valid() );
-
-    // move construction
-    boost::fibers::future< int& > f2( std::move( f1) );
-    BOOST_CHECK( ! f1.valid() );
-    BOOST_CHECK( f2.valid() );
-
-    // move assignment
-    f1 = std::move( f2);
-    BOOST_CHECK( f1.valid() );
-    BOOST_CHECK( ! f2.valid() );
-}
-
-void test_future_move_void() {
-    // future retrieved from promise is valid (if it is the first)
-    boost::fibers::promise< void > p1;
-    boost::fibers::future< void > f1 = p1.get_future();
-    BOOST_CHECK( f1.valid() );
-
-    // move construction
-    boost::fibers::future< void > f2( std::move( f1) );
-    BOOST_CHECK( ! f1.valid() );
-    BOOST_CHECK( f2.valid() );
-
-    // move assignment
-    f1 = std::move( f2);
-    BOOST_CHECK( f1.valid() );
-    BOOST_CHECK( ! f2.valid() );
-}
-
-void test_future_get() {
+void test_shared_future_get() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
     p1.set_value( 7);
 
-    boost::fibers::future< int > f1 = p1.get_future();
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
     BOOST_CHECK( f1.valid() );
 
     // get
     BOOST_CHECK( ! f1.get_exception_ptr() );
     BOOST_CHECK( 7 == f1.get() );
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
 
     // throw broken_promise if promise is destroyed without set
     {
         boost::fibers::promise< int > p2;
-        f1 = p2.get_future();
+        f1 = p2.get_future().share();
     }
     bool thrown = false;
     try {
@@ -212,28 +185,28 @@ void test_future_get() {
     } catch ( boost::fibers::broken_promise const&) {
         thrown = true;
     }
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
     BOOST_CHECK( thrown);
 }
 
-void test_future_get_move() {
+void test_shared_future_get_move() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< A > p1;
     A a; a.value = 7;
     p1.set_value( std::move( a) );
 
-    boost::fibers::future< A > f1 = p1.get_future();
+    boost::fibers::shared_future< A > f1 = p1.get_future().share();
     BOOST_CHECK( f1.valid() );
 
     // get
     BOOST_CHECK( ! f1.get_exception_ptr() );
     BOOST_CHECK( 7 == f1.get().value);
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
 
     // throw broken_promise if promise is destroyed without set
     {
         boost::fibers::promise< A > p2;
-        f1 = p2.get_future();
+        f1 = p2.get_future().share();
     }
     bool thrown = false;
     try {
@@ -241,29 +214,29 @@ void test_future_get_move() {
     } catch ( boost::fibers::broken_promise const&) {
         thrown = true;
     }
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
     BOOST_CHECK( thrown);
 }
 
-void test_future_get_ref() {
+void test_shared_future_get_ref() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
     int i = 7;
     p1.set_value( i);
 
-    boost::fibers::future< int& > f1 = p1.get_future();
+    boost::fibers::shared_future< int& > f1 = p1.get_future().share();
     BOOST_CHECK( f1.valid() );
 
     // get
     BOOST_CHECK( ! f1.get_exception_ptr() );
     int & j = f1.get();
     BOOST_CHECK( &i == &j);
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
 
     // throw broken_promise if promise is destroyed without set
     {
         boost::fibers::promise< int& > p2;
-        f1 = p2.get_future();
+        f1 = p2.get_future().share();
     }
     bool thrown = false;
     try {
@@ -271,28 +244,28 @@ void test_future_get_ref() {
     } catch ( boost::fibers::broken_promise const&) {
         thrown = true;
     }
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
     BOOST_CHECK( thrown);
 }
 
 
-void test_future_get_void() {
+void test_shared_future_get_void() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
     p1.set_value();
 
-    boost::fibers::future< void > f1 = p1.get_future();
+    boost::fibers::shared_future< void > f1 = p1.get_future().share();
     BOOST_CHECK( f1.valid() );
 
     // get
     BOOST_CHECK( ! f1.get_exception_ptr() );
     f1.get();
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
 
     // throw broken_promise if promise is destroyed without set
     {
         boost::fibers::promise< void > p2;
-        f1 = p2.get_future();
+        f1 = p2.get_future().share();
     }
     bool thrown = false;
     try {
@@ -300,7 +273,7 @@ void test_future_get_void() {
     } catch ( boost::fibers::broken_promise const&) {
         thrown = true;
     }
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
     BOOST_CHECK( thrown);
 }
 
@@ -365,10 +338,10 @@ void test_future_share_void() {
     BOOST_CHECK( sf1.valid() );
 }
 
-void test_future_wait() {
+void test_shared_future_wait() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
-    boost::fibers::future< int > f1 = p1.get_future();
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
     // wait on future
     p1.set_value( 7);
@@ -376,10 +349,10 @@ void test_future_wait() {
     BOOST_CHECK( 7 == f1.get() );
 }
 
-void test_future_wait_ref() {
+void test_shared_future_wait_ref() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
-    boost::fibers::future< int& > f1 = p1.get_future();
+    boost::fibers::shared_future< int& > f1 = p1.get_future().share();
 
     // wait on future
     int i = 7;
@@ -389,24 +362,24 @@ void test_future_wait_ref() {
     BOOST_CHECK( &i == &j);
 }
 
-void test_future_wait_void() {
+void test_shared_future_wait_void() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
-    boost::fibers::future< void > f1 = p1.get_future();
+    boost::fibers::shared_future< void > f1 = p1.get_future().share();
 
     // wait on future
     p1.set_value();
     f1.wait();
     f1.get();
-    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f1.valid() );
 }
 
-void test_future_wait_for() {
+void test_shared_future_wait_for() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
-    boost::fibers::future< int > f1 = p1.get_future();
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn11, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn11, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -421,12 +394,12 @@ void test_future_wait_for() {
     f1.wait();
 }
 
-void test_future_wait_for_ref() {
+void test_shared_future_wait_for_ref() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
-    boost::fibers::future< int& > f1 = p1.get_future();
+    boost::fibers::shared_future< int& > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn12, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn12, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -441,12 +414,12 @@ void test_future_wait_for_ref() {
     f1.wait();
 }
 
-void test_future_wait_for_void() {
+void test_shared_future_wait_for_void() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
-    boost::fibers::future< void > f1 = p1.get_future();
+    boost::fibers::shared_future< void > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn13, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn13, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -461,12 +434,12 @@ void test_future_wait_for_void() {
     f1.wait();
 }
 
-void test_future_wait_until() {
+void test_shared_future_wait_until() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int > p1;
-    boost::fibers::future< int > f1 = p1.get_future();
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn11, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn11, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -481,12 +454,12 @@ void test_future_wait_until() {
     f1.wait();
 }
 
-void test_future_wait_until_ref() {
+void test_shared_future_wait_until_ref() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< int& > p1;
-    boost::fibers::future< int& > f1 = p1.get_future();
+    boost::fibers::shared_future< int& > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn12, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn12, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -501,12 +474,12 @@ void test_future_wait_until_ref() {
     f1.wait();
 }
 
-void test_future_wait_until_void() {
+void test_shared_future_wait_until_void() {
     // future retrieved from promise is valid (if it is the first)
     boost::fibers::promise< void > p1;
-    boost::fibers::future< void > f1 = p1.get_future();
+    boost::fibers::shared_future< void > f1 = p1.get_future().share();
 
-    boost::fibers::fiber( fn13, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn13, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -521,49 +494,115 @@ void test_future_wait_until_void() {
     f1.wait();
 }
 
-void test_future_wait_with_fiber_1() {
+void test_shared_future_wait_with_fiber_1() {
     boost::fibers::promise< int > p1;
-    boost::fibers::fiber( fn1, & p1, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn1, & p1, 7).detach();
 
-    boost::fibers::future< int > f1 = p1.get_future();
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
 
     // wait on future
     BOOST_CHECK( 7 == f1.get() );
 }
 
-void test_future_wait_with_fiber_2() {
-    boost::fibers::fiber( fn2).join();
+void test_shared_future_wait_with_fiber_2() {
+    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, fn2).join();
+}
+
+void test_shared_future_move() {
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int > p1;
+    boost::fibers::shared_future< int > f1 = p1.get_future().share();
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< int > f2( std::move( f1) );
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = std::move( f2);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2.valid() );
+}
+
+void test_shared_future_move_move() {
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< A > p1;
+    boost::fibers::shared_future< A > f1 = p1.get_future().share();
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< A > f2( std::move( f1) );
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = std::move( f2);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2.valid() );
+}
+
+void test_shared_future_move_ref() {
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< int& > p1;
+    boost::fibers::shared_future< int& > f1 = p1.get_future().share();
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< int& > f2( std::move( f1) );
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = std::move( f2);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2.valid() );
+}
+
+void test_shared_future_move_void() {
+    // future retrieved from promise is valid (if it is the first)
+    boost::fibers::promise< void > p1;
+    boost::fibers::shared_future< void > f1 = p1.get_future().share();
+    BOOST_CHECK( f1.valid() );
+
+    // move construction
+    boost::fibers::shared_future< void > f2( std::move( f1) );
+    BOOST_CHECK( ! f1.valid() );
+    BOOST_CHECK( f2.valid() );
+
+    // move assignment
+    f1 = std::move( f2);
+    BOOST_CHECK( f1.valid() );
+    BOOST_CHECK( ! f2.valid() );
 }
 
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     boost::unit_test_framework::test_suite* test =
-        BOOST_TEST_SUITE("Boost.Fiber: future test suite");
+        BOOST_TEST_SUITE("Boost.Fiber: shared_future test suite");
 
-    test->add(BOOST_TEST_CASE(test_future_create));
-    test->add(BOOST_TEST_CASE(test_future_create_ref));
-    test->add(BOOST_TEST_CASE(test_future_create_void));
-    test->add(BOOST_TEST_CASE(test_future_move));
-    test->add(BOOST_TEST_CASE(test_future_move_ref));
-    test->add(BOOST_TEST_CASE(test_future_move_void));
-    test->add(BOOST_TEST_CASE(test_future_get));
-    test->add(BOOST_TEST_CASE(test_future_get_move));
-    test->add(BOOST_TEST_CASE(test_future_get_ref));
-    test->add(BOOST_TEST_CASE(test_future_get_void));
-    test->add(BOOST_TEST_CASE(test_future_share));
-    test->add(BOOST_TEST_CASE(test_future_share_ref));
-    test->add(BOOST_TEST_CASE(test_future_share_void));
-    test->add(BOOST_TEST_CASE(test_future_wait));
-    test->add(BOOST_TEST_CASE(test_future_wait_ref));
-    test->add(BOOST_TEST_CASE(test_future_wait_void));
-    test->add(BOOST_TEST_CASE(test_future_wait_for));
-    test->add(BOOST_TEST_CASE(test_future_wait_for_ref));
-    test->add(BOOST_TEST_CASE(test_future_wait_for_void));
-    test->add(BOOST_TEST_CASE(test_future_wait_until));
-    test->add(BOOST_TEST_CASE(test_future_wait_until_ref));
-    test->add(BOOST_TEST_CASE(test_future_wait_until_void));
-    test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_1));
-    test->add(BOOST_TEST_CASE(test_future_wait_with_fiber_2));
+    test->add(BOOST_TEST_CASE(test_shared_future_create));
+    test->add(BOOST_TEST_CASE(test_shared_future_create_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_create_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_move));
+    test->add(BOOST_TEST_CASE(test_shared_future_move_move));
+    test->add(BOOST_TEST_CASE(test_shared_future_move_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_move_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_get));
+    test->add(BOOST_TEST_CASE(test_shared_future_get_move));
+    test->add(BOOST_TEST_CASE(test_shared_future_get_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_get_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_for));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_for_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_for_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_until));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_until_ref));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_until_void));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_with_fiber_1));
+    test->add(BOOST_TEST_CASE(test_shared_future_wait_with_fiber_2));
 
     return test;
 }

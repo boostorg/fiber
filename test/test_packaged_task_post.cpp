@@ -74,7 +74,7 @@ void fn2() {
     boost::fibers::promise< int > p;
     boost::fibers::future< int > f( p.get_future() );
     boost::this_fiber::yield();
-    boost::fibers::fiber( fn1, & p, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch_policy::post, fn1, & p, 7).detach();
     boost::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }

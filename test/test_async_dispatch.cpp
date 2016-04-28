@@ -59,7 +59,7 @@ A fn4( A && a) {
 }
 
 void test_async_1() {
-    boost::fibers::future< void > f1 = boost::fibers::async( fn1);
+    boost::fibers::future< void > f1 = boost::fibers::async( boost::fibers::launch_policy::dispatch, fn1);
     BOOST_CHECK( f1.valid() );
 
     f1.get();
@@ -67,7 +67,7 @@ void test_async_1() {
 
 void test_async_2() {
     int i = 3;
-    boost::fibers::future< int > f1 = boost::fibers::async( fn2, i);
+    boost::fibers::future< int > f1 = boost::fibers::async( boost::fibers::launch_policy::dispatch, fn2, i);
     BOOST_CHECK( f1.valid() );
 
     BOOST_CHECK( i == f1.get());
@@ -75,7 +75,7 @@ void test_async_2() {
 
 void test_async_3() {
     int i = 7;
-    boost::fibers::future< int& > f1 = boost::fibers::async( fn3, std::ref( i) );
+    boost::fibers::future< int& > f1 = boost::fibers::async( boost::fibers::launch_policy::dispatch, fn3, std::ref( i) );
     BOOST_CHECK( f1.valid() );
 
     BOOST_CHECK( & i == & f1.get());
@@ -84,7 +84,7 @@ void test_async_3() {
 void test_async_4() {
     A a1;
     a1.value = 7;
-    boost::fibers::future< A > f1 = boost::fibers::async( fn4, std::move( a1) );
+    boost::fibers::future< A > f1 = boost::fibers::async( boost::fibers::launch_policy::dispatch, fn4, std::move( a1) );
     BOOST_CHECK( f1.valid() );
 
     A a2 = f1.get();
@@ -95,6 +95,7 @@ void test_async_5() {
     X x = {0};
     BOOST_CHECK( 0 == x.value);
     boost::fibers::future< void > f1 = boost::fibers::async(
+            boost::fibers::launch_policy::dispatch,
             std::bind( & X::foo, std::ref( x), 3) );
     BOOST_CHECK( f1.valid() );
 
@@ -106,6 +107,7 @@ void test_async_6() {
     X x = {0};
     BOOST_CHECK( 0 == x.value);
     boost::fibers::future< void > f1 = boost::fibers::async(
+            boost::fibers::launch_policy::dispatch,
             std::bind( & X::foo, std::ref( x), std::placeholders::_1), 3);
     BOOST_CHECK( f1.valid() );
 

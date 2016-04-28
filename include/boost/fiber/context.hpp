@@ -33,6 +33,7 @@
 #include <boost/fiber/detail/wrap.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/policy.hpp>
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/segmented_stack.hpp>
 #include <boost/fiber/type.hpp>
@@ -160,6 +161,7 @@ private:
     unsigned int                                    flags_;
     type                                            type_;
 #endif
+    launch_policy                                   lpol_{ launch_policy::post };
     scheduler                                   *   scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
@@ -302,11 +304,13 @@ public:
               typename Tpl
     >
     context( worker_context_t,
+             launch_policy lpol,
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Tpl && tpl) :
         use_count_{ 1 }, // fiber instance or scheduler owner
         flags_{ 0 },
         type_{ type::worker_context },
+        lpol_{ lpol },
 #if (BOOST_EXECUTION_CONTEXT==1)
 # if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
@@ -401,6 +405,10 @@ public:
         return properties_;
     }
 
+    launch_policy get_policy() const noexcept {
+        return lpol_;
+    }
+
     bool ready_is_linked() const noexcept;
 
     bool sleep_is_linked() const noexcept;
@@ -488,7 +496,9 @@ struct context_initializer {
 };
 
 template< typename StackAlloc, typename Fn, typename ... Args >
-static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn, Args && ... args) {
+static intrusive_ptr< context > make_worker_context( launch_policy lpol,
+                                                     StackAlloc salloc,
+                                                     Fn && fn, Args && ... args) {
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
@@ -510,6 +520,7 @@ static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn
     return intrusive_ptr< context >( 
             ::new ( sp) context(
                 worker_context,
+                lpol,
                 boost::context::preallocated( sp, size, sctx),
                 salloc,
                 std::forward< Fn >( fn),
