@@ -161,6 +161,34 @@ Instances that refer to __not_a_fiber__ compare equal to each other, but
 not equal to any instances that refer to an actual fiber. The comparison
 operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
+[#class_launch_policy]
+[heading Enumeration `launch_policy`]
+
+`launch_policy` specifies whether control passes immediately into a
+newly-launched fiber.
+
+        enum class launch_policy {
+            dispatch,
+            post
+        };
+
+[heading `dispatch`]
+[variablelist
+[[Effects:] [A fiber launched with `launch_policy == dispatch` is entered
+immediately. In other words, launching a fiber with `dispatch` suspends the
+caller (the previously-running fiber) until the fiber scheduler has a chance
+to resume it later.]]
+]
+
+[heading `post`]
+[variablelist
+[[Effects:] [A fiber launched with `launch_policy == post` is passed to the
+fiber scheduler as ready, but it is not yet entered. The caller (the
+previously-running fiber) continues executing. The newly-launched fiber will
+be entered when the fiber scheduler has a chance to resume it later.]]
+[[Note:] [If `launch_policy` is not explicitly specified, `post` is the default.]]
+] 
+
 
 [#class_fiber]
 [section:fiber Class `fiber`]
@@ -176,8 +204,14 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
             template< typename Fn, typename ... Args >
             fiber( Fn &&, Args && ...);
 
+            template< typename Fn, typename ... Args >
+            fiber( ``[link class_launch_policy `launch_policy`]``, Fn &&, Args && ...);
+
             template< typename __StackAllocator__, typename Fn, typename ... Args >
             fiber( __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
+
+            template< typename __StackAllocator__, typename Fn, typename ... Args >
+            fiber( ``[link class_launch_policy `launch_policy`]``, __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
 
             ~fiber();
 
@@ -229,12 +263,23 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         template< typename Fn, typename ... Args >
         fiber( Fn && fn, Args && ... args);
 
+        template< typename Fn, typename ... Args >
+        fiber( ``[link class_launch_policy `launch_policy`]`` lpol, Fn && fn, Args && ... args);
+
         template< typename __StackAllocator__, typename Fn, typename ... Args >
         fiber( __allocator_arg_t__, StackAllocator salloc, Fn && fn, Args && ... args);
 
+        template< typename __StackAllocator__, typename Fn, typename ... Args >
+        fiber( ``[link class_launch_policy `launch_policy`]`` lpol, __allocator_arg_t__, StackAllocator salloc,
+               Fn && fn, Args && ... args);
+
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
-[[Effects:] [`fn` is copied or moved into internal storage for access by the new fiber.]]
+[[Effects:] [`fn` is copied or moved into internal storage for access by the
+new fiber. If [class_link launch_policy] is specified (or defaulted) to
+`post`, the new fiber is marked ["ready] and will be entered at the next
+opportunity. If `launch_policy` is specified as `dispatch`, the calling fiber
+is suspended and the new fiber is entered immediately.]]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]
 [[Note:] [__StackAllocator__ is required to allocate a stack for the internal

@@ -175,8 +175,8 @@ launch some number of fibers:
 
 [asio_rr_launch_fibers]
 
-Since we don[t] specify a `launch_policy`, these fibers are ready to run, but
-have not yet been entered.
+Since we don[t] specify a [class_link launch_policy], these fibers are ready
+to run, but have not yet been entered.
 
 Having set everything up, the application calls
 [@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html

@@ -360,6 +360,14 @@ const&`, otherwise `false`.]]
         >
         async( Function && fn, Args && ... args);
 
+        template< class Function, class ... Args >
+        future<
+            std::result_of_t<
+                std::decay_t< Function >( std::decay_t< Args > ... )
+            >
+        >
+        async( ``[link class_launch_policy `launch_policy`]`` lpol, Function && fn, Args && ... args);
+
         template< typename __StackAllocator__, class Function, class ... Args >
         future<
             std::result_of_t<
@@ -367,6 +375,15 @@ const&`, otherwise `false`.]]
             >
         >
         async( __allocator_arg_t__, __StackAllocator__ salloc, Function && fn, Args && ... args);
+
+        template< typename __StackAllocator__, class Function, class ... Args >
+        future<
+            std::result_of_t<
+                std::decay_t< Function >( std::decay_t< Args > ... )
+            >
+        >
+        async( ``[link class_launch_policy `launch_policy`]`` lpol, __allocator_arg_t__, __StackAllocator__ salloc,
+               Function && fn, Args && ... args);
 
 [variablelist
 [[Effects:] [Executes `fn` in a [class_link fiber] and returns an associated
@@ -379,8 +396,11 @@ const&`, otherwise `false`.]]
 shared_state shared state] associated with the asynchronous execution of
 `fn`.]]
 [[Throws:] [__fiber_error__ or __future_error__ if an error occurs.]]
-[[Notes:] [The overload accepting __allocator_arg_t__ uses the passed
-__StackAllocator__ when constructing the launched `fiber`.]]
+[[Notes:] [The overloads accepting __allocator_arg_t__ use the passed
+__StackAllocator__ when constructing the launched `fiber`. The overloads
+accepting [class_link launch_policy] use the passed `launch_policy` when
+constructing the launched `fiber`. The default `launch_policy` is `post`, as
+for the `fiber` constructor.]]
 ]
 
 [note Deferred futures are not supported.]
