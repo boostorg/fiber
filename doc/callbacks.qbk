@@ -12,7 +12,7 @@
 [#callbacks]
 [section:callbacks Integrating Fibers with Asynchronous Callbacks]
 
-[heading Overview]
+[section Overview]
 
 One of the primary benefits of __boost_fiber__ is the ability to use
 asynchronous operations for efficiency, while at the same time structuring the
@@ -38,7 +38,8 @@ lets us use the wrapper function's return value to deliver relevant data.
 
 [tip [template_link promise] and [template_link future] are your friends here.]
 
-[heading Return Errorcode]
+[endsect]
+[section Return Errorcode]
 
 The `AsyncAPI::init_write()` callback passes only an `errorcode`. If we simply
 want the blocking wrapper to return that `errorcode`, this is an extremely
@@ -60,7 +61,8 @@ dummy `AsyncAPI` implementation illustrates that: it simulates async I/O by
 launching a new thread that sleeps briefly and then calls the relevant
 callback.]
 
-[heading Success or Exception]
+[endsect]
+[section Success or Exception]
 
 A wrapper more aligned with modern C++ practice would use an exception, rather
 than an `errorcode`, to communicate failure to its caller. This is
@@ -71,7 +73,8 @@ straightforward to code in terms of `write_ec()`:
 The point is that since each fiber has its own stack, you need not repeat
 messy boilerplate: normal encapsulation works.
 
-[heading Return Errorcode or Data]
+[endsect]
+[section Return Errorcode or Data]
 
 Things get a bit more interesting when the async operation's callback passes
 multiple data items of interest. One approach would be to use `std::pair<>` to
@@ -84,8 +87,9 @@ identical to `write_ec()`. You can call it like this:
 
 [callbacks_read_ec_call]
 
+[endsect]
 [#Data_or_Exception]
-[heading Data or Exception]
+[section Data or Exception]
 
 But a more natural API for a function that obtains data is to return only the
 data on success, throwing an exception on error.
@@ -100,7 +104,8 @@ promise..set_exception]:
 [member_link future..get] will do the right thing, either returning
 `std::string` or throwing an exception.
 
-[heading Success/Error Virtual Methods]
+[endsect]
+[section Success/Error Virtual Methods]
 
 One classic approach to completion notification is to define an abstract base
 class with `success()` and `error()` methods. Code wishing to perform async
@@ -129,8 +134,9 @@ The source code above is found in
 and
 [@../../examples/adapt_method_calls.cpp adapt_method_calls.cpp].
 
+[endsect]
 [#callbacks_asio]
-[heading Then There's __boost_asio__]
+[section Then There[s] __boost_asio__]
 
 [import ../examples/asio/yield.hpp]
 [import ../examples/asio/detail/yield.hpp]
@@ -388,4 +394,5 @@ The source code above is found in
 [@../../examples/asio/yield.hpp yield.hpp] and
 [@../../examples/asio/detail/yield.hpp detail/yield.hpp].
 
+[endsect]
 [endsect]

@@ -36,11 +36,14 @@ class round_robin : public sched_algorithm {
 private:
     typedef scheduler::ready_queue_t rqueue_t;
 
+//[asio_rr_suspend_timer
     boost::asio::io_service                     &   io_svc_;
     boost::asio::steady_timer                       suspend_timer_;
+//]
     rqueue_t                                        rqueue_{};
 
 public:
+//[asio_rr_service_top
     struct service : public boost::asio::io_service::service {
         static boost::asio::io_service::id                  id;
 
@@ -50,6 +53,8 @@ public:
             boost::asio::io_service::service( io_svc),
             work_{ new boost::asio::io_service::work( io_svc) } {
             io_svc.post([&io_svc](){
+//]
+//[asio_rr_service_lambda
                 while ( ! io_svc.stopped() ) {
                     if ( boost::fibers::has_ready_fibers() ) {
                         // run all pending handlers in round_robin
@@ -64,6 +69,8 @@ public:
                         }
                     }
                 }
+//]
+//[asio_rr_service_bottom
             });
         }
 
@@ -76,7 +83,9 @@ public:
             work_.reset();
         }
     };
+//]
 
+//[asio_rr_ctor
     round_robin( boost::asio::io_service & io_svc) :
         io_svc_( io_svc),
         suspend_timer_( io_svc_) {
@@ -85,6 +94,7 @@ public:
         // more than one round_robin instance.
         boost::asio::add_service( io_svc_, new service( io_svc_));
     }
+//]
 
     void awakened( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
@@ -108,6 +118,7 @@ public:
         return ! rqueue_.empty();
     }
 
+//[asio_rr_suspend_until
     void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept {
         // Set a timer so at least one handler will eventually fire, causing
         // run_one() to eventually return. Set a timer even if abs_time ==
@@ -139,7 +150,9 @@ public:
             suspend_timer_.async_wait([](boost::system::error_code const&){});
         }
     }
+//]
 
+//[asio_rr_notify
     void notify() noexcept {
         // Something has happened that should wake one or more fibers BEFORE
         // suspend_timer_ expires. Reset the timer to cause it to fire
@@ -158,6 +171,7 @@ public:
         // -- but that shouldn't be a big problem.
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
     }
+//]
 };
 
 boost::asio::io_service::id round_robin::service::id;

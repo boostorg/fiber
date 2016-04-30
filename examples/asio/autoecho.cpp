@@ -168,7 +168,7 @@ void server( boost::asio::io_service & io_svc, tcp::acceptor & a) {
             }
         }
     } catch ( std::exception const& ex) {
-        print( tag(), ": catched exception : ", ex.what());
+        print( tag(), ": caught exception : ", ex.what());
     }
     io_svc.stop();
     print( tag(), ": echo-server stopped");
@@ -228,9 +228,12 @@ void client( boost::asio::io_service & io_svc, tcp::acceptor & a,
 *****************************************************************************/
 int main( int argc, char* argv[]) {
     try {
+//[asio_rr_setup
         boost::asio::io_service io_svc;
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+//]
         print( "Thread ", thread_names.lookup(), ": started");
+//[asio_rr_launch_fibers
         // server
         tcp::acceptor a( io_svc, tcp::endpoint( tcp::v4(), 9999) );
         boost::fibers::fiber( server, std::ref( io_svc), std::ref( a) ).detach();
@@ -242,7 +245,10 @@ int main( int argc, char* argv[]) {
             boost::fibers::fiber(
                     client, std::ref( io_svc), std::ref( a), std::ref( b), iterations).detach();
         }
+//]
+//[asio_rr_run
         io_svc.run();
+//]
         print( tag(), ": io_service returned");
         print( "Thread ", thread_names.lookup(), ": stopping");
         return EXIT_SUCCESS;
