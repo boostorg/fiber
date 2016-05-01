@@ -25,11 +25,12 @@ public:
     typedef int errorcode;
 
     // write callback only needs to indicate success or failure
-    void init_write( std::string const& data,
-                     std::function< void( errorcode) > const& callback);
+    template< typename Fn >
+    void init_write( std::string const& data, Fn && callback);
 
     // read callback needs to accept both errorcode and data
-    void init_read( std::function< void( errorcode, std::string const&) > const&);
+    template< typename Fn >
+    void init_read( Fn && callback);
 
     // ... other operations ...
 //<-
@@ -54,8 +55,8 @@ void AsyncAPI::inject_error( errorcode ec) {
     injected_ = ec;
 }
 
-void AsyncAPI::init_write( std::string const& data,
-                           std::function< void( errorcode) > const& callback) {
+template< typename Fn >
+void AsyncAPI::init_write( std::string const& data, Fn && callback) {
     // make a local copy of injected_
     errorcode injected( injected_);
     // reset it synchronously with caller
@@ -67,13 +68,23 @@ void AsyncAPI::init_write( std::string const& data,
     // Simulate an asynchronous I/O operation by launching a detached thread
     // that sleeps a bit before calling completion callback. Echo back to
     // caller any previously-injected errorcode.
-    std::thread( [injected, callback](){
+#if ! defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
+    std::thread( [injected,callback=std::forward< Fn >( callback)]() mutable {
         std::this_thread::sleep_for( std::chrono::milliseconds(100) );
         callback( injected);
     }).detach();
+#else
+    std::thread(
+        std::bind([injected]( typename std::decay< Fn >::type & callback) mutable {
+            std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+            callback( injected);
+        },
+        std::forward< Fn >( callback) ) ).detach();
+#endif
 }
 
-void AsyncAPI::init_read( std::function< void( errorcode, std::string const&) > const& callback) {
+template< typename Fn >
+void AsyncAPI::init_read( Fn && callback) {
     // make a local copy of injected_
     errorcode injected( injected_);
     // reset it synchronously with caller
@@ -83,10 +94,19 @@ void AsyncAPI::init_read( std::function< void( errorcode, std::string const&) > 
     // Simulate an asynchronous I/O operation by launching a detached thread
     // that sleeps a bit before calling completion callback. Echo back to
     // caller any previously-injected errorcode.
-    std::thread( [injected, callback, data](){
+#if ! defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
+    std::thread( [injected,callback=std::forward< Fn >( callback),data]() mutable {
         std::this_thread::sleep_for( std::chrono::milliseconds(100) );
         callback( injected, data);
     }).detach();
+#else
+    std::thread(
+        std::bind([injected,data]( typename std::decay< Fn >::type & callback) mutable {
+            std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+            callback( injected, data);
+    },
+    std::forward< Fn >( callback) ) ).detach();
+#endif
 }
 
 /*****************************************************************************
@@ -106,23 +126,23 @@ AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     // happen with fibers::promise, a robust way to deal with the lifespan
     // issue is to bind 'promise' into our lambda. Since promise is move-only,
     // use initialization capture.
-#if defined(__cpp_init_captures)
+#if ! defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
     api.init_write(
         data,
-        [promise = std::move(promise)]( AsyncAPI::errorcode ec) mutable {
+        [promise=std::move( promise)]( AsyncAPI::errorcode ec) mutable {
                             promise.set_value( ec);
                   });
 
-#else // ! defined(__cpp_init_captures)
-    // std::bind() workaround for initialization capture from
-    // http://stackoverflow.com/questions/8640393/move-capture-in-lambda
+#else // defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
     api.init_write(
         data,
         std::bind([](boost::fibers::promise< AsyncAPI::errorcode > & promise,
                      AsyncAPI::errorcode ec) {
             promise.set_value( ec);
-        }, std::move(promise), std::placeholders::_1);
-#endif // __cpp_init_captures
+        },
+        std::move( promise),
+        std::placeholders::_1) );
+#endif // BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES
 
     return future.get();
 }
@@ -144,9 +164,20 @@ std::pair< AsyncAPI::errorcode, std::string > read_ec( AsyncAPI & api) {
     boost::fibers::future< result_pair > future( promise.get_future() );
     // We promise that both 'promise' and 'future' will survive until our
     // lambda has been called.
-    api.init_read([&promise]( AsyncAPI::errorcode ec, std::string const& data) mutable {
+#if ! defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
+    api.init_read([promise=std::move( promise)]( AsyncAPI::errorcode ec, std::string const& data) mutable {
                             promise.set_value( result_pair( ec, data) );
                   });
+#else // defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
+    api.init_read(
+            std::bind([]( boost::fibers::promise< result_pair > & promise,
+                          AsyncAPI::errorcode ec, std::string const& data) mutable {
+                            promise.set_value( result_pair( ec, data) );
+                  },
+                  std::move( promise),
+                  std::placeholders::_1,
+                  std::placeholders::_2) );
+#endif // BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES
     return future.get();
 }
 //]
@@ -157,6 +188,7 @@ std::string read( AsyncAPI & api) {
     boost::fibers::future< std::string > future( promise.get_future() );
     // Both 'promise' and 'future' will survive until our lambda has been
     // called.
+#if ! defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
     api.init_read([&promise]( AsyncAPI::errorcode ec, std::string const& data) mutable {
                            if ( ! ec) {
                                promise.set_value( data);
@@ -166,6 +198,22 @@ std::string read( AsyncAPI & api) {
                                            make_exception("read", ec) ) );
                            }
                   });
+#else // defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
+    api.init_read(
+            std::bind([]( boost::fibers::promise< std::string > & promise,
+                          AsyncAPI::errorcode ec, std::string const& data) mutable {
+                           if ( ! ec) {
+                               promise.set_value( data);
+                           } else {
+                               promise.set_exception(
+                                       std::make_exception_ptr(
+                                           make_exception("read", ec) ) );
+                           }
+                  },
+                  std::move( promise),
+                  std::placeholders::_1,
+                  std::placeholders::_2) );
+#endif // BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES
     return future.get();
 }
 //]
