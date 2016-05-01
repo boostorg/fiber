@@ -35,15 +35,15 @@
         </p>
 <p>
           Let's at least ensure that such an exception would propagate to the fiber
-          awaiting the first result. We can use <a class="link" href="../../synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> to transport
-          either a return value or an exception. Therefore, we will change <a class="link" href="when_any__return_value.html#wait_first_value"><code class="computeroutput"><span class="identifier">wait_first_value</span><span class="special">()</span></code></a>'s <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"> <code class="computeroutput">unbounded_channel&lt;&gt;</code></a> to
+          awaiting the first result. We can use <a class="link" href="../../synchronization/futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> to transport
+          either a return value or an exception. Therefore, we will change <a class="link" href="when_any__return_value.html#wait_first_value"><code class="computeroutput"><span class="identifier">wait_first_value</span><span class="special">()</span></code></a>'s <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"><code class="computeroutput">unbounded_channel&lt;&gt;</code></a> to
           hold <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;</span>
           <span class="identifier">T</span> <span class="special">&gt;</span></code>
           items instead of simply <code class="computeroutput"><span class="identifier">T</span></code>.
         </p>
 <p>
           Once we have a <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
-          in hand, all we need do is call <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a>, which will either
+          in hand, all we need do is call <a class="link" href="../../synchronization/futures/future.html#future_get"><code class="computeroutput">future::get()</code></a>, which will either
           return the value or rethrow the exception.
         </p>
 <p>
@@ -75,10 +75,10 @@
         </p>
 <p>
           So far so good &#8212; but there's a timing issue. How should we obtain the <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
-          to <a class="link" href="../../synchronization/channels.html#unbounded_channel_push"> <code class="computeroutput">unbounded_channel::push()</code></a> on the channel?
+          to <a class="link" href="../../synchronization/channels.html#unbounded_channel_push"><code class="computeroutput">unbounded_channel::push()</code></a> on the channel?
         </p>
 <p>
-          We could call <a class="link" href="../../synchronization/futures/future.html#fibers_async"> <code class="computeroutput">fibers::async()</code></a>. That would certainly produce
+          We could call <a class="link" href="../../synchronization/futures/future.html#fibers_async"><code class="computeroutput">fibers::async()</code></a>. That would certainly produce
           a <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           for the task function. The trouble is that it would return too quickly!
           We only want <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
@@ -90,19 +90,19 @@
           completes most quickly.
         </p>
 <p>
-          Calling <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> on the future returned by <code class="computeroutput"><span class="identifier">async</span><span class="special">()</span></code>
+          Calling <a class="link" href="../../synchronization/futures/future.html#future_get"><code class="computeroutput">future::get()</code></a> on the future returned by <code class="computeroutput"><span class="identifier">async</span><span class="special">()</span></code>
           wouldn't be right. You can only call <code class="computeroutput"><span class="identifier">get</span><span class="special">()</span></code> once per <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> instance! And if there were an
           exception, it would be rethrown inside the helper fiber at the producer
           end of the channel, rather than propagated to the consumer end.
         </p>
 <p>
-          We could call <a class="link" href="../../synchronization/futures/future.html#future_wait"> <code class="computeroutput">future::wait()</code></a>. That would block the helper fiber
+          We could call <a class="link" href="../../synchronization/futures/future.html#future_wait"><code class="computeroutput">future::wait()</code></a>. That would block the helper fiber
           until the <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           became ready, at which point we could <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code> it to be retrieved by <code class="computeroutput"><span class="identifier">wait_first_outcome</span><span class="special">()</span></code>.
         </p>
 <p>
           That would work &#8212; but there's a simpler tactic that avoids creating an extra
-          fiber. We can wrap the task function in a <a class="link" href="../../synchronization/futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a>.
+          fiber. We can wrap the task function in a <a class="link" href="../../synchronization/futures/packaged_task.html#class_packaged_task"><code class="computeroutput">packaged_task&lt;&gt;</code></a>.
           While one naturally thinks of passing a <code class="computeroutput"><span class="identifier">packaged_task</span><span class="special">&lt;&gt;</span></code> to a new fiber &#8212; that is, in fact,
           what <code class="computeroutput"><span class="identifier">async</span><span class="special">()</span></code>
           does &#8212; in this case, we're already running in the helper fiber at the producer

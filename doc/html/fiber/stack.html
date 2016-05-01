@@ -27,14 +27,14 @@
 <a name="fiber.stack"></a><a name="stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
 </h2></div></div></div>
 <p>
-      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> uses internally an <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
+      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> uses internally an <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
       which manages a set of registers and a stack. The memory used by the stack
       is allocated/deallocated via a <span class="emphasis"><em>stack_allocator</em></span> which is
       required to model a <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
       concept</em></span></a>.
     </p>
 <p>
-      A <span class="emphasis"><em>stack_allocator</em></span> can be passed to <a class="link" href="fiber_mgmt/fiber.html#fiber_fiber"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">()</span></code></a> or to <a class="link" href="synchronization/futures/future.html#fibers_async"> <code class="computeroutput">fibers::async()</code></a>.
+      A <span class="emphasis"><em>stack_allocator</em></span> can be passed to <a class="link" href="fiber_mgmt/fiber.html#fiber_fiber"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">()</span></code></a> or to <a class="link" href="synchronization/futures/future.html#fibers_async"><code class="computeroutput">fibers::async()</code></a>.
     </p>
 <a name="stack_allocator_concept"></a><h4>
 <a name="fiber.stack.h0"></a>
@@ -170,7 +170,7 @@
 <p>
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> which
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_protected_fixedsize_stack"><code class="computeroutput">protected_fixedsize_stack</code></a> which
       models the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
       concept</em></span></a>. It appends a guard page at the end of each stack
       to protect against exceeding the stack. If the guard page is accessed (read
@@ -183,10 +183,10 @@
 <th align="left">Important</th>
 </tr>
 <tr><td align="left" valign="top"><p>
-        Using <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> is expensive.
+        Using <a class="link" href="stack.html#class_protected_fixedsize_stack"><code class="computeroutput">protected_fixedsize_stack</code></a> is expensive.
         Launching a new fiber with a stack of this type incurs the overhead of setting
         the memory protection; once allocated, this stack is just as efficient to
-        use as <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a>.
+        use as <a class="link" href="stack.html#class_fixedsize_stack"><code class="computeroutput">fixedsize_stack</code></a>.
       </p></td></tr>
 </table></div>
 <div class="note"><table border="0" summary="Note">
@@ -280,9 +280,9 @@
 <p>
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_pooled_fixedsize_stack"> <code class="computeroutput">pooled_fixedsize_stack</code></a> which
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_pooled_fixedsize_stack"><code class="computeroutput">pooled_fixedsize_stack</code></a> which
       models the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
-      concept</em></span></a>. In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> it
+      concept</em></span></a>. In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"><code class="computeroutput">protected_fixedsize_stack</code></a> it
       does not append a guard page at the end of each stack. The memory is managed
       internally by <a href="http://www.boost.org/doc/libs/release/libs/pool/doc/html/boost/pool.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">pool</span><span class="special">&lt;&gt;</span></code></a>.
     </p>
@@ -399,9 +399,9 @@
 <p>
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> which
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides the class <a class="link" href="stack.html#class_fixedsize_stack"><code class="computeroutput">fixedsize_stack</code></a> which
       models the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
-      concept</em></span></a>. In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> it
+      concept</em></span></a>. In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"><code class="computeroutput">protected_fixedsize_stack</code></a> it
       does not append a guard page at the end of each stack. The memory is simply
       managed by <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">malloc</span><span class="special">()</span></code>
       and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">free</span><span class="special">()</span></code>.
@@ -485,12 +485,12 @@
 <p>
     </p>
 <p>
-      <span class="bold"><strong>Boost.Fiber</strong></span> supports usage of a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a>,
+      <span class="bold"><strong>Boost.Fiber</strong></span> supports usage of a <a class="link" href="stack.html#class_segmented_stack"><code class="computeroutput">segmented_stack</code></a>,
       i.e. the stack grows on demand. The fiber is created with a minimal stack size
-      which will be increased as required. Class <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> models
+      which will be increased as required. Class <a class="link" href="stack.html#class_segmented_stack"><code class="computeroutput">segmented_stack</code></a> models
       the <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator concept</em></span></a>.
-      In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"> <code class="computeroutput">protected_fixedsize_stack</code></a> and
-      <a class="link" href="stack.html#class_fixedsize_stack"> <code class="computeroutput">fixedsize_stack</code></a> it creates a stack which grows on demand.
+      In contrast to <a class="link" href="stack.html#class_protected_fixedsize_stack"><code class="computeroutput">protected_fixedsize_stack</code></a> and
+      <a class="link" href="stack.html#class_fixedsize_stack"><code class="computeroutput">fixedsize_stack</code></a> it creates a stack which grows on demand.
     </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -501,7 +501,7 @@
         Segmented stacks are currently only supported by <span class="bold"><strong>gcc</strong></span>
         from version <span class="bold"><strong>4.7</strong></span> and <span class="bold"><strong>clang</strong></span>
         from version <span class="bold"><strong>3.4</strong></span> onwards. In order to use
-        a <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> <span class="bold"><strong>Boost.Fiber</strong></span>
+        a <a class="link" href="stack.html#class_segmented_stack"><code class="computeroutput">segmented_stack</code></a> <span class="bold"><strong>Boost.Fiber</strong></span>
         must be built with property <code class="computeroutput"><span class="identifier">segmented</span><span class="special">-</span><span class="identifier">stacks</span></code>,
         e.g. <span class="bold"><strong>toolset=gcc segmented-stacks=on</strong></span> at
         b2/bjam command line.
@@ -581,7 +581,7 @@
 <th align="left">Note</th>
 </tr>
 <tr><td align="left" valign="top"><p>
-        If the library is compiled for segmented stacks, <a class="link" href="stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a> is
+        If the library is compiled for segmented stacks, <a class="link" href="stack.html#class_segmented_stack"><code class="computeroutput">segmented_stack</code></a> is
         the only available stack allocator.
       </p></td></tr>
 </table></div>

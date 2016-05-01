@@ -39,7 +39,7 @@
 <span class="keyword">class</span> <span class="identifier">condition_variable_any</span><span class="special">;</span>
 </pre>
 <p>
-        The class <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> provides a mechanism
+        The class <a class="link" href="conditions.html#class_condition_variable"><code class="computeroutput">condition_variable</code></a> provides a mechanism
         for a fiber to wait for notification from another fiber. When the fiber awakens
         from the wait, then it checks to see if the appropriate condition is now
         true, and continues if so. If the condition is not true, then the fiber calls
@@ -64,8 +64,8 @@
 </pre>
 <p>
         Notice that the <code class="computeroutput"><span class="identifier">lk</span></code> is passed
-        to <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>: <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> will atomically add the fiber to the set
-        of fibers waiting on the condition variable, and unlock the <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>.
+        to <a class="link" href="conditions.html#condition_variable_wait"><code class="computeroutput">condition_variable::wait()</code></a>: <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> will atomically add the fiber to the set
+        of fibers waiting on the condition variable, and unlock the <a class="link" href="mutex_types.html#class_mutex"><code class="computeroutput">mutex</code></a>.
         When the fiber is awakened, the <code class="computeroutput"><span class="identifier">mutex</span></code>
         will be locked again before the call to <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> returns. This allows other fibers to acquire
         the <code class="computeroutput"><span class="identifier">mutex</span></code> in order to update
@@ -87,8 +87,8 @@
 <p>
         In the meantime, another fiber sets <code class="computeroutput"><span class="identifier">data_ready</span></code>
         to <code class="computeroutput"><span class="keyword">true</span></code>, and then calls either
-        <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a> or <a class="link" href="conditions.html#condition_variable_notify_all"> <code class="computeroutput">condition_variable::notify_all()</code></a> on
-        the <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> <code class="computeroutput"><span class="identifier">cond</span></code>
+        <a class="link" href="conditions.html#condition_variable_notify_one"><code class="computeroutput">condition_variable::notify_one()</code></a> or <a class="link" href="conditions.html#condition_variable_notify_all"><code class="computeroutput">condition_variable::notify_all()</code></a> on
+        the <a class="link" href="conditions.html#class_condition_variable"><code class="computeroutput">condition_variable</code></a> <code class="computeroutput"><span class="identifier">cond</span></code>
         to wake one waiting fiber or all the waiting fibers respectively.
       </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">retrieve_data</span><span class="special">();</span>
@@ -105,18 +105,18 @@
 <span class="special">}</span>
 </pre>
 <p>
-        Note that the same <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a> is locked before the shared data is updated,
+        Note that the same <a class="link" href="mutex_types.html#class_mutex"><code class="computeroutput">mutex</code></a> is locked before the shared data is updated,
         but that the <code class="computeroutput"><span class="identifier">mutex</span></code> does not
-        have to be locked across the call to <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a>.
+        have to be locked across the call to <a class="link" href="conditions.html#condition_variable_notify_one"><code class="computeroutput">condition_variable::notify_one()</code></a>.
       </p>
 <p>
         Locking is important because the synchronization objects provided by <span class="bold"><strong>Boost.Fiber</strong></span> can be used to synchronize fibers running
         on different threads.
       </p>
 <p>
-        <span class="bold"><strong>Boost.Fiber</strong></span> provides both <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> and
-        <a class="link" href="conditions.html#class_condition_variable_any"> <code class="computeroutput">condition_variable_any</code></a>. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable</span></code>
-        can only wait on <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a><code class="computeroutput"><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span></code> <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a><code class="computeroutput"> <span class="special">&gt;</span></code>
+        <span class="bold"><strong>Boost.Fiber</strong></span> provides both <a class="link" href="conditions.html#class_condition_variable"><code class="computeroutput">condition_variable</code></a> and
+        <a class="link" href="conditions.html#class_condition_variable_any"><code class="computeroutput">condition_variable_any</code></a>. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable</span></code>
+        can only wait on <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a><code class="computeroutput"><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span></code><a class="link" href="mutex_types.html#class_mutex"><code class="computeroutput">mutex</code></a><code class="computeroutput"> <span class="special">&gt;</span></code>
         while <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable_any</span></code> can wait on user-defined
         lock types.
       </p>
@@ -126,10 +126,10 @@
         Wakeups</a>
       </h5>
 <p>
-        Neither <a class="link" href="conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> nor <a class="link" href="conditions.html#class_condition_variable_any"> <code class="computeroutput">condition_variable_any</code></a> are
-        subject to spurious wakeup: <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a> can
-        only wake up when <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a> or
-        <a class="link" href="conditions.html#condition_variable_notify_all"> <code class="computeroutput">condition_variable::notify_all()</code></a> is called. Even
+        Neither <a class="link" href="conditions.html#class_condition_variable"><code class="computeroutput">condition_variable</code></a> nor <a class="link" href="conditions.html#class_condition_variable_any"><code class="computeroutput">condition_variable_any</code></a> are
+        subject to spurious wakeup: <a class="link" href="conditions.html#condition_variable_wait"><code class="computeroutput">condition_variable::wait()</code></a> can
+        only wake up when <a class="link" href="conditions.html#condition_variable_notify_one"><code class="computeroutput">condition_variable::notify_one()</code></a> or
+        <a class="link" href="conditions.html#condition_variable_notify_all"><code class="computeroutput">condition_variable::notify_all()</code></a> is called. Even
         so, it is prudent to use one of the <code class="computeroutput"><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lock</span><span class="special">,</span> <span class="identifier">predicate</span> <span class="special">)</span></code> overloads.
       </p>
 <p>
@@ -142,11 +142,11 @@
       </p>
 <p>
         Because producer fibers might <a href="http://en.cppreference.com/w/cpp/container/queue/push" target="_top"><code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code></a>
-        items to the queue in bursts, they call <a class="link" href="conditions.html#condition_variable_notify_all"> <code class="computeroutput">condition_variable::notify_all()</code></a> rather
-        than <a class="link" href="conditions.html#condition_variable_notify_one"> <code class="computeroutput">condition_variable::notify_one()</code></a>.
+        items to the queue in bursts, they call <a class="link" href="conditions.html#condition_variable_notify_all"><code class="computeroutput">condition_variable::notify_all()</code></a> rather
+        than <a class="link" href="conditions.html#condition_variable_notify_one"><code class="computeroutput">condition_variable::notify_one()</code></a>.
       </p>
 <p>
-        But a given consumer fiber might well wake up from <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a> and
+        But a given consumer fiber might well wake up from <a class="link" href="conditions.html#condition_variable_wait"><code class="computeroutput">condition_variable::wait()</code></a> and
         find the queue <code class="computeroutput"><span class="identifier">empty</span><span class="special">()</span></code>,
         because other consumer fibers might already have processed all pending items.
       </p>
@@ -408,9 +408,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
-              occurs, <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-              if the wait was interrupted by a call to <a class="link" href="../fiber_mgmt/fiber.html#fiber_interrupt"> <code class="computeroutput">fiber::interrupt()</code></a> on
-              the <a class="link" href="../fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object associated with the current fiber of execution.
+              occurs.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -418,7 +416,7 @@
               concurrently calling <code class="computeroutput"><span class="identifier">wait</span></code>
               on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               must wait on <code class="computeroutput"><span class="identifier">lk</span></code> objects
-              governing the <span class="emphasis"><em>same</em></span> <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>. Three distinct
+              governing the <span class="emphasis"><em>same</em></span> <a class="link" href="mutex_types.html#class_mutex"><code class="computeroutput">mutex</code></a>. Three distinct
               objects are involved in any <code class="computeroutput">condition_variable_any::wait()</code> call: the
               <code class="computeroutput">condition_variable_any</code> itself, the <code class="computeroutput"><span class="identifier">mutex</span></code>
               coordinating access between fibers and a local lock object (e.g. <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a>). In general,
@@ -495,10 +493,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
-              occurs, <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-              if the wait was interrupted by a call to <a class="link" href="../fiber_mgmt/fiber.html#fiber_interrupt"> <code class="computeroutput">fiber::interrupt()</code></a> on
-              the <a class="link" href="../fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object associated with the current fiber of execution
-              or timeout-related exceptions.
+              occurs or timeout-related exceptions.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
@@ -518,7 +513,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_any_wait"> <code class="computeroutput">condition_variable_any::wait()</code></a>.
+              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_any_wait"><code class="computeroutput">condition_variable_any::wait()</code></a>.
             </p></dd>
 </dl>
 </div>
@@ -588,10 +583,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
-              occurs, <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-              if the wait was interrupted by a call to <a class="link" href="../fiber_mgmt/fiber.html#fiber_interrupt"> <code class="computeroutput">fiber::interrupt()</code></a> on
-              the <a class="link" href="../fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object associated with the current fiber of execution
-              or timeout-related exceptions.
+              occurs or timeout-related exceptions.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
@@ -611,7 +603,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_any_wait"> <code class="computeroutput">condition_variable_any::wait()</code></a>.
+              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_any_wait"><code class="computeroutput">condition_variable_any::wait()</code></a>.
             </p></dd>
 </dl>
 </div>
@@ -828,9 +820,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
-              occurs, <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-              if the wait was interrupted by a call to <a class="link" href="../fiber_mgmt/fiber.html#fiber_interrupt"> <code class="computeroutput">fiber::interrupt()</code></a> on
-              the <a class="link" href="../fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object associated with the current fiber of execution.
+              occurs.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -838,7 +828,7 @@
               concurrently calling <code class="computeroutput"><span class="identifier">wait</span></code>
               on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               must wait on <code class="computeroutput"><span class="identifier">lk</span></code> objects
-              governing the <span class="emphasis"><em>same</em></span> <a class="link" href="mutex_types.html#class_mutex"> <code class="computeroutput">mutex</code></a>. Three distinct
+              governing the <span class="emphasis"><em>same</em></span> <a class="link" href="mutex_types.html#class_mutex"><code class="computeroutput">mutex</code></a>. Three distinct
               objects are involved in any <code class="computeroutput">condition_variable::wait()</code> call: the <code class="computeroutput">condition_variable</code> itself,
               the <code class="computeroutput"><span class="identifier">mutex</span></code> coordinating
               access between fibers and a local lock object (e.g. <a href="http://en.cppreference.com/w/cpp/thread/unique_lock" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_lock</span></code></a>). In general,
@@ -915,10 +905,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
-              occurs, <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-              if the wait was interrupted by a call to <a class="link" href="../fiber_mgmt/fiber.html#fiber_interrupt"> <code class="computeroutput">fiber::interrupt()</code></a> on
-              the <a class="link" href="../fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object associated with the current fiber of execution
-              or timeout-related exceptions.
+              occurs or timeout-related exceptions.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
@@ -938,7 +925,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>.
+              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_wait"><code class="computeroutput">condition_variable::wait()</code></a>.
             </p></dd>
 </dl>
 </div>
@@ -1008,10 +995,7 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code> if an error
-              occurs, <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-              if the wait was interrupted by a call to <a class="link" href="../fiber_mgmt/fiber.html#fiber_interrupt"> <code class="computeroutput">fiber::interrupt()</code></a> on
-              the <a class="link" href="../fiber_mgmt/fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object associated with the current fiber of execution
-              or timeout-related exceptions.
+              occurs or timeout-related exceptions.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
@@ -1031,7 +1015,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>.
+              See <span class="bold"><strong>Note</strong></span> for <a class="link" href="conditions.html#condition_variable_wait"><code class="computeroutput">condition_variable::wait()</code></a>.
             </p></dd>
 </dl>
 </div>

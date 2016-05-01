@@ -40,9 +40,9 @@
       at fiber exit</a>
     </h4>
 <p>
-      When a fiber exits, the objects associated with each <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> instance
+      When a fiber exits, the objects associated with each <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> instance
       are destroyed. By default, the object pointed to by a pointer <code class="computeroutput"><span class="identifier">p</span></code> is destroyed by invoking <code class="computeroutput"><span class="keyword">delete</span> <span class="identifier">p</span></code>,
-      but this can be overridden for a specific instance of <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> by
+      but this can be overridden for a specific instance of <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> by
       providing a cleanup routine <code class="computeroutput"><span class="identifier">func</span></code>
       to the constructor. In this case, the object is destroyed by invoking <code class="computeroutput"><span class="identifier">func</span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>. The cleanup functions are called in an unspecified
       order.
@@ -100,9 +100,9 @@
           </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Construct a <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> object for storing
+            Construct a <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> object for storing
             a pointer to an object of type <code class="computeroutput"><span class="identifier">T</span></code>
-            specific to each fiber. When <code class="computeroutput"><span class="identifier">reset</span><span class="special">()</span></code> is called, or the fiber exits, <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> calls
+            specific to each fiber. When <code class="computeroutput"><span class="identifier">reset</span><span class="special">()</span></code> is called, or the fiber exits, <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> calls
             <code class="computeroutput"><span class="identifier">fn</span><span class="special">(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get</span><span class="special">())</span></code>.
             If the no-arguments constructor is used, the default <code class="computeroutput"><span class="keyword">delete</span></code>-based
             cleanup function will be used to destroy the fiber-local objects.
@@ -125,7 +125,7 @@
 <dl>
 <dt><span class="term">Requires:</span></dt>
 <dd><p>
-            All the fiber specific instances associated to this <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>
+            All the fiber specific instances associated to this <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a>
 (except
             maybe the one associated to this fiber) must be nullptr.
           </p></dd>
@@ -140,7 +140,7 @@
             The requirement is an implementation restriction. If the destructor promised
             to delete instances for all fibers, the implementation would be forced
             to maintain a list of all the fibers having an associated specific ptr,
-            which is against the goal of fiber specific data. In general, a <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> should
+            which is against the goal of fiber specific data. In general, a <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> should
             outlive the fibers that use it.
           </p></dd>
 </dl>
@@ -152,7 +152,7 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         Care needs to be taken to ensure that any fibers still running after an instance
-        of <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> has been destroyed do not call
+        of <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> has been destroyed do not call
         any member functions on that instance.
       </p></td></tr>
 </table></div>
@@ -187,7 +187,7 @@
 <th align="left">Note</th>
 </tr>
 <tr><td align="left" valign="top"><p>
-        The initial value associated with an instance of <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a> is
+        The initial value associated with an instance of <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a> is
         <code class="computeroutput"><span class="keyword">nullptr</span></code> for each fiber.
       </p></td></tr>
 </table></div>

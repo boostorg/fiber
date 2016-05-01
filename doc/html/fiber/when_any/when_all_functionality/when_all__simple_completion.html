@@ -31,8 +31,8 @@
           For the case in which we must wait for <span class="emphasis"><em>all</em></span> task functions
           to complete &#8212; but we don't need results (or expect exceptions) from any of
           them &#8212; we can write <code class="computeroutput"><span class="identifier">wait_all_simple</span><span class="special">()</span></code> that looks remarkably like <a class="link" href="../when_any/when_any__simple_completion.html#wait_first_simple"><code class="computeroutput"><span class="identifier">wait_first_simple</span><span class="special">()</span></code></a>.
-          The difference is that instead of our <a class="link" href="../when_any/when_any__simple_completion.html#wait_done"><code class="computeroutput"><span class="identifier">Done</span></code></a> class, we instantiate a <a class="link" href="../../synchronization/barriers.html#class_barrier"> <code class="computeroutput">barrier</code></a> and
-          call its <a class="link" href="../../synchronization/barriers.html#barrier_wait"> <code class="computeroutput">barrier::wait()</code></a>.
+          The difference is that instead of our <a class="link" href="../when_any/when_any__simple_completion.html#wait_done"><code class="computeroutput"><span class="identifier">Done</span></code></a> class, we instantiate a <a class="link" href="../../synchronization/barriers.html#class_barrier"><code class="computeroutput">barrier</code></a> and
+          call its <a class="link" href="../../synchronization/barriers.html#barrier_wait"><code class="computeroutput">barrier::wait()</code></a>.
         </p>
 <p>
           We initialize the <code class="computeroutput"><span class="identifier">barrier</span></code>
