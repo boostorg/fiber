@@ -106,11 +106,24 @@ AsyncAPI::errorcode write_ec( AsyncAPI & api, std::string const& data) {
     // happen with fibers::promise, a robust way to deal with the lifespan
     // issue is to bind 'promise' into our lambda. Since promise is move-only,
     // use initialization capture.
+#if defined(__cpp_init_captures)
     api.init_write(
         data,
-        [&promise]( AsyncAPI::errorcode ec) mutable {
+        [promise = std::move(promise)]( AsyncAPI::errorcode ec) mutable {
                             promise.set_value( ec);
                   });
+
+#else // ! defined(__cpp_init_captures)
+    // std::bind() workaround for initialization capture from
+    // http://stackoverflow.com/questions/8640393/move-capture-in-lambda
+    api.init_write(
+        data,
+        std::bind([](boost::fibers::promise< AsyncAPI::errorcode > & promise,
+                     AsyncAPI::errorcode ec) {
+            promise.set_value( ec);
+        }, std::move(promise), std::placeholders::_1);
+#endif // __cpp_init_captures
+
     return future.get();
 }
 //]
