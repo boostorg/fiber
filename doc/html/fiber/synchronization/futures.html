@@ -43,34 +43,34 @@
         in response to external stimuli, or on-demand.
       </p>
 <p>
-        This is done through the provision of four class templates: <a class="link" href="futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> and
-        <a class="link" href="futures/future.html#class_shared_future"> <code class="computeroutput">shared_future&lt;&gt;</code></a> which are used to retrieve the asynchronous
-        results, and <a class="link" href="futures/promise.html#class_promise"> <code class="computeroutput">promise&lt;&gt;</code></a> and <a class="link" href="futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a> which
+        This is done through the provision of four class templates: <a class="link" href="futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> and
+        <a class="link" href="futures/future.html#class_shared_future"><code class="computeroutput">shared_future&lt;&gt;</code></a> which are used to retrieve the asynchronous
+        results, and <a class="link" href="futures/promise.html#class_promise"><code class="computeroutput">promise&lt;&gt;</code></a> and <a class="link" href="futures/packaged_task.html#class_packaged_task"><code class="computeroutput">packaged_task&lt;&gt;</code></a> which
         are used to generate the asynchronous results.
       </p>
 <p>
-        An instance of <a class="link" href="futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> holds the one and only reference
+        An instance of <a class="link" href="futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> holds the one and only reference
         to a result. Ownership can be transferred between instances using the move
         constructor or move-assignment operator, but at most one instance holds a
         reference to a given asynchronous result. When the result is ready, it is
-        returned from <a class="link" href="futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> by rvalue-reference to allow the result
+        returned from <a class="link" href="futures/future.html#future_get"><code class="computeroutput">future::get()</code></a> by rvalue-reference to allow the result
         to be moved or copied as appropriate for the type.
       </p>
 <p>
-        On the other hand, many instances of <a class="link" href="futures/future.html#class_shared_future"> <code class="computeroutput">shared_future&lt;&gt;</code></a> may
+        On the other hand, many instances of <a class="link" href="futures/future.html#class_shared_future"><code class="computeroutput">shared_future&lt;&gt;</code></a> may
         reference the same result. Instances can be freely copied and assigned, and
-        <a class="link" href="futures/future.html#shared_future_get"> <code class="computeroutput">shared_future::get()</code></a>
+        <a class="link" href="futures/future.html#shared_future_get"><code class="computeroutput">shared_future::get()</code></a>
 returns a <code class="computeroutput"><span class="keyword">const</span></code>
-        reference so that multiple calls to <a class="link" href="futures/future.html#shared_future_get"> <code class="computeroutput">shared_future::get()</code></a>
+        reference so that multiple calls to <a class="link" href="futures/future.html#shared_future_get"><code class="computeroutput">shared_future::get()</code></a>
 are
-        safe. You can move an instance of <a class="link" href="futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> into an instance
-        of <a class="link" href="futures/future.html#class_shared_future"> <code class="computeroutput">shared_future&lt;&gt;</code></a>, thus transferring ownership
+        safe. You can move an instance of <a class="link" href="futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> into an instance
+        of <a class="link" href="futures/future.html#class_shared_future"><code class="computeroutput">shared_future&lt;&gt;</code></a>, thus transferring ownership
         of the associated asynchronous result, but not vice-versa.
       </p>
 <p>
-        <a class="link" href="futures/future.html#fibers_async"> <code class="computeroutput">fibers::async()</code></a> is a simple way of running asynchronous tasks.
+        <a class="link" href="futures/future.html#fibers_async"><code class="computeroutput">fibers::async()</code></a> is a simple way of running asynchronous tasks.
         A call to <code class="computeroutput"><span class="identifier">async</span><span class="special">()</span></code>
-        spawns a fiber and returns a <a class="link" href="futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> that will deliver
+        spawns a fiber and returns a <a class="link" href="futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> that will deliver
         the result of the fiber function.
       </p>
 <h5>
@@ -79,15 +79,15 @@ are
         asynchronous values</a>
       </h5>
 <p>
-        You can set the value in a future with either a <a class="link" href="futures/promise.html#class_promise"> <code class="computeroutput">promise&lt;&gt;</code></a> or
-        a <a class="link" href="futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a>. A <a class="link" href="futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a> is
+        You can set the value in a future with either a <a class="link" href="futures/promise.html#class_promise"><code class="computeroutput">promise&lt;&gt;</code></a> or
+        a <a class="link" href="futures/packaged_task.html#class_packaged_task"><code class="computeroutput">packaged_task&lt;&gt;</code></a>. A <a class="link" href="futures/packaged_task.html#class_packaged_task"><code class="computeroutput">packaged_task&lt;&gt;</code></a> is
         a callable object with <code class="computeroutput"><span class="keyword">void</span></code>
         return that wraps a function or callable object returning the specified type.
-        When the <a class="link" href="futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a> is invoked, it invokes the
+        When the <a class="link" href="futures/packaged_task.html#class_packaged_task"><code class="computeroutput">packaged_task&lt;&gt;</code></a> is invoked, it invokes the
         contained function in turn, and populates a future with the contained function's
         return value. This is an answer to the perennial question: <span class="quote">&#8220;<span class="quote">How do
         I return a value from a fiber?</span>&#8221;</span> Package the function you wish to run
-        as a <a class="link" href="futures/packaged_task.html#class_packaged_task"> <code class="computeroutput">packaged_task&lt;&gt;</code></a> and pass the packaged task to
+        as a <a class="link" href="futures/packaged_task.html#class_packaged_task"><code class="computeroutput">packaged_task&lt;&gt;</code></a> and pass the packaged task to
         the fiber constructor. The future retrieved from the packaged task can then
         be used to obtain the return value. If the function throws an exception,
         that is stored in the future in place of the return value.
@@ -108,7 +108,7 @@ are
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">fi</span><span class="special">.</span><span class="identifier">get</span><span class="special">()==</span><span class="number">42</span><span class="special">);</span>
 </pre>
 <p>
-        A <a class="link" href="futures/promise.html#class_promise"> <code class="computeroutput">promise&lt;&gt;</code></a> is a bit more low level: it just provides explicit
+        A <a class="link" href="futures/promise.html#class_promise"><code class="computeroutput">promise&lt;&gt;</code></a> is a bit more low level: it just provides explicit
         functions to store a value or an exception in the associated future. A promise
         can therefore be used where the value might come from more than one possible
         source.

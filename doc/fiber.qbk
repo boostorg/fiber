@@ -41,12 +41,6 @@
         template< typename PROPS >
         PROPS & properties();
 
-        void interruption_point();
-        bool interruption_requested() noexcept;
-        bool interruption_enabled() noexcept;
-        class disable_interruption;
-        class restore_interruption;
-
         }}
 
 
@@ -115,12 +109,7 @@ mutex], or [class_link condition_variable], or any of the other [link
 synchronization synchronization objects] provided by the library.
 
 If a detached fiber is still running when the thread's main fiber terminates,
-that fiber will be [link interruption interrupted] and shut down.[footnote
-This treatment of detached fibers depends on a detached fiber eventually
-either terminating or reaching one of the specified __interruption_points__.
-Note that since [ns_function_link this_fiber..yield] is ['not] an interruption
-point, a detached fiber whose only interaction with the Fiber library is
-`yield()` cannot cleanly be terminated.]
+the thread will not shut down.
 
 [heading Joining]
 
@@ -156,75 +145,6 @@ outlive the __fiber__ object that launched it, use the __detach__ method.
         } // okay, program continues
 
 
-[#interruption]
-[heading Interruption]
-
-A valid fiber can be interrupted by invoking its __interrupt__ member function.
-The next time that fiber executes one of the specific __interruption_points__ with
-interruption enabled, a __fiber_interrupted__ exception will be thrown.
-If this exception is not caught, the fiber will be terminated, its stack unwound,
-its stack objects properly destroyed.
-
-(__fiber_interrupted__, being thrown by the library, is similarly caught by
-the library. It does not cause the program to terminate.)
-
-With __disable_interruption__ a fiber can defer being interrupted.
-
-        // interruption enabled at this point
-        {
-            boost::this_fiber::disable_interruption di1;
-            // interruption disabled
-            {
-                boost::this::fiber::disable_interruption di2;
-                // interruption still disabled
-            } // di2 destroyed; interruption state restored
-            // interruption still disabled
-        } // di destroyed; interruption state restored
-        // interruption enabled
-
-At any point, the interruption state for the current thread can be queried by
-calling __interruption_enabled__.
-
-(But consider fiber `f1` running a __packaged_task__. Suppose `f1` is
-interrupted. Its associated __future__ will be set with __fiber_interrupted__.
-When fiber `f2` calls [member_link future..get] on that `future`, `get()`
-will immediately rethrow __fiber_interrupted__ [mdash] regardless of
-any __disable_interruption__ instance `f2` might have constructed.)
-
-The following __interruption_points__ are defined and will throw
-__fiber_interrupted__ if __interruption_requested__ and
-__interruption_enabled__.
-
-* __join__
-* __barrier_wait__
-* __cond_wait__
-* __cond_wait_for__
-* __cond_wait_until__
-* __cond_any_wait__
-* __cond_any_wait_for__
-* __cond_any_wait_until__
-* __sleep_for__
-* __sleep_until__
-* __interruption_point__
-* [member_link bounded_channel..push]
-* [member_link bounded_channel..push_wait_for]
-* [member_link bounded_channel..push_wait_until]
-* [member_link bounded_channel..pop]
-* [member_link bounded_channel..value_pop]
-* [member_link bounded_channel..pop_wait_for]
-* [member_link bounded_channel..pop_wait_until]
-* [member_link unbounded_channel..push]
-* [member_link unbounded_channel..pop]
-* [member_link unbounded_channel..value_pop]
-* [member_link unbounded_channel..pop_wait_for]
-* [member_link unbounded_channel..pop_wait_until]
-* [member_link future..wait]
-* [member_link future..get]
-* [member_link future..get_exception_ptr]
-* [member_link shared_future..wait]
-* [member_link shared_future..get]
-* [member_link shared_future..get_exception_ptr]
-
 [#class_fiber_id]
 [heading Fiber IDs]
 
@@ -241,6 +161,34 @@ Instances that refer to __not_a_fiber__ compare equal to each other, but
 not equal to any instances that refer to an actual fiber. The comparison
 operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
+[#class_launch_policy]
+[heading Enumeration `launch_policy`]
+
+`launch_policy` specifies whether control passes immediately into a
+newly-launched fiber.
+
+        enum class launch_policy {
+            dispatch,
+            post
+        };
+
+[heading `dispatch`]
+[variablelist
+[[Effects:] [A fiber launched with `launch_policy == dispatch` is entered
+immediately. In other words, launching a fiber with `dispatch` suspends the
+caller (the previously-running fiber) until the fiber scheduler has a chance
+to resume it later.]]
+]
+
+[heading `post`]
+[variablelist
+[[Effects:] [A fiber launched with `launch_policy == post` is passed to the
+fiber scheduler as ready, but it is not yet entered. The caller (the
+previously-running fiber) continues executing. The newly-launched fiber will
+be entered when the fiber scheduler has a chance to resume it later.]]
+[[Note:] [If `launch_policy` is not explicitly specified, `post` is the default.]]
+] 
+
 
 [#class_fiber]
 [section:fiber Class `fiber`]
@@ -256,8 +204,14 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
             template< typename Fn, typename ... Args >
             fiber( Fn &&, Args && ...);
 
+            template< typename Fn, typename ... Args >
+            fiber( ``[link class_launch_policy `launch_policy`]``, Fn &&, Args && ...);
+
             template< typename __StackAllocator__, typename Fn, typename ... Args >
             fiber( __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
+
+            template< typename __StackAllocator__, typename Fn, typename ... Args >
+            fiber( ``[link class_launch_policy `launch_policy`]``, __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
 
             ~fiber();
 
@@ -278,8 +232,6 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
             void detach();
 
             void join();
-
-            void interrupt() noexcept;
 
             template< typename PROPS >
             PROPS & properties();
@@ -311,12 +263,23 @@ operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
         template< typename Fn, typename ... Args >
         fiber( Fn && fn, Args && ... args);
 
+        template< typename Fn, typename ... Args >
+        fiber( ``[link class_launch_policy `launch_policy`]`` lpol, Fn && fn, Args && ... args);
+
         template< typename __StackAllocator__, typename Fn, typename ... Args >
         fiber( __allocator_arg_t__, StackAllocator salloc, Fn && fn, Args && ... args);
 
+        template< typename __StackAllocator__, typename Fn, typename ... Args >
+        fiber( ``[link class_launch_policy `launch_policy`]`` lpol, __allocator_arg_t__, StackAllocator salloc,
+               Fn && fn, Args && ... args);
+
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
-[[Effects:] [`fn` is copied or moved into internal storage for access by the new fiber.]]
+[[Effects:] [`fn` is copied or moved into internal storage for access by the
+new fiber. If [class_link launch_policy] is specified (or defaulted) to
+`post`, the new fiber is marked ["ready] and will be entered at the next
+opportunity. If `launch_policy` is specified as `dispatch`, the calling fiber
+is suspended and the new fiber is entered immediately.]]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]
 [[Note:] [__StackAllocator__ is required to allocate a stack for the internal
@@ -382,12 +345,10 @@ may not have completed; otherwise `false`.]]
 [[Effects:] [Waits for the referenced fiber of execution to complete.]]
 [[Postconditions:] [The fiber of execution referenced on entry has completed.
 `*this` no longer refers to any fiber of execution.]]
-[[Throws:] [__fiber_interrupted__ if the current fiber is interrupted or
-`fiber_error`]]
+[[Throws:] [`fiber_error`]]
 [[Error Conditions:] [
 [*resource_deadlock_would_occur]: if `this->get_id() == boost::this_fiber::get_id()`.
 [*invalid_argument]: if the fiber is not __joinable__.]]
-[[Notes:] [`join()` is one of the predefined __interruption_points__.]]
 ]
 
 [member_heading fiber..detach]
@@ -414,19 +375,6 @@ __fiber_id__ that represents that fiber. Otherwise returns a
 default-constructed __fiber_id__.]]
 [[Throws:] [Nothing]]
 [[See also:] [[ns_function_link this_fiber..get_id]]]
-]
-
-[member_heading fiber..interrupt]
-
-        void interrupt() noexcept;
-
-[variablelist
-[[Effects:] [If `*this` refers to a fiber of execution, request that the fiber
-will be interrupted the next time it enters one of the predefined
-__interruption_points__ with interruption enabled, or if it is currently
-__blocked__ in a call to one of the predefined __interruption_points__ with
-interruption enabled.]]
-[[Throws:] [Nothing]]
 ]
 
 [template_member_heading fiber..properties]
@@ -629,9 +577,6 @@ from an explicitly-launched thread's thread-function. That is, in many
 respects the main fiber on each thread can be treated like an
 explicitly-launched fiber.
 
-However, unlike an explicitly-launched fiber, if __fiber_interrupted__ is
-thrown (or rethrown) on a thread's main fiber without being caught, the Fiber
-library cannot catch it: `std::terminate()` will be called.
 
         namespace boost {
         namespace this_fiber {
@@ -644,12 +589,6 @@ library cannot catch it: `std::terminate()` will be called.
         void sleep_for( std::chrono::duration< Rep, Period > const&);
         template< typename PROPS >
         PROPS & properties();
-
-        void interruption_point();
-        bool interruption_requested() noexcept;
-        bool interruption_enabled() noexcept;
-        class disable_interruption;
-        class restore_interruption;
 
         }}
 
@@ -675,9 +614,7 @@ executing fiber.]]
 [variablelist
 [[Effects:] [Suspends the current fiber until the time point specified by
 `abs_time` has been reached.]]
-[[Throws:] [__fiber_interrupted__ if the current fiber is interrupted
-or timeout-related exceptions.]]
-[[Note:] [`sleep_until()` is one of the predefined __interruption_points__.]]
+[[Throws:] [timeout-related exceptions.]]
 [[Note:] [The current fiber will not resume before `abs_time`, but there are no
 guarantees about how soon after `abs_time` it might resume.]]
 [[Note:] [["timeout-related exceptions] are as defined in the C++ Standard,
@@ -697,9 +634,7 @@ exceptions are referred to as ['timeout-related exceptions.]]]]
 [variablelist
 [[Effects:] [Suspends the current fiber until the time duration specified by
 `rel_time` has elapsed.]]
-[[Throws:] [__fiber_interrupted__ if the current fiber is interrupted
-or timeout-related exceptions.]]
-[[Note:] [`sleep_for()` is one of the predefined __interruption_points__.]]
+[[Throws:] [timeout-related exceptions.]]
 [[Note:][The current fiber will not resume before `rel_time` has elapsed, but
 there are no guarantees about how soon after that it might resume.]]
 ]
@@ -713,7 +648,7 @@ there are no guarantees about how soon after that it might resume.]]
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
 [[Throws:] [Nothing.]]
-[[Note:] [`yield()` is ['not] an interruption point. A fiber that calls
+[[Note:] [A fiber that calls
 `yield()` is not suspended: it is immediately passed to the scheduler as ready
 to run.]]
 ]
@@ -743,143 +678,6 @@ thread, it may internally yield, permitting other fibers to run.]]
 [[See also:] [[link custom Customization]]]
 ]
 
-[ns_function_heading this_fiber..interruption_point]
-
-        #include <boost/fiber/interruption.hpp>
-
-        void interruption_point();
-
-[variablelist
-[[Effects:] [Check to see if the current fiber has been interrupted.]]
-[[Throws:] [__fiber_interrupted__ if __interruption_enabled__ and
-__interruption_requested__ both return `true`.]]
-]
-
-[ns_function_heading this_fiber..interruption_requested]
-
-        #include <boost/fiber/interruption.hpp>
-
-        bool interruption_requested() noexcept;
-
-[variablelist
-[[Returns:] [`true` if interruption has been requested for the current fiber,
-`false` otherwise.]]
-[[Throws:] [Nothing.]]
-]
-
-[ns_function_heading this_fiber..interruption_enabled]
-
-        #include <boost/fiber/interruption.hpp>
-
-        bool interruption_enabled() noexcept;
-
-[variablelist
-[[Returns:] [`true` if interruption is enabled for the current fiber,
-`false` otherwise.]]
-[[Throws:] [Nothing.]]
-[[Note:][Interruption is enabled by default.]]
-]
-
-[class_heading disable_interruption]
-
-        #include <boost/fiber/interruption.hpp>
-
-        class disable_interruption {
-        public:
-            disable_interruption() noexcept;
-            ~disable_interruption() noexcept;
-            disable_interruption(const disable_interruption&) = delete;
-            disable_interruption& operator=(const disable_interruption&) = delete;
-        };
-
-[heading Constructor]
-
-        disable_interruption() noexcept;
-
-[variablelist
-[[Effects:] [Stores the current state of __interruption_enabled__ and disables
-interruption for the current fiber.]]
-[[Postconditions:] [__interruption_enabled__ returns `false` for the current
-fiber.]]
-[[Throws:] [Nothing.]]
-[[Note:] [Nesting of `disable_interruption` instances matters. Constructing a
-`disable_interruption` while __interruption_enabled__ `== false` has no
-effect.]]
-]
-
-[heading Destructor]
-
-        ~disable_interruption() noexcept;
-
-[variablelist
-[[Preconditions:] [Must be called from the same fiber on which `*this` was
-constructed.]]
-[[Effects:] [Restores the state of __interruption_enabled__ for the
-current fiber to the state saved at construction of `*this`.]]
-[[Postconditions:] [__interruption_enabled__ for the current fiber returns the
-value stored by the constructor of `*this`.]]
-[[Note:] [Destroying a `disable_interruption` constructed while
-__interruption_enabled__ `== false` has no effect.]]
-]
-
-
-[class_heading restore_interruption]
-
-        #include <boost/fiber/interruption.hpp>
-
-        class restore_interruption {
-        public:
-            explicit restore_interruption(disable_interruption&) noexcept;
-            ~restore_interruption() noexcept;
-            restore_interruption(const restore_interruption&) = delete;
-            restore_interruption& operator=(const restore_interruption&) = delete;
-        };
-
-[heading Constructor]
-
-        explicit restore_interruption(disable_interruption& disabler) noexcept;
-
-[variablelist
-[[Preconditions:] [Must be called from the same fiber on which `disabler` was
-constructed.]]
-[[Effects:] [Restores the current state of __interruption_enabled__ for the
-current fiber to that saved in `disabler`.]]
-[[Postconditions:] [__interruption_enabled__ for the current fiber returns the
-value stored in the constructor of `disabler`.]]
-[[Throws:] [Nothing.]]
-[[Note:] [Nesting of `restore_interruption` instances does not matter: only
-the [class_link disable_interruption] instance passed to the constructor
-matters. Constructing a `restore_interruption` with a `disable_interruption`
-constructed while __interruption_enabled__ `== false` has no effect.]]
-]
-
-[heading Destructor]
-
-        ~restore_interruption() noexcept;
-
-[variablelist
-[[Preconditions:] [Must be called from the same fiber on which `*this` was
-constructed.]]
-[[Effects:] [Disables interruption for the current fiber.]]
-[[Postconditions:] [__interruption_enabled__ for the current fiber returns
-`false`.]]
-[[Note:] [Destroying a `restore_interruption` constructed with a [class_link
-disable_interruption] constructed while __interruption_enabled__ `== false`
-has no effect.]]
-]
-
-        void foo() {
-            // interruption is enabled
-            {
-                boost::this_fiber::disable_interruption di;
-                // interruption is disabled
-                {
-                    boost::this_fiber::restore_interruption ri( di);
-                    // interruption now enabled
-                } // ri destroyed, interruption disabled again
-            } // di destructed, interruption state restored
-            // interruption now enabled
-        }
 
 [endsect] [/ section Namespace this_fiber]
 

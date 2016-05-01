@@ -11,7 +11,6 @@
 #include <new>
 
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/interruption.hpp"
 #include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -289,20 +288,18 @@ context::resume( context * ready_ctx) noexcept {
 
 void
 context::suspend() noexcept {
-    scheduler_->suspend( this);
+    scheduler_->suspend();
 }
 
 void
 context::suspend( detail::spinlock_lock & lk) noexcept {
-    scheduler_->suspend( this, lk);
+    scheduler_->suspend( lk);
 }
 
 void
 context::join() {
     // get active context
     context * active_ctx = context::active();
-    // context::join() is a interruption point
-    this_fiber::interruption_point();
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
     // wait for context which is not terminated
@@ -313,14 +310,12 @@ context::join() {
         active_ctx->wait_link( wait_queue_);
         lk.unlock();
         // suspend active context
-        scheduler_->suspend( active_ctx);
+        scheduler_->suspend();
         // remove from wait-queue
         active_ctx->wait_unlink();
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
-    // context::join() is a interruption point
-    this_fiber::interruption_point();
 }
 
 void
@@ -358,7 +353,7 @@ context::set_terminated() noexcept {
         // remove fiber from wait-queue
         wait_queue_.pop_front();
         // notify scheduler
-        scheduler_->set_ready( ctx);
+        set_ready( ctx);
     }
     lk.unlock();
     // release fiber-specific-data
@@ -404,25 +399,6 @@ context::set_ready( context * ctx) noexcept {
     } else {
         // remote
         ctx->scheduler_->set_remote_ready( ctx);
-    }
-}
-
-void
-context::interruption_blocked( bool blck) noexcept {
-    if ( blck) {
-        flags_ |= flag_interruption_blocked;
-    } else {
-        flags_ &= ~flag_interruption_blocked;
-    }
-}
-
-void
-context::request_interruption( bool req) noexcept {
-    BOOST_ASSERT( ! is_context( type::main_context) && ! is_context( type::dispatcher_context) );
-    if ( req) {
-        flags_ |= flag_interruption_requested;
-    } else {
-        flags_ &= ~flag_interruption_requested;
     }
 }
 
@@ -484,11 +460,6 @@ context::ready_is_linked() const noexcept {
 }
 
 bool
-context::remote_ready_is_linked() const noexcept {
-    return remote_ready_hook_.is_linked();
-}
-
-bool
 context::sleep_is_linked() const noexcept {
     return sleep_hook_.is_linked();
 }
@@ -506,11 +477,6 @@ context::worker_unlink() noexcept {
 void
 context::ready_unlink() noexcept {
     ready_hook_.unlink();
-}
-
-void
-context::remote_ready_unlink() noexcept {
-    remote_ready_hook_.unlink();
 }
 
 void
@@ -533,8 +499,10 @@ void
 context::migrate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() != ctx);
-    ctx->scheduler_->detach_worker_context( ctx);
-    scheduler_->attach_worker_context( ctx);
+    if ( scheduler_ != ctx->scheduler_) {
+        ctx->scheduler_->detach_worker_context( ctx);
+        scheduler_->attach_worker_context( ctx);
+    }
 }
 
 }}

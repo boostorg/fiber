@@ -85,7 +85,6 @@ the barrier is reset. ]]
 [[Returns:] [`true` for exactly one fiber from each batch of waiting fibers,
 `false` otherwise.]]
 [[Throws:] [__fiber_error__]]
-[[Notes:] [`wait()` is one of the predefined __interruption_points__.]]
 ]
 
 [endsect]

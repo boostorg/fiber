@@ -266,10 +266,7 @@ while ( ! pred() ) {
 }
 ``]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
-[[Throws:] [__fiber_error__ if an error
-occurs, __fiber_interrupted__ if the wait was interrupted by a call to
-__interrupt__ on the __fiber__ object associated with the current fiber of
-execution.]]
+[[Throws:] [__fiber_error__ if an error occurs.]]
 [[Note:] [The Precondition is a bit dense. It merely states that all the
 fibers concurrently calling `wait` on `*this` must wait on `lk` objects
 governing the ['same] [class_link mutex]. Three distinct objects are involved
@@ -318,9 +315,7 @@ return true;
 `pred()` returns `true` at that time.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
 [[Throws:] [__fiber_error__ if an error
-occurs, __fiber_interrupted__ if the wait was interrupted by a call to
-__interrupt__ on the __fiber__ object associated with the current fiber of
-execution or timeout-related exceptions.]]
+occurs or timeout-related exceptions.]]
 [[Returns:] [The overload without `pred` returns `cv_status::no_timeout` if
 awakened by `notify_one()` or `notify_all()`, or `cv_status::timeout` if
 awakened because the system time is past `abs_time`.]]
@@ -368,9 +363,7 @@ The point is that, even if `wait_for()` times out, it can still return `true`
 if `pred()` returns `true` at that time.]]
 [[Postcondition:] [`lk` is locked by the current fiber.]]
 [[Throws:] [__fiber_error__ if an error
-occurs, __fiber_interrupted__ if the wait was interrupted by a call to
-__interrupt__ on the __fiber__ object associated with the current fiber of
-execution or timeout-related exceptions.]]
+occurs or timeout-related exceptions.]]
 [[Returns:] [The overload without `pred` returns `cv_status::no_timeout` if
 awakened by `notify_one()` or `notify_all()`, or `cv_status::timeout` if
 awakened because at least `rel_time` has elapsed.]]

@@ -35,8 +35,8 @@
 <p>
           One tactic would be to adapt our <a class="link" href="when_any__simple_completion.html#wait_done"><code class="computeroutput"><span class="identifier">Done</span></code></a> class to store the first
           of the return values, rather than a simple <code class="computeroutput"><span class="keyword">bool</span></code>.
-          However, we choose instead to use a <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"> <code class="computeroutput">unbounded_channel&lt;&gt;</code></a>.
-          We'll only need to enqueue the first value, so we'll <a class="link" href="../../synchronization/channels.html#unbounded_channel_close"> <code class="computeroutput">unbounded_channel::close()</code></a> it
+          However, we choose instead to use a <a class="link" href="../../synchronization/channels.html#class_unbounded_channel"><code class="computeroutput">unbounded_channel&lt;&gt;</code></a>.
+          We'll only need to enqueue the first value, so we'll <a class="link" href="../../synchronization/channels.html#unbounded_channel_close"><code class="computeroutput">unbounded_channel::close()</code></a> it
           once we've retrieved that value. Subsequent <code class="computeroutput"><span class="identifier">push</span><span class="special">()</span></code> calls will return <code class="computeroutput"><span class="identifier">closed</span></code>.
         </p>
 <p>

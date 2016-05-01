@@ -38,8 +38,14 @@
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
     <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
 
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <a class="link" href="../fiber_mgmt.html#class_launch_policy"><code class="computeroutput"><span class="identifier">launch_policy</span></code></a><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
+
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
     <span class="identifier">fiber</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
+
+    <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+    <span class="identifier">fiber</span><span class="special">(</span> <a class="link" href="../fiber_mgmt.html#class_launch_policy"><code class="computeroutput"><span class="identifier">launch_policy</span></code></a><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">StackAllocator</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...);</span>
 
     <span class="special">~</span><span class="identifier">fiber</span><span class="special">();</span>
 
@@ -60,8 +66,6 @@
     <span class="keyword">void</span> <span class="identifier">detach</span><span class="special">();</span>
 
     <span class="keyword">void</span> <span class="identifier">join</span><span class="special">();</span>
-
-    <span class="keyword">void</span> <span class="identifier">interrupt</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
     <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
@@ -88,7 +92,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              Constructs a <a class="link" href="fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> instance that refers to <span class="emphasis"><em>not-a-fiber</em></span>.
+              Constructs a <a class="link" href="fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> instance that refers to <span class="emphasis"><em>not-a-fiber</em></span>.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
@@ -108,8 +112,15 @@
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="identifier">fiber</span><span class="special">(</span> <a class="link" href="../fiber_mgmt.html#class_launch_policy"><code class="computeroutput"><span class="identifier">launch_policy</span></code></a> <span class="identifier">lpol</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="identifier">fiber</span><span class="special">(</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <a class="link" href="../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<span class="identifier">fiber</span><span class="special">(</span> <a class="link" href="../fiber_mgmt.html#class_launch_policy"><code class="computeroutput"><span class="identifier">launch_policy</span></code></a> <span class="identifier">lpol</span><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <span class="identifier">StackAllocator</span> <span class="identifier">salloc</span><span class="special">,</span>
+       <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -122,7 +133,12 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="identifier">fn</span></code> is copied or moved
-              into internal storage for access by the new fiber.
+              into internal storage for access by the new fiber. If <a class="link" href="../fiber_mgmt.html#class_launch_policy"><code class="computeroutput">launch_policy</code></a> is
+              specified (or defaulted) to <code class="computeroutput"><span class="identifier">post</span></code>,
+              the new fiber is marked <span class="quote">&#8220;<span class="quote">ready</span>&#8221;</span> and will be entered at
+              the next opportunity. If <code class="computeroutput"><span class="identifier">launch_policy</span></code>
+              is specified as <code class="computeroutput"><span class="identifier">dispatch</span></code>,
+              the calling fiber is suspended and the new fiber is entered immediately.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
@@ -140,7 +156,7 @@
               is required to allocate a stack for the internal <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
               If <code class="computeroutput"><span class="identifier">StackAllocator</span></code> is
               not explicitly passed, the default stack allocator depends on <code class="computeroutput"><span class="identifier">BOOST_USE_SEGMENTED_STACKS</span></code>: if defined,
-              you will get a <a class="link" href="../stack.html#class_segmented_stack"> <code class="computeroutput">segmented_stack</code></a>, else a <a class="link" href="../../"> <code class="computeroutput">fixedsize_stack</code></a>.
+              you will get a <a class="link" href="../stack.html#class_segmented_stack"><code class="computeroutput">segmented_stack</code></a>, else a <a class="link" href="../stack.html#class_fixedsize_stack"><code class="computeroutput">fixedsize_stack</code></a>.
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
@@ -162,7 +178,7 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Transfers ownership of the fiber managed by <code class="computeroutput"><span class="identifier">other</span></code>
-              to the newly constructed <a class="link" href="fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> instance.
+              to the newly constructed <a class="link" href="fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> instance.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
@@ -214,15 +230,15 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-              If the fiber is <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>, calls std::terminate.
+              If the fiber is <a class="link" href="fiber.html#fiber_joinable"><code class="computeroutput">fiber::joinable()</code></a>, calls std::terminate.
               Destroys <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
               The programmer must ensure that the destructor is never executed while
-              the fiber is still <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>. Even if you know
-              that the fiber has completed, you must still call either <a class="link" href="fiber.html#fiber_join"> <code class="computeroutput">fiber::join()</code></a> or
-              <a class="link" href="fiber.html#fiber_detach"> <code class="computeroutput">fiber::detach()</code></a> before destroying the <code class="computeroutput"><span class="identifier">fiber</span></code>
+              the fiber is still <a class="link" href="fiber.html#fiber_joinable"><code class="computeroutput">fiber::joinable()</code></a>. Even if you know
+              that the fiber has completed, you must still call either <a class="link" href="fiber.html#fiber_join"><code class="computeroutput">fiber::join()</code></a> or
+              <a class="link" href="fiber.html#fiber_detach"><code class="computeroutput">fiber::detach()</code></a> before destroying the <code class="computeroutput"><span class="identifier">fiber</span></code>
               object.
             </p></dd>
 </dl>
@@ -269,7 +285,7 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-              the fiber is <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>.
+              the fiber is <a class="link" href="fiber.html#fiber_joinable"><code class="computeroutput">fiber::joinable()</code></a>.
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -282,20 +298,14 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code> if
-              the current fiber is interrupted or <code class="computeroutput"><span class="identifier">fiber_error</span></code>
+              <code class="computeroutput"><span class="identifier">fiber_error</span></code>
             </p></dd>
 <dt><span class="term">Error Conditions:</span></dt>
 <dd><p>
               <span class="bold"><strong>resource_deadlock_would_occur</strong></span>: if
               <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get_id</span><span class="special">()</span>
               <span class="special">==</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span></code>. <span class="bold"><strong>invalid_argument</strong></span>:
-              if the fiber is not <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>.
-            </p></dd>
-<dt><span class="term">Notes:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="identifier">join</span><span class="special">()</span></code>
-              is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
+              if the fiber is not <a class="link" href="fiber.html#fiber_joinable"><code class="computeroutput">fiber::joinable()</code></a>.
             </p></dd>
 </dl>
 </div>
@@ -315,12 +325,12 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-              the fiber is <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>.
+              the fiber is <a class="link" href="fiber.html#fiber_joinable"><code class="computeroutput">fiber::joinable()</code></a>.
             </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               The fiber of execution becomes detached, and no longer has an associated
-              <a class="link" href="fiber.html#class_fiber"> <code class="computeroutput">fiber</code></a> object.
+              <a class="link" href="fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> object.
             </p></dd>
 <dt><span class="term">Postconditions:</span></dt>
 <dd><p>
@@ -334,7 +344,7 @@
 <dt><span class="term">Error Conditions:</span></dt>
 <dd><p>
               <span class="bold"><strong>invalid_argument</strong></span>: if the fiber is
-              not <a class="link" href="fiber.html#fiber_joinable"> <code class="computeroutput">fiber::joinable()</code></a>.
+              not <a class="link" href="fiber.html#fiber_joinable"><code class="computeroutput">fiber::joinable()</code></a>.
             </p></dd>
 </dl>
 </div>
@@ -364,36 +374,7 @@
             </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_get_id"> <code class="computeroutput">this_fiber::get_id()</code></a>
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="fiber_interrupt_bridgehead"></a>
-  <span><a name="fiber_interrupt"></a></span>
-  <a class="link" href="fiber.html#fiber_interrupt">Member function <code class="computeroutput">interrupt</code>()</a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">interrupt</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              If <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution, request that the fiber will be interrupted
-              the next time it enters one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>
-              with interruption enabled, or if it is currently <a class="link" href="../overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>
-              in a call to one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>
-              with interruption enabled.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing
+              <a class="link" href="this_fiber.html#this_fiber_get_id"><code class="computeroutput">this_fiber::get_id()</code></a>
             </p></dd>
 </dl>
 </div>
@@ -416,8 +397,8 @@
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
               <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-              refers to a fiber of execution. <a class="link" href="fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a> has
-              been called from this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              refers to a fiber of execution. <a class="link" href="fiber.html#use_scheduling_algorithm"><code class="computeroutput">use_scheduling_algorithm()</code></a> has
+              been called from this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
@@ -431,7 +412,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
+              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This method allows access
               to those user-provided properties.
@@ -544,7 +525,7 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Directs <span class="bold"><strong>Boost.Fiber</strong></span> to use <code class="computeroutput"><span class="identifier">SchedAlgo</span></code>, which must be a concrete
-              subclass of <a class="link" href="../scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>, as the scheduling
+              subclass of <a class="link" href="../scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>, as the scheduling
               algorithm for all fibers in the current thread. Pass any required
               <code class="computeroutput"><span class="identifier">SchedAlgo</span></code> constructor
               arguments as <code class="computeroutput"><span class="identifier">args</span></code>.
@@ -555,7 +536,7 @@
               make that thread call <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> before any other <span class="bold"><strong>Boost.Fiber</strong></span>
               entry point. If no scheduler has been set for the current thread by
               the time <span class="bold"><strong>Boost.Fiber</strong></span> needs to use
-              it, the library will create a default <a class="link" href="../scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> instance
+              it, the library will create a default <a class="link" href="../scheduling.html#class_round_robin"><code class="computeroutput">round_robin</code></a> instance
               for this thread.
             </p></dd>
 <dt><span class="term">Throws:</span></dt>

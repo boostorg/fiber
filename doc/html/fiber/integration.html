@@ -7,7 +7,7 @@
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="prev" href="when_any/when_all_functionality/when_all__heterogeneous_types.html" title="when_all, heterogeneous types">
-<link rel="next" href="performance.html" title="Performance">
+<link rel="next" href="integration/overview.html" title="Overview">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,111 +20,22 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="when_any/when_all_functionality/when_all__heterogeneous_types.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="performance.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="when_any/when_all_functionality/when_all__heterogeneous_types.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="integration/overview.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="fiber.integration"></a><a name="integration"></a><a class="link" href="integration.html" title="Sharing a Thread with Another Main Loop">Sharing a
     Thread with Another Main Loop</a>
 </h2></div></div></div>
-<h4>
-<a name="fiber.integration.h0"></a>
-      <span><a name="fiber.integration.overview"></a></span><a class="link" href="integration.html#fiber.integration.overview">Overview</a>
-    </h4>
-<p>
-      As always with cooperative concurrency, it is important not to let any one
-      fiber monopolize the processor too long: that could <span class="quote">&#8220;<span class="quote">starve</span>&#8221;</span> other
-      ready fibers. This section discusses a couple of solutions.
-    </p>
-<h4>
-<a name="fiber.integration.h1"></a>
-      <span><a name="fiber.integration.event_driven_program"></a></span><a class="link" href="integration.html#fiber.integration.event_driven_program">Event-Driven
-      Program</a>
-    </h4>
-<p>
-      Consider a classic event-driven program, organized around a main loop that
-      fetches and dispatches incoming I/O events. You are introducing <span class="bold"><strong>Boost.Fiber</strong></span>
-      because certain asynchronous I/O sequences are logically sequential, and for
-      those you want to write and maintain code that looks and acts sequential.
-    </p>
-<p>
-      You are launching fibers on the application's main thread because certain of
-      their actions will affect its user interface, and the application's UI framework
-      permits UI operations only on the main thread. Or perhaps those fibers need
-      access to main-thread data, and it would be too expensive in runtime (or development
-      time) to robustly defend every such data item with thread synchronization primitives.
-    </p>
-<p>
-      You must ensure that the application's main loop <span class="emphasis"><em>itself</em></span>
-      doesn't monopolize the processor: that the fibers it launches will get the
-      CPU cycles they need.
-    </p>
-<p>
-      The solution is the same as for any fiber that might claim the CPU for an extended
-      time: introduce calls to <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a>. The most straightforward
-      approach is to call <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
-      on every iteration of your existing main loop. In effect, this unifies the
-      application's main loop with <span class="bold"><strong>Boost.Fiber</strong></span>'s
-      internal main loop. <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
-      allows the fiber manager to run any fibers that have become ready since the
-      previous iteration of the application's main loop. When these fibers have had
-      a turn, control passes to the thread's main fiber, which returns from <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code> and
-      resumes the application's main loop.
-    </p>
-<h4>
-<a name="fiber.integration.h2"></a>
-      <span><a name="fiber.integration.integrating_with__ulink_url__http___www_boost_org_doc_libs_release_libs_asio_index_html__boost_asio__ulink_"></a></span><a class="link" href="integration.html#fiber.integration.integrating_with__ulink_url__http___www_boost_org_doc_libs_release_libs_asio_index_html__boost_asio__ulink_">Integrating
-      with <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a></a>
-    </h4>
-<p>
-      More challenging is when the application's main loop is embedded in some other
-      library or framework. Such an application will typically, after performing
-      all necessary setup, pass control to some form of <code class="computeroutput"><span class="identifier">run</span><span class="special">()</span></code> function from which control does not return
-      until application shutdown.
-    </p>
-<p>
-      A <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>
-      program might call <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html" target="_top"><code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">run</span><span class="special">()</span></code></a>
-      in this way.
-    </p>
-<p>
-      The trick here is to arrange to pass control to <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a> frequently.
-      You can use an <a href="http://www.boost.org/doc/libs/1_59_0/doc/html/boost_asio/reference/high_resolution_timer.html" target="_top">Asio
-      timer</a> for this purpose. Instantiate the timer, arranging to call a
-      handler function when the timer expires:
-    </p>
-<p>
-      [run_service]
-    </p>
-<p>
-      The handler function calls <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>, then resets the timer and arranges to wake
-      up again on expiration:
-    </p>
-<p>
-      [timer_handler]
-    </p>
-<p>
-      Then instead of directly calling <code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">run</span><span class="special">()</span></code>,
-      your application would call the above <code class="computeroutput"><span class="identifier">run_service</span><span class="special">(</span><span class="identifier">io_service</span><span class="special">&amp;)</span></code> wrapper.
-    </p>
-<p>
-      Since, in this example, we always pass control to the fiber manager via <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>,
-      the calling fiber is never blocked. Therefore there is always at least one
-      ready fiber. Therefore the fiber manager never sleeps.
-    </p>
-<p>
-      Using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">seconds</span><span class="special">(</span><span class="number">0</span><span class="special">)</span></code> for <span class="emphasis"><em>every</em></span>
-      keepalive timer interval would be unfriendly to other threads. When all I/O
-      is pending and all fibers are blocked, the io_service and the fiber manager
-      would simply spin the CPU, passing control back and forth to each other. Resetting
-      the timer for <code class="computeroutput"><span class="identifier">keepalive_iterval</span></code>
-      allows tuning the responsiveness of this thread relative to others in the same
-      way as when <span class="bold"><strong>Boost.Fiber</strong></span> is running without
-      <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>.
-    </p>
-<p>
-      The source code above is found in <a href="../../../examples/asio/round_robin.hpp" target="_top">round_robin.hpp</a>.
-    </p>
+<div class="toc"><dl>
+<dt><span class="section"><a href="integration/overview.html">Overview</a></span></dt>
+<dt><span class="section"><a href="integration/event_driven_program.html">Event-Driven
+      Program</a></span></dt>
+<dt><span class="section"><a href="integration/embedded_main_loop.html">Embedded
+      Main Loop</a></span></dt>
+<dt><span class="section"><a href="integration/deeper_dive_into___boost_asio__.html">Deeper
+      Dive into <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a></a></span></dt>
+</dl></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -136,7 +47,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="when_any/when_all_functionality/when_all__heterogeneous_types.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="performance.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="when_any/when_all_functionality/when_all__heterogeneous_types.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="integration/overview.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

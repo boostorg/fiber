@@ -205,7 +205,7 @@ acquired by another fiber.
 
 [variablelist
 [[Effects:] [The current fiber blocks until ownership can be obtained.]]
-[[Throws:] [__fiber_interrupted__]]
+[[Throws:] [Nothing]]
 ]
 
 [member_heading recursive_mutex..try_lock]
@@ -271,7 +271,7 @@ fiber.
 
 [variablelist
 [[Effects:] [The current fiber blocks until ownership can be obtained.]]
-[[Throws:] [__fiber_interrupted__]]
+[[Throws:] [Nothing]]
 ]
 
 [member_heading recursive_timed_mutex..try_lock]

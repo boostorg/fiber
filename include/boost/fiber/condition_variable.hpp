@@ -21,7 +21,6 @@
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 #include <boost/fiber/exceptions.hpp>
-#include <boost/fiber/interruption.hpp>
 #include <boost/fiber/mutex.hpp>
 #include <boost/fiber/operations.hpp>
 
@@ -60,8 +59,6 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
-        // check if context was interrupted
-        this_fiber::interruption_point();
         context * ctx = context::active();
         // atomically call lt.unlock() and block on *this
         // store this fiber in waiting-queue
@@ -86,8 +83,6 @@ public:
         }
         // post-conditions
         BOOST_ASSERT( ! ctx->wait_is_linked() );
-        // check if context was interrupted
-        this_fiber::interruption_point();
     }
 
     template< typename LockType, typename Pred >
@@ -99,8 +94,6 @@ public:
 
     template< typename LockType, typename Clock, typename Duration >
     cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time_) {
-        // check if context was interrupted
-        this_fiber::interruption_point();
         cv_status status = cv_status::no_timeout;
         std::chrono::steady_clock::time_point timeout_time(
                 detail::convert( timeout_time_) );
@@ -130,8 +123,6 @@ public:
         }
         // post-conditions
         BOOST_ASSERT( ! ctx->wait_is_linked() );
-        // check if context was interrupted
-        this_fiber::interruption_point();
         return status;
     }
 

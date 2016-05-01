@@ -97,16 +97,16 @@
 <p>
           Instead of retrieving only the first <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> from the channel, we must now loop
           over <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
-          items. Of course we must limit that iteration! If we launch only <code class="computeroutput"><span class="identifier">count</span></code> producer fibers, the <code class="computeroutput"><span class="special">(</span><span class="identifier">count</span><span class="special">+</span><span class="number">1</span><span class="special">)</span></code>
-          <sup>st</sup>
-   <a class="link" href="../../synchronization/channels.html#unbounded_channel_pop"> <code class="computeroutput">unbounded_channel::pop()</code></a> call would block forever.
+          items. Of course we must limit that iteration! If we launch only <code class="computeroutput"><span class="identifier">count</span></code> producer fibers, the <code class="computeroutput"><span class="special">(</span><span class="identifier">count</span><span class="special">+</span><span class="number">1</span><span class="special">)</span></code><sup>st</sup>
+<a class="link" href="../../synchronization/channels.html#unbounded_channel_pop"><code class="computeroutput">unbounded_channel::pop()</code></a> call
+          would block forever.
         </p>
 <p>
           Given a ready <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>,
-          we can distinguish failure by calling <a class="link" href="../../synchronization/futures/future.html#future_get_exception_ptr"> <code class="computeroutput">future::get_exception_ptr()</code></a>.
+          we can distinguish failure by calling <a class="link" href="../../synchronization/futures/future.html#future_get_exception_ptr"><code class="computeroutput">future::get_exception_ptr()</code></a>.
           If the <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           in fact contains a result rather than an exception, <code class="computeroutput"><span class="identifier">get_exception_ptr</span><span class="special">()</span></code> returns <code class="computeroutput"><span class="keyword">nullptr</span></code>.
-          In that case, we can confidently call <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> to return
+          In that case, we can confidently call <a class="link" href="../../synchronization/futures/future.html#future_get"><code class="computeroutput">future::get()</code></a> to return
           that result to our caller.
         </p>
 <p>

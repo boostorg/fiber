@@ -39,7 +39,7 @@
         The fact that the barrier automatically resets is significant. Consider a
         case in which you launch some number of fibers and want to wait only until
         the first of them has completed. You might be tempted to use a <code class="computeroutput"><span class="identifier">barrier</span><span class="special">(</span><span class="number">2</span><span class="special">)</span></code> as the synchronization
-        mechanism, making each new fiber call its <a class="link" href="barriers.html#barrier_wait"> <code class="computeroutput">barrier::wait()</code></a> method,
+        mechanism, making each new fiber call its <a class="link" href="barriers.html#barrier_wait"><code class="computeroutput">barrier::wait()</code></a> method,
         then calling <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>
         in the launching fiber to wait until the first other fiber completes.
       </p>
@@ -83,7 +83,7 @@
           It is unwise to tie the lifespan of a barrier to any one of its participating
           fibers. Although conceptually all waiting fibers awaken <span class="quote">&#8220;<span class="quote">simultaneously,</span>&#8221;</span>
           because of the nature of fibers, in practice they will awaken one by one
-          in indeterminate order.<sup>[<a name="fiber.synchronization.barriers.f0" href="#ftn.fiber.synchronization.barriers.f0" class="footnote">2</a>]</sup> The rest of the waiting fibers will still be blocked in <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>,
+          in indeterminate order.<sup>[<a name="fiber.synchronization.barriers.f0" href="#ftn.fiber.synchronization.barriers.f0" class="footnote">1</a>]</sup> The rest of the waiting fibers will still be blocked in <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>,
           which must, before returning, access data members in the barrier object.
         </p></td></tr>
 </table></div>
@@ -109,7 +109,7 @@
 <span class="special">};</span>
 </pre>
 <p>
-        Instances of <a class="link" href="barriers.html#class_barrier"> <code class="computeroutput">barrier</code></a> are not copyable or movable.
+        Instances of <a class="link" href="barriers.html#class_barrier"><code class="computeroutput">barrier</code></a> are not copyable or movable.
       </p>
 <h5>
 <a name="fiber.synchronization.barriers.h0"></a>
@@ -168,16 +168,11 @@
 <dd><p>
               <code class="computeroutput"><span class="identifier">fiber_error</span></code>
             </p></dd>
-<dt><span class="term">Notes:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>
-              is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
-            </p></dd>
 </dl>
 </div>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.synchronization.barriers.f0" href="#fiber.synchronization.barriers.f0" class="para">2</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.synchronization.barriers.f0" href="#fiber.synchronization.barriers.f0" class="para">1</a>] </sup>
             The current implementation wakes fibers in FIFO order: the first to call
             <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code>
             wakes first, and so forth. But it is perilous to rely on the order in

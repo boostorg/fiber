@@ -28,7 +28,7 @@ project boost/fiber/test
       <threading>multi
     ;
 
-run test_fiber.cpp :
+run test_fiber_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -42,7 +42,7 @@ run test_fiber.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_mutex.cpp :
+run test_fiber_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -56,7 +56,7 @@ run test_mutex.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_condition_variable_any.cpp :
+run test_mutex_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -70,7 +70,7 @@ run test_condition_variable_any.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_condition_variable.cpp :
+run test_mutex_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -84,7 +84,7 @@ run test_condition_variable.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_barrier.cpp :
+run test_condition_variable_any_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -98,7 +98,7 @@ run test_barrier.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_unbounded_channel.cpp :
+run test_condition_variable_any_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -112,7 +112,7 @@ run test_unbounded_channel.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_bounded_channel.cpp :
+run test_condition_variable_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -126,7 +126,7 @@ run test_bounded_channel.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_fss.cpp :
+run test_condition_variable_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -140,7 +140,7 @@ run test_fss.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_promise.cpp :
+run test_barrier_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -154,7 +154,7 @@ run test_promise.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_future.cpp :
+run test_barrier_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -168,7 +168,7 @@ run test_future.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_shared_future.cpp :
+run test_unbounded_channel_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -182,7 +182,7 @@ run test_shared_future.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_packaged_task.cpp :
+run test_unbounded_channel_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -196,7 +196,7 @@ run test_packaged_task.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_async.cpp :
+run test_bounded_channel_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -210,7 +210,7 @@ run test_async.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_mutex_mt.cpp :
+run test_bounded_channel_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -224,7 +224,7 @@ run test_mutex_mt.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_condition_mt.cpp :
+run test_fss_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -238,7 +238,231 @@ run test_condition_mt.cpp :
                cxx11_template_aliases
                cxx11_variadic_templates ] ;
 
-run test_future_mt.cpp :
+run test_fss_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_promise_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_promise_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_future_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_future_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_shared_future_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_shared_future_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_packaged_task_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_packaged_task_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_async_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_async_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_mutex_mt_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_mutex_mt_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_condition_mt_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_condition_mt_dispatch.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_future_mt_post.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ] ;
+
+run test_future_mt_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr

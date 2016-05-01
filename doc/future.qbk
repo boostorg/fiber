@@ -191,7 +191,7 @@ called, returns the value. If [member_link promise..set_exception] is called,
 throws the indicated exception.]]
 [[Postcondition:] [`false == valid()`]]
 [[Throws:] [__future_error__ with error condition __no_state__,
-__fiber_interrupted__, __broken_promise__. Any exception passed to
+__broken_promise__. Any exception passed to
 `promise::set_exception()`.]]
 ]
 ]
@@ -207,7 +207,7 @@ __fiber_interrupted__, __broken_promise__. Any exception passed to
 [[Returns:] [[future_method_wait .] If `set_value()` is called, returns a
 default-constructed `std::exception_ptr`. If `set_exception()` is called,
 returns the passed `std::exception_ptr`.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Throws:] [__future_error__ with error condition __no_state__.]]
 [[Note:] [ `get_exception_ptr()` does ['not] invalidate the [`[xfuture]].
 After calling `get_exception_ptr()`, you may still call [member_link
 [xfuture]..get].]]
@@ -222,7 +222,7 @@ After calling `get_exception_ptr()`, you may still call [member_link
 
 [variablelist
 [[Effects:] [[future_method_wait .]]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__.]]
+[[Throws:] [__future_error__ with error condition __no_state__.]]
 ]
 
 [template_member_heading [xfuture]..wait_for]
@@ -233,7 +233,7 @@ After calling `get_exception_ptr()`, you may still call [member_link
 [variablelist
 [[Effects:] [[future_method_wait , or `timeout_duration` has passed.]]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__ or
+[[Throws:] [__future_error__ with error condition __no_state__ or
 timeout-related exceptions.]]
 ]
 
@@ -245,7 +245,7 @@ timeout-related exceptions.]]
 [variablelist
 [[Effects:] [[future_method_wait , or `timeout_time` has passed.]]]
 [[Result:] [A `future_status` is returned indicating the reason for returning.]]
-[[Throws:] [__future_error__ with error condition __no_state__ or __fiber_interrupted__ or
+[[Throws:] [__future_error__ with error condition __no_state__ or
 timeout-related exceptions.]]
 ]
 ]
@@ -360,6 +360,14 @@ const&`, otherwise `false`.]]
         >
         async( Function && fn, Args && ... args);
 
+        template< class Function, class ... Args >
+        future<
+            std::result_of_t<
+                std::decay_t< Function >( std::decay_t< Args > ... )
+            >
+        >
+        async( ``[link class_launch_policy `launch_policy`]`` lpol, Function && fn, Args && ... args);
+
         template< typename __StackAllocator__, class Function, class ... Args >
         future<
             std::result_of_t<
@@ -367,6 +375,15 @@ const&`, otherwise `false`.]]
             >
         >
         async( __allocator_arg_t__, __StackAllocator__ salloc, Function && fn, Args && ... args);
+
+        template< typename __StackAllocator__, class Function, class ... Args >
+        future<
+            std::result_of_t<
+                std::decay_t< Function >( std::decay_t< Args > ... )
+            >
+        >
+        async( ``[link class_launch_policy `launch_policy`]`` lpol, __allocator_arg_t__, __StackAllocator__ salloc,
+               Function && fn, Args && ... args);
 
 [variablelist
 [[Effects:] [Executes `fn` in a [class_link fiber] and returns an associated
@@ -379,8 +396,11 @@ const&`, otherwise `false`.]]
 shared_state shared state] associated with the asynchronous execution of
 `fn`.]]
 [[Throws:] [__fiber_error__ or __future_error__ if an error occurs.]]
-[[Notes:] [The overload accepting __allocator_arg_t__ uses the passed
-__StackAllocator__ when constructing the launched `fiber`.]]
+[[Notes:] [The overloads accepting __allocator_arg_t__ use the passed
+__StackAllocator__ when constructing the launched `fiber`. The overloads
+accepting [class_link launch_policy] use the passed `launch_policy` when
+constructing the launched `fiber`. The default `launch_policy` is `post`, as
+for the `fiber` constructor.]]
 ]
 
 [note Deferred futures are not supported.]

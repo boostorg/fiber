@@ -28,8 +28,8 @@
         <code class="computeroutput"><span class="identifier">promise</span><span class="special">&lt;&gt;</span></code></a>
 </h4></div></div></div>
 <p>
-          A <a class="link" href="promise.html#class_promise"> <code class="computeroutput">promise&lt;&gt;</code></a> provides a mechanism to store a value (or
-          exception) that can later be retrieved from the corresponding <a class="link" href="future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> object.
+          A <a class="link" href="promise.html#class_promise"><code class="computeroutput">promise&lt;&gt;</code></a> provides a mechanism to store a value (or
+          exception) that can later be retrieved from the corresponding <a class="link" href="future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> object.
           <code class="computeroutput"><span class="identifier">promise</span><span class="special">&lt;&gt;</span></code>
           and <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           communicate via their underlying <a class="link" href="future.html#shared_state">shared state</a>.
@@ -153,7 +153,7 @@
                 and abandons the <a class="link" href="future.html#shared_state">shared state</a>
                 if shared state is ready; otherwise stores <code class="computeroutput"><span class="identifier">future_error</span></code>
                 with error condition <code class="computeroutput"><span class="identifier">future_errc</span><span class="special">::</span><span class="identifier">broken_promise</span></code>
-                as if by <a class="link" href="promise.html#promise_set_exception"> <code class="computeroutput">promise::set_exception()</code></a>: the shared
+                as if by <a class="link" href="promise.html#promise_set_exception"><code class="computeroutput">promise::set_exception()</code></a>: the shared
                 state is set ready.
               </p></dd>
 </dl>
@@ -231,7 +231,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-                A <a class="link" href="future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> with the same <a class="link" href="future.html#shared_state">shared
+                A <a class="link" href="future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> with the same <a class="link" href="future.html#shared_state">shared
                 state</a>.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>

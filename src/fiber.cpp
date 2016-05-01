@@ -11,7 +11,6 @@
 #include <boost/assert.hpp>
 
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/interruption.hpp"
 #include "boost/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -25,7 +24,20 @@ void
 fiber::start_() noexcept {
     context * ctx = context::active();
     ctx->attach( impl_.get() );
-    ctx->get_scheduler()->set_ready( impl_.get() );
+    switch ( impl_->get_policy() ) {
+    case launch_policy::post:
+        // push new fiber to ready-queue
+        // resume executing current fiber
+        ctx->get_scheduler()->set_ready( impl_.get() );
+        break;
+    case launch_policy::dispatch:
+        // resume new fiber and push current fiber
+        // to ready-queue
+        impl_->resume( ctx);
+        break;
+    default:
+        BOOST_ASSERT_MSG( false, "unknown launch-policy");
+    }
 }
 
 void
@@ -42,13 +54,6 @@ fiber::join() {
 
     impl_->join();
     impl_.reset();
-}
-
-void
-fiber::interrupt() noexcept {
-    BOOST_ASSERT( nullptr != impl_.get() );
-    impl_->request_interruption( true);
-    context::active()->set_ready( impl_.get() );
 }
 
 void

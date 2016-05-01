@@ -29,7 +29,8 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
         channel_type rc;
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
-            boost::fibers::fiber{ std::allocator_arg, salloc,
+            boost::fibers::fiber{ boost::fibers::launch_policy::dispatch,
+                                  std::allocator_arg, salloc,
                                   skynet,
                                   std::ref( salloc), std::ref( rc), sub_num, size / div, div }.detach();
         }
@@ -45,29 +46,16 @@ int main() {
     try {
         bind_to_processor( 0);
         std::size_t stack_size{ 4048 };
-        std::size_t num{ 100000 };
+        std::size_t size{ 100000 };
         std::size_t div{ 10 };
-        allocator_type salloc{ stack_size, 1.2*num };
+        allocator_type salloc{ stack_size, static_cast< std::size_t >( 1.3*size) };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
-        boost::fibers::fiber{
-                std::allocator_arg, salloc,
-                [&salloc,&num,&div,&result,&duration](){
-                    channel_type rc;
-                    time_point_type start{ clock_type::now() };
-                    for ( std::size_t i = 0; i < div; ++i) {
-                        auto r = num / div;
-                        auto sub_num = num + i * r;
-                        boost::fibers::fiber{
-                                std::allocator_arg, salloc,
-                                skynet,
-                                std::ref( salloc), std::ref( rc), sub_num, r, div }.detach();
-                    }
-                    for ( std::size_t i = 0; i < div; ++i) {
-                        result += rc.value_pop();
-                    }
-                    duration = clock_type::now() - start;
-                }}.join();
+        time_point_type start{ clock_type::now() };
+        channel_type rc;
+        skynet( salloc, rc, 0, size, div);
+        result = rc.value_pop();
+        duration = clock_type::now() - start;
         std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;

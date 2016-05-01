@@ -31,13 +31,12 @@
           Certain topics in C++ can arouse strong passions, and exceptions are no
           exception. We cannot resist mentioning &#8212; for purely informational purposes
           &#8212; that when you need only the <span class="emphasis"><em>first</em></span> result from some
-          number of concurrently-running fibers, it would be possible to pass a <code class="computeroutput">shared_ptr&lt;
-          <a class="link" href="../../synchronization/futures/promise.html#class_promise"> <code class="computeroutput">promise&lt;&gt;</code></a>&gt;</code> to the participating fibers, then cause
-          the initiating fiber to call <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> on its <a class="link" href="../../synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a>.
-          The first fiber to call <a class="link" href="../../synchronization/futures/promise.html#promise_set_value"> <code class="computeroutput">promise::set_value()</code></a> on that shared
-          <code class="computeroutput"><span class="identifier">promise</span></code> will succeed; subsequent
-          <code class="computeroutput"><span class="identifier">set_value</span><span class="special">()</span></code>
-          calls on the same <code class="computeroutput"><span class="identifier">promise</span></code>
+          number of concurrently-running fibers, it would be possible to pass a
+          <code class="literal">shared_ptr&lt;<a class="link" href="../../synchronization/futures/promise.html#class_promise"><code class="computeroutput">promise&lt;&gt;</code></a>&gt;</code> to the
+          participating fibers, then cause the initiating fiber to call <a class="link" href="../../synchronization/futures/future.html#future_get"><code class="computeroutput">future::get()</code></a> on
+          its <a class="link" href="../../synchronization/futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a>. The first fiber to call <a class="link" href="../../synchronization/futures/promise.html#promise_set_value"><code class="computeroutput">promise::set_value()</code></a> on
+          that shared <code class="computeroutput"><span class="identifier">promise</span></code> will
+          succeed; subsequent <code class="computeroutput"><span class="identifier">set_value</span><span class="special">()</span></code> calls on the same <code class="computeroutput"><span class="identifier">promise</span></code>
           instance will throw <code class="computeroutput"><span class="identifier">future_error</span></code>.
         </p>
 <p>

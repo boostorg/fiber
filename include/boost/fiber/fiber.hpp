@@ -20,6 +20,7 @@
 #include <boost/fiber/detail/disable_overload.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/policy.hpp>
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/segmented_stack.hpp>
 
@@ -50,7 +51,18 @@ public:
               typename = detail::disable_overload< fiber, Fn >
     >
     fiber( Fn && fn, Args && ... args) :
-        fiber{ std::allocator_arg, default_stack(),
+        fiber{ launch_policy::post,
+               std::allocator_arg, default_stack(),
+               std::forward< Fn >( fn), std::forward< Args >( args) ... } {
+    }
+
+    template< typename Fn,
+              typename ... Args,
+              typename = detail::disable_overload< fiber, Fn >
+    >
+    fiber( launch_policy lpol, Fn && fn, Args && ... args) :
+        fiber{ lpol,
+               std::allocator_arg, default_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... } {
     }
 
@@ -59,7 +71,17 @@ public:
               typename ... Args
     >
     fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_{ make_worker_context( salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
+        fiber{ launch_policy::post,
+               std::allocator_arg, salloc,
+               std::forward< Fn >( fn), std::forward< Args >( args) ... } {
+    }
+
+    template< typename StackAllocator,
+              typename Fn,
+              typename ... Args
+    >
+    fiber( launch_policy lpol, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
+        impl_{ make_worker_context( lpol, salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
         start_();
     }
 
@@ -99,8 +121,6 @@ public:
     }
 
     void join();
-
-    void interrupt() noexcept;
 
     void detach();
 

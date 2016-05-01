@@ -47,7 +47,7 @@
       When a coroutine yields, it passes control directly to its caller (or, in the
       case of symmetric coroutines, a designated other coroutine). When a fiber blocks,
       it implicitly passes control to the fiber scheduler. Coroutines have no scheduler
-      because they need no scheduler.<sup>[<a name="fiber.rationale.f0" href="#ftn.fiber.rationale.f0" class="footnote">9</a>]</sup>.
+      because they need no scheduler.<sup>[<a name="fiber.rationale.f0" href="#ftn.fiber.rationale.f0" class="footnote">10</a>]</sup>.
     </p>
 <h4>
 <a name="fiber.rationale.h1"></a>
@@ -86,10 +86,10 @@
       may still be false. Spurious wakeup can happen repeatedly and is caused on
       some multiprocessor systems where making <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span></code>
       wakeup completely predictable would slow down all <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span></code>
-      operations.<sup>[<a name="fiber.rationale.f1" href="#ftn.fiber.rationale.f1" class="footnote">10</a>]</sup>
+      operations.<sup>[<a name="fiber.rationale.f1" href="#ftn.fiber.rationale.f1" class="footnote">11</a>]</sup>
     </p>
 <p>
-      <a class="link" href="synchronization/conditions.html#class_condition_variable"> <code class="computeroutput">condition_variable</code></a> is not subject to spurious wakeup.
+      <a class="link" href="synchronization/conditions.html#class_condition_variable"><code class="computeroutput">condition_variable</code></a> is not subject to spurious wakeup.
       Nonetheless it is prudent to test the business-logic condition in a <code class="computeroutput"><span class="identifier">wait</span><span class="special">()</span></code> loop
       &#8212; or, equivalently, use one of the <code class="computeroutput"><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lock</span><span class="special">,</span>
       <span class="identifier">predicate</span> <span class="special">)</span></code>
@@ -105,7 +105,7 @@
     </h4>
 <p>
       Support for migrating fibers between threads has been integrated. The user-defined
-      scheduler must call <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> on a fiber-context on
+      scheduler must call <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> on a fiber-context on
       the destination thread, passing <code class="computeroutput"><span class="identifier">migrate</span><span class="special">()</span></code> the fiber-context to migrate. (For more information
       about custom schedulers, see <a class="link" href="custom.html#custom">Customization</a>.)
       Examples <code class="computeroutput"><span class="identifier">work_sharing</span></code> and
@@ -122,11 +122,11 @@
       for Boost.Asio</a>
     </h4>
 <p>
-      Support for <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>'s
+      Support for <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a>&#8217;s
       <span class="emphasis"><em>async-result</em></span> is not part of the official API. However,
-      to integrate with a <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span></code>,
+      to integrate with a <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span></code></a>,
       see <a class="link" href="integration.html#integration">Sharing a Thread with Another Main Loop</a>.
-      To interface smoothly with an arbitrary Asio async I/O operation, see <a class="link" href="callbacks.html#callbacks_asio">Then There's <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a></a>.
+      To interface smoothly with an arbitrary Asio async I/O operation, see <a class="link" href="callbacks/then_there_s____boost_asio__.html#callbacks_asio">Then There&#8217;s <a href="http://www.boost.org/doc/libs/release/libs/asio/index.html" target="_top">Boost.Asio</a></a>.
     </p>
 <h4>
 <a name="fiber.rationale.h6"></a>
@@ -147,11 +147,11 @@
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f0" href="#fiber.rationale.f0" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f0" href="#fiber.rationale.f0" class="para">10</a>] </sup>
         <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4024.pdf" target="_top">'N4024:
         Distinguishing coroutines and fibers'</a>
       </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f1" href="#fiber.rationale.f1" class="para">10</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.rationale.f1" href="#fiber.rationale.f1" class="para">11</a>] </sup>
         David R. Butenhof <span class="quote">&#8220;<span class="quote">Programming with POSIX Threads</span>&#8221;</span>
       </p></div>
 </div>

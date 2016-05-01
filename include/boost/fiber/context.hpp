@@ -33,6 +33,7 @@
 #include <boost/fiber/detail/wrap.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
+#include <boost/fiber/policy.hpp>
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/segmented_stack.hpp>
 #include <boost/fiber/type.hpp>
@@ -84,14 +85,6 @@ typedef intrusive::list_member_hook<
     >
 >                                       ready_hook;
 
-struct remote_ready_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< remote_ready_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       remote_ready_hook;
-
 struct sleep_tag;
 typedef intrusive::set_member_hook<
     intrusive::tag< sleep_tag >,
@@ -133,9 +126,7 @@ private:
     friend class scheduler;
 
     enum flag_t {
-        flag_terminated             = 1 << 1,
-        flag_interruption_blocked   = 1 << 2,
-        flag_interruption_requested = 1 << 3
+        flag_terminated = 1 << 1
     };
 
     struct BOOST_FIBERS_DECL fss_data {
@@ -170,6 +161,7 @@ private:
     unsigned int                                    flags_;
     type                                            type_;
 #endif
+    launch_policy                                   lpol_{ launch_policy::post };
     scheduler                                   *   scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
@@ -183,7 +175,8 @@ private:
 #if (BOOST_EXECUTION_CONTEXT==1)
     template< typename Fn, typename Tpl >
     void run_( Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        try {
+        {
+            // fn and tpl must be destroyed before calling set_terminated()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
             if ( nullptr != dp->lk) {
@@ -192,7 +185,6 @@ private:
                 active_->set_ready_( dp->ctx);
             }
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
-        } catch ( fiber_interrupted const&) {
         }
         // terminate context
         set_terminated();
@@ -202,7 +194,8 @@ private:
     template< typename Fn, typename Tpl >
     boost::context::execution_context< detail::data_t * >
     run_( boost::context::execution_context< detail::data_t * > ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        try {
+        {
+            // fn and tpl must be destroyed before calling set_terminated()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
             // update execution_context of calling fiber
@@ -213,7 +206,6 @@ private:
                 active_->set_ready_( dp->ctx);
             }
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
-        } catch ( fiber_interrupted const&) {
         }
         // terminate context
         return set_terminated();
@@ -222,7 +214,6 @@ private:
 
 public:
     detail::ready_hook                      ready_hook_{};
-    detail::remote_ready_hook               remote_ready_hook_{};
     detail::sleep_hook                      sleep_hook_{};
     detail::terminated_hook                 terminated_hook_{};
     detail::wait_hook                       wait_hook_{};
@@ -313,11 +304,13 @@ public:
               typename Tpl
     >
     context( worker_context_t,
+             launch_policy lpol,
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Tpl && tpl) :
         use_count_{ 1 }, // fiber instance or scheduler owner
         flags_{ 0 },
         type_{ type::worker_context },
+        lpol_{ lpol },
 #if (BOOST_EXECUTION_CONTEXT==1)
 # if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
@@ -398,18 +391,6 @@ public:
         return 0 != ( flags_ & flag_terminated);
     }
 
-    bool interruption_blocked() const noexcept {
-        return 0 != ( flags_ & flag_interruption_blocked);
-    }
-
-    void interruption_blocked( bool blck) noexcept;
-
-    bool interruption_requested() const noexcept {
-        return 0 != ( flags_ & flag_interruption_requested);
-    }
-
-    void request_interruption( bool req) noexcept;
-
     void * get_fss_data( void const * vp) const;
 
     void set_fss_data(
@@ -424,9 +405,11 @@ public:
         return properties_;
     }
 
-    bool ready_is_linked() const noexcept;
+    launch_policy get_policy() const noexcept {
+        return lpol_;
+    }
 
-    bool remote_ready_is_linked() const noexcept;
+    bool ready_is_linked() const noexcept;
 
     bool sleep_is_linked() const noexcept;
 
@@ -439,12 +422,6 @@ public:
     template< typename List >
     void ready_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::ready_hook >::value, "not a ready-queue");
-        lst.push_back( * this);
-    }
-
-    template< typename List >
-    void remote_ready_link( List & lst) noexcept {
-        static_assert( std::is_same< typename List::value_traits::hook_type, detail::remote_ready_hook >::value, "not a remote ready-queue");
         lst.push_back( * this);
     }
 
@@ -473,8 +450,6 @@ public:
     }
 
     void ready_unlink() noexcept;
-
-    void remote_ready_unlink() noexcept;
 
     void sleep_unlink() noexcept;
 
@@ -521,7 +496,9 @@ struct context_initializer {
 };
 
 template< typename StackAlloc, typename Fn, typename ... Args >
-static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn, Args && ... args) {
+static intrusive_ptr< context > make_worker_context( launch_policy lpol,
+                                                     StackAlloc salloc,
+                                                     Fn && fn, Args && ... args) {
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
@@ -543,6 +520,7 @@ static intrusive_ptr< context > make_worker_context( StackAlloc salloc, Fn && fn
     return intrusive_ptr< context >( 
             ::new ( sp) context(
                 worker_context,
+                lpol,
                 boost::context::preallocated( sp, size, sctx),
                 salloc,
                 std::forward< Fn >( fn),
