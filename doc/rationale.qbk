@@ -77,11 +77,10 @@ See also [link migration Migrating fibers between threads].
 
 [heading support for Boost.Asio]
 
-Support for __boost_asio__'s __async_result__ is not part of the official API.
-However, to integrate with a `boost::asio::io_service`, see [link integration
-Sharing a Thread with Another Main Loop]. To interface smoothly with an
-arbitrary Asio async I/O operation, see [link callbacks_asio Then There's
-__boost_asio__].
+Support for __boost_asio__[s] __async_result__ is not part of the official API.
+However, to integrate with a __io_service__, see [link integration Sharing a
+Thread with Another Main Loop]. To interface smoothly with an arbitrary Asio
+async I/O operation, see [link callbacks_asio Then There[s] __boost_asio__].
 
 [heading tested compilers]
 

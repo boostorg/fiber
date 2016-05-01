@@ -120,7 +120,7 @@
 <p>
       Unless migrated, a fiber may access thread-local storage; however that storage
       will be shared among all fibers running on the same thread. For fiber-local
-      storage, please see <a class="link" href="fls.html#class_fiber_specific_ptr"> <code class="computeroutput">fiber_specific_ptr</code></a>.
+      storage, please see <a class="link" href="fls.html#class_fiber_specific_ptr"><code class="computeroutput">fiber_specific_ptr</code></a>.
     </p>
 <a name="cross_thread_sync"></a><h4>
 <a name="fiber.overview.h2"></a>
@@ -152,7 +152,7 @@
       instance, when a fiber wants to wait for a value from another fiber in the
       same thread, using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">future</span></code> would be unfortunate: <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">future</span><span class="special">::</span><span class="identifier">get</span><span class="special">()</span></code>
       would block the whole thread, preventing the other fiber from delivering its
-      value. Use <a class="link" href="synchronization/futures/future.html#class_future"> <code class="computeroutput">future&lt;&gt;</code></a> instead.
+      value. Use <a class="link" href="synchronization/futures/future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> instead.
     </p>
 <p>
       Similarly, a fiber that invokes a normal blocking I/O operation will block

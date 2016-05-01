@@ -34,11 +34,6 @@
         That is, in many respects the main fiber on each thread can be treated like
         an explicitly-launched fiber.
       </p>
-<p>
-        However, unlike an explicitly-launched fiber, if <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code>
-        is thrown (or rethrown) on a thread's main fiber without being caught, the
-        Fiber library cannot catch it: <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span><span class="special">()</span></code> will be called.
-      </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">this_fiber</span> <span class="special">{</span>
 
@@ -50,12 +45,6 @@
 <span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;);</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
 <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
-
-<span class="keyword">void</span> <span class="identifier">interruption_point</span><span class="special">();</span>
-<span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-<span class="keyword">bool</span> <span class="identifier">interruption_enabled</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-<span class="keyword">class</span> <span class="identifier">disable_interruption</span><span class="special">;</span>
-<span class="keyword">class</span> <span class="identifier">restore_interruption</span><span class="special">;</span>
 
 <span class="special">}}</span>
 </pre>
@@ -111,13 +100,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code> if
-              the current fiber is interrupted or timeout-related exceptions.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="identifier">sleep_until</span><span class="special">()</span></code>
-              is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
+              timeout-related exceptions.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -160,13 +143,7 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code> if
-              the current fiber is interrupted or timeout-related exceptions.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="identifier">sleep_for</span><span class="special">()</span></code>
-              is one of the predefined <a class="link" href="../fiber_mgmt.html#interruption"><span class="emphasis"><em>interruption-points</em></span></a>.
+              timeout-related exceptions.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -203,11 +180,8 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
-              is <span class="emphasis"><em>not</em></span> an interruption point. A fiber that calls
-              <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
-              is not suspended: it is immediately passed to the scheduler as ready
-              to run.
+              A fiber that calls <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code> is not suspended: it is immediately
+              passed to the scheduler as ready to run.
             </p></dd>
 </dl>
 </div>
@@ -231,8 +205,8 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-              <a class="link" href="fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a> has been called from
-              this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              <a class="link" href="fiber.html#use_scheduling_algorithm"><code class="computeroutput">use_scheduling_algorithm()</code></a> has been called from
+              this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
@@ -247,7 +221,7 @@
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
+              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This function allows access
               to those user-provided properties.
@@ -263,285 +237,6 @@
             </p></dd>
 </dl>
 </div>
-<p>
-        </p>
-<h5>
-<a name="this_fiber_interruption_point_bridgehead"></a>
-  <span><a name="this_fiber_interruption_point"></a></span>
-  <a class="link" href="this_fiber.html#this_fiber_interruption_point">Non-member
-        function <code class="computeroutput">this_fiber::interruption_point()</code></a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-
-<span class="keyword">void</span> <span class="identifier">interruption_point</span><span class="special">();</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              Check to see if the current fiber has been interrupted.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="identifier">fiber_interrupted</span></code> if
-              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> and
-              <a class="link" href="this_fiber.html#this_fiber_interruption_requested"> <code class="computeroutput">this_fiber::interruption_requested()</code></a> both
-              return <code class="computeroutput"><span class="keyword">true</span></code>.
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="this_fiber_interruption_requested_bridgehead"></a>
-  <span><a name="this_fiber_interruption_requested"></a></span>
-  <a class="link" href="this_fiber.html#this_fiber_interruption_requested">Non-member
-        function <code class="computeroutput">this_fiber::interruption_requested()</code></a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-
-<span class="keyword">bool</span> <span class="identifier">interruption_requested</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="keyword">true</span></code> if interruption has
-              been requested for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
-              otherwise.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing.
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="this_fiber_interruption_enabled_bridgehead"></a>
-  <span><a name="this_fiber_interruption_enabled"></a></span>
-  <a class="link" href="this_fiber.html#this_fiber_interruption_enabled">Non-member
-        function <code class="computeroutput">this_fiber::interruption_enabled()</code></a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-
-<span class="keyword">bool</span> <span class="identifier">interruption_enabled</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Returns:</span></dt>
-<dd><p>
-              <code class="computeroutput"><span class="keyword">true</span></code> if interruption is
-              enabled for the current fiber, <code class="computeroutput"><span class="keyword">false</span></code>
-              otherwise.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              Interruption is enabled by default.
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="class_disable_interruption_bridgehead"></a>
-  <span><a name="class_disable_interruption"></a></span>
-  <a class="link" href="this_fiber.html#class_disable_interruption">Class
-        <code class="computeroutput">disable_interruption</code></a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-
-<span class="keyword">class</span> <span class="identifier">disable_interruption</span> <span class="special">{</span>
-<span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="special">~</span><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="identifier">disable_interruption</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">disable_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-    <span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">disable_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-<span class="special">};</span>
-</pre>
-<h5>
-<a name="fiber.fiber_mgmt.this_fiber.h0"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.constructor"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.constructor">Constructor</a>
-      </h5>
-<pre class="programlisting"><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              Stores the current state of <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> and
-              disables interruption for the current fiber.
-            </p></dd>
-<dt><span class="term">Postconditions:</span></dt>
-<dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> returns
-              <code class="computeroutput"><span class="keyword">false</span></code> for the current
-              fiber.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              Nesting of <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
-              instances matters. Constructing a <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
-              while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
-              has no effect.
-            </p></dd>
-</dl>
-</div>
-<h5>
-<a name="fiber.fiber_mgmt.this_fiber.h1"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.destructor"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.destructor">Destructor</a>
-      </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">disable_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Preconditions:</span></dt>
-<dd><p>
-              Must be called from the same fiber on which <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> was constructed.
-            </p></dd>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              Restores the state of <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
-              the current fiber to the state saved at construction of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-            </p></dd>
-<dt><span class="term">Postconditions:</span></dt>
-<dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
-              the current fiber returns the value stored by the constructor of <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              Destroying a <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
-              constructed while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
-              has no effect.
-            </p></dd>
-</dl>
-</div>
-<p>
-        </p>
-<h5>
-<a name="class_restore_interruption_bridgehead"></a>
-  <span><a name="class_restore_interruption"></a></span>
-  <a class="link" href="this_fiber.html#class_restore_interruption">Class
-        <code class="computeroutput">restore_interruption</code></a>
-</h5>
-<p>
-      </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">interruption</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-
-<span class="keyword">class</span> <span class="identifier">restore_interruption</span> <span class="special">{</span>
-<span class="keyword">public</span><span class="special">:</span>
-    <span class="keyword">explicit</span> <span class="identifier">restore_interruption</span><span class="special">(</span><span class="identifier">disable_interruption</span><span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="special">~</span><span class="identifier">restore_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="identifier">restore_interruption</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">restore_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-    <span class="identifier">restore_interruption</span><span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">restore_interruption</span><span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-<span class="special">};</span>
-</pre>
-<h5>
-<a name="fiber.fiber_mgmt.this_fiber.h2"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.constructor0"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.constructor0">Constructor</a>
-      </h5>
-<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">restore_interruption</span><span class="special">(</span><span class="identifier">disable_interruption</span><span class="special">&amp;</span> <span class="identifier">disabler</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Preconditions:</span></dt>
-<dd><p>
-              Must be called from the same fiber on which <code class="computeroutput"><span class="identifier">disabler</span></code>
-              was constructed.
-            </p></dd>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              Restores the current state of <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
-              the current fiber to that saved in <code class="computeroutput"><span class="identifier">disabler</span></code>.
-            </p></dd>
-<dt><span class="term">Postconditions:</span></dt>
-<dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
-              the current fiber returns the value stored in the constructor of <code class="computeroutput"><span class="identifier">disabler</span></code>.
-            </p></dd>
-<dt><span class="term">Throws:</span></dt>
-<dd><p>
-              Nothing.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              Nesting of <code class="computeroutput"><span class="identifier">restore_interruption</span></code>
-              instances does not matter: only the <a class="link" href="this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> instance
-              passed to the constructor matters. Constructing a <code class="computeroutput"><span class="identifier">restore_interruption</span></code>
-              with a <code class="computeroutput"><span class="identifier">disable_interruption</span></code>
-              constructed while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
-              has no effect.
-            </p></dd>
-</dl>
-</div>
-<h5>
-<a name="fiber.fiber_mgmt.this_fiber.h3"></a>
-        <span><a name="fiber.fiber_mgmt.this_fiber.destructor0"></a></span><a class="link" href="this_fiber.html#fiber.fiber_mgmt.this_fiber.destructor0">Destructor</a>
-      </h5>
-<pre class="programlisting"><span class="special">~</span><span class="identifier">restore_interruption</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-</pre>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl>
-<dt><span class="term">Preconditions:</span></dt>
-<dd><p>
-              Must be called from the same fiber on which <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> was constructed.
-            </p></dd>
-<dt><span class="term">Effects:</span></dt>
-<dd><p>
-              Disables interruption for the current fiber.
-            </p></dd>
-<dt><span class="term">Postconditions:</span></dt>
-<dd><p>
-              <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> for
-              the current fiber returns <code class="computeroutput"><span class="keyword">false</span></code>.
-            </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-              Destroying a <code class="computeroutput"><span class="identifier">restore_interruption</span></code>
-              constructed with a <a class="link" href="this_fiber.html#class_disable_interruption"> <code class="computeroutput">disable_interruption</code></a> constructed
-              while <a class="link" href="this_fiber.html#this_fiber_interruption_enabled"> <code class="computeroutput">this_fiber::interruption_enabled()</code></a> <code class="computeroutput"><span class="special">==</span> <span class="keyword">false</span></code>
-              has no effect.
-            </p></dd>
-</dl>
-</div>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">foo</span><span class="special">()</span> <span class="special">{</span>
-    <span class="comment">// interruption is enabled</span>
-    <span class="special">{</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">disable_interruption</span> <span class="identifier">di</span><span class="special">;</span>
-        <span class="comment">// interruption is disabled</span>
-        <span class="special">{</span>
-            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">restore_interruption</span> <span class="identifier">ri</span><span class="special">(</span> <span class="identifier">di</span><span class="special">);</span>
-            <span class="comment">// interruption now enabled</span>
-        <span class="special">}</span> <span class="comment">// ri destroyed, interruption disabled again</span>
-    <span class="special">}</span> <span class="comment">// di destructed, interruption state restored</span>
-    <span class="comment">// interruption now enabled</span>
-<span class="special">}</span>
-</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

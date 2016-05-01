@@ -106,8 +106,8 @@
 <p>
           The trouble with this tactic is that it would serialize all the task functions.
           The runtime makes a single pass through <code class="computeroutput"><span class="identifier">functions</span></code>,
-          calling <a class="link" href="../../synchronization/futures/future.html#fibers_async"> <code class="computeroutput">fibers::async()</code></a> for each and then immediately calling
-          <a class="link" href="../../synchronization/futures/future.html#future_get"> <code class="computeroutput">future::get()</code></a> on its returned <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>. That blocks the implicit loop.
+          calling <a class="link" href="../../synchronization/futures/future.html#fibers_async"><code class="computeroutput">fibers::async()</code></a> for each and then immediately calling
+          <a class="link" href="../../synchronization/futures/future.html#future_get"><code class="computeroutput">future::get()</code></a> on its returned <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>. That blocks the implicit loop.
           The above is almost equivalent to writing:
         </p>
 <pre class="programlisting"><span class="keyword">return</span> <span class="identifier">Result</span><span class="special">{</span> <span class="identifier">functions</span><span class="special">()...</span> <span class="special">};</span>

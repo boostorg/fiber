@@ -40,10 +40,10 @@
 <p>
       Each thread has its own scheduler. Different threads in a process may use different
       schedulers. By default, <span class="bold"><strong>Boost.Fiber</strong></span> implicitly
-      instantiates <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> as the scheduler for each thread.
+      instantiates <a class="link" href="scheduling.html#class_round_robin"><code class="computeroutput">round_robin</code></a> as the scheduler for each thread.
     </p>
 <p>
-      You are explicitly permitted to code your own <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass.
+      You are explicitly permitted to code your own <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> subclass.
       For the most part, your <code class="computeroutput"><span class="identifier">sched_algorithm</span></code>
       subclass need not defend against cross-thread calls: the fiber manager intercepts
       and defers such calls. Most <code class="computeroutput"><span class="identifier">sched_algorithm</span></code>
@@ -52,7 +52,7 @@
     </p>
 <p>
       Your <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> subclass
-      is engaged on a particular thread by calling <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a>:
+      is engaged on a particular thread by calling <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"><code class="computeroutput">use_scheduling_algorithm()</code></a>:
     </p>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">thread_fn</span><span class="special">()</span> <span class="special">{</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">my_fiber_scheduler</span> <span class="special">&gt;();</span>
@@ -60,8 +60,8 @@
 <span class="special">}</span>
 </pre>
 <p>
-      A scheduler class must implement interface <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>.
-      <span class="bold"><strong>Boost.Fiber</strong></span> provides one scheduler: <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a>.
+      A scheduler class must implement interface <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>.
+      <span class="bold"><strong>Boost.Fiber</strong></span> provides one scheduler: <a class="link" href="scheduling.html#class_round_robin"><code class="computeroutput">round_robin</code></a>.
     </p>
 <p>
       </p>
@@ -113,7 +113,7 @@
             Informs the scheduler that fiber <code class="computeroutput"><span class="identifier">f</span></code>
             is ready to run. Fiber <code class="computeroutput"><span class="identifier">f</span></code>
             might be newly launched, or it might have been blocked but has just been
-            awakened, or it might have called <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a>.
+            awakened, or it might have called <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"><code class="computeroutput">this_fiber::yield()</code></a>.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -123,7 +123,7 @@
           </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-            <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a>
+            <a class="link" href="scheduling.html#class_round_robin"><code class="computeroutput">round_robin</code></a>
           </p></dd>
 </dl>
 </div>
@@ -155,7 +155,7 @@
           </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-            <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a>
+            <a class="link" href="scheduling.html#class_round_robin"><code class="computeroutput">round_robin</code></a>
           </p></dd>
 </dl>
 </div>
@@ -206,12 +206,12 @@
             environment in whatever way makes sense. The fiber manager is stating
             that <code class="computeroutput"><span class="identifier">suspend_until</span><span class="special">()</span></code>
             need not return until <code class="computeroutput"><span class="identifier">abs_time</span></code>
-            &#8212; or <a class="link" href="scheduling.html#sched_algorithm_notify"> <code class="computeroutput">sched_algorithm::notify()</code></a> is called &#8212; whichever
+            &#8212; or <a class="link" href="scheduling.html#sched_algorithm_notify"><code class="computeroutput">sched_algorithm::notify()</code></a> is called &#8212; whichever
             comes first. The interaction with <code class="computeroutput"><span class="identifier">notify</span><span class="special">()</span></code> means that, for instance, calling
             <a href="http://en.cppreference.com/w/cpp/thread/sleep_until" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">this_thread</span><span class="special">::</span><span class="identifier">sleep_until</span><span class="special">(</span><span class="identifier">abs_time</span><span class="special">)</span></code></a>
-            would be too simplistic. <a class="link" href="scheduling.html#round_robin_suspend_until"> <code class="computeroutput">round_robin::suspend_until()</code></a> uses
+            would be too simplistic. <a class="link" href="scheduling.html#round_robin_suspend_until"><code class="computeroutput">round_robin::suspend_until()</code></a> uses
             a <a href="http://en.cppreference.com/w/cpp/thread/condition_variable" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span></code></a> to coordinate
-            with <a class="link" href="scheduling.html#round_robin_notify"> <code class="computeroutput">round_robin::notify()</code></a>.
+            with <a class="link" href="scheduling.html#round_robin_notify"><code class="computeroutput">round_robin::notify()</code></a>.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -239,7 +239,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Requests the scheduler to return from a pending call to <a class="link" href="scheduling.html#sched_algorithm_suspend_until"> <code class="computeroutput">sched_algorithm::suspend_until()</code></a>.
+            Requests the scheduler to return from a pending call to <a class="link" href="scheduling.html#sched_algorithm_suspend_until"><code class="computeroutput">sched_algorithm::suspend_until()</code></a>.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -261,7 +261,7 @@
 <p>
     </p>
 <p>
-      This class implements <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>, scheduling fibers
+      This class implements <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>, scheduling fibers
       in round-robin fashion.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">round_robin</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
@@ -406,7 +406,7 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Wake up a pending call to <a class="link" href="scheduling.html#round_robin_suspend_until"> <code class="computeroutput">round_robin::suspend_until()</code></a>,
+            Wake up a pending call to <a class="link" href="scheduling.html#round_robin_suspend_until"><code class="computeroutput">round_robin::suspend_until()</code></a>,
             some fibers might be ready. This implementation wakes <code class="computeroutput"><span class="identifier">suspend_until</span><span class="special">()</span></code> via <a href="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span><span class="special">::</span><span class="identifier">notify_all</span><span class="special">()</span></code></a>.
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
@@ -421,8 +421,8 @@
       Scheduler Fiber Properties</a>
     </h4>
 <p>
-      A scheduler class directly derived from <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> can
-      use any information available from <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> to implement the <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> interface. But a custom scheduler
+      A scheduler class directly derived from <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> can
+      use any information available from <a class="link" href="scheduling.html#class_context"><code class="computeroutput">context</code></a> to implement the <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> interface. But a custom scheduler
       might need to track additional properties for a fiber. For instance, a priority-based
       scheduler would need to track a fiber's priority.
     </p>
@@ -495,8 +495,8 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Pass control to the custom <a class="link" href="scheduling.html#class_sched_algorithm_with_properties"> <code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> subclass's
-            <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a> method.
+            Pass control to the custom <a class="link" href="scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> subclass's
+            <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"><code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a> method.
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -504,8 +504,8 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            A custom scheduler's <a class="link" href="scheduling.html#sched_algorithm_with_properties_pick_next"> <code class="computeroutput">sched_algorithm_with_properties::pick_next()</code></a> method
-            might dynamically select from the ready fibers, or <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> might
+            A custom scheduler's <a class="link" href="scheduling.html#sched_algorithm_with_properties_pick_next"><code class="computeroutput">sched_algorithm_with_properties::pick_next()</code></a> method
+            might dynamically select from the ready fibers, or <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"><code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> might
             instead insert each ready fiber into some form of ready queue for <code class="computeroutput"><span class="identifier">pick_next</span><span class="special">()</span></code>.
             In the latter case, if application code modifies a fiber property (e.g.
             priority) that should affect that fiber's relationship to other ready
@@ -534,7 +534,7 @@
 <p>
       A custom scheduler that depends on a custom properties class <code class="computeroutput"><span class="identifier">PROPS</span></code> should be derived from <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span><span class="special">&lt;</span><span class="identifier">PROPS</span><span class="special">&gt;</span></code>.
       <code class="computeroutput"><span class="identifier">PROPS</span></code> should be derived from
-      <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a>.
+      <a class="link" href="scheduling.html#class_fiber_properties"><code class="computeroutput">fiber_properties</code></a>.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algorithm</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
@@ -575,7 +575,7 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
             Informs the scheduler that fiber <code class="computeroutput"><span class="identifier">f</span></code>
-            is ready to run, like <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a>.
+            is ready to run, like <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a>.
             Passes the fiber's associated <code class="computeroutput"><span class="identifier">PROPS</span></code>
             instance.
           </p></dd>
@@ -616,7 +616,7 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            same as <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a>
+            same as <a class="link" href="scheduling.html#sched_algorithm_pick_next"><code class="computeroutput">sched_algorithm::pick_next()</code></a>
           </p></dd>
 </dl>
 </div>
@@ -646,7 +646,7 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            same as <a class="link" href="scheduling.html#sched_algorithm_has_ready_fibers"> <code class="computeroutput">sched_algorithm::has_ready_fibers()</code></a>
+            same as <a class="link" href="scheduling.html#sched_algorithm_has_ready_fibers"><code class="computeroutput">sched_algorithm::has_ready_fibers()</code></a>
           </p></dd>
 </dl>
 </div>
@@ -671,7 +671,7 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            same as <a class="link" href="scheduling.html#sched_algorithm_suspend_until"> <code class="computeroutput">sched_algorithm::suspend_until()</code></a>
+            same as <a class="link" href="scheduling.html#sched_algorithm_suspend_until"><code class="computeroutput">sched_algorithm::suspend_until()</code></a>
           </p></dd>
 </dl>
 </div>
@@ -692,11 +692,11 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Requests the scheduler to return from a pending call to <a class="link" href="scheduling.html#sched_algorithm_with_properties_suspend_until"> <code class="computeroutput">sched_algorithm_with_properties::suspend_until()</code></a>.
+            Requests the scheduler to return from a pending call to <a class="link" href="scheduling.html#sched_algorithm_with_properties_suspend_until"><code class="computeroutput">sched_algorithm_with_properties::suspend_until()</code></a>.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            same as <a class="link" href="scheduling.html#sched_algorithm_notify"> <code class="computeroutput">sched_algorithm::notify()</code></a>
+            same as <a class="link" href="scheduling.html#sched_algorithm_notify"><code class="computeroutput">sched_algorithm::notify()</code></a>
           </p></dd>
 </dl>
 </div>
@@ -727,11 +727,11 @@
 <dt><span class="term">Note:</span></dt>
 <dd><p>
             The fiber's associated <code class="computeroutput"><span class="identifier">PROPS</span></code>
-            instance is already passed to <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"> <code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> and
-            <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"> <code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>.
-            However, every <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> subclass is expected
-            to track a collection of ready <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> instances. This method
-            allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
+            instance is already passed to <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"><code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a> and
+            <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"><code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>.
+            However, every <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> subclass is expected
+            to track a collection of ready <a class="link" href="scheduling.html#class_context"><code class="computeroutput">context</code></a> instances. This method
+            allows your custom scheduler to retrieve the <a class="link" href="scheduling.html#class_fiber_properties"><code class="computeroutput">fiber_properties</code></a> subclass
             instance for any <code class="computeroutput"><span class="identifier">context</span></code>
             in its collection.
           </p></dd>
@@ -765,8 +765,8 @@
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            This method is only called when a custom <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass
-            explicitly calls <a class="link" href="scheduling.html#fiber_properties_notify"> <code class="computeroutput">fiber_properties::notify()</code></a>.
+            This method is only called when a custom <a class="link" href="scheduling.html#class_fiber_properties"><code class="computeroutput">fiber_properties</code></a> subclass
+            explicitly calls <a class="link" href="scheduling.html#fiber_properties_notify"><code class="computeroutput">fiber_properties::notify()</code></a>.
           </p></dd>
 </dl>
 </div>
@@ -787,7 +787,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            A new instance of <a class="link" href="scheduling.html#class_fiber_properties"> <code class="computeroutput">fiber_properties</code></a> subclass <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+            A new instance of <a class="link" href="scheduling.html#class_fiber_properties"><code class="computeroutput">fiber_properties</code></a> subclass <code class="computeroutput"><span class="identifier">PROPS</span></code>.
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
@@ -819,10 +819,10 @@
       <a name="ready_queue_t"></a>Of particular note is the fact that <code class="computeroutput"><span class="identifier">context</span></code> contains a hook to participate in
       a <a href="http://www.boost.org/doc/libs/release/doc/html/intrusive/list.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">intrusive</span><span class="special">::</span><span class="identifier">list</span></code></a>
       typedef'ed as <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">scheduler</span><span class="special">::</span><span class="identifier">ready_queue_t</span></code>. This hook is reserved for
-      use by <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> implementations. (For instance,
-      <a class="link" href="scheduling.html#class_round_robin"> <code class="computeroutput">round_robin</code></a> contains a <code class="computeroutput"><span class="identifier">ready_queue_t</span></code>
-      instance to manage its ready fibers.) See <a class="link" href="scheduling.html#context_ready_is_linked"> <code class="computeroutput">context::ready_is_linked()</code></a>,
-      <a class="link" href="scheduling.html#context_ready_link"> <code class="computeroutput">context::ready_link()</code></a>, <a class="link" href="scheduling.html#context_ready_unlink"> <code class="computeroutput">context::ready_unlink()</code></a>.
+      use by <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> implementations. (For instance,
+      <a class="link" href="scheduling.html#class_round_robin"><code class="computeroutput">round_robin</code></a> contains a <code class="computeroutput"><span class="identifier">ready_queue_t</span></code>
+      instance to manage its ready fibers.) See <a class="link" href="scheduling.html#context_ready_is_linked"><code class="computeroutput">context::ready_is_linked()</code></a>,
+      <a class="link" href="scheduling.html#context_ready_link"><code class="computeroutput">context::ready_link()</code></a>, <a class="link" href="scheduling.html#context_ready_unlink"><code class="computeroutput">context::ready_unlink()</code></a>.
     </p>
 <p>
       Your <code class="computeroutput"><span class="identifier">sched_algorithm</span></code> implementation
@@ -929,7 +929,7 @@
           </p></dd>
 <dt><span class="term">See also:</span></dt>
 <dd><p>
-            <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"> <code class="computeroutput">fiber::get_id()</code></a>
+            <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"><code class="computeroutput">fiber::get_id()</code></a>
           </p></dd>
 </dl>
 </div>
@@ -995,7 +995,7 @@
             fiber is an implementation detail of the fiber manager. The context of
             the <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> or <span class="quote">&#8220;<span class="quote">dispatching</span>&#8221;</span> fiber &#8212; any fiber
             for which <code class="computeroutput"><span class="identifier">is_context</span><span class="special">(</span><span class="identifier">pinned_context</span><span class="special">)</span></code> is <code class="computeroutput"><span class="keyword">true</span></code>
-            &#8212; must never be passed to <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> for any other
+            &#8212; must never be passed to <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> for any other
             thread.
           </p></dd>
 </dl>
@@ -1047,7 +1047,7 @@
 <dl>
 <dt><span class="term">Returns:</span></dt>
 <dd><p>
-            <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> is stored in a <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>
+            <code class="computeroutput"><span class="keyword">true</span></code> if <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> is stored in a <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>
 implementation's
             ready-queue.
           </p></dd>
@@ -1057,7 +1057,7 @@ implementation's
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            Specifically, this method indicates whether <a class="link" href="scheduling.html#context_ready_link"> <code class="computeroutput">context::ready_link()</code></a> has
+            Specifically, this method indicates whether <a class="link" href="scheduling.html#context_ready_link"><code class="computeroutput">context::ready_link()</code></a> has
             been called on <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
             <code class="computeroutput"><span class="identifier">ready_is_linked</span><span class="special">()</span></code>
             has no information about participation in any other containers.
@@ -1092,8 +1092,8 @@ implementation's
 <dd><p>
             A <code class="computeroutput"><span class="identifier">context</span></code> signaled as
             ready by another thread is first stored in the fiber manager's remote-ready-queue.
-            This is the mechanism by which the fiber manager protects a <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a> implementation
-            from cross-thread <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a> calls.
+            This is the mechanism by which the fiber manager protects a <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> implementation
+            from cross-thread <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a> calls.
           </p></dd>
 </dl>
 </div>
@@ -1246,7 +1246,7 @@ implementation's
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
             Removes <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
-            from ready-queue: undoes the effect of <a class="link" href="scheduling.html#context_ready_link"> <code class="computeroutput">context::ready_link()</code></a>.
+            from ready-queue: undoes the effect of <a class="link" href="scheduling.html#context_ready_link"><code class="computeroutput">context::ready_link()</code></a>.
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -1322,7 +1322,7 @@ implementation's
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Suspends the running fiber (the fiber associated with <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>) until some other fiber passes <code class="computeroutput"><span class="keyword">this</span></code> to <a class="link" href="scheduling.html#context_set_ready"> <code class="computeroutput">context::set_ready()</code></a>.
+            Suspends the running fiber (the fiber associated with <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>) until some other fiber passes <code class="computeroutput"><span class="keyword">this</span></code> to <a class="link" href="scheduling.html#context_set_ready"><code class="computeroutput">context::set_ready()</code></a>.
             <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
             is marked as not-ready, and control passes to the scheduler to select
             another fiber to run.
@@ -1364,8 +1364,8 @@ implementation's
             Mark the fiber associated with context <code class="computeroutput"><span class="special">*</span><span class="identifier">ctx</span></code> as being ready to run. This does
             not immediately resume that fiber; rather it passes the fiber to the
             scheduler for subsequent resumption. If the scheduler is idle (has not
-            returned from a call to <a class="link" href="scheduling.html#sched_algorithm_suspend_until"> <code class="computeroutput">sched_algorithm::suspend_until()</code></a>),
-            <a class="link" href="scheduling.html#sched_algorithm_notify"> <code class="computeroutput">sched_algorithm::notify()</code></a> is called to wake it up.
+            returned from a call to <a class="link" href="scheduling.html#sched_algorithm_suspend_until"><code class="computeroutput">sched_algorithm::suspend_until()</code></a>),
+            <a class="link" href="scheduling.html#sched_algorithm_notify"><code class="computeroutput">sched_algorithm::notify()</code></a> is called to wake it up.
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
@@ -1386,7 +1386,7 @@ implementation's
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            See <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> for a way to migrate the suspended
+            See <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> for a way to migrate the suspended
             thread to the thread calling <code class="computeroutput"><span class="identifier">set_ready</span><span class="special">()</span></code>.
           </p></dd>
 </dl>

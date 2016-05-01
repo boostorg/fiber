@@ -25,31 +25,31 @@ __boost_fiber__ because certain asynchronous I/O sequences are logically
 sequential, and for those you want to write and maintain code that looks and
 acts sequential.
 
-You are launching fibers on the application's main thread because certain of
-their actions will affect its user interface, and the application's UI
+You are launching fibers on the application[s] main thread because certain of
+their actions will affect its user interface, and the application[s] UI
 framework permits UI operations only on the main thread. Or perhaps those
 fibers need access to main-thread data, and it would be too expensive in
 runtime (or development time) to robustly defend every such data item with
 thread synchronization primitives.
 
-You must ensure that the application's main loop ['itself] doesn't monopolize
+You must ensure that the application[s] main loop ['itself] doesn[t] monopolize
 the processor: that the fibers it launches will get the CPU cycles they need.
 
 The solution is the same as for any fiber that might claim the CPU for an
 extended time: introduce calls to [ns_function_link this_fiber..yield]. The
 most straightforward approach is to call `yield()` on every iteration of your
-existing main loop. In effect, this unifies the application's main loop with
-__boost_fiber__'s internal main loop. `yield()` allows the fiber manager to
+existing main loop. In effect, this unifies the application[s] main loop with
+__boost_fiber__[s] internal main loop. `yield()` allows the fiber manager to
 run any fibers that have become ready since the previous iteration of the
-application's main loop. When these fibers have had a turn, control passes to
-the thread's main fiber, which returns from `yield()` and resumes the
-application's main loop.
+application[s] main loop. When these fibers have had a turn, control passes to
+the thread[s] main fiber, which returns from `yield()` and resumes the
+application[s] main loop.
 
 [endsect]
 [#embedded_main_loop]
 [section Embedded Main Loop]
 
-More challenging is when the application's main loop is embedded in some other
+More challenging is when the application[s] main loop is embedded in some other
 library or framework. Such an application will typically, after performing all
 necessary setup, pass control to some form of `run()` function from which
 control does not return until application shutdown.

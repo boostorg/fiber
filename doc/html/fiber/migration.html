@@ -34,7 +34,7 @@
 <p>
       Each fiber owns a stack and manages its execution state, including all registers
       and CPU flags, the instruction pointer and the stack pointer. That means, in
-      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">3</a>]</sup> <sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">4</a>]</sup>
+      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">2</a>]</sup><sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">3</a>]</sup>
     </p>
 <p>
       Migrating a fiber from a logical CPU with heavy workload to another logical
@@ -49,13 +49,13 @@
       due to increased latency of memory access.
     </p>
 <p>
-      Only fibers that are contained in <a class="link" href="scheduling.html#class_sched_algorithm"> <code class="computeroutput">sched_algorithm</code></a>'s ready
+      Only fibers that are contained in <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>'s ready
       queue can migrate between threads. You cannot migrate a running fiber, nor
       one that is <a class="link" href="overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>.
     </p>
 <p>
       In<span class="bold"><strong>Boost.Fiber</strong></span> a fiber is migrated by invoking
-      <a class="link" href="scheduling.html#context_migrate"> <code class="computeroutput">context::migrate()</code></a> on the <a class="link" href="scheduling.html#class_context"> <code class="computeroutput">context</code></a> instance for a
+      <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> on the <a class="link" href="scheduling.html#class_context"><code class="computeroutput">context</code></a> instance for a
       fiber already associated with the destination thread, passing the <code class="computeroutput"><span class="identifier">context</span></code> for the fiber to be migrated.
     </p>
 <h4>
@@ -67,7 +67,7 @@
       In the example <a href="../../../examples/work_sharing.cpp" target="_top">work_sharing.cpp</a>
       multiple worker fibers are created on the main thread. Each fiber gets a character
       as parameter at construction. This character is printed out ten times. Between
-      each iteration the fiber calls <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"> <code class="computeroutput">this_fiber::yield()</code></a>. That puts
+      each iteration the fiber calls <a class="link" href="fiber_mgmt/this_fiber.html#this_fiber_yield"><code class="computeroutput">this_fiber::yield()</code></a>. That puts
       the fiber in the ready queue of the fiber-scheduler <span class="emphasis"><em>shared_ready_queue</em></span>,
       running in the current thread. The next fiber ready to be executed is dequeued
       from the shared ready queue and resumed by <span class="emphasis"><em>shared_ready_queue</em></span>
@@ -182,7 +182,7 @@
 <p>
       The start of the threads is synchronized with a barrier. The main fiber of
       each thread (including main thread) is suspended until all worker fibers are
-      complete. When the main fiber returns from <a class="link" href="synchronization/conditions.html#condition_variable_wait"> <code class="computeroutput">condition_variable::wait()</code></a>,
+      complete. When the main fiber returns from <a class="link" href="synchronization/conditions.html#condition_variable_wait"><code class="computeroutput">condition_variable::wait()</code></a>,
       the thread terminates: the main thread joins all other threads.
     </p>
 <p>
@@ -311,13 +311,13 @@
       The fiber scheduler <code class="computeroutput"><span class="identifier">shared_ready_queue</span></code>
       is like <code class="computeroutput"><span class="identifier">round_robin</span></code>, except
       that it shares a common ready queue among all participating threads. A thread
-      participates in this pool by executing <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"> <code class="computeroutput">use_scheduling_algorithm()</code></a>
+      participates in this pool by executing <a class="link" href="fiber_mgmt/fiber.html#use_scheduling_algorithm"><code class="computeroutput">use_scheduling_algorithm()</code></a>
 before
       any other <span class="bold"><strong>Boost.Fiber</strong></span> operation.
     </p>
 <p>
       The important point about the ready queue is that it's a class static, common
-      to all instances of shared_ready_queue. Fibers that are enqueued via <a class="link" href="scheduling.html#sched_algorithm_awakened"> <code class="computeroutput">sched_algorithm::awakened()</code></a> (fibers
+      to all instances of shared_ready_queue. Fibers that are enqueued via <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a> (fibers
       that are ready to be resumed) are thus available to all threads. It is required
       to reserve a separate, scheduler-specific queue for the thread's main fiber
       and dispatcher fibers: these may <span class="emphasis"><em>not</em></span> be shared between
@@ -356,7 +356,7 @@ before
 </tr>
 </table></div>
 <p>
-      When <a class="link" href="scheduling.html#sched_algorithm_pick_next"> <code class="computeroutput">sched_algorithm::pick_next()</code></a> gets called inside
+      When <a class="link" href="scheduling.html#sched_algorithm_pick_next"><code class="computeroutput">sched_algorithm::pick_next()</code></a> gets called inside
       one thread, a fiber is dequeued from <span class="emphasis"><em>rqueue_</em></span> and will
       be resumed in that thread.
     </p>
@@ -409,12 +409,12 @@ before
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">3</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">2</a>] </sup>
         The <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> fiber on each thread, that is, the fiber on which
         the thread is launched, cannot migrate to any other thread. Also <span class="bold"><strong>Boost.Fiber</strong></span> implicitly creates a dispatcher fiber
         for each thread &#8212; this cannot migrate either.
       </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">4</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">3</a>] </sup>
         Of course it would be problematic to migrate a fiber that relies on <a class="link" href="overview.html#thread_local_storage">thread-local storage</a>.
       </p></div>
 </div>
