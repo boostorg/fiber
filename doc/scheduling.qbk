@@ -418,11 +418,11 @@ of typical STL containers.
         #include <boost/fiber/context.hpp>
         
         enum class type {
-          none,
-          main_context,       // fiber associated with thread's stack
-          dispatcher_context, // special fiber for maintenance operations
-          worker_context,     // fiber not special to the library
-          pinned_context      // fiber must not be migrated to another thread
+          none               = ``['unspecified]``,
+          main_context       = ``['unspecified]``, // fiber associated with thread's stack
+          dispatcher_context = ``['unspecified]``, // special fiber for maintenance operations
+          worker_context     = ``['unspecified]``, // fiber not special to the library
+          pinned_context     = ``['unspecified]``  // fiber must not be migrated to another thread
         };
 
         class context {
@@ -519,7 +519,7 @@ dispatching awakened fibers to a scheduler's ready-queue. The ["dispatching]
 fiber is an implementation detail of the fiber manager. The context of the
 ["main] or ["dispatching] fiber [mdash] any fiber for which
 `is_context(pinned_context)` is `true` [mdash] must never be passed to
-[member_link context..migrate] for any other thread.]]
+[member_link context..detach].]]
 ]
 
 [member_heading context..is_terminated]
@@ -675,8 +675,8 @@ application program.]]
 [[Note:] [It is explicitly supported to call `set_ready(ctx)` from a thread
 other than the one on which `*ctx` is currently suspended. The corresponding
 fiber will be resumed on its original thread in due course.]]
-[[Note:] [See [member_link context..migrate] for a way to migrate the
-suspended thread to the thread calling `set_ready()`.]]
+[/[[Note:] [See [member_link context..migrate] for a way to migrate the
+suspended thread to the thread calling `set_ready()`.]]]
 ]
 
 [hding context_less..Non-member function [`operator<()]]
