@@ -139,7 +139,7 @@ public:
     }
 };
 
-class tief_algo : public boost::fibers::sched_algorithm {
+class thief_algo : public boost::fibers::sched_algorithm {
 private:
     typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
     typedef work_stealing_queue                     ws_rqueue_t;
@@ -151,7 +151,7 @@ private:
     bool                            flag_{ false };
 
 public:
-    tief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue) :
+    thief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue) :
         ws_rqueue_( ws_rqueue) {
     }
 
@@ -228,7 +228,7 @@ boost::fibers::future< int > fibonacci( int n) {
 }
 
 void thread( std::shared_ptr< work_stealing_queue > ws_queue) {
-    boost::fibers::use_scheduling_algorithm< tief_algo >( ws_queue);
+    boost::fibers::use_scheduling_algorithm< thief_algo >( ws_queue);
 
     while ( ! fini) {
         // To guarantee progress, we must ensure that
