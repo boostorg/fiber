@@ -52,6 +52,7 @@ public:
         >*/
             local_queue_.push( ctx);
         } else {
+            ctx->detach();
             lock_t lk(rqueue_mtx_); /*<
                 worker fiber, enqueue on shared queue
             >*/
@@ -70,7 +71,7 @@ public:
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
-            boost::fibers::context::active()->migrate( ctx); /*<
+            boost::fibers::context::active()->attach( ctx); /*<
                 attach context to current scheduler via the active fiber
                 of this thread; benign if the fiber already belongs to this
                 thread

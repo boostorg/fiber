@@ -66,9 +66,10 @@ See also [link condition_variable_spurious_wakeups No Spurious Wakeups].
 [heading migrating fibers between threads]
 
 Support for migrating fibers between threads has been integrated. The
-user-defined scheduler must call __migrate__ on a fiber-context on the
-destination thread, passing `migrate()` the fiber-context to migrate. (For
-more information about custom schedulers, see [link custom Customization].)
+user-defined scheduler must call __context_detach__ on a fiber-context on the
+source thread and __context_attach__ on the destination thread, passing the
+fiber-context to migrate. (For more information about custom schedulers, see
+[link custom Customization].)
 Examples `work_sharing` and `work_stealing` in directory `examples` might be
 used as a blueprint.
 

@@ -436,7 +436,8 @@ of typical STL containers.
 
             id get_id() const noexcept;
 
-            void migrate( context *) noexcept;
+            void detach() noexcept;
+            void attach( context *) noexcept;
 
             bool is_context( type) const noexcept;
 
@@ -484,12 +485,21 @@ default-constructed __fiber_id__.]]
 [[See also:] [[member_link fiber..get_id]]]
 ]
 
-[member_heading context..migrate]
+[member_heading context..attach]
 
-        void migrate( context * f) noexcept;
+        void attach( context * f) noexcept;
 
 [variablelist
-[[Effects:] [Migrate fiber `f` to scheduler running `*this`.]]
+[[Effects:] [Atach fiber `f` to scheduler running `*this`.]]
+[[Throws:] [Nothing]]
+]
+
+[member_heading context..detach]
+
+        void detach() noexcept;
+
+[variablelist
+[[Effects:] [Detach fiber `*this` from its scheduler running `*this`.]]
 [[Throws:] [Nothing]]
 ]
 

@@ -162,7 +162,7 @@ private:
     type                                            type_;
 #endif
     launch_policy                                   lpol_{ launch_policy::post };
-    scheduler                                   *   scheduler_{ nullptr };
+    std::atomic< scheduler * >                      scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
 #else
@@ -457,9 +457,9 @@ public:
 
     void worker_unlink() noexcept;
 
-    void attach( context *) noexcept;
+    void detach() noexcept;
 
-    void migrate( context *) noexcept;
+    void attach( context *) noexcept;
 
     friend void intrusive_ptr_add_ref( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);

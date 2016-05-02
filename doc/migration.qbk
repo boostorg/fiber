@@ -35,9 +35,9 @@ memory access.
 Only fibers that are contained in __algo__'s ready queue can migrate between
 threads. You cannot migrate a running fiber, nor one that is __blocked__.
 
-In__boost_fiber__ a fiber is migrated by invoking __context_migrate__ on the
-[class_link context] instance for a fiber already associated with the
-destination thread, passing the `context` for the fiber to be migrated.
+In__boost_fiber__ a fiber is migrated by invoking __context_detach__  within the
+thread from which the fiber migrates from and __context_attach__ within the the
+thread the fiber migrates to.
 
 [heading Example of work sharing]
 

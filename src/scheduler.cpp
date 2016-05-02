@@ -43,9 +43,7 @@ scheduler::release_terminated_() noexcept {
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
         // remove context from worker-queue
-        std::unique_lock< detail::spinlock > lk( worker_splk_);
         ctx->worker_unlink();
-        lk.unlock();
         // remove context from terminated-queue
         i = terminated_queue_.erase( i);
         // if last reference, e.g. fiber::join() or fiber::detach()
@@ -112,7 +110,6 @@ scheduler::~scheduler() {
     // by joining dispatcher-context
     dispatcher_ctx_->join();
     // no context' in worker-queue
-    std::unique_lock< detail::spinlock > lk( worker_splk_);
     BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
     BOOST_ASSERT( remote_ready_queue_.empty() );
@@ -135,9 +132,7 @@ scheduler::dispatch() noexcept {
 #endif
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
     for (;;) {
-        std::unique_lock< detail::spinlock > lk( worker_splk_);
         bool no_worker = worker_queue_.empty();
-        lk.unlock();
         if ( shutdown_) {
             // notify sched-algorithm about termination
             sched_algo_->notify();
@@ -390,8 +385,8 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
-    std::unique_lock< detail::spinlock > lk( worker_splk_);
     BOOST_ASSERT( ! ctx->worker_is_linked() );
+    BOOST_ASSERT( nullptr == ctx->scheduler_);
     ctx->worker_link( worker_queue_);
     ctx->scheduler_ = this;
 }
@@ -404,8 +399,9 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
-    std::unique_lock< detail::spinlock > lk( worker_splk_);
+    BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
+    ctx->scheduler_ = nullptr;
 }
 
 }}
