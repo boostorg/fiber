@@ -386,7 +386,7 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
-    BOOST_ASSERT( nullptr == ctx->scheduler_);
+    BOOST_ASSERT( nullptr == ctx->scheduler_.load() );
     ctx->worker_link( worker_queue_);
     ctx->scheduler_ = this;
 }
