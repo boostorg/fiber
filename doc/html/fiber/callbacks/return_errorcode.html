@@ -45,23 +45,23 @@
     <span class="comment">// happen with fibers::promise, a robust way to deal with the lifespan</span>
     <span class="comment">// issue is to bind 'promise' into our lambda. Since promise is move-only,</span>
     <span class="comment">// use initialization capture.</span>
-<span class="preprocessor">#if</span> <span class="identifier">defined</span><span class="special">(</span><span class="identifier">__cpp_init_captures</span><span class="special">)</span>
+<span class="preprocessor">#if</span> <span class="special">!</span> <span class="identifier">defined</span><span class="special">(</span><span class="identifier">BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</span><span class="special">)</span>
     <span class="identifier">api</span><span class="special">.</span><span class="identifier">init_write</span><span class="special">(</span>
         <span class="identifier">data</span><span class="special">,</span>
-        <span class="special">[</span><span class="identifier">promise</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">promise</span><span class="special">)](</span> <span class="identifier">AsyncAPI</span><span class="special">::</span><span class="identifier">errorcode</span> <span class="identifier">ec</span><span class="special">)</span> <span class="keyword">mutable</span> <span class="special">{</span>
+        <span class="special">[</span><span class="identifier">promise</span><span class="special">=</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span> <span class="identifier">promise</span><span class="special">)](</span> <span class="identifier">AsyncAPI</span><span class="special">::</span><span class="identifier">errorcode</span> <span class="identifier">ec</span><span class="special">)</span> <span class="keyword">mutable</span> <span class="special">{</span>
                             <span class="identifier">promise</span><span class="special">.</span><span class="identifier">set_value</span><span class="special">(</span> <span class="identifier">ec</span><span class="special">);</span>
                   <span class="special">});</span>
 
-<span class="preprocessor">#else</span> <span class="comment">// ! defined(__cpp_init_captures)</span>
-    <span class="comment">// std::bind() workaround for initialization capture from</span>
-    <span class="comment">// http://stackoverflow.com/questions/8640393/move-capture-in-lambda</span>
+<span class="preprocessor">#else</span> <span class="comment">// defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)</span>
     <span class="identifier">api</span><span class="special">.</span><span class="identifier">init_write</span><span class="special">(</span>
         <span class="identifier">data</span><span class="special">,</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">([](</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">AsyncAPI</span><span class="special">::</span><span class="identifier">errorcode</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">promise</span><span class="special">,</span>
                      <span class="identifier">AsyncAPI</span><span class="special">::</span><span class="identifier">errorcode</span> <span class="identifier">ec</span><span class="special">)</span> <span class="special">{</span>
             <span class="identifier">promise</span><span class="special">.</span><span class="identifier">set_value</span><span class="special">(</span> <span class="identifier">ec</span><span class="special">);</span>
-        <span class="special">},</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">promise</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">placeholders</span><span class="special">::</span><span class="identifier">_1</span><span class="special">);</span>
-<span class="preprocessor">#endif</span> <span class="comment">// __cpp_init_captures</span>
+        <span class="special">},</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span> <span class="identifier">promise</span><span class="special">),</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">placeholders</span><span class="special">::</span><span class="identifier">_1</span><span class="special">)</span> <span class="special">);</span>
+<span class="preprocessor">#endif</span> <span class="comment">// BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</span>
 
     <span class="keyword">return</span> <span class="identifier">future</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
 <span class="special">}</span>

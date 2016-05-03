@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/01 14:42:05 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/03 16:48:22 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -2640,11 +2640,11 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">enum</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">type</phrase> <phrase role="special">{</phrase>
-  <phrase role="identifier">none</phrase><phrase role="special">,</phrase>
-  <phrase role="identifier">main_context</phrase><phrase role="special">,</phrase>       <phrase role="comment">// fiber associated with thread's stack</phrase>
-  <phrase role="identifier">dispatcher_context</phrase><phrase role="special">,</phrase> <phrase role="comment">// special fiber for maintenance operations</phrase>
-  <phrase role="identifier">worker_context</phrase><phrase role="special">,</phrase>     <phrase role="comment">// fiber not special to the library</phrase>
-  <phrase role="identifier">pinned_context</phrase>      <phrase role="comment">// fiber must not be migrated to another thread</phrase>
+  <phrase role="identifier">none</phrase>               <phrase role="special">=</phrase> <emphasis>unspecified</emphasis><phrase role="special">,</phrase>
+  <phrase role="identifier">main_context</phrase>       <phrase role="special">=</phrase> <emphasis>unspecified</emphasis><phrase role="special">,</phrase> <phrase role="comment">// fiber associated with thread's stack</phrase>
+  <phrase role="identifier">dispatcher_context</phrase> <phrase role="special">=</phrase> <emphasis>unspecified</emphasis><phrase role="special">,</phrase> <phrase role="comment">// special fiber for maintenance operations</phrase>
+  <phrase role="identifier">worker_context</phrase>     <phrase role="special">=</phrase> <emphasis>unspecified</emphasis><phrase role="special">,</phrase> <phrase role="comment">// fiber not special to the library</phrase>
+  <phrase role="identifier">pinned_context</phrase>     <phrase role="special">=</phrase> <emphasis>unspecified</emphasis>  <phrase role="comment">// fiber must not be migrated to another thread</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">context</phrase> <phrase role="special">{</phrase>
@@ -2658,7 +2658,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 
     <phrase role="identifier">id</phrase> <phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-    <phrase role="keyword">void</phrase> <phrase role="identifier">migrate</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">detach</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">attach</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">bool</phrase> <phrase role="identifier">is_context</phrase><phrase role="special">(</phrase> <phrase role="identifier">type</phrase><phrase role="special">)</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
@@ -2754,21 +2755,41 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="context_migrate_bridgehead">
-  <phrase id="context_migrate"/>
-  <link linkend="context_migrate">Member function <code>migrate</code>()</link>
+      <bridgehead renderas="sect4" id="context_attach_bridgehead">
+  <phrase id="context_attach"/>
+  <link linkend="context_attach">Member function <code>attach</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">migrate</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">attach</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
       <varlistentry>
+        <term>Precondition:</term>
+        <listitem>
+          <para>
+            <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
+            role="identifier">get_scheduler</phrase><phrase role="special">()</phrase>
+            <phrase role="special">==</phrase> <phrase role="keyword">nullptr</phrase></code>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term>Effects:</term>
         <listitem>
           <para>
-            Migrate fiber <code><phrase role="identifier">f</phrase></code> to scheduler
+            Attach fiber <code><phrase role="identifier">f</phrase></code> to scheduler
             running <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Postcondition:</term>
+        <listitem>
+          <para>
+            <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
+            role="identifier">get_scheduler</phrase><phrase role="special">()</phrase>
+            <phrase role="special">!=</phrase> <phrase role="keyword">nullptr</phrase></code>
           </para>
         </listitem>
       </varlistentry>
@@ -2777,6 +2798,148 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <listitem>
           <para>
             Nothing
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            A typical call: <code><phrase role="identifier">boost</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">context</phrase><phrase
+            role="special">::</phrase><phrase role="identifier">active</phrase><phrase
+            role="special">()-&gt;</phrase><phrase role="identifier">attach</phrase><phrase
+            role="special">(</phrase><phrase role="identifier">f</phrase><phrase
+            role="special">);</phrase></code>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            <code><phrase role="identifier">f</phrase></code> must not be the running
+            fiber&#8217;s context. It must not be <link linkend="blocking"><emphasis>blocked</emphasis></link>
+            or terminated. It must not be a <code><phrase role="identifier">pinned_context</phrase></code>.
+            It must be currently detached. It must not currently be linked into a
+            <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation&#8217;s ready queue. Most
+            of these conditions are implied by <code><phrase role="identifier">f</phrase></code>
+            being owned by a <code><phrase role="identifier">sched_algorithm</phrase></code>
+            implementation: that is, it has been passed to <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link> but
+            has not yet been returned by <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link>.
+            Typically a <code><phrase role="identifier">pick_next</phrase><phrase
+            role="special">()</phrase></code> implementation would call <code><phrase
+            role="identifier">attach</phrase><phrase role="special">()</phrase></code>
+            with the <code><phrase role="identifier">context</phrase><phrase role="special">*</phrase></code>
+            it is about to return. It must first remove <code><phrase role="identifier">f</phrase></code>
+            from its ready queue. You should never pass a <code><phrase role="identifier">pinned_context</phrase></code>
+            to <code><phrase role="identifier">attach</phrase><phrase role="special">()</phrase></code>
+            because you should never have called its <code><phrase role="identifier">detach</phrase><phrase
+            role="special">()</phrase></code> method in the first place.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="context_detach_bridgehead">
+  <phrase id="context_detach"/>
+  <link linkend="context_detach">Member function <code>detach</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">detach</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Precondition:</term>
+        <listitem>
+          <para>
+            <code><phrase role="special">(</phrase><phrase role="keyword">this</phrase><phrase
+            role="special">-&gt;</phrase><phrase role="identifier">get_scheduler</phrase><phrase
+            role="special">()</phrase> <phrase role="special">!=</phrase> <phrase
+            role="keyword">nullptr</phrase><phrase role="special">)</phrase> <phrase
+            role="special">&amp;&amp;</phrase> <phrase role="special">!</phrase>
+            <phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
+            role="identifier">is_context</phrase><phrase role="special">(</phrase><phrase
+            role="identifier">pinned_context</phrase><phrase role="special">)</phrase></code>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Detach fiber <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+            from its scheduler running <code><phrase role="special">*</phrase><phrase
+            role="keyword">this</phrase></code>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Postcondition:</term>
+        <listitem>
+          <para>
+            <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
+            role="identifier">get_scheduler</phrase><phrase role="special">()</phrase>
+            <phrase role="special">==</phrase> <phrase role="keyword">nullptr</phrase></code>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            This method must be called on the thread with which the fiber is currently
+            associated. <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+            must not be the running fiber&#8217;s context. It must not be <link linkend="blocking"><emphasis>blocked</emphasis></link>
+            or terminated. It must not be a <code><phrase role="identifier">pinned_context</phrase></code>.
+            It must not be detached already. It must not already be linked into a
+            <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation&#8217;s ready queue. Most
+            of these conditions are implied by <code><phrase role="special">*</phrase><phrase
+            role="keyword">this</phrase></code> being passed to <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link>;
+            an <code><phrase role="identifier">awakened</phrase><phrase role="special">()</phrase></code>
+            implementation must, however, test for <code><phrase role="identifier">pinned_context</phrase></code>.
+            It must call <code><phrase role="identifier">detach</phrase><phrase role="special">()</phrase></code>
+            <emphasis>before</emphasis> linking <code><phrase role="special">*</phrase><phrase
+            role="keyword">this</phrase></code> into its ready queue.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            In particular, it is erroneous to attempt to migrate a fiber from one
+            thread to another by calling both <code><phrase role="identifier">detach</phrase><phrase
+            role="special">()</phrase></code> and <code><phrase role="identifier">attach</phrase><phrase
+            role="special">()</phrase></code> in the <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link> method.
+            <code><phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase></code>
+            is called on the intended destination thread. <code><phrase role="identifier">detach</phrase><phrase
+            role="special">()</phrase></code> must be called on the fiber&#8217;s original
+            thread. You must call <code><phrase role="identifier">detach</phrase><phrase
+            role="special">()</phrase></code> in the corresponding <code><phrase
+            role="identifier">awakened</phrase><phrase role="special">()</phrase></code>
+            method.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            Unless you intend make a fiber available for potential migration to a
+            different thread, you should call neither <code><phrase role="identifier">detach</phrase><phrase
+            role="special">()</phrase></code> nor <code><phrase role="identifier">attach</phrase><phrase
+            role="special">()</phrase></code> with its <code><phrase role="identifier">context</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -2830,8 +2993,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             for which <code><phrase role="identifier">is_context</phrase><phrase
             role="special">(</phrase><phrase role="identifier">pinned_context</phrase><phrase
             role="special">)</phrase></code> is <code><phrase role="keyword">true</phrase></code>
-            &mdash; must never be passed to <link linkend="context_migrate"><code>context::migrate()</code></link> for any other
-            thread.
+            &mdash; must never be passed to <link linkend="context_detach"><code>context::detach()</code></link>.
           </para>
         </listitem>
       </varlistentry>
@@ -3316,16 +3478,6 @@ implementation's
             which <code><phrase role="special">*</phrase><phrase role="identifier">ctx</phrase></code>
             is currently suspended. The corresponding fiber will be resumed on its
             original thread in due course.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Note:</term>
-        <listitem>
-          <para>
-            See <link linkend="context_migrate"><code>context::migrate()</code></link> for a way to migrate the suspended
-            thread to the thread calling <code><phrase role="identifier">set_ready</phrase><phrase
-            role="special">()</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -9987,15 +10139,42 @@ encapsulates.
       due to increased latency of memory access.
     </para>
     <para>
-      Only fibers that are contained in <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>'s ready
+      Only fibers that are contained in <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>&#8217;s ready
       queue can migrate between threads. You cannot migrate a running fiber, nor
-      one that is <link linkend="blocking"><emphasis>blocked</emphasis></link>.
+      one that is <link linkend="blocking"><emphasis>blocked</emphasis></link>. You
+      cannot migrate a fiber if its <link linkend="context_is_context"><code>context::is_context()</code></link> method
+      returns <code><phrase role="keyword">true</phrase></code> for <code><phrase
+      role="identifier">pinned_context</phrase></code>.
     </para>
     <para>
-      In<emphasis role="bold">Boost.Fiber</emphasis> a fiber is migrated by invoking
-      <link linkend="context_migrate"><code>context::migrate()</code></link> on the <link linkend="class_context"><code>context</code></link> instance for a
-      fiber already associated with the destination thread, passing the <code><phrase
-      role="identifier">context</phrase></code> for the fiber to be migrated.
+      In <emphasis role="bold">Boost.Fiber</emphasis> a fiber is migrated by invoking
+      <link linkend="context_detach"><code>context::detach()</code></link> on the thread from which the fiber migrates
+      and <link linkend="context_attach"><code>context::attach()</code></link> on the thread to which the fiber migrates.
+    </para>
+    <para>
+      Thus, fiber migration is accomplished by sharing state between instances of
+      a user-coded <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation running on
+      different threads. The fiber&#8217;s original thread calls <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link>,
+      passing the fiber&#8217;s <link linkend="class_context"><code>context</code></link><literal>*</literal>. The <code><phrase
+      role="identifier">awakened</phrase><phrase role="special">()</phrase></code>
+      implementation calls <link linkend="context_detach"><code>context::detach()</code></link>.
+    </para>
+    <para>
+      At some later point, when the same or a different thread calls <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link>,
+      the <code><phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase></code>
+      implementation selects a ready fiber and calls <link linkend="context_attach"><code>context::attach()</code></link> on
+      it before returning it.
+    </para>
+    <para>
+      As stated above, a <code><phrase role="identifier">context</phrase></code>
+      for which <code><phrase role="identifier">is_context</phrase><phrase role="special">(</phrase><phrase
+      role="identifier">pinned_context</phrase><phrase role="special">)</phrase>
+      <phrase role="special">==</phrase> <phrase role="keyword">true</phrase></code>
+      must never be passed to either <link linkend="context_detach"><code>context::detach()</code></link> or <link linkend="context_attach"><code>context::attach()</code></link>.
+      It may only be returned from <code><phrase role="identifier">pick_next</phrase><phrase
+      role="special">()</phrase></code> called by the <emphasis>same</emphasis> thread
+      that passed that context to <code><phrase role="identifier">awakened</phrase><phrase
+      role="special">()</phrase></code>.
     </para>
     <bridgehead renderas="sect3" id="fiber.migration.h1">
       <phrase id="fiber.migration.example_of_work_sharing"/><link linkend="fiber.migration.example_of_work_sharing">Example
@@ -10100,7 +10279,7 @@ encapsulates.
       </callout>
       <callout arearefs="fiber.migration.c14" id="fiber.migration.c15">
         <para>
-          Releasing lock of mtx_count is required before joining the threads, othwerwise
+          Releasing lock of mtx_count is required before joining the threads, otherwise
           the other threads would be blocked inside condition_variable::wait() and
           would never return (deadlock).
         </para>
@@ -10236,14 +10415,14 @@ before
       any other <emphasis role="bold">Boost.Fiber</emphasis> operation.
     </para>
     <para>
-      The important point about the ready queue is that it's a class static, common
+      The important point about the ready queue is that it&#8217;s a class static, common
       to all instances of shared_ready_queue. Fibers that are enqueued via <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link> (fibers
       that are ready to be resumed) are thus available to all threads. It is required
-      to reserve a separate, scheduler-specific queue for the thread's main fiber
+      to reserve a separate, scheduler-specific queue for the thread&#8217;s main fiber
       and dispatcher fibers: these may <emphasis>not</emphasis> be shared between
-      threads! When we're passed either of these fibers, push it there instead of
+      threads! When we&#8217;re passed either of these fibers, push it there instead of
       in the shared queue: it would be Bad News for thread B to retrieve and attempt
-      to execute thread A's main fiber.
+      to execute thread A&#8217;s main fiber.
     </para>
     <para>
 <programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
@@ -10252,6 +10431,7 @@ before
     <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">is_context</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">type</phrase><phrase role="special">::</phrase><phrase role="identifier">pinned_context</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c38" linkends="fiber.migration.c39" />
         <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
     <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
         <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase><phrase role="identifier">rqueue_mtx_</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c40" linkends="fiber.migration.c41" />
         <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
     <phrase role="special">}</phrase>
@@ -10285,7 +10465,7 @@ before
         <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">pop</phrase><phrase role="special">();</phrase>
         <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
         <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">migrate</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c44" linkends="fiber.migration.c45" />
+        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">attach</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c44" linkends="fiber.migration.c45" />
     <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
         <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
         <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c46" linkends="fiber.migration.c47" />
@@ -10305,8 +10485,7 @@ before
       </callout>
       <callout arearefs="fiber.migration.c44" id="fiber.migration.c45">
         <para>
-          attach context to current scheduler via the active fiber of this thread;
-          benign if the fiber already belongs to this thread
+          attach context to current scheduler via the active fiber of this thread
         </para>
       </callout>
       <callout arearefs="fiber.migration.c46" id="fiber.migration.c47">
@@ -10346,11 +10525,12 @@ before
     <phrase role="keyword">typedef</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">errorcode</phrase><phrase role="special">;</phrase>
 
     <phrase role="comment">// write callback only needs to indicate success or failure</phrase>
-    <phrase role="keyword">void</phrase> <phrase role="identifier">init_write</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">,</phrase>
-                     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">function</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase><phrase role="special">(</phrase> <phrase role="identifier">errorcode</phrase><phrase role="special">)</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">callback</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">init_write</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">callback</phrase><phrase role="special">);</phrase>
 
     <phrase role="comment">// read callback needs to accept both errorcode and data</phrase>
-    <phrase role="keyword">void</phrase> <phrase role="identifier">init_read</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">function</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">void</phrase><phrase role="special">(</phrase> <phrase role="identifier">errorcode</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;);</phrase>
+    <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&gt;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">init_read</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">callback</phrase><phrase role="special">);</phrase>
 
     <phrase role="comment">// ... other operations ...</phrase>
 <phrase role="special">};</phrase>
@@ -10409,23 +10589,23 @@ before
     <phrase role="comment">// happen with fibers::promise, a robust way to deal with the lifespan</phrase>
     <phrase role="comment">// issue is to bind 'promise' into our lambda. Since promise is move-only,</phrase>
     <phrase role="comment">// use initialization capture.</phrase>
-<phrase role="preprocessor">#if</phrase> <phrase role="identifier">defined</phrase><phrase role="special">(</phrase><phrase role="identifier">__cpp_init_captures</phrase><phrase role="special">)</phrase>
+<phrase role="preprocessor">#if</phrase> <phrase role="special">!</phrase> <phrase role="identifier">defined</phrase><phrase role="special">(</phrase><phrase role="identifier">BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</phrase><phrase role="special">)</phrase>
     <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_write</phrase><phrase role="special">(</phrase>
         <phrase role="identifier">data</phrase><phrase role="special">,</phrase>
-        <phrase role="special">[</phrase><phrase role="identifier">promise</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase><phrase role="identifier">promise</phrase><phrase role="special">)](</phrase> <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
+        <phrase role="special">[</phrase><phrase role="identifier">promise</phrase><phrase role="special">=</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">)](</phrase> <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
                             <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">);</phrase>
                   <phrase role="special">});</phrase>
 
-<phrase role="preprocessor">#else</phrase> <phrase role="comment">// ! defined(__cpp_init_captures)</phrase>
-    <phrase role="comment">// std::bind() workaround for initialization capture from</phrase>
-    <phrase role="comment">// http://stackoverflow.com/questions/8640393/move-capture-in-lambda</phrase>
+<phrase role="preprocessor">#else</phrase> <phrase role="comment">// defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)</phrase>
     <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_write</phrase><phrase role="special">(</phrase>
         <phrase role="identifier">data</phrase><phrase role="special">,</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">([](</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">promise</phrase><phrase role="special">,</phrase>
                      <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">);</phrase>
-        <phrase role="special">},</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase><phrase role="identifier">promise</phrase><phrase role="special">),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">placeholders</phrase><phrase role="special">::</phrase><phrase role="identifier">_1</phrase><phrase role="special">);</phrase>
-<phrase role="preprocessor">#endif</phrase> <phrase role="comment">// __cpp_init_captures</phrase>
+        <phrase role="special">},</phrase>
+        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">),</phrase>
+        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">placeholders</phrase><phrase role="special">::</phrase><phrase role="identifier">_1</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+<phrase role="preprocessor">#endif</phrase> <phrase role="comment">// BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</phrase>
 
     <phrase role="keyword">return</phrase> <phrase role="identifier">future</phrase><phrase role="special">.</phrase><phrase role="identifier">get</phrase><phrase role="special">();</phrase>
 <phrase role="special">}</phrase>
@@ -10506,9 +10686,20 @@ before
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">result_pair</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">future</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">get_future</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
     <phrase role="comment">// We promise that both 'promise' and 'future' will survive until our</phrase>
     <phrase role="comment">// lambda has been called.</phrase>
-    <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_read</phrase><phrase role="special">([&amp;</phrase><phrase role="identifier">promise</phrase><phrase role="special">](</phrase> <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
+<phrase role="preprocessor">#if</phrase> <phrase role="special">!</phrase> <phrase role="identifier">defined</phrase><phrase role="special">(</phrase><phrase role="identifier">BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</phrase><phrase role="special">)</phrase>
+    <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_read</phrase><phrase role="special">([</phrase><phrase role="identifier">promise</phrase><phrase role="special">=</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">)](</phrase> <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
                             <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">result_pair</phrase><phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
                   <phrase role="special">});</phrase>
+<phrase role="preprocessor">#else</phrase> <phrase role="comment">// defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)</phrase>
+    <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_read</phrase><phrase role="special">(</phrase>
+            <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">([](</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">result_pair</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">promise</phrase><phrase role="special">,</phrase>
+                          <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
+                            <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">result_pair</phrase><phrase role="special">(</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+                  <phrase role="special">},</phrase>
+                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">),</phrase>
+                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">placeholders</phrase><phrase role="special">::</phrase><phrase role="identifier">_1</phrase><phrase role="special">,</phrase>
+                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">placeholders</phrase><phrase role="special">::</phrase><phrase role="identifier">_2</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+<phrase role="preprocessor">#endif</phrase> <phrase role="comment">// BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</phrase>
     <phrase role="keyword">return</phrase> <phrase role="identifier">future</phrase><phrase role="special">.</phrase><phrase role="identifier">get</phrase><phrase role="special">();</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
@@ -10546,6 +10737,7 @@ before
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">future</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">get_future</phrase><phrase role="special">()</phrase> <phrase role="special">);</phrase>
     <phrase role="comment">// Both 'promise' and 'future' will survive until our lambda has been</phrase>
     <phrase role="comment">// called.</phrase>
+<phrase role="preprocessor">#if</phrase> <phrase role="special">!</phrase> <phrase role="identifier">defined</phrase><phrase role="special">(</phrase><phrase role="identifier">BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</phrase><phrase role="special">)</phrase>
     <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_read</phrase><phrase role="special">([&amp;</phrase><phrase role="identifier">promise</phrase><phrase role="special">](</phrase> <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
                            <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
                                <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">data</phrase><phrase role="special">);</phrase>
@@ -10555,6 +10747,22 @@ before
                                            <phrase role="identifier">make_exception</phrase><phrase role="special">(</phrase><phrase role="string">&quot;read&quot;</phrase><phrase role="special">,</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
                            <phrase role="special">}</phrase>
                   <phrase role="special">});</phrase>
+<phrase role="preprocessor">#else</phrase> <phrase role="comment">// defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)</phrase>
+    <phrase role="identifier">api</phrase><phrase role="special">.</phrase><phrase role="identifier">init_read</phrase><phrase role="special">(</phrase>
+            <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">([](</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">promise</phrase><phrase role="special">,</phrase>
+                          <phrase role="identifier">AsyncAPI</phrase><phrase role="special">::</phrase><phrase role="identifier">errorcode</phrase> <phrase role="identifier">ec</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">data</phrase><phrase role="special">)</phrase> <phrase role="keyword">mutable</phrase> <phrase role="special">{</phrase>
+                           <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+                               <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_value</phrase><phrase role="special">(</phrase> <phrase role="identifier">data</phrase><phrase role="special">);</phrase>
+                           <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
+                               <phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">set_exception</phrase><phrase role="special">(</phrase>
+                                       <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">make_exception_ptr</phrase><phrase role="special">(</phrase>
+                                           <phrase role="identifier">make_exception</phrase><phrase role="special">(</phrase><phrase role="string">&quot;read&quot;</phrase><phrase role="special">,</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
+                           <phrase role="special">}</phrase>
+                  <phrase role="special">},</phrase>
+                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">move</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">),</phrase>
+                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">placeholders</phrase><phrase role="special">::</phrase><phrase role="identifier">_1</phrase><phrase role="special">,</phrase>
+                  <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">placeholders</phrase><phrase role="special">::</phrase><phrase role="identifier">_2</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+<phrase role="preprocessor">#endif</phrase> <phrase role="comment">// BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES</phrase>
     <phrase role="keyword">return</phrase> <phrase role="identifier">future</phrase><phrase role="special">.</phrase><phrase role="identifier">get</phrase><phrase role="special">();</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
@@ -10735,7 +10943,7 @@ before
      * boost::system::system_error.
      */</phrase>
     <phrase role="identifier">yield_t</phrase> <phrase role="keyword">operator</phrase><phrase role="special">[](</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">system</phrase><phrase role="special">::</phrase><phrase role="identifier">error_code</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">)</phrase> <phrase role="keyword">const</phrase> <phrase role="special">{</phrase>
-        <phrase role="identifier">yield_t</phrase> <phrase role="identifier">tmp</phrase><phrase role="special">{</phrase> <phrase role="special">*</phrase> <phrase role="keyword">this</phrase> <phrase role="special">};</phrase>
+        <phrase role="identifier">yield_t</phrase> <phrase role="identifier">tmp</phrase><phrase role="special">;</phrase>
         <phrase role="identifier">tmp</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase> <phrase role="special">=</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">ec</phrase><phrase role="special">;</phrase>
         <phrase role="keyword">return</phrase> <phrase role="identifier">tmp</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
@@ -10840,7 +11048,7 @@ before
         <phrase role="comment">// capture the context* associated with the running fiber</phrase>
         <phrase role="identifier">ctx_</phrase><phrase role="special">{</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="special">},</phrase>
         <phrase role="comment">// capture the passed yield_t</phrase>
-        <phrase role="identifier">yt_</phrase><phrase role="special">{</phrase> <phrase role="identifier">y</phrase> <phrase role="special">}</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">yt_</phrase><phrase role="special">(</phrase> <phrase role="identifier">y</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
 
     <phrase role="comment">// completion callback passing only (error_code)</phrase>
@@ -14396,12 +14604,11 @@ that would cause the thread to
     </bridgehead>
     <para>
       Support for migrating fibers between threads has been integrated. The user-defined
-      scheduler must call <link linkend="context_migrate"><code>context::migrate()</code></link> on a fiber-context on
-      the destination thread, passing <code><phrase role="identifier">migrate</phrase><phrase
-      role="special">()</phrase></code> the fiber-context to migrate. (For more information
-      about custom schedulers, see <link linkend="custom">Customization</link>.)
-      Examples <code><phrase role="identifier">work_sharing</phrase></code> and
-      <code><phrase role="identifier">work_stealing</phrase></code> in directory
+      scheduler must call <link linkend="context_detach"><code>context::detach()</code></link> on a fiber-context on the
+      source thread and <link linkend="context_attach"><code>context::attach()</code></link> on the destination thread,
+      passing the fiber-context to migrate. (For more information about custom schedulers,
+      see <link linkend="custom">Customization</link>.) Examples <code><phrase role="identifier">work_sharing</phrase></code>
+      and <code><phrase role="identifier">work_stealing</phrase></code> in directory
       <code><phrase role="identifier">examples</phrase></code> might be used as a
       blueprint.
     </para>
