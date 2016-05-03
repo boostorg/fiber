@@ -46,8 +46,15 @@ future<
     >::type
 >
 async( Function && fn, Args && ... args) {
-    return async( launch_policy::post,
-                  std::forward< Function >( fn), std::forward< Args >( args) ...);
+    typedef typename std::result_of<
+        typename std::decay< Function >::type( typename std::decay< Args >::type ... )
+    >::type     result_t;
+
+    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+        std::forward< Function >( fn) };
+    future< result_t > f{ pt.get_future() };
+    fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
+    return f;
 }
 
 template< typename StackAllocator, class Function, class ... Args >
@@ -75,9 +82,15 @@ future<
     >::type
 >
 async( std::allocator_arg_t, StackAllocator salloc, Function && fn, Args && ... args) {
-    return async( launch_policy::post,
-                  std::allocator_arg, salloc,
-                  std::forward< Function >( fn), std::forward< Args >( args) ...);
+    typedef typename std::result_of<
+        typename std::decay< Function >::type( typename std::decay< Args >::type ... )
+    >::type     result_t;
+
+    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+        std::allocator_arg, salloc, std::forward< Function >( fn) };
+    future< result_t > f{ pt.get_future() };
+    fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
+    return f;
 }
 
 }}
