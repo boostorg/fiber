@@ -32,12 +32,29 @@ another logical CPU ['cpuX] which is part of a different NUMA node ['nodeX]
 might reduce the performance of the application due to increased latency of
 memory access.
 
-Only fibers that are contained in __algo__'s ready queue can migrate between
-threads. You cannot migrate a running fiber, nor one that is __blocked__.
+Only fibers that are contained in __algo__[s] ready queue can migrate between
+threads. You cannot migrate a running fiber, nor one that is __blocked__. You
+cannot migrate a fiber if its [member_link context..is_context] method returns
+`true` for `pinned_context`.
 
-In__boost_fiber__ a fiber is migrated by invoking __context_detach__  within the
-thread from which the fiber migrates from and __context_attach__ within the the
-thread the fiber migrates to.
+In __boost_fiber__ a fiber is migrated by invoking __context_detach__ on the
+thread from which the fiber migrates and __context_attach__ on the thread to
+which the fiber migrates.
+
+Thus, fiber migration is accomplished by sharing state between instances of a
+user-coded __algo__ implementation running on different threads. The fiber[s]
+original thread calls [member_link sched_algorithm..awakened], passing the
+fiber[s] [class_link context][^*]. The `awakened()` implementation calls
+__context_detach__.
+
+At some later point, when the same or a different thread calls [member_link
+sched_algorithm..pick_next], the `pick_next()` implementation selects a ready
+fiber and calls __context_attach__ on it before returning it.
+
+As stated above, a `context` for which `is_context(pinned_context) == true`
+must never be passed to either __context_detach__ or __context_attach__. It
+may only be returned from `pick_next()` called by the ['same] thread that
+passed that context to `awakened()`.
 
 [heading Example of work sharing]
 
@@ -83,15 +100,15 @@ shares a common ready queue among all participating threads. A thread
 participates in this pool by executing [function_link use_scheduling_algorithm]
 before any other __boost_fiber__ operation.
 
-The important point about the ready queue is that it's a class static, common
+The important point about the ready queue is that it[s] a class static, common
 to all instances of shared_ready_queue.
 Fibers that are enqueued via __algo_awakened__ (fibers that are ready to be
 resumed) are thus available to all threads.
-It is required to reserve a separate, scheduler-specific queue for the thread's
+It is required to reserve a separate, scheduler-specific queue for the thread[s]
 main fiber and dispatcher fibers: these may ['not] be shared between threads!
-When we're passed either of these fibers, push it there instead of in the
+When we[,]re passed either of these fibers, push it there instead of in the
 shared queue: it would be Bad News for thread B to retrieve and attempt to
-execute thread A's main fiber.
+execute thread A[s] main fiber.
 
 [awakened_ws]
 
