@@ -105,11 +105,11 @@
     </h4>
 <p>
       Support for migrating fibers between threads has been integrated. The user-defined
-      scheduler must call <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> on a fiber-context on
-      the destination thread, passing <code class="computeroutput"><span class="identifier">migrate</span><span class="special">()</span></code> the fiber-context to migrate. (For more information
-      about custom schedulers, see <a class="link" href="custom.html#custom">Customization</a>.)
-      Examples <code class="computeroutput"><span class="identifier">work_sharing</span></code> and
-      <code class="computeroutput"><span class="identifier">work_stealing</span></code> in directory
+      scheduler must call <a class="link" href="scheduling.html#context_detach"><code class="computeroutput">context::detach()</code></a> on a fiber-context on the
+      source thread and <a class="link" href="scheduling.html#context_attach"><code class="computeroutput">context::attach()</code></a> on the destination thread,
+      passing the fiber-context to migrate. (For more information about custom schedulers,
+      see <a class="link" href="custom.html#custom">Customization</a>.) Examples <code class="computeroutput"><span class="identifier">work_sharing</span></code>
+      and <code class="computeroutput"><span class="identifier">work_stealing</span></code> in directory
       <code class="computeroutput"><span class="identifier">examples</span></code> might be used as a
       blueprint.
     </p>

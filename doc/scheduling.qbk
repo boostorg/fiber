@@ -418,11 +418,11 @@ of typical STL containers.
         #include <boost/fiber/context.hpp>
         
         enum class type {
-          none,
-          main_context,       // fiber associated with thread's stack
-          dispatcher_context, // special fiber for maintenance operations
-          worker_context,     // fiber not special to the library
-          pinned_context      // fiber must not be migrated to another thread
+          none               = ``['unspecified]``,
+          main_context       = ``['unspecified]``, // fiber associated with thread's stack
+          dispatcher_context = ``['unspecified]``, // special fiber for maintenance operations
+          worker_context     = ``['unspecified]``, // fiber not special to the library
+          pinned_context     = ``['unspecified]``  // fiber must not be migrated to another thread
         };
 
         class context {
@@ -436,7 +436,8 @@ of typical STL containers.
 
             id get_id() const noexcept;
 
-            void migrate( context *) noexcept;
+            void detach() noexcept;
+            void attach( context *) noexcept;
 
             bool is_context( type) const noexcept;
 
@@ -484,13 +485,55 @@ default-constructed __fiber_id__.]]
 [[See also:] [[member_link fiber..get_id]]]
 ]
 
-[member_heading context..migrate]
+[member_heading context..attach]
 
-        void migrate( context * f) noexcept;
+        void attach( context * f) noexcept;
 
 [variablelist
-[[Effects:] [Migrate fiber `f` to scheduler running `*this`.]]
+[[Precondition:] [`this->get_scheduler() == nullptr`]]
+[[Effects:] [Attach fiber `f` to scheduler running `*this`.]]
+[[Postcondition:] [`this->get_scheduler() != nullptr`]]
 [[Throws:] [Nothing]]
+[[Note:] [A typical call: `boost::fibers::context::active()->attach(f);`]]
+[[Note:] [`f` must not be the running fiber[s] context. It must not be
+__blocked__ or terminated. It must not be a `pinned_context`. It must be
+currently detached. It must not currently be linked into a [class_link
+sched_algorithm] implementation[s] ready queue. Most of these conditions are
+implied by `f` being owned by a `sched_algorithm` implementation: that is, it
+has been passed to [member_link sched_algorithm..awakened] but has not yet
+been returned by [member_link sched_algorithm..pick_next]. Typically a
+`pick_next()` implementation would call `attach()` with the `context*` it is
+about to return. It must first remove `f` from its ready queue. You should
+never pass a `pinned_context` to `attach()` because you should never have
+called its `detach()` method in the first place.]]
+]
+
+[member_heading context..detach]
+
+        void detach() noexcept;
+
+[variablelist
+[[Precondition:] [`(this->get_scheduler() != nullptr) && ! this->is_context(pinned_context)`]]
+[[Effects:] [Detach fiber `*this` from its scheduler running `*this`.]]
+[[Throws:] [Nothing]]
+[[Postcondition:] [`this->get_scheduler() == nullptr`]]
+[[Note:] [This method must be called on the thread with which the fiber is
+currently associated. `*this` must not be the running fiber[s] context. It
+must not be __blocked__ or terminated. It must not be a `pinned_context`. It
+must not be detached already. It must not already be linked into a [class_link
+sched_algorithm] implementation[s] ready queue. Most of these conditions are
+implied by `*this` being passed to [member_link sched_algorithm..awakened]; an
+`awakened()` implementation must, however, test for `pinned_context`. It must
+call `detach()` ['before] linking `*this` into its ready queue.]]
+[[Note:] [In particular, it is erroneous to attempt to migrate a fiber from
+one thread to another by calling both `detach()` and `attach()` in the
+[member_link sched_algorithm..pick_next] method. `pick_next()` is called on
+the intended destination thread. `detach()` must be called on the fiber[s]
+original thread. You must call `detach()` in the corresponding `awakened()`
+method.]]
+[[Note:] [Unless you intend make a fiber available for potential migration to
+a different thread, you should call neither `detach()` nor `attach()` with its
+`context`.]]
 ]
 
 [member_heading context..is_context]
@@ -509,7 +552,7 @@ dispatching awakened fibers to a scheduler's ready-queue. The ["dispatching]
 fiber is an implementation detail of the fiber manager. The context of the
 ["main] or ["dispatching] fiber [mdash] any fiber for which
 `is_context(pinned_context)` is `true` [mdash] must never be passed to
-[member_link context..migrate] for any other thread.]]
+[member_link context..detach].]]
 ]
 
 [member_heading context..is_terminated]
@@ -665,8 +708,8 @@ application program.]]
 [[Note:] [It is explicitly supported to call `set_ready(ctx)` from a thread
 other than the one on which `*ctx` is currently suspended. The corresponding
 fiber will be resumed on its original thread in due course.]]
-[[Note:] [See [member_link context..migrate] for a way to migrate the
-suspended thread to the thread calling `set_ready()`.]]
+[/[[Note:] [See [member_link context..migrate] for a way to migrate the
+suspended thread to the thread calling `set_ready()`.]]]
 ]
 
 [hding context_less..Non-member function [`operator<()]]

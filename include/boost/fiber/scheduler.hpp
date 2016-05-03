@@ -80,7 +80,6 @@ private:
     sleep_queue_t                       sleep_queue_{};
     bool                                shutdown_{ false };
     detail::spinlock                    remote_ready_splk_{};
-    detail::spinlock                    worker_splk_{};
 
     context * get_next_() noexcept;
 

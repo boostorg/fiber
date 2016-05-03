@@ -176,7 +176,7 @@ context::resume_( detail::data_t & d) noexcept {
 
 void
 context::set_ready_( context * ctx) noexcept {
-    scheduler_->set_ready( ctx);
+    scheduler_.load()->set_ready( ctx);
 }
 
 // main fiber context
@@ -288,12 +288,12 @@ context::resume( context * ready_ctx) noexcept {
 
 void
 context::suspend() noexcept {
-    scheduler_->suspend();
+    scheduler_.load()->suspend();
 }
 
 void
 context::suspend( detail::spinlock_lock & lk) noexcept {
-    scheduler_->suspend( lk);
+    scheduler_.load()->suspend( lk);
 }
 
 void
@@ -310,7 +310,7 @@ context::join() {
         active_ctx->wait_link( wait_queue_);
         lk.unlock();
         // suspend active context
-        scheduler_->suspend();
+        scheduler_.load()->suspend();
         // remove from wait-queue
         active_ctx->wait_unlink();
         // active context resumed
@@ -321,7 +321,7 @@ context::join() {
 void
 context::yield() noexcept {
     // yield active context
-    scheduler_->yield( context::active() );
+    scheduler_.load()->yield( context::active() );
 }
 
 #if (BOOST_EXECUTION_CONTEXT>1)
@@ -363,9 +363,9 @@ context::set_terminated() noexcept {
     fss_data_.clear();
     // switch to another context
 #if (BOOST_EXECUTION_CONTEXT==1)
-    scheduler_->set_terminated( this);
+    scheduler_.load()->set_terminated( this);
 #else
-    return scheduler_->set_terminated( this);
+    return scheduler_.load()->set_terminated( this);
 #endif
 }
 
@@ -373,7 +373,7 @@ bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
-    return scheduler_->wait_until( this, tp);
+    return scheduler_.load()->wait_until( this, tp);
 }
 
 bool
@@ -381,7 +381,7 @@ context::wait_until( std::chrono::steady_clock::time_point const& tp,
                      detail::spinlock_lock & lk) noexcept {
     BOOST_ASSERT( nullptr != scheduler_);
     BOOST_ASSERT( this == active_);
-    return scheduler_->wait_until( this, tp, lk);
+    return scheduler_.load()->wait_until( this, tp, lk);
 }
 
 void
@@ -395,10 +395,10 @@ context::set_ready( context * ctx) noexcept {
     //        (other scheduler assigned)
     if ( scheduler_ == ctx->scheduler_) {
         // local
-        scheduler_->set_ready( ctx);
+        scheduler_.load()->set_ready( ctx);
     } else {
         // remote
-        ctx->scheduler_->set_remote_ready( ctx);
+        ctx->scheduler_.load()->set_remote_ready( ctx);
     }
 }
 
@@ -490,19 +490,15 @@ context::wait_unlink() noexcept {
 }
 
 void
-context::attach( context * ctx) noexcept {
-    BOOST_ASSERT( nullptr != ctx);
-    scheduler_->attach_worker_context( ctx);
+context::detach() noexcept {
+    BOOST_ASSERT( context::active() != this);
+    scheduler_.load()->detach_worker_context( this);
 }
 
 void
-context::migrate( context * ctx) noexcept {
+context::attach( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( context::active() != ctx);
-    if ( scheduler_ != ctx->scheduler_) {
-        ctx->scheduler_->detach_worker_context( ctx);
-        scheduler_->attach_worker_context( ctx);
-    }
+    scheduler_.load()->attach_worker_context( ctx);
 }
 
 }}

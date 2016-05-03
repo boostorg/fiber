@@ -52,6 +52,7 @@ public:
         >*/
             local_queue_.push( ctx);
         } else {
+            ctx->detach();
             lock_t lk(rqueue_mtx_); /*<
                 worker fiber, enqueue on shared queue
             >*/
@@ -70,10 +71,9 @@ public:
             rqueue_.pop();
             lk.unlock();
             BOOST_ASSERT( nullptr != ctx);
-            boost::fibers::context::active()->migrate( ctx); /*<
+            boost::fibers::context::active()->attach( ctx); /*<
                 attach context to current scheduler via the active fiber
-                of this thread; benign if the fiber already belongs to this
-                thread
+                of this thread
             >*/
         } else {
             lk.unlock();
@@ -207,7 +207,7 @@ int main( int argc, char *argv[]) {
             if all worker fibers are complete.
         >*/
     } /*<
-        Releasing lock of mtx_count is required before joining the threads, othwerwise
+        Releasing lock of mtx_count is required before joining the threads, otherwise
         the other threads would be blocked inside condition_variable::wait() and
         would never return (deadlock).
     >*/

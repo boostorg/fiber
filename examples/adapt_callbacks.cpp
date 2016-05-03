@@ -3,14 +3,49 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/fiber/all.hpp>
-#include <thread>
+#include <cassert>
 #include <chrono>
+#include <exception>
 #include <iostream>
 #include <sstream>
-#include <exception>
+#include <thread>
 #include <tuple>                    // std::tie()
-#include <cassert>
+
+#include <boost/context/detail/apply.hpp>
+#include <boost/fiber/all.hpp>
+
+#if defined(BOOST_NO_CXX14_INITIALIZED_LAMBDA_CAPTURES)
+/*****************************************************************************
+*   helper code to help callback 
+*****************************************************************************/
+template< typename Fn, typename ... Args >
+class helper {
+private:
+    typename std::decay< Fn >::type                     fn_;
+    std::tuple< typename std::decay< Args >::type ... > args_;
+
+public:
+    helper( Fn && fn, Args && ... args) :
+        fn_( std::forward< Fn >( fn) ),
+        args_( std::make_tuple( std::forward< Args >( args) ... ) ) {
+    }
+
+    helper( helper && other) = default;
+    helper & operator=( helper && other) = default;
+
+    helper( helper const&) = default;
+    helper & operator=( helper const&) = default;
+
+    void operator()() {
+        boost::context::detail::apply( fn_, args_);
+    }
+};
+
+template< typename Fn, typename ... Args  >
+helper< Fn, Args ... > help( Fn && fn, Args && ... args) {
+    return helper< Fn, Args ... >( std::forward< Fn >( fn), std::forward< Args >( args) ... );
+}
+#endif
 
 /*****************************************************************************
 *   example async API
@@ -75,11 +110,8 @@ void AsyncAPI::init_write( std::string const& data, Fn && callback) {
     }).detach();
 #else
     std::thread(
-        std::bind([injected]( typename std::decay< Fn >::type & callback) mutable {
-            std::this_thread::sleep_for( std::chrono::milliseconds(100) );
-            callback( injected);
-        },
-        std::forward< Fn >( callback) ) ).detach();
+        std::move(
+            help( std::forward< Fn >( callback), injected) ) ).detach();
 #endif
 }
 
@@ -101,11 +133,8 @@ void AsyncAPI::init_read( Fn && callback) {
     }).detach();
 #else
     std::thread(
-        std::bind([injected,data]( typename std::decay< Fn >::type & callback) mutable {
-            std::this_thread::sleep_for( std::chrono::milliseconds(100) );
-            callback( injected, data);
-    },
-    std::forward< Fn >( callback) ) ).detach();
+        std::move(
+            help( std::forward< Fn >( callback), injected, data) ) ).detach();
 #endif
 }
 

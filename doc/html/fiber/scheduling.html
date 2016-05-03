@@ -833,11 +833,11 @@
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">context</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">enum</span> <span class="keyword">class</span> <span class="identifier">type</span> <span class="special">{</span>
-  <span class="identifier">none</span><span class="special">,</span>
-  <span class="identifier">main_context</span><span class="special">,</span>       <span class="comment">// fiber associated with thread's stack</span>
-  <span class="identifier">dispatcher_context</span><span class="special">,</span> <span class="comment">// special fiber for maintenance operations</span>
-  <span class="identifier">worker_context</span><span class="special">,</span>     <span class="comment">// fiber not special to the library</span>
-  <span class="identifier">pinned_context</span>      <span class="comment">// fiber must not be migrated to another thread</span>
+  <span class="identifier">none</span>               <span class="special">=</span> <span class="emphasis"><em>unspecified</em></span><span class="special">,</span>
+  <span class="identifier">main_context</span>       <span class="special">=</span> <span class="emphasis"><em>unspecified</em></span><span class="special">,</span> <span class="comment">// fiber associated with thread's stack</span>
+  <span class="identifier">dispatcher_context</span> <span class="special">=</span> <span class="emphasis"><em>unspecified</em></span><span class="special">,</span> <span class="comment">// special fiber for maintenance operations</span>
+  <span class="identifier">worker_context</span>     <span class="special">=</span> <span class="emphasis"><em>unspecified</em></span><span class="special">,</span> <span class="comment">// fiber not special to the library</span>
+  <span class="identifier">pinned_context</span>     <span class="special">=</span> <span class="emphasis"><em>unspecified</em></span>  <span class="comment">// fiber must not be migrated to another thread</span>
 <span class="special">};</span>
 
 <span class="keyword">class</span> <span class="identifier">context</span> <span class="special">{</span>
@@ -851,7 +851,8 @@
 
     <span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-    <span class="keyword">void</span> <span class="identifier">migrate</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">void</span> <span class="identifier">detach</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">void</span> <span class="identifier">attach</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">bool</span> <span class="identifier">is_context</span><span class="special">(</span> <span class="identifier">type</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
@@ -936,25 +937,120 @@
 <p>
       </p>
 <h5>
-<a name="context_migrate_bridgehead"></a>
-  <span><a name="context_migrate"></a></span>
-  <a class="link" href="scheduling.html#context_migrate">Member function <code class="computeroutput">migrate</code>()</a>
+<a name="context_attach_bridgehead"></a>
+  <span><a name="context_attach"></a></span>
+  <a class="link" href="scheduling.html#context_attach">Member function <code class="computeroutput">attach</code>()</a>
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">migrate</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">attach</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get_scheduler</span><span class="special">()</span>
+            <span class="special">==</span> <span class="keyword">nullptr</span></code>
+          </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Migrate fiber <code class="computeroutput"><span class="identifier">f</span></code> to scheduler
+            Attach fiber <code class="computeroutput"><span class="identifier">f</span></code> to scheduler
             running <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+          </p></dd>
+<dt><span class="term">Postcondition:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get_scheduler</span><span class="special">()</span>
+            <span class="special">!=</span> <span class="keyword">nullptr</span></code>
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
             Nothing
+          </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+            A typical call: <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">attach</span><span class="special">(</span><span class="identifier">f</span><span class="special">);</span></code>
+          </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="identifier">f</span></code> must not be the running
+            fiber&#8217;s context. It must not be <a class="link" href="overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>
+            or terminated. It must not be a <code class="computeroutput"><span class="identifier">pinned_context</span></code>.
+            It must be currently detached. It must not currently be linked into a
+            <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> implementation&#8217;s ready queue. Most
+            of these conditions are implied by <code class="computeroutput"><span class="identifier">f</span></code>
+            being owned by a <code class="computeroutput"><span class="identifier">sched_algorithm</span></code>
+            implementation: that is, it has been passed to <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a> but
+            has not yet been returned by <a class="link" href="scheduling.html#sched_algorithm_pick_next"><code class="computeroutput">sched_algorithm::pick_next()</code></a>.
+            Typically a <code class="computeroutput"><span class="identifier">pick_next</span><span class="special">()</span></code> implementation would call <code class="computeroutput"><span class="identifier">attach</span><span class="special">()</span></code>
+            with the <code class="computeroutput"><span class="identifier">context</span><span class="special">*</span></code>
+            it is about to return. It must first remove <code class="computeroutput"><span class="identifier">f</span></code>
+            from its ready queue. You should never pass a <code class="computeroutput"><span class="identifier">pinned_context</span></code>
+            to <code class="computeroutput"><span class="identifier">attach</span><span class="special">()</span></code>
+            because you should never have called its <code class="computeroutput"><span class="identifier">detach</span><span class="special">()</span></code> method in the first place.
+          </p></dd>
+</dl>
+</div>
+<p>
+      </p>
+<h5>
+<a name="context_detach_bridgehead"></a>
+  <span><a name="context_detach"></a></span>
+  <a class="link" href="scheduling.html#context_detach">Member function <code class="computeroutput">detach</code>()</a>
+</h5>
+<p>
+    </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">detach</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Precondition:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="special">(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get_scheduler</span><span class="special">()</span> <span class="special">!=</span> <span class="keyword">nullptr</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="special">!</span>
+            <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">is_context</span><span class="special">(</span><span class="identifier">pinned_context</span><span class="special">)</span></code>
+          </p></dd>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Detach fiber <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+            from its scheduler running <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>.
+          </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+            Nothing
+          </p></dd>
+<dt><span class="term">Postcondition:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">get_scheduler</span><span class="special">()</span>
+            <span class="special">==</span> <span class="keyword">nullptr</span></code>
+          </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+            This method must be called on the thread with which the fiber is currently
+            associated. <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+            must not be the running fiber&#8217;s context. It must not be <a class="link" href="overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>
+            or terminated. It must not be a <code class="computeroutput"><span class="identifier">pinned_context</span></code>.
+            It must not be detached already. It must not already be linked into a
+            <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> implementation&#8217;s ready queue. Most
+            of these conditions are implied by <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> being passed to <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a>;
+            an <code class="computeroutput"><span class="identifier">awakened</span><span class="special">()</span></code>
+            implementation must, however, test for <code class="computeroutput"><span class="identifier">pinned_context</span></code>.
+            It must call <code class="computeroutput"><span class="identifier">detach</span><span class="special">()</span></code>
+            <span class="emphasis"><em>before</em></span> linking <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code> into its ready queue.
+          </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+            In particular, it is erroneous to attempt to migrate a fiber from one
+            thread to another by calling both <code class="computeroutput"><span class="identifier">detach</span><span class="special">()</span></code> and <code class="computeroutput"><span class="identifier">attach</span><span class="special">()</span></code> in the <a class="link" href="scheduling.html#sched_algorithm_pick_next"><code class="computeroutput">sched_algorithm::pick_next()</code></a> method.
+            <code class="computeroutput"><span class="identifier">pick_next</span><span class="special">()</span></code>
+            is called on the intended destination thread. <code class="computeroutput"><span class="identifier">detach</span><span class="special">()</span></code> must be called on the fiber&#8217;s original
+            thread. You must call <code class="computeroutput"><span class="identifier">detach</span><span class="special">()</span></code> in the corresponding <code class="computeroutput"><span class="identifier">awakened</span><span class="special">()</span></code>
+            method.
+          </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+            Unless you intend make a fiber available for potential migration to a
+            different thread, you should call neither <code class="computeroutput"><span class="identifier">detach</span><span class="special">()</span></code> nor <code class="computeroutput"><span class="identifier">attach</span><span class="special">()</span></code> with its <code class="computeroutput"><span class="identifier">context</span></code>.
           </p></dd>
 </dl>
 </div>
@@ -995,8 +1091,7 @@
             fiber is an implementation detail of the fiber manager. The context of
             the <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> or <span class="quote">&#8220;<span class="quote">dispatching</span>&#8221;</span> fiber &#8212; any fiber
             for which <code class="computeroutput"><span class="identifier">is_context</span><span class="special">(</span><span class="identifier">pinned_context</span><span class="special">)</span></code> is <code class="computeroutput"><span class="keyword">true</span></code>
-            &#8212; must never be passed to <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> for any other
-            thread.
+            &#8212; must never be passed to <a class="link" href="scheduling.html#context_detach"><code class="computeroutput">context::detach()</code></a>.
           </p></dd>
 </dl>
 </div>
@@ -1383,11 +1478,6 @@ implementation's
             which <code class="computeroutput"><span class="special">*</span><span class="identifier">ctx</span></code>
             is currently suspended. The corresponding fiber will be resumed on its
             original thread in due course.
-          </p></dd>
-<dt><span class="term">Note:</span></dt>
-<dd><p>
-            See <a class="link" href="scheduling.html#context_migrate"><code class="computeroutput">context::migrate()</code></a> for a way to migrate the suspended
-            thread to the thread calling <code class="computeroutput"><span class="identifier">set_ready</span><span class="special">()</span></code>.
           </p></dd>
 </dl>
 </div>

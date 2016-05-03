@@ -36,7 +36,7 @@ public:
      * boost::system::system_error.
      */
     yield_t operator[]( boost::system::error_code & ec) const {
-        yield_t tmp{ * this };
+        yield_t tmp;
         tmp.ec_ = & ec;
         return tmp;
     }

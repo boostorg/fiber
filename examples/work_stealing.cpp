@@ -21,6 +21,9 @@
 
 #include <boost/fiber/all.hpp>
 
+static std::atomic< int > count{ 0 };
+static std::atomic< bool > fini{ false };
+
 class work_stealing_queue {
 private:
     typedef std::deque< boost::fibers::context * > rqueue_t;
@@ -62,9 +65,6 @@ public:
             BOOST_ASSERT( ! ctx->sleep_is_linked() );
             BOOST_ASSERT( ! ctx->terminated_is_linked() );
             BOOST_ASSERT( ! ctx->wait_is_linked() );
-            //BOOST_ASSERT( ! ctx->worker_is_linked() );
-            // attach context to current scheduler
-            boost::fibers::context::active()->migrate( ctx);
         }
         return ctx;
     }
@@ -101,11 +101,18 @@ public:
 
     virtual void awakened( boost::fibers::context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
+        if ( ! ctx->is_context( boost::fibers::type::pinned_context) ) {
+            ctx->detach();
+        }
         rqueue_->push_back( ctx);
     }
 
     virtual boost::fibers::context * pick_next() noexcept {
-        return rqueue_->pick_next();
+        boost::fibers::context * ctx = rqueue_->pick_next();
+        if ( nullptr != ctx && ! ctx->is_context( boost::fibers::type::pinned_context) ) {
+            boost::fibers::context::active()->attach( ctx);
+        }
+        return ctx;
     }
 
     virtual bool has_ready_fibers() const noexcept {
@@ -132,22 +139,20 @@ public:
     }
 };
 
-class tief_algo : public boost::fibers::sched_algorithm {
+class thief_algo : public boost::fibers::sched_algorithm {
 private:
     typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
     typedef work_stealing_queue                     ws_rqueue_t;
 
     rqueue_t                        rqueue_{};
     std::shared_ptr< ws_rqueue_t >  ws_rqueue_;
-    std::atomic< int >           *  count_;
     std::mutex                      mtx_{};
     std::condition_variable         cnd_{};
     bool                            flag_{ false };
 
 public:
-    tief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue, std::atomic< int > * count) :
-        ws_rqueue_( ws_rqueue),
-        count_( count) {
+    thief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue) :
+        ws_rqueue_( ws_rqueue) {
     }
 
     virtual void awakened( boost::fibers::context * ctx) noexcept {
@@ -162,12 +167,12 @@ public:
             rqueue_.pop_front();
             BOOST_ASSERT( nullptr != ctx);
             if ( rqueue_.empty() ) {
-                // we have no more fiber in the queue
                 // try stealing a fiber from the other thread
                 boost::fibers::context * stolen = ws_rqueue_->steal();
                 if ( nullptr != stolen) {
-                    ++( * count_);
-                    rqueue_.push_back( * stolen);
+                    ++count;
+                    boost::fibers::context::active()->attach( stolen);
+                    stolen->ready_link( rqueue_);
                 }
             }
         }
@@ -222,10 +227,10 @@ boost::fibers::future< int > fibonacci( int n) {
     return f;
 }
 
-void thread( std::shared_ptr< work_stealing_queue > ws_queue, std::atomic< int > * count, std::atomic< bool > * fini) {
-    boost::fibers::use_scheduling_algorithm< tief_algo >( ws_queue, count);
+void thread( std::shared_ptr< work_stealing_queue > ws_queue) {
+    boost::fibers::use_scheduling_algorithm< thief_algo >( ws_queue);
 
-    while ( ! ( * fini) ) {
+    while ( ! fini) {
         // To guarantee progress, we must ensure that
         // threads that have work to do are not unreasonably delayed by (thief) threads
         // which are idle except for task-stealing. 
@@ -244,17 +249,14 @@ int main() {
 
     for ( int i = 0; i < 10; ++i) {
         BOOST_ASSERT( ! ws_queue->has_work_items() );
-        std::atomic< int > count( 0);
-        std::atomic< bool > fini( false);
+        count = 0;
         int n = 10;
 
         // launch a couple threads to help process them
         std::thread threads[] = {
-            std::thread( thread, ws_queue, & count, & fini),
-            std::thread( thread, ws_queue, & count, & fini),
-            std::thread( thread, ws_queue, & count, & fini),
-            std::thread( thread, ws_queue, & count, & fini),
-            std::thread( thread, ws_queue, & count, & fini)
+            std::thread( thread, ws_queue),
+            std::thread( thread, ws_queue),
+            std::thread( thread, ws_queue)
         };
 
         // main fiber computes fibonacci( n)

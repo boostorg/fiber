@@ -94,7 +94,7 @@
      * boost::system::system_error.
      */</span>
     <span class="identifier">yield_t</span> <span class="keyword">operator</span><span class="special">[](</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">system</span><span class="special">::</span><span class="identifier">error_code</span> <span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
-        <span class="identifier">yield_t</span> <span class="identifier">tmp</span><span class="special">{</span> <span class="special">*</span> <span class="keyword">this</span> <span class="special">};</span>
+        <span class="identifier">yield_t</span> <span class="identifier">tmp</span><span class="special">;</span>
         <span class="identifier">tmp</span><span class="special">.</span><span class="identifier">ec_</span> <span class="special">=</span> <span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">;</span>
         <span class="keyword">return</span> <span class="identifier">tmp</span><span class="special">;</span>
     <span class="special">}</span>
@@ -195,7 +195,7 @@
         <span class="comment">// capture the context* associated with the running fiber</span>
         <span class="identifier">ctx_</span><span class="special">{</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()</span> <span class="special">},</span>
         <span class="comment">// capture the passed yield_t</span>
-        <span class="identifier">yt_</span><span class="special">{</span> <span class="identifier">y</span> <span class="special">}</span> <span class="special">{</span>
+        <span class="identifier">yt_</span><span class="special">(</span> <span class="identifier">y</span> <span class="special">)</span> <span class="special">{</span>
     <span class="special">}</span>
 
     <span class="comment">// completion callback passing only (error_code)</span>

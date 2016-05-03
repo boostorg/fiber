@@ -66,7 +66,7 @@ public:
         // capture the context* associated with the running fiber
         ctx_{ boost::fibers::context::active() },
         // capture the passed yield_t
-        yt_{ y } {
+        yt_( y ) {
     }
 
     // completion callback passing only (error_code)
