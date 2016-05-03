@@ -371,7 +371,7 @@ context::set_terminated() noexcept {
 
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
-    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( nullptr != scheduler_.load() );
     BOOST_ASSERT( this == active_);
     return scheduler_.load()->wait_until( this, tp);
 }
@@ -379,21 +379,21 @@ context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp,
                      detail::spinlock_lock & lk) noexcept {
-    BOOST_ASSERT( nullptr != scheduler_);
+    BOOST_ASSERT( nullptr != scheduler_.load() );
     BOOST_ASSERT( this == active_);
     return scheduler_.load()->wait_until( this, tp, lk);
 }
 
 void
 context::set_ready( context * ctx) noexcept {
-    BOOST_ASSERT( nullptr != ctx);
+    //BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( this != ctx);
-    BOOST_ASSERT( nullptr != scheduler_);
-    BOOST_ASSERT( nullptr != ctx->scheduler_);
+    BOOST_ASSERT( nullptr != scheduler_.load() );
+    BOOST_ASSERT( nullptr != ctx->scheduler_.load() );
     // FIXME: comparing scheduler address' must be synchronized?
     //        what if ctx is migrated between threads
     //        (other scheduler assigned)
-    if ( scheduler_ == ctx->scheduler_) {
+    if ( scheduler_.load() == ctx->scheduler_.load() ) {
         // local
         scheduler_.load()->set_ready( ctx);
     } else {
