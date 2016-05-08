@@ -374,14 +374,6 @@ const&`, otherwise `false`.]]
                 std::decay_t< Function >( std::decay_t< Args > ... )
             >
         >
-        async( __allocator_arg_t__, __StackAllocator__ salloc, Function && fn, Args && ... args);
-
-        template< typename __StackAllocator__, class Function, class ... Args >
-        future<
-            std::result_of_t<
-                std::decay_t< Function >( std::decay_t< Args > ... )
-            >
-        >
         async( ``[link class_launch `launch`]`` policy, __allocator_arg_t__, __StackAllocator__ salloc,
                Function && fn, Args && ... args);
 

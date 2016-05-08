@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/08 07:59:12 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/08 11:51:01 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -8864,14 +8864,6 @@ are
     <phrase role="special">&gt;</phrase>
 <phrase role="special">&gt;</phrase>
 <phrase role="identifier">async</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
-
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Function</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase>
-    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">result_of_t</phrase><phrase role="special">&lt;</phrase>
-        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase>
-    <phrase role="special">&gt;</phrase>
-<phrase role="special">&gt;</phrase>
-<phrase role="identifier">async</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Function</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase>
