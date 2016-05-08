@@ -24,25 +24,10 @@ namespace fibers {
 template< typename Fn, typename ... Args >
 future<
     typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type
->
-async( launch policy, Fn && fn, Args && ... args) {
-    typedef typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type     result_t;
-
-    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
-        std::forward< Fn >( fn) };
-    future< result_t > f{ pt.get_future() };
-    fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
-    return f;
-}
-
-template< typename Fn, typename ... Args >
-future<
-    typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::enable_if<
+            ! detail::is_launch_policy< typename std::decay< Fn >::type >::value,
+            typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        >::type
     >::type
 >
 async( Fn && fn, Args && ... args) {
@@ -57,19 +42,22 @@ async( Fn && fn, Args && ... args) {
     return f;
 }
 
-template< typename StackAllocator, typename Fn, typename ... Args >
+template< typename Policy, typename Fn, typename ... Args >
 future<
     typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::enable_if<
+            detail::is_launch_policy< Policy >::value,
+            typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        >::type
     >::type
 >
-async( launch policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
+async( Policy policy, Fn && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
     >::type     result_t;
 
     packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
-        std::allocator_arg, salloc, std::forward< Fn >( fn) };
+        std::forward< Fn >( fn) };
     future< result_t > f{ pt.get_future() };
     fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
@@ -78,7 +66,10 @@ async( launch policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Arg
 template< typename StackAllocator, typename Fn, typename ... Args >
 future<
     typename std::result_of<
-        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        typename std::enable_if<
+            ! detail::is_launch_policy< typename std::decay< Fn >::type >::value,
+            typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        >::type
     >::type
 >
 async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
@@ -90,6 +81,27 @@ async( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) 
         std::allocator_arg, salloc, std::forward< Fn >( fn) };
     future< result_t > f{ pt.get_future() };
     fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
+    return f;
+}
+
+template< typename Policy, typename StackAllocator, typename Fn, typename ... Args >
+future<
+    typename std::result_of<
+        typename std::enable_if<
+            detail::is_launch_policy< Policy >::value,
+            typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+        >::type
+    >::type
+>
+async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
+    typedef typename std::result_of<
+        typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
+    >::type     result_t;
+
+    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+        std::allocator_arg, salloc, std::forward< Fn >( fn) };
+    future< result_t > f{ pt.get_future() };
+    fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 

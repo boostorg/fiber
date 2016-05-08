@@ -7,6 +7,8 @@
 #ifndef BOOST_FIBERS_POLICY_H
 #define BOOST_FIBERS_POLICY_H
 
+#include <type_traits>
+
 #include <boost/config.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -22,6 +24,18 @@ enum class launch {
     dispatch,
     post
 };
+
+namespace detail {
+
+template< typename Fn >
+struct is_launch_policy : public std::false_type {
+};
+
+template<>
+struct is_launch_policy< boost::fibers::launch > : public std::true_type {
+};
+
+}
 
 }}
 
