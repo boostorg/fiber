@@ -43,12 +43,12 @@ void f( boost::barrier & b, Mtx & m) {
 
 template< typename Mtx >
 void fn1( boost::barrier & b, Mtx & m) {
-    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, g< Mtx >, std::ref( b), std::ref( m) ).join();
+    boost::fibers::fiber( boost::fibers::launch::dispatch, g< Mtx >, std::ref( b), std::ref( m) ).join();
 }
 
 template< typename Mtx >
 void fn2( boost::barrier & b, Mtx & m) {
-    boost::fibers::fiber( boost::fibers::launch_policy::dispatch, f< Mtx >, std::ref( b), std::ref( m) ).join();
+    boost::fibers::fiber( boost::fibers::launch::dispatch, f< Mtx >, std::ref( b), std::ref( m) ).join();
 }
 
 void test_mutex() {

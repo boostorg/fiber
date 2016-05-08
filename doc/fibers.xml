@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/03 16:48:22 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/08 11:51:01 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -361,17 +361,17 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       <link linkend="class_fiber_id"><code><phrase role="identifier">fiber</phrase><phrase role="special">::</phrase><phrase
       role="identifier">id</phrase></code></link>.
     </para>
-    <anchor id="class_launch_policy"/>
+    <anchor id="class_launch"/>
     <bridgehead renderas="sect3" id="fiber.fiber_mgmt.h8">
-      <phrase id="fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch_policy__phrase___code_"/><link
-      linkend="fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch_policy__phrase___code_">Enumeration
-      <code><phrase role="identifier">launch_policy</phrase></code></link>
+      <phrase id="fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch__phrase___code_"/><link
+      linkend="fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch__phrase___code_">Enumeration
+      <code><phrase role="identifier">launch</phrase></code></link>
     </bridgehead>
     <para>
-      <code><phrase role="identifier">launch_policy</phrase></code> specifies whether
-      control passes immediately into a newly-launched fiber.
+      <code><phrase role="identifier">launch</phrase></code> specifies whether control
+      passes immediately into a newly-launched fiber.
     </para>
-<programlisting><phrase role="keyword">enum</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">launch_policy</phrase> <phrase role="special">{</phrase>
+<programlisting><phrase role="keyword">enum</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">launch</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">dispatch</phrase><phrase role="special">,</phrase>
     <phrase role="identifier">post</phrase>
 <phrase role="special">};</phrase>
@@ -387,7 +387,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Effects:</term>
         <listitem>
           <para>
-            A fiber launched with <code><phrase role="identifier">launch_policy</phrase>
+            A fiber launched with <code><phrase role="identifier">launch</phrase>
             <phrase role="special">==</phrase> <phrase role="identifier">dispatch</phrase></code>
             is entered immediately. In other words, launching a fiber with <code><phrase
             role="identifier">dispatch</phrase></code> suspends the caller (the previously-running
@@ -407,7 +407,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Effects:</term>
         <listitem>
           <para>
-            A fiber launched with <code><phrase role="identifier">launch_policy</phrase>
+            A fiber launched with <code><phrase role="identifier">launch</phrase>
             <phrase role="special">==</phrase> <phrase role="identifier">post</phrase></code>
             is passed to the fiber scheduler as ready, but it is not yet entered.
             The caller (the previously-running fiber) continues executing. The newly-launched
@@ -420,9 +420,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            If <code><phrase role="identifier">launch_policy</phrase></code> is not
-            explicitly specified, <code><phrase role="identifier">post</phrase></code>
-            is the default.
+            If <code><phrase role="identifier">launch</phrase></code> is not explicitly
+            specified, <code><phrase role="identifier">post</phrase></code> is the
+            default.
           </para>
         </listitem>
       </varlistentry>
@@ -442,13 +442,13 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
     <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch_policy"><code><phrase role="identifier">launch_policy</phrase></code></link><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch_policy"><code><phrase role="identifier">launch_policy</phrase></code></link><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">();</phrase>
 
@@ -528,13 +528,13 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch_policy"><code><phrase role="identifier">launch_policy</phrase></code></link> <phrase role="identifier">lpol</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch_policy"><code><phrase role="identifier">launch_policy</phrase></code></link> <phrase role="identifier">lpol</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
        <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
@@ -553,10 +553,10 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
           <listitem>
             <para>
               <code><phrase role="identifier">fn</phrase></code> is copied or moved
-              into internal storage for access by the new fiber. If <link linkend="class_launch_policy"><code>launch_policy</code></link> is
+              into internal storage for access by the new fiber. If <link linkend="class_launch"><code>launch</code></link> is
               specified (or defaulted) to <code><phrase role="identifier">post</phrase></code>,
               the new fiber is marked <quote>ready</quote> and will be entered at
-              the next opportunity. If <code><phrase role="identifier">launch_policy</phrase></code>
+              the next opportunity. If <code><phrase role="identifier">launch</phrase></code>
               is specified as <code><phrase role="identifier">dispatch</phrase></code>,
               the calling fiber is suspended and the new fiber is entered immediately.
             </para>
@@ -8863,7 +8863,7 @@ are
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase>
     <phrase role="special">&gt;</phrase>
 <phrase role="special">&gt;</phrase>
-<phrase role="identifier">async</phrase><phrase role="special">(</phrase> <link linkend="class_launch_policy"><code><phrase role="identifier">launch_policy</phrase></code></link> <phrase role="identifier">lpol</phrase><phrase role="special">,</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">async</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Function</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase>
@@ -8871,15 +8871,7 @@ are
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase>
     <phrase role="special">&gt;</phrase>
 <phrase role="special">&gt;</phrase>
-<phrase role="identifier">async</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
-
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Function</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase>
-    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">result_of_t</phrase><phrase role="special">&lt;</phrase>
-        <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Function</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">decay_t</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase>
-    <phrase role="special">&gt;</phrase>
-<phrase role="special">&gt;</phrase>
-<phrase role="identifier">async</phrase><phrase role="special">(</phrase> <link linkend="class_launch_policy"><code><phrase role="identifier">launch_policy</phrase></code></link> <phrase role="identifier">lpol</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
+<phrase role="identifier">async</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
        <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 </programlisting>
         <variablelist>
@@ -8925,12 +8917,12 @@ are
                 role="identifier">allocator_arg_t</phrase></code></ulink> use the
                 passed <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link>
                 when constructing the launched <code><phrase role="identifier">fiber</phrase></code>.
-                The overloads accepting <link linkend="class_launch_policy"><code>launch_policy</code></link> use the passed
-                <code><phrase role="identifier">launch_policy</phrase></code> when
-                constructing the launched <code><phrase role="identifier">fiber</phrase></code>.
-                The default <code><phrase role="identifier">launch_policy</phrase></code>
-                is <code><phrase role="identifier">post</phrase></code>, as for the
-                <code><phrase role="identifier">fiber</phrase></code> constructor.
+                The overloads accepting <link linkend="class_launch"><code>launch</code></link> use the passed <code><phrase
+                role="identifier">launch</phrase></code> when constructing the launched
+                <code><phrase role="identifier">fiber</phrase></code>. The default
+                <code><phrase role="identifier">launch</phrase></code> is <code><phrase
+                role="identifier">post</phrase></code>, as for the <code><phrase
+                role="identifier">fiber</phrase></code> constructor.
               </para>
             </listitem>
           </varlistentry>
@@ -13324,8 +13316,8 @@ before
 </programlisting>
       </para>
       <para>
-        Since we don&#8217;t specify a <link linkend="class_launch_policy"><code>launch_policy</code></link>, these fibers are
-        ready to run, but have not yet been entered.
+        Since we don&#8217;t specify a <link linkend="class_launch"><code>launch</code></link>, these fibers are ready to run,
+        but have not yet been entered.
       </para>
       <para>
         Having set everything up, the application calls <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/run.html"><code><phrase

@@ -47,7 +47,7 @@ void fn2() {
     boost::fibers::promise< int > p;
     boost::fibers::future< int > f( p.get_future() );
     boost::this_fiber::yield();
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn1, & p, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn1, & p, 7).detach();
     boost::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }
@@ -406,7 +406,7 @@ void test_future_wait_for() {
     boost::fibers::promise< int > p1;
     boost::fibers::future< int > f1 = p1.get_future();
 
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn11, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn11, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -426,7 +426,7 @@ void test_future_wait_for_ref() {
     boost::fibers::promise< int& > p1;
     boost::fibers::future< int& > f1 = p1.get_future();
 
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn12, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn12, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -446,7 +446,7 @@ void test_future_wait_for_void() {
     boost::fibers::promise< void > p1;
     boost::fibers::future< void > f1 = p1.get_future();
 
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn13, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn13, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -466,7 +466,7 @@ void test_future_wait_until() {
     boost::fibers::promise< int > p1;
     boost::fibers::future< int > f1 = p1.get_future();
 
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn11, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn11, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -486,7 +486,7 @@ void test_future_wait_until_ref() {
     boost::fibers::promise< int& > p1;
     boost::fibers::future< int& > f1 = p1.get_future();
 
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn12, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn12, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -506,7 +506,7 @@ void test_future_wait_until_void() {
     boost::fibers::promise< void > p1;
     boost::fibers::future< void > f1 = p1.get_future();
 
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn13, std::move( p1) ).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn13, std::move( p1) ).detach();
 
     // wait on future
     BOOST_CHECK( f1.valid() );
@@ -523,7 +523,7 @@ void test_future_wait_until_void() {
 
 void test_future_wait_with_fiber_1() {
     boost::fibers::promise< int > p1;
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn1, & p1, 7).detach();
+    boost::fibers::fiber( boost::fibers::launch::post, fn1, & p1, 7).detach();
 
     boost::fibers::future< int > f1 = p1.get_future();
 
@@ -532,7 +532,7 @@ void test_future_wait_with_fiber_1() {
 }
 
 void test_future_wait_with_fiber_2() {
-    boost::fibers::fiber( boost::fibers::launch_policy::post, fn2).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fn2).join();
 }
 
 

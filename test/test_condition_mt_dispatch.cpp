@@ -67,7 +67,7 @@ void fn1( boost::barrier & b,
           boost::fibers::condition_variable & cond,
           bool & flag) {
     boost::fibers::fiber(
-                boost::fibers::launch_policy::dispatch,
+                boost::fibers::launch::dispatch,
                 wait_fn,
                 std::ref( b),
                 std::ref( mtx),
@@ -80,7 +80,7 @@ void fn2( boost::barrier & b,
           boost::fibers::condition_variable & cond,
           bool & flag) {
 	boost::fibers::fiber(
-                boost::fibers::launch_policy::dispatch,
+                boost::fibers::launch::dispatch,
                 notify_one_fn,
                 std::ref( b),
                 std::ref( mtx),
@@ -93,7 +93,7 @@ void fn3( boost::barrier & b,
           boost::fibers::condition_variable & cond,
           bool & flag) {
 	boost::fibers::fiber(
-                boost::fibers::launch_policy::dispatch,
+                boost::fibers::launch::dispatch,
                 notify_all_fn,
                 std::ref( b),
                 std::ref( mtx),

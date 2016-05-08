@@ -51,8 +51,8 @@ void test_barrier() {
     value2 = 0;
 
     boost::fibers::barrier b( 2);
-    boost::fibers::fiber f1( boost::fibers::launch_policy::dispatch, fn1, std::ref( b) );
-    boost::fibers::fiber f2( boost::fibers::launch_policy::dispatch, fn2, std::ref( b) );
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, fn1, std::ref( b) );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, fn2, std::ref( b) );
 
     f1.join();
     f2.join();

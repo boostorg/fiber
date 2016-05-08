@@ -25,7 +25,7 @@ void test_async() {
         std::thread t(
                 std::bind(
                     [n](boost::fibers::packaged_task< int( int) > & pt) mutable -> void {
-                        boost::fibers::fiber( boost::fibers::launch_policy::dispatch, std::move( pt), n).join();
+                        boost::fibers::fiber( boost::fibers::launch::dispatch, std::move( pt), n).join();
                     },
                     std::move( pt) ) );
         int result = f.get();

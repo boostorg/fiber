@@ -25,12 +25,12 @@ fiber::start_() noexcept {
     context * ctx = context::active();
     ctx->attach( impl_.get() );
     switch ( impl_->get_policy() ) {
-    case launch_policy::post:
+    case launch::post:
         // push new fiber to ready-queue
         // resume executing current fiber
         ctx->get_scheduler()->set_ready( impl_.get() );
         break;
-    case launch_policy::dispatch:
+    case launch::dispatch:
         // resume new fiber and push current fiber
         // to ready-queue
         impl_->resume( ctx);

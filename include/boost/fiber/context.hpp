@@ -161,7 +161,7 @@ private:
     unsigned int                                    flags_;
     type                                            type_;
 #endif
-    launch_policy                                   lpol_{ launch_policy::post };
+    launch                                   policy_{ launch::post };
     std::atomic< scheduler * >                      scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
@@ -304,13 +304,13 @@ public:
               typename Tpl
     >
     context( worker_context_t,
-             launch_policy lpol,
+             launch policy,
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Tpl && tpl) :
         use_count_{ 1 }, // fiber instance or scheduler owner
         flags_{ 0 },
         type_{ type::worker_context },
-        lpol_{ lpol },
+        policy_{ policy },
 #if (BOOST_EXECUTION_CONTEXT==1)
 # if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
@@ -405,8 +405,8 @@ public:
         return properties_;
     }
 
-    launch_policy get_policy() const noexcept {
-        return lpol_;
+    launch get_policy() const noexcept {
+        return policy_;
     }
 
     bool ready_is_linked() const noexcept;
@@ -496,7 +496,7 @@ struct context_initializer {
 };
 
 template< typename StackAlloc, typename Fn, typename ... Args >
-static intrusive_ptr< context > make_worker_context( launch_policy lpol,
+static intrusive_ptr< context > make_worker_context( launch policy,
                                                      StackAlloc salloc,
                                                      Fn && fn, Args && ... args) {
     boost::context::stack_context sctx = salloc.allocate();
@@ -520,7 +520,7 @@ static intrusive_ptr< context > make_worker_context( launch_policy lpol,
     return intrusive_ptr< context >( 
             ::new ( sp) context(
                 worker_context,
-                lpol,
+                policy,
                 boost::context::preallocated( sp, size, sctx),
                 salloc,
                 std::forward< Fn >( fn),

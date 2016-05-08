@@ -146,7 +146,7 @@ void fn4() {
 }
 
 void fn5() {
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, fn4);
+    boost::fibers::fiber f( boost::fibers::launch::post, fn4);
     BOOST_CHECK( f.joinable() );
     f.join();
     BOOST_CHECK( ! f.joinable() );
@@ -161,14 +161,14 @@ void test_scheduler_dtor() {
 void test_join_fn() {
     {
         value1 = 0;
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, fn1);
+        boost::fibers::fiber f( boost::fibers::launch::post, fn1);
         f.join();
         BOOST_CHECK_EQUAL( value1, 1);
     }
     {
         value1 = 0;
         value2 = "";
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, fn2, 3, "abc");
+        boost::fibers::fiber f( boost::fibers::launch::post, fn2, 3, "abc");
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
@@ -178,7 +178,7 @@ void test_join_fn() {
 void test_join_memfn() {
     X x = {0};
     BOOST_CHECK_EQUAL( x.value, 0);
-    boost::fibers::fiber( boost::fibers::launch_policy::post, & X::foo, std::ref( x), 3).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & X::foo, std::ref( x), 3).join();
     BOOST_CHECK_EQUAL( x.value, 3);
 }
 
@@ -187,7 +187,7 @@ void test_join_copyable() {
     copyable cp( 3);
     BOOST_CHECK( cp.state);
     BOOST_CHECK_EQUAL( value1, 0);
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, cp);
+    boost::fibers::fiber f( boost::fibers::launch::post, cp);
     f.join();
     BOOST_CHECK( cp.state);
     BOOST_CHECK_EQUAL( value1, 3);
@@ -198,7 +198,7 @@ void test_join_moveable() {
     moveable mv( 7);
     BOOST_CHECK( mv.state);
     BOOST_CHECK_EQUAL( value1, 0);
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, std::move( mv) );
+    boost::fibers::fiber f( boost::fibers::launch::post, std::move( mv) );
     f.join();
     BOOST_CHECK( ! mv.state);
     BOOST_CHECK_EQUAL( value1, 7);
@@ -211,7 +211,7 @@ void test_join_lambda() {
         int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
-                boost::fibers::launch_policy::post, [i,abc]() {
+                boost::fibers::launch::post, [i,abc]() {
                     value1 = i;
                     value2 = abc;
                 });
@@ -225,7 +225,7 @@ void test_join_lambda() {
         int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
-                boost::fibers::launch_policy::post, [](int i, std::string const& abc) {
+                boost::fibers::launch::post, [](int i, std::string const& abc) {
                     value1 = i;
                     value2 = abc;
                 },
@@ -243,7 +243,7 @@ void test_join_bind() {
         int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
-            boost::fibers::launch_policy::post, std::bind(
+            boost::fibers::launch::post, std::bind(
                 [i,abc]() {
                     value1 = i;
                     value2 = abc;
@@ -259,7 +259,7 @@ void test_join_bind() {
         int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
-            boost::fibers::launch_policy::post, std::bind(
+            boost::fibers::launch::post, std::bind(
                 []( int i, std::string & str) {
                     value1 = 3;
                     value2 = str;
@@ -277,7 +277,7 @@ void test_join_bind() {
         int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
-            boost::fibers::launch_policy::post, std::bind(
+            boost::fibers::launch::post, std::bind(
                 []( int i, std::string & str) {
                     value1 = 3;
                     value2 = str;
@@ -298,7 +298,7 @@ void test_join_in_fiber() {
     // f spawns an new fiber f' in its fiber-fn
     // f' yields in its fiber-fn
     // f joins s' and gets suspended (waiting on s')
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, fn5);
+    boost::fibers::fiber f( boost::fibers::launch::post, fn5);
     BOOST_CHECK( f.joinable() );
     // join() resumes f + f' which completes
     f.join();
@@ -308,7 +308,7 @@ void test_join_in_fiber() {
 void test_move_fiber() {
     boost::fibers::fiber f1;
     BOOST_CHECK( ! f1.joinable() );
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, fn1);
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn1);
     BOOST_CHECK( f2.joinable() );
     f1 = std::move( f2);
     BOOST_CHECK( f1.joinable() );
@@ -320,14 +320,14 @@ void test_move_fiber() {
 
 void test_id() {
     boost::fibers::fiber f1;
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, fn1);
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn1);
     BOOST_CHECK( ! f1.joinable() );
     BOOST_CHECK( f2.joinable() );
 
     BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), f1.get_id() );
     BOOST_CHECK( boost::fibers::fiber::id() != f2.get_id() );
 
-    boost::fibers::fiber f3( boost::fibers::launch_policy::post, fn1);
+    boost::fibers::fiber f3( boost::fibers::launch::post, fn1);
     BOOST_CHECK( f2.get_id() != f3.get_id() );
 
     f1 = std::move( f2);
@@ -347,8 +347,8 @@ void test_yield() {
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, fn3, std::ref( v1) );
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, fn3, std::ref( v2) );
+    boost::fibers::fiber f1( boost::fibers::launch::post, fn3, std::ref( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn3, std::ref( v2) );
     f1.join();
     f2.join();
     BOOST_CHECK( ! f1.joinable() );
@@ -409,7 +409,7 @@ void do_wait( boost::fibers::barrier* b) {
 
 void test_detach() {
     {
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, (detachable()) );
+        boost::fibers::fiber f( boost::fibers::launch::post, (detachable()) );
         BOOST_CHECK( f.joinable() );
         f.detach();
         BOOST_CHECK( ! f.joinable() );
@@ -418,7 +418,7 @@ void test_detach() {
         BOOST_CHECK_EQUAL( 0, detachable::alive_count);
     }
     {
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, (detachable()) );
+        boost::fibers::fiber f( boost::fibers::launch::post, (detachable()) );
         BOOST_CHECK( f.joinable() );
         boost::this_fiber::yield();
         f.detach();

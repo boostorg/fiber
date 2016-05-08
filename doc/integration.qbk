@@ -175,7 +175,7 @@ launch some number of fibers:
 
 [asio_rr_launch_fibers]
 
-Since we don[t] specify a [class_link launch_policy], these fibers are ready
+Since we don[t] specify a [class_link launch], these fibers are ready
 to run, but have not yet been entered.
 
 Having set everything up, the application calls

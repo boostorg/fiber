@@ -161,20 +161,20 @@ Instances that refer to __not_a_fiber__ compare equal to each other, but
 not equal to any instances that refer to an actual fiber. The comparison
 operators on __fiber_id__ yield a total order for every non-equal __fiber_id__.
 
-[#class_launch_policy]
-[heading Enumeration `launch_policy`]
+[#class_launch]
+[heading Enumeration `launch`]
 
-`launch_policy` specifies whether control passes immediately into a
+`launch` specifies whether control passes immediately into a
 newly-launched fiber.
 
-        enum class launch_policy {
+        enum class launch {
             dispatch,
             post
         };
 
 [heading `dispatch`]
 [variablelist
-[[Effects:] [A fiber launched with `launch_policy == dispatch` is entered
+[[Effects:] [A fiber launched with `launch == dispatch` is entered
 immediately. In other words, launching a fiber with `dispatch` suspends the
 caller (the previously-running fiber) until the fiber scheduler has a chance
 to resume it later.]]
@@ -182,11 +182,11 @@ to resume it later.]]
 
 [heading `post`]
 [variablelist
-[[Effects:] [A fiber launched with `launch_policy == post` is passed to the
+[[Effects:] [A fiber launched with `launch == post` is passed to the
 fiber scheduler as ready, but it is not yet entered. The caller (the
 previously-running fiber) continues executing. The newly-launched fiber will
 be entered when the fiber scheduler has a chance to resume it later.]]
-[[Note:] [If `launch_policy` is not explicitly specified, `post` is the default.]]
+[[Note:] [If `launch` is not explicitly specified, `post` is the default.]]
 ] 
 
 
@@ -205,13 +205,13 @@ be entered when the fiber scheduler has a chance to resume it later.]]
             fiber( Fn &&, Args && ...);
 
             template< typename Fn, typename ... Args >
-            fiber( ``[link class_launch_policy `launch_policy`]``, Fn &&, Args && ...);
+            fiber( ``[link class_launch `launch`]``, Fn &&, Args && ...);
 
             template< typename __StackAllocator__, typename Fn, typename ... Args >
             fiber( __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
 
             template< typename __StackAllocator__, typename Fn, typename ... Args >
-            fiber( ``[link class_launch_policy `launch_policy`]``, __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
+            fiber( ``[link class_launch `launch`]``, __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
 
             ~fiber();
 
@@ -264,21 +264,21 @@ be entered when the fiber scheduler has a chance to resume it later.]]
         fiber( Fn && fn, Args && ... args);
 
         template< typename Fn, typename ... Args >
-        fiber( ``[link class_launch_policy `launch_policy`]`` lpol, Fn && fn, Args && ... args);
+        fiber( ``[link class_launch `launch`]`` policy, Fn && fn, Args && ... args);
 
         template< typename __StackAllocator__, typename Fn, typename ... Args >
         fiber( __allocator_arg_t__, StackAllocator salloc, Fn && fn, Args && ... args);
 
         template< typename __StackAllocator__, typename Fn, typename ... Args >
-        fiber( ``[link class_launch_policy `launch_policy`]`` lpol, __allocator_arg_t__, StackAllocator salloc,
+        fiber( ``[link class_launch `launch`]`` policy, __allocator_arg_t__, StackAllocator salloc,
                Fn && fn, Args && ... args);
 
 [variablelist
 [[Preconditions:] [`Fn` must be copyable or movable.]]
 [[Effects:] [`fn` is copied or moved into internal storage for access by the
-new fiber. If [class_link launch_policy] is specified (or defaulted) to
+new fiber. If [class_link launch] is specified (or defaulted) to
 `post`, the new fiber is marked ["ready] and will be entered at the next
-opportunity. If `launch_policy` is specified as `dispatch`, the calling fiber
+opportunity. If `launch` is specified as `dispatch`, the calling fiber
 is suspended and the new fiber is entered immediately.]]
 [[Postconditions:] [`*this` refers to the newly created fiber of execution.]]
 [[Throws:] [__fiber_error__ if an error occurs.]]

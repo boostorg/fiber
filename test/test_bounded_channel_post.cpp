@@ -176,10 +176,10 @@ void test_pop_closed() {
 void test_pop_success() {
     boost::fibers::bounded_channel< int > c( 10);
     int v1 = 2, v2 = 0;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&v2](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&v2](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,v1](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
@@ -214,10 +214,10 @@ void test_value_pop_closed() {
 void test_value_pop_success() {
     boost::fibers::bounded_channel< int > c( 10);
     int v1 = 2, v2 = 0;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&v2](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&v2](){
         v2 = c.value_pop();
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,v1](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
@@ -246,10 +246,10 @@ void test_try_pop_closed() {
 void test_try_pop_success() {
     boost::fibers::bounded_channel< int > c( 10);
     int v1 = 2, v2 = 0;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&v2](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&v2](){
         while ( boost::fibers::channel_op_status::success != c.try_pop( v2) );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,v1](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
@@ -278,10 +278,10 @@ void test_pop_wait_for_closed() {
 void test_pop_wait_for_success() {
     boost::fibers::bounded_channel< int > c( 10);
     int v1 = 2, v2 = 0;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&v2](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&v2](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,v1](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
@@ -292,7 +292,7 @@ void test_pop_wait_for_success() {
 void test_pop_wait_for_timeout() {
     boost::fibers::bounded_channel< int > c( 10);
     int v = 0;
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, [&c,&v](){
+    boost::fibers::fiber f( boost::fibers::launch::post, [&c,&v](){
         BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.pop_wait_for( v, std::chrono::seconds( 1) ) );
     });
     f.join();
@@ -322,11 +322,11 @@ void test_pop_wait_until_closed() {
 void test_pop_wait_until_success() {
     boost::fibers::bounded_channel< int > c( 10);
     int v1 = 2, v2 = 0;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&v2](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&v2](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,v1](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,v1](){
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
@@ -337,7 +337,7 @@ void test_pop_wait_until_success() {
 void test_pop_wait_until_timeout() {
     boost::fibers::bounded_channel< int > c( 10);
     int v = 0;
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, [&c,&v](){
+    boost::fibers::fiber f( boost::fibers::launch::post, [&c,&v](){
         BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.pop_wait_until( v,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     });
@@ -347,7 +347,7 @@ void test_pop_wait_until_timeout() {
 void test_wm_1() {
     boost::fibers::bounded_channel< int > c( 3);
     std::vector< boost::fibers::fiber::id > ids;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 
@@ -367,7 +367,7 @@ void test_wm_1() {
 
         ids.push_back( boost::this_fiber::get_id() );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
@@ -411,7 +411,7 @@ void test_wm_1() {
 void test_wm_2() {
     boost::fibers::bounded_channel< int > c( 3);
     std::vector< boost::fibers::fiber::id > ids;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 
@@ -431,7 +431,7 @@ void test_wm_2() {
 
         ids.push_back( boost::this_fiber::get_id() );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
@@ -479,7 +479,7 @@ void test_wm_3() {
     BOOST_CHECK_EQUAL( c.upper_bound(), 3u );
     BOOST_CHECK_EQUAL( c.lower_bound(), 1u );
     std::vector< boost::fibers::fiber::id > ids;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 
@@ -498,7 +498,7 @@ void test_wm_3() {
 
         ids.push_back( boost::this_fiber::get_id() );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
@@ -544,7 +544,7 @@ void test_wm_3() {
 void test_wm_4() {
     boost::fibers::bounded_channel< int > c( 3, 1);
     std::vector< boost::fibers::fiber::id > ids;
-    boost::fibers::fiber f1( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f1( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 
@@ -560,7 +560,7 @@ void test_wm_4() {
 
         ids.push_back( boost::this_fiber::get_id() );
     });
-    boost::fibers::fiber f2( boost::fibers::launch_policy::post, [&c,&ids](){
+    boost::fibers::fiber f2( boost::fibers::launch::post, [&c,&ids](){
         ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 1, c.value_pop() );
 

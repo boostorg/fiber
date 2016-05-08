@@ -86,14 +86,14 @@ void test_one_waiter_notify_one() {
 	boost::fibers::condition_variable cond;
 
     boost::fibers::fiber f1(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
 	boost::fibers::fiber f2(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 
@@ -111,27 +111,27 @@ void test_two_waiter_notify_one() {
 	boost::fibers::condition_variable cond;
 
     boost::fibers::fiber f1(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f2(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f3(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f4(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
@@ -150,34 +150,34 @@ void test_two_waiter_notify_all() {
 	boost::fibers::condition_variable cond;
 
     boost::fibers::fiber f1(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f2(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f3(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 notify_all_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f4(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
     boost::fibers::fiber f5(
-                boost::fibers::launch_policy::post,
+                boost::fibers::launch::post,
                 notify_all_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
@@ -309,7 +309,7 @@ void do_test_condition_wait() {
     boost::fibers::mutex m;
     boost::fibers::condition_variable cv;
     std::unique_lock< boost::fibers::mutex > lk( m);
-    boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn1, std::ref( m), std::ref( cv) );
+    boost::fibers::fiber f( boost::fibers::launch::post, & fn1, std::ref( m), std::ref( cv) );
     BOOST_CHECK(test1 == 0);
     while (test1 == 0)
         cv.wait(lk);
@@ -321,7 +321,7 @@ void do_test_condition_wait() {
 }
 
 void test_condition_wait() {
-    boost::fibers::fiber( boost::fibers::launch_policy::post, & do_test_condition_wait).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & do_test_condition_wait).join();
     do_test_condition_wait();
 }
 
@@ -334,7 +334,7 @@ void do_test_condition_wait_until() {
     boost::fibers::condition_variable cv;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn2, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn2, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -348,7 +348,7 @@ void do_test_condition_wait_until() {
     test2 = 0;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn2, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn2, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -359,7 +359,7 @@ void do_test_condition_wait_until() {
 }
 
 void test_condition_wait_until() {
-    boost::fibers::fiber( boost::fibers::launch_policy::post, & do_test_condition_wait_until).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & do_test_condition_wait_until).join();
     do_test_condition_wait_until();
 }
 
@@ -372,7 +372,7 @@ void do_test_condition_wait_until_pred() {
     boost::fibers::condition_variable cv;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn3, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn3, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -386,7 +386,7 @@ void do_test_condition_wait_until_pred() {
     test2 = 0;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn3, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn3, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -397,7 +397,7 @@ void do_test_condition_wait_until_pred() {
 }
 
 void test_condition_wait_until_pred() {
-    boost::fibers::fiber( boost::fibers::launch_policy::post, & do_test_condition_wait_until_pred).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & do_test_condition_wait_until_pred).join();
     do_test_condition_wait_until_pred();
 }
 
@@ -410,7 +410,7 @@ void do_test_condition_wait_for() {
     boost::fibers::condition_variable cv;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn4, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn4, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -424,7 +424,7 @@ void do_test_condition_wait_for() {
     test2 = 0;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn4, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn4, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -435,7 +435,7 @@ void do_test_condition_wait_for() {
 }
 
 void test_condition_wait_for() {
-    boost::fibers::fiber( boost::fibers::launch_policy::post, & do_test_condition_wait_for).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & do_test_condition_wait_for).join();
     do_test_condition_wait_for();
 }
 
@@ -448,7 +448,7 @@ void do_test_condition_wait_for_pred() {
     boost::fibers::condition_variable cv;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn5, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn5, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -462,7 +462,7 @@ void do_test_condition_wait_for_pred() {
     test2 = 0;
     {
         std::unique_lock< boost::fibers::mutex > lk( m);
-        boost::fibers::fiber f( boost::fibers::launch_policy::post, & fn5, std::ref( m), std::ref( cv) );
+        boost::fibers::fiber f( boost::fibers::launch::post, & fn5, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(lk);
@@ -473,7 +473,7 @@ void do_test_condition_wait_for_pred() {
 }
 
 void test_condition_wait_for_pred() {
-    boost::fibers::fiber( boost::fibers::launch_policy::post, & do_test_condition_wait_for_pred).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & do_test_condition_wait_for_pred).join();
     do_test_condition_wait_for_pred();
 }
 
