@@ -18,7 +18,7 @@
 namespace boost {
 namespace fibers {
 
-enum class launch_policy {
+enum class launch {
     dispatch,
     post
 };

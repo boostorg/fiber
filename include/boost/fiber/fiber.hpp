@@ -51,7 +51,7 @@ public:
               typename = detail::disable_overload< fiber, Fn >
     >
     fiber( Fn && fn, Args && ... args) :
-        fiber{ launch_policy::post,
+        fiber{ launch::post,
                std::allocator_arg, default_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... } {
     }
@@ -60,8 +60,8 @@ public:
               typename ... Args,
               typename = detail::disable_overload< fiber, Fn >
     >
-    fiber( launch_policy lpol, Fn && fn, Args && ... args) :
-        fiber{ lpol,
+    fiber( launch policy, Fn && fn, Args && ... args) :
+        fiber{ policy,
                std::allocator_arg, default_stack(),
                std::forward< Fn >( fn), std::forward< Args >( args) ... } {
     }
@@ -71,7 +71,7 @@ public:
               typename ... Args
     >
     fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        fiber{ launch_policy::post,
+        fiber{ launch::post,
                std::allocator_arg, salloc,
                std::forward< Fn >( fn), std::forward< Args >( args) ... } {
     }
@@ -80,8 +80,8 @@ public:
               typename Fn,
               typename ... Args
     >
-    fiber( launch_policy lpol, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_{ make_worker_context( lpol, salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
+    fiber( launch policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
+        impl_{ make_worker_context( policy, salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
         start_();
     }
 

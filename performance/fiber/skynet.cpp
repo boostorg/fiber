@@ -29,7 +29,7 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
         channel_type rc;
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
-            boost::fibers::fiber{ boost::fibers::launch_policy::dispatch,
+            boost::fibers::fiber{ boost::fibers::launch::dispatch,
                                   std::allocator_arg, salloc,
                                   skynet,
                                   std::ref( salloc), std::ref( rc), sub_num, size / div, div }.detach();

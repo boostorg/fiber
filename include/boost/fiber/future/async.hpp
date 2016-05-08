@@ -27,7 +27,7 @@ future<
         typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( launch_policy lpol, Function && fn, Args && ... args) {
+async( launch policy, Function && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type     result_t;
@@ -35,7 +35,7 @@ async( launch_policy lpol, Function && fn, Args && ... args) {
     packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
         std::forward< Function >( fn) };
     future< result_t > f{ pt.get_future() };
-    fiber{ lpol, std::move( pt), std::forward< Args >( args) ... }.detach();
+    fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 
@@ -63,7 +63,7 @@ future<
         typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( launch_policy lpol, std::allocator_arg_t, StackAllocator salloc, Function && fn, Args && ... args) {
+async( launch policy, std::allocator_arg_t, StackAllocator salloc, Function && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Function >::type( typename std::decay< Args >::type ... )
     >::type     result_t;
@@ -71,7 +71,7 @@ async( launch_policy lpol, std::allocator_arg_t, StackAllocator salloc, Function
     packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
         std::allocator_arg, salloc, std::forward< Function >( fn) };
     future< result_t > f{ pt.get_future() };
-    fiber{ lpol, std::move( pt), std::forward< Args >( args) ... }.detach();
+    fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 

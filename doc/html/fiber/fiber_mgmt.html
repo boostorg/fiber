@@ -212,16 +212,16 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"><code c
       <a class="link" href="fiber_mgmt.html#class_fiber_id"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code></a> yield a total order for every non-equal
       <a class="link" href="fiber_mgmt.html#class_fiber_id"><code class="computeroutput"><span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span></code></a>.
     </p>
-<a name="class_launch_policy"></a><h4>
+<a name="class_launch"></a><h4>
 <a name="fiber.fiber_mgmt.h8"></a>
-      <span><a name="fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch_policy__phrase___code_"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch_policy__phrase___code_">Enumeration
-      <code class="computeroutput"><span class="identifier">launch_policy</span></code></a>
+      <span><a name="fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch__phrase___code_"></a></span><a class="link" href="fiber_mgmt.html#fiber.fiber_mgmt.enumeration__code__phrase_role__identifier__launch__phrase___code_">Enumeration
+      <code class="computeroutput"><span class="identifier">launch</span></code></a>
     </h4>
 <p>
-      <code class="computeroutput"><span class="identifier">launch_policy</span></code> specifies whether
-      control passes immediately into a newly-launched fiber.
+      <code class="computeroutput"><span class="identifier">launch</span></code> specifies whether control
+      passes immediately into a newly-launched fiber.
     </p>
-<pre class="programlisting"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="identifier">launch_policy</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">enum</span> <span class="keyword">class</span> <span class="identifier">launch</span> <span class="special">{</span>
     <span class="identifier">dispatch</span><span class="special">,</span>
     <span class="identifier">post</span>
 <span class="special">};</span>
@@ -235,7 +235,7 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"><code c
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            A fiber launched with <code class="computeroutput"><span class="identifier">launch_policy</span>
+            A fiber launched with <code class="computeroutput"><span class="identifier">launch</span>
             <span class="special">==</span> <span class="identifier">dispatch</span></code>
             is entered immediately. In other words, launching a fiber with <code class="computeroutput"><span class="identifier">dispatch</span></code> suspends the caller (the previously-running
             fiber) until the fiber scheduler has a chance to resume it later.
@@ -251,7 +251,7 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"><code c
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            A fiber launched with <code class="computeroutput"><span class="identifier">launch_policy</span>
+            A fiber launched with <code class="computeroutput"><span class="identifier">launch</span>
             <span class="special">==</span> <span class="identifier">post</span></code>
             is passed to the fiber scheduler as ready, but it is not yet entered.
             The caller (the previously-running fiber) continues executing. The newly-launched
@@ -260,9 +260,9 @@ by calling the <a class="link" href="fiber_mgmt/fiber.html#fiber_get_id"><code c
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            If <code class="computeroutput"><span class="identifier">launch_policy</span></code> is not
-            explicitly specified, <code class="computeroutput"><span class="identifier">post</span></code>
-            is the default.
+            If <code class="computeroutput"><span class="identifier">launch</span></code> is not explicitly
+            specified, <code class="computeroutput"><span class="identifier">post</span></code> is the
+            default.
           </p></dd>
 </dl>
 </div>
