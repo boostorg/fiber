@@ -48,14 +48,18 @@ int main() {
         std::size_t stack_size{ 4048 };
         std::size_t size{ 100000 };
         std::size_t div{ 10 };
-        allocator_type salloc{ stack_size, static_cast< std::size_t >( 1.3*size) };
+        allocator_type salloc{ stack_size, static_cast< std::size_t >( 1.2*size) };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
-        time_point_type start{ clock_type::now() };
-        channel_type rc;
-        skynet( salloc, rc, 0, size, div);
-        result = rc.value_pop();
-        duration = clock_type::now() - start;
+        boost::fibers::fiber{
+                std::allocator_arg, salloc,
+                [&salloc,&size,&div,&result,&duration](){
+                    channel_type rc;
+                    time_point_type start{ clock_type::now() };
+                    skynet( salloc, rc, 0, size, div);
+                    result = rc.value_pop();
+                    duration = clock_type::now() - start;
+                }}.join();
         std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
