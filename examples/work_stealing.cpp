@@ -146,9 +146,6 @@ private:
 
     rqueue_t                        rqueue_{};
     std::shared_ptr< ws_rqueue_t >  ws_rqueue_;
-    std::mutex                      mtx_{};
-    std::condition_variable         cnd_{};
-    bool                            flag_{ false };
 
 public:
     thief_algo( std::shared_ptr< ws_rqueue_t > ws_rqueue) :
@@ -184,22 +181,10 @@ public:
     }
 
     void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
-        if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
-            std::unique_lock< std::mutex > lk( mtx_);
-            cnd_.wait( lk, [this](){ return flag_; });
-            flag_ = false;
-        } else {
-            std::unique_lock< std::mutex > lk( mtx_);
-            cnd_.wait_until( lk, time_point, [this](){ return flag_; });
-            flag_ = false;
-        }
+        // let scheduler (dispatcher-fiber) spin
     }
 
     void notify() noexcept {
-        std::unique_lock< std::mutex > lk( mtx_);
-        flag_ = true;
-        lk.unlock();
-        cnd_.notify_all();
     }
 };
 
