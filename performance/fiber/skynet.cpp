@@ -21,6 +21,11 @@ using time_point_type = clock_type::time_point;
 using channel_type = boost::fibers::unbounded_channel< std::uint64_t >;
 using allocator_type = boost::fibers::pooled_fixedsize_stack;
 
+void prepare( allocator_type & salloc) {
+    auto sctx = salloc.allocate();
+    salloc.deallocate( sctx);
+};
+
 // microbenchmark
 void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::size_t size, std::size_t div) {
     if ( 1 == size) {
@@ -48,18 +53,15 @@ int main() {
         std::size_t stack_size{ 4048 };
         std::size_t size{ 100000 };
         std::size_t div{ 10 };
-        allocator_type salloc{ stack_size, static_cast< std::size_t >( 1.2*size) };
+        allocator_type salloc{ stack_size, size };
+        prepare( salloc);
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
-        boost::fibers::fiber{
-                std::allocator_arg, salloc,
-                [&salloc,&size,&div,&result,&duration](){
-                    channel_type rc;
-                    time_point_type start{ clock_type::now() };
-                    skynet( salloc, rc, 0, size, div);
-                    result = rc.value_pop();
-                    duration = clock_type::now() - start;
-                }}.join();
+        channel_type rc;
+        time_point_type start{ clock_type::now() };
+        skynet( salloc, rc, 0, size, div);
+        result = rc.value_pop();
+        duration = clock_type::now() - start;
         std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
