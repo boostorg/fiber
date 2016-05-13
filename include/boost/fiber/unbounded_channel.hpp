@@ -33,11 +33,7 @@ namespace boost {
 namespace fibers {
 
 template< typename T,
-          typename Allocator = fast_pool_allocator<
-              T,
-              default_user_allocator_malloc_free,
-              detail::spinlock
-          >
+          typename Allocator = std::allocator< T >
 >
 class unbounded_channel {
 public:
