@@ -73,7 +73,7 @@ private:
 
 //[priority_scheduler
 class priority_scheduler :
-    public boost::fibers::sched_algorithm_with_properties< priority_props > {
+    public boost::fibers::algo::algorithm_with_properties< priority_props > {
 private:
     typedef boost::fibers::scheduler::ready_queue_t/*< See [link ready_queue_t]. >*/   rqueue_t;
 
@@ -87,9 +87,9 @@ public:
         rqueue_() {
     }
 
-    // For a subclass of sched_algorithm_with_properties<>, it's important to
+    // For a subclass of algorithm_with_properties<>, it's important to
     // override the correct awakened() overload.
-    /*<< You must override the [member_link sched_algorithm_with_properties..awakened]
+    /*<< You must override the [member_link algorithm_with_properties..awakened]
          method. This is how your scheduler receives notification of a
          fiber that has become ready to run. >>*/
     virtual void awakened( boost::fibers::context * ctx, priority_props & props) noexcept {
@@ -115,7 +115,7 @@ public:
 //->
     }
 
-    /*<< You must override the [member_link sched_algorithm_with_properties..pick_next]
+    /*<< You must override the [member_link algorithm_with_properties..pick_next]
          method. This is how your scheduler actually advises the fiber manager
          of the next fiber to run. >>*/
     virtual boost::fibers::context * pick_next() noexcept {
@@ -132,13 +132,13 @@ public:
         return ctx;
     }
 
-    /*<< You must override [member_link sched_algorithm_with_properties..has_ready_fibers]
+    /*<< You must override [member_link algorithm_with_properties..has_ready_fibers]
       to inform the fiber manager of the state of your ready queue. >>*/
     virtual bool has_ready_fibers() const noexcept {
         return ! rqueue_.empty();
     }
 
-    /*<< Overriding [member_link sched_algorithm_with_properties..property_change]
+    /*<< Overriding [member_link algorithm_with_properties..property_change]
          is optional. This override handles the case in which the running
          fiber changes the priority of another ready fiber: a fiber already in
          our queue. In that case, move the updated fiber within the queue. >>*/

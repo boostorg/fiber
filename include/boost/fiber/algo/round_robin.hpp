@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
-#define BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
+#ifndef BOOST_FIBERS_ALGO_ROUND_ROBIN_H
+#define BOOST_FIBERS_ALGO_ROUND_ROBIN_H
 
 #include <condition_variable>
 #include <chrono>
@@ -12,7 +12,7 @@
 
 #include <boost/config.hpp>
 
-#include <boost/fiber/algorithm.hpp>
+#include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/scheduler.hpp>
@@ -23,12 +23,13 @@
 
 namespace boost {
 namespace fibers {
+namespace algo {
 
-class context;
-
-class BOOST_FIBERS_DECL round_robin : public sched_algorithm {
+class BOOST_FIBERS_DECL round_robin : public algorithm {
 private:
-    scheduler::ready_queue_t    ready_queue_{};
+    typedef scheduler::ready_queue_t rqueue_t;
+
+    rqueue_t                    rqueue_{};
     std::mutex                  mtx_{};
     std::condition_variable     cnd_{};
     bool                        flag_{ false };
@@ -50,10 +51,10 @@ public:
     virtual void notify() noexcept;
 };
 
-}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_DEFAULT_ROUND_ROBIN_H
+#endif // BOOST_FIBERS_ALGO_ROUND_ROBIN_H

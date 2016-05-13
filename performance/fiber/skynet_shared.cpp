@@ -1,3 +1,4 @@
+
 //          Copyright Oliver Kowalke 2015.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -6,14 +7,15 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <queue>
+#include <deque>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <numeric>
-#include <sstream>
 #include <vector>
 
 #include <boost/fiber/all.hpp>
@@ -21,71 +23,16 @@
 #include "barrier.hpp"
 #include "bind/bind_processor.hpp"
 
+using allocator_type = boost::fibers::fixedsize_stack;
+using channel_type = boost::fibers::unbounded_channel< std::uint64_t >;
 using clock_type = std::chrono::steady_clock;
 using duration_type = clock_type::duration;
+using lock_type = std::unique_lock< std::mutex >;
 using time_point_type = clock_type::time_point;
-using channel_type = boost::fibers::unbounded_channel< std::uint64_t >;
-using allocator_type = boost::fibers::fixedsize_stack;
 
 static bool done = false;
 static std::mutex mtx{};
 static boost::fibers::condition_variable_any cnd{};
-using lock_t = std::unique_lock< std::mutex >;
-
-class shared_queue_scheduler : public boost::fibers::sched_algorithm {
-private:
-    typedef boost::fibers::scheduler::ready_queue_t queue_t;
-
-    static queue_t      rqueue_;
-    static std::mutex   rqueue_mtx_;
-
-    queue_t             lqueue_{};
-
-public:
-    virtual void awakened( boost::fibers::context * ctx) noexcept {
-        if ( ! ctx->is_context( boost::fibers::type::pinned_context) ) {
-            ctx->detach();
-            lock_t lk( rqueue_mtx_);
-            ctx->ready_link( rqueue_);
-        } else {
-            ctx->ready_link( lqueue_);
-        }
-    }
-
-    virtual boost::fibers::context * pick_next() noexcept {
-        boost::fibers::context * ctx( nullptr);
-        lock_t lk( rqueue_mtx_);
-        if ( ! rqueue_.empty() ) {
-            ctx = & rqueue_.front();
-            rqueue_.pop_front();
-            lk.unlock();
-            BOOST_ASSERT( nullptr != ctx);
-            boost::fibers::context::active()->attach( ctx);
-        } else {
-            lk.unlock();
-            if ( ! lqueue_.empty() ) {
-                ctx = & lqueue_.front();
-                lqueue_.pop_front();
-            }
-        }
-        return ctx;
-    }
-
-    virtual bool has_ready_fibers() const noexcept {
-        lock_t lock( rqueue_mtx_);
-        return ! rqueue_.empty() || ! lqueue_.empty();
-    }
-
-    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
-        // do not block thread; spin in dispatcher-fiber till ready fibers are available
-    }
-
-    void notify() noexcept {
-    }
-};
-
-shared_queue_scheduler::queue_t shared_queue_scheduler::rqueue_{};
-std::mutex shared_queue_scheduler::rqueue_mtx_{};
 
 // microbenchmark
 void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::size_t size, std::size_t div) {
@@ -110,26 +57,25 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
 
 void thread( unsigned int i, barrier * b) {
     bind_to_processor( i);
-    boost::fibers::use_scheduling_algorithm< shared_queue_scheduler >();
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_round_robin >();
     b->wait();
-    lock_t lk( mtx);
+    lock_type lk( mtx);
     cnd.wait( lk, [](){ return done; });
     BOOST_ASSERT( done);
 }
 
 int main() {
     try {
-        boost::fibers::use_scheduling_algorithm< shared_queue_scheduler >();
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_round_robin >();
         unsigned int n = std::thread::hardware_concurrency();
         barrier b( n);
-        n -= 1; // this thread
-        bind_to_processor( n);
+        bind_to_processor( n - 1);
         std::size_t stack_size{ 4048 };
         std::size_t size{ 100000 };
         std::size_t div{ 10 };
         std::vector< std::thread > threads;
-        for ( unsigned int i = 0; i < n; i++) {
-            threads.push_back( std::thread( thread, i, & b) );
+        for ( unsigned int i = 1; i < n; ++i) {
+            threads.push_back( std::thread( thread, i - 1, & b) );
         };
         allocator_type salloc{ stack_size };
         std::uint64_t result{ 0 };
@@ -141,7 +87,7 @@ int main() {
         result = rc.value_pop();
         duration = clock_type::now() - start;
         std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
-        lock_t lk( mtx);
+        lock_type lk( mtx);
         done = true;
         lk.unlock();
         cnd.notify_all();

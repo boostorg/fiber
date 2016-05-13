@@ -43,12 +43,12 @@ which the fiber migrates.
 
 Thus, fiber migration is accomplished by sharing state between instances of a
 user-coded __algo__ implementation running on different threads. The fiber[s]
-original thread calls [member_link sched_algorithm..awakened], passing the
+original thread calls [member_link algorithm..awakened], passing the
 fiber[s] [class_link context][^*]. The `awakened()` implementation calls
 __context_detach__.
 
 At some later point, when the same or a different thread calls [member_link
-sched_algorithm..pick_next], the `pick_next()` implementation selects a ready
+algorithm..pick_next], the `pick_next()` implementation selects a ready
 fiber and calls __context_attach__ on it before returning it.
 
 As stated above, a `context` for which `is_context(pinned_context) == true`

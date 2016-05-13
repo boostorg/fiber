@@ -72,6 +72,9 @@ virtual addresses are used.]
 
         #include <boost/fiber/protected_fixedsize.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         struct protected_fixedsize {
             protected_fixesize(std::size_t size = traits_type::default_size());
 
@@ -79,6 +82,8 @@ virtual addresses are used.]
 
             void deallocate( stack_context &);
         }
+
+        }}
 
 [member_heading protected_fixedsize..allocate]
 
@@ -114,6 +119,9 @@ end of each stack. The memory is managed internally by
 
         #include <boost/fiber/pooled_fixedsize_stack.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         struct pooled_fixedsize_stack {
             pooled_fixedsize_stack(std::size_t stack_size = traits_type::default_size(), std::size_t next_size = 32, std::size_t max_size = 0);
 
@@ -121,6 +129,8 @@ end of each stack. The memory is managed internally by
 
             void deallocate( stack_context &);
         }
+
+        }}
 
 [hding pooled_fixedsize..Constructor]
 
@@ -160,6 +170,8 @@ address of the stack.]]
 [[Effects:] [Deallocates the stack space.]]
 ]
 
+[note This stack allocator is not thread safe.]
+
 
 [class_heading fixedsize_stack]
 
@@ -171,6 +183,9 @@ end of each stack. The memory is simply managed by `std::malloc()` and
 
         #include <boost/context/fixedsize_stack.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         struct fixedsize_stack {
             fixedsize_stack(std::size_t size = traits_type::default_size());
 
@@ -178,6 +193,8 @@ end of each stack. The memory is simply managed by `std::malloc()` and
 
             void deallocate( stack_context &);
         }
+
+        }}
 
 [member_heading fixedsize..allocate]
 
@@ -220,6 +237,9 @@ command line.]
 
         #include <boost/fiber/segmented_stack.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         struct segmented_stack {
             segmented_stack(std::size_t stack_size = traits_type::default_size());
 
@@ -227,6 +247,8 @@ command line.]
 
             void deallocate( stack_context &);
         }
+
+        }}
 
 [member_heading segmented..allocate]
 

@@ -20,13 +20,17 @@
         bool operator<( fiber const& l, fiber const& r) noexcept;
         void swap( fiber & l, fiber & r) noexcept;
 
-        struct sched_algorithm;
-        template< typename PROPS >
-        struct sched_algorithm_with_properties;
-        class round_robin;
         template< typename SchedAlgo, typename ... Args >
         void use_scheduling_algorithm( Args && ... args);
         bool has_ready_fibers();
+
+        namespace algo {
+
+        struct algorithm;
+        template< typename PROPS >
+        struct algorithm_with_properties;
+        class round_robin;
+        class shared_round_robin;
 
         }
 
@@ -195,6 +199,9 @@ be entered when the fiber scheduler has a chance to resume it later.]]
 
         #include <boost/fiber/fiber.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         class fiber {
         public:
             class id;
@@ -245,6 +252,8 @@ be entered when the fiber scheduler has a chance to resume it later.]]
         void use_scheduling_algorithm( Args && ...) noexcept;
 
         bool has_ready_fibers() noexcept;
+
+        }}
 
 
 [heading Default constructor]
@@ -385,13 +394,13 @@ default-constructed __fiber_id__.]]
 [variablelist
 [[Preconditions:] [`*this` refers to a fiber of execution. [function_link
 use_scheduling_algorithm] has been called from this thread with a subclass of
-[template_link sched_algorithm_with_properties] with the same template
+[template_link algorithm_with_properties] with the same template
 argument `PROPS`.]]
 [[Returns:] [a reference to the scheduler properties instance for `*this`.]]
 [[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with a
-`sched_algorithm_with_properties` subclass with some other template parameter
+`algorithm_with_properties` subclass with some other template parameter
 than `PROPS`.]]
-[[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
+[[Note:] [[template_link algorithm_with_properties] provides a way for a
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This method allows access to those user-provided properties.]]
 [[See also:] [[link custom Customization]]]
@@ -466,6 +475,9 @@ create a default [class_link round_robin] instance for this thread.]]
 
         #include <boost/fiber/fiber.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         class id {
         public:
             constexpr id() noexcept;
@@ -486,6 +498,8 @@ create a default [class_link round_robin] instance for this thread.]]
             friend std::basic_ostream< charT, traitsT > &
             operator<<( std::basic_ostream< charT, traitsT > &, id const&);
         };
+
+        }}
 
 [heading Constructor]
 
@@ -596,7 +610,12 @@ explicitly-launched fiber.
 
         #include <boost/fiber/operations.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         fiber::id get_id() noexcept;
+
+        }}
 
 [variablelist
 [[Returns:] [An instance of __fiber_id__ that represents the currently
@@ -608,8 +627,13 @@ executing fiber.]]
 
         #include <boost/fiber/operations.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         template< typename Clock, typename Duration >
         void sleep_until( std::chrono::time_point< Clock, Duration > const& abs_time);
+
+        }}
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time point specified by
@@ -628,8 +652,13 @@ exceptions are referred to as ['timeout-related exceptions.]]]]
 
         #include <boost/fiber/operations.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         template< class Rep, class Period >
         void sleep_for( std::chrono::duration< Rep, Period > const& rel_time);
+
+        }}
 
 [variablelist
 [[Effects:] [Suspends the current fiber until the time duration specified by
@@ -643,7 +672,12 @@ there are no guarantees about how soon after that it might resume.]]
 
         #include <boost/fiber/operations.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         void yield() noexcept;
+
+        }}
 
 [variablelist
 [[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
@@ -657,19 +691,24 @@ to run.]]
 
         #include <boost/fiber/operations.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         template< typename PROPS >
         PROPS & properties();
+
+        }}
 
 [variablelist
 [[Preconditions:] [[function_link use_scheduling_algorithm] has been called
 from this thread with a subclass of [template_link
-sched_algorithm_with_properties] with the same template argument `PROPS`.]]
+algorithm_with_properties] with the same template argument `PROPS`.]]
 [[Returns:] [a reference to the scheduler properties instance for the
 currently running fiber.]]
 [[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with a
-`sched_algorithm_with_properties` subclass with some other template parameter
+`algorithm_with_properties` subclass with some other template parameter
 than `PROPS`.]]
-[[Note:] [[template_link sched_algorithm_with_properties] provides a way for a
+[[Note:] [[template_link algorithm_with_properties] provides a way for a
 user-coded scheduler to associate extended properties, such as priority, with
 a fiber instance. This function allows access to those user-provided
 properties.]]

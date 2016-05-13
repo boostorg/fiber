@@ -156,42 +156,47 @@ A timed wait operation might return because of timeout or not.
 [template condition_variable_x[classname locktype template_rtype template_arg]
 [class_heading [classname]]
 
-    #include <boost/fiber/condition_variable.hpp>
+        #include <boost/fiber/condition_variable.hpp>
 
-    class ``[classname]`` {
-    public:
-        ``[classname]``();
-        ~``[classname]``();
+        namespace boost {
+        namespace fibers {
 
-        ``[classname]``( ``[classname]`` const&) = delete;
-        ``[classname]`` & operator=( ``[classname]`` const&) = delete;
+        class ``[classname]`` {
+        public:
+            ``[classname]``();
+            ~``[classname]``();
 
-        void notify_one() noexcept;
-        void notify_all() noexcept;
+            ``[classname]``( ``[classname]`` const&) = delete;
+            ``[classname]`` & operator=( ``[classname]`` const&) = delete;
 
-        ``[template_rtype]`` wait( ``[locktype]`` &);
+            void notify_one() noexcept;
+            void notify_all() noexcept;
 
-        template< ``[template_arg]`` Pred >
-        void wait( ``[locktype]`` &, Pred);
+            ``[template_rtype]`` wait( ``[locktype]`` &);
 
-        template< ``[template_arg]`` Clock, typename Duration >
-        cv_status wait_until( ``[locktype]`` &,
-                              std::chrono::time_point< Clock, Duration > const&);
+            template< ``[template_arg]`` Pred >
+            void wait( ``[locktype]`` &, Pred);
 
-        template< ``[template_arg]`` Clock, typename Duration, typename Pred >
-        bool wait_until( ``[locktype]`` &,
-                         std::chrono::time_point< Clock, Duration > const&,
-                         Pred);
+            template< ``[template_arg]`` Clock, typename Duration >
+            cv_status wait_until( ``[locktype]`` &,
+                                  std::chrono::time_point< Clock, Duration > const&);
 
-        template< ``[template_arg]`` Rep, typename Period >
-        cv_status wait_for( ``[locktype]`` &,
-                            std::chrono::duration< Rep, Period > const&);
+            template< ``[template_arg]`` Clock, typename Duration, typename Pred >
+            bool wait_until( ``[locktype]`` &,
+                             std::chrono::time_point< Clock, Duration > const&,
+                             Pred);
 
-        template< ``[template_arg]`` Rep, typename Period, typename Pred >
-        bool wait_for( ``[locktype]`` &,
-                       std::chrono::duration< Rep, Period > const&,
-                       Pred);
-    };
+            template< ``[template_arg]`` Rep, typename Period >
+            cv_status wait_for( ``[locktype]`` &,
+                                std::chrono::duration< Rep, Period > const&);
+
+            template< ``[template_arg]`` Rep, typename Period, typename Pred >
+            bool wait_for( ``[locktype]`` &,
+                           std::chrono::duration< Rep, Period > const&,
+                           Pred);
+        };
+
+        }}
 
 [heading Constructor]
 

@@ -85,7 +85,7 @@ public:
     }
 };
 
-class victim_algo : public boost::fibers::sched_algorithm {
+class victim_algo : public boost::fibers::algo::algorithm {
 private:
     typedef work_stealing_queue        rqueue_t;
 
@@ -139,7 +139,7 @@ public:
     }
 };
 
-class thief_algo : public boost::fibers::sched_algorithm {
+class thief_algo : public boost::fibers::algo::algorithm {
 private:
     typedef boost::fibers::scheduler::ready_queue_t rqueue_t;
     typedef work_stealing_queue                     ws_rqueue_t;

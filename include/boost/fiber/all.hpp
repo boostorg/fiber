@@ -7,7 +7,9 @@
 #ifndef BOOST_FIBERS_H
 #define BOOST_FIBERS_H
 
-#include <boost/fiber/algorithm.hpp>
+#include <boost/fiber/algo/algorithm.hpp>
+#include <boost/fiber/algo/round_robin.hpp>
+#include <boost/fiber/algo/shared_round_robin.hpp>
 #include <boost/fiber/barrier.hpp>
 #include <boost/fiber/bounded_channel.hpp>
 #include <boost/fiber/condition_variable.hpp>

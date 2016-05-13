@@ -18,7 +18,7 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
 
-#include <boost/fiber/algorithm.hpp>
+#include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/data.hpp>
@@ -63,7 +63,7 @@ private:
                     context, detail::worker_hook, & context::worker_hook_ >,
                 intrusive::constant_time_size< false > >    worker_queue_t;
 
-    std::unique_ptr< sched_algorithm >  sched_algo_;
+    std::unique_ptr< algo::algorithm >  algo_;
     context                         *   main_ctx_{ nullptr };
     intrusive_ptr< context >            dispatcher_ctx_{};
     // worker-queue contains all context' mananged by this scheduler
@@ -124,7 +124,7 @@ public:
 
     bool has_ready_fibers() const noexcept;
 
-    void set_sched_algo( std::unique_ptr< sched_algorithm >) noexcept;
+    void set_algo( std::unique_ptr< algo::algorithm >) noexcept;
 
     void attach_main_context( context *) noexcept;
 
