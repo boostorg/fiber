@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/10/25 10:52:30 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/10/31 09:24:13 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -2198,8 +2198,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 </bridgehead>
     </para>
     <para>
-      This class implements <link linkend="class_algorithm"><code>algorithm</code></link>; ready fibers are shared between
-      all instances (running on different threads) of shared_work.
+      This class implements <link linkend="class_algorithm"><code>algorithm</code></link>, scheduling fibers in round-robin
+      fashion. Ready fibers are shared between all instances (running on different
+      threads) of shared_work.
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">shared_work</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
@@ -2367,6 +2368,215 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <listitem>
           <para>
             Wake up a pending call to <link linkend="shared_work_suspend_until"><code>shared_work::suspend_until()</code></link>,
+            some fibers might be ready. This implementation wakes <code><phrase role="identifier">suspend_until</phrase><phrase
+            role="special">()</phrase></code> via <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all"><code><phrase
+            role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">condition_variable</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">notify_all</phrase><phrase role="special">()</phrase></code></ulink>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="class_work_stealing_bridgehead">
+  <phrase id="class_work_stealing"/>
+  <link linkend="class_work_stealing">Class <code>work_stealing</code></link>
+</bridgehead>
+    </para>
+    <para>
+      This class implements <link linkend="class_algorithm"><code>algorithm</code></link>; if the local ready-queue goes
+      out of ready fibers, fibers are stolen from other schedulers. The work stealing
+      algorithm is based on the Chase-Lev algorithm. <footnote id="fiber.scheduling.f0">
+      <para>
+        David Chase and Yossi Lev. Dynamic circular work-stealing deque. In SPAA
+        ’05: Proceedings of the seventeenth annual ACM symposium on Parallelism
+        in algorithms and architectures, pages 21–28, New York, NY, USA, 2005.
+        ACM.
+      </para>
+      </footnote> <footnote id="fiber.scheduling.f1">
+      <para>
+        Nhat Minh Lê, Antoniu Pop, Albert Cohen, and Francesco Zappa Nardelli. 2013.
+        Correct and efficient work-stealing for weak memory models. In Proceedings
+        of the 18th ACM SIGPLAN symposium on Principles and practice of parallel
+        programming (PPoPP '13). ACM, New York, NY, USA, 69-80.
+      </para>
+      </footnote> Victim scheduler are selected in radnom fashion.
+    </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">class</phrase> <phrase role="identifier">work_stealing</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="special">};</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+    <para>
+      <bridgehead renderas="sect4" id="work_stealing_awakened_bridgehead">
+  <phrase id="work_stealing_awakened"/>
+  <link linkend="work_stealing_awakened">Member
+      function <code>awakened</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Enqueues fiber <code><phrase role="identifier">f</phrase></code> onto
+            the shared ready queue.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="work_stealing_pick_next_bridgehead">
+  <phrase id="work_stealing_pick_next"/>
+  <link linkend="work_stealing_pick_next">Member
+      function <code>pick_next</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            the fiber at the head of the ready queue, or <code><phrase role="keyword">nullptr</phrase></code>
+            if the queue is empty.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            Placing ready fibers onto the tail of the sahred queue, and returning
+            them from the head of that queue, shares the thread between ready fibers
+            in round-robin fashion.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="work_stealing_has_ready_fibers_bridgehead">
+  <phrase id="work_stealing_has_ready_fibers"/>
+  <link linkend="work_stealing_has_ready_fibers">Member
+      function <code>has_ready_fibers</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            <code><phrase role="keyword">true</phrase></code> if scheduler has fibers
+            ready to run.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="work_stealing_suspend_until_bridgehead">
+  <phrase id="work_stealing_suspend_until"/>
+  <link linkend="work_stealing_suspend_until">Member
+      function <code>suspend_until</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">abs_time</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Informs <code><phrase role="identifier">work_stealing</phrase></code>
+            that no ready fiber will be available until time-point <code><phrase
+            role="identifier">abs_time</phrase></code>. This implementation blocks
+            in <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/wait_until"><code><phrase
+            role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">condition_variable</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">wait_until</phrase><phrase role="special">()</phrase></code></ulink>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="work_stealing_notify_bridgehead">
+  <phrase id="work_stealing_notify"/>
+  <link linkend="work_stealing_notify">Member
+      function <code>notify</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Wake up a pending call to <link linkend="work_stealing_suspend_until"><code>work_stealing::suspend_until()</code></link>,
             some fibers might be ready. This implementation wakes <code><phrase role="identifier">suspend_until</phrase><phrase
             role="special">()</phrase></code> via <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all"><code><phrase
             role="identifier">std</phrase><phrase role="special">::</phrase><phrase
@@ -4447,10 +4657,6 @@ implementation&#8217;s
       defined. When the library is built with that macro, you must ensure that all
       the fibers referencing a particular synchronization object are running in the
       same thread.
-    </para>
-    <para>
-      The macro <emphasis role="bold"><code><phrase role="identifier">BOOST_FIBERS_SPINLOCK_YIELD</phrase></code></emphasis>
-      invokes <emphasis>std::this_thread::yield()</emphasis> for busy wait in spinlock.
     </para>
     <section id="fiber.synchronization.mutex_types">
       <title><link linkend="fiber.synchronization.mutex_types">Mutex Types</link></title>
@@ -6991,7 +7197,7 @@ implementation&#8217;s
     <phrase role="special">}</phrase>
 <phrase role="special">}</phrase>
 
-<phrase role="identifier">channel_t</phrase> <phrase role="identifier">chan</phrase><phrase role="special">{</phrase> <phrase role="number">1</phrase> <phrase role="special">};</phrase>
+<phrase role="identifier">channel_t</phrase> <phrase role="identifier">chan</phrase><phrase role="special">{</phrase> <phrase role="number">2</phrase> <phrase role="special">};</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f1</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">(</phrase> <phrase role="identifier">send</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">chan</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f2</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">bind</phrase><phrase role="special">(</phrase> <phrase role="identifier">recv</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">chan</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">);</phrase>
 
@@ -7092,8 +7298,13 @@ implementation&#8217;s
             <term>Preconditions:</term>
             <listitem>
               <para>
-                <code><phrase role="number">0</phrase> <phrase role="special">&lt;</phrase>
-                <phrase role="identifier">capacity</phrase></code>
+                <code><phrase role="number">0</phrase><phrase role="special">!=</phrase><phrase
+                role="identifier">capacity</phrase> <phrase role="special">&amp;&amp;</phrase>
+                <phrase role="number">0</phrase><phrase role="special">==(</phrase><phrase
+                role="identifier">capacity</phrase> <phrase role="special">&amp;</phrase>
+                <phrase role="special">(</phrase><phrase role="identifier">capacity</phrase><phrase
+                role="special">-</phrase><phrase role="number">1</phrase><phrase
+                role="special">))</phrase></code>
               </para>
             </listitem>
           </varlistentry>
@@ -7119,8 +7330,13 @@ implementation&#8217;s
             <listitem>
               <para>
                 <emphasis role="bold">invalid_argument</emphasis>: if <code><phrase
-                role="number">0</phrase> <phrase role="special">==</phrase> <phrase
-                role="identifier">capacity</phrase></code>.
+                role="number">0</phrase><phrase role="special">==</phrase><phrase
+                role="identifier">capacity</phrase> <phrase role="special">||</phrase>
+                <phrase role="number">0</phrase><phrase role="special">!=(</phrase><phrase
+                role="identifier">capacity</phrase> <phrase role="special">&amp;</phrase>
+                <phrase role="special">(</phrase><phrase role="identifier">capacity</phrase><phrase
+                role="special">-</phrase><phrase role="number">1</phrase><phrase
+                role="special">))</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -14552,6 +14768,88 @@ that would cause the thread to
   <section id="fiber.rationale">
     <title><link linkend="fiber.rationale">Rationale</link></title>
     <bridgehead renderas="sect3" id="fiber.rationale.h0">
+      <phrase id="fiber.rationale.preprocessor_defines"/><link linkend="fiber.rationale.preprocessor_defines">preprocessor
+      defines</link>
+    </bridgehead>
+    <table frame="all" id="fiber.rationale.preopcessor_defines">
+      <title>preopcessor defines</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+            </entry>
+            <entry>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                BOOST_FIBERS_NO_ATOMICS
+              </para>
+            </entry>
+            <entry>
+              <para>
+                no <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+                role="identifier">atomic</phrase><phrase role="special">&lt;&gt;</phrase></code>
+                used, inter-thread synchronization disabled
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                BOOST_FIBERS_SPINLOCK_STD_MUTEX
+              </para>
+            </entry>
+            <entry>
+              <para>
+                use <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+                role="identifier">mutex</phrase></code> as spinlock instead of default
+                <code><phrase role="identifier">XCHG</phrase></code>-sinlock with
+                backoff
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                BOOST_FIBERS_SPIN_BACKOFF
+              </para>
+            </entry>
+            <entry>
+              <para>
+                limit determines when to used <code><phrase role="identifier">std</phrase><phrase
+                role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase
+                role="special">::</phrase><phrase role="identifier">yield</phrase><phrase
+                role="special">()</phrase></code> instead of mnemonic <code><phrase
+                role="identifier">pause</phrase><phrase role="special">/</phrase><phrase
+                role="identifier">yield</phrase></code> during busy wait (apllies
+                on to <code><phrase role="identifier">XCHG</phrase></code>-spinlock)
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                BOOST_FIBERS_SINGLE_CORE
+              </para>
+            </entry>
+            <entry>
+              <para>
+                allways call <code><phrase role="identifier">std</phrase><phrase
+                role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase
+                role="special">::</phrase><phrase role="identifier">yield</phrase><phrase
+                role="special">()</phrase></code> without backoff during busy wait
+                (apllies on to <code><phrase role="identifier">XCHG</phrase></code>-spinlock)
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <bridgehead renderas="sect3" id="fiber.rationale.h1">
       <phrase id="fiber.rationale.distinction_between_coroutines_and_fibers"/><link
       linkend="fiber.rationale.distinction_between_coroutines_and_fibers">distinction
       between coroutines and fibers</link>
@@ -14583,7 +14881,7 @@ that would cause the thread to
       </para>
       </footnote>.
     </para>
-    <bridgehead renderas="sect3" id="fiber.rationale.h1">
+    <bridgehead renderas="sect3" id="fiber.rationale.h2">
       <phrase id="fiber.rationale.what_about_transactional_memory"/><link linkend="fiber.rationale.what_about_transactional_memory">what
       about transactional memory</link>
     </bridgehead>
@@ -14593,7 +14891,7 @@ that would cause the thread to
       Once transactional memory is improved (supporting hybrid tm), spinlocks will
       be replaced by __transaction_atomic{} statements surrounding the critical sections.
     </para>
-    <bridgehead renderas="sect3" id="fiber.rationale.h2">
+    <bridgehead renderas="sect3" id="fiber.rationale.h3">
       <phrase id="fiber.rationale.synchronization_between_fibers_running_in_different_threads"/><link
       linkend="fiber.rationale.synchronization_between_fibers_running_in_different_threads">synchronization
       between fibers running in different threads</link>
@@ -14610,7 +14908,7 @@ that would cause the thread to
       see <link linkend="cross_thread_sync">this description</link>.)
     </para>
     <anchor id="spurious_wakeup"/>
-    <bridgehead renderas="sect3" id="fiber.rationale.h3">
+    <bridgehead renderas="sect3" id="fiber.rationale.h4">
       <phrase id="fiber.rationale.spurious_wakeup"/><link linkend="fiber.rationale.spurious_wakeup">spurious
       wakeup</link>
     </bridgehead>
@@ -14641,7 +14939,7 @@ that would cause the thread to
     <para>
       See also <link linkend="condition_variable_spurious_wakeups">No Spurious Wakeups</link>.
     </para>
-    <bridgehead renderas="sect3" id="fiber.rationale.h4">
+    <bridgehead renderas="sect3" id="fiber.rationale.h5">
       <phrase id="fiber.rationale.migrating_fibers_between_threads"/><link linkend="fiber.rationale.migrating_fibers_between_threads">migrating
       fibers between threads</link>
     </bridgehead>
@@ -14658,7 +14956,7 @@ that would cause the thread to
     <para>
       See also <link linkend="migration">Migrating fibers between threads</link>.
     </para>
-    <bridgehead renderas="sect3" id="fiber.rationale.h5">
+    <bridgehead renderas="sect3" id="fiber.rationale.h6">
       <phrase id="fiber.rationale.support_for_boost_asio"/><link linkend="fiber.rationale.support_for_boost_asio">support
       for Boost.Asio</link>
     </bridgehead>
@@ -14672,14 +14970,14 @@ that would cause the thread to
       To interface smoothly with an arbitrary Asio async I/O operation, see <link
       linkend="callbacks_asio">Then There&#8217;s <ulink url="http://www.boost.org/doc/libs/release/libs/asio/index.html">Boost.Asio</ulink></link>.
     </para>
-    <bridgehead renderas="sect3" id="fiber.rationale.h6">
+    <bridgehead renderas="sect3" id="fiber.rationale.h7">
       <phrase id="fiber.rationale.tested_compilers"/><link linkend="fiber.rationale.tested_compilers">tested
       compilers</link>
     </bridgehead>
     <para>
       The library was tested with GCC-5.1.1, Clang-3.6.0 and MSVC-14.0 in c++11-mode.
     </para>
-    <bridgehead renderas="sect3" id="fiber.rationale.h7">
+    <bridgehead renderas="sect3" id="fiber.rationale.h8">
       <phrase id="fiber.rationale.supported_architectures"/><link linkend="fiber.rationale.supported_architectures">supported
       architectures</link>
     </bridgehead>

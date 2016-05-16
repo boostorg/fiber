@@ -10,6 +10,7 @@
 #include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/algo/round_robin.hpp>
 #include <boost/fiber/algo/shared_work.hpp>
+#include <boost/fiber/algo/work_stealing.hpp>
 #include <boost/fiber/barrier.hpp>
 #include <boost/fiber/buffered_channel.hpp>
 #include <boost/fiber/channel_op_status.hpp>

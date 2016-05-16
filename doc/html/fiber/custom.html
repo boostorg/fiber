@@ -61,7 +61,7 @@
     </h4>
 <p>
       The first essential point is that we must associate an integer priority with
-      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">9</a>]</sup>
+      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">11</a>]</sup>
     </p>
 <p>
       One might suggest deriving a custom <a class="link" href="fiber_mgmt/fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> subclass to store such
@@ -401,7 +401,7 @@
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">11</a>] </sup>
         A previous version of the Fiber library implicitly tracked an int priority
         for each fiber, even though the default scheduler ignored it. This has been
         dropped, since the library now supports arbitrary scheduler-specific fiber

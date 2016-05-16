@@ -435,8 +435,9 @@
 <p>
     </p>
 <p>
-      This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>; ready fibers are shared between
-      all instances (running on different threads) of shared_work.
+      This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>, scheduling fibers in round-robin
+      fashion. Ready fibers are shared between all instances (running on different
+      threads) of shared_work.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">shared_work</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
@@ -587,6 +588,177 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
             Wake up a pending call to <a class="link" href="scheduling.html#shared_work_suspend_until"><code class="computeroutput">shared_work::suspend_until()</code></a>,
+            some fibers might be ready. This implementation wakes <code class="computeroutput"><span class="identifier">suspend_until</span><span class="special">()</span></code> via <a href="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span><span class="special">::</span><span class="identifier">notify_all</span><span class="special">()</span></code></a>.
+          </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+            Nothing.
+          </p></dd>
+</dl>
+</div>
+<p>
+      </p>
+<h5>
+<a name="class_work_stealing_bridgehead"></a>
+  <span><a name="class_work_stealing"></a></span>
+  <a class="link" href="scheduling.html#class_work_stealing">Class <code class="computeroutput">work_stealing</code></a>
+</h5>
+<p>
+    </p>
+<p>
+      This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>; if the local ready-queue goes
+      out of ready fibers, fibers are stolen from other schedulers. The work stealing
+      algorithm is based on the Chase-Lev algorithm. <sup>[<a name="fiber.scheduling.f0" href="#ftn.fiber.scheduling.f0" class="footnote">1</a>]</sup> <sup>[<a name="fiber.scheduling.f1" href="#ftn.fiber.scheduling.f1" class="footnote">2</a>]</sup> Victim scheduler are selected in radnom fashion.
+    </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">algo</span> <span class="special">{</span>
+
+<span class="keyword">class</span> <span class="identifier">work_stealing</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">algorithm</span> <span class="special">{</span>
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">suspend_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">steady_clock</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+    <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">notify</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="special">}}}</span>
+</pre>
+<p>
+      </p>
+<h5>
+<a name="work_stealing_awakened_bridgehead"></a>
+  <span><a name="work_stealing_awakened"></a></span>
+  <a class="link" href="scheduling.html#work_stealing_awakened">Member
+      function <code class="computeroutput">awakened</code>()</a>
+</h5>
+<p>
+    </p>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">f</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Enqueues fiber <code class="computeroutput"><span class="identifier">f</span></code> onto
+            the shared ready queue.
+          </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+            Nothing.
+          </p></dd>
+</dl>
+</div>
+<p>
+      </p>
+<h5>
+<a name="work_stealing_pick_next_bridgehead"></a>
+  <span><a name="work_stealing_pick_next"></a></span>
+  <a class="link" href="scheduling.html#work_stealing_pick_next">Member
+      function <code class="computeroutput">pick_next</code>()</a>
+</h5>
+<p>
+    </p>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+            the fiber at the head of the ready queue, or <code class="computeroutput"><span class="keyword">nullptr</span></code>
+            if the queue is empty.
+          </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+            Nothing.
+          </p></dd>
+<dt><span class="term">Note:</span></dt>
+<dd><p>
+            Placing ready fibers onto the tail of the sahred queue, and returning
+            them from the head of that queue, shares the thread between ready fibers
+            in round-robin fashion.
+          </p></dd>
+</dl>
+</div>
+<p>
+      </p>
+<h5>
+<a name="work_stealing_has_ready_fibers_bridgehead"></a>
+  <span><a name="work_stealing_has_ready_fibers"></a></span>
+  <a class="link" href="scheduling.html#work_stealing_has_ready_fibers">Member
+      function <code class="computeroutput">has_ready_fibers</code>()</a>
+</h5>
+<p>
+    </p>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+            <code class="computeroutput"><span class="keyword">true</span></code> if scheduler has fibers
+            ready to run.
+          </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+            Nothing.
+          </p></dd>
+</dl>
+</div>
+<p>
+      </p>
+<h5>
+<a name="work_stealing_suspend_until_bridgehead"></a>
+  <span><a name="work_stealing_suspend_until"></a></span>
+  <a class="link" href="scheduling.html#work_stealing_suspend_until">Member
+      function <code class="computeroutput">suspend_until</code>()</a>
+</h5>
+<p>
+    </p>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">suspend_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">steady_clock</span><span class="special">::</span><span class="identifier">time_point</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Informs <code class="computeroutput"><span class="identifier">work_stealing</span></code>
+            that no ready fiber will be available until time-point <code class="computeroutput"><span class="identifier">abs_time</span></code>. This implementation blocks
+            in <a href="http://en.cppreference.com/w/cpp/thread/condition_variable/wait_until" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span><span class="special">::</span><span class="identifier">wait_until</span><span class="special">()</span></code></a>.
+          </p></dd>
+<dt><span class="term">Throws:</span></dt>
+<dd><p>
+            Nothing.
+          </p></dd>
+</dl>
+</div>
+<p>
+      </p>
+<h5>
+<a name="work_stealing_notify_bridgehead"></a>
+  <span><a name="work_stealing_notify"></a></span>
+  <a class="link" href="scheduling.html#work_stealing_notify">Member
+      function <code class="computeroutput">notify</code>()</a>
+</h5>
+<p>
+    </p>
+<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">notify</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Effects:</span></dt>
+<dd><p>
+            Wake up a pending call to <a class="link" href="scheduling.html#work_stealing_suspend_until"><code class="computeroutput">work_stealing::suspend_until()</code></a>,
             some fibers might be ready. This implementation wakes <code class="computeroutput"><span class="identifier">suspend_until</span><span class="special">()</span></code> via <a href="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">condition_variable</span><span class="special">::</span><span class="identifier">notify_all</span><span class="special">()</span></code></a>.
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
@@ -1701,6 +1873,21 @@ implementation&#8217;s
             Nothing.
           </p></dd>
 </dl>
+</div>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.fiber.scheduling.f0" href="#fiber.scheduling.f0" class="para">1</a>] </sup>
+        David Chase and Yossi Lev. Dynamic circular work-stealing deque. In SPAA
+        &#8217;05: Proceedings of the seventeenth annual ACM symposium on Parallelism
+        in algorithms and architectures, pages 21&#8211;28, New York, NY, USA, 2005.
+        ACM.
+      </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.scheduling.f1" href="#fiber.scheduling.f1" class="para">2</a>] </sup>
+        Nhat Minh L&#234;, Antoniu Pop, Albert Cohen, and Francesco Zappa Nardelli. 2013.
+        Correct and efficient work-stealing for weak memory models. In Proceedings
+        of the 18th ACM SIGPLAN symposium on Principles and practice of parallel
+        programming (PPoPP '13). ACM, New York, NY, USA, 69-80.
+      </p></div>
 </div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

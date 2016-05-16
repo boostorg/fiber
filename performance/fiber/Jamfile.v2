@@ -67,6 +67,10 @@ exe skynet_shared :
     pbind
     skynet_shared.cpp ;
 
+exe skynet_stealing :
+    pbind
+    skynet_stealing.cpp ;
+
 exe overhead_create
    : overhead_create.cpp
    ;

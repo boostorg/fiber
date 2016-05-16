@@ -53,7 +53,7 @@
     <span class="special">}</span>
 <span class="special">}</span>
 
-<span class="identifier">channel_t</span> <span class="identifier">chan</span><span class="special">{</span> <span class="number">1</span> <span class="special">};</span>
+<span class="identifier">channel_t</span> <span class="identifier">chan</span><span class="special">{</span> <span class="number">2</span> <span class="special">};</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f1</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span> <span class="identifier">send</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">chan</span><span class="special">)</span> <span class="special">)</span> <span class="special">);</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f2</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(</span> <span class="identifier">recv</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">chan</span><span class="special">)</span> <span class="special">)</span> <span class="special">);</span>
 
@@ -156,8 +156,9 @@
 <dl>
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
-                <code class="computeroutput"><span class="number">0</span> <span class="special">&lt;</span>
-                <span class="identifier">capacity</span></code>
+                <code class="computeroutput"><span class="number">0</span><span class="special">!=</span><span class="identifier">capacity</span> <span class="special">&amp;&amp;</span>
+                <span class="number">0</span><span class="special">==(</span><span class="identifier">capacity</span> <span class="special">&amp;</span>
+                <span class="special">(</span><span class="identifier">capacity</span><span class="special">-</span><span class="number">1</span><span class="special">))</span></code>
               </p></dd>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
@@ -170,7 +171,9 @@
               </p></dd>
 <dt><span class="term">Error Conditions:</span></dt>
 <dd><p>
-                <span class="bold"><strong>invalid_argument</strong></span>: if <code class="computeroutput"><span class="number">0</span> <span class="special">==</span> <span class="identifier">capacity</span></code>.
+                <span class="bold"><strong>invalid_argument</strong></span>: if <code class="computeroutput"><span class="number">0</span><span class="special">==</span><span class="identifier">capacity</span> <span class="special">||</span>
+                <span class="number">0</span><span class="special">!=(</span><span class="identifier">capacity</span> <span class="special">&amp;</span>
+                <span class="special">(</span><span class="identifier">capacity</span><span class="special">-</span><span class="number">1</span><span class="special">))</span></code>.
               </p></dd>
 <dt><span class="term">Notes:</span></dt>
 <dd><p>
