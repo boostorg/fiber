@@ -28,6 +28,9 @@
 </h3></div></div></div>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">id</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">constexpr</span> <span class="identifier">id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -48,6 +51,8 @@
     <span class="keyword">friend</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_ostream</span><span class="special">&lt;</span> <span class="identifier">charT</span><span class="special">,</span> <span class="identifier">traitsT</span> <span class="special">&gt;</span> <span class="special">&amp;</span>
     <span class="keyword">operator</span><span class="special">&lt;&lt;(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_ostream</span><span class="special">&lt;</span> <span class="identifier">charT</span><span class="special">,</span> <span class="identifier">traitsT</span> <span class="special">&gt;</span> <span class="special">&amp;,</span> <span class="identifier">id</span> <span class="keyword">const</span><span class="special">&amp;);</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <h5>
 <a name="fiber.fiber_mgmt.id.h0"></a>

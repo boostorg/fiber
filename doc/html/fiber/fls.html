@@ -59,6 +59,9 @@
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fss</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">fiber_specific_ptr</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
@@ -83,6 +86,8 @@
 
     <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">(</span> <span class="identifier">T</span> <span class="special">*);</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <h4>
 <a name="fiber.fls.h2"></a>

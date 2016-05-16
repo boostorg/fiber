@@ -61,7 +61,7 @@
     </h4>
 <p>
       The first essential point is that we must associate an integer priority with
-      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">9</a>]</sup>
+      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">11</a>]</sup>
     </p>
 <p>
       One might suggest deriving a custom <a class="link" href="fiber_mgmt/fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> subclass to store such
@@ -170,14 +170,14 @@
       Scheduler Class</a>
     </h4>
 <p>
-      Now we can derive a custom scheduler from <a class="link" href="scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a>,
+      Now we can derive a custom scheduler from <a class="link" href="scheduling.html#class_algorithm_with_properties"><code class="computeroutput">algorithm_with_properties&lt;&gt;</code></a>,
       specifying our custom property class <code class="computeroutput"><span class="identifier">priority_props</span></code>
       as the template parameter.
     </p>
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">class</span> <span class="identifier">priority_scheduler</span> <span class="special">:</span>
-    <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">sched_algorithm_with_properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;</span> <span class="special">{</span>
+    <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">algorithm_with_properties</span><span class="special">&lt;</span> <span class="identifier">priority_props</span> <span class="special">&gt;</span> <span class="special">{</span>
 <span class="keyword">private</span><span class="special">:</span>
     <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">scheduler</span><span class="special">::</span><span class="identifier">ready_queue_t</span><a class="co" name="fiber.custom.c8" href="custom.html#fiber.custom.c9"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>   <span class="identifier">rqueue_t</span><span class="special">;</span>
 
@@ -191,7 +191,7 @@
         <span class="identifier">rqueue_</span><span class="special">()</span> <span class="special">{</span>
     <span class="special">}</span>
 
-    <span class="comment">// For a subclass of sched_algorithm_with_properties&lt;&gt;, it's important to</span>
+    <span class="comment">// For a subclass of algorithm_with_properties&lt;&gt;, it's important to</span>
     <span class="comment">// override the correct awakened() overload.</span>
     <a class="co" name="fiber.custom.c10" href="custom.html#fiber.custom.c11"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">,</span> <span class="identifier">priority_props</span> <span class="special">&amp;</span> <span class="identifier">props</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
         <span class="keyword">int</span> <span class="identifier">ctx_priority</span> <span class="special">=</span> <span class="identifier">props</span><span class="special">.</span><span class="identifier">get_priority</span><span class="special">();</span> <a class="co" name="fiber.custom.c12" href="custom.html#fiber.custom.c13"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
@@ -277,7 +277,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.custom.c11"></a><a href="#fiber.custom.c10"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          You must override the <a class="link" href="scheduling.html#sched_algorithm_with_properties_awakened"><code class="computeroutput">sched_algorithm_with_properties::awakened()</code></a>
+          You must override the <a class="link" href="scheduling.html#algorithm_with_properties_awakened"><code class="computeroutput">algorithm_with_properties::awakened()</code></a>
          method.
           This is how your scheduler receives notification of a fiber that has become
           ready to run.
@@ -293,7 +293,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.custom.c15"></a><a href="#fiber.custom.c14"><img src="../../../../../doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          You must override the <a class="link" href="scheduling.html#sched_algorithm_with_properties_pick_next"><code class="computeroutput">sched_algorithm_with_properties::pick_next()</code></a>
+          You must override the <a class="link" href="scheduling.html#algorithm_with_properties_pick_next"><code class="computeroutput">algorithm_with_properties::pick_next()</code></a>
          method.
           This is how your scheduler actually advises the fiber manager of the next
           fiber to run.
@@ -302,7 +302,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.custom.c17"></a><a href="#fiber.custom.c16"><img src="../../../../../doc/src/images/callouts/5.png" alt="5" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          You must override <a class="link" href="scheduling.html#sched_algorithm_with_properties_has_ready_fibers"><code class="computeroutput">sched_algorithm_with_properties::has_ready_fibers()</code></a>
+          You must override <a class="link" href="scheduling.html#algorithm_with_properties_has_ready_fibers"><code class="computeroutput">algorithm_with_properties::has_ready_fibers()</code></a>
       to
           inform the fiber manager of the state of your ready queue.
         </p></td>
@@ -310,7 +310,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.custom.c19"></a><a href="#fiber.custom.c18"><img src="../../../../../doc/src/images/callouts/6.png" alt="6" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          Overriding <a class="link" href="scheduling.html#sched_algorithm_with_properties_property_change"><code class="computeroutput">sched_algorithm_with_properties::property_change()</code></a>
+          Overriding <a class="link" href="scheduling.html#algorithm_with_properties_property_change"><code class="computeroutput">algorithm_with_properties::property_change()</code></a>
          is
           optional. This override handles the case in which the running fiber changes
           the priority of another ready fiber: a fiber already in our queue. In that
@@ -328,7 +328,7 @@
 </table></div>
 <p>
       Our example <code class="computeroutput"><span class="identifier">priority_scheduler</span></code>
-      doesn't override <a class="link" href="scheduling.html#sched_algorithm_with_properties_new_properties"><code class="computeroutput">sched_algorithm_with_properties::new_properties()</code></a>:
+      doesn't override <a class="link" href="scheduling.html#algorithm_with_properties_new_properties"><code class="computeroutput">algorithm_with_properties::new_properties()</code></a>:
       we're content with allocating <code class="computeroutput"><span class="identifier">priority_props</span></code>
       instances on the heap.
     </p>
@@ -397,11 +397,11 @@
       As shown in the <code class="computeroutput"><span class="identifier">launch</span><span class="special">()</span></code>
       function above, it is reasonable to launch a fiber and immediately set relevant
       properties -- such as, for instance, its priority. Your custom scheduler can
-      then make use of this information next time the fiber manager calls <a class="link" href="scheduling.html#sched_algorithm_with_properties_pick_next"><code class="computeroutput">sched_algorithm_with_properties::pick_next()</code></a>.
+      then make use of this information next time the fiber manager calls <a class="link" href="scheduling.html#algorithm_with_properties_pick_next"><code class="computeroutput">algorithm_with_properties::pick_next()</code></a>.
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">11</a>] </sup>
         A previous version of the Fiber library implicitly tracked an int priority
         for each fiber, even though the default scheduler ignored it. This has been
         dropped, since the library now supports arbitrary scheduler-specific fiber

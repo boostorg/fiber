@@ -301,8 +301,7 @@ that would cause the thread to
       </p>
 <p>
         Under normal circumstances, when the fiber manager finds no ready fibers,
-        it calls <a class="link" href="../scheduling.html#sched_algorithm_suspend_until"><code class="computeroutput">sched_algorithm::suspend_until()</code></a>. Why
-        test <code class="computeroutput"><span class="identifier">has_ready_fibers</span><span class="special">()</span></code>
+        it calls <a class="link" href="../scheduling.html#algorithm_suspend_until"><code class="computeroutput">algorithm::suspend_until()</code></a>. Why test <code class="computeroutput"><span class="identifier">has_ready_fibers</span><span class="special">()</span></code>
         in the lambda loop? Why not leverage the normal mechanism?
       </p>
 <p>
@@ -313,7 +312,7 @@ that would cause the thread to
         APIs it engages are <code class="computeroutput"><span class="identifier">has_ready_fibers</span><span class="special">()</span></code> and <a class="link" href="../fiber_mgmt/this_fiber.html#this_fiber_yield"><code class="computeroutput">this_fiber::yield()</code></a>.
         <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>
         does not <span class="emphasis"><em>block</em></span> the calling fiber: the calling fiber
-        does not become unready. It is immediately passed back to <a class="link" href="../scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a>,
+        does not become unready. It is immediately passed back to <a class="link" href="../scheduling.html#algorithm_awakened"><code class="computeroutput">algorithm::awakened()</code></a>,
         to be resumed in its turn when all other ready fibers have had a chance to
         run. In other words: during a <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code> call, <span class="emphasis"><em>there is always at least
         one ready fiber.</em></span>

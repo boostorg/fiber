@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/12 18:34:54 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/16 12:26:17 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -192,13 +192,17 @@
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
-<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm_with_properties</phrase><phrase role="special">;</phrase>
-<phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">SchedAlgo</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">();</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">struct</phrase> <phrase role="identifier">algorithm</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">algorithm_with_properties</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">;</phrase>
+<phrase role="keyword">class</phrase> <phrase role="identifier">shared_round_robin</phrase><phrase role="special">;</phrase>
 
 <phrase role="special">}</phrase>
 
@@ -432,6 +436,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       <code><phrase role="identifier">fiber</phrase></code></link></title>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">fiber</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">class</phrase> <phrase role="identifier">id</phrase><phrase role="special">;</phrase>
@@ -482,6 +489,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <phrase role="keyword">void</phrase> <phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
 <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.fiber_mgmt.fiber.h0">
         <phrase id="fiber.fiber_mgmt.fiber.default_constructor"/><link linkend="fiber.fiber_mgmt.fiber.default_constructor">Default
@@ -920,7 +929,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             <para>
               <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
               refers to a fiber of execution. <link linkend="use_scheduling_algorithm"><code>use_scheduling_algorithm()</code></link> has
-              been called from this thread with a subclass of <link linkend="class_sched_algorithm_with_properties"><code>sched_algorithm_with_properties&lt;&gt;</code></link> with
+              been called from this thread with a subclass of <link linkend="class_algorithm_with_properties"><code>algorithm_with_properties&lt;&gt;</code></link> with
               the same template argument <code><phrase role="identifier">PROPS</phrase></code>.
             </para>
           </listitem>
@@ -940,7 +949,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             <para>
               <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
               role="identifier">bad_cast</phrase></code> if <code><phrase role="identifier">use_scheduling_algorithm</phrase><phrase
-              role="special">()</phrase></code> was called with a <code><phrase role="identifier">sched_algorithm_with_properties</phrase></code>
+              role="special">()</phrase></code> was called with a <code><phrase role="identifier">algorithm_with_properties</phrase></code>
               subclass with some other template parameter than <code><phrase role="identifier">PROPS</phrase></code>.
             </para>
           </listitem>
@@ -949,7 +958,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
           <term>Note:</term>
           <listitem>
             <para>
-              <link linkend="class_sched_algorithm_with_properties"><code>sched_algorithm_with_properties&lt;&gt;</code></link> provides
+              <link linkend="class_algorithm_with_properties"><code>algorithm_with_properties&lt;&gt;</code></link> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This method allows access
               to those user-provided properties.
@@ -1094,10 +1103,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             <para>
               Directs <emphasis role="bold">Boost.Fiber</emphasis> to use <code><phrase
               role="identifier">SchedAlgo</phrase></code>, which must be a concrete
-              subclass of <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>, as the scheduling
-              algorithm for all fibers in the current thread. Pass any required
-              <code><phrase role="identifier">SchedAlgo</phrase></code> constructor
-              arguments as <code><phrase role="identifier">args</phrase></code>.
+              subclass of <link linkend="class_algorithm"><code>algorithm</code></link>, as the scheduling algorithm for
+              all fibers in the current thread. Pass any required <code><phrase role="identifier">SchedAlgo</phrase></code>
+              constructor arguments as <code><phrase role="identifier">args</phrase></code>.
             </para>
           </listitem>
         </varlistentry>
@@ -1174,6 +1182,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       <title><anchor id="class_id"/><link linkend="fiber.fiber_mgmt.id">Class fiber::id</link></title>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">id</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">constexpr</phrase> <phrase role="identifier">id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -1194,6 +1205,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
     <phrase role="keyword">friend</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">basic_ostream</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">charT</phrase><phrase role="special">,</phrase> <phrase role="identifier">traitsT</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase>
     <phrase role="keyword">operator</phrase><phrase role="special">&lt;&lt;(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">basic_ostream</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">charT</phrase><phrase role="special">,</phrase> <phrase role="identifier">traitsT</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;,</phrase> <phrase role="identifier">id</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.fiber_mgmt.id.h0">
         <phrase id="fiber.fiber_mgmt.id.constructor"/><link linkend="fiber.fiber_mgmt.id.constructor">Constructor</link>
@@ -1466,7 +1479,12 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="identifier">fiber</phrase><phrase role="special">::</phrase><phrase role="identifier">id</phrase> <phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1498,8 +1516,13 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">abs_time</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1553,8 +1576,13 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">sleep_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">rel_time</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1595,7 +1623,12 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">void</phrase> <phrase role="identifier">yield</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1635,8 +1668,13 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">operations</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <variablelist>
         <title></title>
@@ -1645,7 +1683,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
           <listitem>
             <para>
               <link linkend="use_scheduling_algorithm"><code>use_scheduling_algorithm()</code></link> has been called from
-              this thread with a subclass of <link linkend="class_sched_algorithm_with_properties"><code>sched_algorithm_with_properties&lt;&gt;</code></link> with
+              this thread with a subclass of <link linkend="class_algorithm_with_properties"><code>algorithm_with_properties&lt;&gt;</code></link> with
               the same template argument <code><phrase role="identifier">PROPS</phrase></code>.
             </para>
           </listitem>
@@ -1665,7 +1703,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             <para>
               <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
               role="identifier">bad_cast</phrase></code> if <code><phrase role="identifier">use_scheduling_algorithm</phrase><phrase
-              role="special">()</phrase></code> was called with a <code><phrase role="identifier">sched_algorithm_with_properties</phrase></code>
+              role="special">()</phrase></code> was called with a <code><phrase role="identifier">algorithm_with_properties</phrase></code>
               subclass with some other template parameter than <code><phrase role="identifier">PROPS</phrase></code>.
             </para>
           </listitem>
@@ -1674,7 +1712,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
           <term>Note:</term>
           <listitem>
             <para>
-              <link linkend="class_sched_algorithm_with_properties"><code>sched_algorithm_with_properties&lt;&gt;</code></link> provides
+              <link linkend="class_algorithm_with_properties"><code>algorithm_with_properties&lt;&gt;</code></link> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This function allows access
               to those user-provided properties.
@@ -1720,16 +1758,16 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       instantiates <link linkend="class_round_robin"><code>round_robin</code></link> as the scheduler for each thread.
     </para>
     <para>
-      You are explicitly permitted to code your own <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> subclass.
-      For the most part, your <code><phrase role="identifier">sched_algorithm</phrase></code>
+      You are explicitly permitted to code your own <link linkend="class_algorithm"><code>algorithm</code></link> subclass.
+      For the most part, your <code><phrase role="identifier">algorithm</phrase></code>
       subclass need not defend against cross-thread calls: the fiber manager intercepts
-      and defers such calls. Most <code><phrase role="identifier">sched_algorithm</phrase></code>
+      and defers such calls. Most <code><phrase role="identifier">algorithm</phrase></code>
       methods are only ever directly called from the thread whose fibers it is managing
       &mdash; with exceptions as documented below.
     </para>
     <para>
-      Your <code><phrase role="identifier">sched_algorithm</phrase></code> subclass
-      is engaged on a particular thread by calling <link linkend="use_scheduling_algorithm"><code>use_scheduling_algorithm()</code></link>:
+      Your <code><phrase role="identifier">algorithm</phrase></code> subclass is
+      engaged on a particular thread by calling <link linkend="use_scheduling_algorithm"><code>use_scheduling_algorithm()</code></link>:
     </para>
 <programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread_fn</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">my_fiber_scheduler</phrase> <phrase role="special">&gt;();</phrase>
@@ -1737,24 +1775,27 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <phrase role="special">}</phrase>
 </programlisting>
     <para>
-      A scheduler class must implement interface <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>.
-      <emphasis role="bold">Boost.Fiber</emphasis> provides one scheduler: <link linkend="class_round_robin"><code>round_robin</code></link>.
+      A scheduler class must implement interface <link linkend="class_algorithm"><code>algorithm</code></link>. <emphasis
+      role="bold">Boost.Fiber</emphasis> provides one scheduler: <link linkend="class_round_robin"><code>round_robin</code></link>.
     </para>
     <para>
-      <bridgehead renderas="sect4" id="class_sched_algorithm_bridgehead">
-  <phrase id="class_sched_algorithm"/>
-  <link linkend="class_sched_algorithm">Class
-      <code>sched_algorithm</code></link>
+      <bridgehead renderas="sect4" id="class_algorithm_bridgehead">
+  <phrase id="class_algorithm"/>
+  <link linkend="class_algorithm">Class <code>algorithm</code></link>
 </bridgehead>
     </para>
     <para>
-      <code><phrase role="identifier">sched_algorithm</phrase></code> is the abstract
-      base class defining the interface that a fiber scheduler must implement.
+      <code><phrase role="identifier">algorithm</phrase></code> is the abstract base
+      class defining the interface that a fiber scheduler must implement.
     </para>
-<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">{</phrase>
-    <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">sched_algorithm</phrase><phrase role="special">();</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">struct</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="special">~</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">();</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
@@ -1766,12 +1807,14 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}}</phrase>
 </programlisting>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_awakened_bridgehead">
-  <phrase id="sched_algorithm_awakened"/>
-  <link linkend="sched_algorithm_awakened">Member
-      function <code>awakened</code>()</link>
+      <bridgehead renderas="sect4" id="algorithm_awakened_bridgehead">
+  <phrase id="algorithm_awakened"/>
+  <link linkend="algorithm_awakened">Member function
+      <code>awakened</code>()</link>
 </bridgehead>
     </para>
 <programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
@@ -1809,9 +1852,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_pick_next_bridgehead">
-  <phrase id="sched_algorithm_pick_next"/>
-  <link linkend="sched_algorithm_pick_next">Member
+      <bridgehead renderas="sect4" id="algorithm_pick_next_bridgehead">
+  <phrase id="algorithm_pick_next"/>
+  <link linkend="algorithm_pick_next">Member
       function <code>pick_next</code>()</link>
 </bridgehead>
     </para>
@@ -1848,9 +1891,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_has_ready_fibers_bridgehead">
-  <phrase id="sched_algorithm_has_ready_fibers"/>
-  <link linkend="sched_algorithm_has_ready_fibers">Member
+      <bridgehead renderas="sect4" id="algorithm_has_ready_fibers_bridgehead">
+  <phrase id="algorithm_has_ready_fibers"/>
+  <link linkend="algorithm_has_ready_fibers">Member
       function <code>has_ready_fibers</code>()</link>
 </bridgehead>
     </para>
@@ -1869,9 +1912,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_suspend_until_bridgehead">
-  <phrase id="sched_algorithm_suspend_until"/>
-  <link linkend="sched_algorithm_suspend_until">Member
+      <bridgehead renderas="sect4" id="algorithm_suspend_until_bridgehead">
+  <phrase id="algorithm_suspend_until"/>
+  <link linkend="algorithm_suspend_until">Member
       function <code>suspend_until</code>()</link>
 </bridgehead>
     </para>
@@ -1896,8 +1939,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             environment in whatever way makes sense. The fiber manager is stating
             that <code><phrase role="identifier">suspend_until</phrase><phrase role="special">()</phrase></code>
             need not return until <code><phrase role="identifier">abs_time</phrase></code>
-            &mdash; or <link linkend="sched_algorithm_notify"><code>sched_algorithm::notify()</code></link> is called &mdash; whichever
-            comes first. The interaction with <code><phrase role="identifier">notify</phrase><phrase
+            &mdash; or <link linkend="algorithm_notify"><code>algorithm::notify()</code></link> is called &mdash; whichever comes first.
+            The interaction with <code><phrase role="identifier">notify</phrase><phrase
             role="special">()</phrase></code> means that, for instance, calling
             <ulink url="http://en.cppreference.com/w/cpp/thread/sleep_until"><code><phrase
             role="identifier">std</phrase><phrase role="special">::</phrase><phrase
@@ -1919,7 +1962,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             Given that <code><phrase role="identifier">notify</phrase><phrase role="special">()</phrase></code>
             might be called from another thread, your <code><phrase role="identifier">suspend_until</phrase><phrase
             role="special">()</phrase></code> implementation &mdash; like the rest of your
-            <code><phrase role="identifier">sched_algorithm</phrase></code> implementation
+            <code><phrase role="identifier">algorithm</phrase></code> implementation
             &mdash; must guard any data it shares with your <code><phrase role="identifier">notify</phrase><phrase
             role="special">()</phrase></code> implementation.
           </para>
@@ -1927,10 +1970,10 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_notify_bridgehead">
-  <phrase id="sched_algorithm_notify"/>
-  <link linkend="sched_algorithm_notify">Member
-      function <code>notify</code>()</link>
+      <bridgehead renderas="sect4" id="algorithm_notify_bridgehead">
+  <phrase id="algorithm_notify"/>
+  <link linkend="algorithm_notify">Member function
+      <code>notify</code>()</link>
 </bridgehead>
     </para>
 <programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
@@ -1941,7 +1984,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Effects:</term>
         <listitem>
           <para>
-            Requests the scheduler to return from a pending call to <link linkend="sched_algorithm_suspend_until"><code>sched_algorithm::suspend_until()</code></link>.
+            Requests the scheduler to return from a pending call to <link linkend="algorithm_suspend_until"><code>algorithm::suspend_until()</code></link>.
           </para>
         </listitem>
       </varlistentry>
@@ -1949,11 +1992,11 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            Alone among the <code><phrase role="identifier">sched_algorithm</phrase></code>
+            Alone among the <code><phrase role="identifier">algorithm</phrase></code>
             methods, <code><phrase role="identifier">notify</phrase><phrase role="special">()</phrase></code>
             may be called from another thread. Your <code><phrase role="identifier">notify</phrase><phrase
             role="special">()</phrase></code> implementation must guard any data
-            it shares with the rest of your <code><phrase role="identifier">sched_algorithm</phrase></code>
+            it shares with the rest of your <code><phrase role="identifier">algorithm</phrase></code>
             implementation.
           </para>
         </listitem>
@@ -1966,12 +2009,16 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 </bridgehead>
     </para>
     <para>
-      This class implements <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>, scheduling fibers
-      in round-robin fashion.
+      This class implements <link linkend="class_algorithm"><code>algorithm</code></link>, scheduling fibers in round-robin
+      fashion.
     </para>
-<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">round_robin</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">round_robin</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
-<phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">sched_algorithm</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">{</phrase>
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -1982,6 +2029,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}}</phrase>
 </programlisting>
     <para>
       <bridgehead renderas="sect4" id="round_robin_awakened_bridgehead">
@@ -2146,14 +2195,420 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         </listitem>
       </varlistentry>
     </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="class_shared_round_robin_bridgehead">
+  <phrase id="class_shared_round_robin"/>
+  <link linkend="class_shared_round_robin">Class
+      <code>shared_round_robin</code></link>
+</bridgehead>
+    </para>
+    <para>
+      This class implements <link linkend="class_algorithm"><code>algorithm</code></link>, scheduling fibers in round-robin
+      fashion. Ready fibers are shared between all instances (running on different
+      threads) of shared_round_robin.
+    </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">shared_round_robin</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">class</phrase> <phrase role="identifier">shared_round_robin</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="special">};</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+    <para>
+      <bridgehead renderas="sect4" id="shared_round_robin_awakened_bridgehead">
+  <phrase id="shared_round_robin_awakened"/>
+  <link linkend="shared_round_robin_awakened">Member
+      function <code>awakened</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Enqueues fiber <code><phrase role="identifier">f</phrase></code> onto
+            the shared ready queue.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="shared_round_robin_pick_next_bridgehead">
+  <phrase id="shared_round_robin_pick_next"/>
+  <link linkend="shared_round_robin_pick_next">Member
+      function <code>pick_next</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            the fiber at the head of the ready queue, or <code><phrase role="keyword">nullptr</phrase></code>
+            if the queue is empty.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            Placing ready fibers onto the tail of the sahred queue, and returning
+            them from the head of that queue, shares the thread between ready fibers
+            in round-robin fashion.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="shared_round_robin_has_ready_fibers_bridgehead">
+  <phrase id="shared_round_robin_has_ready_fibers"/>
+  <link linkend="shared_round_robin_has_ready_fibers">Member
+      function <code>has_ready_fibers</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            <code><phrase role="keyword">true</phrase></code> if scheduler has fibers
+            ready to run.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="shared_round_robin_suspend_until_bridgehead">
+  <phrase id="shared_round_robin_suspend_until"/>
+  <link linkend="shared_round_robin_suspend_until">Member
+      function <code>suspend_until</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">abs_time</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Informs <code><phrase role="identifier">shared_round_robin</phrase></code>
+            that no ready fiber will be available until time-point <code><phrase
+            role="identifier">abs_time</phrase></code>. This implementation blocks
+            in <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/wait_until"><code><phrase
+            role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">condition_variable</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">wait_until</phrase><phrase role="special">()</phrase></code></ulink>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="shared_round_robin_notify_bridgehead">
+  <phrase id="shared_round_robin_notify"/>
+  <link linkend="shared_round_robin_notify">Member
+      function <code>notify</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Wake up a pending call to <link linkend="shared_round_robin_suspend_until"><code>shared_round_robin::suspend_until()</code></link>,
+            some fibers might be ready. This implementation wakes <code><phrase role="identifier">suspend_until</phrase><phrase
+            role="special">()</phrase></code> via <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all"><code><phrase
+            role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">condition_variable</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">notify_all</phrase><phrase role="special">()</phrase></code></ulink>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="class_random_chase_lev_bridgehead">
+  <phrase id="class_random_chase_lev"/>
+  <link linkend="class_random_chase_lev">Class
+      <code>random_chase_lev</code></link>
+</bridgehead>
+    </para>
+    <para>
+      This class implements <link linkend="class_algorithm"><code>algorithm</code></link>; if the local ready-queue goes
+      out of ready fibers, fibers are stolen from other schedulers. The work stealing
+      algorithm is based on the Chase-Lev algorithm. <footnote id="fiber.scheduling.f0">
+      <para>
+        David Chase and Yossi Lev. Dynamic circular work-stealing deque. In SPAA
+        ’05: Proceedings of the seventeenth annual ACM symposium on Parallelism
+        in algorithms and architectures, pages 21–28, New York, NY, USA, 2005.
+        ACM.
+      </para>
+      </footnote> <footnote id="fiber.scheduling.f1">
+      <para>
+        Nhat Minh Lê, Antoniu Pop, Albert Cohen, and Francesco Zappa Nardelli. 2013.
+        Correct and efficient work-stealing for weak memory models. In Proceedings
+        of the 18th ACM SIGPLAN symposium on Principles and practice of parallel
+        programming (PPoPP '13). ACM, New York, NY, USA, 69-80.
+      </para>
+      </footnote> Victim scheduler are selected in radnom fashion.
+    </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">random_chase_lev</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">class</phrase> <phrase role="identifier">random_chase_lev</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+    <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<phrase role="special">};</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+    <para>
+      <bridgehead renderas="sect4" id="random_chase_lev_awakened_bridgehead">
+  <phrase id="random_chase_lev_awakened"/>
+  <link linkend="random_chase_lev_awakened">Member
+      function <code>awakened</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">f</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Enqueues fiber <code><phrase role="identifier">f</phrase></code> onto
+            the shared ready queue.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="random_chase_lev_pick_next_bridgehead">
+  <phrase id="random_chase_lev_pick_next"/>
+  <link linkend="random_chase_lev_pick_next">Member
+      function <code>pick_next</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            the fiber at the head of the ready queue, or <code><phrase role="keyword">nullptr</phrase></code>
+            if the queue is empty.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Note:</term>
+        <listitem>
+          <para>
+            Placing ready fibers onto the tail of the sahred queue, and returning
+            them from the head of that queue, shares the thread between ready fibers
+            in round-robin fashion.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="random_chase_lev_has_ready_fibers_bridgehead">
+  <phrase id="random_chase_lev_has_ready_fibers"/>
+  <link linkend="random_chase_lev_has_ready_fibers">Member
+      function <code>has_ready_fibers</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">bool</phrase> <phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Returns:</term>
+        <listitem>
+          <para>
+            <code><phrase role="keyword">true</phrase></code> if scheduler has fibers
+            ready to run.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="random_chase_lev_suspend_until_bridgehead">
+  <phrase id="random_chase_lev_suspend_until"/>
+  <link linkend="random_chase_lev_suspend_until">Member
+      function <code>suspend_until</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">suspend_until</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_clock</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">abs_time</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Informs <code><phrase role="identifier">random_chase_lev</phrase></code>
+            that no ready fiber will be available until time-point <code><phrase
+            role="identifier">abs_time</phrase></code>. This implementation blocks
+            in <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/wait_until"><code><phrase
+            role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">condition_variable</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">wait_until</phrase><phrase role="special">()</phrase></code></ulink>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      <bridgehead renderas="sect4" id="random_chase_lev_notify_bridgehead">
+  <phrase id="random_chase_lev_notify"/>
+  <link linkend="random_chase_lev_notify">Member
+      function <code>notify</code>()</link>
+</bridgehead>
+    </para>
+<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
+</programlisting>
+    <variablelist>
+      <title></title>
+      <varlistentry>
+        <term>Effects:</term>
+        <listitem>
+          <para>
+            Wake up a pending call to <link linkend="random_chase_lev_suspend_until"><code>random_chase_lev::suspend_until()</code></link>,
+            some fibers might be ready. This implementation wakes <code><phrase role="identifier">suspend_until</phrase><phrase
+            role="special">()</phrase></code> via <ulink url="http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all"><code><phrase
+            role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">condition_variable</phrase><phrase role="special">::</phrase><phrase
+            role="identifier">notify_all</phrase><phrase role="special">()</phrase></code></ulink>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Throws:</term>
+        <listitem>
+          <para>
+            Nothing.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
     <bridgehead renderas="sect3" id="fiber.scheduling.h0">
       <phrase id="fiber.scheduling.custom_scheduler_fiber_properties"/><link linkend="fiber.scheduling.custom_scheduler_fiber_properties">Custom
       Scheduler Fiber Properties</link>
     </bridgehead>
     <para>
-      A scheduler class directly derived from <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> can
-      use any information available from <link linkend="class_context"><code>context</code></link> to implement the <code><phrase
-      role="identifier">sched_algorithm</phrase></code> interface. But a custom scheduler
+      A scheduler class directly derived from <link linkend="class_algorithm"><code>algorithm</code></link> can use any
+      information available from <link linkend="class_context"><code>context</code></link> to implement the <code><phrase
+      role="identifier">algorithm</phrase></code> interface. But a custom scheduler
       might need to track additional properties for a fiber. For instance, a priority-based
       scheduler would need to track a fiber's priority.
     </para>
@@ -2173,6 +2628,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">properties</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">fiber_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -2182,6 +2640,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <phrase role="keyword">protected</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">notify</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <bridgehead renderas="sect3" id="fiber.scheduling.h1">
       <phrase id="fiber.scheduling.constructor"/><link linkend="fiber.scheduling.constructor">Constructor</link>
@@ -2232,8 +2692,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Effects:</term>
         <listitem>
           <para>
-            Pass control to the custom <link linkend="class_sched_algorithm_with_properties"><code>sched_algorithm_with_properties&lt;&gt;</code></link> subclass's
-            <link linkend="sched_algorithm_with_properties_property_change"><code>sched_algorithm_with_properties::property_change()</code></link> method.
+            Pass control to the custom <link linkend="class_algorithm_with_properties"><code>algorithm_with_properties&lt;&gt;</code></link> subclass's
+            <link linkend="algorithm_with_properties_property_change"><code>algorithm_with_properties::property_change()</code></link> method.
           </para>
         </listitem>
       </varlistentry>
@@ -2249,8 +2709,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            A custom scheduler's <link linkend="sched_algorithm_with_properties_pick_next"><code>sched_algorithm_with_properties::pick_next()</code></link> method
-            might dynamically select from the ready fibers, or <link linkend="sched_algorithm_with_properties_awakened"><code>sched_algorithm_with_properties::awakened()</code></link> might
+            A custom scheduler's <link linkend="algorithm_with_properties_pick_next"><code>algorithm_with_properties::pick_next()</code></link> method
+            might dynamically select from the ready fibers, or <link linkend="algorithm_with_properties_awakened"><code>algorithm_with_properties::awakened()</code></link> might
             instead insert each ready fiber into some form of ready queue for <code><phrase
             role="identifier">pick_next</phrase><phrase role="special">()</phrase></code>.
             In the latter case, if application code modifies a fiber property (e.g.
@@ -2272,24 +2732,28 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="class_sched_algorithm_with_properties_bridgehead">
-  <phrase id="class_sched_algorithm_with_properties"/>
-  <link linkend="class_sched_algorithm_with_properties">Template
-      <code>sched_algorithm_with_properties&lt;&gt;</code></link>
+      <bridgehead renderas="sect4" id="class_algorithm_with_properties_bridgehead">
+  <phrase id="class_algorithm_with_properties"/>
+  <link linkend="class_algorithm_with_properties">Template
+      <code>algorithm_with_properties&lt;&gt;</code></link>
 </bridgehead>
     </para>
     <para>
       A custom scheduler that depends on a custom properties class <code><phrase
       role="identifier">PROPS</phrase></code> should be derived from <code><phrase
-      role="identifier">sched_algorithm_with_properties</phrase><phrase role="special">&lt;</phrase><phrase
+      role="identifier">algorithm_with_properties</phrase><phrase role="special">&lt;</phrase><phrase
       role="identifier">PROPS</phrase><phrase role="special">&gt;</phrase></code>.
       <code><phrase role="identifier">PROPS</phrase></code> should be derived from
       <link linkend="class_fiber_properties"><code>fiber_properties</code></link>.
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algorithm</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="keyword">struct</phrase> <phrase role="identifier">sched_algorithm_with_properties</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">struct</phrase> <phrase role="identifier">algorithm_with_properties</phrase> <phrase role="special">{</phrase>
     <phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*,</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -2306,11 +2770,13 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 
     <phrase role="keyword">virtual</phrase> <phrase role="identifier">fiber_properties</phrase> <phrase role="special">*</phrase> <phrase role="identifier">new_properties</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}}</phrase>
 </programlisting>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_awakened_bridgehead">
-  <phrase id="sched_algorithm_with_properties_awakened"/>
-  <link linkend="sched_algorithm_with_properties_awakened">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_awakened_bridgehead">
+  <phrase id="algorithm_with_properties_awakened"/>
+  <link linkend="algorithm_with_properties_awakened">Member
       function <code>awakened</code>()</link>
 </bridgehead>
     </para>
@@ -2323,8 +2789,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <listitem>
           <para>
             Informs the scheduler that fiber <code><phrase role="identifier">f</phrase></code>
-            is ready to run, like <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link>.
-            Passes the fiber's associated <code><phrase role="identifier">PROPS</phrase></code>
+            is ready to run, like <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link>. Passes
+            the fiber's associated <code><phrase role="identifier">PROPS</phrase></code>
             instance.
           </para>
         </listitem>
@@ -2341,9 +2807,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            A <code><phrase role="identifier">sched_algorithm_with_properties</phrase><phrase
+            A <code><phrase role="identifier">algorithm_with_properties</phrase><phrase
             role="special">&lt;&gt;</phrase></code> subclass must override this method
-            instead of <code><phrase role="identifier">sched_algorithm</phrase><phrase
+            instead of <code><phrase role="identifier">algorithm</phrase><phrase
             role="special">::</phrase><phrase role="identifier">awakened</phrase><phrase
             role="special">()</phrase></code>.
           </para>
@@ -2351,9 +2817,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_pick_next_bridgehead">
-  <phrase id="sched_algorithm_with_properties_pick_next"/>
-  <link linkend="sched_algorithm_with_properties_pick_next">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_pick_next_bridgehead">
+  <phrase id="algorithm_with_properties_pick_next"/>
+  <link linkend="algorithm_with_properties_pick_next">Member
       function <code>pick_next</code>()</link>
 </bridgehead>
     </para>
@@ -2382,15 +2848,15 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            same as <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link>
+            same as <link linkend="algorithm_pick_next"><code>algorithm::pick_next()</code></link>
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_has_ready_fibers_bridgehead">
-  <phrase id="sched_algorithm_with_properties_has_ready_fibers"/>
-  <link linkend="sched_algorithm_with_properties_has_ready_fibers">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_has_ready_fibers_bridgehead">
+  <phrase id="algorithm_with_properties_has_ready_fibers"/>
+  <link linkend="algorithm_with_properties_has_ready_fibers">Member
       function <code>has_ready_fibers</code>()</link>
 </bridgehead>
     </para>
@@ -2419,15 +2885,15 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            same as <link linkend="sched_algorithm_has_ready_fibers"><code>sched_algorithm::has_ready_fibers()</code></link>
+            same as <link linkend="algorithm_has_ready_fibers"><code>algorithm::has_ready_fibers()</code></link>
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_suspend_until_bridgehead">
-  <phrase id="sched_algorithm_with_properties_suspend_until"/>
-  <link linkend="sched_algorithm_with_properties_suspend_until">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_suspend_until_bridgehead">
+  <phrase id="algorithm_with_properties_suspend_until"/>
+  <link linkend="algorithm_with_properties_suspend_until">Member
       function <code>suspend_until</code>()</link>
 </bridgehead>
     </para>
@@ -2448,15 +2914,15 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            same as <link linkend="sched_algorithm_suspend_until"><code>sched_algorithm::suspend_until()</code></link>
+            same as <link linkend="algorithm_suspend_until"><code>algorithm::suspend_until()</code></link>
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_notify_bridgehead">
-  <phrase id="sched_algorithm_with_properties_notify"/>
-  <link linkend="sched_algorithm_with_properties_notify">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_notify_bridgehead">
+  <phrase id="algorithm_with_properties_notify"/>
+  <link linkend="algorithm_with_properties_notify">Member
       function <code>notify</code>()</link>
 </bridgehead>
     </para>
@@ -2468,7 +2934,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Effects:</term>
         <listitem>
           <para>
-            Requests the scheduler to return from a pending call to <link linkend="sched_algorithm_with_properties_suspend_until"><code>sched_algorithm_with_properties::suspend_until()</code></link>.
+            Requests the scheduler to return from a pending call to <link linkend="algorithm_with_properties_suspend_until"><code>algorithm_with_properties::suspend_until()</code></link>.
           </para>
         </listitem>
       </varlistentry>
@@ -2476,15 +2942,15 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            same as <link linkend="sched_algorithm_notify"><code>sched_algorithm::notify()</code></link>
+            same as <link linkend="algorithm_notify"><code>algorithm::notify()</code></link>
           </para>
         </listitem>
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_properties_bridgehead">
-  <phrase id="sched_algorithm_with_properties_properties"/>
-  <link linkend="sched_algorithm_with_properties_properties">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_properties_bridgehead">
+  <phrase id="algorithm_with_properties_properties"/>
+  <link linkend="algorithm_with_properties_properties">Member
       function <code>properties</code>()</link>
 </bridgehead>
     </para>
@@ -2514,11 +2980,11 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <listitem>
           <para>
             The fiber's associated <code><phrase role="identifier">PROPS</phrase></code>
-            instance is already passed to <link linkend="sched_algorithm_with_properties_awakened"><code>sched_algorithm_with_properties::awakened()</code></link> and
-            <link linkend="sched_algorithm_with_properties_property_change"><code>sched_algorithm_with_properties::property_change()</code></link>.
-            However, every <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> subclass is expected
-            to track a collection of ready <link linkend="class_context"><code>context</code></link> instances. This method
-            allows your custom scheduler to retrieve the <link linkend="class_fiber_properties"><code>fiber_properties</code></link> subclass
+            instance is already passed to <link linkend="algorithm_with_properties_awakened"><code>algorithm_with_properties::awakened()</code></link> and
+            <link linkend="algorithm_with_properties_property_change"><code>algorithm_with_properties::property_change()</code></link>.
+            However, every <link linkend="class_algorithm"><code>algorithm</code></link> subclass is expected to track
+            a collection of ready <link linkend="class_context"><code>context</code></link> instances. This method allows
+            your custom scheduler to retrieve the <link linkend="class_fiber_properties"><code>fiber_properties</code></link> subclass
             instance for any <code><phrase role="identifier">context</phrase></code>
             in its collection.
           </para>
@@ -2526,9 +2992,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_property_change_bridgehead">
-  <phrase id="sched_algorithm_with_properties_property_change"/>
-  <link linkend="sched_algorithm_with_properties_property_change">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_property_change_bridgehead">
+  <phrase id="algorithm_with_properties_property_change"/>
+  <link linkend="algorithm_with_properties_property_change">Member
       function <code>property_change</code>()</link>
 </bridgehead>
     </para>
@@ -2566,9 +3032,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="sched_algorithm_with_properties_new_properties_bridgehead">
-  <phrase id="sched_algorithm_with_properties_new_properties"/>
-  <link linkend="sched_algorithm_with_properties_new_properties">Member
+      <bridgehead renderas="sect4" id="algorithm_with_properties_new_properties_bridgehead">
+  <phrase id="algorithm_with_properties_new_properties"/>
+  <link linkend="algorithm_with_properties_new_properties">Member
       function <code>new_properties</code>()</link>
 </bridgehead>
     </para>
@@ -2589,7 +3055,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <term>Note:</term>
         <listitem>
           <para>
-            By default, <code><phrase role="identifier">sched_algorithm_with_properties</phrase><phrase
+            By default, <code><phrase role="identifier">algorithm_with_properties</phrase><phrase
             role="special">&lt;&gt;::</phrase><phrase role="identifier">new_properties</phrase><phrase
             role="special">()</phrase></code> simply returns <code><phrase role="keyword">new</phrase>
             <phrase role="identifier">PROPS</phrase><phrase role="special">(</phrase><phrase
@@ -2626,18 +3092,21 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase
       role="identifier">scheduler</phrase><phrase role="special">::</phrase><phrase
       role="identifier">ready_queue_t</phrase></code>. This hook is reserved for
-      use by <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementations. (For instance,
-      <link linkend="class_round_robin"><code>round_robin</code></link> contains a <code><phrase role="identifier">ready_queue_t</phrase></code>
-      instance to manage its ready fibers.) See <link linkend="context_ready_is_linked"><code>context::ready_is_linked()</code></link>,
+      use by <link linkend="class_algorithm"><code>algorithm</code></link> implementations. (For instance, <link linkend="class_round_robin"><code>round_robin</code></link> contains
+      a <code><phrase role="identifier">ready_queue_t</phrase></code> instance to
+      manage its ready fibers.) See <link linkend="context_ready_is_linked"><code>context::ready_is_linked()</code></link>,
       <link linkend="context_ready_link"><code>context::ready_link()</code></link>, <link linkend="context_ready_unlink"><code>context::ready_unlink()</code></link>.
     </para>
     <para>
-      Your <code><phrase role="identifier">sched_algorithm</phrase></code> implementation
+      Your <code><phrase role="identifier">algorithm</phrase></code> implementation
       may use any container you desire to manage passed <code><phrase role="identifier">context</phrase></code>
       instances. <code><phrase role="identifier">ready_queue_t</phrase></code> avoids
       some of the overhead of typical STL containers.
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
 
 <phrase role="keyword">enum</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">type</phrase> <phrase role="special">{</phrase>
   <phrase role="identifier">none</phrase>               <phrase role="special">=</phrase> <emphasis>unspecified</emphasis><phrase role="special">,</phrase>
@@ -2685,6 +3154,8 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <para>
       <bridgehead renderas="sect4" id="context_active_bridgehead">
@@ -2823,11 +3294,11 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             fiber&#8217;s context. It must not be <link linkend="blocking"><emphasis>blocked</emphasis></link>
             or terminated. It must not be a <code><phrase role="identifier">pinned_context</phrase></code>.
             It must be currently detached. It must not currently be linked into a
-            <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation&#8217;s ready queue. Most
-            of these conditions are implied by <code><phrase role="identifier">f</phrase></code>
-            being owned by a <code><phrase role="identifier">sched_algorithm</phrase></code>
-            implementation: that is, it has been passed to <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link> but
-            has not yet been returned by <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link>.
+            <link linkend="class_algorithm"><code>algorithm</code></link> implementation&#8217;s ready queue. Most of these conditions
+            are implied by <code><phrase role="identifier">f</phrase></code> being
+            owned by a <code><phrase role="identifier">algorithm</phrase></code>
+            implementation: that is, it has been passed to <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link> but
+            has not yet been returned by <link linkend="algorithm_pick_next"><code>algorithm::pick_next()</code></link>.
             Typically a <code><phrase role="identifier">pick_next</phrase><phrase
             role="special">()</phrase></code> implementation would call <code><phrase
             role="identifier">attach</phrase><phrase role="special">()</phrase></code>
@@ -2903,10 +3374,10 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             must not be the running fiber&#8217;s context. It must not be <link linkend="blocking"><emphasis>blocked</emphasis></link>
             or terminated. It must not be a <code><phrase role="identifier">pinned_context</phrase></code>.
             It must not be detached already. It must not already be linked into a
-            <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation&#8217;s ready queue. Most
-            of these conditions are implied by <code><phrase role="special">*</phrase><phrase
-            role="keyword">this</phrase></code> being passed to <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link>;
-            an <code><phrase role="identifier">awakened</phrase><phrase role="special">()</phrase></code>
+            <link linkend="class_algorithm"><code>algorithm</code></link> implementation&#8217;s ready queue. Most of these conditions
+            are implied by <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
+            being passed to <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link>; an <code><phrase
+            role="identifier">awakened</phrase><phrase role="special">()</phrase></code>
             implementation must, however, test for <code><phrase role="identifier">pinned_context</phrase></code>.
             It must call <code><phrase role="identifier">detach</phrase><phrase role="special">()</phrase></code>
             <emphasis>before</emphasis> linking <code><phrase role="special">*</phrase><phrase
@@ -2921,7 +3392,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
             In particular, it is erroneous to attempt to migrate a fiber from one
             thread to another by calling both <code><phrase role="identifier">detach</phrase><phrase
             role="special">()</phrase></code> and <code><phrase role="identifier">attach</phrase><phrase
-            role="special">()</phrase></code> in the <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link> method.
+            role="special">()</phrase></code> in the <link linkend="algorithm_pick_next"><code>algorithm::pick_next()</code></link> method.
             <code><phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase></code>
             is called on the intended destination thread. <code><phrase role="identifier">detach</phrase><phrase
             role="special">()</phrase></code> must be called on the fiber&#8217;s original
@@ -3052,7 +3523,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         <listitem>
           <para>
             <code><phrase role="keyword">true</phrase></code> if <code><phrase role="special">*</phrase><phrase
-            role="keyword">this</phrase></code> is stored in a <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>
+            role="keyword">this</phrase></code> is stored in a <link linkend="class_algorithm"><code>algorithm</code></link>
 implementation's
             ready-queue.
           </para>
@@ -3113,8 +3584,8 @@ implementation's
           <para>
             A <code><phrase role="identifier">context</phrase></code> signaled as
             ready by another thread is first stored in the fiber manager's remote-ready-queue.
-            This is the mechanism by which the fiber manager protects a <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation
-            from cross-thread <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link> calls.
+            This is the mechanism by which the fiber manager protects a <link linkend="class_algorithm"><code>algorithm</code></link> implementation
+            from cross-thread <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link> calls.
           </para>
         </listitem>
       </varlistentry>
@@ -3445,8 +3916,8 @@ implementation's
             role="identifier">ctx</phrase></code> as being ready to run. This does
             not immediately resume that fiber; rather it passes the fiber to the
             scheduler for subsequent resumption. If the scheduler is idle (has not
-            returned from a call to <link linkend="sched_algorithm_suspend_until"><code>sched_algorithm::suspend_until()</code></link>),
-            <link linkend="sched_algorithm_notify"><code>sched_algorithm::notify()</code></link> is called to wake it up.
+            returned from a call to <link linkend="algorithm_suspend_until"><code>algorithm::suspend_until()</code></link>),
+            <link linkend="algorithm_notify"><code>algorithm::notify()</code></link> is called to wake it up.
           </para>
         </listitem>
       </varlistentry>
@@ -3686,6 +4157,9 @@ implementation's
     </note>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">protected_fixedsize</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">struct</phrase> <phrase role="identifier">protected_fixedsize</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">protected_fixesize</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">());</phrase>
 
@@ -3693,6 +4167,8 @@ implementation's
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <para>
       <bridgehead renderas="sect4" id="protected_fixedsize_allocate_bridgehead">
@@ -3793,6 +4269,9 @@ implementation's
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">struct</phrase> <phrase role="identifier">pooled_fixedsize_stack</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">pooled_fixedsize_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">stack_size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">(),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">next_size</phrase> <phrase role="special">=</phrase> <phrase role="number">32</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">max_size</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">);</phrase>
 
@@ -3800,6 +4279,8 @@ implementation's
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <para>
       <bridgehead renderas="sect4" id="pooled_fixedsize_bridgehead">
@@ -3918,6 +4399,11 @@ implementation's
         </listitem>
       </varlistentry>
     </variablelist>
+    <note>
+      <para>
+        This stack allocator is not thread safe.
+      </para>
+    </note>
     <para>
       <bridgehead renderas="sect4" id="class_fixedsize_stack_bridgehead">
   <phrase id="class_fixedsize_stack"/>
@@ -3937,6 +4423,9 @@ implementation's
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">context</phrase><phrase role="special">/</phrase><phrase role="identifier">fixedsize_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">struct</phrase> <phrase role="identifier">fixedsize_stack</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">fixedsize_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">());</phrase>
 
@@ -3944,6 +4433,8 @@ implementation's
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <para>
       <bridgehead renderas="sect4" id="fixedsize_allocate_bridgehead">
@@ -4055,6 +4546,9 @@ implementation's
     </note>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">segmented_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">struct</phrase> <phrase role="identifier">segmented_stack</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">segmented_stack</phrase><phrase role="special">(</phrase><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">stack_size</phrase> <phrase role="special">=</phrase> <phrase role="identifier">traits_type</phrase><phrase role="special">::</phrase><phrase role="identifier">default_size</phrase><phrase role="special">());</phrase>
 
@@ -4062,6 +4556,8 @@ implementation's
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">deallocate</phrase><phrase role="special">(</phrase> <phrase role="identifier">stack_context</phrase> <phrase role="special">&amp;);</phrase>
 <phrase role="special">}</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <para>
       <bridgehead renderas="sect4" id="segmented_allocate_bridgehead">
@@ -4180,6 +4676,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">mutex</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">mutex</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">mutex</phrase><phrase role="special">();</phrase>
@@ -4192,6 +4691,8 @@ implementation's
     <phrase role="keyword">bool</phrase> <phrase role="identifier">try_lock</phrase><phrase role="special">();</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <para>
         <link linkend="class_mutex"><code>mutex</code></link> provides an exclusive-ownership mutex. At most one fiber
@@ -4368,6 +4869,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">timed_mutex</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">timed_mutex</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">timed_mutex</phrase><phrase role="special">();</phrase>
@@ -4385,6 +4889,8 @@ implementation's
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="keyword">bool</phrase> <phrase role="identifier">try_lock_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <para>
         <link linkend="class_timed_mutex"><code>timed_mutex</code></link> provides an exclusive-ownership mutex. At most
@@ -4685,6 +5191,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">recursive_mutex</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">recursive_mutex</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">recursive_mutex</phrase><phrase role="special">();</phrase>
@@ -4697,6 +5206,8 @@ implementation's
     <phrase role="keyword">bool</phrase> <phrase role="identifier">try_lock</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">void</phrase> <phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <para>
         <link linkend="class_recursive_mutex"><code>recursive_mutex</code></link> provides an exclusive-ownership recursive
@@ -4828,6 +5339,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">recursive_timed_mutex</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">recursive_timed_mutex</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">recursive_timed_mutex</phrase><phrase role="special">();</phrase>
@@ -4845,6 +5359,8 @@ implementation's
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase>
     <phrase role="keyword">bool</phrase> <phrase role="identifier">try_lock_for</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_duration</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <para>
         <link linkend="class_recursive_timed_mutex"><code>recursive_timed_mutex</code></link> provides an exclusive-ownership
@@ -5258,6 +5774,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">condition_variable</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> condition_variable_any <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     condition_variable_any<phrase role="special">();</phrase>
@@ -5293,6 +5812,8 @@ implementation's
                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase>
                    <phrase role="identifier">Pred</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.synchronization.conditions.h5">
         <phrase id="fiber.synchronization.conditions.constructor"/><link linkend="fiber.synchronization.conditions.constructor">Constructor</link>
@@ -5807,6 +6328,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">condition_variable</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> condition_variable <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     condition_variable<phrase role="special">();</phrase>
@@ -5841,6 +6365,8 @@ implementation's
                    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">duration</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Rep</phrase><phrase role="special">,</phrase> <phrase role="identifier">Period</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;,</phrase>
                    <phrase role="identifier">Pred</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.synchronization.conditions.h7">
         <phrase id="fiber.synchronization.conditions.constructor0"/><link linkend="fiber.synchronization.conditions.constructor0">Constructor</link>
@@ -6445,6 +6971,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">barrier</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">class</phrase> <phrase role="identifier">barrier</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">explicit</phrase> <phrase role="identifier">barrier</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase><phrase role="special">);</phrase>
@@ -6454,6 +6983,8 @@ implementation's
 
     <phrase role="keyword">bool</phrase> <phrase role="identifier">wait</phrase><phrase role="special">();</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <para>
         Instances of <link linkend="class_barrier"><code>barrier</code></link> are not copyable or movable.
@@ -6670,6 +7201,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">unbounded_channel</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <ulink url="http://en.cppreference.com/w/cpp/concept/Allocator"><code><phrase role="identifier">Allocator</phrase></code></ulink> <phrase role="special">=</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase></code></ulink> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">unbounded_channel</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
@@ -6697,6 +7231,8 @@ implementation's
         <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.synchronization.channels.h6">
         <phrase id="fiber.synchronization.channels.constructor"/><link linkend="fiber.synchronization.channels.constructor">Constructor</link>
@@ -7032,6 +7568,9 @@ implementation's
       </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">bounded_channel</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <ulink url="http://en.cppreference.com/w/cpp/concept/Allocator"><code><phrase role="identifier">Allocator</phrase></code></ulink> <phrase role="special">=</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase></code></ulink> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">bounded_channel</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
@@ -7079,6 +7618,8 @@ implementation's
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
       <bridgehead renderas="sect4" id="fiber.synchronization.channels.h7">
         <phrase id="fiber.synchronization.channels.constructor0"/><link linkend="fiber.synchronization.channels.constructor0">Constructor</link>
@@ -7890,7 +8431,12 @@ are
           A <link linkend="class_future"><code>future&lt;&gt;</code></link> contains a <link linkend="shared_state">shared
           state</link> which is not shared with any other future.
         </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">future</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">future</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -7925,6 +8471,8 @@ are
     <phrase role="identifier">future_status</phrase> <phrase role="identifier">wait_until</phrase><phrase role="special">(</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">)</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
         <bridgehead renderas="sect5" id="fiber.synchronization.futures.future.h4">
           <phrase id="fiber.synchronization.futures.future.default_constructor"/><link
@@ -8395,7 +8943,12 @@ are
           A <link linkend="class_shared_future"><code>shared_future&lt;&gt;</code></link> contains a <link linkend="shared_state">shared
           state</link> which might be shared with other <link linkend="class_shared_future"><code>shared_future&lt;&gt;</code></link> instances.
         </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">shared_future</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">shared_future</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -8432,6 +8985,8 @@ are
     <phrase role="identifier">future_status</phrase> <phrase role="identifier">wait_until</phrase><phrase role="special">(</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">)</phrase> <phrase role="keyword">const</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
         <bridgehead renderas="sect5" id="fiber.synchronization.futures.future.h7">
           <phrase id="fiber.synchronization.futures.future.default_constructor0"/><link
@@ -8849,6 +9404,9 @@ are
         </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">/</phrase><phrase role="identifier">async</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">Function</phrase><phrase role="special">,</phrase> <phrase role="keyword">class</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">future</phrase><phrase role="special">&lt;</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">result_of_t</phrase><phrase role="special">&lt;</phrase>
@@ -8873,6 +9431,8 @@ are
 <phrase role="special">&gt;</phrase>
 <phrase role="identifier">async</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
        <phrase role="identifier">Function</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
         <variablelist>
           <title></title>
@@ -8943,7 +9503,12 @@ are
           and <code><phrase role="identifier">future</phrase><phrase role="special">&lt;&gt;</phrase></code>
           communicate via their underlying <link linkend="shared_state">shared state</link>.
         </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">/</phrase><phrase role="identifier">promise</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">promise</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">promise</phrase><phrase role="special">();</phrase>
@@ -8975,6 +9540,8 @@ are
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;,</phrase> <phrase role="identifier">promise</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="special">}</phrase>
 </programlisting>
         <bridgehead renderas="sect5" id="fiber.synchronization.futures.promise.h0">
           <phrase id="fiber.synchronization.futures.promise.default_constructor"/><link
@@ -9337,7 +9904,12 @@ are
           This is, in fact, pretty much what <link linkend="fibers_async"><code>fibers::async()</code></link>
 encapsulates.
         </para>
-<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">R</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">future</phrase><phrase role="special">/</phrase><phrase role="identifier">packaged_task</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">class</phrase> <phrase role="identifier">R</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">packaged_task</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase><phrase role="special">(</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="identifier">packaged_task</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -9371,6 +9943,8 @@ encapsulates.
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Signature</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">void</phrase> <phrase role="identifier">swap</phrase><phrase role="special">(</phrase> <phrase role="identifier">packaged_task</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Signature</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;,</phrase> <phrase role="identifier">packaged_task</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Signature</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
         <bridgehead renderas="sect5" id="fiber.synchronization.futures.packaged_task.h0">
           <phrase id="fiber.synchronization.futures.packaged_task.default_constructor__code__phrase_role__identifier__packaged_task__phrase__phrase_role__special______phrase___code_"/><link
@@ -9769,6 +10343,9 @@ encapsulates.
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">fss</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">fiber_specific_ptr</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
@@ -9793,6 +10370,8 @@ encapsulates.
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">reset</phrase><phrase role="special">(</phrase> <phrase role="identifier">T</phrase> <phrase role="special">*);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="special">}}</phrase>
 </programlisting>
     <bridgehead renderas="sect3" id="fiber.fls.h2">
       <phrase id="fiber.fls.constructor"/><link linkend="fiber.fls.constructor">Constructor</link>
@@ -10131,12 +10710,11 @@ encapsulates.
       due to increased latency of memory access.
     </para>
     <para>
-      Only fibers that are contained in <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link>&#8217;s ready
-      queue can migrate between threads. You cannot migrate a running fiber, nor
-      one that is <link linkend="blocking"><emphasis>blocked</emphasis></link>. You
-      cannot migrate a fiber if its <link linkend="context_is_context"><code>context::is_context()</code></link> method
-      returns <code><phrase role="keyword">true</phrase></code> for <code><phrase
-      role="identifier">pinned_context</phrase></code>.
+      Only fibers that are contained in <link linkend="class_algorithm"><code>algorithm</code></link>&#8217;s ready queue can
+      migrate between threads. You cannot migrate a running fiber, nor one that is
+      <link linkend="blocking"><emphasis>blocked</emphasis></link>. You cannot migrate
+      a fiber if its <link linkend="context_is_context"><code>context::is_context()</code></link> method returns <code><phrase
+      role="keyword">true</phrase></code> for <code><phrase role="identifier">pinned_context</phrase></code>.
     </para>
     <para>
       In <emphasis role="bold">Boost.Fiber</emphasis> a fiber is migrated by invoking
@@ -10145,14 +10723,13 @@ encapsulates.
     </para>
     <para>
       Thus, fiber migration is accomplished by sharing state between instances of
-      a user-coded <link linkend="class_sched_algorithm"><code>sched_algorithm</code></link> implementation running on
-      different threads. The fiber&#8217;s original thread calls <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link>,
-      passing the fiber&#8217;s <link linkend="class_context"><code>context</code></link><literal>*</literal>. The <code><phrase
-      role="identifier">awakened</phrase><phrase role="special">()</phrase></code>
-      implementation calls <link linkend="context_detach"><code>context::detach()</code></link>.
+      a user-coded <link linkend="class_algorithm"><code>algorithm</code></link> implementation running on different threads.
+      The fiber&#8217;s original thread calls <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link>, passing
+      the fiber&#8217;s <link linkend="class_context"><code>context</code></link><literal>*</literal>. The <code><phrase role="identifier">awakened</phrase><phrase
+      role="special">()</phrase></code> implementation calls <link linkend="context_detach"><code>context::detach()</code></link>.
     </para>
     <para>
-      At some later point, when the same or a different thread calls <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link>,
+      At some later point, when the same or a different thread calls <link linkend="algorithm_pick_next"><code>algorithm::pick_next()</code></link>,
       the <code><phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase></code>
       implementation selects a ready fiber and calls <link linkend="context_attach"><code>context::attach()</code></link> on
       it before returning it.
@@ -10198,7 +10775,7 @@ encapsulates.
       launched.
     </para>
     <para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">shared_ready_queue</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c0" linkends="fiber.migration.c1" />
+<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_round_robin</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c0" linkends="fiber.migration.c1" />
 
 <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">char</phrase> <phrase role="identifier">c</phrase> <phrase role="special">:</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase><phrase role="special">(</phrase><phrase role="string">&quot;abcdefghijklmnopqrstuvwxyz&quot;</phrase><phrase role="special">))</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c2" linkends="fiber.migration.c3" />
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">([</phrase><phrase role="identifier">c</phrase><phrase role="special">](){</phrase> <phrase role="identifier">whatevah</phrase><phrase role="special">(</phrase> <phrase role="identifier">c</phrase><phrase role="special">);</phrase> <phrase role="special">}).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
@@ -10224,7 +10801,10 @@ encapsulates.
     <calloutlist>
       <callout arearefs="fiber.migration.c0" id="fiber.migration.c1">
         <para>
-          Install the scheduling algorithm <code><phrase role="identifier">shared_ready_queue</phrase></code>
+          Install the scheduling algorithm <code><phrase role="identifier">boost</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">algo</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">shared_round_robin</phrase></code>
           in the main thread too, so each new fiber gets launched into the shared
           pool.
         </para>
@@ -10293,7 +10873,7 @@ encapsulates.
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ostringstream</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">buffer</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;thread started &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">shared_ready_queue</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c18" linkends="fiber.migration.c19" />
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_round_robin</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c18" linkends="fiber.migration.c19" />
     <phrase role="identifier">b</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c20" linkends="fiber.migration.c21" />
     <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">,</phrase> <phrase role="special">[](){</phrase> <phrase role="keyword">return</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">;</phrase> <phrase role="special">}</phrase> <phrase role="special">);</phrase> <co id="fiber.migration.c22" linkends="fiber.migration.c23" />
@@ -10304,7 +10884,10 @@ encapsulates.
     <calloutlist>
       <callout arearefs="fiber.migration.c18" id="fiber.migration.c19">
         <para>
-          Install the scheduling algorithm <code><phrase role="identifier">shared_ready_queue</phrase></code>
+          Install the scheduling algorithm <code><phrase role="identifier">boost</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">algo</phrase><phrase
+          role="special">::</phrase><phrase role="identifier">shared_round_robin</phrase></code>
           in order to join the work sharing.
         </para>
       </callout>
@@ -10408,7 +10991,7 @@ before
     </para>
     <para>
       The important point about the ready queue is that it&#8217;s a class static, common
-      to all instances of shared_ready_queue. Fibers that are enqueued via <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link> (fibers
+      to all instances of shared_ready_queue. Fibers that are enqueued via <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link> (fibers
       that are ready to be resumed) are thus available to all threads. It is required
       to reserve a separate, scheduler-specific queue for the thread&#8217;s main fiber
       and dispatcher fibers: these may <emphasis>not</emphasis> be shared between
@@ -10417,75 +11000,16 @@ before
       to execute thread A&#8217;s main fiber.
     </para>
     <para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
-    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
-
-    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">is_context</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">type</phrase><phrase role="special">::</phrase><phrase role="identifier">pinned_context</phrase><phrase role="special">)</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c38" linkends="fiber.migration.c39" />
-        <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
-    <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
-        <phrase role="identifier">ctx</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
-        <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase><phrase role="identifier">rqueue_mtx_</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c40" linkends="fiber.migration.c41" />
-        <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">push</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
-    <phrase role="special">}</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
-    </para>
-    <calloutlist>
-      <callout arearefs="fiber.migration.c38" id="fiber.migration.c39">
-        <para>
-          recognize when we're passed this thread's main fiber (or an implicit library
-          helper fiber): never put those on the shared queue
-        </para>
-      </callout>
-      <callout arearefs="fiber.migration.c40" id="fiber.migration.c41">
-        <para>
-          worker fiber, enqueue on shared queue
-        </para>
-      </callout>
-    </calloutlist>
-    <para>
-      When <link linkend="sched_algorithm_pick_next"><code>sched_algorithm::pick_next()</code></link> gets called inside
-      one thread, a fiber is dequeued from <emphasis>rqueue_</emphasis> and will
-      be resumed in that thread.
+      [awakened_ws]
     </para>
     <para>
-<programlisting><phrase role="keyword">virtual</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">pick_next</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase><phrase role="special">);</phrase>
-    <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase><phrase role="identifier">rqueue_mtx_</phrase><phrase role="special">);</phrase>
-    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c42" linkends="fiber.migration.c43" />
-        <phrase role="identifier">ctx</phrase> <phrase role="special">=</phrase> <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">front</phrase><phrase role="special">();</phrase>
-        <phrase role="identifier">rqueue_</phrase><phrase role="special">.</phrase><phrase role="identifier">pop</phrase><phrase role="special">();</phrase>
-        <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
-        <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="keyword">nullptr</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase>
-        <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">attach</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">);</phrase> <co id="fiber.migration.c44" linkends="fiber.migration.c45" />
-    <phrase role="special">}</phrase> <phrase role="keyword">else</phrase> <phrase role="special">{</phrase>
-        <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">empty</phrase><phrase role="special">()</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c46" linkends="fiber.migration.c47" />
-            <phrase role="identifier">ctx</phrase> <phrase role="special">=</phrase> <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">front</phrase><phrase role="special">();</phrase>
-            <phrase role="identifier">local_queue_</phrase><phrase role="special">.</phrase><phrase role="identifier">pop</phrase><phrase role="special">();</phrase>
-        <phrase role="special">}</phrase>
-    <phrase role="special">}</phrase>
-    <phrase role="keyword">return</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">;</phrase>
-<phrase role="special">}</phrase>
-</programlisting>
+      When <link linkend="algorithm_pick_next"><code>algorithm::pick_next()</code></link> gets called inside one thread,
+      a fiber is dequeued from <emphasis>rqueue_</emphasis> and will be resumed in
+      that thread.
     </para>
-    <calloutlist>
-      <callout arearefs="fiber.migration.c42" id="fiber.migration.c43">
-        <para>
-          pop an item from the ready queue
-        </para>
-      </callout>
-      <callout arearefs="fiber.migration.c44" id="fiber.migration.c45">
-        <para>
-          attach context to current scheduler via the active fiber of this thread
-        </para>
-      </callout>
-      <callout arearefs="fiber.migration.c46" id="fiber.migration.c47">
-        <para>
-          nothing in the ready queue, return main or dispatcher fiber
-        </para>
-      </callout>
-    </calloutlist>
+    <para>
+      [pick_next_ws]
+    </para>
     <para>
       The source code above is found in <ulink url="../../examples/work_sharing.cpp">work_sharing.cpp</ulink>.
     </para>
@@ -13103,7 +13627,7 @@ before
         Since, in this thought experiment, we always pass control to the fiber manager
         via <code><phrase role="identifier">yield</phrase><phrase role="special">()</phrase></code>,
         the calling fiber is never blocked. Therefore there is always at least one
-        ready fiber. Therefore the fiber manager never calls <link linkend="sched_algorithm_suspend_until"><code>sched_algorithm::suspend_until()</code></link>.
+        ready fiber. Therefore the fiber manager never calls <link linkend="algorithm_suspend_until"><code>algorithm::suspend_until()</code></link>.
       </para>
       <para>
         Using <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/post.html"><code><phrase
@@ -13440,8 +13964,8 @@ that would cause the thread to
       </para>
       <para>
         Under normal circumstances, when the fiber manager finds no ready fibers,
-        it calls <link linkend="sched_algorithm_suspend_until"><code>sched_algorithm::suspend_until()</code></link>. Why
-        test <code><phrase role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase></code>
+        it calls <link linkend="algorithm_suspend_until"><code>algorithm::suspend_until()</code></link>. Why test <code><phrase
+        role="identifier">has_ready_fibers</phrase><phrase role="special">()</phrase></code>
         in the lambda loop? Why not leverage the normal mechanism?
       </para>
       <para>
@@ -13453,7 +13977,7 @@ that would cause the thread to
         role="special">()</phrase></code> and <link linkend="this_fiber_yield"><code>this_fiber::yield()</code></link>.
         <code><phrase role="identifier">yield</phrase><phrase role="special">()</phrase></code>
         does not <emphasis>block</emphasis> the calling fiber: the calling fiber
-        does not become unready. It is immediately passed back to <link linkend="sched_algorithm_awakened"><code>sched_algorithm::awakened()</code></link>,
+        does not become unready. It is immediately passed back to <link linkend="algorithm_awakened"><code>algorithm::awakened()</code></link>,
         to be resumed in its turn when all other ready fibers have had a chance to
         run. In other words: during a <code><phrase role="identifier">yield</phrase><phrase
         role="special">()</phrase></code> call, <emphasis>there is always at least
@@ -14279,13 +14803,13 @@ that would cause the thread to
       Scheduler Class</link>
     </bridgehead>
     <para>
-      Now we can derive a custom scheduler from <link linkend="class_sched_algorithm_with_properties"><code>sched_algorithm_with_properties&lt;&gt;</code></link>,
+      Now we can derive a custom scheduler from <link linkend="class_algorithm_with_properties"><code>algorithm_with_properties&lt;&gt;</code></link>,
       specifying our custom property class <code><phrase role="identifier">priority_props</phrase></code>
       as the template parameter.
     </para>
     <para>
 <programlisting><phrase role="keyword">class</phrase> <phrase role="identifier">priority_scheduler</phrase> <phrase role="special">:</phrase>
-    <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">sched_algorithm_with_properties</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">public</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">algorithm_with_properties</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">private</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">typedef</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">scheduler</phrase><phrase role="special">::</phrase><phrase role="identifier">ready_queue_t</phrase><co id="fiber.custom.c8" linkends="fiber.custom.c9" />   <phrase role="identifier">rqueue_t</phrase><phrase role="special">;</phrase>
 
@@ -14299,7 +14823,7 @@ that would cause the thread to
         <phrase role="identifier">rqueue_</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
 
-    <phrase role="comment">// For a subclass of sched_algorithm_with_properties&lt;&gt;, it's important to</phrase>
+    <phrase role="comment">// For a subclass of algorithm_with_properties&lt;&gt;, it's important to</phrase>
     <phrase role="comment">// override the correct awakened() overload.</phrase>
     <co id="fiber.custom.c10" linkends="fiber.custom.c11" /><phrase role="keyword">virtual</phrase> <phrase role="keyword">void</phrase> <phrase role="identifier">awakened</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase><phrase role="special">,</phrase> <phrase role="identifier">priority_props</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">props</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase> <phrase role="special">{</phrase>
         <phrase role="keyword">int</phrase> <phrase role="identifier">ctx_priority</phrase> <phrase role="special">=</phrase> <phrase role="identifier">props</phrase><phrase role="special">.</phrase><phrase role="identifier">get_priority</phrase><phrase role="special">();</phrase> <co id="fiber.custom.c12" linkends="fiber.custom.c13" />
@@ -14382,7 +14906,7 @@ that would cause the thread to
       </callout>
       <callout arearefs="fiber.custom.c10" id="fiber.custom.c11">
         <para>
-          You must override the <link linkend="sched_algorithm_with_properties_awakened"><code>sched_algorithm_with_properties::awakened()</code></link>
+          You must override the <link linkend="algorithm_with_properties_awakened"><code>algorithm_with_properties::awakened()</code></link>
          method.
           This is how your scheduler receives notification of a fiber that has become
           ready to run.
@@ -14396,7 +14920,7 @@ that would cause the thread to
       </callout>
       <callout arearefs="fiber.custom.c14" id="fiber.custom.c15">
         <para>
-          You must override the <link linkend="sched_algorithm_with_properties_pick_next"><code>sched_algorithm_with_properties::pick_next()</code></link>
+          You must override the <link linkend="algorithm_with_properties_pick_next"><code>algorithm_with_properties::pick_next()</code></link>
          method.
           This is how your scheduler actually advises the fiber manager of the next
           fiber to run.
@@ -14404,14 +14928,14 @@ that would cause the thread to
       </callout>
       <callout arearefs="fiber.custom.c16" id="fiber.custom.c17">
         <para>
-          You must override <link linkend="sched_algorithm_with_properties_has_ready_fibers"><code>sched_algorithm_with_properties::has_ready_fibers()</code></link>
+          You must override <link linkend="algorithm_with_properties_has_ready_fibers"><code>algorithm_with_properties::has_ready_fibers()</code></link>
       to
           inform the fiber manager of the state of your ready queue.
         </para>
       </callout>
       <callout arearefs="fiber.custom.c18" id="fiber.custom.c19">
         <para>
-          Overriding <link linkend="sched_algorithm_with_properties_property_change"><code>sched_algorithm_with_properties::property_change()</code></link>
+          Overriding <link linkend="algorithm_with_properties_property_change"><code>algorithm_with_properties::property_change()</code></link>
          is
           optional. This override handles the case in which the running fiber changes
           the priority of another ready fiber: a fiber already in our queue. In that
@@ -14429,7 +14953,7 @@ that would cause the thread to
     </calloutlist>
     <para>
       Our example <code><phrase role="identifier">priority_scheduler</phrase></code>
-      doesn't override <link linkend="sched_algorithm_with_properties_new_properties"><code>sched_algorithm_with_properties::new_properties()</code></link>:
+      doesn't override <link linkend="algorithm_with_properties_new_properties"><code>algorithm_with_properties::new_properties()</code></link>:
       we're content with allocating <code><phrase role="identifier">priority_props</phrase></code>
       instances on the heap.
     </para>
@@ -14495,7 +15019,7 @@ that would cause the thread to
       As shown in the <code><phrase role="identifier">launch</phrase><phrase role="special">()</phrase></code>
       function above, it is reasonable to launch a fiber and immediately set relevant
       properties -- such as, for instance, its priority. Your custom scheduler can
-      then make use of this information next time the fiber manager calls <link linkend="sched_algorithm_with_properties_pick_next"><code>sched_algorithm_with_properties::pick_next()</code></link>.
+      then make use of this information next time the fiber manager calls <link linkend="algorithm_with_properties_pick_next"><code>algorithm_with_properties::pick_next()</code></link>.
     </para>
   </section>
   <section id="fiber.rationale">

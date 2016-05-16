@@ -34,7 +34,7 @@
 <p>
       Each fiber owns a stack and manages its execution state, including all registers
       and CPU flags, the instruction pointer and the stack pointer. That means, in
-      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">2</a>]</sup><sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">3</a>]</sup>
+      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">4</a>]</sup><sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">5</a>]</sup>
     </p>
 <p>
       Migrating a fiber from a logical CPU with heavy workload to another logical
@@ -49,11 +49,10 @@
       due to increased latency of memory access.
     </p>
 <p>
-      Only fibers that are contained in <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>&#8217;s ready
-      queue can migrate between threads. You cannot migrate a running fiber, nor
-      one that is <a class="link" href="overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>. You
-      cannot migrate a fiber if its <a class="link" href="scheduling.html#context_is_context"><code class="computeroutput">context::is_context()</code></a> method
-      returns <code class="computeroutput"><span class="keyword">true</span></code> for <code class="computeroutput"><span class="identifier">pinned_context</span></code>.
+      Only fibers that are contained in <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>&#8217;s ready queue can
+      migrate between threads. You cannot migrate a running fiber, nor one that is
+      <a class="link" href="overview.html#blocking"><span class="emphasis"><em>blocked</em></span></a>. You cannot migrate
+      a fiber if its <a class="link" href="scheduling.html#context_is_context"><code class="computeroutput">context::is_context()</code></a> method returns <code class="computeroutput"><span class="keyword">true</span></code> for <code class="computeroutput"><span class="identifier">pinned_context</span></code>.
     </p>
 <p>
       In <span class="bold"><strong>Boost.Fiber</strong></span> a fiber is migrated by invoking
@@ -62,13 +61,12 @@
     </p>
 <p>
       Thus, fiber migration is accomplished by sharing state between instances of
-      a user-coded <a class="link" href="scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a> implementation running on
-      different threads. The fiber&#8217;s original thread calls <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a>,
-      passing the fiber&#8217;s <a class="link" href="scheduling.html#class_context"><code class="computeroutput">context</code></a><code class="literal">*</code>. The <code class="computeroutput"><span class="identifier">awakened</span><span class="special">()</span></code>
-      implementation calls <a class="link" href="scheduling.html#context_detach"><code class="computeroutput">context::detach()</code></a>.
+      a user-coded <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a> implementation running on different threads.
+      The fiber&#8217;s original thread calls <a class="link" href="scheduling.html#algorithm_awakened"><code class="computeroutput">algorithm::awakened()</code></a>, passing
+      the fiber&#8217;s <a class="link" href="scheduling.html#class_context"><code class="computeroutput">context</code></a><code class="literal">*</code>. The <code class="computeroutput"><span class="identifier">awakened</span><span class="special">()</span></code> implementation calls <a class="link" href="scheduling.html#context_detach"><code class="computeroutput">context::detach()</code></a>.
     </p>
 <p>
-      At some later point, when the same or a different thread calls <a class="link" href="scheduling.html#sched_algorithm_pick_next"><code class="computeroutput">sched_algorithm::pick_next()</code></a>,
+      At some later point, when the same or a different thread calls <a class="link" href="scheduling.html#algorithm_pick_next"><code class="computeroutput">algorithm::pick_next()</code></a>,
       the <code class="computeroutput"><span class="identifier">pick_next</span><span class="special">()</span></code>
       implementation selects a ready fiber and calls <a class="link" href="scheduling.html#context_attach"><code class="computeroutput">context::attach()</code></a> on
       it before returning it.
@@ -114,7 +112,7 @@
     </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">shared_ready_queue</span> <span class="special">&gt;();</span> <a class="co" name="fiber.migration.c0" href="migration.html#fiber.migration.c1"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">shared_round_robin</span> <span class="special">&gt;();</span> <a class="co" name="fiber.migration.c0" href="migration.html#fiber.migration.c1"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
 
 <span class="keyword">for</span> <span class="special">(</span> <span class="keyword">char</span> <span class="identifier">c</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"abcdefghijklmnopqrstuvwxyz"</span><span class="special">))</span> <span class="special">{</span> <a class="co" name="fiber.migration.c2" href="migration.html#fiber.migration.c3"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">([</span><span class="identifier">c</span><span class="special">](){</span> <span class="identifier">whatevah</span><span class="special">(</span> <span class="identifier">c</span><span class="special">);</span> <span class="special">}).</span><span class="identifier">detach</span><span class="special">();</span>
@@ -142,7 +140,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c1"></a><a href="#fiber.migration.c0"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          Install the scheduling algorithm <code class="computeroutput"><span class="identifier">shared_ready_queue</span></code>
+          Install the scheduling algorithm <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">shared_round_robin</span></code>
           in the main thread too, so each new fiber gets launched into the shared
           pool.
         </p></td>
@@ -214,7 +212,7 @@
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">ostringstream</span> <span class="identifier">buffer</span><span class="special">;</span>
     <span class="identifier">buffer</span> <span class="special">&lt;&lt;</span> <span class="string">"thread started "</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">this_thread</span><span class="special">::</span><span class="identifier">get_id</span><span class="special">()</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">buffer</span><span class="special">.</span><span class="identifier">str</span><span class="special">()</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">flush</span><span class="special">;</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">shared_ready_queue</span> <span class="special">&gt;();</span> <a class="co" name="fiber.migration.c18" href="migration.html#fiber.migration.c19"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">shared_round_robin</span> <span class="special">&gt;();</span> <a class="co" name="fiber.migration.c18" href="migration.html#fiber.migration.c19"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
     <span class="identifier">b</span><span class="special">-&gt;</span><span class="identifier">wait</span><span class="special">();</span> <a class="co" name="fiber.migration.c20" href="migration.html#fiber.migration.c21"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
     <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span> <span class="identifier">mtx_count</span><span class="special">);</span>
     <span class="identifier">cnd_count</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span> <span class="identifier">lk</span><span class="special">,</span> <span class="special">[](){</span> <span class="keyword">return</span> <span class="number">0</span> <span class="special">==</span> <span class="identifier">fiber_count</span><span class="special">;</span> <span class="special">}</span> <span class="special">);</span> <a class="co" name="fiber.migration.c22" href="migration.html#fiber.migration.c23"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
@@ -227,7 +225,7 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="fiber.migration.c19"></a><a href="#fiber.migration.c18"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-          Install the scheduling algorithm <code class="computeroutput"><span class="identifier">shared_ready_queue</span></code>
+          Install the scheduling algorithm <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">shared_round_robin</span></code>
           in order to join the work sharing.
         </p></td>
 </tr>
@@ -340,7 +338,7 @@ before
     </p>
 <p>
       The important point about the ready queue is that it&#8217;s a class static, common
-      to all instances of shared_ready_queue. Fibers that are enqueued via <a class="link" href="scheduling.html#sched_algorithm_awakened"><code class="computeroutput">sched_algorithm::awakened()</code></a> (fibers
+      to all instances of shared_ready_queue. Fibers that are enqueued via <a class="link" href="scheduling.html#algorithm_awakened"><code class="computeroutput">algorithm::awakened()</code></a> (fibers
       that are ready to be resumed) are thus available to all threads. It is required
       to reserve a separate, scheduler-specific queue for the thread&#8217;s main fiber
       and dispatcher fibers: these may <span class="emphasis"><em>not</em></span> be shared between
@@ -349,95 +347,27 @@ before
       to execute thread A&#8217;s main fiber.
     </p>
 <p>
-</p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="identifier">awakened</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">BOOST_ASSERT</span><span class="special">(</span> <span class="keyword">nullptr</span> <span class="special">!=</span> <span class="identifier">ctx</span><span class="special">);</span>
-
-    <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ctx</span><span class="special">-&gt;</span><span class="identifier">is_context</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">type</span><span class="special">::</span><span class="identifier">pinned_context</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c38" href="migration.html#fiber.migration.c39"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
-        <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-        <span class="identifier">ctx</span><span class="special">-&gt;</span><span class="identifier">detach</span><span class="special">();</span>
-        <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span><span class="identifier">rqueue_mtx_</span><span class="special">);</span> <a class="co" name="fiber.migration.c40" href="migration.html#fiber.migration.c41"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
-        <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span>
-    <span class="special">}</span>
-<span class="special">}</span>
-</pre>
-<p>
-    </p>
-<div class="calloutlist"><table border="0" summary="Callout list">
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c39"></a><a href="#fiber.migration.c38"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          recognize when we're passed this thread's main fiber (or an implicit library
-          helper fiber): never put those on the shared queue
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c41"></a><a href="#fiber.migration.c40"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          worker fiber, enqueue on shared queue
-        </p></td>
-</tr>
-</table></div>
-<p>
-      When <a class="link" href="scheduling.html#sched_algorithm_pick_next"><code class="computeroutput">sched_algorithm::pick_next()</code></a> gets called inside
-      one thread, a fiber is dequeued from <span class="emphasis"><em>rqueue_</em></span> and will
-      be resumed in that thread.
+      [awakened_ws]
     </p>
 <p>
-</p>
-<pre class="programlisting"><span class="keyword">virtual</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">pick_next</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span><span class="special">(</span> <span class="keyword">nullptr</span><span class="special">);</span>
-    <span class="identifier">lock_t</span> <span class="identifier">lk</span><span class="special">(</span><span class="identifier">rqueue_mtx_</span><span class="special">);</span>
-    <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c42" href="migration.html#fiber.migration.c43"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a>
-        <span class="identifier">ctx</span> <span class="special">=</span> <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span>
-        <span class="identifier">rqueue_</span><span class="special">.</span><span class="identifier">pop</span><span class="special">();</span>
-        <span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span>
-        <span class="identifier">BOOST_ASSERT</span><span class="special">(</span> <span class="keyword">nullptr</span> <span class="special">!=</span> <span class="identifier">ctx</span><span class="special">);</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">context</span><span class="special">::</span><span class="identifier">active</span><span class="special">()-&gt;</span><span class="identifier">attach</span><span class="special">(</span> <span class="identifier">ctx</span><span class="special">);</span> <a class="co" name="fiber.migration.c44" href="migration.html#fiber.migration.c45"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-        <span class="identifier">lk</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span>
-        <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">)</span> <span class="special">{</span> <a class="co" name="fiber.migration.c46" href="migration.html#fiber.migration.c47"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a>
-            <span class="identifier">ctx</span> <span class="special">=</span> <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span>
-            <span class="identifier">local_queue_</span><span class="special">.</span><span class="identifier">pop</span><span class="special">();</span>
-        <span class="special">}</span>
-    <span class="special">}</span>
-    <span class="keyword">return</span> <span class="identifier">ctx</span><span class="special">;</span>
-<span class="special">}</span>
-</pre>
-<p>
+      When <a class="link" href="scheduling.html#algorithm_pick_next"><code class="computeroutput">algorithm::pick_next()</code></a> gets called inside one thread,
+      a fiber is dequeued from <span class="emphasis"><em>rqueue_</em></span> and will be resumed in
+      that thread.
     </p>
-<div class="calloutlist"><table border="0" summary="Callout list">
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c43"></a><a href="#fiber.migration.c42"><img src="../../../../../doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          pop an item from the ready queue
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c45"></a><a href="#fiber.migration.c44"><img src="../../../../../doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          attach context to current scheduler via the active fiber of this thread
-        </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="fiber.migration.c47"></a><a href="#fiber.migration.c46"><img src="../../../../../doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-          nothing in the ready queue, return main or dispatcher fiber
-        </p></td>
-</tr>
-</table></div>
+<p>
+      [pick_next_ws]
+    </p>
 <p>
       The source code above is found in <a href="../../../examples/work_sharing.cpp" target="_top">work_sharing.cpp</a>.
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">2</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">4</a>] </sup>
         The <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> fiber on each thread, that is, the fiber on which
         the thread is launched, cannot migrate to any other thread. Also <span class="bold"><strong>Boost.Fiber</strong></span> implicitly creates a dispatcher fiber
         for each thread &#8212; this cannot migrate either.
       </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">3</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">5</a>] </sup>
         Of course it would be problematic to migrate a fiber that relies on <a class="link" href="overview.html#thread_local_storage">thread-local storage</a>.
       </p></div>
 </div>
