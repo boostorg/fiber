@@ -8,6 +8,7 @@
 #define BOOST_FIBERS_H
 
 #include <boost/fiber/algo/algorithm.hpp>
+#include <boost/fiber/algo/random_chase_lev.hpp>
 #include <boost/fiber/algo/round_robin.hpp>
 #include <boost/fiber/algo/shared_round_robin.hpp>
 #include <boost/fiber/barrier.hpp>

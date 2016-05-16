@@ -28,6 +28,7 @@ project boost/fiber
 
 lib boost_fiber
     : algo/algorithm.cpp
+      algo/random_chase_lev.cpp
       algo/round_robin.cpp
       algo/shared_round_robin.cpp
       barrier.cpp
