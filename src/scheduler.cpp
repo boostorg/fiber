@@ -56,7 +56,7 @@ scheduler::release_terminated_() noexcept {
 void
 scheduler::remote_ready2ready_() noexcept {
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    std::unique_lock< std::mutex > lk( remote_ready_mtx_);
     // get context from remote ready-queue
     for ( context * ctx : remote_ready_queue_) {
         // store context in local queues
@@ -209,7 +209,7 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     // we do not test this in this function
     // scheduler::dispatcher() has to take care
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    std::unique_lock< std::mutex > lk( remote_ready_mtx_);
     // push new context to remote ready-queue
     remote_ready_queue_.push_back( ctx);
     lk.unlock();

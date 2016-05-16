@@ -79,7 +79,7 @@ private:
     // scheduler::wait_until()
     sleep_queue_t                       sleep_queue_{};
     bool                                shutdown_{ false };
-    detail::spinlock                    remote_ready_splk_{};
+    std::mutex                          remote_ready_mtx_{};
 
     context * get_next_() noexcept;
 
