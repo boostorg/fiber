@@ -20,6 +20,7 @@
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
 
+#include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/condition_variable.hpp>
@@ -48,7 +49,11 @@ private:
         >                                               allocator_t;
         typedef std::allocator_traits< allocator_t >    allocator_traits_t;
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         std::atomic< std::size_t >  use_count{ 0 };
+#else
+        std::size_t                 use_count{ 0 };
+#endif
         allocator_t                 alloc;
         T                           va;
         ptr_t                       nxt{};
