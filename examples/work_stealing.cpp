@@ -46,7 +46,7 @@ boost::fibers::future< int > fibonacci( int n) {
 }
 
 void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
-    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::random_chase_lev >( max_idx, idx);
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::random_chase_lev >();
     b->wait();
     while ( ! fini) {
         // To guarantee progress, we must ensure that
@@ -61,7 +61,7 @@ void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
 
 int main() {
     unsigned int max_idx = 4;
-    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::random_chase_lev >( max_idx, max_idx);
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::random_chase_lev >();
     std::vector< std::thread > threads;
     barrier b( max_idx + 1);
     // launch a couple threads to help process them

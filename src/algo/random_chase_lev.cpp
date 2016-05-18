@@ -19,19 +19,12 @@ namespace boost {
 namespace fibers {
 namespace algo {
 
-void
-random_chase_lev::init_( std::size_t max_idx) {
-    schedulers_.resize( max_idx + 1);
-}
-
-random_chase_lev::random_chase_lev( std::size_t max_idx, std::size_t idx, bool suspend) :
-    idx_{ idx },
+random_chase_lev::random_chase_lev( bool suspend) :
     generator_{ rd_device_() },
-    distribution_{ static_cast< std::size_t >( 0), max_idx },
     suspend_{ suspend } {
-    static std::once_flag flag;
-    std::call_once( flag, & random_chase_lev::init_, max_idx);
-    schedulers_[idx_] = this;
+    std::unique_lock< std::mutex > lk( schedulers_mutex_);
+    idx_ = schedulers_.size();
+    schedulers_.push_back( this);
 }
 
 void
@@ -53,11 +46,18 @@ random_chase_lev::pick_next() noexcept {
         ctx = & lqueue_.front();
         lqueue_.pop_front();
     } else if ( nullptr == ctx) {
-        std::size_t idx = 0;
-        do {
-            idx = distribution_( generator_);
-        } while ( idx == idx_);
-        ctx = schedulers_[idx]->steal();
+        random_chase_lev * other;
+        {
+            std::unique_lock< std::mutex > lk( schedulers_mutex_);
+            std::uniform_int_distribution< std::size_t >
+                distribution_{ static_cast< std::size_t >( 0), schedulers_.size() - 1};
+            std::size_t idx = 0;
+            do {
+                idx = distribution_( generator_);
+            } while ( idx == idx_);
+            other = schedulers_[idx];
+        } // unlock lk
+        ctx = other->steal();
         if ( nullptr != ctx) {
             context::active()->attach( ctx);
         }
@@ -91,6 +91,7 @@ random_chase_lev::notify() noexcept {
 }
 
 std::vector< random_chase_lev * > random_chase_lev::schedulers_{};
+std::mutex                        random_chase_lev::schedulers_mutex_{};
 
 }}}
 

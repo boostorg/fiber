@@ -36,11 +36,11 @@ private:
     typedef scheduler::ready_queue_t lqueue_t;
 
     static std::vector< random_chase_lev * >        schedulers_;
+    static std::mutex                               schedulers_mutex_;
 
     std::size_t                                     idx_;
     std::random_device                              rd_device_{};
     std::minstd_rand                                generator_;
-    std::uniform_int_distribution< std::size_t >    distribution_;
     detail::chase_lev_queue                         rqueue_{};
     lqueue_t                                        lqueue_{};
     std::mutex                                      mtx_{};
@@ -48,10 +48,8 @@ private:
     bool                                            flag_{ false };
     bool                                            suspend_;
 
-    static void init_( std::size_t max_idx);
-
 public:
-    random_chase_lev( std::size_t max_idx, std::size_t idx, bool suspend = false);
+    random_chase_lev( bool suspend = false);
 
 	random_chase_lev( random_chase_lev const&) = delete;
 	random_chase_lev( random_chase_lev &&) = delete;
