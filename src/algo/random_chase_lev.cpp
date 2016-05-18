@@ -67,7 +67,13 @@ random_chase_lev::pick_next() noexcept {
 
 void
 random_chase_lev::suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
-    if ( suspend_) {
+    if ( ! suspend_) {
+        // We want a suspend=false thread to hungrily loop, trying to steal
+        // more work from busy threads. However, it's important to give other
+        // threads a turn at the CPU.
+        std::this_thread::yield();
+    } else {
+        // suspend=true
         if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
             std::unique_lock< std::mutex > lk( mtx_);
             cnd_.wait( lk, [this](){ return flag_; });

@@ -49,12 +49,6 @@ void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
     boost::fibers::use_scheduling_algorithm< boost::fibers::algo::random_chase_lev >();
     b->wait();
     while ( ! fini) {
-        // To guarantee progress, we must ensure that
-        // threads that have work to do are not unreasonably delayed by (thief) threads
-        // which are idle except for task-stealing. 
-        // This call yields the thief ’s processor to another thread, allowing
-        // descheduled threads to regain a processor and make progress. 
-        std::this_thread::yield();
         boost::this_fiber::yield();
     }
 }
