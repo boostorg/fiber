@@ -8,9 +8,11 @@
 #ifndef BOOST_FIBERS_UNBOUNDED_CHANNEL_H
 #define BOOST_FIBERS_UNBOUNDED_CHANNEL_H
 
+#include <atomic>
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
+#include <deque>
 #include <memory>
 #include <mutex>
 #include <utility>
@@ -47,10 +49,10 @@ private:
         >                                               allocator_t;
         typedef std::allocator_traits< allocator_t >    allocator_traits_t;
 
-        std::size_t     use_count{ 0 };
-        allocator_t     alloc;
-        T               va;
-        ptr_t           nxt{};
+        std::atomic< std::size_t >  use_count{ 0 };
+        allocator_t                 alloc;
+        T                           va;
+        ptr_t                       nxt{};
 
         node( T const& t, allocator_t const& alloc_) noexcept :
             alloc{ alloc_ },
