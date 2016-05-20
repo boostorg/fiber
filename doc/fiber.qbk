@@ -112,7 +112,7 @@ complete. You can coordinate even with a detached fiber using a [class_link
 mutex], or [class_link condition_variable], or any of the other [link
 synchronization synchronization objects] provided by the library.
 
-If a detached fiber is still running when the thread's main fiber terminates,
+If a detached fiber is still running when the thread[s] main fiber terminates,
 the thread will not shut down.
 
 [heading Joining]
@@ -587,7 +587,7 @@ representation is unspecified.]]
 
 In general, `this_fiber` operations may be called from the ["main] fiber
 [mdash] the fiber on which function `main()` is entered [mdash] as well as
-from an explicitly-launched thread's thread-function. That is, in many
+from an explicitly-launched thread[s] thread-function. That is, in many
 respects the main fiber on each thread can be treated like an
 explicitly-launched fiber.
 
@@ -705,7 +705,7 @@ from this thread with a subclass of [template_link
 algorithm_with_properties] with the same template argument `PROPS`.]]
 [[Returns:] [a reference to the scheduler properties instance for the
 currently running fiber.]]
-[[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with a
+[[Throws:] [`std::bad_cast` if `use_scheduling_algorithm()` was called with an
 `algorithm_with_properties` subclass with some other template parameter
 than `PROPS`.]]
 [[Note:] [[template_link algorithm_with_properties] provides a way for a

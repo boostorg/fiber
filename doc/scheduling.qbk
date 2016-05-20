@@ -261,7 +261,7 @@ of shared_round_robin.
 [[Returns:] [the fiber at the head of the ready queue, or `nullptr` if the
 queue is empty.]]
 [[Throws:] [Nothing.]]
-[[Note:] [Placing ready fibers onto the tail of the sahred queue, and returning them
+[[Note:] [Placing ready fibers onto the tail of the shared queue, and returning them
 from the head of that queue, shares the thread between ready fibers in
 round-robin fashion.]]
 ]
@@ -303,20 +303,18 @@ wakes `suspend_until()` via
 
 [class_heading random_chase_lev]
 
-This class implements __algo__; if the local ready-queue goes out of ready
-fibers, fibers are stolen from other schedulers. The work stealing algorithm
-is based on the Chase-Lev algorithm.
-[footnote 
+This class implements __algo__; if the local ready-queue runs out of ready
+fibers, fibers are stolen from other `random_chase_lev` scheduler instances.
+The work stealing algorithm is based on the Chase-Lev algorithm.[footnote 
 David Chase and Yossi Lev. Dynamic circular work-stealing deque.
-In SPAA ’05: Proceedings of the seventeenth annual ACM symposium
+In SPAA [,]05: Proceedings of the seventeenth annual ACM symposium
 on Parallelism in algorithms and architectures, pages 21–28,
-New York, NY, USA, 2005. ACM.]
-[footnote 
+New York, NY, USA, 2005. ACM.][superscript,][footnote 
 Nhat Minh Lê, Antoniu Pop, Albert Cohen, and Francesco Zappa Nardelli. 2013.
 Correct and efficient work-stealing for weak memory models.
 In Proceedings of the 18th ACM SIGPLAN symposium on Principles and practice
-of parallel programming (PPoPP '13). ACM, New York, NY, USA, 69-80.]
-Victim scheduler are selected in radnom fashion.
+of parallel programming (PPoPP [,]13). ACM, New York, NY, USA, 69-80.]
+The scheduler instance to raid is chosen at random.
 
         #include <boost/fiber/algo/random_chase_lev.hpp>
 
@@ -355,7 +353,7 @@ Victim scheduler are selected in radnom fashion.
 [[Returns:] [the fiber at the head of the ready queue, or `nullptr` if the
 queue is empty.]]
 [[Throws:] [Nothing.]]
-[[Note:] [Placing ready fibers onto the tail of the sahred queue, and returning them
+[[Note:] [Placing ready fibers onto the tail of the shared queue, and returning them
 from the head of that queue, shares the thread between ready fibers in
 round-robin fashion.]]
 ]
@@ -401,7 +399,7 @@ A scheduler class directly derived from __algo__ can use any information
 available from [class_link context] to implement the `algorithm`
 interface. But a custom scheduler might need to track additional properties
 for a fiber. For instance, a priority-based scheduler would need to track a
-fiber's priority.
+fiber[s] priority.
 
 __boost_fiber__ provides a mechanism by which your custom scheduler can
 associate custom properties with each fiber.
@@ -444,20 +442,20 @@ to the base-class `fiber_properties` constructor.]]
 
 [variablelist
 [[Effects:] [Pass control to the custom [template_link
-algorithm_with_properties] subclass's [member_link
+algorithm_with_properties] subclass[s] [member_link
 algorithm_with_properties..property_change] method.]]
 [[Throws:] [Nothing.]]
-[[Note:] [A custom scheduler's [member_link
+[[Note:] [A custom scheduler[s] [member_link
 algorithm_with_properties..pick_next] method might dynamically select
 from the ready fibers, or [member_link
 algorithm_with_properties..awakened] might instead insert each ready
 fiber into some form of ready queue for `pick_next()`. In the latter case, if
 application code modifies a fiber property (e.g. priority) that should affect
-that fiber's relationship to other ready fibers, the custom scheduler must be
+that fiber[s] relationship to other ready fibers, the custom scheduler must be
 given the opportunity to reorder its ready queue. The custom property subclass
 should implement an access method to modify such a property; that access
 method should call `notify()` once the new property value has been stored.
-This passes control to the custom scheduler's `property_change()` method,
+This passes control to the custom scheduler[s] `property_change()` method,
 allowing the custom scheduler to reorder its ready queue appropriately. Use at
 your discretion. Of course, if you define a property which does not affect the
 behavior of the `pick_next()` method, you need not call `notify()` when that
@@ -503,10 +501,10 @@ derived from [class_link fiber_properties].
 
 [variablelist
 [[Effects:] [Informs the scheduler that fiber `f` is ready to run, like
-[member_link algorithm..awakened]. Passes the fiber's associated `PROPS`
+[member_link algorithm..awakened]. Passes the fiber[s] associated `PROPS`
 instance.]]
 [[Throws:] [Nothing.]]
-[[Note:] [A `algorithm_with_properties<>` subclass must override this
+[[Note:] [An `algorithm_with_properties<>` subclass must override this
 method instead of `algorithm::awakened()`.]]
 ]
 
@@ -558,7 +556,7 @@ time-point `abs_time`.]]
 [variablelist
 [[Returns:] [the `PROPS` instance associated with fiber `f`.]]
 [[Throws:] [Nothing.]]
-[[Note:] [The fiber's associated `PROPS` instance is already passed to
+[[Note:] [The fiber[s] associated `PROPS` instance is already passed to
 [member_link algorithm_with_properties..awakened] and [member_link
 algorithm_with_properties..property_change]. However, every [class_link
 algorithm] subclass is expected to track a collection of ready
@@ -604,7 +602,7 @@ While you are free to treat `context*` as an opaque token, certain
 [#ready_queue_t]
 Of particular note is the fact that `context` contains a hook to participate
 in a [@http://www.boost.org/doc/libs/release/doc/html/intrusive/list.html
-`boost::intrusive::list`] typedef'ed as
+`boost::intrusive::list`] [^typedef][,]ed as
 `boost::fibers::scheduler::ready_queue_t`. This hook is reserved for use by
 [class_link algorithm] implementations. (For instance, [class_link
 round_robin] contains a `ready_queue_t` instance to manage its ready fibers.)
@@ -702,9 +700,9 @@ default-constructed __fiber_id__.]]
 [[Note:] [A typical call: `boost::fibers::context::active()->attach(f);`]]
 [[Note:] [`f` must not be the running fiber[s] context. It must not be
 __blocked__ or terminated. It must not be a `pinned_context`. It must be
-currently detached. It must not currently be linked into a [class_link
+currently detached. It must not currently be linked into an [class_link
 algorithm] implementation[s] ready queue. Most of these conditions are
-implied by `f` being owned by a `algorithm` implementation: that is, it
+implied by `f` being owned by an `algorithm` implementation: that is, it
 has been passed to [member_link algorithm..awakened] but has not yet
 been returned by [member_link algorithm..pick_next]. Typically a
 `pick_next()` implementation would call `attach()` with the `context*` it is
@@ -725,7 +723,7 @@ called its `detach()` method in the first place.]]
 [[Note:] [This method must be called on the thread with which the fiber is
 currently associated. `*this` must not be the running fiber[s] context. It
 must not be __blocked__ or terminated. It must not be a `pinned_context`. It
-must not be detached already. It must not already be linked into a [class_link
+must not be detached already. It must not already be linked into an [class_link
 algorithm] implementation[s] ready queue. Most of these conditions are
 implied by `*this` being passed to [member_link algorithm..awakened]; an
 `awakened()` implementation must, however, test for `pinned_context`. It must
@@ -753,7 +751,7 @@ library. For `type::main_context` the `context` is associated with the ["main]
 fiber of the thread: the one implicitly created by the thread itself, rather
 than one explicitly created by __boost_fiber__. For `type::dispatcher_context`
 the `context` is associated with a ["dispatching] fiber, responsible for
-dispatching awakened fibers to a scheduler's ready-queue. The ["dispatching]
+dispatching awakened fibers to a scheduler[s] ready-queue. The ["dispatching]
 fiber is an implementation detail of the fiber manager. The context of the
 ["main] or ["dispatching] fiber [mdash] any fiber for which
 `is_context(pinned_context)` is `true` [mdash] must never be passed to
@@ -776,8 +774,8 @@ no longer considered a valid context.]]
         bool ready_is_linked() const noexcept;
 
 [variablelist
-[[Returns:] [`true` if `*this` is stored in a [class_link algorithm]
-implementation's ready-queue.]]
+[[Returns:] [`true` if `*this` is stored in an [class_link algorithm]
+implementation[s] ready-queue.]]
 [[Throws:] [Nothing]]
 [[Note:] [Specifically, this method indicates whether [member_link
 context..ready_link] has been called on `*this`. `ready_is_linked()` has
@@ -789,12 +787,12 @@ no information about participation in any other containers.]]
         bool remote_ready_is_linked() const noexcept;
 
 [variablelist
-[[Returns:] [`true` if `*this` is stored in the fiber manager's
+[[Returns:] [`true` if `*this` is stored in the fiber manager[s]
 remote-ready-queue.]]
 [[Throws:] [Nothing]]
 [[Note:] [A `context` signaled as ready by another thread is first stored in
-the fiber manager's remote-ready-queue. This is the mechanism by which the
-fiber manager protects a [class_link algorithm] implementation from
+the fiber manager[s] remote-ready-queue. This is the mechanism by which the
+fiber manager protects an [class_link algorithm] implementation from
 cross-thread [member_link algorithm..awakened] calls.]]
 ]
 
