@@ -63,10 +63,6 @@ exe skynet :
     pbind
     skynet.cpp ;
 
-exe skynet_shared :
-    pbind
-    skynet_shared.cpp ;
-
 exe overhead_create
    : overhead_create.cpp
    ;
