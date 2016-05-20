@@ -31,7 +31,6 @@ lib boost_fiber
       barrier.cpp
       condition_variable.cpp
       context.cpp
-      detail/spinlock.cpp
       fiber.cpp
       future.cpp
       mutex.cpp
