@@ -30,7 +30,7 @@
         In general, <code class="computeroutput"><span class="identifier">this_fiber</span></code> operations
         may be called from the <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> fiber &#8212; the fiber on which function
         <code class="computeroutput"><span class="identifier">main</span><span class="special">()</span></code>
-        is entered &#8212; as well as from an explicitly-launched thread's thread-function.
+        is entered &#8212; as well as from an explicitly-launched thread&#8217;s thread-function.
         That is, in many respects the main fiber on each thread can be treated like
         an explicitly-launched fiber.
       </p>
@@ -60,7 +60,12 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="identifier">fiber</span><span class="special">::</span><span class="identifier">id</span> <span class="identifier">get_id</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="special">}}</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -88,8 +93,13 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Duration</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">sleep_until</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">abs_time</span><span class="special">);</span>
+
+<span class="special">}}</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -131,8 +141,13 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">class</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">sleep_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">rel_time</span><span class="special">);</span>
+
+<span class="special">}}</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -165,7 +180,12 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">void</span> <span class="identifier">yield</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="special">}}</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -197,8 +217,13 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">operations</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
 <span class="identifier">PROPS</span> <span class="special">&amp;</span> <span class="identifier">properties</span><span class="special">();</span>
+
+<span class="special">}}</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -206,7 +231,7 @@
 <dt><span class="term">Preconditions:</span></dt>
 <dd><p>
               <a class="link" href="fiber.html#use_scheduling_algorithm"><code class="computeroutput">use_scheduling_algorithm()</code></a> has been called from
-              this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              this thread with a subclass of <a class="link" href="../scheduling.html#class_algorithm_with_properties"><code class="computeroutput">algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
@@ -216,12 +241,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> was called with a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code>
-              subclass with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> was called with an <code class="computeroutput"><span class="identifier">algorithm_with_properties</span></code> subclass
+              with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
+              <a class="link" href="../scheduling.html#class_algorithm_with_properties"><code class="computeroutput">algorithm_with_properties&lt;&gt;</code></a> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This function allows access
               to those user-provided properties.

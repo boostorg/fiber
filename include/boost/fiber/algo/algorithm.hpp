@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_ALGORITHM_H
-#define BOOST_FIBERS_ALGORITHM_H
+#ifndef BOOST_FIBERS_ALGO_ALGORITHM_H
+#define BOOST_FIBERS_ALGO_ALGORITHM_H
 
 #include <cstddef>
 #include <chrono>
@@ -24,8 +24,10 @@ namespace fibers {
 
 class context;
 
-struct BOOST_FIBERS_DECL sched_algorithm {
-    virtual ~sched_algorithm() {}
+namespace algo {
+
+struct BOOST_FIBERS_DECL algorithm {
+    virtual ~algorithm() {}
 
     virtual void awakened( context *) noexcept = 0;
 
@@ -38,7 +40,7 @@ struct BOOST_FIBERS_DECL sched_algorithm {
     virtual void notify() noexcept = 0;
 };
 
-class BOOST_FIBERS_DECL sched_algorithm_with_properties_base : public sched_algorithm {
+class BOOST_FIBERS_DECL algorithm_with_properties_base : public algorithm {
 public:
     // called by fiber_properties::notify() -- don't directly call
     virtual void property_change_( context * f, fiber_properties * props) noexcept = 0;
@@ -49,13 +51,13 @@ protected:
 };
 
 template< typename PROPS >
-struct sched_algorithm_with_properties : public sched_algorithm_with_properties_base {
-    typedef sched_algorithm_with_properties_base super;
+struct algorithm_with_properties : public algorithm_with_properties_base {
+    typedef algorithm_with_properties_base super;
 
-    // Mark this override 'final': sched_algorithm_with_properties subclasses
+    // Mark this override 'final': algorithm_with_properties subclasses
     // must override awakened() with properties parameter instead. Otherwise
     // you'd have to remember to start every subclass awakened() override
-    // with: sched_algorithm_with_properties<PROPS>::awakened(fb);
+    // with: algorithm_with_properties<PROPS>::awakened(fb);
     virtual void awakened( context * f) noexcept override final {
         fiber_properties * props = super::get_properties( f);
         if ( nullptr == props) {
@@ -69,10 +71,10 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
                               "new_properties() must return properties class");
             super::set_properties( f, props);
         }
-        // Set sched_algo_ again every time this fiber becomes READY. That
+        // Set algo_ again every time this fiber becomes READY. That
         // handles the case of a fiber migrating to a new thread with a new
-        // sched_algorithm subclass instance.
-        props->set_sched_algorithm( this);
+        // algorithm subclass instance.
+        props->set_algorithm( this);
 
         // Okay, now forward the call to subclass override.
         awakened( f, properties(f) );
@@ -90,7 +92,7 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     virtual void property_change( context * f, PROPS & props) noexcept {
     }
 
-    // implementation for sched_algorithm_with_properties_base method
+    // implementation for algorithm_with_properties_base method
     void property_change_( context * f, fiber_properties * props ) noexcept override final {
         property_change( f, * static_cast< PROPS * >( props) );
     }
@@ -103,10 +105,10 @@ struct sched_algorithm_with_properties : public sched_algorithm_with_properties_
     }
 };
 
-}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_ALGORITHM_H
+#endif // BOOST_FIBERS_ALGO_ALGORITHM_H

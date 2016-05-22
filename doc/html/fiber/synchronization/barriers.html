@@ -98,6 +98,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">barrier</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">barrier</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">explicit</span> <span class="identifier">barrier</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">);</span>
@@ -107,6 +110,8 @@
 
     <span class="keyword">bool</span> <span class="identifier">wait</span><span class="special">();</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
         Instances of <a class="link" href="barriers.html#class_barrier"><code class="computeroutput">barrier</code></a> are not copyable or movable.

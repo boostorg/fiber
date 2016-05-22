@@ -58,7 +58,12 @@
           This is, in fact, pretty much what <a class="link" href="future.html#fibers_async"><code class="computeroutput">fibers::async()</code></a>
 encapsulates.
         </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">class</span> <span class="identifier">R</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">future</span><span class="special">/</span><span class="identifier">packaged_task</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">class</span> <span class="identifier">R</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">R</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">...</span> <span class="special">)</span> <span class="special">&gt;</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">packaged_task</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -92,6 +97,8 @@ encapsulates.
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Signature</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">Signature</span> <span class="special">&gt;</span> <span class="special">&amp;,</span> <span class="identifier">packaged_task</span><span class="special">&lt;</span> <span class="identifier">Signature</span> <span class="special">&gt;</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="special">}}</span>
 </pre>
 <h6>
 <a name="fiber.synchronization.futures.packaged_task.h0"></a>

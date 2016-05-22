@@ -52,7 +52,7 @@ PROPS & properties() {
         fibers::context::active()->get_properties();
     if ( ! props) {
         // props could be nullptr if the thread's main fiber has not yet
-        // yielded (not yet passed through sched_algorithm_with_properties::
+        // yielded (not yet passed through algorithm_with_properties::
         // awakened()). Address that by yielding right now.
         yield();
         // Try again to obtain the fiber_properties subclass instance ptr.
@@ -60,7 +60,7 @@ PROPS & properties() {
         // have happened while we were yielding!
         props = fibers::context::active()->get_properties();
         // Could still be hosed if the running manager isn't a subclass of
-        // sched_algorithm_with_properties.
+        // algorithm_with_properties.
         BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
     }
     return dynamic_cast< PROPS & >( * props );
@@ -78,7 +78,7 @@ bool has_ready_fibers() noexcept {
 template< typename SchedAlgo, typename ... Args >
 void use_scheduling_algorithm( Args && ... args) noexcept {
     boost::fibers::context::active()->get_scheduler()
-        ->set_sched_algo(
+        ->set_algo(
             std::unique_ptr< SchedAlgo >(
                 new SchedAlgo( std::forward< Args >( args) ... ) ) );
 }

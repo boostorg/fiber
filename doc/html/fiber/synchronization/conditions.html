@@ -205,6 +205,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">condition_variable</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> condition_variable_any <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     condition_variable_any<span class="special">();</span>
@@ -240,6 +243,8 @@
                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;,</span>
                    <span class="identifier">Pred</span><span class="special">);</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <h5>
 <a name="fiber.synchronization.conditions.h5"></a>
@@ -619,6 +624,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">condition_variable</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> condition_variable <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     condition_variable<span class="special">();</span>
@@ -653,6 +661,8 @@
                    <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;,</span>
                    <span class="identifier">Pred</span><span class="special">);</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <h5>
 <a name="fiber.synchronization.conditions.h7"></a>

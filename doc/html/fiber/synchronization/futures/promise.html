@@ -34,7 +34,12 @@
           and <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           communicate via their underlying <a class="link" href="future.html#shared_state">shared state</a>.
         </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">future</span><span class="special">/</span><span class="identifier">promise</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">promise</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">promise</span><span class="special">();</span>
@@ -66,6 +71,8 @@
 
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="special">&amp;,</span> <span class="identifier">promise</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="special">}</span>
 </pre>
 <h6>
 <a name="fiber.synchronization.futures.promise.h0"></a>

@@ -6,10 +6,10 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
+#include <deque>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
-#include <queue>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -24,82 +24,6 @@ static std::size_t fiber_count{ 0 };
 static std::mutex mtx_count{};
 static boost::fibers::condition_variable_any cnd_count{};
 typedef std::unique_lock< std::mutex > lock_t;
-
-/*****************************************************************************
-*   shared_ready_queue scheduler
-*****************************************************************************/
-class shared_ready_queue : public boost::fibers::sched_algorithm {
-private:
-    typedef std::queue< boost::fibers::context * >  rqueue_t;
-
-    static rqueue_t     rqueue_;
-    static std::mutex   rqueue_mtx_;
-
-    rqueue_t                    local_queue_{};
-
-public:
-//[awakened_ws
-    virtual void awakened( boost::fibers::context * ctx) noexcept {
-        BOOST_ASSERT( nullptr != ctx);
-
-        if ( ctx->is_context( boost::fibers::type::pinned_context) ) { /*<
-            recognize when we're passed this thread's main fiber (or an
-            implicit library helper fiber): never put those on the shared
-            queue
-        >*/
-            local_queue_.push( ctx);
-        } else {
-            ctx->detach();
-            lock_t lk(rqueue_mtx_); /*<
-                worker fiber, enqueue on shared queue
-            >*/
-            rqueue_.push( ctx);
-        }
-    }
-//]
-//[pick_next_ws
-    virtual boost::fibers::context * pick_next() noexcept {
-        boost::fibers::context * ctx( nullptr);
-        lock_t lk(rqueue_mtx_);
-        if ( ! rqueue_.empty() ) { /*<
-            pop an item from the ready queue
-        >*/
-            ctx = rqueue_.front();
-            rqueue_.pop();
-            lk.unlock();
-            BOOST_ASSERT( nullptr != ctx);
-            boost::fibers::context::active()->attach( ctx); /*<
-                attach context to current scheduler via the active fiber
-                of this thread
-            >*/
-        } else {
-            lk.unlock();
-            if ( ! local_queue_.empty() ) { /*<
-                nothing in the ready queue, return main or dispatcher fiber
-            >*/
-                ctx = local_queue_.front();
-                local_queue_.pop();
-            }
-        }
-        return ctx;
-    }
-//]
-
-    virtual bool has_ready_fibers() const noexcept {
-        lock_t lock(rqueue_mtx_);
-        return ! rqueue_.empty() || ! local_queue_.empty();
-    }
-
-    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
-        // let scheduler (dispatcher-fiber) spin
-    }
-
-    void notify() noexcept {
-    }
-};
-
-shared_ready_queue::rqueue_t shared_ready_queue::rqueue_{};
-std::mutex shared_ready_queue::rqueue_mtx_{};
 
 /*****************************************************************************
 *   example fiber function
@@ -141,8 +65,8 @@ void thread( barrier * b) {
     std::ostringstream buffer;
     buffer << "thread started " << std::this_thread::get_id() << std::endl;
     std::cout << buffer.str() << std::flush;
-    boost::fibers::use_scheduling_algorithm< shared_ready_queue >(); /*<
-        Install the scheduling algorithm `shared_ready_queue` in order to
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_work >(); /*<
+        Install the scheduling algorithm `boost::fibers::algo::shared_work` in order to
         join the work sharing.
     >*/
     b->wait(); /*< sync with other threads: allow them to start processing >*/
@@ -162,8 +86,8 @@ void thread( barrier * b) {
 int main( int argc, char *argv[]) {
     std::cout << "main thread started " << std::this_thread::get_id() << std::endl;
 //[main_ws
-    boost::fibers::use_scheduling_algorithm< shared_ready_queue >(); /*<
-        Install the scheduling algorithm `shared_ready_queue` in the main thread
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_work >(); /*<
+        Install the scheduling algorithm `boost::fibers::algo::shared_work` in the main thread
         too, so each new fiber gets launched into the shared pool.
     >*/
 

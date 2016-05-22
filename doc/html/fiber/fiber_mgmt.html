@@ -45,13 +45,17 @@
 <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">fiber</span> <span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-<span class="keyword">struct</span> <span class="identifier">sched_algorithm</span><span class="special">;</span>
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">sched_algorithm_with_properties</span><span class="special">;</span>
-<span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">SchedAlgo</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 <span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">();</span>
+
+<span class="keyword">namespace</span> <span class="identifier">algo</span> <span class="special">{</span>
+
+<span class="keyword">struct</span> <span class="identifier">algorithm</span><span class="special">;</span>
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">PROPS</span> <span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">algorithm_with_properties</span><span class="special">;</span>
+<span class="keyword">class</span> <span class="identifier">round_robin</span><span class="special">;</span>
+<span class="keyword">class</span> <span class="identifier">shared_round_robin</span><span class="special">;</span>
 
 <span class="special">}</span>
 
@@ -146,7 +150,7 @@ constructor
       provided by the library.
     </p>
 <p>
-      If a detached fiber is still running when the thread's main fiber terminates,
+      If a detached fiber is still running when the thread&#8217;s main fiber terminates,
       the thread will not shut down.
     </p>
 <h4>

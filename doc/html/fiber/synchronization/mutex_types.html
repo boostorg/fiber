@@ -37,6 +37,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">mutex</span><span class="special">();</span>
@@ -49,6 +52,8 @@
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">();</span>
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
         <a class="link" href="mutex_types.html#class_mutex"><code class="computeroutput">mutex</code></a> provides an exclusive-ownership mutex. At most one fiber
@@ -178,6 +183,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">timed_mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">timed_mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">timed_mutex</span><span class="special">();</span>
@@ -195,6 +203,8 @@
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
         <a class="link" href="mutex_types.html#class_timed_mutex"><code class="computeroutput">timed_mutex</code></a> provides an exclusive-ownership mutex. At most
@@ -414,6 +424,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">recursive_mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">recursive_mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">recursive_mutex</span><span class="special">();</span>
@@ -426,6 +439,8 @@
     <span class="keyword">bool</span> <span class="identifier">try_lock</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
     <span class="keyword">void</span> <span class="identifier">unlock</span><span class="special">();</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
         <a class="link" href="mutex_types.html#class_recursive_mutex"><code class="computeroutput">recursive_mutex</code></a> provides an exclusive-ownership recursive
@@ -536,6 +551,9 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">recursive_timed_mutex</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">recursive_timed_mutex</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">recursive_timed_mutex</span><span class="special">();</span>
@@ -553,6 +571,8 @@
     <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Period</span> <span class="special">&gt;</span>
     <span class="keyword">bool</span> <span class="identifier">try_lock_for</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">duration</span><span class="special">&lt;</span> <span class="identifier">Rep</span><span class="special">,</span> <span class="identifier">Period</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_duration</span><span class="special">);</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
         <a class="link" href="mutex_types.html#class_recursive_timed_mutex"><code class="computeroutput">recursive_timed_mutex</code></a> provides an exclusive-ownership

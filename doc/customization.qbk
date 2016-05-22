@@ -72,13 +72,13 @@ fiber_properties].
 [heading Custom Scheduler Class]
 
 Now we can derive a custom scheduler from [template_link
-sched_algorithm_with_properties], specifying our custom property class
+algorithm_with_properties], specifying our custom property class
 `priority_props` as the template parameter.
 
 [priority_scheduler]
 
 Our example `priority_scheduler` doesn't override [member_link
-sched_algorithm_with_properties..new_properties]: we're content with
+algorithm_with_properties..new_properties]: we're content with
 allocating `priority_props` instances on the heap.
 
 [heading Replace Default Scheduler]
@@ -114,6 +114,6 @@ until it blocks (or yields, or terminates) for some other reason. As shown in
 the `launch()` function above, it is reasonable to launch a fiber and
 immediately set relevant properties -- such as, for instance, its priority.
 Your custom scheduler can then make use of this information next time the
-fiber manager calls [member_link sched_algorithm_with_properties..pick_next].
+fiber manager calls [member_link algorithm_with_properties..pick_next].
 
 [endsect]

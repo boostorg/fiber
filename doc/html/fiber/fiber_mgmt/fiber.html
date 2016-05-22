@@ -29,6 +29,9 @@
 </h3></div></div></div>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">class</span> <span class="identifier">fiber</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">class</span> <span class="identifier">id</span><span class="special">;</span>
@@ -79,6 +82,8 @@
 <span class="keyword">void</span> <span class="identifier">use_scheduling_algorithm</span><span class="special">(</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
 <span class="keyword">bool</span> <span class="identifier">has_ready_fibers</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="special">}}</span>
 </pre>
 <h5>
 <a name="fiber.fiber_mgmt.fiber.h0"></a>
@@ -398,7 +403,7 @@
 <dd><p>
               <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
               refers to a fiber of execution. <a class="link" href="fiber.html#use_scheduling_algorithm"><code class="computeroutput">use_scheduling_algorithm()</code></a> has
-              been called from this thread with a subclass of <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> with
+              been called from this thread with a subclass of <a class="link" href="../scheduling.html#class_algorithm_with_properties"><code class="computeroutput">algorithm_with_properties&lt;&gt;</code></a> with
               the same template argument <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Returns:</span></dt>
@@ -407,12 +412,12 @@
             </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
-              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> was called with a <code class="computeroutput"><span class="identifier">sched_algorithm_with_properties</span></code>
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_cast</span></code> if <code class="computeroutput"><span class="identifier">use_scheduling_algorithm</span><span class="special">()</span></code> was called with a <code class="computeroutput"><span class="identifier">algorithm_with_properties</span></code>
               subclass with some other template parameter than <code class="computeroutput"><span class="identifier">PROPS</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-              <a class="link" href="../scheduling.html#class_sched_algorithm_with_properties"><code class="computeroutput">sched_algorithm_with_properties&lt;&gt;</code></a> provides
+              <a class="link" href="../scheduling.html#class_algorithm_with_properties"><code class="computeroutput">algorithm_with_properties&lt;&gt;</code></a> provides
               a way for a user-coded scheduler to associate extended properties,
               such as priority, with a fiber instance. This method allows access
               to those user-provided properties.
@@ -525,10 +530,9 @@
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
               Directs <span class="bold"><strong>Boost.Fiber</strong></span> to use <code class="computeroutput"><span class="identifier">SchedAlgo</span></code>, which must be a concrete
-              subclass of <a class="link" href="../scheduling.html#class_sched_algorithm"><code class="computeroutput">sched_algorithm</code></a>, as the scheduling
-              algorithm for all fibers in the current thread. Pass any required
-              <code class="computeroutput"><span class="identifier">SchedAlgo</span></code> constructor
-              arguments as <code class="computeroutput"><span class="identifier">args</span></code>.
+              subclass of <a class="link" href="../scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>, as the scheduling algorithm for
+              all fibers in the current thread. Pass any required <code class="computeroutput"><span class="identifier">SchedAlgo</span></code>
+              constructor arguments as <code class="computeroutput"><span class="identifier">args</span></code>.
             </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>

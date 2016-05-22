@@ -50,7 +50,7 @@
         Since, in this thought experiment, we always pass control to the fiber manager
         via <code class="computeroutput"><span class="identifier">yield</span><span class="special">()</span></code>,
         the calling fiber is never blocked. Therefore there is always at least one
-        ready fiber. Therefore the fiber manager never calls <a class="link" href="../scheduling.html#sched_algorithm_suspend_until"><code class="computeroutput">sched_algorithm::suspend_until()</code></a>.
+        ready fiber. Therefore the fiber manager never calls <a class="link" href="../scheduling.html#algorithm_suspend_until"><code class="computeroutput">algorithm::suspend_until()</code></a>.
       </p>
 <p>
         Using <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/post.html" target="_top"><code class="computeroutput"><span class="identifier">io_service</span><span class="special">::</span><span class="identifier">post</span><span class="special">()</span></code></a>

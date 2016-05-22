@@ -24,17 +24,22 @@
 namespace boost {
 namespace fibers {
 
-struct sched_algorithm;
 class context;
+
+namespace algo {
+
+struct algorithm;
+
+}
 
 class BOOST_FIBERS_DECL fiber_properties {
 protected:
     // initialized by constructor
     context         *   ctx_;
     // set every time this fiber becomes READY
-    sched_algorithm *   sched_algo_{ nullptr };
+    algo::algorithm *   algo_{ nullptr };
 
-    // Inform the relevant sched_algorithm instance that something important
+    // Inform the relevant algorithm instance that something important
     // has changed, so it can (presumably) adjust its data structures
     // accordingly.
     void notify() noexcept;
@@ -54,10 +59,10 @@ public:
     // destroyed via that pointer.
     virtual ~fiber_properties() = default;
 
-    // not really intended for public use, but sched_algorithm_with_properties
+    // not really intended for public use, but algorithm_with_properties
     // must be able to call this
-    void set_sched_algorithm( sched_algorithm * algo) noexcept {
-        sched_algo_ = algo;
+    void set_algorithm( algo::algorithm * algo) noexcept {
+        algo_ = algo;
     }
 };
 

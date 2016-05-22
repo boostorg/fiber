@@ -11,6 +11,9 @@
 [class_heading mutex]
 
         #include <boost/fiber/mutex.hpp>
+
+        namespace boost {
+        namespace fibers {
         
         class mutex {
         public:
@@ -24,6 +27,8 @@
             bool try_lock();
             void unlock();
         };
+
+        }}
 
 __mutex__ provides an exclusive-ownership mutex. At most one fiber can own the
 lock on a given instance of __mutex__ at any time. Multiple concurrent calls to
@@ -76,6 +81,9 @@ otherwise.]]
 
         #include <boost/fiber/timed_mutex.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         class timed_mutex {
         public:
             timed_mutex();
@@ -93,6 +101,8 @@ otherwise.]]
             template< typename Rep, typename Period >
             bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         };
+
+        }}
 
 __timed_mutex__ provides an exclusive-ownership mutex. At most one fiber can own
 the lock on a given instance of __timed_mutex__ at any time. Multiple concurrent
@@ -177,6 +187,9 @@ otherwise.]]
 
         #include <boost/fiber/recursive_mutex.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         class recursive_mutex {
         public:
             recursive_mutex();
@@ -189,6 +202,8 @@ otherwise.]]
             bool try_lock() noexcept;
             void unlock();
         };
+
+        }}
 
 __recursive_mutex__ provides an exclusive-ownership recursive mutex. At most one
 fiber can own the lock on a given instance of __recursive_mutex__ at any time.
@@ -236,6 +251,9 @@ otherwise.]]
 
         #include <boost/fiber/recursive_timed_mutex.hpp>
 
+        namespace boost {
+        namespace fibers {
+
         class recursive_timed_mutex {
         public:
             recursive_timed_mutex();
@@ -253,6 +271,8 @@ otherwise.]]
             template< typename Rep, typename Period >
             bool try_lock_for( std::chrono::duration< Rep, Period > const& timeout_duration);
         };
+
+        }}
 
 __recursive_timed_mutex__ provides an exclusive-ownership recursive mutex. At
 most one fiber can own the lock on a given instance of

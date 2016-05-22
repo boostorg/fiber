@@ -251,6 +251,7 @@ int main( int argc, char* argv[]) {
 //]
         print( tag(), ": io_service returned");
         print( "Thread ", thread_names.lookup(), ": stopping");
+        std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         print("Exception: ", e.what(), "\n");

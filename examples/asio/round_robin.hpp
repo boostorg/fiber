@@ -32,7 +32,7 @@ namespace boost {
 namespace fibers {
 namespace asio {
 
-class round_robin : public sched_algorithm {
+class round_robin : public algo::algorithm {
 private:
     typedef scheduler::ready_queue_t rqueue_t;
 
