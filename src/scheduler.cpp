@@ -386,9 +386,11 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
-    BOOST_ASSERT( nullptr == ctx->scheduler_.load() );
+    scheduler * new_scheduler = ctx->scheduler_.load( std::memory_order_acquire);
+    BOOST_ASSERT( nullptr == new_scheduler);
+    new_scheduler = this;
+    ctx->scheduler_.store( new_scheduler, std::memory_order_release);
     ctx->worker_link( worker_queue_);
-    ctx->scheduler_ = this;
 }
 
 void
@@ -401,7 +403,7 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
-    ctx->scheduler_ = nullptr;
+    ctx->scheduler_.store( nullptr, std::memory_order_release);
 }
 
 }}
