@@ -386,13 +386,15 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
-    BOOST_ASSERT( nullptr == ctx->scheduler_.load() );
+    BOOST_ASSERT( nullptr == ctx->scheduler_);
     ctx->worker_link( worker_queue_);
     ctx->scheduler_ = this;
+    std::atomic_thread_fence(std::memory_order_release);
 }
 
 void
 scheduler::detach_worker_context( context * ctx) noexcept {
+    std::atomic_thread_fence(std::memory_order_acquire);
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );

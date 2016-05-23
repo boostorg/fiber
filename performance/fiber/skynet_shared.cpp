@@ -70,7 +70,7 @@ int main() {
         unsigned int n = std::thread::hardware_concurrency();
         barrier b( n);
         bind_to_processor( n - 1);
-        std::size_t stack_size{ 4048 };
+        std::size_t stack_size{ 8*1024 };
         std::size_t size{ 100000 };
         std::size_t div{ 10 };
         std::vector< std::thread > threads;
