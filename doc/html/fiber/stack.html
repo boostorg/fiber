@@ -202,6 +202,9 @@
 </table></div>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">protected_fixedsize</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">struct</span> <span class="identifier">protected_fixedsize</span> <span class="special">{</span>
     <span class="identifier">protected_fixesize</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">());</span>
 
@@ -209,6 +212,8 @@
 
     <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
 <span class="special">}</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
       </p>
@@ -288,6 +293,9 @@
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">pooled_fixedsize_stack</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">struct</span> <span class="identifier">pooled_fixedsize_stack</span> <span class="special">{</span>
     <span class="identifier">pooled_fixedsize_stack</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">stack_size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">(),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">next_size</span> <span class="special">=</span> <span class="number">32</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">max_size</span> <span class="special">=</span> <span class="number">0</span><span class="special">);</span>
 
@@ -295,6 +303,8 @@
 
     <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
 <span class="special">}</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
       </p>
@@ -388,6 +398,15 @@
           </p></dd>
 </dl>
 </div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        This stack allocator is not thread safe.
+      </p></td></tr>
+</table></div>
 <p>
       </p>
 <h5>
@@ -408,6 +427,9 @@
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">context</span><span class="special">/</span><span class="identifier">fixedsize_stack</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">struct</span> <span class="identifier">fixedsize_stack</span> <span class="special">{</span>
     <span class="identifier">fixedsize_stack</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">());</span>
 
@@ -415,6 +437,8 @@
 
     <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
 <span class="special">}</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
       </p>
@@ -509,6 +533,9 @@
 </table></div>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">segmented_stack</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">struct</span> <span class="identifier">segmented_stack</span> <span class="special">{</span>
     <span class="identifier">segmented_stack</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">stack_size</span> <span class="special">=</span> <span class="identifier">traits_type</span><span class="special">::</span><span class="identifier">default_size</span><span class="special">());</span>
 
@@ -516,6 +543,8 @@
 
     <span class="keyword">void</span> <span class="identifier">deallocate</span><span class="special">(</span> <span class="identifier">stack_context</span> <span class="special">&amp;);</span>
 <span class="special">}</span>
+
+<span class="special">}}</span>
 </pre>
 <p>
       </p>

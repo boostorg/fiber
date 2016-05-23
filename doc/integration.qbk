@@ -69,7 +69,7 @@ wake up again on its next expiration.
 Since, in this thought experiment, we always pass control to the fiber manager
 via `yield()`, the calling fiber is never blocked. Therefore there is always
 at least one ready fiber. Therefore the fiber manager never calls [member_link
-sched_algorithm..suspend_until].
+algorithm..suspend_until].
 
 Using
 [@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/post.html
@@ -247,7 +247,7 @@ Doubtless you have been asking yourself: why are we calling
 `suspend_until()`, whose very API was designed for just such a purpose?
 
 Under normal circumstances, when the fiber manager finds no ready fibers, it
-calls [member_link sched_algorithm..suspend_until]. Why test
+calls [member_link algorithm..suspend_until]. Why test
 `has_ready_fibers()` in the lambda loop? Why not leverage the normal
 mechanism?
 
@@ -257,7 +257,7 @@ Consider the lambda loop shown above. The only __boost_fiber__ APIs it engages
 are `has_ready_fibers()` and [ns_function_link this_fiber..yield]. `yield()`
 does not ['block] the calling fiber: the calling fiber does not become
 unready. It is immediately passed back to [member_link
-sched_algorithm..awakened], to be resumed in its turn when all other ready
+algorithm..awakened], to be resumed in its turn when all other ready
 fibers have had a chance to run. In other words: during a `yield()` call,
 ['there is always at least one ready fiber.]
 

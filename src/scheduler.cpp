@@ -11,9 +11,9 @@
 
 #include <boost/assert.hpp>
 
+#include "boost/fiber/algo/round_robin.hpp"
 #include "boost/fiber/context.hpp"
 #include "boost/fiber/exceptions.hpp"
-#include "boost/fiber/round_robin.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -24,7 +24,7 @@ namespace fibers {
 
 context *
 scheduler::get_next_() noexcept {
-    context * ctx = sched_algo_->pick_next();
+    context * ctx = algo_->pick_next();
     //BOOST_ASSERT( nullptr == ctx);
     //BOOST_ASSERT( this == ctx->get_scheduler() );
     return ctx;
@@ -56,7 +56,7 @@ scheduler::release_terminated_() noexcept {
 void
 scheduler::remote_ready2ready_() noexcept {
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    std::unique_lock< std::mutex > lk( remote_ready_mtx_);
     // get context from remote ready-queue
     for ( context * ctx : remote_ready_queue_) {
         // store context in local queues
@@ -89,7 +89,7 @@ scheduler::sleep2ready_() noexcept {
             // reset sleep-tp
             ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
             // push new context to ready-queue
-            sched_algo_->awakened( ctx);
+            algo_->awakened( ctx);
         } else {
             break; // first context with now < deadline
         }
@@ -97,7 +97,7 @@ scheduler::sleep2ready_() noexcept {
 }
 
 scheduler::scheduler() noexcept :
-    sched_algo_{ new round_robin() } {
+    algo_{ new algo::round_robin() } {
 }
 
 scheduler::~scheduler() {
@@ -135,7 +135,7 @@ scheduler::dispatch() noexcept {
         bool no_worker = worker_queue_.empty();
         if ( shutdown_) {
             // notify sched-algorithm about termination
-            sched_algo_->notify();
+            algo_->notify();
             if ( no_worker) {
                 break;
             }
@@ -164,7 +164,7 @@ scheduler::dispatch() noexcept {
                 suspend_time = i->tp_;
             }
             // no ready context, wait till signaled
-            sched_algo_->suspend_until( suspend_time);
+            algo_->suspend_until( suspend_time);
         }
     }
     // release termianted context'
@@ -194,7 +194,7 @@ scheduler::set_ready( context * ctx) noexcept {
     // for safety unlink it from ready-queue
     ctx->ready_unlink();
     // push new context to ready-queue
-    sched_algo_->awakened( ctx);
+    algo_->awakened( ctx);
 }
 
 void
@@ -209,12 +209,12 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     // we do not test this in this function
     // scheduler::dispatcher() has to take care
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( remote_ready_splk_);
+    std::unique_lock< std::mutex > lk( remote_ready_mtx_);
     // push new context to remote ready-queue
     remote_ready_queue_.push_back( ctx);
     lk.unlock();
     // notify scheduler
-    sched_algo_->notify();
+    algo_->notify();
 }
 
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -337,16 +337,16 @@ scheduler::suspend( detail::spinlock_lock & lk) noexcept {
 
 bool
 scheduler::has_ready_fibers() const noexcept {
-    return sched_algo_->has_ready_fibers();
+    return algo_->has_ready_fibers();
 }
 
 void
-scheduler::set_sched_algo( std::unique_ptr< sched_algorithm > algo) noexcept {
+scheduler::set_algo( std::unique_ptr< algo::algorithm > algo) noexcept {
     // move remaining cotnext in current scheduler to new one
-    while ( sched_algo_->has_ready_fibers() ) {
-        algo->awakened( sched_algo_->pick_next() );
+    while ( algo_->has_ready_fibers() ) {
+        algo->awakened( algo_->pick_next() );
     }
-    sched_algo_ = std::move( algo);
+    algo_ = std::move( algo);
 }
 
 void
@@ -375,7 +375,7 @@ scheduler::attach_dispatcher_context( intrusive_ptr< context > dispatcher_ctx) n
     // the dispatcher-context is resumed and
     // scheduler::dispatch() is executed
     dispatcher_ctx_->scheduler_ = this;
-    sched_algo_->awakened( dispatcher_ctx_.get() );
+    algo_->awakened( dispatcher_ctx_.get() );
 }
 
 void
@@ -386,9 +386,11 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
-    BOOST_ASSERT( nullptr == ctx->scheduler_.load() );
+    scheduler * new_scheduler = ctx->scheduler_.load( std::memory_order_acquire);
+    BOOST_ASSERT( nullptr == new_scheduler);
+    new_scheduler = this;
+    ctx->scheduler_.store( new_scheduler, std::memory_order_release);
     ctx->worker_link( worker_queue_);
-    ctx->scheduler_ = this;
 }
 
 void
@@ -401,7 +403,7 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
-    ctx->scheduler_ = nullptr;
+    ctx->scheduler_.store( nullptr, std::memory_order_release);
 }
 
 }}

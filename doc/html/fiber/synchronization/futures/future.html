@@ -116,7 +116,12 @@
           A <a class="link" href="future.html#class_future"><code class="computeroutput">future&lt;&gt;</code></a> contains a <a class="link" href="future.html#shared_state">shared
           state</a> which is not shared with any other future.
         </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">future</span><span class="special">/</span><span class="identifier">future</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">future</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">future</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -151,6 +156,8 @@
     <span class="identifier">future_status</span> <span class="identifier">wait_until</span><span class="special">(</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <h6>
 <a name="fiber.synchronization.futures.future.h4"></a>
@@ -518,7 +525,12 @@
           A <a class="link" href="future.html#class_shared_future"><code class="computeroutput">shared_future&lt;&gt;</code></a> contains a <a class="link" href="future.html#shared_state">shared
           state</a> which might be shared with other <a class="link" href="future.html#class_shared_future"><code class="computeroutput">shared_future&lt;&gt;</code></a> instances.
         </p>
-<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">future</span><span class="special">/</span><span class="identifier">future</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">R</span> <span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">shared_future</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
     <span class="identifier">shared_future</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -555,6 +567,8 @@
     <span class="identifier">future_status</span> <span class="identifier">wait_until</span><span class="special">(</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
 <span class="special">};</span>
+
+<span class="special">}}</span>
 </pre>
 <h6>
 <a name="fiber.synchronization.futures.future.h7"></a>
@@ -887,6 +901,9 @@
         </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">future</span><span class="special">/</span><span class="identifier">async</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
+<span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
+
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">class</span> <span class="identifier">Function</span><span class="special">,</span> <span class="keyword">class</span> <span class="special">...</span> <span class="identifier">Args</span> <span class="special">&gt;</span>
 <span class="identifier">future</span><span class="special">&lt;</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of_t</span><span class="special">&lt;</span>
@@ -911,6 +928,8 @@
 <span class="special">&gt;</span>
 <span class="identifier">async</span><span class="special">(</span> <a class="link" href="../../fiber_mgmt.html#class_launch"><code class="computeroutput"><span class="identifier">launch</span></code></a> <span class="identifier">policy</span><span class="special">,</span> <a href="http://en.cppreference.com/w/cpp/memory/allocator_arg_t" target="_top"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">allocator_arg_t</span></code></a><span class="special">,</span> <a class="link" href="../../stack.html#stack_allocator_concept"><code class="computeroutput"><span class="identifier">StackAllocator</span></code></a> <span class="identifier">salloc</span><span class="special">,</span>
        <span class="identifier">Function</span> <span class="special">&amp;&amp;</span> <span class="identifier">fn</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
+
+<span class="special">}}</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>

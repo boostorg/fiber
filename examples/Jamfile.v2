@@ -38,7 +38,6 @@ exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp ;
 exe wait_stuff : wait_stuff.cpp ;
 exe work_sharing : work_sharing.cpp ;
-exe work_stealing : work_stealing.cpp ;
 
 exe asio/autoecho : asio/autoecho.cpp ;
 exe asio/ps/publisher : asio/ps/publisher.cpp ;

@@ -26,6 +26,11 @@ Conventional usage of `packaged_task<>` is like this:
 This is, in fact, pretty much what [ns_function_link fibers..async]
 encapsulates.
 
+        #include <boost/fiber/future/packaged_task.hpp>
+
+        namespace boost {
+        namespace fibers {
+
         template< class R, typename ... Args >
         class packaged_task< R( Args ... ) > {
         public:
@@ -60,6 +65,8 @@ encapsulates.
 
         template< typename Signature >
         void swap( packaged_task< Signature > &, packaged_task< Signature > &) noexcept;
+
+        }}
 
 [heading Default constructor `packaged_task()`]
 

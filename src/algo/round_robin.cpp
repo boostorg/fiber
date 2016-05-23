@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "boost/fiber/round_robin.hpp"
+#include "boost/fiber/algo/round_robin.hpp"
 
 #include <boost/assert.hpp>
 
@@ -14,21 +14,22 @@
 
 namespace boost {
 namespace fibers {
+namespace algo {
 
 void
 round_robin::awakened( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
 
     BOOST_ASSERT( ! ctx->ready_is_linked() );
-    ctx->ready_link( ready_queue_);
+    ctx->ready_link( rqueue_);
 }
 
 context *
 round_robin::pick_next() noexcept {
     context * victim{ nullptr };
-    if ( ! ready_queue_.empty() ) {
-        victim = & ready_queue_.front();
-        ready_queue_.pop_front();
+    if ( ! rqueue_.empty() ) {
+        victim = & rqueue_.front();
+        rqueue_.pop_front();
         BOOST_ASSERT( nullptr != victim);
         BOOST_ASSERT( ! victim->ready_is_linked() );
     }
@@ -37,7 +38,7 @@ round_robin::pick_next() noexcept {
 
 bool
 round_robin::has_ready_fibers() const noexcept {
-    return ! ready_queue_.empty();
+    return ! rqueue_.empty();
 }
 
 void
@@ -61,7 +62,7 @@ round_robin::notify() noexcept {
     cnd_.notify_all();
 }
 
-}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

@@ -7,7 +7,7 @@
 
 #include <boost/assert.hpp>
 
-#include "boost/fiber/algorithm.hpp"
+#include "boost/fiber/algo/algorithm.hpp"
 #include "boost/fiber/scheduler.hpp"
 #include "boost/fiber/context.hpp"
 
@@ -20,7 +20,7 @@ namespace fibers {
 
 void
 fiber_properties::notify() noexcept {
-    BOOST_ASSERT( nullptr != sched_algo_);
+    BOOST_ASSERT( nullptr != algo_);
     // Application code might change an important property for any fiber at
     // any time. The fiber in question might be ready, running or waiting.
     // Significantly, only a fiber which is ready but not actually running is
@@ -28,7 +28,7 @@ fiber_properties::notify() noexcept {
     // with a change to a fiber it's not currently tracking: it will do the
     // right thing next time the fiber is passed to its awakened() method.
     if ( ctx_->ready_is_linked() ) {
-        static_cast< sched_algorithm_with_properties_base * >( sched_algo_)->
+        static_cast< algo::algorithm_with_properties_base * >( algo_)->
             property_change_( ctx_, this);
     }
 }

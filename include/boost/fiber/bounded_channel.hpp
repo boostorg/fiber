@@ -19,8 +19,6 @@
 
 #include <boost/config.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/pool/pool.hpp>
-#include <boost/pool/pool_alloc.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -37,11 +35,7 @@ namespace boost {
 namespace fibers {
 
 template< typename T,
-          typename Allocator = fast_pool_allocator<
-              T,
-              default_user_allocator_malloc_free,
-              detail::spinlock
-          >
+          typename Allocator = std::allocator< T >
 >
 class bounded_channel {
 public:

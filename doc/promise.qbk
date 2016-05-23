@@ -12,6 +12,11 @@ A __promise__ provides a mechanism to store a value (or exception) that can
 later be retrieved from the corresponding __future__ object. `promise<>` and
 `future<>` communicate via their underlying [link shared_state shared state].
 
+        #include <boost/fiber/future/promise.hpp>
+
+        namespace boost {
+        namespace fibers {
+
         template< typename R >
         class promise {
         public:
@@ -44,6 +49,8 @@ later be retrieved from the corresponding __future__ object. `promise<>` and
 
         template< typename R >
         void swap( promise< R > &, promise< R > &) noexcept;
+
+        }
 
 [heading Default constructor]
 

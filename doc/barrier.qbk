@@ -48,17 +48,22 @@ members in the barrier object.]
 
 [class_heading barrier]
 
-    #include <boost/fiber/barrier.hpp>
+        #include <boost/fiber/barrier.hpp>
 
-    class barrier {
-    public:
-        explicit barrier( std::size_t);
+        namespace boost {
+        namespace fibers {
 
-        barrier( barrier const&) = delete;
-        barrier & operator=( barrier const&) = delete;
+        class barrier {
+        public:
+            explicit barrier( std::size_t);
 
-        bool wait();
-    };
+            barrier( barrier const&) = delete;
+            barrier & operator=( barrier const&) = delete;
+
+            bool wait();
+        };
+
+        }}
 
 
 Instances of __barrier__ are not copyable or movable.
