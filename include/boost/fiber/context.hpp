@@ -161,8 +161,8 @@ private:
     unsigned int                                    flags_;
     type                                            type_;
 #endif
-    launch                                   policy_{ launch::post };
-    std::atomic< scheduler * >                      scheduler_{ nullptr };
+    launch                                          policy_{ launch::post };
+    scheduler                                   *   scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
 #else
