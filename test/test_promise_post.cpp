@@ -74,7 +74,7 @@ int fn8( int i) {
 A fn9() {
      A a;
      a.value = 3;
-     return a;
+     return std::move( a);
 }
 
 A fn10() {
