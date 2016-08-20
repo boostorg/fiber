@@ -116,8 +116,6 @@ I/O. __boost_asio__ and other asynchronous I/O operations can
 straightforwardly be adapted for __boost_fiber__: see [link callbacks
 Integrating Fibers with Asynchronous Callbacks].
 
-[warning This library is ['not] an official Boost library.]
-
 __boost_fiber__ depends upon __boost_context__.
 Boost version 1.61.0 or greater is required.
 
