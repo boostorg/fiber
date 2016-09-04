@@ -34,7 +34,7 @@ namespace fibers {
 class BOOST_FIBERS_DECL scheduler {
 public:
     struct timepoint_less {
-        bool operator()( context const& l, context const& r) noexcept {
+        bool operator()( context const& l, context const& r) const noexcept {
             return l.tp_ < r.tp_;
         }
     };
