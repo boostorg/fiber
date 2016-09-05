@@ -7,7 +7,9 @@
 
 import feature ;
 import modules ;
+import testing ;
 import toolset ;
+import ../../config/checks/config : requires ;
 
 project boost/fiber
     : requirements
@@ -42,6 +44,17 @@ lib boost_fiber
       timed_mutex.cpp
       scheduler.cpp
     : <link>shared:<library>../../context/build//boost_context
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_variadic_templates ]
     ;
 
 boost-install boost_fiber ;
