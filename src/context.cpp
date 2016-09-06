@@ -20,11 +20,6 @@
 namespace boost {
 namespace fibers {
 
-// zero-initialization
-thread_local
-context *
-context::active_;
-
 static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     BOOST_ASSERT( nullptr != sched);
     default_stack salloc; // use default satck-size
@@ -54,83 +49,89 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
                 sched) );
 }
 
-// zero-initialization
-thread_local static std::size_t counter;
-
 // schwarz counter
-context_initializer::context_initializer() {
-    if ( 0 == counter++) {
-# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
-        // allocate memory for main context and scheduler
-        constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
-        void * vp = std::malloc( size);
-        if ( nullptr == vp) {
-            throw std::bad_alloc();
-        }
-        // main fiber context of this thread
-        context * main_ctx = ::new ( vp) context( main_context);
-        // scheduler of this thread
-        scheduler * sched = ::new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
-        // attach main context to scheduler
-        sched->attach_main_context( main_ctx);
-        // create and attach dispatcher context to scheduler
-        sched->attach_dispatcher_context(
-                make_dispatcher_context( sched) );
-        // make main context to active context
-        context::active_ = main_ctx;
-# else
-        constexpr std::size_t alignment = 64; // alignof( capture_t);
-        constexpr std::size_t ctx_size = sizeof( context);
-        constexpr std::size_t sched_size = sizeof( scheduler);
-        constexpr std::size_t size = 2 * alignment + ctx_size + sched_size;
-        void * vp = std::malloc( size);
-        if ( nullptr == vp) {
-            throw std::bad_alloc();
-        }
-        // reserve space for shift
-        void * vp1 = static_cast< char * >( vp) + sizeof( int); 
-        // align context pointer
-        std::size_t space = ctx_size + alignment;
-        vp1 = std::align( alignment, ctx_size, vp1, space);
-        // reserves space for integer holding shifted size
-        int * shift = reinterpret_cast< int * >( static_cast< char * >( vp1) - sizeof( int) );
-        // store shifted size in fornt of context
-        * shift = static_cast< char * >( vp1) - static_cast< char * >( vp);
-        // main fiber context of this thread
-        context * main_ctx = ::new ( vp1) context( main_context);
-        vp1 = static_cast< char * >( vp1) + ctx_size;
-        // align scheduler pointer
-        space = sched_size + alignment;
-        vp1 = std::align( alignment, sched_size, vp1, space);
-        // scheduler of this thread
-        scheduler * sched = ::new ( vp1) scheduler();
-        // attach main context to scheduler
-        sched->attach_main_context( main_ctx);
-        // create and attach dispatcher context to scheduler
-        sched->attach_dispatcher_context(
-                make_dispatcher_context( sched) );
-        // make main context to active context
-        context::active_ = main_ctx;
-# endif
-    }
-}
+struct context_initializer {
+    static thread_local context *   active_;
+    static thread_local std::size_t counter_;
 
-context_initializer::~context_initializer() {
-    if ( 0 == --counter) {
-        context * main_ctx = context::active_;
-        BOOST_ASSERT( main_ctx->is_context( type::main_context) );
-        scheduler * sched = main_ctx->get_scheduler();
-        sched->~scheduler();
-        main_ctx->~context();
+    context_initializer() {
+        if ( 0 == counter_++) {
 # if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
-        std::free( main_ctx);
+            // allocate memory for main context and scheduler
+            constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
+            void * vp = std::malloc( size);
+            if ( nullptr == vp) {
+                throw std::bad_alloc();
+            }
+            // main fiber context of this thread
+            context * main_ctx = ::new ( vp) context( main_context);
+            // scheduler of this thread
+            scheduler * sched = ::new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
+            // attach main context to scheduler
+            sched->attach_main_context( main_ctx);
+            // create and attach dispatcher context to scheduler
+            sched->attach_dispatcher_context(
+                    make_dispatcher_context( sched) );
+            // make main context to active context
+            active_ = main_ctx;
 # else
-        int * shift = reinterpret_cast< int * >( reinterpret_cast< char * >( main_ctx) - sizeof( int) );
-        void * vp = reinterpret_cast< char * >( main_ctx) - ( * shift);
-        std::free( vp);
+            constexpr std::size_t alignment = 64; // alignof( capture_t);
+            constexpr std::size_t ctx_size = sizeof( context);
+            constexpr std::size_t sched_size = sizeof( scheduler);
+            constexpr std::size_t size = 2 * alignment + ctx_size + sched_size;
+            void * vp = std::malloc( size);
+            if ( nullptr == vp) {
+                throw std::bad_alloc();
+            }
+            // reserve space for shift
+            void * vp1 = static_cast< char * >( vp) + sizeof( int); 
+            // align context pointer
+            std::size_t space = ctx_size + alignment;
+            vp1 = std::align( alignment, ctx_size, vp1, space);
+            // reserves space for integer holding shifted size
+            int * shift = reinterpret_cast< int * >( static_cast< char * >( vp1) - sizeof( int) );
+            // store shifted size in fornt of context
+            * shift = static_cast< char * >( vp1) - static_cast< char * >( vp);
+            // main fiber context of this thread
+            context * main_ctx = ::new ( vp1) context( main_context);
+            vp1 = static_cast< char * >( vp1) + ctx_size;
+            // align scheduler pointer
+            space = sched_size + alignment;
+            vp1 = std::align( alignment, sched_size, vp1, space);
+            // scheduler of this thread
+            scheduler * sched = ::new ( vp1) scheduler();
+            // attach main context to scheduler
+            sched->attach_main_context( main_ctx);
+            // create and attach dispatcher context to scheduler
+            sched->attach_dispatcher_context(
+                    make_dispatcher_context( sched) );
+            // make main context to active context
+            active_ = main_ctx;
 # endif
+        }
     }
-}
+
+    ~context_initializer() {
+        if ( 0 == --counter_) {
+            context * main_ctx = active_;
+            BOOST_ASSERT( main_ctx->is_context( type::main_context) );
+            scheduler * sched = main_ctx->get_scheduler();
+            sched->~scheduler();
+            main_ctx->~context();
+# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+            std::free( main_ctx);
+# else
+            int * shift = reinterpret_cast< int * >( reinterpret_cast< char * >( main_ctx) - sizeof( int) );
+            void * vp = reinterpret_cast< char * >( main_ctx) - ( * shift);
+            std::free( vp);
+# endif
+        }
+    }
+};
+
+// zero-initialization
+thread_local context * context_initializer::active_;
+thread_local std::size_t context_initializer::counter_;
 
 context *
 context::active() noexcept {
@@ -140,12 +141,12 @@ context::active() noexcept {
 #endif
     // initialized the first time control passes; per thread
     thread_local static context_initializer ctx_initializer;
-    return active_;
+    return context_initializer::active_;
 }
 
 void
 context::reset_active() noexcept {
-    active_ = nullptr;
+    context_initializer::active_ = nullptr;
 }
 
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -155,7 +156,7 @@ context::resume_( detail::data_t & d) noexcept {
     if ( nullptr != dp->lk) {
         dp->lk->unlock();
     } else if ( nullptr != dp->ctx) {
-        active_->set_ready_( dp->ctx);
+        context_initializer::active_->set_ready_( dp->ctx);
     }
 }
 #else
@@ -168,7 +169,7 @@ context::resume_( detail::data_t & d) noexcept {
         if ( nullptr != dp->lk) {
             dp->lk->unlock();
         } else if ( nullptr != dp->ctx) {
-            active_->set_ready_( dp->ctx);
+            context_initializer::active_->set_ready_( dp->ctx);
         }
     }
 }
@@ -203,7 +204,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                active_->set_ready_( dp->ctx);
+                context_initializer::active_->set_ready_( dp->ctx);
             }
             // execute scheduler::dispatch()
             sched->dispatch();
@@ -218,7 +219,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                active_->set_ready_( dp->ctx);
+                context_initializer::active_->set_ready_( dp->ctx);
             }
             // execute scheduler::dispatch()
             return sched->dispatch();
@@ -247,9 +248,9 @@ context::get_id() const noexcept {
 void
 context::resume() noexcept {
     context * prev = this;
-    // active_ will point to `this`
+    // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( active_, prev);
+    std::swap( context_initializer::active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
     detail::data_t d{};
 #else
@@ -261,9 +262,9 @@ context::resume() noexcept {
 void
 context::resume( detail::spinlock_lock & lk) noexcept {
     context * prev = this;
-    // active_ will point to `this`
+    // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( active_, prev);
+    std::swap( context_initializer::active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
     detail::data_t d{ & lk };
 #else
@@ -275,9 +276,9 @@ context::resume( detail::spinlock_lock & lk) noexcept {
 void
 context::resume( context * ready_ctx) noexcept {
     context * prev = this;
-    // active_ will point to `this`
+    // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( active_, prev);
+    std::swap( context_initializer::active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
     detail::data_t d{ ready_ctx };
 #else
@@ -328,9 +329,9 @@ context::yield() noexcept {
 boost::context::execution_context< detail::data_t * >
 context::suspend_with_cc() noexcept {
     context * prev = this;
-    // active_ will point to `this`
+    // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( active_, prev);
+    std::swap( context_initializer::active_, prev);
     detail::data_t d{ prev };
     // context switch
     return std::move( std::get< 0 >( ctx_( & d) ) );
@@ -372,7 +373,7 @@ context::set_terminated() noexcept {
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     BOOST_ASSERT( nullptr != scheduler_ );
-    BOOST_ASSERT( this == active_);
+    BOOST_ASSERT( this == context_initializer::active_);
     return scheduler_->wait_until( this, tp);
 }
 
@@ -380,7 +381,7 @@ bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp,
                      detail::spinlock_lock & lk) noexcept {
     BOOST_ASSERT( nullptr != scheduler_ );
-    BOOST_ASSERT( this == active_);
+    BOOST_ASSERT( this == context_initializer::active_);
     return scheduler_->wait_until( this, tp, lk);
 }
 
