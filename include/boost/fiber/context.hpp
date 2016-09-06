@@ -46,7 +46,6 @@ namespace boost {
 namespace fibers {
 
 class context;
-struct context_initializer;
 class fiber;
 class scheduler;
 
@@ -122,7 +121,6 @@ const worker_context_t worker_context{};
 
 class BOOST_FIBERS_DECL context {
 private:
-    friend struct context_initializer;
     friend class scheduler;
 
     enum flag_t {
@@ -149,8 +147,6 @@ private:
     };
 
     typedef std::map< uintptr_t, fss_data >     fss_data_t;
-
-    static thread_local context                 *   active_;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                      use_count_{ 0 };
@@ -182,7 +178,7 @@ private:
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                active_->set_ready_( dp->ctx);
+                active()->set_ready_( dp->ctx);
             }
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
@@ -203,7 +199,7 @@ private:
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                active_->set_ready_( dp->ctx);
+                active()->set_ready_( dp->ctx);
             }
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
@@ -489,11 +485,6 @@ inline
 bool operator<( context const& l, context const& r) noexcept {
     return l.get_id() < r.get_id();
 }
-
-struct context_initializer {
-    context_initializer();
-    ~context_initializer();
-};
 
 template< typename StackAlloc, typename Fn, typename ... Args >
 static intrusive_ptr< context > make_worker_context( launch policy,
