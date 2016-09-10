@@ -42,6 +42,11 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
+
 namespace boost {
 namespace fibers {
 
@@ -127,7 +132,7 @@ private:
         flag_terminated = 1 << 1
     };
 
-    struct BOOST_FIBERS_DECL fss_data {
+    struct fss_data {
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
 
@@ -541,6 +546,10 @@ wait_functor::const_pointer wait_functor::to_value_ptr( wait_functor::const_hook
 }
 
 }}}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
