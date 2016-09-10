@@ -28,6 +28,11 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4251)
+#endif
+
 namespace boost {
 namespace fibers {
 
@@ -143,6 +148,10 @@ void swap( fiber & l, fiber & r) noexcept {
 }
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
