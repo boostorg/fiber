@@ -108,7 +108,7 @@
 [def __allocator__ [@http://en.cppreference.com/w/cpp/memory/allocator `std::allocator< T >`]]
 [def __barrier__ [class_link barrier]]
 [def __condition__ [class_link condition_variable]]
-[def __econtext__ [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html ['execution_context]]]
+[def __econtext__ [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html ['execution_context]]]
 [def __fiber__ [class_link fiber]]
 [def __fiber_error__ `fiber_error`]
 [def __fiber_group__ [class_link fiber_group]]
