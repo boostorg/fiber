@@ -194,7 +194,7 @@ private:
 #else
     template< typename Fn, typename Tpl >
     boost::context::execution_context< detail::data_t * >
-    run_( boost::context::execution_context< detail::data_t * > ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
+    run_( boost::context::execution_context< detail::data_t * > && ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
         {
             // fn and tpl must be destroyed before calling set_terminated()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
@@ -336,8 +336,8 @@ public:
         ctx_{ std::allocator_arg, palloc, salloc,
               detail::wrap(
                   [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                          boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) mutable noexcept {
-                        return run_( std::move( ctx), std::move( fn), std::move( tpl), dp);
+                          boost::context::execution_context< detail::data_t * > && ctx, detail::data_t * dp) mutable noexcept {
+                        return run_( std::forward< boost::context::execution_context< detail::data_t * > >( ctx), std::move( fn), std::move( tpl), dp);
                   },
                   std::forward< Fn >( fn),
                   std::forward< Tpl >( tpl) )}
@@ -345,8 +345,8 @@ public:
 # else
         ctx_{ std::allocator_arg, palloc, salloc,
               [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
-               (boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) mutable noexcept {
-                    return run_( std::move( ctx), std::move( fn), std::move( tpl), dp);
+               (boost::context::execution_context< detail::data_t * > && ctx, detail::data_t * dp) mutable noexcept {
+                    return run_( std::forward< boost::context::execution_context< detail::data_t * > >( ctx), std::move( fn), std::move( tpl), dp);
               }}
 # endif
 #endif

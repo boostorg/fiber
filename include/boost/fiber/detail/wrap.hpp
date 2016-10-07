@@ -87,10 +87,13 @@ public:
     wrapper & operator=( wrapper && other) = default;
 
     boost::context::execution_context< data_t * >
-    operator()( boost::context::execution_context< data_t * > ctx, data_t * dp) {
+    operator()( boost::context::execution_context< data_t * > && ctx, data_t * dp) {
         return boost::context::detail::invoke(
                 std::move( fn1_),
-                fn2_, tpl_, std::move( ctx), dp);
+                fn2_,
+                tpl_,
+                std::forward< boost::context::execution_context< data_t * > >( ctx),
+                dp);
     }
 };
 
