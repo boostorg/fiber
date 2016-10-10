@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/05/22 05:16:53 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/10/10 09:15:56 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -41,7 +41,7 @@
       using cooperative scheduling (versus threads, which are preemptively scheduled).
       The running fiber decides explicitly when it should yield to allow another
       fiber to run (context switching). <emphasis role="bold">Boost.Fiber</emphasis>
-      internally uses <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html"><emphasis>execution_context</emphasis></ulink>
+      internally uses <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>
       from <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>;
       the classes in this library manage, schedule and, when needed, synchronize
       those execution contexts. A context switch between threads usually costs thousands
@@ -163,11 +163,6 @@
       <emphasis role="bold">Boost.Fiber</emphasis>: see <link linkend="callbacks">Integrating
       Fibers with Asynchronous Callbacks</link>.
     </para>
-    <warning>
-      <para>
-        This library is <emphasis>not</emphasis> an official Boost library.
-      </para>
-    </warning>
     <para>
       <emphasis role="bold">Boost.Fiber</emphasis> depends upon <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>.
       Boost version 1.61.0 or greater is required.
@@ -594,7 +589,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
           <listitem>
             <para>
               <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link>
-              is required to allocate a stack for the internal <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html"><emphasis>execution_context</emphasis></ulink>.
+              is required to allocate a stack for the internal <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>.
               If <code><phrase role="identifier">StackAllocator</phrase></code> is
               not explicitly passed, the default stack allocator depends on <code><phrase
               role="identifier">BOOST_USE_SEGMENTED_STACKS</phrase></code>: if defined,
@@ -3777,7 +3772,7 @@ implementation&#8217;s
   <section id="fiber.stack">
     <title><anchor id="stack"/><link linkend="fiber.stack">Stack allocation</link></title>
     <para>
-      A <link linkend="class_fiber"><code>fiber</code></link> uses internally an <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html"><emphasis>execution_context</emphasis></ulink>
+      A <link linkend="class_fiber"><code>fiber</code></link> uses internally an <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>
       which manages a set of registers and a stack. The memory used by the stack
       is allocated/deallocated via a <emphasis>stack_allocator</emphasis> which is
       required to model a <link linkend="stack_allocator_concept"><emphasis>stack-allocator
@@ -3902,7 +3897,7 @@ implementation&#8217;s
     <note>
       <para>
         The memory for the stack is not required to be aligned; alignment takes place
-        inside <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html"><emphasis>execution_context</emphasis></ulink>.
+        inside <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>.
       </para>
     </note>
     <para>
@@ -13497,7 +13492,7 @@ before
         instance, we must first declare that.
       </para>
       <para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_ptr</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">io_svc</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">make_shared</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="special">&gt;();</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">round_robin</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">);</phrase>
 </programlisting>
       </para>
@@ -13508,27 +13503,27 @@ before
         which naturally calls its constructor:
       </para>
       <para>
-<programlisting><phrase role="identifier">round_robin</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
+<programlisting><phrase role="identifier">round_robin</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_ptr</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">)</phrase> <phrase role="special">:</phrase>
     <phrase role="identifier">io_svc_</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">),</phrase>
-    <phrase role="identifier">suspend_timer_</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="identifier">suspend_timer_</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">io_svc_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="comment">// We use add_service() very deliberately. This will throw</phrase>
     <phrase role="comment">// service_already_exists if you pass the same io_service instance to</phrase>
     <phrase role="comment">// more than one round_robin instance.</phrase>
-    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">add_service</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc_</phrase><phrase role="special">,</phrase> <phrase role="keyword">new</phrase> <phrase role="identifier">service</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc_</phrase><phrase role="special">));</phrase>
+    <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">add_service</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">io_svc_</phrase><phrase role="special">,</phrase> <phrase role="keyword">new</phrase> <phrase role="identifier">service</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">io_svc_</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
       </para>
       <para>
         <code><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase
         role="identifier">round_robin</phrase></code> binds the passed <code><phrase
-        role="identifier">io_service</phrase></code> reference and initializes a
-        <ulink url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/steady_timer.html"><code><phrase
+        role="identifier">io_service</phrase></code> pointer and initializes a <ulink
+        url="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/steady_timer.html"><code><phrase
         role="identifier">boost</phrase><phrase role="special">::</phrase><phrase
         role="identifier">asio</phrase><phrase role="special">::</phrase><phrase
         role="identifier">steady_timer</phrase></code></ulink>:
       </para>
       <para>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase>                     <phrase role="special">&amp;</phrase>   <phrase role="identifier">io_svc_</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_ptr</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">io_service</phrase> <phrase role="special">&gt;</phrase>      <phrase role="identifier">io_svc_</phrase><phrase role="special">;</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">asio</phrase><phrase role="special">::</phrase><phrase role="identifier">steady_timer</phrase>                       <phrase role="identifier">suspend_timer_</phrase><phrase role="special">;</phrase>
 </programlisting>
       </para>
@@ -13614,15 +13609,15 @@ before
       </para>
       <para>
 <programlisting><phrase role="comment">// server</phrase>
-<phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">acceptor</phrase> <phrase role="identifier">a</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">,</phrase> <phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">endpoint</phrase><phrase role="special">(</phrase> <phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">v4</phrase><phrase role="special">(),</phrase> <phrase role="number">9999</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">server</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">a</phrase><phrase role="special">)</phrase> <phrase role="special">).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
+<phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">acceptor</phrase> <phrase role="identifier">a</phrase><phrase role="special">(</phrase> <phrase role="special">*</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">,</phrase> <phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">endpoint</phrase><phrase role="special">(</phrase> <phrase role="identifier">tcp</phrase><phrase role="special">::</phrase><phrase role="identifier">v4</phrase><phrase role="special">(),</phrase> <phrase role="number">9999</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <phrase role="identifier">server</phrase><phrase role="special">,</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">a</phrase><phrase role="special">)</phrase> <phrase role="special">).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
 <phrase role="comment">// client</phrase>
 <phrase role="keyword">const</phrase> <phrase role="keyword">unsigned</phrase> <phrase role="identifier">iterations</phrase> <phrase role="special">=</phrase> <phrase role="number">2</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">const</phrase> <phrase role="keyword">unsigned</phrase> <phrase role="identifier">clients</phrase> <phrase role="special">=</phrase> <phrase role="number">3</phrase><phrase role="special">;</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">(</phrase> <phrase role="identifier">clients</phrase><phrase role="special">);</phrase>
 <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">unsigned</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">clients</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">(</phrase>
-            <phrase role="identifier">client</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">a</phrase><phrase role="special">),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase> <phrase role="identifier">iterations</phrase><phrase role="special">).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
+            <phrase role="identifier">client</phrase><phrase role="special">,</phrase> <phrase role="identifier">io_svc</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">a</phrase><phrase role="special">),</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ref</phrase><phrase role="special">(</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase> <phrase role="identifier">iterations</phrase><phrase role="special">).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
       </para>
@@ -13636,7 +13631,7 @@ before
         role="identifier">run</phrase><phrase role="special">()</phrase></code></ulink>:
       </para>
       <para>
-<programlisting><phrase role="identifier">io_svc</phrase><phrase role="special">.</phrase><phrase role="identifier">run</phrase><phrase role="special">();</phrase>
+<programlisting><phrase role="identifier">io_svc</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">run</phrase><phrase role="special">();</phrase>
 </programlisting>
       </para>
       <para>
