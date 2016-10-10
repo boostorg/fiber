@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <memory>
 #include <mutex>
 #include <queue>
 
@@ -37,7 +38,7 @@ private:
     typedef scheduler::ready_queue_t rqueue_t;
 
 //[asio_rr_suspend_timer
-    boost::asio::io_service                     &   io_svc_;
+    std::shared_ptr< boost::asio::io_service >      io_svc_;
     boost::asio::steady_timer                       suspend_timer_;
 //]
     rqueue_t                                        rqueue_{};
@@ -86,13 +87,13 @@ public:
 //]
 
 //[asio_rr_ctor
-    round_robin( boost::asio::io_service & io_svc) :
+    round_robin( std::shared_ptr< boost::asio::io_service > const& io_svc) :
         io_svc_( io_svc),
-        suspend_timer_( io_svc_) {
+        suspend_timer_( * io_svc_) {
         // We use add_service() very deliberately. This will throw
         // service_already_exists if you pass the same io_service instance to
         // more than one round_robin instance.
-        boost::asio::add_service( io_svc_, new service( io_svc_));
+        boost::asio::add_service( * io_svc_, new service( * io_svc_) );
     }
 //]
 

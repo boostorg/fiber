@@ -6,17 +6,12 @@
 #include <cstddef>
 #include <cstdlib>
 #include <map>
+#include <memory>
 #include <set>
 #include <iostream>
 #include <string>
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 
 #include <boost/fiber/all.hpp>
@@ -28,7 +23,7 @@ using boost::asio::ip::tcp;
 const std::size_t max_length = 1024;
 
 class subscriber_session;
-typedef boost::shared_ptr<subscriber_session> subscriber_session_ptr;
+typedef std::shared_ptr< subscriber_session > subscriber_session_ptr;
 
 // a channel has n subscribers (subscriptions)
 // this class holds a list of subcribers for one channel
@@ -57,7 +52,7 @@ private:
 // a class to register channels and to subsribe clients to this channels
 class registry : private boost::noncopyable {
 private:
-    typedef std::map< std::string, boost::shared_ptr< subscriptions > > channels_cont;
+    typedef std::map< std::string, std::shared_ptr< subscriptions > > channels_cont;
     typedef channels_cont::iterator channels_iter;
 
     boost::fibers::mutex    mtx_;
@@ -67,7 +62,7 @@ private:
         if ( channels_.end() != channels_.find( channel) ) {
             throw std::runtime_error("channel already exists");
         }
-        channels_[channel] = boost::make_shared< subscriptions >();
+        channels_[channel] = std::make_shared< subscriptions >();
         std::cout << "new channel '" << channel << "' registered" << std::endl;
     }
 
@@ -134,10 +129,10 @@ public:
 };
 
 // a subscriber subscribes to a given channel in order to receive messages published on this channel
-class subscriber_session : public boost::enable_shared_from_this< subscriber_session > {
+class subscriber_session : public std::enable_shared_from_this< subscriber_session > {
 public:
-    explicit subscriber_session( boost::asio::io_service & io_service, registry & reg) :
-        socket_( io_service),
+    explicit subscriber_session( std::shared_ptr< boost::asio::io_service > const& io_service, registry & reg) :
+        socket_( * io_service),
         reg_( reg) {
     }
 
@@ -176,7 +171,6 @@ public:
                 cond_.wait( lk);
                 std::string data( data_);
                 lk.unlock();
-                std::cout << "subscriber::run(): '" << data << std::endl;
                 // message '<fini>' terminates subscription
                 if ( "<fini>" == data) {
                     break;
@@ -224,24 +218,24 @@ private:
 
 
 subscriptions::~subscriptions() {
-    BOOST_FOREACH( subscriber_session_ptr s, subscribers_) {
+    for ( subscriber_session_ptr s : subscribers_) {
         s->publish("<fini>");
     } 
 }
 
 void
 subscriptions::publish( std::string const& msg) {
-    BOOST_FOREACH( subscriber_session_ptr s, subscribers_) {
+    for ( subscriber_session_ptr s : subscribers_) {
         s->publish( msg);
     }
 }
 
 // a publisher publishes messages on its channel
 // subscriber might register to this channel to get the published messages
-class publisher_session : public boost::enable_shared_from_this< publisher_session > {
+class publisher_session : public std::enable_shared_from_this< publisher_session > {
 public:
-    explicit publisher_session( boost::asio::io_service & io_service, registry & reg) :
-        socket_( io_service),
+    explicit publisher_session( std::shared_ptr< boost::asio::io_service > const& io_service, registry & reg) :
+        socket_( * io_service),
         reg_( reg) {
     }
 
@@ -303,21 +297,21 @@ private:
     registry        &   reg_;
 };
 
-typedef boost::shared_ptr< publisher_session > publisher_session_ptr;
+typedef std::shared_ptr< publisher_session > publisher_session_ptr;
 
 // function accepts connections requests from clients acting as a publisher
-void accept_publisher( boost::asio::io_service& io_service,
+void accept_publisher( std::shared_ptr< boost::asio::io_service > const& io_service,
                        unsigned short port,
                        registry & reg) {
     // create TCP-acceptor
-    tcp::acceptor acceptor( io_service, tcp::endpoint( tcp::v4(), port) );
+    tcp::acceptor acceptor( * io_service, tcp::endpoint( tcp::v4(), port) );
     // loop for accepting connection requests
     for (;;) {
         boost::system::error_code ec;
         // create new publisher-session
         // this instance will be associated with one publisher
         publisher_session_ptr new_publisher_session = 
-            boost::make_shared<publisher_session>( boost::ref( io_service), boost::ref( reg) );
+            std::make_shared< publisher_session >( io_service, std::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (publisher)
@@ -328,24 +322,24 @@ void accept_publisher( boost::asio::io_service& io_service,
         if ( ! ec) {
             // run the new publisher in its own fiber (one fiber for one client)
             boost::fibers::fiber(
-                boost::bind( & publisher_session::run, new_publisher_session) ).detach();
+                std::bind( & publisher_session::run, new_publisher_session) ).detach();
         }
     }
 }
 
 // function accepts connections requests from clients acting as a subscriber
-void accept_subscriber( boost::asio::io_service& io_service,
+void accept_subscriber( std::shared_ptr< boost::asio::io_service > const& io_service,
                         unsigned short port,
                         registry & reg) {
     // create TCP-acceptor
-    tcp::acceptor acceptor( io_service, tcp::endpoint( tcp::v4(), port) );
+    tcp::acceptor acceptor( * io_service, tcp::endpoint( tcp::v4(), port) );
     // loop for accepting connection requests
     for (;;) {
         boost::system::error_code ec;
         // create new subscriber-session
         // this instance will be associated with one subscriber
         subscriber_session_ptr new_subscriber_session = 
-            boost::make_shared<subscriber_session>( boost::ref( io_service), boost::ref( reg) );
+            std::make_shared< subscriber_session >( io_service, std::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (subscriber)
@@ -356,7 +350,7 @@ void accept_subscriber( boost::asio::io_service& io_service,
         if ( ! ec) {
             // run the new subscriber in its own fiber (one fiber for one client)
             boost::fibers::fiber(
-                boost::bind( & subscriber_session::run, new_subscriber_session) ).detach();
+                std::bind( & subscriber_session::run, new_subscriber_session) ).detach();
         }
     }
 }
@@ -365,19 +359,19 @@ void accept_subscriber( boost::asio::io_service& io_service,
 int main( int argc, char* argv[]) {
     try {
         // create io_service for async. I/O
-        boost::asio::io_service io_service;
+        std::shared_ptr< boost::asio::io_service > io_service = std::make_shared< boost::asio::io_service >();
         // register asio scheduler
         boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_service);
         // registry for channels and its subscription
         registry reg;
         // create an acceptor for publishers, run it as fiber
         boost::fibers::fiber(
-            accept_publisher, boost::ref( io_service), 9997, boost::ref( reg) ).detach();
+            accept_publisher, std::ref( io_service), 9997, std::ref( reg) ).detach();
         // create an acceptor for subscribers, run it as fiber
         boost::fibers::fiber(
-            accept_subscriber, boost::ref( io_service), 9998, boost::ref( reg) ).detach();
+            accept_subscriber, std::ref( io_service), 9998, std::ref( reg) ).detach();
         // dispatch
-        io_service.run();
+        io_service->run();
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";
