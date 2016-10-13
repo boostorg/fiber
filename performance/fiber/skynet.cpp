@@ -18,7 +18,7 @@
 using clock_type = std::chrono::steady_clock;
 using duration_type = clock_type::duration;
 using time_point_type = clock_type::time_point;
-using channel_type = boost::fibers::unbounded_channel< std::uint64_t >;
+using queue_type = boost::fibers::unbounded_queue< std::uint64_t >;
 using allocator_type = boost::fibers::pooled_fixedsize_stack;
 
 void prepare( allocator_type & salloc) {
@@ -27,11 +27,11 @@ void prepare( allocator_type & salloc) {
 };
 
 // microbenchmark
-void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::size_t size, std::size_t div) {
+void skynet( allocator_type & salloc, queue_type & c, std::size_t num, std::size_t size, std::size_t div) {
     if ( 1 == size) {
         c.push( num);
     } else {
-        channel_type rc;
+        queue_type rc;
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
             boost::fibers::fiber{ boost::fibers::launch::dispatch,
@@ -57,7 +57,7 @@ int main() {
         prepare( salloc);
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
-        channel_type rc;
+        queue_type rc;
         time_point_type start{ clock_type::now() };
         skynet( salloc, rc, 0, size, div);
         result = rc.value_pop();

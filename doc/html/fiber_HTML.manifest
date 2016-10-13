@@ -10,7 +10,7 @@ fiber/synchronization.html
 fiber/synchronization/mutex_types.html
 fiber/synchronization/conditions.html
 fiber/synchronization/barriers.html
-fiber/synchronization/channels.html
+fiber/synchronization/queues.html
 fiber/synchronization/futures.html
 fiber/synchronization/futures/future.html
 fiber/synchronization/futures/promise.html

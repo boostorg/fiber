@@ -23,7 +23,7 @@ enum {
 int main( int argc, char* argv[]) {
     try {
         if ( 3 != argc) {
-            std::cerr << "Usage: publisher <host> <channel>\n";
+            std::cerr << "Usage: publisher <host> <queue>\n";
             return EXIT_FAILURE;
         }
         boost::asio::io_service io_service;
@@ -33,9 +33,9 @@ int main( int argc, char* argv[]) {
         tcp::socket s( io_service);
         boost::asio::connect( s, iterator);
         char msg[max_length];
-        std::string channel( argv[2]);
+        std::string queue( argv[2]);
         std::memset( msg, '\0', max_length);
-        std::memcpy( msg, channel.c_str(), channel.size() );
+        std::memcpy( msg, queue.c_str(), queue.size() );
         boost::asio::write( s, boost::asio::buffer( msg, max_length) );
         for (;;) {
             std::cout << "publish: ";

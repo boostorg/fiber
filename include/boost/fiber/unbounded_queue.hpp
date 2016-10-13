@@ -5,8 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_FIBERS_UNBOUNDED_CHANNEL_H
-#define BOOST_FIBERS_UNBOUNDED_CHANNEL_H
+#ifndef BOOST_FIBERS_UNBOUNDED_QUEUE_H
+#define BOOST_FIBERS_UNBOUNDED_QUEUE_H
 
 #include <atomic>
 #include <algorithm>
@@ -21,7 +21,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/channel_op_status.hpp>
+#include <boost/fiber/queue_op_status.hpp>
 #include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/detail/convert.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -38,7 +38,7 @@ namespace fibers {
 template< typename T,
           typename Allocator = std::allocator< T >
 >
-class unbounded_channel {
+class unbounded_queue {
 public:
     typedef T   value_type;
 
@@ -114,20 +114,20 @@ private:
         return ! head_;
     }
 
-    channel_op_status push_( ptr_t new_node,
+    queue_op_status push_( ptr_t new_node,
                              std::unique_lock< mutex > & lk) noexcept {
         if ( is_closed_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status push_and_notify_( ptr_t new_node,
+    queue_op_status push_and_notify_( ptr_t new_node,
                                         std::unique_lock< mutex > & lk) noexcept {
         push_tail_( new_node);
         lk.unlock();
         not_empty_cond_.notify_one();
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 
     void push_tail_( ptr_t new_node) noexcept {
@@ -152,20 +152,20 @@ private:
     }
 
 public:
-    explicit unbounded_channel( Allocator const& alloc = Allocator() ) noexcept :
+    explicit unbounded_queue( Allocator const& alloc = Allocator() ) noexcept :
         alloc_{ alloc },
         tail_{ & head_ } {
     }
 
-    unbounded_channel( unbounded_channel const&) = delete;
-    unbounded_channel & operator=( unbounded_channel const&) = delete;
+    unbounded_queue( unbounded_queue const&) = delete;
+    unbounded_queue & operator=( unbounded_queue const&) = delete;
 
     void close() noexcept {
         std::unique_lock< mutex > lk( mtx_);
         close_( lk);
     }
 
-    channel_op_status push( value_type const& va) {
+    queue_op_status push( value_type const& va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -178,7 +178,7 @@ public:
         return push_( { detail::convert( ptr) }, lk);
     }
 
-    channel_op_status push( value_type && va) {
+    queue_op_status push( value_type && va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -192,17 +192,17 @@ public:
         return push_( { detail::convert( ptr) }, lk);
     }
 
-    channel_op_status pop( value_type & va) {
+    queue_op_status pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
         not_empty_cond_.wait( lk,
                               [this](){
                                 return is_closed_() || ! is_empty_();
                               });
         if ( is_closed_() && is_empty_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         va = value_pop_( lk);
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 
     value_type value_pop() {
@@ -219,45 +219,45 @@ public:
         return value_pop_( lk);
     }
 
-    channel_op_status try_pop( value_type & va) {
+    queue_op_status try_pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
         if ( is_closed_() && is_empty_() ) {
             // let other fibers run
             lk.unlock();
             this_fiber::yield();
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         if ( is_empty_() ) {
             // let other fibers run
             lk.unlock();
             this_fiber::yield();
-            return channel_op_status::empty;
+            return queue_op_status::empty;
         }
         va = value_pop_( lk);
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 
     template< typename Rep, typename Period >
-    channel_op_status pop_wait_for( value_type & va,
+    queue_op_status pop_wait_for( value_type & va,
                                     std::chrono::duration< Rep, Period > const& timeout_duration) {
         return pop_wait_until( va, std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
-    channel_op_status pop_wait_until( value_type & va,
+    queue_op_status pop_wait_until( value_type & va,
                                       std::chrono::time_point< Clock, Duration > const& timeout_time) {
         std::unique_lock< mutex > lk( mtx_);
         if ( ! not_empty_cond_.wait_until( lk, timeout_time,
                                            [this](){
                                                  return is_closed_() || ! is_empty_();
                                            })) {
-            return channel_op_status::timeout;
+            return queue_op_status::timeout;
         }
         if ( is_closed_() && is_empty_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         va = value_pop_( lk);
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 };
 
@@ -267,4 +267,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_UNBOUNDED_CHANNEL_H
+#endif // BOOST_FIBERS_UNBOUNDED_QUEUE_H

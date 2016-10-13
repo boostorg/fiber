@@ -40,7 +40,7 @@
           first!
         </p>
 <p>
-          Given the <code class="computeroutput"><span class="identifier">unbounded_channel</span><span class="special">&lt;</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span></code>
+          Given the <code class="computeroutput"><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span></code>
           we already constructed for <code class="computeroutput"><span class="identifier">wait_first_outcome</span><span class="special">()</span></code>, though, we can readily recast the interface
           function to deliver the first <span class="emphasis"><em>successful</em></span> result.
         </p>
@@ -95,10 +95,10 @@
           Now we can build <code class="computeroutput"><span class="identifier">wait_first_success</span><span class="special">()</span></code>, using <a class="link" href="when_any__produce_first_outcome__whether_result_or_exception.html#wait_first_outcome_impl"><code class="computeroutput"><span class="identifier">wait_first_outcome_impl</span><span class="special">()</span></code></a>.
         </p>
 <p>
-          Instead of retrieving only the first <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> from the channel, we must now loop
+          Instead of retrieving only the first <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> from the queue, we must now loop
           over <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code>
           items. Of course we must limit that iteration! If we launch only <code class="computeroutput"><span class="identifier">count</span></code> producer fibers, the <code class="computeroutput"><span class="special">(</span><span class="identifier">count</span><span class="special">+</span><span class="number">1</span><span class="special">)</span></code><sup>st</sup>
-<a class="link" href="../../synchronization/channels.html#unbounded_channel_pop"><code class="computeroutput">unbounded_channel::pop()</code></a> call
+<a class="link" href="../../synchronization/queues.html#unbounded_queue_pop"><code class="computeroutput">unbounded_queue::pop()</code></a> call
           would block forever.
         </p>
 <p>
@@ -113,7 +113,7 @@
           If the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span></code> is <span class="emphasis"><em>not</em></span>
           <code class="computeroutput"><span class="keyword">nullptr</span></code>, though, we collect
           it into our pending <code class="computeroutput"><span class="identifier">exception_list</span></code>
-          and loop back for the next <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> from the channel.
+          and loop back for the next <code class="computeroutput"><span class="identifier">future</span><span class="special">&lt;&gt;</span></code> from the queue.
         </p>
 <p>
           If we fall out of the loop &#8212; if every single task fiber threw an exception
@@ -127,15 +127,15 @@
 <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span>
 <span class="identifier">wait_first_success</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">function</span><span class="special">,</span> <span class="identifier">Fns</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">count</span><span class="special">(</span> <span class="number">1</span> <span class="special">+</span> <span class="keyword">sizeof</span> <span class="special">...</span> <span class="special">(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">);</span>
-    <span class="comment">// In this case, the value we pass through the channel is actually a</span>
+    <span class="comment">// In this case, the value we pass through the queue is actually a</span>
     <span class="comment">// future -- which is already ready. future can carry either a value or an</span>
     <span class="comment">// exception.</span>
     <span class="keyword">typedef</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">decay</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;::</span><span class="identifier">type</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="identifier">return_t</span><span class="special">;</span>
     <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">future</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="identifier">future_t</span><span class="special">;</span>
-    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_channel</span><span class="special">&lt;</span> <span class="identifier">future_t</span> <span class="special">&gt;</span> <span class="identifier">channel_t</span><span class="special">;</span>
-    <span class="keyword">auto</span> <span class="identifier">channelp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">channel_t</span> <span class="special">&gt;()</span> <span class="special">);</span>
+    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">future_t</span> <span class="special">&gt;</span> <span class="identifier">queue_t</span><span class="special">;</span>
+    <span class="keyword">auto</span> <span class="identifier">queuep</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">queue_t</span> <span class="special">&gt;()</span> <span class="special">);</span>
     <span class="comment">// launch all the relevant fibers</span>
-    <span class="identifier">wait_first_outcome_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">channelp</span><span class="special">,</span>
+    <span class="identifier">wait_first_outcome_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">queuep</span><span class="special">,</span>
                                          <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>
                                          <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fns</span> <span class="special">&gt;(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
     <span class="comment">// instantiate exception_list, just in case</span>
@@ -143,13 +143,13 @@
     <span class="comment">// retrieve up to 'count' results -- but stop there!</span>
     <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="identifier">count</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
         <span class="comment">// retrieve the next future</span>
-        <span class="identifier">future_t</span> <span class="identifier">future</span><span class="special">(</span> <span class="identifier">channelp</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span> <span class="special">);</span>
+        <span class="identifier">future_t</span> <span class="identifier">future</span><span class="special">(</span> <span class="identifier">queuep</span><span class="special">-&gt;</span><span class="identifier">value_pop</span><span class="special">()</span> <span class="special">);</span>
         <span class="comment">// retrieve exception_ptr if any</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">exception_ptr</span> <span class="identifier">error</span><span class="special">(</span> <span class="identifier">future</span><span class="special">.</span><span class="identifier">get_exception_ptr</span><span class="special">()</span> <span class="special">);</span>
         <span class="comment">// if no error, then yay, return value</span>
         <span class="keyword">if</span> <span class="special">(</span> <span class="special">!</span> <span class="identifier">error</span><span class="special">)</span> <span class="special">{</span>
-            <span class="comment">// close the channel: no subsequent push() has to succeed</span>
-            <span class="identifier">channelp</span><span class="special">-&gt;</span><span class="identifier">close</span><span class="special">();</span>
+            <span class="comment">// close the queue: no subsequent push() has to succeed</span>
+            <span class="identifier">queuep</span><span class="special">-&gt;</span><span class="identifier">close</span><span class="special">();</span>
             <span class="comment">// show caller the value we got</span>
             <span class="keyword">return</span> <span class="identifier">future</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
         <span class="special">}</span>

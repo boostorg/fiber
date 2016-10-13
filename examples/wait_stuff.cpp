@@ -188,27 +188,27 @@ Example wfs( runner, "wait_first_simple()", [](){
 // When there's only one function, call this overload
 //[wait_first_value_impl
 template< typename T, typename Fn >
-void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_channel< T > > channel,
+void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_queue< T > > queue,
                             Fn && function) {
-    boost::fibers::fiber( [channel, function](){
-                              // Ignore channel_op_status returned by push():
+    boost::fibers::fiber( [queue, function](){
+                              // Ignore queue_op_status returned by push():
                               // might be closed; we simply don't care.
-                              channel->push( function() );
+                              queue->push( function() );
                           }).detach();
 }
 //]
 
 // When there are two or more functions, call this overload
 template< typename T, typename Fn0, typename Fn1, typename ... Fns >
-void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_channel< T > > channel,
+void wait_first_value_impl( std::shared_ptr< boost::fibers::unbounded_queue< T > > queue,
                             Fn0 && function0,
                             Fn1 && function1,
                             Fns && ... functions) {
     // process the first function using the single-function overload
-    wait_first_value_impl< T >( channel,
+    wait_first_value_impl< T >( queue,
                                 std::forward< Fn0 >( function0) );
     // then recur to process the rest
-    wait_first_value_impl< T >( channel,
+    wait_first_value_impl< T >( queue,
                                 std::forward< Fn1 >( function1),
                                 std::forward< Fns >( functions) ... );
 }
@@ -221,16 +221,16 @@ template< typename Fn, typename ... Fns >
 typename std::result_of< Fn() >::type
 wait_first_value( Fn && function, Fns && ... functions) {
     typedef typename std::result_of< Fn() >::type return_t;
-    typedef boost::fibers::unbounded_channel< return_t > channel_t;
-    auto channelp( std::make_shared< channel_t >() );
+    typedef boost::fibers::unbounded_queue< return_t > queue_t;
+    auto queuep( std::make_shared< queue_t >() );
     // launch all the relevant fibers
-    wait_first_value_impl< return_t >( channelp,
+    wait_first_value_impl< return_t >( queuep,
                                        std::forward< Fn >( function),
                                        std::forward< Fns >( functions) ... );
     // retrieve the first value
-    return_t value( channelp->value_pop() );
-    // close the channel: no subsequent push() has to succeed
-    channelp->close();
+    return_t value( queuep->value_pop() );
+    // close the queue: no subsequent push() has to succeed
+    queuep->close();
     return value;
 }
 //]
@@ -252,15 +252,15 @@ Example wfv( runner, "wait_first_value()", [](){
 *****************************************************************************/
 // When there's only one function, call this overload.
 //[wait_first_outcome_impl
-template< typename T, typename CHANNELP, typename Fn >
-void wait_first_outcome_impl( CHANNELP channel, Fn && function) {
+template< typename T, typename QUEUEP, typename Fn >
+void wait_first_outcome_impl( QUEUEP queue, Fn && function) {
     boost::fibers::fiber(
         // Use std::bind() here for C++11 compatibility. C++11 lambda capture
         // can't move a move-only Fn type, but bind() can. Let bind() move the
-        // channel pointer and the function into the bound object, passing
+        // queue pointer and the function into the bound object, passing
         // references into the lambda.
         std::bind(
-            []( CHANNELP & channel,
+            []( QUEUEP & queue,
                 typename std::decay< Fn >::type & function) {
                 // Instantiate a packaged_task to capture any exception thrown by
                 // function.
@@ -269,27 +269,27 @@ void wait_first_outcome_impl( CHANNELP channel, Fn && function) {
                 // function() to have completed BEFORE we push the future.
                 task();
                 // Pass the corresponding future to consumer. Ignore
-                // channel_op_status returned by push(): might be closed; we
+                // queue_op_status returned by push(): might be closed; we
                 // simply don't care.
-                channel->push( task.get_future() );
+                queue->push( task.get_future() );
             },
-            channel,
+            queue,
             std::forward< Fn >( function)
         )).detach();
 }
 //]
 
 // When there are two or more functions, call this overload
-template< typename T, typename CHANNELP, typename Fn0, typename Fn1, typename ... Fns >
-void wait_first_outcome_impl( CHANNELP channel,
+template< typename T, typename QUEUEP, typename Fn0, typename Fn1, typename ... Fns >
+void wait_first_outcome_impl( QUEUEP queue,
                               Fn0 && function0,
                               Fn1 && function1,
                               Fns && ... functions) {
     // process the first function using the single-function overload
-    wait_first_outcome_impl< T >( channel,
+    wait_first_outcome_impl< T >( queue,
                                   std::forward< Fn0 >( function0) );
     // then recur to process the rest
-    wait_first_outcome_impl< T >( channel,
+    wait_first_outcome_impl< T >( queue,
                                   std::forward< Fn1 >( function1),
                                   std::forward< Fns >( functions) ... );
 }
@@ -301,21 +301,21 @@ void wait_first_outcome_impl( CHANNELP channel,
 template< typename Fn, typename ... Fns >
 typename std::result_of< Fn() >::type
 wait_first_outcome( Fn && function, Fns && ... functions) {
-    // In this case, the value we pass through the channel is actually a
+    // In this case, the value we pass through the queue is actually a
     // future -- which is already ready. future can carry either a value or an
     // exception.
     typedef typename std::result_of< Fn() >::type return_t;
     typedef boost::fibers::future< return_t > future_t;
-    typedef boost::fibers::unbounded_channel< future_t > channel_t;
-    auto channelp(std::make_shared< channel_t >() );
+    typedef boost::fibers::unbounded_queue< future_t > queue_t;
+    auto queuep(std::make_shared< queue_t >() );
     // launch all the relevant fibers
-    wait_first_outcome_impl< return_t >( channelp,
+    wait_first_outcome_impl< return_t >( queuep,
                                          std::forward< Fn >( function),
                                          std::forward< Fns >( functions) ... );
     // retrieve the first future
-    future_t future( channelp->value_pop() );
-    // close the channel: no subsequent push() has to succeed
-    channelp->close();
+    future_t future( queuep->value_pop() );
+    // close the queue: no subsequent push() has to succeed
+    queuep->close();
     // either return value or throw exception
     return future.get();
 }
@@ -394,15 +394,15 @@ template< typename Fn, typename ... Fns >
 typename std::result_of< Fn() >::type
 wait_first_success( Fn && function, Fns && ... functions) {
     std::size_t count( 1 + sizeof ... ( functions) );
-    // In this case, the value we pass through the channel is actually a
+    // In this case, the value we pass through the queue is actually a
     // future -- which is already ready. future can carry either a value or an
     // exception.
     typedef typename std::result_of< typename std::decay< Fn >::type() >::type return_t;
     typedef boost::fibers::future< return_t > future_t;
-    typedef boost::fibers::unbounded_channel< future_t > channel_t;
-    auto channelp( std::make_shared< channel_t >() );
+    typedef boost::fibers::unbounded_queue< future_t > queue_t;
+    auto queuep( std::make_shared< queue_t >() );
     // launch all the relevant fibers
-    wait_first_outcome_impl< return_t >( channelp,
+    wait_first_outcome_impl< return_t >( queuep,
                                          std::forward< Fn >( function),
                                          std::forward< Fns >( functions) ... );
     // instantiate exception_list, just in case
@@ -410,13 +410,13 @@ wait_first_success( Fn && function, Fns && ... functions) {
     // retrieve up to 'count' results -- but stop there!
     for ( std::size_t i = 0; i < count; ++i) {
         // retrieve the next future
-        future_t future( channelp->value_pop() );
+        future_t future( queuep->value_pop() );
         // retrieve exception_ptr if any
         std::exception_ptr error( future.get_exception_ptr() );
         // if no error, then yay, return value
         if ( ! error) {
-            // close the channel: no subsequent push() has to succeed
-            channelp->close();
+            // close the queue: no subsequent push() has to succeed
+            queuep->close();
             // show caller the value we got
             return future.get();
         }
@@ -472,17 +472,17 @@ Example wfss( runner, "wait_first_success()", [](){
 template< typename ... Fns >
 boost::variant< typename std::result_of< Fns() >::type ... >
 wait_first_value_het( Fns && ... functions) {
-    // Use unbounded_channel<boost::variant<T1, T2, ...>>; see remarks above.
+    // Use unbounded_queue<boost::variant<T1, T2, ...>>; see remarks above.
     typedef boost::variant< typename std::result_of< Fns() >::type ... > return_t;
-    typedef boost::fibers::unbounded_channel< return_t > channel_t;
-    auto channelp( std::make_shared< channel_t >() );
+    typedef boost::fibers::unbounded_queue< return_t > queue_t;
+    auto queuep( std::make_shared< queue_t >() );
     // launch all the relevant fibers
-    wait_first_value_impl< return_t >( channelp,
+    wait_first_value_impl< return_t >( queuep,
                                        std::forward< Fns >( functions) ... );
     // retrieve the first value
-    return_t value( channelp->value_pop() );
-    // close the channel: no subsequent push() has to succeed
-    channelp->close();
+    return_t value( queuep->value_pop() );
+    // close the queue: no subsequent push() has to succeed
+    queuep->close();
     return value;
 }
 //]
@@ -556,36 +556,36 @@ Example was( runner, "wait_all_simple()", [](){
 /*****************************************************************************
 *   when_all, return values
 *****************************************************************************/
-//[wait_nchannel
-// Introduce a channel facade that closes the channel once a specific number
+//[wait_nqueue
+// Introduce a queue facade that closes the queue once a specific number
 // of items has been pushed. This allows an arbitrary consumer to read until
 // 'closed' without itself having to count items.
 template< typename T >
-class nchannel {
+class nqueue {
 public:
-    nchannel( std::shared_ptr< boost::fibers::unbounded_channel< T > > cp,
+    nqueue( std::shared_ptr< boost::fibers::unbounded_queue< T > > cp,
               std::size_t lm):
-        channel_( cp),
+        queue_( cp),
         limit_( lm) {
-        assert(channel_);
+        assert(queue_);
         if ( 0 == limit_) {
-            channel_->close();
+            queue_->close();
         }
     }
 
-    boost::fibers::channel_op_status push( T && va) {
-        boost::fibers::channel_op_status ok =
-            channel_->push( std::forward< T >( va) );
-        if ( ok == boost::fibers::channel_op_status::success &&
+    boost::fibers::queue_op_status push( T && va) {
+        boost::fibers::queue_op_status ok =
+            queue_->push( std::forward< T >( va) );
+        if ( ok == boost::fibers::queue_op_status::success &&
              --limit_ == 0) {
-            // after the 'limit_'th successful push, close the channel
-            channel_->close();
+            // after the 'limit_'th successful push, close the queue
+            queue_->close();
         }
         return ok;
     }
 
 private:
-    std::shared_ptr< boost::fibers::unbounded_channel< T > >    channel_;
+    std::shared_ptr< boost::fibers::unbounded_queue< T > >    queue_;
     std::size_t                                                 limit_;
 };
 //]
@@ -593,47 +593,47 @@ private:
 // When there's only one function, call this overload
 //[wait_all_values_impl
 template< typename T, typename Fn >
-void wait_all_values_impl( std::shared_ptr< nchannel< T > > channel,
+void wait_all_values_impl( std::shared_ptr< nqueue< T > > queue,
                            Fn && function) {
-    boost::fibers::fiber( [channel, function](){
-                              channel->push(function());
+    boost::fibers::fiber( [queue, function](){
+                              queue->push(function());
                           }).detach();
 }
 //]
 
 // When there are two or more functions, call this overload
 template< typename T, typename Fn0, typename Fn1, typename ... Fns >
-void wait_all_values_impl( std::shared_ptr< nchannel< T > > channel,
+void wait_all_values_impl( std::shared_ptr< nqueue< T > > queue,
                            Fn0 && function0,
                            Fn1 && function1,
                            Fns && ... functions) {
     // process the first function using the single-function overload
-    wait_all_values_impl< T >( channel, std::forward< Fn0 >( function0) );
+    wait_all_values_impl< T >( queue, std::forward< Fn0 >( function0) );
     // then recur to process the rest
-    wait_all_values_impl< T >( channel,
+    wait_all_values_impl< T >( queue,
                                std::forward< Fn1 >( function1),
                                std::forward< Fns >( functions) ... );
 }
 
 //[wait_all_values_source
-// Return a shared_ptr<unbounded_channel<T>> from which the caller can
+// Return a shared_ptr<unbounded_queue<T>> from which the caller can
 // retrieve each new result as it arrives, until 'closed'.
 template< typename Fn, typename ... Fns >
-std::shared_ptr< boost::fibers::unbounded_channel< typename std::result_of< Fn() >::type > >
+std::shared_ptr< boost::fibers::unbounded_queue< typename std::result_of< Fn() >::type > >
 wait_all_values_source( Fn && function, Fns && ... functions) {
     std::size_t count( 1 + sizeof ... ( functions) );
     typedef typename std::result_of< Fn() >::type return_t;
-    typedef boost::fibers::unbounded_channel< return_t > channel_t;
-    // make the channel
-    auto channelp( std::make_shared< channel_t >() );
-    // and make an nchannel facade to close it after 'count' items
-    auto ncp( std::make_shared< nchannel< return_t > >( channelp, count) );
-    // pass that nchannel facade to all the relevant fibers
+    typedef boost::fibers::unbounded_queue< return_t > queue_t;
+    // make the queue
+    auto queuep( std::make_shared< queue_t >() );
+    // and make an nqueue facade to close it after 'count' items
+    auto ncp( std::make_shared< nqueue< return_t > >( queuep, count) );
+    // pass that nqueue facade to all the relevant fibers
     wait_all_values_impl< return_t >( ncp,
                                       std::forward< Fn >( function),
                                       std::forward< Fns >( functions) ... );
-    // then return the channel for consumer
-    return channelp;
+    // then return the queue for consumer
+    return queuep;
 }
 //]
 
@@ -650,13 +650,13 @@ wait_all_values( Fn && function, Fns && ... functions) {
     vector_t results;
     results.reserve( count);
 
-    // get channel
-    std::shared_ptr< boost::fibers::unbounded_channel< return_t > > channel =
+    // get queue
+    std::shared_ptr< boost::fibers::unbounded_queue< return_t > > queue =
         wait_all_values_source( std::forward< Fn >( function),
                                 std::forward< Fns >( functions) ... );
     // fill results vector
     return_t value;
-    while ( boost::fibers::channel_op_status::success == channel->pop(value) ) {
+    while ( boost::fibers::queue_op_status::success == queue->pop(value) ) {
         results.push_back( value);
     }
     // return vector to caller
@@ -666,13 +666,13 @@ wait_all_values( Fn && function, Fns && ... functions) {
 
 Example wav( runner, "wait_all_values()", [](){
 //[wait_all_values_source_ex
-    std::shared_ptr< boost::fibers::unbounded_channel< std::string > > channel =
+    std::shared_ptr< boost::fibers::unbounded_queue< std::string > > queue =
         wait_all_values_source(
                 [](){ return sleeper("wavs_third",  150); },
                 [](){ return sleeper("wavs_second", 100); },
                 [](){ return sleeper("wavs_first",   50); });
     std::string value;
-    while ( boost::fibers::channel_op_status::success == channel->pop(value) ) {
+    while ( boost::fibers::queue_op_status::success == queue->pop(value) ) {
         std::cout << "wait_all_values_source() => '" << value
                   << "'" << std::endl;
     }
@@ -696,28 +696,28 @@ Example wav( runner, "wait_all_values()", [](){
 *   when_all, throw first exception
 *****************************************************************************/
 //[wait_all_until_error_source
-// Return a shared_ptr<unbounded_channel<future<T>>> from which the caller can
+// Return a shared_ptr<unbounded_queue<future<T>>> from which the caller can
 // get() each new result as it arrives, until 'closed'.
 template< typename Fn, typename ... Fns >
 std::shared_ptr<
-    boost::fibers::unbounded_channel<
+    boost::fibers::unbounded_queue<
         boost::fibers::future<
             typename std::result_of< Fn() >::type > > >
 wait_all_until_error_source( Fn && function, Fns && ... functions) {
     std::size_t count( 1 + sizeof ... ( functions) );
     typedef typename std::result_of< Fn() >::type return_t;
     typedef boost::fibers::future< return_t > future_t;
-    typedef boost::fibers::unbounded_channel< future_t > channel_t;
-    // make the channel
-    auto channelp( std::make_shared< channel_t >() );
-    // and make an nchannel facade to close it after 'count' items
-    auto ncp( std::make_shared< nchannel< future_t > >( channelp, count) );
-    // pass that nchannel facade to all the relevant fibers
+    typedef boost::fibers::unbounded_queue< future_t > queue_t;
+    // make the queue
+    auto queuep( std::make_shared< queue_t >() );
+    // and make an nqueue facade to close it after 'count' items
+    auto ncp( std::make_shared< nqueue< future_t > >( queuep, count) );
+    // pass that nqueue facade to all the relevant fibers
     wait_first_outcome_impl< return_t >( ncp,
                                          std::forward< Fn >( function),
                                          std::forward< Fns >( functions) ... );
-    // then return the channel for consumer
-    return channelp;
+    // then return the queue for consumer
+    return queuep;
 }
 //]
 
@@ -736,14 +736,14 @@ wait_all_until_error( Fn && function, Fns && ... functions) {
     vector_t results;
     results.reserve( count);
 
-    // get channel
+    // get queue
     std::shared_ptr<
-        boost::fibers::unbounded_channel< future_t > > channel(
+        boost::fibers::unbounded_queue< future_t > > queue(
             wait_all_until_error_source( std::forward< Fn >( function),
                                          std::forward< Fns >( functions) ... ) );
     // fill results vector
     future_t future;
-    while ( boost::fibers::channel_op_status::success == channel->pop( future) ) {
+    while ( boost::fibers::queue_op_status::success == queue->pop( future) ) {
         results.push_back( future.get() );
     }
     // return vector to caller
@@ -754,20 +754,20 @@ wait_all_until_error( Fn && function, Fns && ... functions) {
 Example waue( runner, "wait_all_until_error()", [](){
 //[wait_all_until_error_source_ex
     typedef boost::fibers::future< std::string > future_t;
-    std::shared_ptr< boost::fibers::unbounded_channel< future_t > > channel =
+    std::shared_ptr< boost::fibers::unbounded_queue< future_t > > queue =
         wait_all_until_error_source(
                 [](){ return sleeper("wauess_third",  150); },
                 [](){ return sleeper("wauess_second", 100); },
                 [](){ return sleeper("wauess_first",   50); });
     future_t future;
-    while ( boost::fibers::channel_op_status::success == channel->pop( future) ) {
+    while ( boost::fibers::queue_op_status::success == queue->pop( future) ) {
         std::string value( future.get() );
         std::cout << "wait_all_until_error_source(success) => '" << value
                   << "'" << std::endl;
     }
 //]
 
-    channel = wait_all_until_error_source(
+    queue = wait_all_until_error_source(
             [](){ return sleeper("wauesf_third",  150); },
             [](){ return sleeper("wauesf_second", 100, true); },
             [](){ return sleeper("wauesf_first",   50); });
@@ -775,7 +775,7 @@ Example waue( runner, "wait_all_until_error()", [](){
     std::string thrown;
 //<-
     try {
-        while ( boost::fibers::channel_op_status::success == channel->pop( future) ) {
+        while ( boost::fibers::queue_op_status::success == queue->pop( future) ) {
             std::string value( future.get() );
             std::cout << "wait_all_until_error_source(fail) => '" << value
                       << "'" << std::endl;
@@ -827,14 +827,14 @@ wait_all_collect_errors( Fn && function, Fns && ... functions) {
     results.reserve( count);
     exception_list exceptions("wait_all_collect_errors() exceptions");
 
-    // get channel
+    // get queue
     std::shared_ptr<
-        boost::fibers::unbounded_channel< future_t > > channel(
+        boost::fibers::unbounded_queue< future_t > > queue(
             wait_all_until_error_source( std::forward< Fn >( function),
                                          std::forward< Fns >( functions) ... ) );
     // fill results and/or exceptions vectors
     future_t future;
-    while ( boost::fibers::channel_op_status::success == channel->pop( future) ) {
+    while ( boost::fibers::queue_op_status::success == queue->pop( future) ) {
         std::exception_ptr exp = future.get_exception_ptr();
         if ( ! exp) {
             results.push_back( future.get() );

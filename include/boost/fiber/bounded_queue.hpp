@@ -5,8 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_FIBERS_BOUNDED_CHANNEL_H
-#define BOOST_FIBERS_BOUNDED_CHANNEL_H
+#ifndef BOOST_FIBERS_BOUNDED_QUEUE_H
+#define BOOST_FIBERS_BOUNDED_QUEUE_H
 
 #include <algorithm>
 #include <atomic>
@@ -25,7 +25,7 @@
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/mutex.hpp>
-#include <boost/fiber/channel_op_status.hpp>
+#include <boost/fiber/queue_op_status.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -37,7 +37,7 @@ namespace fibers {
 template< typename T,
           typename Allocator = std::allocator< T >
 >
-class bounded_channel {
+class bounded_queue {
 public:
     typedef T   value_type;
 
@@ -126,10 +126,10 @@ private:
         return count_ >= hwm_;
     }
 
-    channel_op_status push_( ptr_t new_node,
+    queue_op_status push_( ptr_t new_node,
                              std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         not_full_cond_.wait( lk,
                              [this](){
@@ -138,39 +138,39 @@ private:
         return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status try_push_( ptr_t new_node,
+    queue_op_status try_push_( ptr_t new_node,
                                  std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         if ( is_closed_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         if ( is_full_() ) {
-            return channel_op_status::full;
+            return queue_op_status::full;
         }
         return push_and_notify_( new_node, lk);
     }
 
     template< typename Clock, typename Duration >
-    channel_op_status push_wait_until_( ptr_t new_node,
+    queue_op_status push_wait_until_( ptr_t new_node,
                                         std::chrono::time_point< Clock, Duration > const& timeout_time,
                                         std::unique_lock< boost::fibers::mutex > & lk) {
         if ( is_closed_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         if ( ! not_full_cond_.wait_until( lk, timeout_time,
                                           [this](){
                                                return ! is_full_();
                                           })) {
-            return channel_op_status::timeout;
+            return queue_op_status::timeout;
         }
         return push_and_notify_( new_node, lk);
     }
 
-    channel_op_status push_and_notify_( ptr_t new_node,
+    queue_op_status push_and_notify_( ptr_t new_node,
                                         std::unique_lock< boost::fibers::mutex > & lk) noexcept {
         push_tail_( new_node);
         lk.unlock();
         not_empty_cond_.notify_one();
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 
     void push_tail_( ptr_t new_node) noexcept {
@@ -208,7 +208,7 @@ private:
     }
 
 public:
-    bounded_channel( std::size_t hwm, std::size_t lwm,
+    bounded_queue( std::size_t hwm, std::size_t lwm,
                      Allocator const& alloc = Allocator() ) :
         alloc_{ alloc },
         tail_{ & head_ },
@@ -216,7 +216,7 @@ public:
         lwm_{ lwm } {
         if ( hwm_ <= lwm_) {
             throw fiber_error( std::make_error_code( std::errc::invalid_argument),
-                               "boost fiber: high-watermark is less than or equal to low-watermark for bounded_channel");
+                               "boost fiber: high-watermark is less than or equal to low-watermark for bounded_queue");
         }
         if ( 0 == hwm) {
             throw fiber_error( std::make_error_code( std::errc::invalid_argument),
@@ -224,7 +224,7 @@ public:
         }
     }
 
-    bounded_channel( std::size_t wm,
+    bounded_queue( std::size_t wm,
                      Allocator const& alloc = Allocator() ) :
         alloc_{ alloc },
         tail_{ & head_ },
@@ -236,8 +236,8 @@ public:
         }
     }
 
-    bounded_channel( bounded_channel const&) = delete;
-    bounded_channel & operator=( bounded_channel const&) = delete;
+    bounded_queue( bounded_queue const&) = delete;
+    bounded_queue & operator=( bounded_queue const&) = delete;
 
     std::size_t upper_bound() const noexcept {
         return hwm_;
@@ -252,7 +252,7 @@ public:
         close_( lk);
     }
 
-    channel_op_status push( value_type const& va) {
+    queue_op_status push( value_type const& va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -265,7 +265,7 @@ public:
         return push_( { detail::convert( ptr) }, lk);
     }
 
-    channel_op_status push( value_type && va) {
+    queue_op_status push( value_type && va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -280,21 +280,21 @@ public:
     }
 
     template< typename Rep, typename Period >
-    channel_op_status push_wait_for( value_type const& va,
+    queue_op_status push_wait_for( value_type const& va,
                                      std::chrono::duration< Rep, Period > const& timeout_duration) {
         return push_wait_until( va,
                                 std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Rep, typename Period >
-    channel_op_status push_wait_for( value_type && va,
+    queue_op_status push_wait_for( value_type && va,
                                      std::chrono::duration< Rep, Period > const& timeout_duration) {
         return push_wait_until( std::forward< value_type >( va),
                                 std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
-    channel_op_status push_wait_until( value_type const& va,
+    queue_op_status push_wait_until( value_type const& va,
                                        std::chrono::time_point< Clock, Duration > const& timeout_time) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
@@ -309,7 +309,7 @@ public:
     }
 
     template< typename Clock, typename Duration >
-    channel_op_status push_wait_until( value_type && va,
+    queue_op_status push_wait_until( value_type && va,
                                        std::chrono::time_point< Clock, Duration > const& timeout_time) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
@@ -324,7 +324,7 @@ public:
         return push_wait_until_( { detail::convert( ptr) }, timeout_time, lk);
     }
 
-    channel_op_status try_push( value_type const& va) {
+    queue_op_status try_push( value_type const& va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -337,7 +337,7 @@ public:
         return try_push_( { detail::convert( ptr) }, lk);
     }
 
-    channel_op_status try_push( value_type && va) {
+    queue_op_status try_push( value_type && va) {
         typename allocator_traits_t::pointer ptr{
             allocator_traits_t::allocate( alloc_, 1) };
         try {
@@ -351,17 +351,17 @@ public:
         return try_push_( { detail::convert( ptr) }, lk);
     }
 
-    channel_op_status pop( value_type & va) {
+    queue_op_status pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
         not_empty_cond_.wait( lk,
                               [this](){
                                 return is_closed_() || ! is_empty_();
                               });
         if ( is_closed_() && is_empty_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         va = value_pop_( lk);
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 
     value_type value_pop() {
@@ -378,33 +378,33 @@ public:
         return value_pop_( lk);
     }
 
-    channel_op_status try_pop( value_type & va) {
+    queue_op_status try_pop( value_type & va) {
         std::unique_lock< mutex > lk( mtx_);
         if ( is_closed_() && is_empty_() ) {
             // let other fibers run
             lk.unlock();
             this_fiber::yield();
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         if ( is_empty_() ) {
             // let other fibers run
             lk.unlock();
             this_fiber::yield();
-            return channel_op_status::empty;
+            return queue_op_status::empty;
         }
         va = value_pop_( lk);
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 
     template< typename Rep, typename Period >
-    channel_op_status pop_wait_for( value_type & va,
+    queue_op_status pop_wait_for( value_type & va,
                                     std::chrono::duration< Rep, Period > const& timeout_duration) {
         return pop_wait_until( va,
                                std::chrono::steady_clock::now() + timeout_duration);
     }
 
     template< typename Clock, typename Duration >
-    channel_op_status pop_wait_until( value_type & va,
+    queue_op_status pop_wait_until( value_type & va,
                                       std::chrono::time_point< Clock, Duration > const& timeout_time) {
         std::unique_lock< mutex > lk( mtx_);
         if ( ! not_empty_cond_.wait_until( lk,
@@ -412,13 +412,13 @@ public:
                                            [this](){
                                                 return is_closed_() || ! is_empty_();
                                            })) {
-            return channel_op_status::timeout;
+            return queue_op_status::timeout;
         }
         if ( is_closed_() && is_empty_() ) {
-            return channel_op_status::closed;
+            return queue_op_status::closed;
         }
         va = value_pop_( lk);
-        return channel_op_status::success;
+        return queue_op_status::success;
     }
 };
 
@@ -428,4 +428,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_BOUNDED_CHANNEL_H
+#endif // BOOST_FIBERS_BOUNDED_QUEUE_H

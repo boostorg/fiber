@@ -11,7 +11,7 @@
 #include <boost/fiber/algo/round_robin.hpp>
 #include <boost/fiber/algo/shared_work.hpp>
 #include <boost/fiber/barrier.hpp>
-#include <boost/fiber/bounded_channel.hpp>
+#include <boost/fiber/bounded_queue.hpp>
 #include <boost/fiber/condition_variable.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/exceptions.hpp>
@@ -29,6 +29,6 @@
 #include <boost/fiber/scheduler.hpp>
 #include <boost/fiber/segmented_stack.hpp>
 #include <boost/fiber/timed_mutex.hpp>
-#include <boost/fiber/unbounded_channel.hpp>
+#include <boost/fiber/unbounded_queue.hpp>
 
 #endif // BOOST_FIBERS_H

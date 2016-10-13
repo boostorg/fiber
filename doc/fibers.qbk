@@ -205,7 +205,7 @@ object are running in the same thread.
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
-[include channel.qbk]
+[include queue.qbk]
 [include futures.qbk]
 [endsect]
 [include fls.qbk]
