@@ -54,8 +54,10 @@ public:
             // first access to state_ -> cache miss
             // sucessive acccess to state_ -> cache hit
             while ( spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
+#if defined(BOOST_FIBERS_SPINLOCK_YIELD)
                 // busy-wait
                 std::this_thread::yield();
+#endif
             }
             // state_ was released by other fiber
             // cached copies are invalidated -> cache miss

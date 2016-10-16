@@ -57,6 +57,10 @@
       the fibers referencing a particular synchronization object are running in the
       same thread.
     </p>
+<p>
+      The macro <span class="bold"><strong><code class="computeroutput"><span class="identifier">BOOST_FIBERS_SPINLOCK_YIELD</span></code></strong></span>
+      invokes <span class="emphasis"><em>std::this_thread::yield()</em></span> for busy wait in spinlock.
+    </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

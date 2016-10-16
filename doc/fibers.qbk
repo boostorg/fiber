@@ -202,6 +202,9 @@ synchronization can be removed (for performance) by building the library with
 you must ensure that all the fibers referencing a particular synchronization
 object are running in the same thread.
 
+The macro [*`BOOST_FIBERS_SPINLOCK_YIELD`] invokes ['std::this_thread::yield()]
+for busy wait in spinlock.
+
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
