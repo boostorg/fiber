@@ -192,7 +192,7 @@ public:
 
     virtual ~shared_state() {
         if ( ready_ && ! except_) {
-            reinterpret_cast< R * >( & storage_)->~R();
+            reinterpret_cast< R * >( std::addressof( storage_) )->~R();
         }
     }
 
