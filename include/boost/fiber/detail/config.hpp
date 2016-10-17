@@ -44,5 +44,4 @@
 static constexpr std::size_t cache_alignment{ 64 };
 static constexpr std::size_t cacheline_length{ 64 };
 
-
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H

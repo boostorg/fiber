@@ -21,6 +21,7 @@
 #include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/context_mpsc_queue.hpp>
 #include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -51,7 +52,6 @@ public:
                 intrusive::constant_time_size< false > >    ready_queue_t;
 private:
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    typedef std::vector< context * >                        remote_ready_queue_t;
 #endif
     typedef intrusive::set<
                 context,
@@ -82,10 +82,9 @@ private:
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
-    remote_ready_queue_t                remote_ready_queue_{};
-    std::mutex                          remote_ready_mtx_{};
+    detail::context_mpsc_queue          remote_ready_queue_{};
+    // sleep-queue contains context' which have been called
 #endif
-    // sleep-queue cotnains context' whic hahve been called
     // scheduler::wait_until()
     sleep_queue_t                       sleep_queue_{};
     bool                                shutdown_{ false };
