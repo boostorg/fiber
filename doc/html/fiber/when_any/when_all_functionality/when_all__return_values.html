@@ -40,7 +40,7 @@
           available?
         </p>
 <p>
-          Fortunately we can present both APIs. Let's define <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code> to return <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>.<sup>[<a name="fiber.when_any.when_all_functionality.when_all__return_values.f0" href="#ftn.fiber.when_any.when_all_functionality.when_all__return_values.f0" class="footnote">6</a>]</sup>
+          Fortunately we can present both APIs. Let's define <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code> to return <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">buffered_channel</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>.
         </p>
 <p>
           <a name="wait_all_values"></a>Given <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code>, it's straightforward to implement <code class="computeroutput"><span class="identifier">wait_all_values</span><span class="special">()</span></code>:
@@ -56,13 +56,13 @@
     <span class="identifier">vector_t</span> <span class="identifier">results</span><span class="special">;</span>
     <span class="identifier">results</span><span class="special">.</span><span class="identifier">reserve</span><span class="special">(</span> <span class="identifier">count</span><span class="special">);</span>
 
-    <span class="comment">// get queue</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">queue</span> <span class="special">=</span>
+    <span class="comment">// get channel</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">buffered_channel</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">chan</span> <span class="special">=</span>
         <span class="identifier">wait_all_values_source</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>
                                 <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fns</span> <span class="special">&gt;(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
     <span class="comment">// fill results vector</span>
     <span class="identifier">return_t</span> <span class="identifier">value</span><span class="special">;</span>
-    <span class="keyword">while</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">queue_op_status</span><span class="special">::</span><span class="identifier">success</span> <span class="special">==</span> <span class="identifier">queue</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">while</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">channel_op_status</span><span class="special">::</span><span class="identifier">success</span> <span class="special">==</span> <span class="identifier">chan</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span>
         <span class="identifier">results</span><span class="special">.</span><span class="identifier">push_back</span><span class="special">(</span> <span class="identifier">value</span><span class="special">);</span>
     <span class="special">}</span>
     <span class="comment">// return vector to caller</span>
@@ -86,83 +86,50 @@
         </p>
 <p>
           As you can see from the loop in <code class="computeroutput"><span class="identifier">wait_all_values</span><span class="special">()</span></code>, instead of requiring its caller to count
-          values, we define <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code> to <a class="link" href="../../synchronization/queues.html#unbounded_queue_close"><code class="computeroutput">unbounded_queue::close()</code></a> the
+          values, we define <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code> to <a class="link" href="../../synchronization/channels/buffered_channel.html#buffered_channel_close"><code class="computeroutput">buffered_channel::close()</code></a> the
           queue when done. But how do we do that? Each producer fiber is independent.
-          It has no idea whether it is the last one to <a class="link" href="../../synchronization/queues.html#unbounded_queue_push"><code class="computeroutput">unbounded_queue::push()</code></a> a
+          It has no idea whether it is the last one to <a class="link" href="../../synchronization/channels/buffered_channel.html#buffered_channel_push"><code class="computeroutput">buffered_channel::push()</code></a> a
           value.
         </p>
 <p>
           <a name="wait_nqueue"></a>We can address that problem with a counting fa&#231;ade
-          for the <code class="computeroutput"><span class="identifier">unbounded_queue</span><span class="special">&lt;&gt;</span></code>. In fact, our fa&#231;ade need only
-          support the producer end of the queue.
+          for the <code class="computeroutput"><span class="identifier">queue</span><span class="special">&lt;&gt;</span></code>.
+          In fact, our fa&#231;ade need only support the producer end of the queue.
         </p>
 <p>
-</p>
-<pre class="programlisting"><span class="comment">// Introduce a queue facade that closes the queue once a specific number</span>
-<span class="comment">// of items has been pushed. This allows an arbitrary consumer to read until</span>
-<span class="comment">// 'closed' without itself having to count items.</span>
-<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">nqueue</span> <span class="special">{</span>
-<span class="keyword">public</span><span class="special">:</span>
-    <span class="identifier">nqueue</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">cp</span><span class="special">,</span>
-              <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">lm</span><span class="special">):</span>
-        <span class="identifier">queue_</span><span class="special">(</span> <span class="identifier">cp</span><span class="special">),</span>
-        <span class="identifier">limit_</span><span class="special">(</span> <span class="identifier">lm</span><span class="special">)</span> <span class="special">{</span>
-        <span class="identifier">assert</span><span class="special">(</span><span class="identifier">queue_</span><span class="special">);</span>
-        <span class="keyword">if</span> <span class="special">(</span> <span class="number">0</span> <span class="special">==</span> <span class="identifier">limit_</span><span class="special">)</span> <span class="special">{</span>
-            <span class="identifier">queue_</span><span class="special">-&gt;</span><span class="identifier">close</span><span class="special">();</span>
-        <span class="special">}</span>
-    <span class="special">}</span>
-
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">queue_op_status</span> <span class="identifier">push</span><span class="special">(</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">va</span><span class="special">)</span> <span class="special">{</span>
-        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">queue_op_status</span> <span class="identifier">ok</span> <span class="special">=</span>
-            <span class="identifier">queue_</span><span class="special">-&gt;</span><span class="identifier">push</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;(</span> <span class="identifier">va</span><span class="special">)</span> <span class="special">);</span>
-        <span class="keyword">if</span> <span class="special">(</span> <span class="identifier">ok</span> <span class="special">==</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">queue_op_status</span><span class="special">::</span><span class="identifier">success</span> <span class="special">&amp;&amp;</span>
-             <span class="special">--</span><span class="identifier">limit_</span> <span class="special">==</span> <span class="number">0</span><span class="special">)</span> <span class="special">{</span>
-            <span class="comment">// after the 'limit_'th successful push, close the queue</span>
-            <span class="identifier">queue_</span><span class="special">-&gt;</span><span class="identifier">close</span><span class="special">();</span>
-        <span class="special">}</span>
-        <span class="keyword">return</span> <span class="identifier">ok</span><span class="special">;</span>
-    <span class="special">}</span>
-
-<span class="keyword">private</span><span class="special">:</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span>    <span class="identifier">queue_</span><span class="special">;</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span>                                                 <span class="identifier">limit_</span><span class="special">;</span>
-<span class="special">};</span>
-</pre>
-<p>
+          [wait_nqueue]
         </p>
 <p>
           <a name="wait_all_values_source"></a>Armed with <code class="computeroutput"><span class="identifier">nqueue</span><span class="special">&lt;&gt;</span></code>, we can implement <code class="computeroutput"><span class="identifier">wait_all_values_source</span><span class="special">()</span></code>.
           It starts just like <a class="link" href="../when_any/when_any__return_value.html#wait_first_value"><code class="computeroutput"><span class="identifier">wait_first_value</span><span class="special">()</span></code></a>. The difference is that we wrap
-          the <code class="computeroutput"><span class="identifier">unbounded_queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          the <code class="computeroutput"><span class="identifier">queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           with an <code class="computeroutput"><span class="identifier">nqueue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           to pass to the producer fibers.
         </p>
 <p>
           Then, of course, instead of popping the first value, closing the queue
-          and returning it, we simply return the <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>.
+          and returning it, we simply return the <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>.
         </p>
 <p>
 </p>
-<pre class="programlisting"><span class="comment">// Return a shared_ptr&lt;unbounded_queue&lt;T&gt;&gt; from which the caller can</span>
+<pre class="programlisting"><span class="comment">// Return a shared_ptr&lt;buffered_channel&lt;T&gt;&gt; from which the caller can</span>
 <span class="comment">// retrieve each new result as it arrives, until 'closed'.</span>
 <span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">Fn</span><span class="special">,</span> <span class="keyword">typename</span> <span class="special">...</span> <span class="identifier">Fns</span> <span class="special">&gt;</span>
-<span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">&gt;</span> <span class="special">&gt;</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">buffered_channel</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">&gt;</span> <span class="special">&gt;</span>
 <span class="identifier">wait_all_values_source</span><span class="special">(</span> <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">function</span><span class="special">,</span> <span class="identifier">Fns</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">count</span><span class="special">(</span> <span class="number">1</span> <span class="special">+</span> <span class="keyword">sizeof</span> <span class="special">...</span> <span class="special">(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">);</span>
     <span class="keyword">typedef</span> <span class="keyword">typename</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">result_of</span><span class="special">&lt;</span> <span class="identifier">Fn</span><span class="special">()</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="identifier">return_t</span><span class="special">;</span>
-    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="identifier">queue_t</span><span class="special">;</span>
-    <span class="comment">// make the queue</span>
-    <span class="keyword">auto</span> <span class="identifier">queuep</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">queue_t</span> <span class="special">&gt;()</span> <span class="special">);</span>
-    <span class="comment">// and make an nqueue facade to close it after 'count' items</span>
-    <span class="keyword">auto</span> <span class="identifier">ncp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">nqueue</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="special">&gt;(</span> <span class="identifier">queuep</span><span class="special">,</span> <span class="identifier">count</span><span class="special">)</span> <span class="special">);</span>
-    <span class="comment">// pass that nqueue facade to all the relevant fibers</span>
+    <span class="keyword">typedef</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">buffered_channel</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="identifier">channel_t</span><span class="special">;</span>
+    <span class="comment">// make the channel</span>
+    <span class="keyword">auto</span> <span class="identifier">chanp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">channel_t</span> <span class="special">&gt;(</span> <span class="number">64</span><span class="special">)</span> <span class="special">);</span>
+    <span class="comment">// and make an nchannel facade to close it after 'count' items</span>
+    <span class="keyword">auto</span> <span class="identifier">ncp</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">nchannel</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;</span> <span class="special">&gt;(</span> <span class="identifier">chanp</span><span class="special">,</span> <span class="identifier">count</span><span class="special">)</span> <span class="special">);</span>
+    <span class="comment">// pass that nchannel facade to all the relevant fibers</span>
     <span class="identifier">wait_all_values_impl</span><span class="special">&lt;</span> <span class="identifier">return_t</span> <span class="special">&gt;(</span> <span class="identifier">ncp</span><span class="special">,</span>
                                       <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fn</span> <span class="special">&gt;(</span> <span class="identifier">function</span><span class="special">),</span>
                                       <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span> <span class="identifier">Fns</span> <span class="special">&gt;(</span> <span class="identifier">functions</span><span class="special">)</span> <span class="special">...</span> <span class="special">);</span>
-    <span class="comment">// then return the queue for consumer</span>
-    <span class="keyword">return</span> <span class="identifier">queuep</span><span class="special">;</span>
+    <span class="comment">// then return the channel for consumer</span>
+    <span class="keyword">return</span> <span class="identifier">chanp</span><span class="special">;</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -172,13 +139,13 @@
         </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">unbounded_queue</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">queue</span> <span class="special">=</span>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">buffered_channel</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">chan</span> <span class="special">=</span>
     <span class="identifier">wait_all_values_source</span><span class="special">(</span>
             <span class="special">[](){</span> <span class="keyword">return</span> <span class="identifier">sleeper</span><span class="special">(</span><span class="string">"wavs_third"</span><span class="special">,</span>  <span class="number">150</span><span class="special">);</span> <span class="special">},</span>
             <span class="special">[](){</span> <span class="keyword">return</span> <span class="identifier">sleeper</span><span class="special">(</span><span class="string">"wavs_second"</span><span class="special">,</span> <span class="number">100</span><span class="special">);</span> <span class="special">},</span>
             <span class="special">[](){</span> <span class="keyword">return</span> <span class="identifier">sleeper</span><span class="special">(</span><span class="string">"wavs_first"</span><span class="special">,</span>   <span class="number">50</span><span class="special">);</span> <span class="special">});</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">value</span><span class="special">;</span>
-<span class="keyword">while</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">queue_op_status</span><span class="special">::</span><span class="identifier">success</span> <span class="special">==</span> <span class="identifier">queue</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span>
+<span class="keyword">while</span> <span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">channel_op_status</span><span class="special">::</span><span class="identifier">success</span> <span class="special">==</span> <span class="identifier">chan</span><span class="special">-&gt;</span><span class="identifier">pop</span><span class="special">(</span><span class="identifier">value</span><span class="special">)</span> <span class="special">)</span> <span class="special">{</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"wait_all_values_source() =&gt; '"</span> <span class="special">&lt;&lt;</span> <span class="identifier">value</span>
               <span class="special">&lt;&lt;</span> <span class="string">"'"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
 <span class="special">}</span>
@@ -187,28 +154,20 @@
         </p>
 <p>
           <a name="wait_all_values_impl"></a><code class="computeroutput"><span class="identifier">wait_all_values_impl</span><span class="special">()</span></code> really is just like <a class="link" href="../when_any/when_any__return_value.html#wait_first_value_impl"><code class="computeroutput"><span class="identifier">wait_first_value_impl</span><span class="special">()</span></code></a>
-          except for the use of <code class="computeroutput"><span class="identifier">nqueue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> rather than <code class="computeroutput"><span class="identifier">unbounded_queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>:
+          except for the use of <code class="computeroutput"><span class="identifier">nqueue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> rather than <code class="computeroutput"><span class="identifier">queue</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>:
         </p>
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Fn</span> <span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">wait_all_values_impl</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">nqueue</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">queue</span><span class="special">,</span>
+<span class="keyword">void</span> <span class="identifier">wait_all_values_impl</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">nchannel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="identifier">chan</span><span class="special">,</span>
                            <span class="identifier">Fn</span> <span class="special">&amp;&amp;</span> <span class="identifier">function</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="special">[</span><span class="identifier">queue</span><span class="special">,</span> <span class="identifier">function</span><span class="special">](){</span>
-                              <span class="identifier">queue</span><span class="special">-&gt;</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">function</span><span class="special">());</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="special">[</span><span class="identifier">chan</span><span class="special">,</span> <span class="identifier">function</span><span class="special">](){</span>
+                              <span class="identifier">chan</span><span class="special">-&gt;</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">function</span><span class="special">());</span>
                           <span class="special">}).</span><span class="identifier">detach</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
 <p>
         </p>
-<div class="footnotes">
-<br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.when_any.when_all_functionality.when_all__return_values.f0" href="#fiber.when_any.when_all_functionality.when_all__return_values.f0" class="para">6</a>] </sup>
-            We could have used either <a class="link" href="../../synchronization/queues.html#class_bounded_queue"><code class="computeroutput">bounded_queue&lt;&gt;</code></a> or
-            <a class="link" href="../../synchronization/queues.html#class_unbounded_queue"><code class="computeroutput">unbounded_queue&lt;&gt;</code></a>. We chose <code class="computeroutput"><span class="identifier">unbounded_queue</span><span class="special">&lt;&gt;</span></code>
-            on the assumption that its simpler semantics imply a cheaper implementation.
-          </p></div>
-</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

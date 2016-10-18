@@ -7,6 +7,8 @@
 #ifndef BOOST_FIBERS_DETAIL_CONFIG_H
 #define BOOST_FIBERS_DETAIL_CONFIG_H
 
+#include <cstddef>
+
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
@@ -34,5 +36,13 @@
 # endif
 # include <boost/config/auto_link.hpp>
 #endif
+
+// modern architectures have cachelines with 64byte length
+// ARM Cortex-A15 32/64byte, Cortex-A9 16/32/64bytes
+// MIPS 74K: 32byte, 4KEc: 16byte
+// ist shoudl be safe to use 64byte for all
+static constexpr std::size_t cache_alignment{ 64 };
+static constexpr std::size_t cacheline_length{ 64 };
+
 
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H

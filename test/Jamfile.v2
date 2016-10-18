@@ -179,7 +179,7 @@ test-suite minimal :
                cxx11_thread_local
                cxx11_variadic_templates  ] ]
 
-[ run test_unbounded_queue_post.cpp :
+[ run test_buffered_channel_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -194,7 +194,7 @@ test-suite minimal :
                cxx11_thread_local
                cxx11_variadic_templates  ] ]
 
-[ run test_unbounded_queue_dispatch.cpp :
+[ run test_buffered_channel_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -209,7 +209,7 @@ test-suite minimal :
                cxx11_thread_local
                cxx11_variadic_templates  ] ]
 
-[ run test_bounded_queue_post.cpp :
+[ run test_unbuffered_channel_post.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr
@@ -224,7 +224,7 @@ test-suite minimal :
                cxx11_thread_local
                cxx11_variadic_templates  ] ]
 
-[ run test_bounded_queue_dispatch.cpp :
+[ run test_unbuffered_channel_dispatch.cpp :
     : :
     [ requires cxx11_auto_declarations
                cxx11_constexpr

@@ -205,7 +205,53 @@ object are running in the same thread.
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
-[include queue.qbk]
+[section:channels Channels]
+A channel is a model to communicate and synchronize `Threads of Execution`
+[footnote The smallest ordered sequence of instructions that can be managed
+independently by a scheduler is called a `Thread of Execution`.] via message
+passing.
+
+[#class_channel_op_status]
+[heading Enumeration `channel_op_status`]
+
+channel operations return the state of the channel.
+
+        enum class channel_op_status {
+            success,
+            empty,
+            full,
+            closed,
+            timeout
+        };
+
+[heading `success`]
+[variablelist
+[[Effects:] [Operation was successful.]]
+]
+
+[heading `empty`]
+[variablelist
+[[Effects:] [channel is empty, operation failed.]]
+]
+
+[heading `full`]
+[variablelist
+[[Effects:] [channel is full, operation failed.]]
+]
+
+[heading `closed`]
+[variablelist
+[[Effects:] [channel is closed, operation failed.]]
+]
+
+[heading `timeout`]
+[variablelist
+[[Effects:] [The operation did not become ready before specified timeout elapsed.]]
+]
+
+[include buffered_channel.qbk]
+[include unbuffered_channel.qbk]
+[endsect]
 [include futures.qbk]
 [endsect]
 [include fls.qbk]

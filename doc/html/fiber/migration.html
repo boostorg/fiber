@@ -34,7 +34,7 @@
 <p>
       Each fiber owns a stack and manages its execution state, including all registers
       and CPU flags, the instruction pointer and the stack pointer. That means, in
-      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">2</a>]</sup><sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">3</a>]</sup>
+      general, a fiber is not bound to a specific thread.<sup>[<a name="fiber.migration.f0" href="#ftn.fiber.migration.f0" class="footnote">3</a>]</sup><sup>,</sup><sup>[<a name="fiber.migration.f1" href="#ftn.fiber.migration.f1" class="footnote">4</a>]</sup>
     </p>
 <p>
       Migrating a fiber from a logical CPU with heavy workload to another logical
@@ -362,12 +362,12 @@ before
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">2</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f0" href="#fiber.migration.f0" class="para">3</a>] </sup>
         The <span class="quote">&#8220;<span class="quote">main</span>&#8221;</span> fiber on each thread, that is, the fiber on which
         the thread is launched, cannot migrate to any other thread. Also <span class="bold"><strong>Boost.Fiber</strong></span> implicitly creates a dispatcher fiber
         for each thread &#8212; this cannot migrate either.
       </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">3</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.migration.f1" href="#fiber.migration.f1" class="para">4</a>] </sup>
         Of course it would be problematic to migrate a fiber that relies on <a class="link" href="overview.html#thread_local_storage">thread-local storage</a>.
       </p></div>
 </div>

@@ -137,8 +137,8 @@ an exception.
 
 One tactic would be to adapt our [link wait_done `Done`] class to store the
 first of the return values, rather than a simple `bool`. However, we choose
-instead to use a [template_link unbounded_queue]. We'll only need to enqueue
-the first value, so we'll [member_link unbounded_queue..close] it once we've
+instead to use a [template_link buffered_channel]. We'll only need to enqueue
+the first value, so we'll [member_link buffered_channel..close] it once we've
 retrieved that value. Subsequent `push()` calls will return `closed`.
 
 [#wait_first_value]
@@ -166,7 +166,7 @@ of our task fibers would cause `std::terminate()` to be called.
 Let's at least ensure that such an exception would propagate to the fiber
 awaiting the first result. We can use [template_link future] to transport
 either a return value or an exception. Therefore, we will change [link
-wait_first_value `wait_first_value()`]'s [template_link unbounded_queue] to
+wait_first_value `wait_first_value()`]'s [template_link buffered_channel] to
 hold `future< T >` items instead of simply `T`.
 
 Once we have a `future<>` in hand, all we need do is call [member_link
@@ -176,12 +176,12 @@ future..get], which will either return the value or rethrow the exception.
 [wait_first_outcome]
 
 So far so good [mdash] but there's a timing issue. How should we obtain the
-`future<>` to [member_link unbounded_queue..push] on the queue?
+`future<>` to [member_link buffered_channel..push] on the queue?
 
 We could call [ns_function_link fibers..async]. That would certainly produce a
 `future<>` for the task function. The trouble is that it would return too
 quickly! We only want `future<>` items for ['completed] tasks on our
-`unbounded_queue<>`. In fact, we only want the `future<>` for the one that
+`queue<>`. In fact, we only want the `future<>` for the one that
 completes first. If each fiber launched by `wait_first_outcome()` were to
 `push()` the result of calling `async()`, the queue would only ever report
 the result of the leftmost task item [mdash] ['not] the one that completes most
@@ -225,7 +225,7 @@ right approach. If one of the services produces an error quickly, while
 another follows up with a real answer, we don't want to prefer the error just
 because it arrived first!
 
-Given the `unbounded_queue< future< T > >` we already constructed for
+Given the `queue< future< T > >` we already constructed for
 `wait_first_outcome()`, though, we can readily recast the interface function
 to deliver the first ['successful] result.
 
@@ -248,7 +248,7 @@ Now we can build `wait_first_success()`, using [link wait_first_outcome_impl
 Instead of retrieving only the first `future<>` from the queue, we must now
 loop over `future<>` items. Of course we must limit that iteration! If we
 launch only `count` producer fibers, the `(count+1)`[superscript st]
-[member_link unbounded_queue..pop] call would block forever.
+[member_link buffered_channel..pop] call would block forever.
 
 Given a ready `future<>`, we can distinguish failure by calling [member_link
 future..get_exception_ptr]. If the `future<>` in fact contains a result rather
@@ -354,10 +354,7 @@ But in fact, collecting multiple values raises an interesting question: do we
 rather process each result as soon as it becomes available?
 
 Fortunately we can present both APIs. Let's define `wait_all_values_source()`
-to return `shared_ptr<unbounded_queue<T>>`.[footnote We could have used
-either [template_link bounded_queue] or [template_link unbounded_queue].
-We chose `unbounded_queue<>` on the assumption that its simpler semantics
-imply a cheaper implementation.]
+to return `shared_ptr<buffered_channel<T>>`.
 
 [#wait_all_values]
 Given `wait_all_values_source()`, it's straightforward to implement
@@ -371,13 +368,13 @@ It might be called like this:
 
 As you can see from the loop in `wait_all_values()`, instead of requiring its
 caller to count values, we define `wait_all_values_source()` to [member_link
-unbounded_queue..close] the queue when done. But how do we do that? Each
+buffered_channel..close] the queue when done. But how do we do that? Each
 producer fiber is independent. It has no idea whether it is the last one to
-[member_link unbounded_queue..push] a value.
+[member_link buffered_channel..push] a value.
 
 [#wait_nqueue]
 We can address that problem with a counting façade for the
-`unbounded_queue<>`. In fact, our façade need only support the producer end of
+`queue<>`. In fact, our façade need only support the producer end of
 the queue.
 
 [wait_nqueue]
@@ -385,11 +382,11 @@ the queue.
 [#wait_all_values_source]
 Armed with `nqueue<>`, we can implement `wait_all_values_source()`. It
 starts just like [link wait_first_value `wait_first_value()`]. The difference
-is that we wrap the `unbounded_queue<T>` with an `nqueue<T>` to pass to
+is that we wrap the `queue<T>` with an `nqueue<T>` to pass to
 the producer fibers.
 
 Then, of course, instead of popping the first value, closing the queue and
-returning it, we simply return the `shared_ptr<unbounded_queue<T>>`.
+returning it, we simply return the `shared_ptr<queue<T>>`.
 
 [wait_all_values_source]
 
@@ -400,7 +397,7 @@ For example:
 [#wait_all_values_impl]
 `wait_all_values_impl()` really is just like [link wait_first_value_impl
 `wait_first_value_impl()`] except for the use of `nqueue<T>` rather than
-`unbounded_queue<T>`:
+`queue<T>`:
 
 [wait_all_values_impl]
 
@@ -431,7 +428,7 @@ throw).
 
 The implementation is just as you would expect. Notice, however, that we can
 reuse [link wait_first_outcome_impl `wait_first_outcome_impl()`], passing the
-`nqueue<T>` rather than `unbounded_queue<T>`.
+`nqueue<T>` rather than `queue<T>`.
 
 [wait_all_until_error_source]
 
