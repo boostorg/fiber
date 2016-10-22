@@ -53,6 +53,7 @@ scheduler::release_terminated_() noexcept {
     }
 }
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
 scheduler::remote_ready2ready_() noexcept {
     // protect for concurrent access
@@ -64,6 +65,7 @@ scheduler::remote_ready2ready_() noexcept {
     }
     remote_ready_queue_.clear();
 }
+#endif
 
 void
 scheduler::sleep2ready_() noexcept {
@@ -112,7 +114,9 @@ scheduler::~scheduler() {
     // no context' in worker-queue
     BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( remote_ready_queue_.empty() );
+#endif
     BOOST_ASSERT( sleep_queue_.empty() );
     // set active context to nullptr
     context::reset_active();
@@ -142,8 +146,10 @@ scheduler::dispatch() noexcept {
         }
         // release terminated context'
         release_terminated_();
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         // get context' from remote ready-queue
         remote_ready2ready_();
+#endif
         // get sleeping context'
         sleep2ready_();
         // get next ready context
@@ -197,6 +203,7 @@ scheduler::set_ready( context * ctx) noexcept {
     algo_->awakened( ctx);
 }
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
 scheduler::set_remote_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
@@ -216,6 +223,7 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     // notify scheduler
     algo_->notify();
 }
+#endif
 
 #if (BOOST_EXECUTION_CONTEXT==1)
 void

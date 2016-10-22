@@ -50,7 +50,9 @@ public:
                     context, detail::ready_hook, & context::ready_hook_ >,
                 intrusive::constant_time_size< false > >    ready_queue_t;
 private:
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     typedef std::vector< context * >                        remote_ready_queue_t;
+#endif
     typedef intrusive::set<
                 context,
                 intrusive::member_hook<
@@ -77,20 +79,24 @@ private:
     worker_queue_t                      worker_queue_{};
     // terminated-queue contains context' which have been terminated
     terminated_queue_t                  terminated_queue_{};
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
     remote_ready_queue_t                remote_ready_queue_{};
+    std::mutex                          remote_ready_mtx_{};
+#endif
     // sleep-queue cotnains context' whic hahve been called
     // scheduler::wait_until()
     sleep_queue_t                       sleep_queue_{};
     bool                                shutdown_{ false };
-    std::mutex                          remote_ready_mtx_{};
 
     context * get_next_() noexcept;
 
     void release_terminated_() noexcept;
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     void remote_ready2ready_() noexcept;
+#endif
 
     void sleep2ready_() noexcept;
 
@@ -104,7 +110,9 @@ public:
 
     void set_ready( context *) noexcept;
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     void set_remote_ready( context *) noexcept;
+#endif
 
 #if (BOOST_EXECUTION_CONTEXT==1)
     void dispatch() noexcept;
