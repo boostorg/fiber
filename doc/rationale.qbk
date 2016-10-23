@@ -7,6 +7,31 @@
 
 [section:rationale Rationale]
 
+[heading preprocessor defines]
+
+[table preopcessor defines
+    [[] []]
+    [
+        [BOOST_FIBERS_NO_ATOMICS]
+        [no `std::atomic<>` used, inter-thread synchronization disabled]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_STD_MUTEX]
+        [use `std::mutex` as spinlock instead of default `XCHG`-sinlock with backoff]
+    ]
+    [
+        [BOOST_FIBERS_SPIN_BACKOFF]
+        [limit determines when to used `std::this_thread::yield()` instead of
+        mnemonic `pause/yield` during busy wait (apllies on to `XCHG`-spinlock)]
+    ]
+    [
+        [BOOST_FIBERS_SINGLE_CORE]
+        [allways call `std::this_thread::yield()` without backoff during busy wait
+        (apllies on to `XCHG`-spinlock)]
+    ]
+]
+
+
 [heading distinction between coroutines and fibers]
 
 The fiber library extends the coroutine library by adding a scheduler and

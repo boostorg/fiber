@@ -37,6 +37,14 @@
 # include <boost/config/auto_link.hpp>
 #endif
 
+#if !defined(BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER)
+# define BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER 0x4000
+#endif
+
+#if !defined(BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER)
+# define BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER 0x4016
+#endif
+
 // modern architectures have cachelines with 64byte length
 // ARM Cortex-A15 32/64byte, Cortex-A9 16/32/64bytes
 // MIPS 74K: 32byte, 4KEc: 16byte

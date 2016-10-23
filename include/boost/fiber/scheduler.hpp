@@ -51,8 +51,6 @@ public:
                     context, detail::ready_hook, & context::ready_hook_ >,
                 intrusive::constant_time_size< false > >    ready_queue_t;
 private:
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-#endif
     typedef intrusive::set<
                 context,
                 intrusive::member_hook<
