@@ -59,6 +59,7 @@ public:
             // if 'state_' was released by other fiber
             // cached 'state_' is invalidated -> cache miss
             while ( spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
+#if !defined(BOOST_FIBERS_SPIN_SINGLE_CORE)
                 if ( BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER > tests) {
                     ++tests;
                     // give CPU a hint that this thread is in a "spin-wait" loop
@@ -80,6 +81,9 @@ public:
                     // instead of constant checking, a thread only checks if no other useful work is pending
                     std::this_thread::yield();
                 }
+#else
+                std::this_thread::yield();
+#endif
             }
             // test-and-set shared variable 'status_'
             // everytime 'status_' is signaled over the bus, even if the test failes
