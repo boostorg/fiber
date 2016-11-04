@@ -25,9 +25,6 @@ namespace detail {
 
 class spinlock_ttas {
 private:
-    static_assert(BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER < BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER,
-            "BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER must be smaller than BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER");
-
     enum class spinlock_status {
         locked = 0,
         unlocked
@@ -60,14 +57,14 @@ public:
             // cached 'state_' is invalidated -> cache miss
             while ( spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
 #if !defined(BOOST_FIBERS_SPIN_SINGLE_CORE)
-                if ( BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER > tests) {
+                if ( BOOST_FIBERS_SPIN_MAX_TESTS > tests) {
                     ++tests;
                     // give CPU a hint that this thread is in a "spin-wait" loop
                     // delays the next instruction's execution for a finite period of time (depends on processor family)
                     // the CPU is not under demand, parts of the pipeline are no longer being used
                     // -> reduces the power consumed by the CPU
                     cpu_relax();
-                } else if ( BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER > tests) {
+                } else if ( BOOST_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
                     ++tests;
                     // std::this_thread::sleep_for( 0us) has a fairly long instruction path length,
                     // combined with an expensive ring3 to ring 0 transition costing about 1000 cycles

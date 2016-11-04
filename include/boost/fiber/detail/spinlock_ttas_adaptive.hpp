@@ -33,8 +33,7 @@ private:
 
     // align shared variable 'state_' at cache line to prevent false sharing
     alignas(cache_alignment) std::atomic< spinlock_status > state_{ spinlock_status::unlocked };
-    // align shared variable 'tests_' at cache line to prevent false sharing
-    alignas(cache_alignment) std::atomic< std::size_t >     tests_{ 0 };
+    std::atomic< std::size_t >                              tests_{ 0 };
     // padding to avoid other data one the cacheline of shared variable 'state_'
     char                                                    pad[cacheline_length];
 
@@ -49,7 +48,7 @@ public:
         for (;;) {
             std::size_t tests = 0;
             const std::size_t prev_tests = tests_.load( std::memory_order_relaxed);
-            const std::size_t max_tests = (std::min)( static_cast< std::size_t >( BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER), 2 * prev_tests + 10);
+            const std::size_t max_tests = (std::min)( static_cast< std::size_t >( BOOST_FIBERS_SPIN_MAX_TESTS), 2 * prev_tests + 10);
             // avoid using multiple pause instructions for a delay of a specific cycle count
             // the delay of cpu_relax() (pause on Intel) depends on the processor family
             // the cycle count can not guaranteed from one system to the next
@@ -69,7 +68,7 @@ public:
                     // the CPU is not under demand, parts of the pipeline are no longer being used
                     // -> reduces the power consumed by the CPU
                     cpu_relax();
-                } else if ( BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER > tests) {
+                } else if ( BOOST_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
                     ++tests;
                     // std::this_thread::sleep_for( 0us) has a fairly long instruction path length,
                     // combined with an expensive ring3 to ring 0 transition costing about 1000 cycles

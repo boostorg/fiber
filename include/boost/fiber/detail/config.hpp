@@ -10,6 +10,7 @@
 #include <cstddef>
 
 #include <boost/config.hpp>
+#include <boost/predef.h> 
 #include <boost/detail/workaround.hpp>
 
 #ifdef BOOST_FIBERS_DECL
@@ -37,12 +38,21 @@
 # include <boost/config/auto_link.hpp>
 #endif
 
-#if !defined(BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER)
-# define BOOST_FIBERS_SPIN_MAX_CPURELAX_ITER 0x4000
+#if BOOST_OS_LINUX || BOOST_OS_WINDOWS
+# define BOOST_FIBERS_HAS_FUTEX
 #endif
 
-#if !defined(BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER)
-# define BOOST_FIBERS_SPIN_MAX_SLEEPFOR_ITER 0x4016
+#if (!defined(BOOST_FIBERS_HAS_FUTEX) && \
+    (defined(BOOST_FIBERS_SPINLOCK_TTAS_FUTEX) || defined(BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX)))
+# error "futex not supported on this platform"
+#endif
+
+#if !defined(BOOST_FIBERS_SPIN_MAX_COLLISIONS)
+# define BOOST_FIBERS_SPIN_MAX_COLLISIONS 16
+#endif
+
+#if !defined(BOOST_FIBERS_SPIN_MAX_TESTS)
+# define BOOST_FIBERS_SPIN_MAX_TESTS 100
 #endif
 
 // modern architectures have cachelines with 64byte length

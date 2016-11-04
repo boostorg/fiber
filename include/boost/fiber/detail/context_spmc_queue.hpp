@@ -1,4 +1,4 @@
-
+﻿
 //          Copyright Oliver Kowalke 2013.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -39,56 +39,56 @@ private:
     class array {
     private:
         typedef std::atomic< context * >                atomic_type;
-        typedef typename std::aligned_storage<
+        typedef std::aligned_storage<
             sizeof( atomic_type), cache_alignment
         >::type                                         storage_type; 
 
-        std::int64_t        size_;
+        std::size_t        size_;
         storage_type    *   storage_;
 
     public:
-        array( std::int64_t size) :
+        array( std::size_t size) :
             size_{ size },
             storage_{ new storage_type[size_] } {
-            for ( std::int64_t i = 0; i < size_; ++i) {
+            for ( std::size_t i = 0; i < size_; ++i) {
                 ::new ( static_cast< void * >( std::addressof( storage_[i]) ) ) atomic_type{ nullptr };
             }
         }
 
         ~array() {
-            for ( std::int64_t i = 0; i < size_; ++i) {
+            for ( std::size_t i = 0; i < size_; ++i) {
                 reinterpret_cast< atomic_type * >( std::addressof( storage_[i]) )->~atomic_type();
             }
             delete [] storage_;
         }
 
-        std::int64_t size() const noexcept {
+        std::size_t size() const noexcept {
             return size_;
         }
 
-        void push( std::int64_t bottom, context * ctx) noexcept {
+        void push( std::size_t bottom, context * ctx) noexcept {
             reinterpret_cast< atomic_type * >(
                 std::addressof( storage_[bottom % size_]) )
                     ->store( ctx, std::memory_order_relaxed);
         }
 
-        context * pop( std::int64_t top) noexcept {
+        context * pop( std::size_t top) noexcept {
             return reinterpret_cast< atomic_type * >(
                 std::addressof( storage_[top % size_]) )
                     ->load( std::memory_order_relaxed);
         }
 
-        array * resize( std::int64_t bottom, std::int64_t top) {
+        array * resize( std::size_t bottom, std::size_t top) {
             std::unique_ptr< array > tmp{ new array{ 2 * size_ } };
-            for ( std::int64_t i = top; i != bottom; ++i) {
+            for ( std::size_t i = top; i != bottom; ++i) {
                 tmp->push( i, pop( i) );
             }
             return tmp.release();
         }
     };
 
-    alignas(cache_alignment) std::atomic< std::int64_t >    top_{ 0 };
-    alignas(cache_alignment) std::atomic< std::int64_t >    bottom_{ 0 };
+    alignas(cache_alignment) std::atomic< std::size_t >    top_{ 0 };
+    alignas(cache_alignment) std::atomic< std::size_t >    bottom_{ 0 };
     alignas(cache_alignment) std::atomic< array * >         array_;
     std::vector< array * >          						old_arrays_{};
     char                                                    padding_[cacheline_length];
@@ -110,14 +110,14 @@ public:
     context_spmc_queue & operator=( context_spmc_queue const&) = delete;
 
     bool empty() const noexcept {
-        std::int64_t bottom{ bottom_.load( std::memory_order_relaxed) };
-        std::int64_t top{ top_.load( std::memory_order_relaxed) };
+        std::size_t bottom{ bottom_.load( std::memory_order_relaxed) };
+        std::size_t top{ top_.load( std::memory_order_relaxed) };
         return bottom <= top;
     }
 
     void push( context * ctx) {
-        std::int64_t bottom{ bottom_.load( std::memory_order_relaxed) };
-        std::int64_t top{ top_.load( std::memory_order_acquire) };
+        std::size_t bottom{ bottom_.load( std::memory_order_relaxed) };
+        std::size_t top{ top_.load( std::memory_order_acquire) };
         array * a{ array_.load( std::memory_order_relaxed) };
         if ( (a->size() - 1) < (bottom - top) ) {
             // queue is full
@@ -133,9 +133,9 @@ public:
     }
 
     context * pop() {
-        std::int64_t top{ top_.load( std::memory_order_acquire) };
+        std::size_t top{ top_.load( std::memory_order_acquire) };
         std::atomic_thread_fence( std::memory_order_seq_cst);
-        std::int64_t bottom{ bottom_.load( std::memory_order_acquire) };
+        std::size_t bottom{ bottom_.load( std::memory_order_acquire) };
         context * ctx{ nullptr };
         if ( top < bottom) {
             // queue is not empty

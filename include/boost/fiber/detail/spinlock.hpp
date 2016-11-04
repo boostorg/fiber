@@ -15,6 +15,10 @@
 # include <mutex>
 # include <boost/fiber/detail/spinlock_ttas.hpp>
 # include <boost/fiber/detail/spinlock_ttas_adaptive.hpp>
+# if defined(BOOST_FIBERS_HAS_FUTEX)
+#  include <boost/fiber/detail/spinlock_ttas_futex.hpp>
+#  include <boost/fiber/detail/spinlock_ttas_adaptive_futex.hpp>
+# endif
 #endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -40,6 +44,10 @@ struct spinlock_lock {
 #else
 # if defined(BOOST_FIBERS_SPINLOCK_STD_MUTEX) 
 using spinlock = std::mutex;
+# elif defined(BOOST_FIBERS_SPINLOCK_TTAS_FUTEX)
+using spinlock = spinlock_ttas_futex;
+# elif defined(BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX)
+using spinlock = spinlock_ttas_adaptive_futex;
 # elif defined(BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE) 
 using spinlock = spinlock_ttas_adaptive;
 # else
