@@ -21,26 +21,6 @@ project boost/fiber/performance/thread
       <variant>release
     ;
 
-exe overhead_create
-   : overhead_create.cpp
+exe skynet
+   : skynet.cpp
    ;
-
-exe overhead_join
-   : overhead_join.cpp
-   ;
-
-exe overhead_detach
-   : overhead_detach.cpp
-   ;
-
-exe overhead_yield
-   : overhead_yield.cpp
-   ;
-
-exe overhead_future
-   : overhead_future.cpp
-   ;
-
-#exe scale_join
-#   : scale_join.cpp
-#   ;
