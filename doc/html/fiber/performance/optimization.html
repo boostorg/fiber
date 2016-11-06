@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Optimization</title>
+<link rel="stylesheet" href="../../../../../../doc/src/boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Fiber">
+<link rel="up" href="../performance.html" title="Performance">
+<link rel="prev" href="../performance.html" title="Performance">
+<link rel="next" href="../custom.html" title="Customization">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../performance.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../performance.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../custom.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="fiber.performance.optimization"></a><a class="link" href="optimization.html" title="Optimization">Optimization</a>
+</h3></div></div></div>
+<p>
+        The columns labeled <span class="bold"><strong>fiber (atomics)</strong></span> were
+        compiled with default fiber synchronization, capable of synchronizing fibers
+        running on different threads. The columns labeled <span class="bold"><strong>fiber
+        (raw)</strong></span> were compiled with <a class="link" href="../overview.html#cross_thread_sync"><code class="computeroutput"><span class="identifier">BOOST_FIBERS_NO_ATOMICS</span></code></a>.
+      </p>
+<div class="table">
+<a name="fiber.performance.optimization.compiler_flags"></a><p class="title"><b>Table&#160;1.3.&#160;compiler flags</b></p>
+<div class="table-contents"><table class="table" summary="compiler flags">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  BOOST_FIBERS_NO_ATOMICS
+                </p>
+              </th>
+<th>
+                <p>
+                  No multithread supported, all atomics removed, no synchronization
+                  of fibers running in different threads
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPIN_SINGLE_CORE
+                </p>
+              </td>
+<td>
+                <p>
+                  runs only on single core machines but multithreaded, yield thread
+                  at collisions
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPIN_MAX_TESTS
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPIN_MAX_COLLISIONS
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPINLOCK_STD_MUTEX
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPINLOCK_TTAS
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPINLOCK_TTAS_FUTEX
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX
+                </p>
+              </td>
+<td>
+              </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2013 Oliver Kowalke<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../performance.html"><img src="../../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../performance.html"><img src="../../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../custom.html"><img src="../../../../../../doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

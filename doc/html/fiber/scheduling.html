@@ -437,7 +437,7 @@
 <p>
       This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>, scheduling fibers in round-robin
       fashion. Ready fibers are shared between all instances (running on different
-      threads) of shared_work.
+      threads) of shared_work, thus the work is distributed equaly over all threads.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">shared_work</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
@@ -608,7 +608,7 @@
 <p>
       This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>; if the local ready-queue goes
       out of ready fibers, fibers are stolen from other schedulers. The work stealing
-      algorithm is based on the Chase-Lev algorithm. <sup>[<a name="fiber.scheduling.f0" href="#ftn.fiber.scheduling.f0" class="footnote">1</a>]</sup> <sup>[<a name="fiber.scheduling.f1" href="#ftn.fiber.scheduling.f1" class="footnote">2</a>]</sup> Victim scheduler are selected in radnom fashion.
+      algorithm is based on the Chase-Lev algorithm. <sup>[<a name="fiber.scheduling.f0" href="#ftn.fiber.scheduling.f0" class="footnote">1</a>]</sup> <sup>[<a name="fiber.scheduling.f1" href="#ftn.fiber.scheduling.f1" class="footnote">2</a>]</sup> Victim scheduler are selected in random fashion.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 

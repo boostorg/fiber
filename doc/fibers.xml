@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/10/31 09:24:13 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2016/11/08 16:31:39 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -2200,7 +2200,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
     <para>
       This class implements <link linkend="class_algorithm"><code>algorithm</code></link>, scheduling fibers in round-robin
       fashion. Ready fibers are shared between all instances (running on different
-      threads) of shared_work.
+      threads) of shared_work, thus the work is distributed equaly over all threads.
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">shared_work</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
@@ -2408,7 +2408,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
         of the 18th ACM SIGPLAN symposium on Principles and practice of parallel
         programming (PPoPP '13). ACM, New York, NY, USA, 69-80.
       </para>
-      </footnote> Victim scheduler are selected in radnom fashion.
+      </footnote> Victim scheduler are selected in random fashion.
     </para>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
@@ -13872,468 +13872,20 @@ that would cause the thread to
       role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase
       role="special">::</phrase><phrase role="identifier">highresolution_clock</phrase></code>,
       with overhead corrections. The code was compiled using the build options: variant
-      = release, optimization = speed <footnote id="fiber.performance.f0">
-      <para>
-        Intel Core2 Q6700, x86_64, 3GHz
-      </para>
-      </footnote>.
+      = release, optimization = speed. Tests are executed on Intel Core i7-4770S
+      3.10GHz (4C/8T), Linux (4.7.0/x86_64) and gcc-6.2.0.
     </para>
     <para>
-      The columns labeled <emphasis role="bold">fiber (atomics)</emphasis> were compiled
-      with default fiber synchronization, capable of synchronizing fibers running
-      on different threads. The columns labeled <emphasis role="bold">fiber (raw)</emphasis>
-      were compiled with <link linkend="cross_thread_sync"><code><phrase role="identifier">BOOST_FIBERS_NO_ATOMICS</phrase></code></link>.
+      The <ulink url="https://github.com/atemerev/skynet">microbenchmark <emphasis>syknet</emphasis></ulink>
+      from Alexander Temerev was ported and used for performance measurements. At
+      the root the test spawns 10 threads-of-execution (ToE), e.g. actor/goroutine/fiber
+      etc.. Each spawned ToE spawns additional 10 ToEs ... until 100000 ToEs are
+      created. ToEs return back ther ordinal numbers (0 ... 99999), which are summed
+      on the previous level and sent back upstream, until reaching the root.
     </para>
-    <table frame="all" id="fiber.performance.overhead_of_join__contains_fiber_context_destruction__fiber_stack_deallocation_">
-      <title>Overhead of join (contains fiber-context destruction, fiber-stack deallocation)</title>
-      <tgroup cols="5">
-        <thead>
-          <row>
-            <entry>
-              <para>
-                thread
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (atomics)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (raw)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                tbb
-              </para>
-            </entry>
-            <entry>
-              <para>
-                qthread
-              </para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                18 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                950 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                900 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                570 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                620 ns
-              </para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para>
-      (from <ulink url="../../performance/fiber/overhead_join.cpp">overhead_join.cpp</ulink>)
-    </para>
-    <table frame="all" id="fiber.performance.overhead_of_detach">
-      <title>Overhead of detach</title>
-      <tgroup cols="3">
-        <thead>
-          <row>
-            <entry>
-              <para>
-                thread
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (atomics)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (raw)
-              </para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                126 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                21 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                20 ns
-              </para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para>
-      (from <ulink url="../../performance/fiber/overhead_detach.cpp">overhead_detach.cpp</ulink>)
-    </para>
-    <table frame="all" id="fiber.performance.overhead_of_yield">
-      <title>Overhead of yield</title>
-      <tgroup cols="3">
-        <thead>
-          <row>
-            <entry>
-              <para>
-                thread
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (atomics)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (raw)
-              </para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                1.5 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                310 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                330 ns
-              </para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para>
-      (from <ulink url="../../performance/fiber/overhead_yield.cpp">overhead_yield.cpp</ulink>)
-    </para>
-    <table frame="all" id="fiber.performance.overhead_of_waiting_on_a_future">
-      <title>Overhead of waiting on a future</title>
-      <tgroup cols="3">
-        <thead>
-          <row>
-            <entry>
-              <para>
-                thread
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (atomics)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (raw)
-              </para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                16 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.40 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.38 &#xb5;s
-              </para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para>
-      (from <ulink url="../../performance/fiber/overhead_future.cpp">overhead_future.cpp</ulink>)
-    </para>
-    <table frame="all" id="fiber.performance.overhead_of_fiber_creation__contains_fiber_stack_allocation_and_preparation__fiber_context_construction__scheduler_handling_">
-      <title>Overhead of fiber creation (contains fiber-stack allocation and preparation,
-      fiber-context construction, scheduler handling)</title>
-      <tgroup cols="3">
-        <thead>
-          <row>
-            <entry>
-              <para>
-                thread
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (atomics)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (raw)
-              </para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                18 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                450 ns
-              </para>
-            </entry>
-            <entry>
-              <para>
-                445 ns
-              </para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para>
-      (from <ulink url="../../performance/fiber/overhead_create.cpp">overhead_create.cpp</ulink>)
-    </para>
-    <table frame="all" id="fiber.performance.scaling_of_creating_and_joining">
-      <title>Scaling of creating and joining</title>
+    <table frame="all" id="fiber.performance.performance_of_n_100000_actors_goroutines__other_languages_">
+      <title>performance of N=100000 actors/goroutines (other languages)</title>
       <tgroup cols="4">
-        <thead>
-          <row>
-            <entry>
-              <para>
-                average of
-              </para>
-            </entry>
-            <entry>
-              <para>
-                thread
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (atomics)
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (raw)
-              </para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                10
-              </para>
-            </entry>
-            <entry>
-              <para>
-                8.21 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.96 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.85 &#xb5;s
-              </para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                50
-              </para>
-            </entry>
-            <entry>
-              <para>
-                6.67 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.40 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.27 &#xb5;s
-              </para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                100
-              </para>
-            </entry>
-            <entry>
-              <para>
-                6.79 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.84 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.81 &#xb5;s
-              </para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                500
-              </para>
-            </entry>
-            <entry>
-              <para>
-                8.25 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.13 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.10 &#xb5;s
-              </para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                1000
-              </para>
-            </entry>
-            <entry>
-              <para>
-                7.71 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.46 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.26 &#xb5;s
-              </para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                5000
-              </para>
-            </entry>
-            <entry>
-              <para>
-                5.67 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                2.11 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.90 &#xb5;s
-              </para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>
-                10000
-              </para>
-            </entry>
-            <entry>
-              <para>
-                5.25 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                2.36 &#xb5;s
-              </para>
-            </entry>
-            <entry>
-              <para>
-                1.89 &#xb5;s
-              </para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <para>
-      (from <ulink url="../../performance/fiber/scale_join.cpp">scale_join.cpp</ulink>)
-    </para>
-    <para>
-      Numbers of the <ulink url="https://github.com/atemerev/skynet">microbenchmark
-      <emphasis>syknet</emphasis></ulink> from Alexander Temerev <footnote id="fiber.performance.f1">
-      <para>
-        Intel Core2 Q6700, x86_64, 3GHz
-      </para>
-      </footnote>:
-    </para>
-    <table frame="all" id="fiber.performance.performance_of_n_100000_actors_goroutines_fibers">
-      <title>performance of N=100000 actors/goroutines/fibers</title>
-      <tgroup cols="5">
         <thead>
           <row>
             <entry>
@@ -14343,22 +13895,17 @@ that would cause the thread to
             </entry>
             <entry>
               <para>
-                fiber (single threaded/raw) | gcc-5.2.1
-              </para>
-            </entry>
-            <entry>
-              <para>
-                fiber (single threaded/atomics) | gcc-5.2.1
-              </para>
-            </entry>
-            <entry>
-              <para>
                 Erlang | erts-7.0
               </para>
             </entry>
             <entry>
               <para>
-                Go | go1.4.2
+                Go | go1.6.1 (GOMAXPROCS == default)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                Go | go1.6.1 (GOMAXPROCS == 8)
               </para>
             </entry>
           </row>
@@ -14367,33 +13914,316 @@ that would cause the thread to
           <row>
             <entry>
               <para>
-                58ms - 108ms
+                32 ms
               </para>
             </entry>
             <entry>
               <para>
-                205ms - 263ms
+                64 ms - 121 ms
               </para>
             </entry>
             <entry>
               <para>
-                221ms - 278ms
+                152 ms - 164 ms
               </para>
             </entry>
             <entry>
               <para>
-                237ms- 470ms
-              </para>
-            </entry>
-            <entry>
-              <para>
-                614ms - 883ms
+                70 ms - 98 ms
               </para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
+    <para>
+      The test utilizes 4 cores with enabled SMT (8 hardware threads). The fiber
+      stacks are allocated by <link linkend="class_fixedsize_stack"><code>fixedsize_stack</code></link>.
+    </para>
+    <para>
+      As the benchmark shows, the memory allocation algorithm is significant for
+      performance in a multithreaded environment. The tests use glibc's memory allocation
+      algorithm (based on ptmalloc2) as well as Google's <ulink url="http://goog-perftools.sourceforge.net/doc/tcmalloc.html">TCmalloc</ulink>
+      (via linkflags=&quot;-ltcmalloc&quot;). <footnote id="fiber.performance.f0">
+      <para>
+        Tais B. Ferreira, Rivalino Matias, Autran Macedo, Lucio B. Araujo <quote>An
+        Experimental Study on Memory Allocators in Multicore and Multithreaded Applications&quot;</quote>,
+        PDCAT '11 Proceedings of the 2011 12th International Conference on Parallel
+        and Distributed Computing, Applications and Technologies, pages 92-98
+      </para>
+      </footnote>.
+    </para>
+    <para>
+      The <link linkend="class_shared_work"><code>shared_work</code></link> scheduling algorithm uses one global queue,
+      containing fibers ready to run, shared between all threads. The work is distributed
+      equaly over all threads. In the <link linkend="class_work_stealing"><code>work_stealing</code></link> scheduling
+      algorithm each thread has its own local queue. Fibers that are ready to run
+      are pushed to and poped from the local queues. If the queue runs out of ready
+      fibers, fibers are stolen from local queues of other threads.
+    </para>
+    <table frame="all" id="fiber.performance.performance_of_n_100000_fibers">
+      <title>performance of N=100000 fibers</title>
+      <tgroup cols="6">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                fiber (1C/1T, round robin)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (1C/1T, round robin, tcmalloc)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (4C/8T, work sharing)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (4C/8T, work sharing, tcmalloc)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (4C/8T, work stealing)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                fiber (4C/8T, work stealing, tcmalloc)
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                91 ms - 128 ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                90 ms - 103 ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                90 ms - 111 ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                62 ms - 80 ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                35 ms - 66 ms
+              </para>
+            </entry>
+            <entry>
+              <para>
+                13 ms - 26 ms
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <section id="fiber.performance.tweaking">
+      <title><link linkend="fiber.performance.tweaking">Tweaking</link></title>
+      <para>
+        <emphasis role="bold">Boost.Fiber</emphasis> enables synchronizing fibers
+        running on different threads per default. This is acomblished on behalf of
+        spinlocks (using atomics inside). (BOOST_FIBERS_SPINLOCK_STD_MUTEX applied
+        at compiler's command line enables <code><phrase role="identifier">std</phrase><phrase
+        role="special">::</phrase><phrase role="identifier">mutex</phrase></code>
+        instead of spinlocks).
+      </para>
+      <bridgehead renderas="sect4" id="fiber.performance.tweaking.h0">
+        <phrase id="fiber.performance.tweaking.disable_synchronization"/><link linkend="fiber.performance.tweaking.disable_synchronization">disable
+        synchronization</link>
+      </bridgehead>
+      <para>
+        If synchronization between fibers (in different threads) is not desired,
+        <link linkend="cross_thread_sync"><code><phrase role="identifier">BOOST_FIBERS_NO_ATOMICS</phrase></code></link>
+        has to applied at compiler's command line.
+      </para>
+      <bridgehead renderas="sect4" id="fiber.performance.tweaking.h1">
+        <phrase id="fiber.performance.tweaking.ttas_locks"/><link linkend="fiber.performance.tweaking.ttas_locks">TTAS
+        locks</link>
+      </bridgehead>
+      <bridgehead renderas="sect4" id="fiber.performance.tweaking.h2">
+        <phrase id="fiber.performance.tweaking.spin_wait_loop"/><link linkend="fiber.performance.tweaking.spin_wait_loop">spin-wait
+        loop</link>
+      </bridgehead>
+      <para>
+        A lock is considered under high contention, if a lock is free, but a thread
+        subsequently fails to acquire the lock because some other thread was faster.
+        Waiting for a short time let other threads finish before trying to enter
+        the critical section again. While busy waiting on the lock, relaxing the
+        CPU (via pause/yield memnonic) gives the CPU a hint that the code is in a
+        spin-wait loop.
+      </para>
+      <para>
+        - prevents expensive pipeline flushes (speculatively executed load and compare
+        instructions not pushed to pipeline) - hardware thread (simultaneous multithreading)
+        gets time slice - delay of few CPU cycles
+      </para>
+      <para>
+        It is obvious that this strategy is useless on single core systems because
+        the lock can only released if the thread gives up its time slice in order
+        to let other threads run. Macro BOOST_FIBERS_SPIN_SINGLE_CORE disables active
+        spinning, e.g. der operating system is notified (via <code><phrase role="identifier">std</phrase><phrase
+        role="special">::</phrase><phrase role="identifier">this_thread_yield</phrase><phrase
+        role="special">()</phrase></code>) that the thread gives up its time slice
+        and the operating system switches to another thread. adaptive spin-wait loop
+      </para>
+      <bridgehead renderas="sect4" id="fiber.performance.tweaking.h3">
+        <phrase id="fiber.performance.tweaking.exponential_back_off"/><link linkend="fiber.performance.tweaking.exponential_back_off">exponential
+        back-off</link>
+      </bridgehead>
+      <para>
+        Macro BOOST_FIBERS_SPIN_MAX_TESTS determines how many times the CPU gets
+        the spin-wait loop hint before yielding the thread or blocking in futex-wait.
+        The spinlock tracks how many time the thread failed to acquire the lock.
+        The higher the contention, the longer the thread should back-off. 'Binary
+        Exponential Backoff' algorithm together with a randomized contention window
+        is utilized for this purpose. BOOST_FIBERS_SPIN_MAX_COLLISIONS determines
+        the upper limit of collisions between threads after the thread waits on a
+        futex
+      </para>
+      <table frame="all" id="fiber.performance.tweaking.macros_for_tweaking">
+        <title>macros for tweaking</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_NO_ATOMICS
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  no multithreading, all atomics removed, no synchronization of fibers
+                  running in different threads
+                </para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPINLOCK_STD_MUTEX
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  <code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+                  role="identifier">mutex</phrase></code> used inside spinlock
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPINLOCK_TTAS
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  spinlock with test-test-and-swap on shared variable
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  spinlock with test-test-and-swap on shared variable, while busy
+                  waiting adaptive retries
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPINLOCK_TTAS_FUTEX
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  spinlock with test-test-and-swap on shared variable, suspend on
+                  futex after certain amount of retries
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  spinlock with test-test-and-swap on shared variable, while busy
+                  waiting adaptive retries, suspend on futex certain amount of retries
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPIN_SINGLE_CORE
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  on single core machines with multiple threads, yield thread (<code><phrase
+                  role="identifier">std</phrase><phrase role="special">::</phrase><phrase
+                  role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase
+                  role="identifier">yield</phrase><phrase role="special">()</phrase></code>)
+                  after collisions
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPIN_MAX_TESTS
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  max amount of retries while busy spinning
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  BOOST_FIBERS_SPIN_MAX_COLLISIONS
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  max amount of collisions between contented threads
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
   </section>
   <section id="fiber.custom">
     <title><anchor id="custom"/><link linkend="fiber.custom">Customization</link></title>

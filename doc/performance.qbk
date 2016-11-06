@@ -1,5 +1,5 @@
 [/
-          Copyright Oliver Kowalke 2009.
+          Copyright Oliver Kowalke 2016.
  Distributed under the Boost Software License, Version 1.0.
     (See accompanying file LICENSE_1_0.txt or copy at
           http://www.boost.org/LICENSE_1_0.txt
@@ -9,63 +9,175 @@
 
 Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
-The code was compiled using the build options:
-variant = release, optimization = speed
-[footnote Intel Core2 Q6700, x86_64, 3GHz].
+The code was compiled with gcc-6.20 and iusing the build options:
+variant = release, optimization = speed.
+Tests were executed on Intel Core i7-4770S 3.10GHz (4C/8T), Linux (4.7.0/x86_64)
 
-The columns labeled [*fiber (atomics)] were compiled with default fiber
-synchronization, capable of synchronizing fibers running on different threads.
-The columns labeled [*fiber (raw)] were compiled with [link cross_thread_sync
-`BOOST_FIBERS_NO_ATOMICS`].
+The [@https://github.com/atemerev/skynet microbenchmark ['syknet]] from
+Alexander Temerev was ported and used for performance measurements.
+At the root the test spawns 10 threads-of-execution (ToE), e.g.
+actor/goroutine/fiber etc.. Each spawned ToE spawns additional 10 ToEs ...
+until 100000 ToEs are created. ToEs return back ther ordinal numbers
+(0 ... 99999), which are summed on the previous level and sent back upstream,
+until reaching the root.
 
-[table Overhead of join (contains fiber-context destruction, fiber-stack deallocation)
-    [[thread]     [fiber (atomics)] [fiber (raw)] [tbb]    [qthread]]
-    [[18 \u00b5s] [950 ns]          [900 ns]      [570 ns] [620 ns]]
+[table performance of N=100000 actors/goroutines (other languages)
+    [
+         [Haskell | stack-1.0.4]
+         [Erlang | erts-7.0]
+         [Go | go1.6.1 (GOMAXPROCS == default)]
+         [Go | go1.6.1 (GOMAXPROCS == 8)]
+    ]
+    [
+        [32 ms]
+        [64 ms - 121 ms]
+        [152 ms - 164 ms]
+        [70 ms - 98 ms]
+    ]
 ]
-(from [@../../performance/fiber/overhead_join.cpp overhead_join.cpp])
 
-[table Overhead of detach
-    [[thread] [fiber (atomics)] [fiber (raw)]]
-    [[126 ns] [21 ns]           [20 ns]]
+The test utilizes 4 cores with enabled SMT (8 logical CPUs). The fiber
+stacks are allocated by __fixedsize_stack__.
+
+As the benchmark shows, the memory allocation algorithm is significant for
+performance in a multithreaded environment. The tests use glibc's memory
+allocation algorithm (based on ptmalloc2) as well as Google's
+[@http://goog-perftools.sourceforge.net/doc/tcmalloc.html TCmalloc] (via
+linkflags="-ltcmalloc").
+[footnote Tais B. Ferreira, Rivalino Matias, Autran Macedo, Lucio B. Araujo
+["An Experimental Study on Memory Allocators in Multicore and
+Multithreaded Applications"], PDCAT '11 Proceedings of the 2011 12th
+International Conference on Parallel and Distributed Computing, Applications
+and Technologies, pages 92-98].
+
+The __shared_work__ scheduling algorithm uses one global queue, containing
+fibers ready to run, shared between all threads. The work is distributed equaly
+over all threads.
+In the __work_stealing__ scheduling algorithm each thread has its own local
+queue. Fibers that are ready to run are pushed to and poped from the local
+queue. If the queue runs out of ready fibers, fibers are stolen from local
+queues of other threads.
+
+[table performance of N=100000 fibers
+    [
+         [fiber (1C/1T, round robin)]
+         [fiber (1C/1T, round robin, tcmalloc)]
+         [fiber (4C/8T, work sharing)]
+         [fiber (4C/8T, work sharing, tcmalloc)]
+         [fiber (4C/8T, work stealing)]
+         [fiber (4C/8T, work stealing, tcmalloc)]
+    ]
+    [
+        [91 ms - 128 ms]
+        [90 ms - 103 ms]
+        [90 ms - 111 ms]
+        [62 ms - 80 ms]
+        [35 ms - 66 ms]
+        [13 ms - 26 ms]
+    ]
 ]
-(from [@../../performance/fiber/overhead_detach.cpp overhead_detach.cpp])
 
-[table Overhead of yield
-    [[thread]      [fiber (atomics)] [fiber (raw)]]
-    [[1.5 \u00b5s] [310 ns]          [330 ns]]
+
+[section:tweaking Tweaking]
+
+__boost_fiber__ enables synchronization of fibers running on different threads
+per default. This is accomplished on behalf of spinlocks (using atomics).
+(BOOST_FIBERS_SPINLOCK_STD_MUTEX applied at compiler's command line enables
+`std::mutex` instead of spinlocks).
+
+
+[heading disable synchronization]
+
+With [link cross_thread_sync `BOOST_FIBERS_NO_ATOMICS`] at compiler's command
+line, synchronization between fibers (in different threads) is disabled. This
+is suitable if the application is single threaded and/or fibers are not
+synchronized between threads.
+
+
+[heading TTAS locks]
+
+Spinlocks are implemented as TTAS locks, e.g. the spinlock tests the lock before
+calling an atomic exchange. This strategy helps to reduce the cache line
+invalidations triggered by acquire/release the lock.
+
+
+[heading spin-wait loop]
+
+A lock is considered under high contention, if a thread subsequently fails to
+acquire the lock because some other thread was faster.
+Waiting for a short time let other threads finish before trying to enter the
+critical section again. While busy waiting on the lock, relaxing the CPU (via
+pause/yield memnonic) gives the CPU a hint that the code is in a spin-wait loop.
+
+- prevents expensive pipeline flushes (speculatively executed load and compare
+  instructions not pushed to pipeline)
+- hardware thread (simultaneous multithreading) gets time slice
+- delay of few CPU cycles
+
+It is obvious that this strategy is useless on single core systems because the
+lock can only released if the thread gives up its time slice in order to let
+other threads run. Macro BOOST_FIBERS_SPIN_SINGLE_CORE disables active spinning,
+e.g. der operating system is notified (via `std::this_thread_yield()`) that the
+thread gives up its time slice and the operating system switches to another
+thread.
+
+
+[heading exponential back-off]
+
+Macro BOOST_FIBERS_SPIN_MAX_TESTS determines how many times the CPU gets the
+spin-wait loop hint before yielding the thread or blocking in futex-wait.
+The spinlock tracks how many time the thread failed to acquire the lock.
+The higher the contention, the longer the thread should back-off.
+'Binary Exponential Backoff' algorithm together with a randomized contention
+window is utilized for this purpose.
+BOOST_FIBERS_SPIN_MAX_COLLISIONS determines the upper limit of collisions
+between threads after the thread waits on a futex.
+
+
+[table macros for tweaking
+    [
+        [BOOST_FIBERS_NO_ATOMICS]
+        [no multithreading, all atomics removed, no synchronization of fibers
+        running in different threads]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_STD_MUTEX]
+        [`std::mutex` used inside spinlock]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_TTAS]
+        [spinlock with test-test-and-swap on shared variable]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE]
+        [spinlock with test-test-and-swap on shared variable, while busy
+        waiting adaptive retries]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_TTAS_FUTEX]
+        [spinlock with test-test-and-swap on shared variable, suspend on
+        futex after certain amount of retries]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX]
+        [spinlock with test-test-and-swap on shared variable, while busy
+        waiting adaptive retries, suspend on futex certain amount of retries]
+    ]
+    [
+        [BOOST_FIBERS_SPIN_SINGLE_CORE]
+        [on single core machines with multiple threads, yield thread
+        (`std::this_thread::yield()`) after collisions]
+    ]
+    [
+        [BOOST_FIBERS_SPIN_MAX_TESTS]
+        [max amount of retries while busy spinning]
+    ]
+    [
+        [BOOST_FIBERS_SPIN_MAX_COLLISIONS]
+        [max amount of collisions between contented threads]
+    ]
 ]
-(from [@../../performance/fiber/overhead_yield.cpp overhead_yield.cpp])
 
-[table Overhead of waiting on a future
-    [[thread]     [fiber (atomics)] [fiber (raw)]]
-    [[16 \u00b5s] [1.40 \u00b5s]     [1.38 \u00b5s]]
-]
-(from [@../../performance/fiber/overhead_future.cpp overhead_future.cpp])
-
-[table Overhead of fiber creation (contains fiber-stack allocation and preparation, fiber-context construction, scheduler handling)
-    [[thread]     [fiber (atomics)] [fiber (raw)]]
-    [[18 \u00b5s] [450 ns]          [445 ns]     ]
-]
-(from [@../../performance/fiber/overhead_create.cpp overhead_create.cpp])
-
-[table Scaling of creating and joining
-    [[average of] [thread]       [fiber (atomics)] [fiber (raw)]]
-    [[10]         [8.21 \u00b5s] [1.96 \u00b5s]    [1.85 \u00b5s]]
-    [[50]         [6.67 \u00b5s] [1.40 \u00b5s]    [1.27 \u00b5s]]
-    [[100]        [6.79 \u00b5s] [1.84 \u00b5s]    [1.81 \u00b5s]]
-    [[500]        [8.25 \u00b5s] [1.13 \u00b5s]    [1.10 \u00b5s]]
-    [[1000]       [7.71 \u00b5s] [1.46 \u00b5s]    [1.26 \u00b5s]]
-    [[5000]       [5.67 \u00b5s] [2.11 \u00b5s]    [1.90 \u00b5s]]
-    [[10000]      [5.25 \u00b5s] [2.36 \u00b5s]    [1.89 \u00b5s]]
-]
-(from [@../../performance/fiber/scale_join.cpp scale_join.cpp])
-
-Numbers of the [@https://github.com/atemerev/skynet microbenchmark ['syknet]] from Alexander Temerev
-[footnote Intel Core2 Q6700, x86_64, 3GHz]:
-
-[table performance of N=100000 actors/goroutines/fibers
-    [[Haskell | stack-1.0.4] [fiber (single threaded/raw) | gcc-5.2.1] [fiber (single threaded/atomics) | gcc-5.2.1] [Erlang | erts-7.0] [Go | go1.4.2]]
-    [[58ms - 108ms]         [205ms - 263ms]                           [221ms - 278ms]                               [237ms- 470ms]      [614ms - 883ms]]
-]
+[endsect]
 
 [endsect]

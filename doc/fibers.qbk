@@ -129,6 +129,7 @@
 [def __segmented_stack__ [class_link segmented_stack]]
 [def __segmented_stack_stack__ ['segmented_stack-stack]]
 [def __shared_future__ [template_link shared_future]]
+[def __shared_work__ [class_link shared_work]]
 [def __stack_allocator__ ['stack_allocator]]
 [def __stack_allocator_concept__ [link stack_allocator_concept ['stack-allocator concept]]]
 [def __StackAllocator__ [link stack_allocator_concept `StackAllocator`]]
@@ -137,6 +138,7 @@
 [def __unique_lock__ [@http://en.cppreference.com/w/cpp/thread/unique_lock `std::unique_lock`]]
 [def __wait_for__ [member_link future..wait_for]]
 [def __wait__ [member_link future..wait]]
+[def __work_stealing__ [class_link work_stealing]]
 [def __wait_until__ [member_link future..wait_until]]
 
 [def __no_state__ `future_errc::no_state`]
@@ -251,6 +253,8 @@ channel operations return the state of the channel.
 
 [include buffered_channel.qbk]
 [include unbuffered_channel.qbk]
+[include channel.qbk]
+
 [endsect]
 [include futures.qbk]
 [endsect]
