@@ -8,6 +8,8 @@
 #ifndef BOOST_FIBERS_UNBOUNDED_CHANNEL_H
 #define BOOST_FIBERS_UNBOUNDED_CHANNEL_H
 
+#warn "template unbounded_channel is deprecated"
+
 #include <atomic>
 #include <algorithm>
 #include <chrono>

@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
 <link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Fiber">
-<link rel="prev" href="performance.html" title="Performance">
+<link rel="prev" href="performance/tweaking.html" title="Tweaking">
 <link rel="next" href="rationale.html" title="Rationale">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,7 +20,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="performance/tweaking.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -61,7 +61,7 @@
     </h4>
 <p>
       The first essential point is that we must associate an integer priority with
-      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">9</a>]</sup>
+      each fiber.<sup>[<a name="fiber.custom.f0" href="#ftn.fiber.custom.f0" class="footnote">10</a>]</sup>
     </p>
 <p>
       One might suggest deriving a custom <a class="link" href="fiber_mgmt/fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> subclass to store such
@@ -401,7 +401,7 @@
     </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.fiber.custom.f0" href="#fiber.custom.f0" class="para">10</a>] </sup>
         A previous version of the Fiber library implicitly tracked an int priority
         for each fiber, even though the default scheduler ignored it. This has been
         dropped, since the library now supports arbitrary scheduler-specific fiber
@@ -419,7 +419,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="performance.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
+<a accesskey="p" href="performance/tweaking.html"><img src="../../../../../doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="rationale.html"><img src="../../../../../doc/src/images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

@@ -5,71 +5,9 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:channels Channels]
+[section:channels Channels (deprecated)]
 
-__boost_fiber__ provides a bounded and a unbounded channel suitable to
-synchonize fibers via message passing.
-
-    typedef boost::fibers::unbounded_channel< int > channel_t;
-
-    void send( channel_t & channel) {
-        for ( int i = 0; i < 5; ++i) {
-            channel.push( i);
-        }
-        channel.close();
-    }
-
-    void recv( channel_t & channel) {
-        int i;
-        while ( boost::fibers::channel_op_status::success == channel.pop(i) ) {
-            std::cout << "received " << i << std::endl;
-        }
-    }
-
-    channel_t channel;
-    boost::fibers::fiber f1( std::bind( send, ref( channel) ) );
-    boost::fibers::fiber f2( std::bind( recv, ref( channel) ) );
-
-    f1.join();
-    f2.join();
-
-[#class_channel_op_status]
-[heading Enumeration `channel_op_status`]
-
-channel operations return the state of the channel.
-
-        enum class channel_op_status {
-            success,
-            empty,
-            full,
-            closed,
-            timeout
-        };
-
-[heading `success`]
-[variablelist
-[[Effects:] [Operation was successful.]]
-]
-
-[heading `empty`]
-[variablelist
-[[Effects:] [channel is empty, operation failed.]]
-]
-
-[heading `full`]
-[variablelist
-[[Effects:] [channel is full, operation failed.]]
-]
-
-[heading `closed`]
-[variablelist
-[[Effects:] [channel is closed, operation failed.]]
-]
-
-[heading `timeout`]
-[variablelist
-[[Effects:] [The operation did not become ready before specified timeout elapsed.]]
-]
+[important Templates `unbounded_channel` and `bounded_channel` are deprecated!]
 
 [template_heading unbounded_channel]
 

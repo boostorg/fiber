@@ -129,6 +129,7 @@
 [def __segmented_stack__ [class_link segmented_stack]]
 [def __segmented_stack_stack__ ['segmented_stack-stack]]
 [def __shared_future__ [template_link shared_future]]
+[def __shared_work__ [class_link shared_work]]
 [def __stack_allocator__ ['stack_allocator]]
 [def __stack_allocator_concept__ [link stack_allocator_concept ['stack-allocator concept]]]
 [def __StackAllocator__ [link stack_allocator_concept `StackAllocator`]]
@@ -137,6 +138,7 @@
 [def __unique_lock__ [@http://en.cppreference.com/w/cpp/thread/unique_lock `std::unique_lock`]]
 [def __wait_for__ [member_link future..wait_for]]
 [def __wait__ [member_link future..wait]]
+[def __work_stealing__ [class_link work_stealing]]
 [def __wait_until__ [member_link future..wait_until]]
 
 [def __no_state__ `future_errc::no_state`]
@@ -205,7 +207,55 @@ object are running in the same thread.
 [include mutexes.qbk]
 [include condition_variables.qbk]
 [include barrier.qbk]
+[section:channels Channels]
+A channel is a model to communicate and synchronize `Threads of Execution`
+[footnote The smallest ordered sequence of instructions that can be managed
+independently by a scheduler is called a `Thread of Execution`.] via message
+passing.
+
+[#class_channel_op_status]
+[heading Enumeration `channel_op_status`]
+
+channel operations return the state of the channel.
+
+        enum class channel_op_status {
+            success,
+            empty,
+            full,
+            closed,
+            timeout
+        };
+
+[heading `success`]
+[variablelist
+[[Effects:] [Operation was successful.]]
+]
+
+[heading `empty`]
+[variablelist
+[[Effects:] [channel is empty, operation failed.]]
+]
+
+[heading `full`]
+[variablelist
+[[Effects:] [channel is full, operation failed.]]
+]
+
+[heading `closed`]
+[variablelist
+[[Effects:] [channel is closed, operation failed.]]
+]
+
+[heading `timeout`]
+[variablelist
+[[Effects:] [The operation did not become ready before specified timeout elapsed.]]
+]
+
+[include buffered_channel.qbk]
+[include unbuffered_channel.qbk]
 [include channel.qbk]
+
+[endsect]
 [include futures.qbk]
 [endsect]
 [include fls.qbk]

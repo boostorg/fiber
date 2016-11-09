@@ -27,7 +27,7 @@
 <a name="fiber.stack"></a><a name="stack"></a><a class="link" href="stack.html" title="Stack allocation">Stack allocation</a>
 </h2></div></div></div>
 <p>
-      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> uses internally an <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
+      A <a class="link" href="fiber_mgmt/fiber.html#class_fiber"><code class="computeroutput">fiber</code></a> uses internally an <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>
       which manages a set of registers and a stack. The memory used by the stack
       is allocated/deallocated via a <span class="emphasis"><em>stack_allocator</em></span> which is
       required to model a <a class="link" href="stack.html#stack_allocator_concept"><span class="emphasis"><em>stack-allocator
@@ -151,7 +151,7 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         The memory for the stack is not required to be aligned; alignment takes place
-        inside <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/econtext.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
+        inside <a href="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html" target="_top"><span class="emphasis"><em>execution_context</em></span></a>.
       </p></td></tr>
 </table></div>
 <p>

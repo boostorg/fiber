@@ -24,7 +24,7 @@
 #include "bind/bind_processor.hpp"
 
 using allocator_type = boost::fibers::fixedsize_stack;
-using channel_type = boost::fibers::unbounded_channel< std::uint64_t >;
+using channel_type = boost::fibers::buffered_channel< std::uint64_t >;
 using clock_type = std::chrono::steady_clock;
 using duration_type = clock_type::duration;
 using lock_type = std::unique_lock< std::mutex >;
@@ -39,7 +39,7 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
     if ( 1 == size) {
         c.push( num);
     } else {
-        channel_type rc;
+        channel_type rc{ 16 };
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
             boost::fibers::fiber{ boost::fibers::launch::dispatch,
@@ -80,7 +80,7 @@ int main() {
         allocator_type salloc{ stack_size };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
-        channel_type rc;
+        channel_type rc{ 2 };
         b.wait();
         time_point_type start{ clock_type::now() };
         skynet( salloc, rc, 0, size, div);

@@ -391,6 +391,7 @@ context::set_ready( context * ctx) noexcept {
     BOOST_ASSERT( this != ctx);
     BOOST_ASSERT( nullptr != scheduler_ );
     BOOST_ASSERT( nullptr != ctx->scheduler_ );
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // FIXME: comparing scheduler address' must be synchronized?
     //        what if ctx is migrated between threads
     //        (other scheduler assigned)
@@ -401,6 +402,10 @@ context::set_ready( context * ctx) noexcept {
         // remote
         ctx->scheduler_->set_remote_ready( ctx);
     }
+#else
+    BOOST_ASSERT( scheduler_ == ctx->scheduler_ );
+    scheduler_->set_ready( ctx);
+#endif
 }
 
 void *

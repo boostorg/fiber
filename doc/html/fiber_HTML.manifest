@@ -11,6 +11,8 @@ fiber/synchronization/mutex_types.html
 fiber/synchronization/conditions.html
 fiber/synchronization/barriers.html
 fiber/synchronization/channels.html
+fiber/synchronization/channels/buffered_channel.html
+fiber/synchronization/channels/unbuffered_channel.html
 fiber/synchronization/futures.html
 fiber/synchronization/futures/future.html
 fiber/synchronization/futures/promise.html
@@ -46,6 +48,7 @@ fiber/integration/event_driven_program.html
 fiber/integration/embedded_main_loop.html
 fiber/integration/deeper_dive_into___boost_asio__.html
 fiber/performance.html
+fiber/performance/tweaking.html
 fiber/custom.html
 fiber/rationale.html
 fiber/acknowledgements.html

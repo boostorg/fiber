@@ -1,79 +1,38 @@
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
-
-#include <boost/assert.hpp>
-#include <boost/intrusive_ptr.hpp>
-#include <boost/ref.hpp>
-#include <boost/optional.hpp>
 
 #include <boost/fiber/all.hpp>
 
-typedef boost::fibers::unbounded_channel< std::string >	fifo_t;
+typedef boost::fibers::buffered_channel< std::string >	channel_t;
 
 inline
-void ping( fifo_t & recv_buf, fifo_t & send_buf)
+void foo( channel_t & chan1, channel_t & chan2, std::string const& msg)
 {
     boost::fibers::fiber::id id( boost::this_fiber::get_id() );
-
-	send_buf.push( std::string("ping") );
-
-	std::string value = recv_buf.value_pop();
-	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
-	value.clear();
-
-	send_buf.push( std::string("ping") );
-
-    value = recv_buf.value_pop();
-	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
-	value.clear();
-
-	send_buf.push( std::string("ping") );
-
-    value = recv_buf.value_pop();
-	std::cout << "fiber " <<  id << ": ping received: " << value << std::endl;
-
-    send_buf.close();
-}
-
-inline
-void pong( fifo_t & recv_buf, fifo_t & send_buf)
-{
-    boost::fibers::fiber::id id( boost::this_fiber::get_id() );
-
-	std::string value = recv_buf.value_pop();
-	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
-	value.clear();
-
-	send_buf.push( std::string("pong") );
-
-    value = recv_buf.value_pop();
-	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
-	value.clear();
-
-	send_buf.push( std::string("pong") );
-
-    value = recv_buf.value_pop();
-	std::cout << "fiber " <<  id << ": pong received: " << value << std::endl;
-
-	send_buf.push( std::string("pong") );
-
-    send_buf.close();
+	chan1.push( msg);
+    std::string value{ chan2.value_pop() };
+    std::cout << "fiber " <<  id << ": " <<  value << " received" << std::endl;
+	chan1.push( msg);
+    value = chan2.value_pop();
+    std::cout << "fiber " <<  id << ": " << value << " received" << std::endl;
+	chan1.push( msg);
+    value = chan2.value_pop();
+    std::cout << "fiber " <<  id << ": " << value << " received" << std::endl;
 }
 
 int main()
 {
 	try
 	{
-        {
-        fifo_t buf1, buf2;
+        channel_t chan1{ 2 }, chan2{ 2 };
 
-        boost::fibers::fiber f1( & ping, boost::ref( buf1), boost::ref( buf2) );
-        boost::fibers::fiber f2( & pong, boost::ref( buf2), boost::ref( buf1) );
+        boost::fibers::fiber f1( & foo, std::ref( chan1), std::ref( chan2), std::string("ping") );
+        boost::fibers::fiber f2( & foo, std::ref( chan2), std::ref( chan1), std::string("pong") );
 
         f1.join();
         f2.join();
-        }
 
 		std::cout << "done." << std::endl;
 

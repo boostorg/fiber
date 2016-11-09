@@ -134,7 +134,7 @@ calls its constructor:
 
 [asio_rr_ctor]
 
-`asio::round_robin` binds the passed `io_service` reference and initializes a
+`asio::round_robin` binds the passed `io_service` pointer and initializes a
 [@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/steady_timer.html
 `boost::asio::steady_timer`]:
 

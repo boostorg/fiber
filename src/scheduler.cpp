@@ -53,17 +53,17 @@ scheduler::release_terminated_() noexcept {
     }
 }
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
 scheduler::remote_ready2ready_() noexcept {
-    // protect for concurrent access
-    std::unique_lock< std::mutex > lk( remote_ready_mtx_);
+    context * ctx = nullptr;
     // get context from remote ready-queue
-    for ( context * ctx : remote_ready_queue_) {
+    while ( nullptr != ( ctx = remote_ready_queue_.pop() ) ) {
         // store context in local queues
         set_ready( ctx);
     }
-    remote_ready_queue_.clear();
 }
+#endif
 
 void
 scheduler::sleep2ready_() noexcept {
@@ -112,7 +112,8 @@ scheduler::~scheduler() {
     // no context' in worker-queue
     BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
-    BOOST_ASSERT( remote_ready_queue_.empty() );
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
+#endif
     BOOST_ASSERT( sleep_queue_.empty() );
     // set active context to nullptr
     context::reset_active();
@@ -142,8 +143,10 @@ scheduler::dispatch() noexcept {
         }
         // release terminated context'
         release_terminated_();
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
         // get context' from remote ready-queue
         remote_ready2ready_();
+#endif
         // get sleeping context'
         sleep2ready_();
         // get next ready context
@@ -197,6 +200,7 @@ scheduler::set_ready( context * ctx) noexcept {
     algo_->awakened( ctx);
 }
 
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
 scheduler::set_remote_ready( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
@@ -208,14 +212,12 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     // context ctx might in wait-/ready-/sleep-queue
     // we do not test this in this function
     // scheduler::dispatcher() has to take care
-    // protect for concurrent access
-    std::unique_lock< std::mutex > lk( remote_ready_mtx_);
     // push new context to remote ready-queue
-    remote_ready_queue_.push_back( ctx);
-    lk.unlock();
+    remote_ready_queue_.push( ctx);
     // notify scheduler
     algo_->notify();
 }
+#endif
 
 #if (BOOST_EXECUTION_CONTEXT==1)
 void

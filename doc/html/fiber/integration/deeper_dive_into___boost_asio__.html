@@ -79,7 +79,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="identifier">io_svc</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="special">&gt;</span> <span class="identifier">io_svc</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">make_shared</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="special">&gt;();</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">round_robin</span> <span class="special">&gt;(</span> <span class="identifier">io_svc</span><span class="special">);</span>
 </pre>
 <p>
@@ -90,24 +90,23 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">round_robin</span><span class="special">(</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="special">&amp;</span> <span class="identifier">io_svc</span><span class="special">)</span> <span class="special">:</span>
+<pre class="programlisting"><span class="identifier">round_robin</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">io_svc</span><span class="special">)</span> <span class="special">:</span>
     <span class="identifier">io_svc_</span><span class="special">(</span> <span class="identifier">io_svc</span><span class="special">),</span>
-    <span class="identifier">suspend_timer_</span><span class="special">(</span> <span class="identifier">io_svc_</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">suspend_timer_</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">io_svc_</span><span class="special">)</span> <span class="special">{</span>
     <span class="comment">// We use add_service() very deliberately. This will throw</span>
     <span class="comment">// service_already_exists if you pass the same io_service instance to</span>
     <span class="comment">// more than one round_robin instance.</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">add_service</span><span class="special">(</span> <span class="identifier">io_svc_</span><span class="special">,</span> <span class="keyword">new</span> <span class="identifier">service</span><span class="special">(</span> <span class="identifier">io_svc_</span><span class="special">));</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">add_service</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">io_svc_</span><span class="special">,</span> <span class="keyword">new</span> <span class="identifier">service</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">io_svc_</span><span class="special">)</span> <span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>
       </p>
 <p>
-        <code class="computeroutput"><span class="identifier">asio</span><span class="special">::</span><span class="identifier">round_robin</span></code> binds the passed <code class="computeroutput"><span class="identifier">io_service</span></code> reference and initializes a
-        <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/steady_timer.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">steady_timer</span></code></a>:
+        <code class="computeroutput"><span class="identifier">asio</span><span class="special">::</span><span class="identifier">round_robin</span></code> binds the passed <code class="computeroutput"><span class="identifier">io_service</span></code> pointer and initializes a <a href="http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/steady_timer.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">steady_timer</span></code></a>:
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span>                     <span class="special">&amp;</span>   <span class="identifier">io_svc_</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_service</span> <span class="special">&gt;</span>      <span class="identifier">io_svc_</span><span class="special">;</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">steady_timer</span>                       <span class="identifier">suspend_timer_</span><span class="special">;</span>
 </pre>
 <p>
@@ -182,15 +181,15 @@
 <p>
 </p>
 <pre class="programlisting"><span class="comment">// server</span>
-<span class="identifier">tcp</span><span class="special">::</span><span class="identifier">acceptor</span> <span class="identifier">a</span><span class="special">(</span> <span class="identifier">io_svc</span><span class="special">,</span> <span class="identifier">tcp</span><span class="special">::</span><span class="identifier">endpoint</span><span class="special">(</span> <span class="identifier">tcp</span><span class="special">::</span><span class="identifier">v4</span><span class="special">(),</span> <span class="number">9999</span><span class="special">)</span> <span class="special">);</span>
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">server</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">io_svc</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">a</span><span class="special">)</span> <span class="special">).</span><span class="identifier">detach</span><span class="special">();</span>
+<span class="identifier">tcp</span><span class="special">::</span><span class="identifier">acceptor</span> <span class="identifier">a</span><span class="special">(</span> <span class="special">*</span> <span class="identifier">io_svc</span><span class="special">,</span> <span class="identifier">tcp</span><span class="special">::</span><span class="identifier">endpoint</span><span class="special">(</span> <span class="identifier">tcp</span><span class="special">::</span><span class="identifier">v4</span><span class="special">(),</span> <span class="number">9999</span><span class="special">)</span> <span class="special">);</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span> <span class="identifier">server</span><span class="special">,</span> <span class="identifier">io_svc</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">a</span><span class="special">)</span> <span class="special">).</span><span class="identifier">detach</span><span class="special">();</span>
 <span class="comment">// client</span>
 <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="identifier">iterations</span> <span class="special">=</span> <span class="number">2</span><span class="special">;</span>
 <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="identifier">clients</span> <span class="special">=</span> <span class="number">3</span><span class="special">;</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">barrier</span> <span class="identifier">b</span><span class="special">(</span> <span class="identifier">clients</span><span class="special">);</span>
 <span class="keyword">for</span> <span class="special">(</span> <span class="keyword">unsigned</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="identifier">clients</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span><span class="special">(</span>
-            <span class="identifier">client</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">io_svc</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">a</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">b</span><span class="special">),</span> <span class="identifier">iterations</span><span class="special">).</span><span class="identifier">detach</span><span class="special">();</span>
+            <span class="identifier">client</span><span class="special">,</span> <span class="identifier">io_svc</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">a</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ref</span><span class="special">(</span> <span class="identifier">b</span><span class="special">),</span> <span class="identifier">iterations</span><span class="special">).</span><span class="identifier">detach</span><span class="special">();</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -204,7 +203,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">io_svc</span><span class="special">.</span><span class="identifier">run</span><span class="special">();</span>
+<pre class="programlisting"><span class="identifier">io_svc</span><span class="special">-&gt;</span><span class="identifier">run</span><span class="special">();</span>
 </pre>
 <p>
       </p>

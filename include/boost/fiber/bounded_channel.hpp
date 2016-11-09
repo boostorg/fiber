@@ -8,6 +8,8 @@
 #ifndef BOOST_FIBERS_BOUNDED_CHANNEL_H
 #define BOOST_FIBERS_BOUNDED_CHANNEL_H
 
+#warn "template bounded_channel is deprecated"
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>

@@ -39,16 +39,16 @@ __yield_fiber__ abstracts the fiber in asio's context.
         {
             boost::system::error_code ec;
 
-            // read first message == channel name
-            std::string channel;
+            // read first message == queue name
+            std::string queue;
             boost::asio::async_read(
                     socket_,
-                    boost::asio::buffer( channel),
+                    boost::asio::buffer( queue),
                     yield[ec]);
-            if ( ec) throw std::runtime_error("no channel from subscriber");
+            if ( ec) throw std::runtime_error("no queue from subscriber");
 
-            // register new channel
-            reg_.subscribe( channel, shared_from_this() );
+            // register new queue
+            reg_.subscribe( queue, shared_from_this() );
 
             for (;;)
             {
