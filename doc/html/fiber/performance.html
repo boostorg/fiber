@@ -29,9 +29,12 @@
 <div class="toc"><dl><dt><span class="section"><a href="performance/tweaking.html">Tweaking</a></span></dt></dl></div>
 <p>
       Performance measurements were taken using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">highresolution_clock</span></code>,
-      with overhead corrections. The code was compiled using the build options: variant
-      = release, optimization = speed. Tests are executed on Intel Core i7-4770S
-      3.10GHz (4C/8T), Linux (4.7.0/x86_64) and gcc-6.2.0.
+      with overhead corrections. The code was compiled with gcc-6.20, using build
+      options: variant = release, optimization = speed. Tests were executed on Intel
+      Core i7-4770S 3.10GHz, 4 cores with 8 hyperthreads (4C/8T), running Linux (4.7.0/x86_64).
+    </p>
+<p>
+      Measurements headed 1C/1T were run in a single-threaded process.
     </p>
 <p>
       The <a href="https://github.com/atemerev/skynet" target="_top">microbenchmark <span class="emphasis"><em>syknet</em></span></a>
@@ -39,11 +42,14 @@
       the root the test spawns 10 threads-of-execution (ToE), e.g. actor/goroutine/fiber
       etc.. Each spawned ToE spawns additional 10 ToEs ... until 100000 ToEs are
       created. ToEs return back ther ordinal numbers (0 ... 99999), which are summed
-      on the previous level and sent back upstream, until reaching the root.
+      on the previous level and sent back upstream, until reaching the root. The
+      test was run 10-20 times, producing a range of values for each measurement.
     </p>
 <div class="table">
-<a name="fiber.performance.performance_of_n_100000_actors_goroutines__other_languages_"></a><p class="title"><b>Table&#160;1.1.&#160;performance of N=100000 actors/goroutines (other languages)</b></p>
-<div class="table-contents"><table class="table" summary="performance of N=100000 actors/goroutines (other languages)">
+<a name="fiber.performance.observed_time_to_run_100_000_actors_erlang_process__goroutines__other_languages_"></a><p class="title"><b>Table&#160;1.1.&#160;observed time to run 100,000 actors/erlang process'/goroutines (other
+      languages)</b></p>
+<div class="table-contents"><table class="table" summary="observed time to run 100,000 actors/erlang process'/goroutines (other
+      languages)">
 <colgroup>
 <col>
 <col>
@@ -75,48 +81,48 @@
 <tbody><tr>
 <td>
               <p>
-                32 ms
+                0.32 &#181;s
               </p>
             </td>
 <td>
               <p>
-                64 ms - 121 ms
+                0.64 &#181;s - 1.21 &#181;s
               </p>
             </td>
 <td>
               <p>
-                152 ms - 164 ms
+                1.52 &#181;s - 1.64 &#181;s
               </p>
             </td>
 <td>
               <p>
-                70 ms - 98 ms
+                0.70 &#181;s - 0.98 &#181;s
               </p>
             </td>
 </tr></tbody>
 </table></div>
 </div>
 <br class="table-break"><p>
-      The test utilizes 4 cores with enabled SMT (8 hardware threads). The fiber
-      stacks are allocated by <a class="link" href="stack.html#class_fixedsize_stack"><code class="computeroutput">fixedsize_stack</code></a>.
+      The test utilizes 4 cores with Symmetric MultiThreading enabled (8 logical
+      CPUs). The fiber stacks are allocated by <a class="link" href="stack.html#class_fixedsize_stack"><code class="computeroutput">fixedsize_stack</code></a>.
     </p>
 <p>
       As the benchmark shows, the memory allocation algorithm is significant for
-      performance in a multithreaded environment. The tests use glibc's memory allocation
-      algorithm (based on ptmalloc2) as well as Google's <a href="http://goog-perftools.sourceforge.net/doc/tcmalloc.html" target="_top">TCmalloc</a>
-      (via linkflags="-ltcmalloc"). <sup>[<a name="fiber.performance.f0" href="#ftn.fiber.performance.f0" class="footnote">9</a>]</sup>.
+      performance in a multithreaded environment. The tests use glibc&#8217;s memory allocation
+      algorithm (based on ptmalloc2) as well as Google&#8217;s <a href="http://goog-perftools.sourceforge.net/doc/tcmalloc.html" target="_top">TCmalloc</a>
+      (via linkflags="-ltcmalloc").<sup>[<a name="fiber.performance.f0" href="#ftn.fiber.performance.f0" class="footnote">9</a>]</sup>
     </p>
 <p>
       The <a class="link" href="scheduling.html#class_shared_work"><code class="computeroutput">shared_work</code></a> scheduling algorithm uses one global queue,
       containing fibers ready to run, shared between all threads. The work is distributed
-      equaly over all threads. In the <a class="link" href="scheduling.html#class_work_stealing"><code class="computeroutput">work_stealing</code></a> scheduling
-      algorithm each thread has its own local queue. Fibers that are ready to run
-      are pushed to and poped from the local queues. If the queue runs out of ready
-      fibers, fibers are stolen from local queues of other threads.
+      equally over all threads. In the <a class="link" href="scheduling.html#class_work_stealing"><code class="computeroutput">work_stealing</code></a> scheduling
+      algorithm, each thread has its own local queue. Fibers that are ready to run
+      are pushed to and popped from the local queue. If the queue runs out of ready
+      fibers, fibers are stolen from the local queues of other participating threads.
     </p>
 <div class="table">
-<a name="fiber.performance.performance_of_n_100000_fibers"></a><p class="title"><b>Table&#160;1.2.&#160;performance of N=100000 fibers</b></p>
-<div class="table-contents"><table class="table" summary="performance of N=100000 fibers">
+<a name="fiber.performance.observed_time_to_run_100_000_fibers"></a><p class="title"><b>Table&#160;1.2.&#160;observed time to run 100,000 fibers</b></p>
+<div class="table-contents"><table class="table" summary="observed time to run 100,000 fibers">
 <colgroup>
 <col>
 <col>
@@ -160,32 +166,32 @@
 <tbody><tr>
 <td>
               <p>
-                91 ms - 128 ms
+                0.91 &#181;s - 1.28 &#181;s
               </p>
             </td>
 <td>
               <p>
-                90 ms - 103 ms
+                0.90 &#181;s - 1.03 &#181;s
               </p>
             </td>
 <td>
               <p>
-                90 ms - 111 ms
+                0.90 &#181;s - 1.11 &#181;s
               </p>
             </td>
 <td>
               <p>
-                62 ms - 80 ms
+                0.62 &#181;s - 0.80 &#181;s
               </p>
             </td>
 <td>
               <p>
-                35 ms - 66 ms
+                0.35 &#181;s - 0.66 &#181;s
               </p>
             </td>
 <td>
               <p>
-                13 ms - 26 ms
+                0.13 &#181;s - 0.26 &#181;s
               </p>
             </td>
 </tr></tbody>
@@ -195,8 +201,8 @@
 <br><hr width="100" align="left">
 <div class="footnote"><p><sup>[<a name="ftn.fiber.performance.f0" href="#fiber.performance.f0" class="para">9</a>] </sup>
         Tais B. Ferreira, Rivalino Matias, Autran Macedo, Lucio B. Araujo <span class="quote">&#8220;<span class="quote">An
-        Experimental Study on Memory Allocators in Multicore and Multithreaded Applications"</span>&#8221;</span>,
-        PDCAT '11 Proceedings of the 2011 12th International Conference on Parallel
+        Experimental Study on Memory Allocators in Multicore and Multithreaded Applications</span>&#8221;</span>,
+        PDCAT &#8217;11 Proceedings of the 2011 12th International Conference on Parallel
         and Distributed Computing, Applications and Technologies, pages 92-98
       </p></div>
 </div>

@@ -437,7 +437,7 @@
 <p>
       This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>, scheduling fibers in round-robin
       fashion. Ready fibers are shared between all instances (running on different
-      threads) of shared_work, thus the work is distributed equaly over all threads.
+      threads) of shared_work, thus the work is distributed equally over all threads.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">shared_work</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
@@ -606,9 +606,10 @@
 <p>
     </p>
 <p>
-      This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>; if the local ready-queue goes
-      out of ready fibers, fibers are stolen from other schedulers. The work stealing
-      algorithm is based on the Chase-Lev algorithm. <sup>[<a name="fiber.scheduling.f0" href="#ftn.fiber.scheduling.f0" class="footnote">1</a>]</sup> <sup>[<a name="fiber.scheduling.f1" href="#ftn.fiber.scheduling.f1" class="footnote">2</a>]</sup> Victim scheduler are selected in random fashion.
+      This class implements <a class="link" href="scheduling.html#class_algorithm"><code class="computeroutput">algorithm</code></a>; if the local ready-queue runs
+      out of ready fibers, ready fibers are stolen from other schedulers. The work-stealing
+      algorithm is based on the Chase-Lev algorithm.<sup>[<a name="fiber.scheduling.f0" href="#ftn.fiber.scheduling.f0" class="footnote">1</a>]</sup> <sup>[<a name="fiber.scheduling.f1" href="#ftn.fiber.scheduling.f1" class="footnote">2</a>]</sup> The victim scheduler (from which a ready fiber is stolen) is selected
+      at random.
     </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
@@ -1878,15 +1879,14 @@ implementation&#8217;s
 <br><hr width="100" align="left">
 <div class="footnote"><p><sup>[<a name="ftn.fiber.scheduling.f0" href="#fiber.scheduling.f0" class="para">1</a>] </sup>
         David Chase and Yossi Lev. Dynamic circular work-stealing deque. In SPAA
-        &#8217;05: Proceedings of the seventeenth annual ACM symposium on Parallelism
-        in algorithms and architectures, pages 21&#8211;28, New York, NY, USA, 2005.
-        ACM.
+        &#8217;05: Proceedings of the seventeenth annual ACM symposium on Parallelism in
+        algorithms and architectures, pages 21&#8211;28, New York, NY, USA, 2005. ACM.
       </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.fiber.scheduling.f1" href="#fiber.scheduling.f1" class="para">2</a>] </sup>
         Nhat Minh L&#234;, Antoniu Pop, Albert Cohen, and Francesco Zappa Nardelli. 2013.
         Correct and efficient work-stealing for weak memory models. In Proceedings
         of the 18th ACM SIGPLAN symposium on Principles and practice of parallel
-        programming (PPoPP '13). ACM, New York, NY, USA, 69-80.
+        programming (PPoPP &#8217;13). ACM, New York, NY, USA, 69-80.
       </p></div>
 </div>
 </div>
