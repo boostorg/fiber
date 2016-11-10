@@ -25,7 +25,7 @@ until 100000 ToEs are created. ToEs return back ther ordinal numbers
 until reaching the root. The test was run 10-20 times, producing a range of
 values for each measurement.
 
-[table performance of N=100000 actors/goroutines (other languages)
+[table observed time to run 100,000 actors/erlang process'/goroutines (other languages)
     [
          [Haskell | stack-1.0.4]
          [Erlang | erts-7.0]
@@ -33,10 +33,10 @@ values for each measurement.
          [Go | go1.6.1 (GOMAXPROCS == 8)]
     ]
     [
-        [32 ms]
-        [64 ms - 121 ms]
-        [152 ms - 164 ms]
-        [70 ms - 98 ms]
+        [0.32 \u00b5s]
+        [0.64 \u00b5s - 1.21 \u00b5s]
+        [1.52 \u00b5s - 1.64 \u00b5s]
+        [0.70 \u00b5s - 0.98 \u00b5s]
     ]
 ]
 
@@ -62,7 +62,7 @@ queue. Fibers that are ready to run are pushed to and popped from the local
 queue. If the queue runs out of ready fibers, fibers are stolen from the local
 queues of other participating threads.
 
-[table performance of N=100000 fibers
+[table observed time to run 100,000 fibers
     [
          [fiber (1C/1T, round robin)]
          [fiber (1C/1T, round robin, tcmalloc)]
@@ -72,12 +72,12 @@ queues of other participating threads.
          [fiber (4C/8T, work stealing, tcmalloc)]
     ]
     [
-        [91 ms - 128 ms]
-        [90 ms - 103 ms]
-        [90 ms - 111 ms]
-        [62 ms - 80 ms]
-        [35 ms - 66 ms]
-        [13 ms - 26 ms]
+        [0.91 \u00b5s - 1.28 \u00b5s]
+        [0.90 \u00b5s - 1.03 \u00b5s]
+        [0.90 \u00b5s - 1.11 \u00b5s]
+        [0.62 \u00b5s - 0.80 \u00b5s]
+        [0.35 \u00b5s - 0.66 \u00b5s]
+        [0.13 \u00b5s - 0.26 \u00b5s]
     ]
 ]
 
@@ -118,7 +118,7 @@ pause/yield memnonic) gives the CPU a hint that the code is in a spin-wait loop.
 * another hardware thread (simultaneous multithreading) can get time slice
 * it does delay a few CPU cycles, but this is necessary to prevent starvation
 
-It is obvious that this strategy is useless on single core systems because the
+It is obvious that this strategy is useless on single core syste\u00b5s because the
 lock can only released if the thread gives up its time slice in order to let
 other threads run. The macro BOOST_FIBERS_SPIN_SINGLE_CORE disables active spinning,
 in other words, the operating system is notified (via `std::this_thread_yield()`) that the

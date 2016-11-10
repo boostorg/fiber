@@ -13,6 +13,7 @@ fiber/synchronization/barriers.html
 fiber/synchronization/channels.html
 fiber/synchronization/channels/buffered_channel.html
 fiber/synchronization/channels/unbuffered_channel.html
+fiber/synchronization/channels/channels.html
 fiber/synchronization/futures.html
 fiber/synchronization/futures/future.html
 fiber/synchronization/futures/promise.html
