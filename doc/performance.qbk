@@ -25,7 +25,7 @@ until 100000 ToEs are created. ToEs return back ther ordinal numbers
 until reaching the root. The test was run 10-20 times, producing a range of
 values for each measurement.
 
-[table observed time to run 100,000 actors/erlang process'/goroutines (other languages)
+[table time per actor/erlang process/goroutine (other languages) (average over 100,000)
     [
          [Haskell | stack-1.0.4]
          [Erlang | erts-7.0]
@@ -62,7 +62,7 @@ queue. Fibers that are ready to run are pushed to and popped from the local
 queue. If the queue runs out of ready fibers, fibers are stolen from the local
 queues of other participating threads.
 
-[table observed time to run 100,000 fibers
+[table time per fiber (average over 100,000)
     [
          [fiber (1C/1T, round robin)]
          [fiber (1C/1T, round robin, tcmalloc)]
@@ -118,7 +118,7 @@ pause/yield memnonic) gives the CPU a hint that the code is in a spin-wait loop.
 * another hardware thread (simultaneous multithreading) can get time slice
 * it does delay a few CPU cycles, but this is necessary to prevent starvation
 
-It is obvious that this strategy is useless on single core syste\u00b5s because the
+It is obvious that this strategy is useless on single core systems because the
 lock can only released if the thread gives up its time slice in order to let
 other threads run. The macro BOOST_FIBERS_SPIN_SINGLE_CORE disables active spinning,
 in other words, the operating system is notified (via `std::this_thread_yield()`) that the
