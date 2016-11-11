@@ -64,20 +64,20 @@ queues of other participating threads.
 
 [table time per fiber (average over 100,000)
     [
-         [fiber (1C/1T, round robin)]
-         [fiber (1C/1T, round robin, tcmalloc)]
-         [fiber (4C/8T, work sharing)]
-         [fiber (4C/8T, work sharing, tcmalloc)]
-         [fiber (4C/8T, work stealing)]
          [fiber (4C/8T, work stealing, tcmalloc)]
+         [fiber (4C/8T, work stealing)]
+         [fiber (4C/8T, work sharing, tcmalloc)]
+         [fiber (4C/8T, work sharing)]
+         [fiber (1C/1T, round robin, tcmalloc)]
+         [fiber (1C/1T, round robin)]
     ]
     [
-        [0.91 \u00b5s - 1.28 \u00b5s]
-        [0.90 \u00b5s - 1.03 \u00b5s]
-        [0.90 \u00b5s - 1.11 \u00b5s]
-        [0.62 \u00b5s - 0.80 \u00b5s]
-        [0.35 \u00b5s - 0.66 \u00b5s]
         [0.13 \u00b5s - 0.26 \u00b5s]
+        [0.35 \u00b5s - 0.66 \u00b5s]
+        [0.62 \u00b5s - 0.80 \u00b5s]
+        [0.90 \u00b5s - 1.11 \u00b5s]
+        [0.90 \u00b5s - 1.03 \u00b5s]
+        [0.91 \u00b5s - 1.28 \u00b5s]
     ]
 ]
 
