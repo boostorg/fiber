@@ -22,9 +22,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-
-static constexpr std::size_t cache_alignment{ 64 };
-static constexpr std::size_t cacheline_length{ 64 };
+#include <boost/fiber/detail/config.hpp>
 
 enum class channel_op_status {
     success = 0,
@@ -62,6 +60,7 @@ private:
     alignas(cache_alignment) slot                        *  slots_{ nullptr };
     std::size_t                                             capacity_;
     char                                                    pad_[cacheline_length];
+    std::size_t                                             waiting_consumer_{ 0 };
 
     bool is_full_() {
         std::size_t idx{ producer_idx_.load( std::memory_order_relaxed) };
@@ -176,7 +175,10 @@ public:
             }
             channel_op_status status{ try_push_( value) };
             if ( channel_op_status::success == status) {
-                not_empty_cnd_.notify_one();
+                std::unique_lock< std::mutex > lk{ mtx_ };
+                if ( 0 < waiting_consumer_) {
+                    not_empty_cnd_.notify_one();
+                }
                 return status;
             } else if ( channel_op_status::full == status) {
                 std::unique_lock< std::mutex > lk{ mtx_ };
@@ -206,6 +208,7 @@ public:
                 return std::move( value);
             } else if ( channel_op_status::empty == status) {
                 std::unique_lock< std::mutex > lk{ mtx_ };
+                ++waiting_consumer_;
                 if ( is_closed() ) {
                     throw std::runtime_error{ "boost fiber: channel is closed" };
                 }
@@ -213,6 +216,7 @@ public:
                     continue;
                 }
                 not_empty_cnd_.wait( lk, [this](){ return is_closed() || ! is_empty_(); });
+                --waiting_consumer_;
             } else {
                 BOOST_ASSERT( channel_op_status::closed == status);
                 throw std::runtime_error{ "boost fiber: channel is closed" };

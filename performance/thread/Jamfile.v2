@@ -16,11 +16,15 @@ import toolset ;
 project boost/fiber/performance/thread
     : requirements
       <link>static
-      <optimization>speed
       <threading>multi
+      <optimization>speed
       <variant>release
     ;
 
-exe skynet
-   : skynet.cpp
+exe skynet_std
+   : skynet_std.cpp
+   ;
+
+exe skynet_pthread
+   : skynet_pthread.cpp
    ;
