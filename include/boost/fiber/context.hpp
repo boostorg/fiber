@@ -157,13 +157,14 @@ private:
     std::atomic< std::size_t >                      use_count_{ 0 };
     std::atomic< unsigned int >                     flags_;
     std::atomic< type >                             type_;
+    std::atomic< scheduler * >                      scheduler_{ nullptr };
 #else
     std::size_t                                     use_count_{ 0 };
     unsigned int                                    flags_;
     type                                            type_;
+    scheduler                                   *   scheduler_{ nullptr };
 #endif
     launch                                          policy_{ launch::post };
-    scheduler                                   *   scheduler_{ nullptr };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
 #else
@@ -358,7 +359,13 @@ public:
 
     virtual ~context();
 
-    scheduler * get_scheduler() const noexcept;
+    scheduler * get_scheduler() const noexcept {
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
+        return scheduler_.load( std::memory_order_relaxed);
+#else
+        return scheduler_;
+#endif
+    }
 
     id get_id() const noexcept;
 
