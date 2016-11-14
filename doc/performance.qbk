@@ -40,6 +40,21 @@ values for each measurement.
     ]
 ]
 
+`std::thread` can not be tested at this time (C++14) because the API does not
+allow to set thread stack size (idefault on Linux 2MB, on Windows 1MB). An
+out-of-memory error is likely. With pthreads the stack size is set 8kBC.
+
+[table time per thread (average over 100,000)
+    [
+         [`std::thread`]
+         [pthread]
+    ]
+    [
+        [n.a.]
+        [1.44 \u00b5s - 1.70 \u00b5s]
+    ]
+]
+
 The test utilizes 4 cores with Symmetric MultiThreading enabled (8 logical
 CPUs). The fiber stacks are allocated by __fixedsize_stack__.
 
