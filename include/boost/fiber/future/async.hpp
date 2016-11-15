@@ -80,7 +80,8 @@ async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Arg
     packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
         std::allocator_arg, salloc, std::forward< Fn >( fn) };
     future< result_t > f{ pt.get_future() };
-    fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
+    fiber{ policy, std::allocator_arg, salloc,
+        std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
 
