@@ -44,14 +44,14 @@ values for each measurement.
 allow to set thread stack size (idefault on Linux 2MB, on Windows 1MB). An
 out-of-memory error is likely. With pthreads the stack size is set 8kBC.
 
-[table time per thread (average over 100,000)
+[table time per thread (average over *10,000* - unable to spawn 100,000 threads)
     [
          [`std::thread`]
          [pthread]
     ]
     [
         [n.a.]
-        [1.44 \u00b5s - 1.70 \u00b5s]
+        [14.4 \u00b5s - 20.8 \u00b5s]
     ]
 ]
 
