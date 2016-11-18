@@ -46,12 +46,12 @@ out-of-memory error is likely. With pthreads the stack size is set 8kBC.
 
 [table time per thread (average over *10,000* - unable to spawn 100,000 threads)
     [
-         [`std::thread`]
          [pthread]
+         [`std::thread`]
     ]
     [
-        [n.a.]
         [14.4 \u00b5s - 20.8 \u00b5s]
+        [18.8 \u00b5s - 28.1 \u00b5s]
     ]
 ]
 
