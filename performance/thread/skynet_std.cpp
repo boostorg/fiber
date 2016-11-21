@@ -37,7 +37,7 @@ void skynet( channel_type & c, std::size_t num, std::size_t size, std::size_t di
 
 int main() {
     try {
-        std::size_t size{ 100000 };
+        std::size_t size{ 10000 };
         std::size_t div{ 10 };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
