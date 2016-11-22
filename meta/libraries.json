@@ -4,7 +4,7 @@
     "authors": [
         "Oliver Kowalke"
     ],
-    "description": "C++11) Userland threads library.",
+    "description": "(C++11) Userland threads library.",
     "category": [
         "Concurrent",
         "System"
