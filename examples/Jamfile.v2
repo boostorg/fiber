@@ -41,6 +41,7 @@ exe wait_stuff : wait_stuff.cpp ;
 exe work_sharing : work_sharing.cpp ;
 
 exe asio/autoecho : asio/autoecho.cpp ;
+exe asio/exchange : asio/exchange.cpp ;
 exe asio/ps/publisher : asio/ps/publisher.cpp ;
 exe asio/ps/server : asio/ps/server.cpp ;
 exe asio/ps/subscriber : asio/ps/subscriber.cpp ;
