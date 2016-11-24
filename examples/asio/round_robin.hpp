@@ -178,6 +178,9 @@ public:
         // once for the operation_aborted handler, once for timer expiration
         // -- but that shouldn't be a big problem.
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
+        suspend_timer_.async_wait([](boost::system::error_code const&){
+            this_fiber::yield();
+          });
     }
 //]
 };
