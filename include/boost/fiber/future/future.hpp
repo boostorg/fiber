@@ -28,7 +28,7 @@ struct future_base {
 
     ptr_t           state_{};
 
-    constexpr future_base() noexcept = default;
+    future_base() noexcept = default;
 
     explicit future_base( ptr_t const& p) noexcept :
         state_{ p } {
@@ -119,7 +119,7 @@ private:
     }
 
 public:
-    constexpr future() noexcept = default;
+    future() noexcept = default;
 
     future( future const&) = delete;
     future & operator=( future const&) = delete;
@@ -167,7 +167,7 @@ private:
     }
 
 public:
-    constexpr future() noexcept = default;
+    future() noexcept = default;
 
     future( future const&) = delete;
     future & operator=( future const&) = delete;
@@ -215,7 +215,7 @@ private:
     }
 
 public:
-    constexpr future() noexcept = default;
+    future() noexcept = default;
 
     future( future const&) = delete;
     future & operator=( future const&) = delete;
@@ -262,7 +262,7 @@ private:
     }
 
 public:
-    constexpr shared_future() noexcept = default;
+    shared_future() noexcept = default;
 
     ~shared_future() = default;
 
@@ -319,7 +319,7 @@ private:
     }
 
 public:
-    constexpr shared_future() noexcept = default;
+    shared_future() noexcept = default;
 
     ~shared_future() = default;
 
@@ -376,7 +376,7 @@ private:
     }
 
 public:
-    constexpr shared_future() noexcept = default;
+    shared_future() noexcept = default;
 
     ~shared_future() = default;
 
