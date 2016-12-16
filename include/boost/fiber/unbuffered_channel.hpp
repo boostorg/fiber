@@ -475,7 +475,7 @@ public:
         typedef typename iterator::pointer pointer_t;
         typedef typename iterator::reference reference_t;
 
-        constexpr iterator() noexcept = default;
+        iterator() noexcept = default;
 
         explicit iterator( unbuffered_channel< T > * chan) noexcept :
             chan_{ chan } {
