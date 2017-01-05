@@ -13,7 +13,11 @@
 #include <vector>
 
 #include <boost/config.hpp>
-#include <boost/context/execution_context.hpp>
+#if (BOOST_EXECUTION_CONTEXT==1)
+# include <boost/context/execution_context.hpp>
+#else
+# include <boost/context/continuation.hpp>
+#endif
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
@@ -116,9 +120,9 @@ public:
 
     void set_terminated( context *) noexcept;
 #else
-    boost::context::execution_context< detail::data_t * > dispatch() noexcept;
+    boost::context::continuation dispatch() noexcept;
 
-    boost::context::execution_context< detail::data_t * > set_terminated( context *) noexcept;
+    boost::context::continuation set_terminated( context *) noexcept;
 #endif
 
     void yield( context *) noexcept;

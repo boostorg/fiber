@@ -11,7 +11,11 @@
 
 #include <boost/config.hpp>
 #include <boost/context/detail/invoke.hpp>
-#include <boost/context/execution_context.hpp>
+#if (BOOST_EXECUTION_CONTEXT==1)
+# include <boost/context/execution_context.hpp>
+#else
+# include <boost/context/continuation.hpp>
+#endif
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/data.hpp>
@@ -86,14 +90,13 @@ public:
     wrapper( wrapper && other) = default;
     wrapper & operator=( wrapper && other) = default;
 
-    boost::context::execution_context< data_t * >
-    operator()( boost::context::execution_context< data_t * > && ctx, data_t * dp) {
+    boost::context::continuation
+    operator()( boost::context::continuation && c) {
         return boost::context::detail::invoke(
                 std::move( fn1_),
                 fn2_,
                 tpl_,
-                std::forward< boost::context::execution_context< data_t * > >( ctx),
-                dp);
+                std::forward< boost::context::continuation >( c) );
     }
 };
 
