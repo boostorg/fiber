@@ -20,6 +20,11 @@
 // https://software.intel.com/en-us/articles/benefitting-power-and-performance-sleep-loops
 // https://software.intel.com/en-us/articles/long-duration-spin-wait-loops-on-hyper-threading-technology-enabled-intel-processors
 
+#if BOOST_COMP_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -107,5 +112,9 @@ public:
 };
 
 }}}
+
+#if BOOST_COMP_CLANG
+#pragma clang diagnostic pop
+#endif
 
 #endif // BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX_H

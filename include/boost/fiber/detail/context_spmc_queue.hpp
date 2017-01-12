@@ -30,6 +30,11 @@
 // In Proceedings of the 18th ACM SIGPLAN symposium on Principles and practice
 // of parallel programming (PPoPP '13). ACM, New York, NY, USA, 69-80.
 
+#if BOOST_COMP_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -154,5 +159,9 @@ public:
 };
 
 }}}
+
+#if BOOST_COMP_CLANG
+#pragma clang diagnostic pop
+#endif
 
 #endif // BOOST_FIBERS_DETAIL_CONTEXT_SPMC_QUEUE_H
