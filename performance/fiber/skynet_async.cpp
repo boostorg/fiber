@@ -46,20 +46,22 @@ std::uint64_t skynet(allocator_type& salloc, std::uint64_t num, std::uint64_t si
         std::vector<boost::fibers::future<std::uint64_t> > results;
         results.reserve( div);
 
-        for ( std::uint64_t i = 0; i != div; ++i){
+        for ( std::uint64_t i = 0; i != div; ++i) {
             std::uint64_t sub_num = num + i * size;
             results.emplace_back(boost::fibers::async(
                   boost::fibers::launch::dispatch
                 , std::allocator_arg, salloc
                 , skynet
-                , std::ref(salloc), sub_num, size, div));
+                , std::ref( salloc), sub_num, size, div));
         }
 
         std::uint64_t sum = 0;
         for ( auto& f : results)
             sum += f.get();
+            
         return sum;
     }
+
     return num;
 }
 
