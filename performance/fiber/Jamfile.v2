@@ -70,3 +70,8 @@ exe skynet_shared :
 exe skynet_stealing :
     pbind
     skynet_stealing.cpp ;
+
+exe skynet_async :
+    pbind
+    skynet_async.cpp ;
+
