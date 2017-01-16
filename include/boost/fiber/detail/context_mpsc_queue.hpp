@@ -26,6 +26,11 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#if BOOST_COMP_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -90,6 +95,10 @@ public:
 };
 
 }}}
+
+#if BOOST_COMP_CLANG
+#pragma clang diagnostic pop
+#endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

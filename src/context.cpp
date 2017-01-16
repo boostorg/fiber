@@ -162,10 +162,10 @@ context::resume_( detail::data_t & d) noexcept {
 #else
 void
 context::resume_( detail::data_t & d) noexcept {
-    auto result = ctx_( & d);
-    detail::data_t * dp( std::get< 1 >( result) );
+    boost::context::continuation c = boost::context::resume( std::move( c_), & d);
+    detail::data_t * dp = boost::context::transfer_data< detail::data_t * >( c);
     if ( nullptr != dp) {
-        dp->from->ctx_ = std::move( std::get< 0 >( result) );
+        dp->from->c_ = std::move( c);
         if ( nullptr != dp->lk) {
             dp->lk->unlock();
         } else if ( nullptr != dp->ctx) {
@@ -188,7 +188,7 @@ context::context( main_context_t) noexcept :
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ boost::context::execution_context::current() } {
 #else
-    ctx_{} {
+    c_{} {
 #endif
 }
 
@@ -211,21 +211,28 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
           }}
-#else
-    ctx_{ std::allocator_arg, palloc, salloc,
-          [this,sched](boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) noexcept {
-            // update execution_context of calling fiber
-            dp->from->ctx_ = std::move( ctx);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                context_initializer::active_->set_ready_( dp->ctx);
-            }
-            // execute scheduler::dispatch()
-            return sched->dispatch();
-          }}
-#endif
 {}
+#else
+    c_{}
+{
+    c_ = boost::context::callcc(
+            std::allocator_arg, palloc, salloc,
+            [this,sched](boost::context::continuation && c) noexcept {
+                c = boost::context::resume( std::move( c) );
+                detail::data_t * dp = boost::context::transfer_data< detail::data_t * >( c); 
+                // update continuation of calling fiber
+                dp->from->c_ = std::move( c);
+                if ( nullptr != dp->lk) {
+                    dp->lk->unlock();
+                } else if ( nullptr != dp->ctx) {
+                    context_initializer::active_->set_ready_( dp->ctx);
+                }
+                // execute scheduler::dispatch()
+                return sched->dispatch();
+            });
+
+}
+#endif
 
 context::~context() {
     BOOST_ASSERT( wait_queue_.empty() );
@@ -320,24 +327,8 @@ context::yield() noexcept {
     get_scheduler()->yield( context::active() );
 }
 
-#if (BOOST_EXECUTION_CONTEXT>1)
-boost::context::execution_context< detail::data_t * >
-context::suspend_with_cc() noexcept {
-    context * prev = this;
-    // context_initializer::active_ will point to `this`
-    // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
-    detail::data_t d{ prev };
-    // context switch
-    return std::move( std::get< 0 >( ctx_( & d) ) );
-}
-#endif
-
 #if (BOOST_EXECUTION_CONTEXT==1)
 void
-#else
-boost::context::execution_context< detail::data_t * >
-#endif
 context::set_terminated() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk( splk_);
@@ -358,9 +349,41 @@ context::set_terminated() noexcept {
     }
     fss_data_.clear();
     // switch to another context
-#if (BOOST_EXECUTION_CONTEXT==1)
     get_scheduler()->set_terminated( this);
+}
 #else
+boost::context::continuation
+context::suspend_with_cc() noexcept {
+    context * prev = this;
+    // context_initializer::active_ will point to `this`
+    // prev will point to previous active context
+    std::swap( context_initializer::active_, prev);
+    detail::data_t d{ prev };
+    // context switch
+    return boost::context::resume( std::move( c_), & d);
+}
+
+boost::context::continuation
+context::set_terminated() noexcept {
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk( splk_);
+    // mark as terminated
+    flags_ |= flag_terminated;
+    // notify all waiting fibers
+    while ( ! wait_queue_.empty() ) {
+        context * ctx = & wait_queue_.front();
+        // remove fiber from wait-queue
+        wait_queue_.pop_front();
+        // notify scheduler
+        set_ready( ctx);
+    }
+    lk.unlock();
+    // release fiber-specific-data
+    for ( fss_data_t::value_type & data : fss_data_) {
+        data.second.do_cleanup();
+    }
+    fss_data_.clear();
+    // switch to another context
     return get_scheduler()->set_terminated( this);
 #endif
 }

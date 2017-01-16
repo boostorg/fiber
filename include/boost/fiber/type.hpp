@@ -18,7 +18,6 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/context/detail/apply.hpp>
-#include <boost/context/execution_context.hpp>
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>

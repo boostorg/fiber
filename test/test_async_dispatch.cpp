@@ -115,6 +115,29 @@ void test_async_6() {
     BOOST_CHECK( 3 == x.value);
 }
 
+void test_async_stack_alloc() {
+    boost::fibers::future< void > f1 = boost::fibers::async(
+            boost::fibers::launch::dispatch,
+            std::allocator_arg,
+            boost::fibers::fixedsize_stack{},
+            fn1);
+    BOOST_CHECK( f1.valid() );
+
+    f1.get();
+}
+
+void test_async_std_alloc() {
+    boost::fibers::future< void > f1 = boost::fibers::async(
+            boost::fibers::launch::dispatch,
+            std::allocator_arg,
+            boost::fibers::fixedsize_stack{},
+            std::allocator< void >{},
+            fn1);
+    BOOST_CHECK( f1.valid() );
+
+    f1.get();
+}
+
 
 boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     boost::unit_test_framework::test_suite* test =
@@ -126,6 +149,8 @@ boost::unit_test_framework::test_suite* init_unit_test_suite(int, char*[]) {
     test->add(BOOST_TEST_CASE(test_async_4));
     test->add(BOOST_TEST_CASE(test_async_5));
     test->add(BOOST_TEST_CASE(test_async_6));
+    test->add(BOOST_TEST_CASE(test_async_stack_alloc));
+    test->add(BOOST_TEST_CASE(test_async_std_alloc));
 
     return test;
 }

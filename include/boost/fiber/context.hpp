@@ -18,7 +18,11 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/context/detail/apply.hpp>
-#include <boost/context/execution_context.hpp>
+#if (BOOST_EXECUTION_CONTEXT==1)
+# include <boost/context/execution_context.hpp>
+#else
+# include <boost/context/continuation.hpp>
+#endif
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
@@ -168,7 +172,7 @@ private:
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
 #else
-    boost::context::execution_context< detail::data_t * >   ctx_;
+    boost::context::continuation                    c_;
 #endif
 
     void resume_( detail::data_t &) noexcept;
@@ -186,6 +190,7 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
+            // FIXME: use std::apply() if available
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
         // terminate context
@@ -194,19 +199,22 @@ private:
     }
 #else
     template< typename Fn, typename Tpl >
-    boost::context::execution_context< detail::data_t * >
-    run_( boost::context::execution_context< detail::data_t * > && ctx, Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
+    boost::context::continuation
+    run_( boost::context::continuation && c, Fn && fn_, Tpl && tpl_) noexcept {
         {
             // fn and tpl must be destroyed before calling set_terminated()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-            // update execution_context of calling fiber
-            dp->from->ctx_ = std::move( ctx);
+            c = boost::context::resume( std::move( c) );
+            detail::data_t * dp = boost::context::transfer_data< detail::data_t * >( c);
+            // update contiunation of calling fiber
+            dp->from->c_ = std::move( c);
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
+            // FIXME: use std::apply() if available
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
         // terminate context
@@ -333,26 +341,30 @@ public:
                     run_( std::move( fn), std::move( tpl), static_cast< detail::data_t * >( vp) );
               }}
 # endif
+        {}
 #else
+        c_{}
+        {
 # if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-        ctx_{ std::allocator_arg, palloc, salloc,
-              detail::wrap(
-                  [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                          boost::context::execution_context< detail::data_t * > && ctx, detail::data_t * dp) mutable noexcept {
-                        return run_( std::forward< boost::context::execution_context< detail::data_t * > >( ctx), std::move( fn), std::move( tpl), dp);
-                  },
-                  std::forward< Fn >( fn),
-                  std::forward< Tpl >( tpl) )}
-
+            c_ = boost::context::callcc(
+                    std::allocator_arg, palloc, salloc,
+                      detail::wrap(
+                          [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
+                                  boost::context::continuation && c) mutable noexcept {
+                                return run_( std::forward< boost::context::continuation >( c), std::move( fn), std::move( tpl) );
+                          },
+                          std::forward< Fn >( fn),
+                          std::forward< Tpl >( tpl) ) );
 # else
-        ctx_{ std::allocator_arg, palloc, salloc,
-              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
-               (boost::context::execution_context< detail::data_t * > && ctx, detail::data_t * dp) mutable noexcept {
-                    return run_( std::forward< boost::context::execution_context< detail::data_t * > >( ctx), std::move( fn), std::move( tpl), dp);
-              }}
+            c_ = boost::context::callcc(
+                    std::allocator_arg, palloc, salloc,
+                    [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
+                    (boost::context::continuation && c) mutable noexcept {
+                          return run_( std::forward< boost::context::continuation >( c), std::move( fn), std::move( tpl) );
+                    });
 # endif
+        }
 #endif
-    {}
 
     context( context const&) = delete;
     context & operator=( context const&) = delete;
@@ -379,8 +391,8 @@ public:
 #if (BOOST_EXECUTION_CONTEXT==1)
     void set_terminated() noexcept;
 #else
-    boost::context::execution_context< detail::data_t * > suspend_with_cc() noexcept;
-    boost::context::execution_context< detail::data_t * > set_terminated() noexcept;
+    boost::context::continuation suspend_with_cc() noexcept;
+    boost::context::continuation set_terminated() noexcept;
 #endif
     void join();
 
@@ -484,11 +496,11 @@ public:
             // deallocates stack (execution_context is ref counted)
             ctx->~context();
 #else
-            boost::context::execution_context< detail::data_t * > cc( std::move( ctx->ctx_) );
+            boost::context::continuation cc( std::move( ctx->c_) );
             // destruct context
             ctx->~context();
             // deallocated stack
-            cc( nullptr);
+            boost::context::resume( std::move( cc), nullptr);
 #endif
         }
     }
