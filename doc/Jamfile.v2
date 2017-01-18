@@ -9,6 +9,8 @@ import boostbook ;
 import quickbook ;
 import modules ;
 
+path-constant here : . ;
+
 boostbook fiber
     :
         fibers.qbk
@@ -26,14 +28,12 @@ boostbook fiber
         <xsl:param>toc.max.depth=3
         # How far down we go with TOC's
         <xsl:param>generate.section.toc.level=10
+        # Absolute path for images:
+        <format>pdf:<xsl:param>img.src.path=$(here)/html/
     ;
 
 ###############################################################################
-alias boostdoc
-    : fiber
-    :
-    :
-    : ;
+alias boostdoc ;
 explicit boostdoc ;
-alias boostrelease ;
+alias boostrelease : fiber ;
 explicit boostrelease ;
