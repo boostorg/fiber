@@ -50,11 +50,11 @@ private:
 public:
     work_stealing( std::size_t max_idx, std::size_t idx, bool suspend = false);
 
-	work_stealing( work_stealing const&) = delete;
-	work_stealing( work_stealing &&) = delete;
+    work_stealing( work_stealing const&) = delete;
+    work_stealing( work_stealing &&) = delete;
 
-	work_stealing & operator=( work_stealing const&) = delete;
-	work_stealing & operator=( work_stealing &&) = delete;
+    work_stealing & operator=( work_stealing const&) = delete;
+    work_stealing & operator=( work_stealing &&) = delete;
 
     void awakened( context * ctx) noexcept;
 
@@ -68,9 +68,9 @@ public:
         return ! rqueue_.empty() || ! lqueue_.empty();
     }
 
-	void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept;
+    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept;
 
-	void notify() noexcept;
+    void notify() noexcept;
 };
 
 }}}
