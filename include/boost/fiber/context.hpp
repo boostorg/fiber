@@ -206,7 +206,7 @@ private:
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
             c = boost::context::resume( std::move( c) );
-            detail::data_t * dp = boost::context::transfer_data< detail::data_t * >( c);
+            detail::data_t * dp = boost::context::get_data< detail::data_t * >( c);
             // update contiunation of calling fiber
             dp->from->c_ = std::move( c);
             if ( nullptr != dp->lk) {
