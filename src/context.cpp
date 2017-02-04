@@ -162,8 +162,8 @@ context::resume_( detail::data_t & d) noexcept {
 #else
 void
 context::resume_( detail::data_t & d) noexcept {
-    boost::context::continuation c = boost::context::resume( std::move( c_), & d);
-    detail::data_t * dp = boost::context::transfer_data< detail::data_t * >( c);
+    boost::context::continuation c = c_( & d);
+    detail::data_t * dp = boost::context::get_data< detail::data_t * >( c);
     if ( nullptr != dp) {
         dp->from->c_ = std::move( c);
         if ( nullptr != dp->lk) {
@@ -218,8 +218,8 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     c_ = boost::context::callcc(
             std::allocator_arg, palloc, salloc,
             [this,sched](boost::context::continuation && c) noexcept {
-                c = boost::context::resume( std::move( c) );
-                detail::data_t * dp = boost::context::transfer_data< detail::data_t * >( c); 
+                c = c();
+                detail::data_t * dp = boost::context::get_data< detail::data_t * >( c); 
                 // update continuation of calling fiber
                 dp->from->c_ = std::move( c);
                 if ( nullptr != dp->lk) {
@@ -360,7 +360,7 @@ context::suspend_with_cc() noexcept {
     std::swap( context_initializer::active_, prev);
     detail::data_t d{ prev };
     // context switch
-    return boost::context::resume( std::move( c_), & d);
+    return c_( & d);
 }
 
 boost::context::continuation
