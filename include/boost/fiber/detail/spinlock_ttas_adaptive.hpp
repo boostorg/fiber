@@ -72,6 +72,7 @@ public:
                     // delays the next instruction's execution for a finite period of time (depends on processor family)
                     // the CPU is not under demand, parts of the pipeline are no longer being used
                     // -> reduces the power consumed by the CPU
+                    // -> prevent pipeline stalls
                     cpu_relax();
                 } else if ( BOOST_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
                     ++tests;
@@ -102,6 +103,8 @@ public:
                     std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }( generator);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
+                    // -> reduces the power consumed by the CPU
+                    // -> prevent pipeline stalls
                     cpu_relax();
                 }
             } else {

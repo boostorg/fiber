@@ -66,6 +66,7 @@ public:
                 // delays the next instruction's execution for a finite period of time (depends on processor family)
                 // the CPU is not under demand, parts of the pipeline are no longer being used
                 // -> reduces the power consumed by the CPU
+                // -> prevent pipeline stalls
                 cpu_relax();
 #else
                 // std::this_thread::yield() allows this_thread to give up the remaining part of its time slice,
@@ -82,6 +83,8 @@ public:
                     0, static_cast< std::int32_t >( 1) << collisions }( generator);
                 ++collisions;
                 for ( std::int32_t i = 0; i < z; ++i) {
+                    // -> reduces the power consumed by the CPU
+                    // -> prevent pipeline stalls
                     cpu_relax();
                 }
             } else {
