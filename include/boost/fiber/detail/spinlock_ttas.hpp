@@ -68,6 +68,7 @@ public:
                     // delays the next instruction's execution for a finite period of time (depends on processor family)
                     // the CPU is not under demand, parts of the pipeline are no longer being used
                     // -> reduces the power consumed by the CPU
+                    // -> prevents pipeline stalls
                     cpu_relax();
                 } else if ( BOOST_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
                     ++tests;
@@ -89,15 +90,17 @@ public:
             }
             // test-and-set shared variable 'status_'
             // everytime 'status_' is signaled over the bus, even if the test failes
-            if ( spinlock_status::locked == state_.exchange( spinlock_status::locked, std::memory_order_acquire) ) {
+            if ( spinlock_status::locked == state_.exchange( spinlock_status::locked, std::memory_order_acq_rel) ) {
                 // spinlock now contended
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
                 static thread_local std::minstd_rand generator;
-                const std::size_t z =
-                    std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }( generator);
+                const std::size_t z = std::uniform_int_distribution< std::size_t >{
+                    0, static_cast< std::size_t >( 1) << collisions }( generator);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
+                    // -> reduces the power consumed by the CPU
+                    // -> prevents pipeline stalls
                     cpu_relax();
                 }
             } else {
