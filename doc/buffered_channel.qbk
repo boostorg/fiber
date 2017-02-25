@@ -120,7 +120,7 @@ Class `buffered_channel` supports range-for syntax:
         explicit buffered_channel( std::size_t capacity);
 
 [variablelist
-[[Preconditions:] [`0!=capacity && 0==(capacity & (capacity-1))`]]
+[[Preconditions:] [`2<=capacity && 0==(capacity & (capacity-1))`]]
 [[Effects:] [The constructor constructs an object of class `buffered_channel`
 with an internal buffer of size `capacity`.]]
 [[Throws:] [`fiber_error`]]

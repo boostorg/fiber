@@ -131,7 +131,7 @@ private:
 public:
     explicit buffered_channel( std::size_t capacity) :
         capacity_{ capacity } {
-        if ( 0 == capacity_ || 0 != ( capacity_ & (capacity_ - 1) ) ) { 
+        if ( 2 > capacity_ || 0 != ( capacity_ & (capacity_ - 1) ) ) { 
             throw fiber_error( std::make_error_code( std::errc::invalid_argument),
                                "boost fiber: buffer capacity is invalid");
         }
