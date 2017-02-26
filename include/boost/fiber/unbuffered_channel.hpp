@@ -240,10 +240,6 @@ public:
                     // clear slot
                     slot * nil_slot{ nullptr }, * own_slot{ & s };
                     slot_.compare_exchange_strong( own_slot, nil_slot, std::memory_order_acq_rel);
-                    // relock local lk
-                    lk.lock();
-                    // remove from waiting-queue
-                    ctx->wait_unlink();
                     // resumed, value has not been consumed
                     return channel_op_status::timeout;
                 }
@@ -295,10 +291,6 @@ public:
                     // clear slot
                     slot * nil_slot{ nullptr }, * own_slot{ & s };
                     slot_.compare_exchange_strong( own_slot, nil_slot, std::memory_order_acq_rel);
-                    // relock local lk
-                    lk.lock();
-                    // remove from waiting-queue
-                    ctx->wait_unlink();
                     // resumed, value has not been consumed
                     return channel_op_status::timeout;
                 }
