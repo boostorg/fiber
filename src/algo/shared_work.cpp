@@ -29,7 +29,7 @@ shared_work::awakened( context * ctx) noexcept {
         lqueue_.push_back( * ctx);
     } else {
         ctx->detach();
-        std::unique_lock< std::mutex > lk( rqueue_mtx_); /*<
+        std::unique_lock< std::mutex > lk{ rqueue_mtx_ }; /*<
                 worker fiber, enqueue on shared queue
             >*/
         rqueue_.push_back( ctx);
@@ -40,8 +40,8 @@ shared_work::awakened( context * ctx) noexcept {
 //[pick_next_ws
 context *
 shared_work::pick_next() noexcept {
-    context * ctx( nullptr);
-    std::unique_lock< std::mutex > lk( rqueue_mtx_);
+    context * ctx = nullptr;
+    std::unique_lock< std::mutex > lk{ rqueue_mtx_ };
     if ( ! rqueue_.empty() ) { /*<
             pop an item from the ready queue
         >*/
@@ -70,11 +70,11 @@ void
 shared_work::suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
     if ( suspend_) {
         if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
-            std::unique_lock< std::mutex > lk( mtx_);
+            std::unique_lock< std::mutex > lk{ mtx_ };
             cnd_.wait( lk, [this](){ return flag_; });
             flag_ = false;
         } else {
-            std::unique_lock< std::mutex > lk( mtx_);
+            std::unique_lock< std::mutex > lk{ mtx_ };
             cnd_.wait_until( lk, time_point, [this](){ return flag_; });
             flag_ = false;
         }
@@ -84,14 +84,14 @@ shared_work::suspend_until( std::chrono::steady_clock::time_point const& time_po
 void
 shared_work::notify() noexcept {
     if ( suspend_) {
-        std::unique_lock< std::mutex > lk( mtx_);
+        std::unique_lock< std::mutex > lk{ mtx_ };
         flag_ = true;
         lk.unlock();
         cnd_.notify_all();
     }
 }
 
-shared_work::rqueue_t shared_work::rqueue_{};
+shared_work::rqueue_type shared_work::rqueue_{};
 std::mutex shared_work::rqueue_mtx_{};
 
 }}}

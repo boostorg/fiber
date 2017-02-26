@@ -35,8 +35,7 @@ void yield() noexcept {
 
 template< typename Clock, typename Duration >
 void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time_) {
-    std::chrono::steady_clock::time_point sleep_time(
-            boost::fibers::detail::convert( sleep_time_) );
+    std::chrono::steady_clock::time_point sleep_time = boost::fibers::detail::convert( sleep_time_);
     fibers::context::active()->wait_until( sleep_time);
 }
 
@@ -48,8 +47,7 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 
 template< typename PROPS >
 PROPS & properties() {
-    fibers::fiber_properties * props =
-        fibers::context::active()->get_properties();
+    fibers::fiber_properties * props = fibers::context::active()->get_properties();
     if ( ! props) {
         // props could be nullptr if the thread's main fiber has not yet
         // yielded (not yet passed through algorithm_with_properties::
@@ -61,7 +59,7 @@ PROPS & properties() {
         props = fibers::context::active()->get_properties();
         // Could still be hosed if the running manager isn't a subclass of
         // algorithm_with_properties.
-        BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+        BOOST_ASSERT_MSG( props, "this_fiber::properties not set");
     }
     return dynamic_cast< PROPS & >( * props );
 }

@@ -248,11 +248,10 @@ public:
         context  *   impl_{ nullptr };
 
     public:
-        id() noexcept {
-        }
+        id() = default;
 
         explicit id( context * impl) noexcept :
-            impl_( impl) {
+            impl_{ impl } {
         }
 
         bool operator==( id const& other) const noexcept {
@@ -498,12 +497,12 @@ public:
         BOOST_ASSERT( nullptr != ctx);
         if ( 0 == --ctx->use_count_) {
 #if (BOOST_EXECUTION_CONTEXT==1)
-            boost::context::execution_context ec( ctx->ctx_);
+            boost::context::execution_context ec = ctx->ctx_;
             // destruct context
             // deallocates stack (execution_context is ref counted)
             ctx->~context();
 #else
-            boost::context::continuation cc( std::move( ctx->c_) );
+            boost::context::continuation cc = std::move( ctx->c_);
             // destruct context
             ctx->~context();
             // deallocated stack
@@ -540,14 +539,14 @@ static intrusive_ptr< context > make_worker_context( launch policy,
     const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
     // placement new of context on top of fiber's stack
-    return intrusive_ptr< context >( 
-            ::new ( sp) context(
+    return intrusive_ptr< context >{ 
+            ::new ( sp) context{
                 worker_context,
                 policy,
-                boost::context::preallocated( sp, size, sctx),
+                boost::context::preallocated{ sp, size, sctx },
                 salloc,
                 std::forward< Fn >( fn),
-                std::make_tuple( std::forward< Args >( args) ... ) ) );
+                std::make_tuple( std::forward< Args >( args) ... ) } };
 }
 
 namespace detail {

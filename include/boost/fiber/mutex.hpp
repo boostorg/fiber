@@ -33,10 +33,10 @@ class BOOST_FIBERS_DECL mutex {
 private:
     friend class condition_variable;
 
-    typedef context::wait_queue_t   wait_queue_t;
+    typedef context::wait_queue_t   wait_queue_type;
 
     context                 *   owner_{ nullptr };
-    wait_queue_t                wait_queue_{};
+    wait_queue_type             wait_queue_{};
     detail::spinlock            wait_queue_splk_{};
 
 public:

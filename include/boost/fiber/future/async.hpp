@@ -33,11 +33,11 @@ future<
 async( Fn && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type     result_t;
+    >::type     result_type;
 
-    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+    packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
         std::forward< Fn >( fn) };
-    future< result_t > f{ pt.get_future() };
+    future< result_type > f{ pt.get_future() };
     fiber{ std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
@@ -54,11 +54,11 @@ future<
 async( Policy policy, Fn && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type     result_t;
+    >::type     result_type;
 
-    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+    packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
         std::forward< Fn >( fn) };
-    future< result_t > f{ pt.get_future() };
+    future< result_type > f{ pt.get_future() };
     fiber{ policy, std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
 }
@@ -75,11 +75,11 @@ future<
 async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type     result_t;
+    >::type     result_type;
 
-    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+    packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
         std::forward< Fn >( fn) };
-    future< result_t > f{ pt.get_future() };
+    future< result_type > f{ pt.get_future() };
     fiber{ policy, std::allocator_arg, salloc,
         std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;
@@ -97,11 +97,11 @@ future<
 async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Allocator alloc, Fn && fn, Args && ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
-    >::type     result_t;
+    >::type     result_type;
 
-    packaged_task< result_t( typename std::decay< Args >::type ... ) > pt{
+    packaged_task< result_type( typename std::decay< Args >::type ... ) > pt{
         std::allocator_arg, alloc, std::forward< Fn >( fn) };
-    future< result_t > f{ pt.get_future() };
+    future< result_type > f{ pt.get_future() };
     fiber{ policy, std::allocator_arg, salloc,
         std::move( pt), std::forward< Args >( args) ... }.detach();
     return f;

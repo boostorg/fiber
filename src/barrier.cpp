@@ -22,14 +22,14 @@ barrier::barrier( std::size_t initial) :
 	initial_{ initial },
 	current_{ initial_ } {
     if ( 0 == initial) {
-        throw fiber_error( std::make_error_code( std::errc::invalid_argument),
-                           "boost fiber: zero initial barrier count");
+        throw fiber_error{ std::make_error_code( std::errc::invalid_argument),
+                           "boost fiber: zero initial barrier count" };
     }
 }
 
 bool
 barrier::wait() {
-	std::unique_lock< mutex > lk( mtx_);
+	std::unique_lock< mutex > lk{ mtx_ };
 	const bool cycle = cycle_;
 	if ( 0 == --current_) {
 		cycle_ = ! cycle_;

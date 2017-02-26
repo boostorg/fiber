@@ -24,8 +24,8 @@ namespace fibers {
 
 void
 scheduler::release_terminated_() noexcept {
-    terminated_queue_t::iterator e( terminated_queue_.end() );
-    for ( terminated_queue_t::iterator i( terminated_queue_.begin() );
+    terminated_queue_type::iterator e = terminated_queue_.end();
+    for ( terminated_queue_type::iterator i = terminated_queue_.begin();
             i != e;) {
         context * ctx = & ( * i);
         // remove context from terminated-queue
@@ -47,9 +47,9 @@ scheduler::release_terminated_() noexcept {
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
 scheduler::remote_ready2ready_() noexcept {
-    context * ctx = nullptr;
+    context * ctx = remote_ready_queue_.pop();
     // get context from remote ready-queue
-    while ( nullptr != ( ctx = remote_ready_queue_.pop() ) ) {
+    while ( nullptr != ctx) {
         // store context in local queues
         set_ready( ctx);
     }
@@ -61,10 +61,9 @@ scheduler::sleep2ready_() noexcept {
     // move context which the deadline has reached
     // to ready-queue
     // sleep-queue is sorted (ascending)
-    std::chrono::steady_clock::time_point now =
-        std::chrono::steady_clock::now();
-    sleep_queue_t::iterator e = sleep_queue_.end();
-    for ( sleep_queue_t::iterator i = sleep_queue_.begin(); i != e;) {
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    sleep_queue_type::iterator e = sleep_queue_.end();
+    for ( sleep_queue_type::iterator i = sleep_queue_.begin(); i != e;) {
         context * ctx = & ( * i);
         // dipatcher context must never be pushed to sleep-queue
         BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
@@ -149,7 +148,7 @@ scheduler::dispatch() noexcept {
             std::chrono::steady_clock::time_point suspend_time =
                     (std::chrono::steady_clock::time_point::max)();
             // get lowest deadline from sleep-queue
-            sleep_queue_t::iterator i = sleep_queue_.begin();
+            sleep_queue_type::iterator i = sleep_queue_.begin();
             if ( sleep_queue_.end() != i) {
                 suspend_time = i->tp_;
             }
@@ -195,7 +194,7 @@ scheduler::dispatch() noexcept {
             std::chrono::steady_clock::time_point suspend_time =
                     (std::chrono::steady_clock::time_point::max)();
             // get lowest deadline from sleep-queue
-            sleep_queue_t::iterator i = sleep_queue_.begin();
+            sleep_queue_type::iterator i = sleep_queue_.begin();
             if ( sleep_queue_.end() != i) {
                 suspend_time = i->tp_;
             }

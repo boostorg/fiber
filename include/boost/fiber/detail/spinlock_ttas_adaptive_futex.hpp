@@ -33,7 +33,7 @@ class spinlock_ttas_adaptive_futex {
 private:
     // align shared variable 'value_' at cache line to prevent false sharing
     alignas(cache_alignment) std::atomic< std::int32_t >    value_{ 0 };
-    std::atomic< std::int32_t >                              tests_{ 0 };
+    std::atomic< std::int32_t >                             tests_{ 0 };
     // padding to avoid other data one the cacheline of shared variable 'value_'
     char                                                    pad_[cacheline_length];
 

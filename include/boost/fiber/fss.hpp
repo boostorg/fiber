@@ -58,9 +58,9 @@ public:
     }
 
     ~fiber_specific_ptr() {
-        context * f = context::active();
-        if ( nullptr != f) {
-            f->set_fss_data(
+        context * active_ctx = context::active();
+        if ( nullptr != active_ctx) {
+            active_ctx->set_fss_data(
                 this, cleanup_fn_, nullptr, true);
         }
     }

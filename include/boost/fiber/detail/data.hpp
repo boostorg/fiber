@@ -28,7 +28,7 @@ struct data_t {
     spinlock_lock   *   lk{ nullptr };
     context         *   ctx{ nullptr };
 
-    data_t() noexcept = default;
+    data_t() = default;
 
     explicit data_t( spinlock_lock * lk_) noexcept :
         lk{ lk_ } {

@@ -40,9 +40,9 @@ private:
 public:
     wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
              boost::context::execution_context const& ctx) :
-        fn1_( std::move( fn1) ),
-        fn2_( std::move( fn2) ),
-        tpl_( std::move( tpl) ),
+        fn1_{ std::move( fn1) },
+        fn2_{ std::move( fn2) },
+        tpl_{ std::move( tpl) },
         ctx_{ ctx } {
     }
 
@@ -53,6 +53,7 @@ public:
     wrapper & operator=( wrapper && other) = default;
 
     void operator()( void * vp) {
+        // FIXME: use std::invoke() if available
         boost::context::detail::invoke(
                 std::move( fn1_),
                 fn2_, tpl_, ctx_, vp);
@@ -63,11 +64,11 @@ template< typename Fn1, typename Fn2, typename Tpl  >
 wrapper< Fn1, Fn2, Tpl >
 wrap( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
       boost::context::execution_context const& ctx) {
-    return wrapper< Fn1, Fn2, Tpl >(
+    return wrapper< Fn1, Fn2, Tpl >{
             std::forward< Fn1 >( fn1),
             std::forward< Fn2 >( fn2),
             std::forward< Tpl >( tpl),
-            ctx);
+            ctx };
 }
 #else
 template< typename Fn1, typename Fn2, typename Tpl  >
@@ -79,9 +80,9 @@ private:
 
 public:
     wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) :
-        fn1_( std::move( fn1) ),
-        fn2_( std::move( fn2) ),
-        tpl_( std::move( tpl) ) {
+        fn1_{ std::move( fn1) },
+        fn2_{ std::move( fn2) },
+        tpl_{ std::move( tpl) } {
     }
 
     wrapper( wrapper const&) = delete;
@@ -92,6 +93,7 @@ public:
 
     boost::context::continuation
     operator()( boost::context::continuation && c) {
+        // FIXME: use std::invoke() if available
         return boost::context::detail::invoke(
                 std::move( fn1_),
                 fn2_,
@@ -103,10 +105,10 @@ public:
 template< typename Fn1, typename Fn2, typename Tpl  >
 wrapper< Fn1, Fn2, Tpl >
 wrap( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) {
-    return wrapper< Fn1, Fn2, Tpl >(
+    return wrapper< Fn1, Fn2, Tpl >{
             std::forward< Fn1 >( fn1),
             std::forward< Fn2 >( fn2),
-            std::forward< Tpl >( tpl) );
+            std::forward< Tpl >( tpl) };
 }
 #endif
 
