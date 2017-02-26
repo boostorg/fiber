@@ -22,14 +22,6 @@
 namespace boost {
 namespace fibers {
 
-context *
-scheduler::get_next_() noexcept {
-    context * ctx = algo_->pick_next();
-    //BOOST_ASSERT( nullptr == ctx);
-    //BOOST_ASSERT( this == ctx->get_scheduler() );
-    return ctx;
-}
-
 void
 scheduler::release_terminated_() noexcept {
     terminated_queue_t::iterator e( terminated_queue_.end() );
@@ -38,7 +30,7 @@ scheduler::release_terminated_() noexcept {
         context * ctx = & ( * i);
         BOOST_ASSERT( ! ctx->is_context( type::main_context) );
         BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
-        //BOOST_ASSERT( ctx->worker_is_linked() );
+        BOOST_ASSERT( ctx->worker_is_linked() );
         BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
@@ -146,7 +138,7 @@ scheduler::dispatch() noexcept {
         // get sleeping context'
         sleep2ready_();
         // get next ready context
-        context * ctx = get_next_();
+        context * ctx = algo_->pick_next();
         if ( nullptr != ctx) {
             // push dispatcher-context to ready-queue
             // so that ready-queue never becomes empty
@@ -193,7 +185,7 @@ scheduler::dispatch() noexcept {
         // get sleeping context'
         sleep2ready_();
         // get next ready context
-        context * ctx = get_next_();
+        context * ctx = algo_->pick_next();
         if ( nullptr != ctx) {
             // push dispatcher-context to ready-queue
             // so that ready-queue never becomes empty
@@ -274,7 +266,7 @@ scheduler::set_terminated( context * active_ctx) noexcept {
     // intrusive_ptr_release( ctx);
     active_ctx->terminated_link( terminated_queue_);
     // resume another fiber
-    get_next_()->resume();
+    algo_->pick_next()->resume();
 }
 #else
 boost::context::continuation
@@ -293,7 +285,7 @@ scheduler::set_terminated( context * active_ctx) noexcept {
     // intrusive_ptr_release( ctx);
     active_ctx->terminated_link( terminated_queue_);
     // resume another fiber
-    return get_next_()->suspend_with_cc();
+    return algo_->pick_next()->suspend_with_cc();
 }
 #endif
 
@@ -313,7 +305,7 @@ scheduler::yield( context * active_ctx) noexcept {
     // already suspended until another thread resumes it
     // (== maked as ready)
     // resume another fiber
-    get_next_()->resume( active_ctx);
+    algo_->pick_next()->resume( active_ctx);
 }
 
 bool
@@ -339,7 +331,7 @@ scheduler::wait_until( context * active_ctx,
     active_ctx->tp_ = sleep_tp;
     active_ctx->sleep_link( sleep_queue_);
     // resume another context
-    get_next_()->resume();
+    algo_->pick_next()->resume();
     // context has been resumed
     // check if deadline has reached
     return std::chrono::steady_clock::now() < sleep_tp;
@@ -369,7 +361,7 @@ scheduler::wait_until( context * active_ctx,
     active_ctx->tp_ = sleep_tp;
     active_ctx->sleep_link( sleep_queue_);
     // resume another context
-    get_next_()->resume( lk);
+    algo_->pick_next()->resume( lk);
     // context has been resumed
     // check if deadline has reached
     return std::chrono::steady_clock::now() < sleep_tp;
@@ -378,13 +370,13 @@ scheduler::wait_until( context * active_ctx,
 void
 scheduler::suspend() noexcept {
     // resume another context
-    get_next_()->resume();
+    algo_->pick_next()->resume();
 }
 
 void
 scheduler::suspend( detail::spinlock_lock & lk) noexcept {
     // resume another context
-    get_next_()->resume( lk);
+    algo_->pick_next()->resume( lk);
 }
 
 bool

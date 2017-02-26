@@ -91,8 +91,6 @@ private:
     sleep_queue_t                       sleep_queue_{};
     bool                                shutdown_{ false };
 
-    context * get_next_() noexcept;
-
     void release_terminated_() noexcept;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
