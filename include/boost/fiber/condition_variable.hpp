@@ -74,12 +74,6 @@ public:
         lt.unlock();
         // suspend this fiber
         ctx->suspend( lk);
-        // relock local lk
-        lk.lock();
-        // remove from waiting-queue
-        ctx->wait_unlink();
-        // unlock local lk
-        lk.unlock();
         // relock external again before returning
         try {
             lt.lock();
@@ -113,13 +107,13 @@ public:
         // suspend this fiber
         if ( ! ctx->wait_until( timeout_time, lk) ) {
             status = cv_status::timeout;
+            // relock local lk
+            lk.lock();
+            // remove from waiting-queue
+            ctx->wait_unlink();
+            // unlock local lk
+            lk.unlock();
         }
-        // relock local lk
-        lk.lock();
-        // remove from waiting-queue
-        ctx->wait_unlink();
-        // unlock local lk
-        lk.unlock();
         // relock external again before returning
         try {
             lt.lock();
