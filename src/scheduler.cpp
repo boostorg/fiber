@@ -234,8 +234,6 @@ scheduler::set_ready( context * ctx) noexcept {
         // unlink it from sleep-queue
         ctx->sleep_unlink();
     }
-    // for safety unlink it from ready-queue
-    ctx->ready_unlink();
     // push new context to ready-queue
     algo_->awakened( ctx);
 }

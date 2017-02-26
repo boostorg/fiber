@@ -235,10 +235,18 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #endif
 
 context::~context() {
-    BOOST_ASSERT( wait_queue_.empty() );
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
+    if ( is_context( type::dispatcher_context) ) {
+        // dispatcher-context is resumed by main-context
+        // while the scheduler is deconstructed
+        context * ctx = & wait_queue_.front();
+        wait_queue_.pop_front();
+        BOOST_ASSERT( ctx->is_context( type::main_context) );
+        BOOST_ASSERT( nullptr == active() );
+    }
+    BOOST_ASSERT( wait_queue_.empty() );
     delete properties_;
 }
 
@@ -314,8 +322,6 @@ context::join() {
         lk.unlock();
         // suspend active context
         get_scheduler()->suspend();
-        // remove from wait-queue
-        active_ctx->wait_unlink();
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -495,21 +501,25 @@ context::wait_is_linked() const noexcept {
 
 void
 context::worker_unlink() noexcept {
+    BOOST_ASSERT( worker_is_linked() );
     worker_hook_.unlink();
 }
 
 void
 context::ready_unlink() noexcept {
+    BOOST_ASSERT( ready_is_linked() );
     ready_hook_.unlink();
 }
 
 void
 context::sleep_unlink() noexcept {
+    BOOST_ASSERT( sleep_is_linked() );
     sleep_hook_.unlink();
 }
 
 void
 context::wait_unlink() noexcept {
+    BOOST_ASSERT( wait_is_linked() );
     wait_hook_.unlink();
 }
 
