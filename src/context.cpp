@@ -480,11 +480,6 @@ context::worker_is_linked() const noexcept {
 }
 
 bool
-context::terminated_is_linked() const noexcept {
-    return terminated_hook_.is_linked();
-}
-
-bool
 context::ready_is_linked() const noexcept {
     return ready_hook_.is_linked();
 }
@@ -492,6 +487,11 @@ context::ready_is_linked() const noexcept {
 bool
 context::sleep_is_linked() const noexcept {
     return sleep_hook_.is_linked();
+}
+
+bool
+context::terminated_is_linked() const noexcept {
+    return terminated_hook_.is_linked();
 }
 
 bool
@@ -515,6 +515,12 @@ void
 context::sleep_unlink() noexcept {
     BOOST_ASSERT( sleep_is_linked() );
     sleep_hook_.unlink();
+}
+
+void
+context::terminated_unlink() noexcept {
+    BOOST_ASSERT( terminated_is_linked() );
+    terminated_hook_.unlink();
 }
 
 void

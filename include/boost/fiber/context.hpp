@@ -430,6 +430,8 @@ public:
         return policy_;
     }
 
+    bool worker_is_linked() const noexcept;
+
     bool ready_is_linked() const noexcept;
 
     bool sleep_is_linked() const noexcept;
@@ -438,45 +440,50 @@ public:
 
     bool wait_is_linked() const noexcept;
 
-    bool worker_is_linked() const noexcept;
+    template< typename List >
+    void worker_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::worker_hook >::value, "not a worker-queue");
+        BOOST_ASSERT( ! worker_is_linked() );
+        lst.push_back( * this);
+    }
 
     template< typename List >
     void ready_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::ready_hook >::value, "not a ready-queue");
+        BOOST_ASSERT( ! ready_is_linked() );
         lst.push_back( * this);
     }
 
     template< typename Set >
     void sleep_link( Set & set) noexcept {
         static_assert( std::is_same< typename Set::value_traits::hook_type,detail::sleep_hook >::value, "not a sleep-queue");
+        BOOST_ASSERT( ! sleep_is_linked() );
         set.insert( * this);
     }
 
     template< typename List >
     void terminated_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::terminated_hook >::value, "not a terminated-queue");
+        BOOST_ASSERT( ! terminated_is_linked() );
         lst.push_back( * this);
     }
 
     template< typename List >
     void wait_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::wait_hook >::value, "not a wait-queue");
+        BOOST_ASSERT( ! wait_is_linked() );
         lst.push_back( * this);
     }
 
-    template< typename List >
-    void worker_link( List & lst) noexcept {
-        static_assert( std::is_same< typename List::value_traits::hook_type, detail::worker_hook >::value, "not a worker-queue");
-        lst.push_back( * this);
-    }
+    void worker_unlink() noexcept;
 
     void ready_unlink() noexcept;
 
     void sleep_unlink() noexcept;
 
-    void wait_unlink() noexcept;
+    void terminated_unlink() noexcept;
 
-    void worker_unlink() noexcept;
+    void wait_unlink() noexcept;
 
     void detach() noexcept;
 
