@@ -10,7 +10,9 @@
 #include <type_traits>
 
 #include <boost/config.hpp>
+#if defined(BOOST_NO_CXX17_STD_INVOKE)
 #include <boost/context/detail/invoke.hpp>
+#endif
 #if (BOOST_EXECUTION_CONTEXT==1)
 # include <boost/context/execution_context.hpp>
 #else
@@ -53,10 +55,11 @@ public:
     wrapper & operator=( wrapper && other) = default;
 
     void operator()( void * vp) {
-        // FIXME: use std::invoke() if available
-        boost::context::detail::invoke(
-                std::move( fn1_),
-                fn2_, tpl_, ctx_, vp);
+#if defined(BOOST_NO_CXX17_STD_INVOKE)
+        boost::context::detail::invoke( std::move( fn1_), fn2_, tpl_, ctx_, vp);
+#else
+        std::invoke( std::move( fn1_), fn2_, tpl_, ctx_, vp);
+#endif
     }
 };
 
@@ -93,12 +96,19 @@ public:
 
     boost::context::continuation
     operator()( boost::context::continuation && c) {
-        // FIXME: use std::invoke() if available
+#if defined(BOOST_NO_CXX17_STD_INVOKE)
         return boost::context::detail::invoke(
                 std::move( fn1_),
                 fn2_,
                 tpl_,
                 std::forward< boost::context::continuation >( c) );
+#else
+        return std::invoke(
+                std::move( fn1_),
+                fn2_,
+                tpl_,
+                std::forward< boost::context::continuation >( c) );
+#endif
     }
 };
 
