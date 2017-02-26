@@ -8,7 +8,7 @@
 int main() {
     using channel_t = boost::fibers::buffered_channel< std::string >;
 	try {
-        channel_t chan1{ 1 }, chan2{ 1 };
+        channel_t chan1{ 2 }, chan2{ 2 };
 
         boost::fibers::fiber fping([&chan1,&chan2]{
                     chan1.push( "ping");
