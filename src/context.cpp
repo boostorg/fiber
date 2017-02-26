@@ -241,10 +241,14 @@ context::~context() {
     if ( is_context( type::dispatcher_context) ) {
         // dispatcher-context is resumed by main-context
         // while the scheduler is deconstructed
+#ifdef BOOST_DISABLE_ASSERTS
+        wait_queue_.pop_front();
+#else
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
         BOOST_ASSERT( ctx->is_context( type::main_context) );
         BOOST_ASSERT( nullptr == active() );
+#endif
     }
     BOOST_ASSERT( wait_queue_.empty() );
     delete properties_;
