@@ -13,11 +13,14 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <type_traits>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
+#endif
 #if (BOOST_EXECUTION_CONTEXT==1)
 # include <boost/context/execution_context.hpp>
 #else
@@ -190,8 +193,11 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
-            // FIXME: use std::apply() if available
+#if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
+#else
+            std::apply( std::move( fn), std::move( tpl) );
+#endif
         }
         // terminate context
         set_terminated();
@@ -214,8 +220,11 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
-            // FIXME: use std::apply() if available
+#if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
+#else
+            std::apply( std::move( fn), std::move( tpl) );
+#endif
         }
         // terminate context
         return set_terminated();

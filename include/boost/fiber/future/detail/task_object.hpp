@@ -9,10 +9,13 @@
 
 #include <exception>
 #include <memory>
+#include <tuple>
 #include <utility>
 
 #include <boost/config.hpp>
+#if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
+#endif
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/future/detail/task_base.hpp>
@@ -50,9 +53,14 @@ public:
     void run( Args && ... args) override final {
         try {
             this->set_value(
-                    // FIXME : use std::apply() if available
+#if defined(BOOST_NO_CXX17_STD_APPLY)
                     boost::context::detail::apply(
-                        fn_, std::make_tuple( std::forward< Args >( args) ... ) ) );
+                        fn_, std::make_tuple( std::forward< Args >( args) ... ) )
+#else
+                    std::apply(
+                        fn_, std::make_tuple( std::forward< Args >( args) ... )
+#endif
+                    );
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
@@ -111,9 +119,13 @@ public:
 
     void run( Args && ... args) override final {
         try {
-            // FIXME : use std::apply() if available
+#if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply(
                     fn_, std::make_tuple( std::forward< Args >( args) ... ) );
+#else
+            std::apply(
+                    fn_, std::make_tuple( std::forward< Args >( args) ... ) );
+#endif
             this->set_value();
         } catch (...) {
             this->set_exception( std::current_exception() );
