@@ -47,9 +47,9 @@ scheduler::release_terminated_() noexcept {
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
 scheduler::remote_ready2ready_() noexcept {
-    context * ctx = remote_ready_queue_.pop();
+    context * ctx;
     // get context from remote ready-queue
-    while ( nullptr != ctx) {
+    while ( nullptr != ( ctx = remote_ready_queue_.pop() ) ) {
         // store context in local queues
         set_ready( ctx);
     }
