@@ -164,6 +164,7 @@ private:
     std::atomic< std::size_t >                      use_count_{ 0 };
     std::atomic< unsigned int >                     flags_;
     std::atomic< type >                             type_;
+    // FIXME : must scheduler be a std::atomic<> ?
     std::atomic< scheduler * >                      scheduler_{ nullptr };
 #else
     std::size_t                                     use_count_{ 0 };
@@ -381,7 +382,8 @@ public:
 
     scheduler * get_scheduler() const noexcept {
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-        return scheduler_.load( std::memory_order_relaxed);
+        // FIXME : must scheduler be a std::atomic<> ?
+        return scheduler_.load( std::memory_order_acquire);
 #else
         return scheduler_;
 #endif

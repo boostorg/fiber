@@ -418,9 +418,8 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic_thread_fence( std::memory_order_acquire);
-    BOOST_ASSERT( nullptr == ctx->scheduler_.load( std::memory_order_relaxed) );
-    ctx->scheduler_.store( this, std::memory_order_relaxed);
+    // FIXME : must scheduler be a std::atomic<> ?
+    ctx->scheduler_.store( this, std::memory_order_release);
 #else
     BOOST_ASSERT( nullptr == ctx->scheduler_);
     ctx->scheduler_ = this;
@@ -439,8 +438,8 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    ctx->scheduler_.store( nullptr, std::memory_order_relaxed);
-    std::atomic_thread_fence( std::memory_order_release);
+    // FIXME : must scheduler be a std::atomic<> ?
+    ctx->scheduler_.store( nullptr, std::memory_order_release);
 #else
     ctx->scheduler_ = nullptr;
 #endif
