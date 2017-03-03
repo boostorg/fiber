@@ -95,6 +95,8 @@ scheduler::~scheduler() {
     BOOST_ASSERT( nullptr != main_ctx_);
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
@@ -236,6 +238,8 @@ scheduler::set_remote_ready( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     // push new context to remote ready-queue
     remote_ready_queue_.push( ctx);
     // notify scheduler
