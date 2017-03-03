@@ -49,7 +49,7 @@ private:
 public:
     typedef context::id    id;
 
-    fiber() noexcept = default;
+    fiber() = default;
 
     template< typename Fn,
               typename ... Args,
@@ -108,7 +108,9 @@ public:
         if ( joinable() ) {
             std::terminate();
         }
-        if ( this == & other) return * this;
+        if ( this == & other) {
+            return * this;
+        }
         impl_.swap( other.impl_);
         return * this;
     }
@@ -132,7 +134,7 @@ public:
     template< typename PROPS >
     PROPS & properties() {
         auto props = impl_->get_properties();
-        BOOST_ASSERT_MSG(props, "fiber::properties not set");
+        BOOST_ASSERT_MSG( props, "fiber::properties not set");
         return dynamic_cast< PROPS & >( * props );
     }
 };

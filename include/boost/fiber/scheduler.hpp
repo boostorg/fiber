@@ -53,24 +53,24 @@ public:
                 context,
                 intrusive::member_hook<
                     context, detail::ready_hook, & context::ready_hook_ >,
-                intrusive::constant_time_size< false > >    ready_queue_t;
+                intrusive::constant_time_size< false > >    ready_queue_type;
 private:
     typedef intrusive::multiset<
                 context,
                 intrusive::member_hook<
                     context, detail::sleep_hook, & context::sleep_hook_ >,
                 intrusive::constant_time_size< false >,
-                intrusive::compare< timepoint_less > >      sleep_queue_t;
+                intrusive::compare< timepoint_less > >      sleep_queue_type;
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
                     context, detail::terminated_hook, & context::terminated_hook_ >,
-                intrusive::constant_time_size< false > >    terminated_queue_t;
+                intrusive::constant_time_size< false > >    terminated_queue_type;
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
                     context, detail::worker_hook, & context::worker_hook_ >,
-                intrusive::constant_time_size< false > >    worker_queue_t;
+                intrusive::constant_time_size< false > >    worker_queue_type;
 
     std::unique_ptr< algo::algorithm >  algo_;
     context                         *   main_ctx_{ nullptr };
@@ -78,9 +78,9 @@ private:
     // worker-queue contains all context' mananged by this scheduler
     // except main-context and dispatcher-context
     // unlink happens on destruction of a context
-    worker_queue_t                      worker_queue_{};
+    worker_queue_type                   worker_queue_{};
     // terminated-queue contains context' which have been terminated
-    terminated_queue_t                  terminated_queue_{};
+    terminated_queue_type               terminated_queue_{};
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
@@ -88,10 +88,8 @@ private:
     // sleep-queue contains context' which have been called
 #endif
     // scheduler::wait_until()
-    sleep_queue_t                       sleep_queue_{};
+    sleep_queue_type                    sleep_queue_{};
     bool                                shutdown_{ false };
-
-    context * get_next_() noexcept;
 
     void release_terminated_() noexcept;
 

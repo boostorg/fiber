@@ -72,11 +72,11 @@ void
 work_stealing::suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept {
     if ( suspend_) {
         if ( (std::chrono::steady_clock::time_point::max)() == time_point) {
-            std::unique_lock< std::mutex > lk( mtx_);
+            std::unique_lock< std::mutex > lk{ mtx_ };
             cnd_.wait( lk, [this](){ return flag_; });
             flag_ = false;
         } else {
-            std::unique_lock< std::mutex > lk( mtx_);
+            std::unique_lock< std::mutex > lk{ mtx_ };
             cnd_.wait_until( lk, time_point, [this](){ return flag_; });
             flag_ = false;
         }
@@ -86,7 +86,7 @@ work_stealing::suspend_until( std::chrono::steady_clock::time_point const& time_
 void
 work_stealing::notify() noexcept {
     if ( suspend_) {
-        std::unique_lock< std::mutex > lk( mtx_);
+        std::unique_lock< std::mutex > lk{ mtx_ };
         flag_ = true;
         lk.unlock();
         cnd_.notify_all();

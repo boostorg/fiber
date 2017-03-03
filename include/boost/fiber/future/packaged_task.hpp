@@ -30,13 +30,13 @@ class packaged_task;
 template< typename R, typename ... Args >
 class packaged_task< R( Args ... ) > {
 private:
-    typedef typename detail::task_base< R, Args ... >::ptr_t   ptr_t;
+    typedef typename detail::task_base< R, Args ... >::ptr_type   ptr_type;
 
     bool            obtained_{ false };
-    ptr_t           task_{};
+    ptr_type        task_{};
 
 public:
-    constexpr packaged_task() noexcept = default;
+    packaged_task() = default;
 
     template< typename Fn,
               typename = detail::disable_overload< packaged_task, Fn >
@@ -53,17 +53,17 @@ public:
     explicit packaged_task( std::allocator_arg_t, Allocator const& alloc, Fn && fn) {
         typedef detail::task_object<
             typename std::decay< Fn >::type, Allocator, R, Args ...
-        >                                       object_t;
+        >                                       object_type;
         typedef std::allocator_traits<
-            typename object_t::allocator_t
-        >                                       traits_t;
+            typename object_type::allocator_type
+        >                                       traits_type;
 
-        typename object_t::allocator_t a{ alloc };
-        typename traits_t::pointer ptr{ traits_t::allocate( a, 1) };
+        typename object_type::allocator_type a{ alloc };
+        typename traits_type::pointer ptr{ traits_type::allocate( a, 1) };
         try {
-            traits_t::construct( a, ptr, a, std::forward< Fn >( fn) );
+            traits_type::construct( a, ptr, a, std::forward< Fn >( fn) );
         } catch (...) {
-            traits_t::deallocate( a, ptr, 1);
+            traits_type::deallocate( a, ptr, 1);
             throw;
         }
         task_.reset( convert( ptr) );
@@ -85,9 +85,10 @@ public:
     }
 
     packaged_task & operator=( packaged_task && other) noexcept {
-        if ( this == & other) return * this;
-        packaged_task tmp{ std::move( other) };
-        swap( tmp);
+        if ( this != & other) {
+            packaged_task tmp{ std::move( other) };
+            swap( tmp);
+        }
         return * this;
     }
 

@@ -10,7 +10,9 @@
 #include <type_traits>
 
 #include <boost/config.hpp>
+#if defined(BOOST_NO_CXX17_STD_INVOKE)
 #include <boost/context/detail/invoke.hpp>
+#endif
 #if (BOOST_EXECUTION_CONTEXT==1)
 # include <boost/context/execution_context.hpp>
 #else
@@ -40,9 +42,9 @@ private:
 public:
     wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
              boost::context::execution_context const& ctx) :
-        fn1_( std::move( fn1) ),
-        fn2_( std::move( fn2) ),
-        tpl_( std::move( tpl) ),
+        fn1_{ std::move( fn1) },
+        fn2_{ std::move( fn2) },
+        tpl_{ std::move( tpl) },
         ctx_{ ctx } {
     }
 
@@ -53,9 +55,11 @@ public:
     wrapper & operator=( wrapper && other) = default;
 
     void operator()( void * vp) {
-        boost::context::detail::invoke(
-                std::move( fn1_),
-                fn2_, tpl_, ctx_, vp);
+#if defined(BOOST_NO_CXX17_STD_INVOKE)
+        boost::context::detail::invoke( std::move( fn1_), fn2_, tpl_, ctx_, vp);
+#else
+        std::invoke( std::move( fn1_), fn2_, tpl_, ctx_, vp);
+#endif
     }
 };
 
@@ -63,11 +67,11 @@ template< typename Fn1, typename Fn2, typename Tpl  >
 wrapper< Fn1, Fn2, Tpl >
 wrap( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
       boost::context::execution_context const& ctx) {
-    return wrapper< Fn1, Fn2, Tpl >(
+    return wrapper< Fn1, Fn2, Tpl >{
             std::forward< Fn1 >( fn1),
             std::forward< Fn2 >( fn2),
             std::forward< Tpl >( tpl),
-            ctx);
+            ctx };
 }
 #else
 template< typename Fn1, typename Fn2, typename Tpl  >
@@ -79,9 +83,9 @@ private:
 
 public:
     wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) :
-        fn1_( std::move( fn1) ),
-        fn2_( std::move( fn2) ),
-        tpl_( std::move( tpl) ) {
+        fn1_{ std::move( fn1) },
+        fn2_{ std::move( fn2) },
+        tpl_{ std::move( tpl) } {
     }
 
     wrapper( wrapper const&) = delete;
@@ -92,21 +96,29 @@ public:
 
     boost::context::continuation
     operator()( boost::context::continuation && c) {
+#if defined(BOOST_NO_CXX17_STD_INVOKE)
         return boost::context::detail::invoke(
                 std::move( fn1_),
                 fn2_,
                 tpl_,
                 std::forward< boost::context::continuation >( c) );
+#else
+        return std::invoke(
+                std::move( fn1_),
+                fn2_,
+                tpl_,
+                std::forward< boost::context::continuation >( c) );
+#endif
     }
 };
 
 template< typename Fn1, typename Fn2, typename Tpl  >
 wrapper< Fn1, Fn2, Tpl >
 wrap( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) {
-    return wrapper< Fn1, Fn2, Tpl >(
+    return wrapper< Fn1, Fn2, Tpl >{
             std::forward< Fn1 >( fn1),
             std::forward< Fn2 >( fn2),
-            std::forward< Tpl >( tpl) );
+            std::forward< Tpl >( tpl) };
 }
 #endif
 

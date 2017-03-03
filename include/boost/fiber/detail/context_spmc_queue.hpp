@@ -48,7 +48,7 @@ private:
             sizeof( atomic_type), cache_alignment
         >::type                                         storage_type; 
 
-        std::size_t        size_;
+        std::size_t         size_;
         storage_type    *   storage_;
 
     public:
@@ -115,19 +115,19 @@ public:
     context_spmc_queue & operator=( context_spmc_queue const&) = delete;
 
     bool empty() const noexcept {
-        std::size_t bottom{ bottom_.load( std::memory_order_relaxed) };
-        std::size_t top{ top_.load( std::memory_order_relaxed) };
+        std::size_t bottom = bottom_.load( std::memory_order_relaxed);
+        std::size_t top = top_.load( std::memory_order_relaxed);
         return bottom <= top;
     }
 
     void push( context * ctx) {
-        std::size_t bottom{ bottom_.load( std::memory_order_relaxed) };
-        std::size_t top{ top_.load( std::memory_order_acquire) };
-        array * a{ array_.load( std::memory_order_relaxed) };
+        std::size_t bottom = bottom_.load( std::memory_order_relaxed);
+        std::size_t top = top_.load( std::memory_order_acquire);
+        array * a = array_.load( std::memory_order_relaxed);
         if ( (a->size() - 1) < (bottom - top) ) {
             // queue is full
             // resize
-            array * tmp{ a->resize( bottom, top) };
+            array * tmp = a->resize( bottom, top);
             old_arrays_.push_back( a);
             std::swap( a, tmp);
             array_.store( a, std::memory_order_relaxed);
@@ -138,18 +138,19 @@ public:
     }
 
     context * pop() {
-        std::size_t top{ top_.load( std::memory_order_acquire) };
+        std::size_t top = top_.load( std::memory_order_acquire);
         std::atomic_thread_fence( std::memory_order_seq_cst);
-        std::size_t bottom{ bottom_.load( std::memory_order_acquire) };
-        context * ctx{ nullptr };
+        std::size_t bottom = bottom_.load( std::memory_order_acquire);
+        context * ctx = nullptr;
         if ( top < bottom) {
             // queue is not empty
-            array * a{ array_.load( std::memory_order_consume) };
+            array * a = array_.load( std::memory_order_consume);
             ctx = a->pop( top);
             if ( ctx->is_context( type::pinned_context) ||
                  ! top_.compare_exchange_strong( top, top + 1,
                                                  std::memory_order_seq_cst,
                                                  std::memory_order_relaxed) ) {
+                // FIXME: what about the popped piinded context?
                 // lose the race
                 return nullptr;
             }

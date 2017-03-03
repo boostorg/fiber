@@ -41,12 +41,12 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
     // placement new of context on top of fiber's stack
-    return intrusive_ptr< context >( 
-        ::new ( sp) context(
+    return intrusive_ptr< context >{
+        ::new ( sp) context{
                 dispatcher_context,
-                boost::context::preallocated( sp, size, sctx),
+                boost::context::preallocated{ sp, size, sctx },
                 salloc,
-                sched) );
+                sched } };
 }
 
 // schwarz counter
@@ -61,17 +61,16 @@ struct context_initializer {
             constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
             void * vp = std::malloc( size);
             if ( nullptr == vp) {
-                throw std::bad_alloc();
+                throw std::bad_alloc{};
             }
             // main fiber context of this thread
-            context * main_ctx = ::new ( vp) context( main_context);
+            context * main_ctx = ::new ( vp) context{ main_context };
             // scheduler of this thread
-            scheduler * sched = ::new ( static_cast< char * >( vp) + sizeof( context) ) scheduler();
+            scheduler * sched = ::new ( static_cast< char * >( vp) + sizeof( context) ) scheduler{};
             // attach main context to scheduler
             sched->attach_main_context( main_ctx);
             // create and attach dispatcher context to scheduler
-            sched->attach_dispatcher_context(
-                    make_dispatcher_context( sched) );
+            sched->attach_dispatcher_context( make_dispatcher_context( sched) );
             // make main context to active context
             active_ = main_ctx;
 # else
@@ -81,7 +80,7 @@ struct context_initializer {
             constexpr std::size_t size = 2 * alignment + ctx_size + sched_size;
             void * vp = std::malloc( size);
             if ( nullptr == vp) {
-                throw std::bad_alloc();
+                throw std::bad_alloc{};
             }
             // reserve space for shift
             void * vp1 = static_cast< char * >( vp) + sizeof( int); 
@@ -93,18 +92,17 @@ struct context_initializer {
             // store shifted size in fornt of context
             * shift = static_cast< char * >( vp1) - static_cast< char * >( vp);
             // main fiber context of this thread
-            context * main_ctx = ::new ( vp1) context( main_context);
+            context * main_ctx = ::new ( vp1) context{ main_context };
             vp1 = static_cast< char * >( vp1) + ctx_size;
             // align scheduler pointer
             space = sched_size + alignment;
             vp1 = std::align( alignment, sched_size, vp1, space);
             // scheduler of this thread
-            scheduler * sched = ::new ( vp1) scheduler();
+            scheduler * sched = ::new ( vp1) scheduler{};
             // attach main context to scheduler
             sched->attach_main_context( main_ctx);
             // create and attach dispatcher context to scheduler
-            sched->attach_dispatcher_context(
-                    make_dispatcher_context( sched) );
+            sched->attach_dispatcher_context( make_dispatcher_context( sched) );
             // make main context to active context
             active_ = main_ctx;
 # endif
@@ -235,16 +233,28 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #endif
 
 context::~context() {
-    BOOST_ASSERT( wait_queue_.empty() );
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
+    if ( is_context( type::dispatcher_context) ) {
+        // dispatcher-context is resumed by main-context
+        // while the scheduler is deconstructed
+#ifdef BOOST_DISABLE_ASSERTS
+        wait_queue_.pop_front();
+#else
+        context * ctx = & wait_queue_.front();
+        wait_queue_.pop_front();
+        BOOST_ASSERT( ctx->is_context( type::main_context) );
+        BOOST_ASSERT( nullptr == active() );
+#endif
+    }
+    BOOST_ASSERT( wait_queue_.empty() );
     delete properties_;
 }
 
 context::id
 context::get_id() const noexcept {
-    return id( const_cast< context * >( this) );
+    return id{ const_cast< context * >( this) };
 }
 
 void
@@ -304,7 +314,7 @@ context::join() {
     // get active context
     context * active_ctx = context::active();
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( splk_);
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     // wait for context which is not terminated
     if ( 0 == ( flags_ & flag_terminated) ) {
         // push active context to wait-queue, member
@@ -314,8 +324,6 @@ context::join() {
         lk.unlock();
         // suspend active context
         get_scheduler()->suspend();
-        // remove from wait-queue
-        active_ctx->wait_unlink();
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -331,7 +339,7 @@ context::yield() noexcept {
 void
 context::set_terminated() noexcept {
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( splk_);
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
     flags_ |= flag_terminated;
     // notify all waiting fibers
@@ -366,7 +374,7 @@ context::suspend_with_cc() noexcept {
 boost::context::continuation
 context::set_terminated() noexcept {
     // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk( splk_);
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
     flags_ |= flag_terminated;
     // notify all waiting fibers
@@ -428,8 +436,8 @@ context::set_ready( context * ctx) noexcept {
 
 void *
 context::get_fss_data( void const * vp) const {
-    uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
-    fss_data_t::const_iterator i( fss_data_.find( key) );
+    uintptr_t key = reinterpret_cast< uintptr_t >( vp);
+    fss_data_t::const_iterator i = fss_data_.find( key);
     return fss_data_.end() != i ? i->second.vp : nullptr;
 }
 
@@ -439,8 +447,8 @@ context::set_fss_data( void const * vp,
                        void * data,
                        bool cleanup_existing) {
     BOOST_ASSERT( cleanup_fn);
-    uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
-    fss_data_t::iterator i( fss_data_.find( key) );
+    uintptr_t key = reinterpret_cast< uintptr_t >( vp);
+    fss_data_t::iterator i = fss_data_.find( key);
     if ( fss_data_.end() != i) {
         if( cleanup_existing) {
             i->second.do_cleanup();
@@ -450,7 +458,7 @@ context::set_fss_data( void const * vp,
                     i,
                     std::make_pair(
                         key,
-                        fss_data( data, cleanup_fn) ) );
+                        fss_data{ data, cleanup_fn } ) );
         } else {
             fss_data_.erase( i);
         }
@@ -458,7 +466,7 @@ context::set_fss_data( void const * vp,
         fss_data_.insert(
             std::make_pair(
                 key,
-                fss_data( data, cleanup_fn) ) );
+                fss_data{ data, cleanup_fn } ) );
     }
 }
 
@@ -474,11 +482,6 @@ context::worker_is_linked() const noexcept {
 }
 
 bool
-context::terminated_is_linked() const noexcept {
-    return terminated_hook_.is_linked();
-}
-
-bool
 context::ready_is_linked() const noexcept {
     return ready_hook_.is_linked();
 }
@@ -489,27 +492,42 @@ context::sleep_is_linked() const noexcept {
 }
 
 bool
+context::terminated_is_linked() const noexcept {
+    return terminated_hook_.is_linked();
+}
+
+bool
 context::wait_is_linked() const noexcept {
     return wait_hook_.is_linked();
 }
 
 void
 context::worker_unlink() noexcept {
+    BOOST_ASSERT( worker_is_linked() );
     worker_hook_.unlink();
 }
 
 void
 context::ready_unlink() noexcept {
+    BOOST_ASSERT( ready_is_linked() );
     ready_hook_.unlink();
 }
 
 void
 context::sleep_unlink() noexcept {
+    BOOST_ASSERT( sleep_is_linked() );
     sleep_hook_.unlink();
 }
 
 void
+context::terminated_unlink() noexcept {
+    BOOST_ASSERT( terminated_is_linked() );
+    terminated_hook_.unlink();
+}
+
+void
 context::wait_unlink() noexcept {
+    BOOST_ASSERT( wait_is_linked() );
     wait_hook_.unlink();
 }
 

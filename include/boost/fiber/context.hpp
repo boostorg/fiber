@@ -13,11 +13,14 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <type_traits>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
+#endif
 #if (BOOST_EXECUTION_CONTEXT==1)
 # include <boost/context/execution_context.hpp>
 #else
@@ -161,6 +164,7 @@ private:
     std::atomic< std::size_t >                      use_count_{ 0 };
     std::atomic< unsigned int >                     flags_;
     std::atomic< type >                             type_;
+    // FIXME : must scheduler be a std::atomic<> ?
     std::atomic< scheduler * >                      scheduler_{ nullptr };
 #else
     std::size_t                                     use_count_{ 0 };
@@ -190,8 +194,11 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
-            // FIXME: use std::apply() if available
+#if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
+#else
+            std::apply( std::move( fn), std::move( tpl) );
+#endif
         }
         // terminate context
         set_terminated();
@@ -214,8 +221,11 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
-            // FIXME: use std::apply() if available
+#if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
+#else
+            std::apply( std::move( fn), std::move( tpl) );
+#endif
         }
         // terminate context
         return set_terminated();
@@ -248,11 +258,10 @@ public:
         context  *   impl_{ nullptr };
 
     public:
-        id() noexcept {
-        }
+        id() = default;
 
         explicit id( context * impl) noexcept :
-            impl_( impl) {
+            impl_{ impl } {
         }
 
         bool operator==( id const& other) const noexcept {
@@ -373,7 +382,8 @@ public:
 
     scheduler * get_scheduler() const noexcept {
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-        return scheduler_.load( std::memory_order_relaxed);
+        // FIXME : must scheduler be a std::atomic<> ?
+        return scheduler_.load( std::memory_order_acquire);
 #else
         return scheduler_;
 #endif
@@ -430,6 +440,8 @@ public:
         return policy_;
     }
 
+    bool worker_is_linked() const noexcept;
+
     bool ready_is_linked() const noexcept;
 
     bool sleep_is_linked() const noexcept;
@@ -438,45 +450,50 @@ public:
 
     bool wait_is_linked() const noexcept;
 
-    bool worker_is_linked() const noexcept;
+    template< typename List >
+    void worker_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::worker_hook >::value, "not a worker-queue");
+        BOOST_ASSERT( ! worker_is_linked() );
+        lst.push_back( * this);
+    }
 
     template< typename List >
     void ready_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::ready_hook >::value, "not a ready-queue");
+        BOOST_ASSERT( ! ready_is_linked() );
         lst.push_back( * this);
     }
 
     template< typename Set >
     void sleep_link( Set & set) noexcept {
         static_assert( std::is_same< typename Set::value_traits::hook_type,detail::sleep_hook >::value, "not a sleep-queue");
+        BOOST_ASSERT( ! sleep_is_linked() );
         set.insert( * this);
     }
 
     template< typename List >
     void terminated_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::terminated_hook >::value, "not a terminated-queue");
+        BOOST_ASSERT( ! terminated_is_linked() );
         lst.push_back( * this);
     }
 
     template< typename List >
     void wait_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::wait_hook >::value, "not a wait-queue");
+        BOOST_ASSERT( ! wait_is_linked() );
         lst.push_back( * this);
     }
 
-    template< typename List >
-    void worker_link( List & lst) noexcept {
-        static_assert( std::is_same< typename List::value_traits::hook_type, detail::worker_hook >::value, "not a worker-queue");
-        lst.push_back( * this);
-    }
+    void worker_unlink() noexcept;
 
     void ready_unlink() noexcept;
 
     void sleep_unlink() noexcept;
 
-    void wait_unlink() noexcept;
+    void terminated_unlink() noexcept;
 
-    void worker_unlink() noexcept;
+    void wait_unlink() noexcept;
 
     void detach() noexcept;
 
@@ -491,12 +508,12 @@ public:
         BOOST_ASSERT( nullptr != ctx);
         if ( 0 == --ctx->use_count_) {
 #if (BOOST_EXECUTION_CONTEXT==1)
-            boost::context::execution_context ec( ctx->ctx_);
+            boost::context::execution_context ec = ctx->ctx_;
             // destruct context
             // deallocates stack (execution_context is ref counted)
             ctx->~context();
 #else
-            boost::context::continuation cc( std::move( ctx->c_) );
+            boost::context::continuation cc = std::move( ctx->c_);
             // destruct context
             ctx->~context();
             // deallocated stack
@@ -533,14 +550,14 @@ static intrusive_ptr< context > make_worker_context( launch policy,
     const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
     // placement new of context on top of fiber's stack
-    return intrusive_ptr< context >( 
-            ::new ( sp) context(
+    return intrusive_ptr< context >{ 
+            ::new ( sp) context{
                 worker_context,
                 policy,
-                boost::context::preallocated( sp, size, sctx),
+                boost::context::preallocated{ sp, size, sctx },
                 salloc,
                 std::forward< Fn >( fn),
-                std::make_tuple( std::forward< Args >( args) ... ) ) );
+                std::make_tuple( std::forward< Args >( args) ... ) } };
 }
 
 namespace detail {
