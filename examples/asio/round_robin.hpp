@@ -35,13 +35,11 @@ namespace asio {
 
 class round_robin : public algo::algorithm {
 private:
-    typedef scheduler::ready_queue_t rqueue_t;
-
 //[asio_rr_suspend_timer
     std::shared_ptr< boost::asio::io_service >      io_svc_;
     boost::asio::steady_timer                       suspend_timer_;
 //]
-    boost::fibers::scheduler::ready_queue_t         rqueue_{};
+    boost::fibers::scheduler::ready_queue_type      rqueue_{};
     boost::fibers::mutex                            mtx_{};
     boost::fibers::condition_variable               cnd_{};
     std::size_t                                     counter_{ 0 };

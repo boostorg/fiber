@@ -75,7 +75,7 @@ private:
 class priority_scheduler :
     public boost::fibers::algo::algorithm_with_properties< priority_props > {
 private:
-    typedef boost::fibers::scheduler::ready_queue_t/*< See [link ready_queue_t]. >*/   rqueue_t;
+    typedef boost::fibers::scheduler::ready_queue_type/*< See [link ready_queue_t]. >*/   rqueue_t;
 
     rqueue_t                                rqueue_;
     std::mutex                  mtx_{};
