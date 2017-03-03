@@ -90,6 +90,7 @@ private:
     // scheduler::wait_until()
     sleep_queue_type                    sleep_queue_{};
     bool                                shutdown_{ false };
+    detail::spinlock                    splk_{};
 
     void release_terminated_() noexcept;
 
