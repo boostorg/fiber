@@ -103,8 +103,6 @@ scheduler::~scheduler() {
     // no context' in worker-queue
     BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-#endif
     BOOST_ASSERT( sleep_queue_.empty() );
     // set active context to nullptr
     context::reset_active();
