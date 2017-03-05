@@ -249,7 +249,7 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
 
 #if (BOOST_EXECUTION_CONTEXT==1)
 void
-scheduler::set_terminated( context * ctx) noexcept {
+scheduler::terminate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( ctx->is_context( type::worker_context) );
@@ -270,7 +270,7 @@ scheduler::set_terminated( context * ctx) noexcept {
 }
 #else
 boost::context::continuation
-scheduler::set_terminated( context * ctx) noexcept {
+scheduler::terminate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( ctx->is_context( type::worker_context) );

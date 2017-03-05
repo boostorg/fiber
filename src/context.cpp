@@ -337,7 +337,7 @@ context::yield() noexcept {
 
 #if (BOOST_EXECUTION_CONTEXT==1)
 void
-context::set_terminated() noexcept {
+context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
@@ -357,7 +357,7 @@ context::set_terminated() noexcept {
     }
     fss_data_.clear();
     // switch to another context
-    get_scheduler()->set_terminated( this);
+    get_scheduler()->terminate( this);
 }
 #else
 boost::context::continuation
@@ -372,7 +372,7 @@ context::suspend_with_cc() noexcept {
 }
 
 boost::context::continuation
-context::set_terminated() noexcept {
+context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
@@ -392,7 +392,7 @@ context::set_terminated() noexcept {
     }
     fss_data_.clear();
     // switch to another context
-    return get_scheduler()->set_terminated( this);
+    return get_scheduler()->terminate( this);
 #endif
 }
 

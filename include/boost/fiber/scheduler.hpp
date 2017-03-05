@@ -117,11 +117,11 @@ public:
 #if (BOOST_EXECUTION_CONTEXT==1)
     void dispatch() noexcept;
 
-    void set_terminated( context *) noexcept;
+    void terminate( context *) noexcept;
 #else
     boost::context::continuation dispatch() noexcept;
 
-    boost::context::continuation set_terminated( context *) noexcept;
+    boost::context::continuation terminate( context *) noexcept;
 #endif
 
     void yield( context *) noexcept;

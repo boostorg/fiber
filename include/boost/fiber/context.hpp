@@ -186,7 +186,7 @@ private:
     template< typename Fn, typename Tpl >
     void run_( Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
         {
-            // fn and tpl must be destroyed before calling set_terminated()
+            // fn and tpl must be destroyed before calling terminate()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
             if ( nullptr != dp->lk) {
@@ -201,7 +201,7 @@ private:
 #endif
         }
         // terminate context
-        set_terminated();
+        terminate();
         BOOST_ASSERT_MSG( false, "fiber already terminated");
     }
 #else
@@ -209,7 +209,7 @@ private:
     boost::context::continuation
     run_( boost::context::continuation && c, Fn && fn_, Tpl && tpl_) noexcept {
         {
-            // fn and tpl must be destroyed before calling set_terminated()
+            // fn and tpl must be destroyed before calling terminate()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
             c = c.resume();
@@ -228,7 +228,7 @@ private:
 #endif
         }
         // terminate context
-        return set_terminated();
+        return terminate();
     }
 #endif
 
@@ -399,10 +399,10 @@ public:
     void suspend( detail::spinlock_lock &) noexcept;
 
 #if (BOOST_EXECUTION_CONTEXT==1)
-    void set_terminated() noexcept;
+    void terminate() noexcept;
 #else
     boost::context::continuation suspend_with_cc() noexcept;
-    boost::context::continuation set_terminated() noexcept;
+    boost::context::continuation terminate() noexcept;
 #endif
     void join();
 
