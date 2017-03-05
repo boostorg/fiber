@@ -99,7 +99,7 @@ recursive_timed_mutex::unlock() {
             wait_queue_.pop_front();
             owner_ = ctx;
             count_ = 1;
-            active_ctx->set_ready( ctx);
+            active_ctx->schedule( ctx);
         } else {
             owner_ = nullptr;
             return;

@@ -180,7 +180,7 @@ private:
 #endif
 
     void resume_( detail::data_t &) noexcept;
-    void set_ready_( context *) noexcept;
+    void schedule_( context *) noexcept;
 
 #if (BOOST_EXECUTION_CONTEXT==1)
     template< typename Fn, typename Tpl >
@@ -192,7 +192,7 @@ private:
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                active()->set_ready_( dp->ctx);
+                active()->schedule_( dp->ctx);
             }
 #if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
@@ -219,7 +219,7 @@ private:
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                active()->set_ready_( dp->ctx);
+                active()->schedule_( dp->ctx);
             }
 #if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
@@ -412,7 +412,7 @@ public:
     bool wait_until( std::chrono::steady_clock::time_point const&,
                      detail::spinlock_lock &) noexcept;
 
-    void set_ready( context *) noexcept;
+    void schedule( context *) noexcept;
 
     bool is_context( type t) const noexcept {
         return type::none != ( type_ & t);

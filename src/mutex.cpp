@@ -70,7 +70,7 @@ mutex::unlock() {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
         owner_ = ctx;
-        active_ctx->set_ready( ctx);
+        active_ctx->schedule( ctx);
     } else {
         owner_ = nullptr;
         return;

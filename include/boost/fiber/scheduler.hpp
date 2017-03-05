@@ -108,10 +108,10 @@ public:
 
     virtual ~scheduler();
 
-    void set_ready( context *) noexcept;
+    void schedule( context *) noexcept;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    void set_remote_ready( context *) noexcept;
+    void schedule_from_remote( context *) noexcept;
 #endif
 
 #if (BOOST_EXECUTION_CONTEXT==1)

@@ -102,7 +102,7 @@ public:
             BOOST_ASSERT( nullptr != s);
             BOOST_ASSERT( nullptr != s->ctx);
             // value will be destructed in the context of the waiting fiber
-            context::active()->set_ready( s->ctx);
+            context::active()->schedule( s->ctx);
         }
     }
 
@@ -121,13 +121,13 @@ public:
         while ( ! waiting_producers_.empty() ) {
             context * producer_ctx = & waiting_producers_.front();
             waiting_producers_.pop_front();
-            active_ctx->set_ready( producer_ctx);
+            active_ctx->schedule( producer_ctx);
         }
         // notify all waiting consumers
         while ( ! waiting_consumers_.empty() ) {
             context * consumer_ctx = & waiting_consumers_.front();
             waiting_consumers_.pop_front();
-            active_ctx->set_ready( consumer_ctx);
+            active_ctx->schedule( consumer_ctx);
         }
     }
 
@@ -144,7 +144,7 @@ public:
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
                 active_ctx->suspend( lk);
@@ -179,7 +179,7 @@ public:
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
                 active_ctx->suspend( lk);
@@ -231,7 +231,7 @@ public:
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
@@ -281,7 +281,7 @@ public:
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
@@ -327,13 +327,13 @@ public:
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
                         lk.unlock();
-                        active_ctx->set_ready( producer_ctx);
+                        active_ctx->schedule( producer_ctx);
                     }
                 }
                 // consume value
                 value = std::move( s->value);
                 // resume suspended producer
-                active_ctx->set_ready( s->ctx);
+                active_ctx->schedule( s->ctx);
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_ };
@@ -363,13 +363,13 @@ public:
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
                         lk.unlock();
-                        active_ctx->set_ready( producer_ctx);
+                        active_ctx->schedule( producer_ctx);
                     }
                 }
                 // consume value
                 value_type value{ std::move( s->value) };
                 // resume suspended producer
-                active_ctx->set_ready( s->ctx);
+                active_ctx->schedule( s->ctx);
                 return std::move( value);
             } else {
                 detail::spinlock_lock lk{ splk_ };
@@ -411,13 +411,13 @@ public:
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
                         lk.unlock();
-                        active_ctx->set_ready( producer_ctx);
+                        active_ctx->schedule( producer_ctx);
                     }
                 }
                 // consume value
                 value = std::move( s->value);
                 // resume suspended producer
-                active_ctx->set_ready( s->ctx);
+                active_ctx->schedule( s->ctx);
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_ };

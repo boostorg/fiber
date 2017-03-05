@@ -70,7 +70,7 @@ recursive_mutex::unlock() {
             wait_queue_.pop_front();
             owner_ = ctx;
             count_ = 1;
-            context::active()->set_ready( ctx);
+            context::active()->schedule( ctx);
         } else {
             owner_ = nullptr;
             return;

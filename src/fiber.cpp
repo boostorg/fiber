@@ -28,7 +28,7 @@ fiber::start_() noexcept {
     case launch::post:
         // push new fiber to ready-queue
         // resume executing current fiber
-        ctx->get_scheduler()->set_ready( impl_.get() );
+        ctx->get_scheduler()->schedule( impl_.get() );
         break;
     case launch::dispatch:
         // resume new fiber and push current fiber
