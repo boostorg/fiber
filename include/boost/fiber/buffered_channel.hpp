@@ -172,14 +172,14 @@ public:
         while ( ! waiting_producers_.empty() ) {
             context * producer_ctx = & waiting_producers_.front();
             waiting_producers_.pop_front();
-            active_ctx->set_ready( producer_ctx);
+            active_ctx->schedule( producer_ctx);
         }
         // notify all waiting consumers
         // FIXME: swap queue, then unlock lock
         while ( ! waiting_consumers_.empty() ) {
             context * consumer_ctx = & waiting_consumers_.front();
             waiting_consumers_.pop_front();
-            active_ctx->set_ready( consumer_ctx);
+            active_ctx->schedule( consumer_ctx);
         }
     }
 
@@ -211,7 +211,7 @@ public:
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
@@ -246,7 +246,7 @@ public:
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
@@ -298,7 +298,7 @@ public:
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
@@ -342,7 +342,7 @@ public:
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( consumer_ctx);
+                    active_ctx->schedule( consumer_ctx);
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
@@ -390,7 +390,7 @@ public:
                     context * producer_ctx = & waiting_producers_.front();
                     waiting_producers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( producer_ctx);
+                    active_ctx->schedule( producer_ctx);
                 }
                 return status;
             } else if ( channel_op_status::empty == status) {
@@ -426,7 +426,7 @@ public:
                     context * producer_ctx = & waiting_producers_.front();
                     waiting_producers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( producer_ctx);
+                    active_ctx->schedule( producer_ctx);
                 }
                 return std::move( value);
             } else if ( channel_op_status::empty == status) {
@@ -472,7 +472,7 @@ public:
                     context * producer_ctx = & waiting_producers_.front();
                     waiting_producers_.pop_front();
                     lk.unlock();
-                    active_ctx->set_ready( producer_ctx);
+                    active_ctx->schedule( producer_ctx);
                 }
                 return status;
             } else if ( channel_op_status::empty == status) {

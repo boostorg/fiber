@@ -51,7 +51,7 @@ scheduler::remote_ready2ready_() noexcept {
     // get context from remote ready-queue
     while ( nullptr != ( ctx = remote_ready_queue_.pop() ) ) {
         // store context in local queues
-        set_ready( ctx);
+        schedule( ctx);
     }
 }
 #endif
@@ -210,7 +210,7 @@ scheduler::dispatch() noexcept {
 #endif
 
 void
-scheduler::set_ready( context * ctx) noexcept {
+scheduler::schedule( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
@@ -228,7 +228,7 @@ scheduler::set_ready( context * ctx) noexcept {
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
 void
-scheduler::set_remote_ready( context * ctx) noexcept {
+scheduler::schedule_from_remote( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     // another thread might signal the main-context of this thread
     BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );

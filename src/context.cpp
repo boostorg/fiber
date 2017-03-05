@@ -154,7 +154,7 @@ context::resume_( detail::data_t & d) noexcept {
     if ( nullptr != dp->lk) {
         dp->lk->unlock();
     } else if ( nullptr != dp->ctx) {
-        context_initializer::active_->set_ready_( dp->ctx);
+        active()->schedule_( dp->ctx);
     }
 }
 #else
@@ -167,15 +167,15 @@ context::resume_( detail::data_t & d) noexcept {
         if ( nullptr != dp->lk) {
             dp->lk->unlock();
         } else if ( nullptr != dp->ctx) {
-            context_initializer::active_->set_ready_( dp->ctx);
+            active()->schedule_( dp->ctx);
         }
     }
 }
 #endif
 
 void
-context::set_ready_( context * ctx) noexcept {
-    get_scheduler()->set_ready( ctx);
+context::schedule_( context * ctx) noexcept {
+    get_scheduler()->schedule( ctx);
 }
 
 // main fiber context
@@ -202,7 +202,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
             } else if ( nullptr != dp->ctx) {
-                context_initializer::active_->set_ready_( dp->ctx);
+                active()->schedule_( dp->ctx);
             }
             // execute scheduler::dispatch()
             sched->dispatch();
@@ -223,7 +223,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
                 if ( nullptr != dp->lk) {
                     dp->lk->unlock();
                 } else if ( nullptr != dp->ctx) {
-                    context_initializer::active_->set_ready_( dp->ctx);
+                    active()->schedule_( dp->ctx);
                 }
                 // execute scheduler::dispatch()
                 return sched->dispatch();
@@ -348,7 +348,7 @@ context::set_terminated() noexcept {
         // remove fiber from wait-queue
         wait_queue_.pop_front();
         // notify scheduler
-        set_ready( ctx);
+        schedule( ctx);
     }
     lk.unlock();
     // release fiber-specific-data
@@ -383,7 +383,7 @@ context::set_terminated() noexcept {
         // remove fiber from wait-queue
         wait_queue_.pop_front();
         // notify scheduler
-        set_ready( ctx);
+        schedule( ctx);
     }
     lk.unlock();
     // release fiber-specific-data
@@ -399,7 +399,7 @@ context::set_terminated() noexcept {
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
-    BOOST_ASSERT( this == context_initializer::active_);
+    BOOST_ASSERT( this == active());
     return get_scheduler()->wait_until( this, tp);
 }
 
@@ -407,12 +407,12 @@ bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp,
                      detail::spinlock_lock & lk) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
-    BOOST_ASSERT( this == context_initializer::active_);
+    BOOST_ASSERT( this == active());
     return get_scheduler()->wait_until( this, tp, lk);
 }
 
 void
-context::set_ready( context * ctx) noexcept {
+context::schedule( context * ctx) noexcept {
     //BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( this != ctx);
     BOOST_ASSERT( nullptr != get_scheduler() );
@@ -423,14 +423,14 @@ context::set_ready( context * ctx) noexcept {
     //        (other scheduler assigned)
     if ( scheduler_ == ctx->get_scheduler() ) {
         // local
-        get_scheduler()->set_ready( ctx);
+        schedule_( ctx);
     } else {
         // remote
-        ctx->get_scheduler()->set_remote_ready( ctx);
+        ctx->get_scheduler()->schedule_from_remote( ctx);
     }
 #else
     BOOST_ASSERT( get_scheduler() == ctx->get_scheduler() );
-    get_scheduler()->set_ready( ctx);
+    schedule_( ctx);
 #endif
 }
 
