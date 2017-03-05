@@ -160,8 +160,8 @@ context::resume_( detail::data_t & d) noexcept {
 #else
 void
 context::resume_( detail::data_t & d) noexcept {
-    boost::context::continuation c = c_( & d);
-    detail::data_t * dp = boost::context::get_data< detail::data_t * >( c);
+    boost::context::continuation c = c_.resume( & d);
+    detail::data_t * dp = c.get_data< detail::data_t * >();
     if ( nullptr != dp) {
         dp->from->c_ = std::move( c);
         if ( nullptr != dp->lk) {
@@ -216,8 +216,8 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     c_ = boost::context::callcc(
             std::allocator_arg, palloc, salloc,
             [this,sched](boost::context::continuation && c) noexcept {
-                c = c();
-                detail::data_t * dp = boost::context::get_data< detail::data_t * >( c); 
+                c = c.resume();
+                detail::data_t * dp = c.get_data< detail::data_t * >(); 
                 // update continuation of calling fiber
                 dp->from->c_ = std::move( c);
                 if ( nullptr != dp->lk) {
@@ -323,7 +323,7 @@ context::join() {
         active_ctx->wait_link( wait_queue_);
         lk.unlock();
         // suspend active context
-        get_scheduler()->suspend();
+        active_ctx->get_scheduler()->suspend();
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -368,7 +368,7 @@ context::suspend_with_cc() noexcept {
     std::swap( context_initializer::active_, prev);
     detail::data_t d{ prev };
     // context switch
-    return c_( & d);
+    return c_.resume( & d);
 }
 
 boost::context::continuation

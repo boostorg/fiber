@@ -212,8 +212,8 @@ private:
             // fn and tpl must be destroyed before calling set_terminated()
             typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
             typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-            c = c();
-            detail::data_t * dp = boost::context::get_data< detail::data_t * >( c);
+            c = c.resume();
+            detail::data_t * dp = c.get_data< detail::data_t * >();
             // update contiunation of calling fiber
             dp->from->c_ = std::move( c);
             if ( nullptr != dp->lk) {
@@ -513,11 +513,11 @@ public:
             // deallocates stack (execution_context is ref counted)
             ctx->~context();
 #else
-            boost::context::continuation cc = std::move( ctx->c_);
+            boost::context::continuation c = std::move( ctx->c_);
             // destruct context
             ctx->~context();
             // deallocated stack
-            cc( nullptr);
+            c.resume( nullptr);
 #endif
         }
     }
