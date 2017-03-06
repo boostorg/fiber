@@ -91,7 +91,7 @@ public:
         // ready.
         if ( fibers::context::active() != ctx_ ) {
             // wake the fiber
-            fibers::context::active()->set_ready( ctx_);
+            fibers::context::active()->schedule( ctx_);
         }
     }
 
