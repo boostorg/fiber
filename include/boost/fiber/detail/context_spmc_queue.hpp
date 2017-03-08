@@ -146,14 +146,13 @@ public:
             // queue is not empty
             array * a = array_.load( std::memory_order_consume);
             ctx = a->pop( top);
-            if ( ctx->is_context( type::pinned_context) ||
-                 ! top_.compare_exchange_strong( top, top + 1,
+            if ( ! top_.compare_exchange_strong( top, top + 1,
                                                  std::memory_order_seq_cst,
                                                  std::memory_order_relaxed) ) {
-                // FIXME: what about the popped piinded context?
                 // lose the race
                 return nullptr;
             }
+            BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
         }
         return ctx;
     }
