@@ -187,14 +187,47 @@ public:
         if ( is_closed() ) {
             return channel_op_status::closed;
         }
-        return try_push_( value);
+        context * active_ctx = context::active();
+        channel_op_status status = try_push_( value);
+        if ( channel_op_status::success == status) {
+            detail::spinlock_lock lk{ splk_ };
+            // notify one waiting consumer
+            if ( ! waiting_consumers_.empty() ) {
+                context * consumer_ctx = & waiting_consumers_.front();
+                waiting_consumers_.pop_front();
+                lk.unlock();
+                active_ctx->schedule( consumer_ctx);
+            }
+#if 0
+        } else {
+            // let other fiberrun
+            active_ctx->yield(); 
+#endif
+        }
+        return status;
     }
 
     channel_op_status try_push( value_type && value) {
         if ( is_closed() ) {
             return channel_op_status::closed;
         }
-        return try_push_( std::move( value) );
+        channel_op_status status = try_push_( std::move( value) );
+        if ( channel_op_status::success == status) {
+            detail::spinlock_lock lk{ splk_ };
+            // notify one waiting consumer
+            if ( ! waiting_consumers_.empty() ) {
+                context * consumer_ctx = & waiting_consumers_.front();
+                waiting_consumers_.pop_front();
+                lk.unlock();
+                context::active()->schedule( consumer_ctx);
+            }
+#if 0
+        } else {
+            // let other fibers run
+            active_ctx->yield(); 
+#endif
+        }
+        return status;
     }
 
     channel_op_status push( value_type const& value) {
@@ -371,9 +404,23 @@ public:
 
     channel_op_status try_pop( value_type & value) {
         channel_op_status status = try_pop_( value);
-        if ( channel_op_status::success != status) {
+        if ( channel_op_status::success == status) {
+            detail::spinlock_lock lk{ splk_ };
+            // notify one waiting producer
+            if ( ! waiting_producers_.empty() ) {
+                context * producer_ctx = & waiting_producers_.front();
+                waiting_producers_.pop_front();
+                lk.unlock();
+                context::active()->schedule( producer_ctx);
+            }
+        } else {
             if ( is_closed() ) {
                 status = channel_op_status::closed;
+#if 0
+            } else {
+                // let other fibers run
+                active_ctx->yield(); 
+#endif
             }
         }
         return status;

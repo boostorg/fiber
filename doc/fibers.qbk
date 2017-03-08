@@ -253,7 +253,6 @@ channel operations return the state of the channel.
 
 [include buffered_channel.qbk]
 [include unbuffered_channel.qbk]
-[include channel.qbk]
 
 [endsect]
 [include futures.qbk]
