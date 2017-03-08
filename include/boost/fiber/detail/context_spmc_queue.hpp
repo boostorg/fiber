@@ -144,14 +144,14 @@ public:
         context * ctx = nullptr;
         if ( top < bottom) {
             // queue is not empty
-            array * a = array_.load( std::memory_order_consume);
-            ctx = a->pop( top);
             if ( ! top_.compare_exchange_strong( top, top + 1,
                                                  std::memory_order_seq_cst,
                                                  std::memory_order_relaxed) ) {
                 // lose the race
                 return nullptr;
             }
+            array * a = array_.load( std::memory_order_consume);
+            ctx = a->pop( top);
             BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
         }
         return ctx;
