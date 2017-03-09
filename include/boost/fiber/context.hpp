@@ -501,12 +501,13 @@ public:
 
     friend void intrusive_ptr_add_ref( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
-        ++ctx->use_count_;
+        ctx->use_count_.fetch_add( 1, std::memory_order_relaxed);
     }
 
     friend void intrusive_ptr_release( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
-        if ( 0 == --ctx->use_count_) {
+        if ( 1 == ctx->use_count_.fetch_sub( 1, std::memory_order_release) ) {
+            std::atomic_thread_fence( std::memory_order_acquire);
 #if (BOOST_EXECUTION_CONTEXT==1)
             boost::context::execution_context ec = ctx->ctx_;
             // destruct context

@@ -142,13 +142,14 @@ public:
 
     friend inline
     void intrusive_ptr_add_ref( shared_state_base * p) noexcept {
-        ++p->use_count_;
+        p->use_count_.fetch_add( 1, std::memory_order_relaxed);
     }
 
     friend inline
     void intrusive_ptr_release( shared_state_base * p) noexcept {
-        if ( 0 == --p->use_count_) {
-           p->deallocate_future();
+        if ( 1 == p->use_count_.fetch_sub( 1, std::memory_order_release) ) {
+            std::atomic_thread_fence( std::memory_order_acquire);
+            p->deallocate_future();
         }
     }
 };
