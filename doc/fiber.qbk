@@ -680,7 +680,7 @@ there are no guarantees about how soon after that it might resume.]]
         }}
 
 [variablelist
-[[Effects:] [Reliquishes execution control, allowing other fibers to run.]]
+[[Effects:] [Relinquishes execution control, allowing other fibers to run.]]
 [[Throws:] [Nothing.]]
 [[Note:] [A fiber that calls
 `yield()` is not suspended: it is immediately passed to the scheduler as ready
