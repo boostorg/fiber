@@ -26,7 +26,7 @@ class BOOST_FIBERS_DECL barrier {
 private:
     std::size_t         initial_;
     std::size_t         current_;
-    bool                cycle_{ true };
+    std::size_t         cycle_{ 0 };
     mutex               mtx_{};
     condition_variable  cond_{};
 

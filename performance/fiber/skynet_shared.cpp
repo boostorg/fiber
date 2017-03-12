@@ -72,14 +72,13 @@ int main() {
         unsigned int n = std::thread::hardware_concurrency();
         barrier b( n);
         bind_to_processor( n - 1);
-        std::size_t stack_size{ 4048 };
         std::size_t size{ 100000 };
         std::size_t div{ 10 };
         std::vector< std::thread > threads;
         for ( unsigned int i = 1; i < n; ++i) {
             threads.push_back( std::thread( thread, i - 1, & b) );
         };
-        allocator_type salloc{ stack_size };
+        allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
         channel_type rc{ 2 };

@@ -14,7 +14,7 @@
 
 #include <boost/fiber/detail/config.hpp>
 
-#if BOOST_COMP_MSVC
+#if BOOST_COMP_MSVC || BOOST_COMP_MSVC_EMULATED
 # include <Windows.h>
 #endif
 
@@ -37,7 +37,7 @@ namespace detail {
 #elif BOOST_ARCH_PPC
 # define cpu_relax() asm volatile ("or 27,27,27" ::: "memory");
 #elif BOOST_ARCH_X86
-# if BOOST_COMP_MSVC
+# if BOOST_COMP_MSVC || BOOST_COMP_MSVC_EMULATED
 #  define cpu_relax() YieldProcessor();
 # else
 #  define cpu_relax() asm volatile ("pause" ::: "memory");

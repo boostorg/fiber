@@ -75,14 +75,13 @@ int main() {
         unsigned int max_idx = cpus - 1;
         boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( max_idx, max_idx);
         bind_to_processor( max_idx);
-        std::size_t stack_size{ 4048 };
         std::size_t size{ 100000 };
         std::size_t div{ 10 };
         std::vector< std::thread > threads;
         for ( unsigned int idx = 0; idx < max_idx; ++idx) {
             threads.push_back( std::thread( thread, max_idx, idx, & b) );
         };
-        allocator_type salloc{ stack_size };
+        allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
         channel_type rc{ 2 };
