@@ -161,13 +161,15 @@ context::resume_( detail::data_t & d) noexcept {
 void
 context::resume_( detail::data_t & d) noexcept {
     boost::context::continuation c = c_.resume( & d);
-    detail::data_t * dp = c.get_data< detail::data_t * >();
-    if ( nullptr != dp) {
-        dp->from->c_ = std::move( c);
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            active()->schedule_( dp->ctx);
+    if ( c) {
+        detail::data_t * dp = c.get_data< detail::data_t * >();
+        if ( nullptr != dp) {
+            dp->from->c_ = std::move( c);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active()->schedule_( dp->ctx);
+            }
         }
     }
 }
