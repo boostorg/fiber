@@ -391,6 +391,11 @@ public:
 
     id get_id() const noexcept;
 
+    bool is_resumable() const noexcept {
+        if ( c_) return true;
+        else return false;
+    }
+
     void resume() noexcept;
     void resume( detail::spinlock_lock &) noexcept;
     void resume( context *) noexcept;

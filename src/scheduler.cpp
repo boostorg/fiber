@@ -32,6 +32,7 @@ scheduler::release_terminated_() noexcept {
         i = terminated_queue_.erase( i);
         BOOST_ASSERT( ctx->is_context( type::worker_context) );
         BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
+        BOOST_ASSERT( ctx->is_resumable() );
         BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->worker_is_linked() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
@@ -184,6 +185,7 @@ scheduler::dispatch() noexcept {
         // get next ready context
         context * ctx = algo_->pick_next();
         if ( nullptr != ctx) {
+            BOOST_ASSERT( ctx->is_resumable() );
             BOOST_ASSERT( ! ctx->is_terminated() );
             BOOST_ASSERT( ! ctx->ready_is_linked() );
             BOOST_ASSERT( ! ctx->sleep_is_linked() );
