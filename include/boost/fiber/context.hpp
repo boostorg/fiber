@@ -238,7 +238,9 @@ public:
     detail::terminated_hook                 terminated_hook_{};
     detail::wait_hook                       wait_hook_{};
     detail::worker_hook                     worker_hook_{};
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< context * >                remote_nxt_{ nullptr };
+#endif
     std::chrono::steady_clock::time_point   tp_{ (std::chrono::steady_clock::time_point::max)() };
 
     typedef intrusive::list<
