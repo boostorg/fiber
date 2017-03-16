@@ -10,6 +10,7 @@
 #include <atomic>
 #include <chrono>
 #include <random>
+#define __GLIBCXX_USE_NANOSLEEP
 #include <thread>
 
 #include <boost/fiber/detail/config.hpp>
@@ -91,9 +92,9 @@ public:
                 // spinlock now contended
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
-                static thread_local std::minstd_rand generator;
+                static BOOST_FIBER_DEFINE_THREAD_LOCAL(std::minstd_rand, generator);
                 const std::size_t z =
-                    std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }( generator);
+                    std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }(BOOST_FIBER_USE_THREAD_LOCAL(generator));
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
                     // -> reduces the power consumed by the CPU

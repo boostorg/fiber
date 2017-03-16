@@ -38,7 +38,7 @@ public:
 private:
     typedef context::wait_queue_t   wait_queue_type;
 
-    struct alignas(cache_alignment) slot {
+    struct BOOST_FIBER_ALIGNAS_BEGIN(cache_alignment) slot {
         value_type  value;
         context *   ctx;
 
@@ -51,15 +51,15 @@ private:
             value{ std::move( value_) },
             ctx{ ctx_ } {
         }
-    };
+    } BOOST_FIBER_ALIGNAS_END(cache_alignment);
 
     // shared cacheline
-    alignas(cache_alignment) std::atomic< slot * >      slot_{ nullptr };
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic< slot * >)      slot_{ nullptr };
     // shared cacheline
-    alignas(cache_alignment) std::atomic_bool           closed_{ false };
-    alignas(cache_alignment) mutable detail::spinlock   splk_producers_{};
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic_bool)           closed_{ false };
+    BOOST_FIBER_ALIGNAS(cache_alignment, mutable detail::spinlock)   splk_producers_{};
     wait_queue_type                                     waiting_producers_{};
-    alignas( cache_alignment) mutable detail::spinlock  splk_consumers_{};
+    BOOST_FIBER_ALIGNAS(cache_alignment, mutable detail::spinlock)  splk_consumers_{};
     wait_queue_type                                     waiting_consumers_{};
     char                                                pad_[cacheline_length];
 

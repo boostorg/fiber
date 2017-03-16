@@ -66,9 +66,9 @@ public:
                 // spinlock now contended
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
-                static thread_local std::minstd_rand generator;
+                static BOOST_FIBER_DEFINE_THREAD_LOCAL(std::minstd_rand, generator);
                 const std::int32_t z = std::uniform_int_distribution< std::int32_t >{
-                    0, static_cast< std::int32_t >( 1) << collisions }( generator);
+                    0, static_cast< std::int32_t >( 1) << collisions }(BOOST_FIBER_USE_THREAD_LOCAL(generator));
                 ++collisions;
                 for ( std::int32_t i = 0; i < z; ++i) {
                     // -> reduces the power consumed by the CPU

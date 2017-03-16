@@ -38,9 +38,9 @@ private:
     std::size_t                                             idx_;
     std::size_t                                             max_idx_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
-    alignas(cache_alignment) detail::context_spmc_queue     rqueue_{};
+    BOOST_FIBER_ALIGNAS(cache_alignment, detail::context_spmc_queue)     rqueue_{};
 #else
-    alignas(cache_alignment) detail::context_spinlock_queue rqueue_{};
+    BOOST_FIBER_ALIGNAS(cache_alignment, detail::context_spinlock_queue) rqueue_{};
 #endif
     std::mutex                                              mtx_{};
     std::condition_variable                                 cnd_{};

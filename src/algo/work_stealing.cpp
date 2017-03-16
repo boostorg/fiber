@@ -52,10 +52,10 @@ work_stealing::pick_next() noexcept {
             context::active()->attach( ctx);
         }
     } else {
-        static thread_local std::minstd_rand generator;
+        static BOOST_FIBER_DEFINE_THREAD_LOCAL(std::minstd_rand, generator);
         std::size_t idx = 0;
         do {
-            idx = std::uniform_int_distribution< std::size_t >{ 0, max_idx_ }( generator);
+            idx = std::uniform_int_distribution< std::size_t >{ 0, max_idx_ }(BOOST_FIBER_USE_THREAD_LOCAL(generator));
         } while ( idx == idx_);
         ctx = schedulers_[idx]->steal();
         if ( nullptr != ctx) {

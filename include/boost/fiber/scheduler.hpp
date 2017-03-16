@@ -90,7 +90,7 @@ private:
     detail::spinlock                                            remote_ready_splk_{};
     remote_ready_queue_type                                     remote_ready_queue_{};
 #endif
-    alignas(cache_alignment) std::unique_ptr< algo::algorithm > algo_;
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::unique_ptr< algo::algorithm >) algo_;
     // sleep-queue contains context' which have been called
     // scheduler::wait_until()
     sleep_queue_type                                            sleep_queue_{};

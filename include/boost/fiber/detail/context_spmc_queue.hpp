@@ -92,9 +92,9 @@ private:
         }
     };
 
-    alignas(cache_alignment) std::atomic< std::size_t >     top_{ 0 };
-    alignas(cache_alignment) std::atomic< std::size_t >     bottom_{ 0 };
-    alignas(cache_alignment) std::atomic< array * >         array_;
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic< std::size_t >) top_{ 0 };
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic< std::size_t >) bottom_{ 0 };
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic< array * >)     array_;
     std::vector< array * >                                  old_arrays_{};
     char                                                    padding_[cacheline_length];
 

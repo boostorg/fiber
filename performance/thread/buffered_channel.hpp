@@ -40,24 +40,24 @@ public:
 private:
     typedef typename std::aligned_storage< sizeof( T), alignof( T) >::type  storage_type;
 
-    struct alignas(cache_alignment) slot {
+    struct BOOST_FIBER_ALIGNAS(cache_alignment, slot {
         std::atomic< std::size_t >  cycle{ 0 };
         storage_type                storage{};
 
         slot() = default;
-    };
+    });
 
-    // procuder cacheline
-    alignas(cache_alignment) std::atomic< std::size_t >     producer_idx_{ 0 };
+    // producer cacheline
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic< std::size_t >)     producer_idx_{ 0 };
     // consumer cacheline
-    alignas(cache_alignment) std::atomic< std::size_t >     consumer_idx_{ 0 };
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic< std::size_t >)     consumer_idx_{ 0 };
     // shared write cacheline
-    alignas(cache_alignment) std::atomic_bool               closed_{ false };
+    BOOST_FIBER_ALIGNAS(cache_alignment, std::atomic_bool)               closed_{ false };
     mutable std::mutex                                      mtx_{};
     std::condition_variable                                 not_full_cnd_{};
     std::condition_variable                                 not_empty_cnd_{};
     // shared read cacheline
-    alignas(cache_alignment) slot                        *  slots_{ nullptr };
+    BOOST_FIBER_ALIGNAS(cache_alignment, slot                        *)  slots_{ nullptr };
     std::size_t                                             capacity_;
     char                                                    pad_[cacheline_length];
     std::size_t                                             waiting_consumer_{ 0 };

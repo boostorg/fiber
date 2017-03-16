@@ -59,7 +59,48 @@
 // ARM Cortex-A15 32/64byte, Cortex-A9 16/32/64bytes
 // MIPS 74K: 32byte, 4KEc: 16byte
 // ist shoudl be safe to use 64byte for all
-static constexpr std::size_t cache_alignment{ 64 };
-static constexpr std::size_t cacheline_length{ 64 };
+# define CACHE_ALIGNMENT 64
+# define CACHELINE_LENGTH 64
+
+#if defined(BOOST_NO_CXX11_ALIGNAS)
+#  define cache_alignment CACHE_ALIGNMENT
+#  define cacheline_length CACHELINE_LENGTH
+#  define BOOST_FIBER_ALIGNAS_BEGIN(alignment)
+#  define BOOST_FIBER_ALIGNAS_END(alignment) __attribute__((aligned (alignment)))
+#else
+   static constexpr std::size_t cache_alignment{ CACHE_ALIGNMENT };
+   static constexpr std::size_t cacheline_length{ CACHELINE_LENGTH };
+#  define BOOST_FIBER_ALIGNAS_BEGIN(alignment) alignas(alignment)
+#  define BOOST_FIBER_ALIGNAS_END(alignment)
+#endif
+#define BOOST_FIBER_ALIGNAS(alignment, subject) BOOST_FIBER_ALIGNAS_BEGIN(alignment) subject BOOST_FIBER_ALIGNAS_END(alignment)
+
+#if defined(BOOST_NO_CXX11_THREAD_LOCAL)
+#  include <boost/thread/tss.hpp>
+namespace boost {
+namespace fibers {
+  template<typename T>
+  class initialized_thread_specific_ptr {
+    public:
+    initialized_thread_specific_ptr() {
+      tss_.reset(new T);
+    }
+
+    T& operator*() {
+      return *tss_;
+    }
+
+    private:
+      boost::thread_specific_ptr<T> tss_;
+  };
+}}
+#  define BOOST_FIBER_DECLARE_THREAD_LOCAL(type, name) boost::fibers::initialized_thread_specific_ptr<type> name
+#  define BOOST_FIBER_DEFINE_THREAD_LOCAL(type, name) boost::fibers::initialized_thread_specific_ptr<type> name
+#  define BOOST_FIBER_USE_THREAD_LOCAL(val) (*val)
+#else
+#  define BOOST_FIBER_DECLARE_THREAD_LOCAL(type, name) thread_local type name
+#  define BOOST_FIBER_DEFINE_THREAD_LOCAL(type, name) thread_local type name
+#  define BOOST_FIBER_USE_THREAD_LOCAL(val) val
+#endif
 
 #endif // BOOST_FIBERS_DETAIL_CONFIG_H

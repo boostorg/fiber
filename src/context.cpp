@@ -51,11 +51,11 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
 
 // schwarz counter
 struct context_initializer {
-    static thread_local context *   active_;
-    static thread_local std::size_t counter_;
+    static BOOST_FIBER_DECLARE_THREAD_LOCAL(context*, active_);
+    static BOOST_FIBER_DECLARE_THREAD_LOCAL(std::size_t, counter_);
 
     context_initializer() {
-        if ( 0 == counter_++) {
+        if ( 0 == BOOST_FIBER_USE_THREAD_LOCAL(counter_)++) {
 # if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
             // allocate memory for main context and scheduler
             constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
@@ -72,7 +72,7 @@ struct context_initializer {
             // create and attach dispatcher context to scheduler
             sched->attach_dispatcher_context( make_dispatcher_context( sched) );
             // make main context to active context
-            active_ = main_ctx;
+            BOOST_FIBER_USE_THREAD_LOCAL(active_) = main_ctx;
 # else
             constexpr std::size_t alignment = 64; // alignof( capture_t);
             constexpr std::size_t ctx_size = sizeof( context);
@@ -104,14 +104,14 @@ struct context_initializer {
             // create and attach dispatcher context to scheduler
             sched->attach_dispatcher_context( make_dispatcher_context( sched) );
             // make main context to active context
-            active_ = main_ctx;
+            BOOST_FIBER_USE_THREAD_LOCAL(active_) = main_ctx;
 # endif
         }
     }
 
     ~context_initializer() {
-        if ( 0 == --counter_) {
-            context * main_ctx = active_;
+        if ( 0 == --BOOST_FIBER_USE_THREAD_LOCAL(counter_)) {
+            context * main_ctx = BOOST_FIBER_USE_THREAD_LOCAL(active_);
             BOOST_ASSERT( main_ctx->is_context( type::main_context) );
             scheduler * sched = main_ctx->get_scheduler();
             sched->~scheduler();
@@ -128,23 +128,23 @@ struct context_initializer {
 };
 
 // zero-initialization
-thread_local context * context_initializer::active_;
-thread_local std::size_t context_initializer::counter_;
+BOOST_FIBER_DEFINE_THREAD_LOCAL(context *, context_initializer::active_);
+BOOST_FIBER_DEFINE_THREAD_LOCAL(std::size_t, context_initializer::counter_);
 
 context *
 context::active() noexcept {
 #if (BOOST_EXECUTION_CONTEXT==1)
     // initialized the first time control passes; per thread
-    thread_local static boost::context::detail::activation_record_initializer rec_initializer;
+    static BOOST_FIBER_DEFINE_THREAD_LOCAL(boost::context::detail::activation_record_initializer, rec_initializer_);
 #endif
     // initialized the first time control passes; per thread
-    thread_local static context_initializer ctx_initializer;
-    return context_initializer::active_;
+    static BOOST_FIBER_DEFINE_THREAD_LOCAL(context_initializer, ctx_initializer);
+    return BOOST_FIBER_USE_THREAD_LOCAL(context_initializer::active_);
 }
 
 void
 context::reset_active() noexcept {
-    context_initializer::active_ = nullptr;
+    BOOST_FIBER_USE_THREAD_LOCAL(context_initializer::active_) = nullptr;
 }
 
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -271,7 +271,7 @@ context::resume() noexcept {
     context * prev = this;
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
+    std::swap( BOOST_FIBER_USE_THREAD_LOCAL(context_initializer::active_), prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
     detail::data_t d{};
 #else
@@ -285,7 +285,7 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     context * prev = this;
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
+    std::swap( BOOST_FIBER_USE_THREAD_LOCAL(context_initializer::active_), prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
     detail::data_t d{ & lk };
 #else
@@ -299,7 +299,7 @@ context::resume( context * ready_ctx) noexcept {
     context * prev = this;
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
+    std::swap( BOOST_FIBER_USE_THREAD_LOCAL(context_initializer::active_), prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
     detail::data_t d{ ready_ctx };
 #else
@@ -373,7 +373,7 @@ context::suspend_with_cc() noexcept {
     context * prev = this;
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
+    std::swap( BOOST_FIBER_USE_THREAD_LOCAL(context_initializer::active_), prev);
     detail::data_t d{ prev };
     // context switch
     return c_.resume( & d);
