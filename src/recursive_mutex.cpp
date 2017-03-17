@@ -21,53 +21,56 @@ namespace fibers {
 
 void
 recursive_mutex::lock() {
-    context * active_ctx = context::active();
+    context * ctx = context::active();
     // store this fiber in order to be notified later
     detail::spinlock_lock lk{ wait_queue_splk_ };
-    if ( active_ctx == owner_) {
+    if ( ctx == owner_) {
         ++count_;
         return;
     } else if ( nullptr == owner_) {
-        owner_ = active_ctx;
+        owner_ = ctx;
         count_ = 1;
         return;
     }
-    wait_queue_.push( active_ctx);
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    ctx->wait_link( wait_queue_);
     // suspend this fiber
-    active_ctx->suspend( lk);
+    ctx->suspend( lk);
+    BOOST_ASSERT( ! ctx->wait_is_linked() );
 }
 
 bool
 recursive_mutex::try_lock() noexcept { 
-    context * active_ctx = context::active();
+    context * ctx = context::active();
     detail::spinlock_lock lk{ wait_queue_splk_ };
     if ( nullptr == owner_) {
-        owner_ = active_ctx;
+        owner_ = ctx;
         count_ = 1;
-    } else if ( active_ctx == owner_) {
+    } else if ( ctx == owner_) {
         ++count_;
     }
     lk.unlock();
     // let other fiber release the lock
-    active_ctx->yield();
-    return active_ctx == owner_;
+    context::active()->yield();
+    return ctx == owner_;
 }
 
 void
 recursive_mutex::unlock() {
-    context * active_ctx = context::active();
+    context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-    if ( active_ctx != owner_) {
+    if ( ctx != owner_) {
         throw lock_error(
                 std::make_error_code( std::errc::operation_not_permitted),
                 "boost fiber: no  privilege to perform the operation");
     }
     if ( 0 == --count_) {
-        context * ctx;
-        if ( nullptr != ( ctx = wait_queue_.pop() ) ) {
+        if ( ! wait_queue_.empty() ) {
+            context * ctx = & wait_queue_.front();
+            wait_queue_.pop_front();
             owner_ = ctx;
             count_ = 1;
-            active_ctx->schedule( ctx);
+            context::active()->schedule( ctx);
         } else {
             owner_ = nullptr;
             return;

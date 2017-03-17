@@ -37,7 +37,6 @@
 #include <boost/fiber/detail/decay_copy.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
-#include <boost/fiber/detail/context_wait_queue.hpp>
 #include <boost/fiber/detail/wrap.hpp>
 #include <boost/fiber/exceptions.hpp>
 #include <boost/fiber/fixedsize_stack.hpp>
@@ -63,6 +62,31 @@ class fiber;
 class scheduler;
 
 namespace detail {
+
+struct wait_tag;
+typedef intrusive::list_member_hook<
+    intrusive::tag< wait_tag >,
+    intrusive::link_mode<
+        intrusive::auto_unlink
+    >
+>                                 wait_hook;
+// declaration of the functor that converts between
+// the context class and the wait-hook
+struct wait_functor {
+    // required types
+    typedef wait_hook               hook_type;
+    typedef hook_type           *   hook_ptr;
+    typedef const hook_type     *   const_hook_ptr;
+    typedef context                 value_type;
+    typedef value_type          *   pointer;
+    typedef const value_type    *   const_pointer;
+
+    // required static functions
+    static hook_ptr to_hook_ptr( value_type &value);
+    static const_hook_ptr to_hook_ptr( value_type const& value);
+    static pointer to_value_ptr( hook_ptr n);
+    static const_pointer to_value_ptr( const_hook_ptr n);
+};
 
 struct ready_tag;
 typedef intrusive::list_member_hook<
@@ -212,13 +236,17 @@ public:
     detail::ready_hook                      ready_hook_{};
     detail::sleep_hook                      sleep_hook_{};
     detail::terminated_hook                 terminated_hook_{};
+    detail::wait_hook                       wait_hook_{};
     detail::worker_hook                     worker_hook_{};
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< context * >                remote_nxt_{ nullptr };
 #endif
     std::chrono::steady_clock::time_point   tp_{ (std::chrono::steady_clock::time_point::max)() };
 
-    typedef detail::context_wait_queue      wait_queue_t;
+    typedef intrusive::list<
+        context,
+        intrusive::function_hook< detail::wait_functor >,
+        intrusive::constant_time_size< false > >   wait_queue_t;
 
 private:
     fss_data_t                              fss_data_{};
@@ -427,6 +455,8 @@ public:
 
     bool terminated_is_linked() const noexcept;
 
+    bool wait_is_linked() const noexcept;
+
     template< typename List >
     void worker_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::worker_hook >::value, "not a worker-queue");
@@ -455,6 +485,13 @@ public:
         lst.push_back( * this);
     }
 
+    template< typename List >
+    void wait_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::wait_hook >::value, "not a wait-queue");
+        BOOST_ASSERT( ! wait_is_linked() );
+        lst.push_back( * this);
+    }
+
     void worker_unlink() noexcept;
 
     void ready_unlink() noexcept;
@@ -462,6 +499,8 @@ public:
     void sleep_unlink() noexcept;
 
     void terminated_unlink() noexcept;
+
+    void wait_unlink() noexcept;
 
     void detach() noexcept;
 
@@ -529,7 +568,29 @@ static intrusive_ptr< context > make_worker_context( launch policy,
                 std::make_tuple( std::forward< Args >( args) ... ) } };
 }
 
-}}
+namespace detail {
+
+inline
+wait_functor::hook_ptr wait_functor::to_hook_ptr( wait_functor::value_type & value) {
+    return & value.wait_hook_;
+}
+
+inline
+wait_functor::const_hook_ptr wait_functor::to_hook_ptr( wait_functor::value_type const& value) {
+    return & value.wait_hook_;
+}
+
+inline
+wait_functor::pointer wait_functor::to_value_ptr( wait_functor::hook_ptr n) {
+    return intrusive::get_parent_from_member< context >( n, & context::wait_hook_);
+}
+
+inline
+wait_functor::const_pointer wait_functor::to_value_ptr( wait_functor::const_hook_ptr n) {
+    return intrusive::get_parent_from_member< context >( n, & context::wait_hook_);
+}
+
+}}}
 
 #ifdef _MSC_VER
 # pragma warning(pop)

@@ -22,7 +22,8 @@ condition_variable_any::notify_one() noexcept {
     if ( wait_queue_.empty() ) {
         return;
     }
-    context * ctx = wait_queue_.pop();
+    context * ctx = & wait_queue_.front();
+    wait_queue_.pop_front();
     // notify context
     context::active()->schedule( ctx);
 }
@@ -33,8 +34,9 @@ condition_variable_any::notify_all() noexcept {
     detail::spinlock_lock lk{ wait_queue_splk_ };
     // FIXME : swap wait-queue and unlock lock
     // notify all context'
-    context * ctx;
-    while ( nullptr != ( ctx = wait_queue_.pop() ) ) {
+    while ( ! wait_queue_.empty() ) {
+        context * ctx = & wait_queue_.front();
+        wait_queue_.pop_front();
         context::active()->schedule( ctx);
     }
 }
