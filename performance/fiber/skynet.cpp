@@ -31,12 +31,17 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
         c.push( num);
     } else {
         channel_type rc{ 16 };
+        std::vector< boost::fibers::fiber > fibers;
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
-            boost::fibers::fiber{ boost::fibers::launch::dispatch,
+            fibers.push_back(
+                boost::fibers::fiber{ boost::fibers::launch::dispatch,
                                   std::allocator_arg, salloc,
                                   skynet,
-                                  std::ref( salloc), std::ref( rc), sub_num, size / div, div }.detach();
+                                  std::ref( salloc), std::ref( rc), sub_num, size / div, div });
+        }
+        for ( auto & f: fibers) {
+            f.join();
         }
         std::uint64_t sum{ 0 };
         for ( std::size_t i = 0; i < div; ++i) {
