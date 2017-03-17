@@ -17,6 +17,7 @@
 #include <boost/config.hpp>
 
 #include <boost/fiber/algo/algorithm.hpp>
+#include <boost/fiber/detail/context_spinlock_queue.hpp>
 #include <boost/fiber/detail/context_spmc_queue.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -32,11 +33,15 @@ namespace algo {
 
 class work_stealing : public algorithm {
 private:
-    static std::vector< work_stealing * >        schedulers_;
+    static std::vector< work_stealing * >           schedulers_;
 
     std::size_t                                     idx_;
     std::size_t                                     max_idx_;
+#ifdef BOOST_FIBERS_USE_SPMC_QUEUE
     detail::context_spmc_queue                      rqueue_{};
+#else
+    detail::context_spinlock_queue                  rqueue_{};
+#endif
     std::mutex                                      mtx_{};
     std::condition_variable                         cnd_{};
     bool                                            flag_{ false };
