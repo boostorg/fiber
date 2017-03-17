@@ -118,15 +118,13 @@ public:
         detail::spinlock_lock lk{ splk_ };
         closed_.store( true, std::memory_order_release);
         // notify all waiting producers
-        while ( ! waiting_producers_.empty() ) {
-            context * producer_ctx = & waiting_producers_.front();
-            waiting_producers_.pop_front();
+        context * producer_ctx;
+        while ( nullptr != ( producer_ctx = waiting_producers_.pop() ) ) {
             active_ctx->schedule( producer_ctx);
         }
         // notify all waiting consumers
-        while ( ! waiting_consumers_.empty() ) {
-            context * consumer_ctx = & waiting_consumers_.front();
-            waiting_consumers_.pop_front();
+        context * consumer_ctx;
+        while ( nullptr != ( consumer_ctx = waiting_consumers_.pop() ) ) {
             active_ctx->schedule( consumer_ctx);
         }
     }
@@ -141,9 +139,8 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
-                    context * consumer_ctx = & waiting_consumers_.front();
-                    waiting_consumers_.pop_front();
+                context * consumer_ctx;
+                if ( nullptr != ( consumer_ctx = waiting_consumers_.pop() ) ) {
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
@@ -158,7 +155,7 @@ public:
                 if ( is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_producers_);
+                waiting_producers_.push( active_ctx);
                 // suspend this producer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye free
@@ -176,9 +173,8 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
-                    context * consumer_ctx = & waiting_consumers_.front();
-                    waiting_consumers_.pop_front();
+                context * consumer_ctx;
+                if ( nullptr != ( consumer_ctx = waiting_consumers_.pop() ) ) {
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
@@ -193,7 +189,7 @@ public:
                 if ( is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_producers_);
+                waiting_producers_.push( active_ctx);
                 // suspend this producer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye free
@@ -228,9 +224,8 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
-                    context * consumer_ctx = & waiting_consumers_.front();
-                    waiting_consumers_.pop_front();
+                context * consumer_ctx;
+                if ( nullptr != ( consumer_ctx = waiting_consumers_.pop() ) ) {
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
@@ -251,13 +246,13 @@ public:
                 if ( is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_producers_);
+                waiting_producers_.push( active_ctx);
                 // suspend this producer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
-                    active_ctx->wait_unlink();
+                    waiting_producers_.remove( active_ctx);
                     return channel_op_status::timeout;
                 }
                 // resumed, slot maybe free
@@ -278,9 +273,8 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
-                    context * consumer_ctx = & waiting_consumers_.front();
-                    waiting_consumers_.pop_front();
+                context * consumer_ctx;
+                if ( nullptr != ( consumer_ctx = waiting_consumers_.pop() ) ) {
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
@@ -301,13 +295,13 @@ public:
                 if ( is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_producers_);
+                waiting_producers_.push( active_ctx);
                 // suspend this producer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
-                    active_ctx->wait_unlink();
+                    waiting_producers_.remove( active_ctx);
                     return channel_op_status::timeout;
                 }
                 // resumed, slot maybe free
@@ -323,9 +317,8 @@ public:
                 {
                     detail::spinlock_lock lk{ splk_ };
                     // notify one waiting producer
-                    if ( ! waiting_producers_.empty() ) {
-                        context * producer_ctx = & waiting_producers_.front();
-                        waiting_producers_.pop_front();
+                    context * producer_ctx;
+                    if ( nullptr != ( producer_ctx = waiting_producers_.pop() ) ) {
                         lk.unlock();
                         active_ctx->schedule( producer_ctx);
                     }
@@ -343,7 +336,7 @@ public:
                 if ( ! is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_consumers_);
+                waiting_consumers_.push( active_ctx);
                 // suspend this consumer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye set
@@ -359,9 +352,8 @@ public:
                 {
                     detail::spinlock_lock lk{ splk_ };
                     // notify one waiting producer
-                    if ( ! waiting_producers_.empty() ) {
-                        context * producer_ctx = & waiting_producers_.front();
-                        waiting_producers_.pop_front();
+                    context * producer_ctx;
+                    if ( nullptr != ( producer_ctx = waiting_producers_.pop() ) ) {
                         lk.unlock();
                         active_ctx->schedule( producer_ctx);
                     }
@@ -381,7 +373,7 @@ public:
                 if ( ! is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_consumers_);
+                waiting_consumers_.push( active_ctx);
                 // suspend this consumer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye set
@@ -407,9 +399,8 @@ public:
                 {
                     detail::spinlock_lock lk{ splk_ };
                     // notify one waiting producer
-                    if ( ! waiting_producers_.empty() ) {
-                        context * producer_ctx = & waiting_producers_.front();
-                        waiting_producers_.pop_front();
+                    context * producer_ctx;
+                    if ( nullptr != ( producer_ctx = waiting_producers_.pop() ) ) {
                         lk.unlock();
                         active_ctx->schedule( producer_ctx);
                     }
@@ -427,13 +418,13 @@ public:
                 if ( ! is_empty_() ) {
                     continue;
                 }
-                active_ctx->wait_link( waiting_consumers_);
+                waiting_consumers_.push( active_ctx);
                 // suspend this consumer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
-                    active_ctx->wait_unlink();
+                    waiting_consumers_.remove( active_ctx);
                     return channel_op_status::timeout;
                 }
             }

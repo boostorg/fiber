@@ -68,8 +68,7 @@ public:
         // atomically call lt.unlock() and block on *this
         // store this fiber in waiting-queue
         detail::spinlock_lock lk{ wait_queue_splk_ };
-        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
-        active_ctx->wait_link( wait_queue_);
+        wait_queue_.push( active_ctx);
         // unlock external lt
         lt.unlock();
         // suspend this fiber
@@ -80,8 +79,6 @@ public:
         } catch (...) {
             std::terminate();
         }
-        // post-conditions
-        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     }
 
     template< typename LockType, typename Pred >
@@ -99,8 +96,7 @@ public:
         // atomically call lt.unlock() and block on *this
         // store this fiber in waiting-queue
         detail::spinlock_lock lk{ wait_queue_splk_ };
-        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
-        active_ctx->wait_link( wait_queue_);
+        wait_queue_.push( active_ctx);
         // unlock external lt
         lt.unlock();
         // suspend this fiber
@@ -109,7 +105,7 @@ public:
             // relock local lk
             lk.lock();
             // remove from waiting-queue
-            active_ctx->wait_unlink();
+            wait_queue_.remove( active_ctx);
             // unlock local lk
             lk.unlock();
         }
@@ -119,8 +115,6 @@ public:
         } catch (...) {
             std::terminate();
         }
-        // post-conditions
-        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
         return status;
     }
 
