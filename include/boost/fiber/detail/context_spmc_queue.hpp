@@ -164,6 +164,30 @@ public:
         }
         return ctx;
     }
+
+    context * steal() {
+        std::size_t top = top_.load( std::memory_order_acquire);
+        std::atomic_thread_fence( std::memory_order_seq_cst);
+        std::size_t bottom = bottom_.load( std::memory_order_acquire);
+        context * ctx = nullptr;
+        if ( top < bottom) {
+            // queue is not empty
+            array * a = array_.load( std::memory_order_consume);
+            ctx = a->pop( top);
+            BOOST_ASSERT( nullptr != ctx);
+            // do not steal pinned context (e.g. main-/dispatcher-context)
+            if ( ctx->is_context( type::pinned_context) ) {
+                return nullptr;
+            }
+            if ( ! top_.compare_exchange_strong( top, top + 1,
+                                                 std::memory_order_seq_cst,
+                                                 std::memory_order_relaxed) ) {
+                // lose the race
+                return nullptr;
+            }
+        }
+        return ctx;
+    }
 };
 
 }}}
