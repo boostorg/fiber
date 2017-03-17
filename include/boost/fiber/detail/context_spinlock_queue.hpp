@@ -94,6 +94,19 @@ public:
 		}
 		return c;
 	}
+
+	context * steal() {
+        spinlock_lock lk{ splk_ };
+		context * c = nullptr;
+		if ( ! is_empty_() ) {
+			c = slots_[cidx_];
+            if ( c->is_context( type::pinned_context) ) {
+                return nullptr;
+            }
+			cidx_ = (cidx_ + 1) % capacity_;
+		}
+		return c;
+	}
 };
 
 }}}
