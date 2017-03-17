@@ -51,6 +51,18 @@ work_stealing::pick_next() noexcept {
         if ( ! ctx->is_context( type::pinned_context) ) {
             context::active()->attach( ctx);
         }
+    } else {
+        static thread_local std::minstd_rand generator;
+        std::size_t idx = 0;
+        do {
+            idx = std::uniform_int_distribution< std::size_t >{ 0, max_idx_ }( generator);
+        } while ( idx == idx_);
+        ctx = schedulers_[idx]->steal();
+        if ( nullptr != ctx) {
+            ctx->get_scheduler();
+            BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
+            context::active()->attach( ctx);
+        }
     }
     return ctx;
 }

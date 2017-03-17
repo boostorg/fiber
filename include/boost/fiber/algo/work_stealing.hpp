@@ -62,6 +62,10 @@ public:
 
     context * pick_next() noexcept;
 
+    context * steal() noexcept {
+        return rqueue_.steal();
+    }
+
     bool has_ready_fibers() const noexcept {
         return ! rqueue_.empty();
     }
