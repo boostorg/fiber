@@ -48,43 +48,43 @@ private:
             sizeof( atomic_type), cache_alignment
         >::type                                         storage_type; 
 
-        std::size_t         size_;
+        std::size_t         capacity_;
         storage_type    *   storage_;
 
     public:
-        array( std::size_t size) :
-            size_{ size },
-            storage_{ new storage_type[size_] } {
-            for ( std::size_t i = 0; i < size_; ++i) {
+        array( std::size_t capacity) :
+            capacity_{ capacity },
+            storage_{ new storage_type[capacity_] } {
+            for ( std::size_t i = 0; i < capacity_; ++i) {
                 ::new ( static_cast< void * >( std::addressof( storage_[i]) ) ) atomic_type{ nullptr };
             }
         }
 
         ~array() {
-            for ( std::size_t i = 0; i < size_; ++i) {
+            for ( std::size_t i = 0; i < capacity_; ++i) {
                 reinterpret_cast< atomic_type * >( std::addressof( storage_[i]) )->~atomic_type();
             }
             delete [] storage_;
         }
 
-        std::size_t size() const noexcept {
-            return size_;
+        std::size_t capacity() const noexcept {
+            return capacity_;
         }
 
         void push( std::size_t bottom, context * ctx) noexcept {
             reinterpret_cast< atomic_type * >(
-                std::addressof( storage_[bottom % size_]) )
+                std::addressof( storage_[bottom % capacity_]) )
                     ->store( ctx, std::memory_order_relaxed);
         }
 
         context * pop( std::size_t top) noexcept {
             return reinterpret_cast< atomic_type * >(
-                std::addressof( storage_[top % size_]) )
+                std::addressof( storage_[top % capacity_]) )
                     ->load( std::memory_order_relaxed);
         }
 
         array * resize( std::size_t bottom, std::size_t top) {
-            std::unique_ptr< array > tmp{ new array{ 2 * size_ } };
+            std::unique_ptr< array > tmp{ new array{ 2 * capacity_ } };
             for ( std::size_t i = top; i != bottom; ++i) {
                 tmp->push( i, pop( i) );
             }
@@ -99,8 +99,8 @@ private:
     char                                                    padding_[cacheline_length];
 
 public:
-    context_spmc_queue() :
-        array_{ new array{ 1024 } } {
+    context_spmc_queue( std::size_t capacity = 4096) :
+        array_{ new array{ capacity } } {
         old_arrays_.reserve( 32);
     }
 
@@ -124,7 +124,7 @@ public:
         std::size_t bottom = bottom_.load( std::memory_order_relaxed);
         std::size_t top = top_.load( std::memory_order_acquire);
         array * a = array_.load( std::memory_order_relaxed);
-        if ( (a->size() - 1) < (bottom - top) ) {
+        if ( (a->capacity() - 1) < (bottom - top) ) {
             // queue is full
             // resize
             array * tmp = a->resize( bottom, top);
