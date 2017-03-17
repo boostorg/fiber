@@ -92,10 +92,10 @@ private:
         }
     };
 
-    alignas(cache_alignment) std::atomic< std::size_t >    top_{ 0 };
-    alignas(cache_alignment) std::atomic< std::size_t >    bottom_{ 0 };
+    alignas(cache_alignment) std::atomic< std::size_t >     top_{ 0 };
+    alignas(cache_alignment) std::atomic< std::size_t >     bottom_{ 0 };
     alignas(cache_alignment) std::atomic< array * >         array_;
-    std::vector< array * >          						old_arrays_{};
+    std::vector< array * >                                  old_arrays_{};
     char                                                    padding_[cacheline_length];
 
 public:
@@ -138,21 +138,29 @@ public:
     }
 
     context * pop() {
-        std::size_t top = top_.load( std::memory_order_acquire);
+        std::size_t bottom = bottom_.load( std::memory_order_relaxed) - 1;
+        array * a = array_.load( std::memory_order_relaxed);
+        bottom_.store( bottom, std::memory_order_relaxed);
         std::atomic_thread_fence( std::memory_order_seq_cst);
-        std::size_t bottom = bottom_.load( std::memory_order_acquire);
+        std::size_t top = top_.load( std::memory_order_relaxed);
         context * ctx = nullptr;
-        if ( top < bottom) {
+        if ( top <= bottom) {
             // queue is not empty
-            if ( ! top_.compare_exchange_strong( top, top + 1,
-                                                 std::memory_order_seq_cst,
-                                                 std::memory_order_relaxed) ) {
-                // lose the race
-                return nullptr;
+            ctx = a->pop( bottom);
+            BOOST_ASSERT( nullptr != ctx);
+            if ( top == bottom) {
+                // last element dequeued
+                if ( ! top_.compare_exchange_strong( top, top + 1,
+                                                     std::memory_order_seq_cst,
+                                                     std::memory_order_relaxed) ) {
+                    // lose the race
+                    ctx = nullptr;
+                }
+                bottom_.store( bottom + 1, std::memory_order_relaxed);
             }
-            array * a = array_.load( std::memory_order_consume);
-            ctx = a->pop( top);
-            BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
+        } else {
+            // queue is empty
+            bottom_.store( bottom + 1, std::memory_order_relaxed);
         }
         return ctx;
     }
