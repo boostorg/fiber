@@ -236,6 +236,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 
 context::~context() {
     BOOST_ASSERT( ! ready_is_linked() );
+    BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
     if ( is_context( type::dispatcher_context) ) {
@@ -489,6 +490,11 @@ context::ready_is_linked() const noexcept {
 }
 
 bool
+context::remote_ready_is_linked() const noexcept {
+    return remote_ready_hook_.is_linked();
+}
+
+bool
 context::sleep_is_linked() const noexcept {
     return sleep_hook_.is_linked();
 }
@@ -513,6 +519,12 @@ void
 context::ready_unlink() noexcept {
     BOOST_ASSERT( ready_is_linked() );
     ready_hook_.unlink();
+}
+
+void
+context::remote_ready_unlink() noexcept {
+    BOOST_ASSERT( remote_ready_is_linked() );
+    remote_ready_hook_.unlink();
 }
 
 void

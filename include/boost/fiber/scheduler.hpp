@@ -71,6 +71,11 @@ private:
                 intrusive::member_hook<
                     context, detail::worker_hook, & context::worker_hook_ >,
                 intrusive::constant_time_size< false > >    worker_queue_type;
+    typedef intrusive::list<
+                context,
+                intrusive::member_hook<
+                    context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
+                intrusive::constant_time_size< false > >    remote_ready_queue_type;
 
     std::unique_ptr< algo::algorithm >  algo_;
     context                         *   main_ctx_{ nullptr };
@@ -84,13 +89,13 @@ private:
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
-    detail::context_mpsc_queue          remote_ready_queue_{};
-    // sleep-queue contains context' which have been called
+    remote_ready_queue_type             remote_ready_queue_{};
+    detail::spinlock                    remote_ready_splk_{};
 #endif
+    // sleep-queue contains context' which have been called
     // scheduler::wait_until()
     sleep_queue_type                    sleep_queue_{};
     bool                                shutdown_{ false };
-    detail::spinlock                    splk_{};
 
     void release_terminated_() noexcept;
 
