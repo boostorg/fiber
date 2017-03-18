@@ -25,7 +25,6 @@
 #include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/context_mpsc_queue.hpp>
 #include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
