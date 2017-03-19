@@ -55,8 +55,9 @@ private:
     alignas(cache_alignment) std::atomic< std::size_t >     consumer_idx_{ 0 };
     // shared write cacheline
     alignas(cache_alignment) std::atomic_bool               closed_{ false };
-    mutable detail::spinlock                                splk_{};
+    alignas(cache_alignment) mutable detail::spinlock       splk_producers_{};
     wait_queue_type                                         waiting_producers_{};
+    alignas(cache_alignment) mutable detail::spinlock       splk_consumers_{};
     wait_queue_type                                         waiting_consumers_{};
     // shared read cacheline
     alignas(cache_alignment) slot                        *  slots_{ nullptr };
@@ -165,10 +166,10 @@ public:
 
     void close() noexcept {
         context * active_ctx = context::active();
-        detail::spinlock_lock lk{ splk_ };
         closed_.store( true, std::memory_order_release);
         // notify all waiting producers
         // FIXME: swap queue
+        detail::spinlock_lock lk1{ splk_producers_ };
         while ( ! waiting_producers_.empty() ) {
             context * producer_ctx = & waiting_producers_.front();
             waiting_producers_.pop_front();
@@ -176,6 +177,7 @@ public:
         }
         // notify all waiting consumers
         // FIXME: swap queue, then unlock lock
+        detail::spinlock_lock lk2{ splk_consumers_ };
         while ( ! waiting_consumers_.empty() ) {
             context * consumer_ctx = & waiting_consumers_.front();
             waiting_consumers_.pop_front();
@@ -190,7 +192,7 @@ public:
         context * active_ctx = context::active();
         channel_op_status status = try_push_( value);
         if ( channel_op_status::success == status) {
-            detail::spinlock_lock lk{ splk_ };
+            detail::spinlock_lock lk{ splk_consumers_ };
             // notify one waiting consumer
             if ( ! waiting_consumers_.empty() ) {
                 context * consumer_ctx = & waiting_consumers_.front();
@@ -213,7 +215,7 @@ public:
         }
         channel_op_status status = try_push_( std::move( value) );
         if ( channel_op_status::success == status) {
-            detail::spinlock_lock lk{ splk_ };
+            detail::spinlock_lock lk{ splk_consumers_ };
             // notify one waiting consumer
             if ( ! waiting_consumers_.empty() ) {
                 context * consumer_ctx = & waiting_consumers_.front();
@@ -238,7 +240,7 @@ public:
             }
             channel_op_status status = try_push_( value);
             if ( channel_op_status::success == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -248,7 +250,7 @@ public:
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -273,7 +275,7 @@ public:
             }
             channel_op_status status = try_push_( std::move( value) );
             if ( channel_op_status::success == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -283,7 +285,7 @@ public:
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -325,7 +327,7 @@ public:
             }
             channel_op_status status = try_push_( value);
             if ( channel_op_status::success == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -335,7 +337,7 @@ public:
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -369,7 +371,7 @@ public:
             }
             channel_op_status status = try_push_( std::move( value) );
             if ( channel_op_status::success == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -379,7 +381,7 @@ public:
                 }
                 return status;
             } else if ( channel_op_status::full == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -405,7 +407,7 @@ public:
     channel_op_status try_pop( value_type & value) {
         channel_op_status status = try_pop_( value);
         if ( channel_op_status::success == status) {
-            detail::spinlock_lock lk{ splk_ };
+            detail::spinlock_lock lk{ splk_producers_ };
             // notify one waiting producer
             if ( ! waiting_producers_.empty() ) {
                 context * producer_ctx = & waiting_producers_.front();
@@ -431,7 +433,7 @@ public:
         for (;;) {
             channel_op_status status = try_pop_( value);
             if ( channel_op_status::success == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 // notify one waiting producer
                 if ( ! waiting_producers_.empty() ) {
                     context * producer_ctx = & waiting_producers_.front();
@@ -441,7 +443,7 @@ public:
                 }
                 return status;
             } else if ( channel_op_status::empty == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -467,7 +469,7 @@ public:
             if ( channel_op_status::success == status) {
                 value_type value = std::move( * reinterpret_cast< value_type * >( std::addressof( s->storage) ) );
                 s->cycle.store( idx + capacity_, std::memory_order_release);
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 // notify one waiting producer
                 if ( ! waiting_producers_.empty() ) {
                     context * producer_ctx = & waiting_producers_.front();
@@ -477,7 +479,7 @@ public:
                 }
                 return std::move( value);
             } else if ( channel_op_status::empty == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 if ( is_closed() ) {
                     throw fiber_error{
                             std::make_error_code( std::errc::operation_not_permitted),
@@ -513,7 +515,7 @@ public:
         for (;;) {
             channel_op_status status = try_pop_( value);
             if ( channel_op_status::success == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 // notify one waiting producer
                 if ( ! waiting_producers_.empty() ) {
                     context * producer_ctx = & waiting_producers_.front();
@@ -523,7 +525,7 @@ public:
                 }
                 return status;
             } else if ( channel_op_status::empty == status) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
