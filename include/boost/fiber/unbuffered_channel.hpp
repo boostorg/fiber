@@ -54,13 +54,14 @@ private:
     };
 
     // shared cacheline
-    alignas(cache_alignment) std::atomic< slot * >  slot_{ nullptr };
+    alignas(cache_alignment) std::atomic< slot * >      slot_{ nullptr };
     // shared cacheline
-    alignas(cache_alignment) std::atomic_bool       closed_{ false };
-    mutable detail::spinlock                        splk_{};
-    wait_queue_type                                 waiting_producers_{};
-    wait_queue_type                                 waiting_consumers_{};
-    char                                            pad_[cacheline_length];
+    alignas(cache_alignment) std::atomic_bool           closed_{ false };
+    alignas(cache_alignment) mutable detail::spinlock   splk_producers_{};
+    wait_queue_type                                     waiting_producers_{};
+    alignas( cache_alignment) mutable detail::spinlock  splk_consumers_{};
+    wait_queue_type                                     waiting_consumers_{};
+    char                                                pad_[cacheline_length];
 
     bool is_empty_() {
         return nullptr == slot_.load( std::memory_order_acquire);
@@ -115,15 +116,16 @@ public:
 
     void close() noexcept {
         context * active_ctx = context::active();
-        detail::spinlock_lock lk{ splk_ };
-        closed_.store( true, std::memory_order_release);
         // notify all waiting producers
+        closed_.store( true, std::memory_order_release);
+        detail::spinlock_lock lk1{ splk_producers_ };
         while ( ! waiting_producers_.empty() ) {
             context * producer_ctx = & waiting_producers_.front();
             waiting_producers_.pop_front();
             active_ctx->schedule( producer_ctx);
         }
         // notify all waiting consumers
+        detail::spinlock_lock lk2{ splk_consumers_ };
         while ( ! waiting_consumers_.empty() ) {
             context * consumer_ctx = & waiting_consumers_.front();
             waiting_consumers_.pop_front();
@@ -139,7 +141,7 @@ public:
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -151,7 +153,7 @@ public:
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -174,7 +176,7 @@ public:
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -186,7 +188,7 @@ public:
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -226,7 +228,7 @@ public:
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -244,7 +246,7 @@ public:
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -276,7 +278,7 @@ public:
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
                 if ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
@@ -294,7 +296,7 @@ public:
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_producers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -321,7 +323,7 @@ public:
         for (;;) {
             if ( nullptr != ( s = try_pop_() ) ) {
                 {
-                    detail::spinlock_lock lk{ splk_ };
+                    detail::spinlock_lock lk{ splk_producers_ };
                     // notify one waiting producer
                     if ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
@@ -336,7 +338,7 @@ public:
                 active_ctx->schedule( s->ctx);
                 return channel_op_status::success;
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
@@ -357,7 +359,7 @@ public:
         for (;;) {
             if ( nullptr != ( s = try_pop_() ) ) {
                 {
-                    detail::spinlock_lock lk{ splk_ };
+                    detail::spinlock_lock lk{ splk_producers_ };
                     // notify one waiting producer
                     if ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
@@ -372,7 +374,7 @@ public:
                 active_ctx->schedule( s->ctx);
                 return std::move( value);
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 if ( is_closed() ) {
                     throw fiber_error{
                             std::make_error_code( std::errc::operation_not_permitted),
@@ -405,7 +407,7 @@ public:
         for (;;) {
             if ( nullptr != ( s = try_pop_() ) ) {
                 {
-                    detail::spinlock_lock lk{ splk_ };
+                    detail::spinlock_lock lk{ splk_producers_ };
                     // notify one waiting producer
                     if ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
@@ -420,7 +422,7 @@ public:
                 active_ctx->schedule( s->ctx);
                 return channel_op_status::success;
             } else {
-                detail::spinlock_lock lk{ splk_ };
+                detail::spinlock_lock lk{ splk_consumers_ };
                 if ( is_closed() ) {
                     return channel_op_status::closed;
                 }
