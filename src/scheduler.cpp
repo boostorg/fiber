@@ -481,6 +481,7 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
+    ctx->worker_link( worker_queue_);
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // FIXME : must scheduler be a std::atomic<> ?
     ctx->scheduler_.store( this, std::memory_order_release);
@@ -488,7 +489,6 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( nullptr == ctx->scheduler_);
     ctx->scheduler_ = this;
 #endif
-    ctx->worker_link( worker_queue_);
 }
 
 void
