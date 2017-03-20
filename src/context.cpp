@@ -235,6 +235,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #endif
 
 context::~context() {
+    BOOST_ASSERT( is_context( type::pinned_context) || is_terminated() );
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );

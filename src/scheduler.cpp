@@ -32,6 +32,7 @@ scheduler::release_terminated_() noexcept {
         i = terminated_queue_.erase( i);
         BOOST_ASSERT( ctx->is_context( type::worker_context) );
         BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
+        BOOST_ASSERT( this == ctx->get_scheduler() );
         BOOST_ASSERT( ctx->is_resumable() );
         BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->worker_is_linked() );
@@ -295,6 +296,7 @@ void
 scheduler::terminate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
+    BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( ctx->is_context( type::worker_context) );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     BOOST_ASSERT( ctx->is_terminated() );
@@ -319,6 +321,7 @@ boost::context::continuation
 scheduler::terminate( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
+    BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( ctx->is_context( type::worker_context) );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     BOOST_ASSERT( ctx->is_terminated() );
@@ -498,7 +501,7 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
+    BOOST_ASSERT( ctx->worker_is_linked() );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
