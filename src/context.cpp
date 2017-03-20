@@ -327,9 +327,8 @@ context::join() {
         // of the context which has to be joined by
         // the active context
         active_ctx->wait_link( wait_queue_);
-        lk.unlock();
         // suspend active context
-        active_ctx->get_scheduler()->suspend();
+        active_ctx->get_scheduler()->suspend( lk);
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
