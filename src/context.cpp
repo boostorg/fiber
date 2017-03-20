@@ -240,6 +240,8 @@ context::~context() {
     BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     if ( is_context( type::dispatcher_context) ) {
         // dispatcher-context is resumed by main-context
         // while the scheduler is deconstructed
