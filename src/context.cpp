@@ -183,7 +183,6 @@ context::schedule_( context * ctx) noexcept {
 // main fiber context
 context::context( main_context_t) noexcept :
     use_count_{ 1 }, // allocated on main- or thread-stack
-    flags_{ 0 },
     type_{ type::main_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ boost::context::execution_context::current() } {
@@ -195,7 +194,6 @@ context::context( main_context_t) noexcept :
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   default_stack const& salloc, scheduler * sched) :
-    flags_{ 0 },
     type_{ type::dispatcher_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ std::allocator_arg, palloc, salloc,
@@ -235,7 +233,6 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #endif
 
 context::~context() {
-    BOOST_ASSERT( is_context( type::pinned_context) || is_terminated() );
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
@@ -322,7 +319,7 @@ context::join() {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // wait for context which is not terminated
-    if ( 0 == ( flags_ & flag_terminated) ) {
+    if ( ! terminated_) {
         // push active context to wait-queue, member
         // of the context which has to be joined by
         // the active context
@@ -346,7 +343,7 @@ context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
-    flags_ |= flag_terminated;
+    terminated_ = true;
     // notify all waiting fibers
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
@@ -381,7 +378,7 @@ context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
-    flags_ |= flag_terminated;
+    terminated_ = true;
     // notify all waiting fibers
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();

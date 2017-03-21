@@ -143,10 +143,6 @@ class BOOST_FIBERS_DECL context {
 private:
     friend class scheduler;
 
-    enum flag_t {
-        flag_terminated = 1 << 1
-    };
-
     struct fss_data {
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
@@ -170,22 +166,22 @@ private:
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                      use_count_{ 0 };
-    std::atomic< unsigned int >                     flags_;
-    std::atomic< type >                             type_;
-    // FIXME : must scheduler be a std::atomic<> ?
     std::atomic< scheduler * >                      scheduler_{ nullptr };
 #else
     std::size_t                                     use_count_{ 0 };
-    unsigned int                                    flags_;
-    type                                            type_;
     scheduler                                   *   scheduler_{ nullptr };
 #endif
+    type                                            type_;
     launch                                          policy_{ launch::post };
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context               ctx_;
 #else
     boost::context::continuation                    c_;
 #endif
+    fss_data_t                                      fss_data_{};
+    fiber_properties                            *   properties_{ nullptr };
+    detail::spinlock                                splk_{};
+    bool                                            terminated_{ false };
 
     void resume_( detail::data_t &) noexcept;
     void schedule_( context *) noexcept;
@@ -258,10 +254,7 @@ public:
         intrusive::constant_time_size< false > >   wait_queue_t;
 
 private:
-    fss_data_t                              fss_data_{};
     wait_queue_t                            wait_queue_{};
-    detail::spinlock                        splk_{};
-    fiber_properties                    *   properties_{ nullptr };
 
 public:
     class id {
@@ -339,7 +332,6 @@ public:
              boost::context::preallocated palloc, StackAlloc salloc,
              Fn && fn, Tpl && tpl) :
         use_count_{ 1 }, // fiber instance or scheduler owner
-        flags_{ 0 },
         type_{ type::worker_context },
         policy_{ policy },
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -432,10 +424,6 @@ public:
 
     bool is_context( type t) const noexcept {
         return type::none != ( type_ & t);
-    }
-
-    bool is_terminated() const noexcept {
-        return 0 != ( flags_ & flag_terminated);
     }
 
     void * get_fss_data( void const * vp) const;

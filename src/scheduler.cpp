@@ -34,7 +34,6 @@ scheduler::release_terminated_() noexcept {
         BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
         BOOST_ASSERT( this == ctx->get_scheduler() );
         BOOST_ASSERT( ctx->is_resumable() );
-        BOOST_ASSERT( ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->worker_is_linked() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
@@ -78,7 +77,6 @@ scheduler::sleep2ready_() noexcept {
         // dipatcher context must never be pushed to sleep-queue
         BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
         BOOST_ASSERT( main_ctx_ == ctx || ctx->worker_is_linked() );
-        BOOST_ASSERT( ! ctx->is_terminated() );
         BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
         BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -157,7 +155,6 @@ scheduler::dispatch() noexcept {
         context * ctx = algo_->pick_next();
         if ( nullptr != ctx) {
             BOOST_ASSERT( ctx->is_resumable() );
-            BOOST_ASSERT( ! ctx->is_terminated() );
             BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
             BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -214,7 +211,6 @@ scheduler::dispatch() noexcept {
         context * ctx = algo_->pick_next();
         if ( nullptr != ctx) {
             BOOST_ASSERT( ctx->is_resumable() );
-            BOOST_ASSERT( ! ctx->is_terminated() );
             BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
             BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -252,7 +248,6 @@ scheduler::dispatch() noexcept {
 void
 scheduler::schedule( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -276,7 +271,6 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
     // another thread might signal the main-context of this thread
     BOOST_ASSERT( ! ctx->is_context( type::dispatcher_context) );
     BOOST_ASSERT( this == ctx->get_scheduler() );
-    BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
@@ -299,7 +293,6 @@ scheduler::terminate( context * ctx) noexcept {
     BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( ctx->is_context( type::worker_context) );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
-    BOOST_ASSERT( ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -314,17 +307,16 @@ scheduler::terminate( context * ctx) noexcept {
     // remove from the worker-queue
     ctx->worker_unlink();
     // resume another fiber
-    algo_->pick_next()->resume();
+    algo_->pick_next()->resume( lk);
 }
 #else
 boost::context::continuation
-scheduler::terminate( context * ctx) noexcept {
+scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( this == ctx->get_scheduler() );
     BOOST_ASSERT( ctx->is_context( type::worker_context) );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
-    BOOST_ASSERT( ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -348,7 +340,6 @@ scheduler::yield( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( ctx->is_context( type::worker_context) || ctx->is_context( type::main_context) );
-    BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -366,7 +357,6 @@ scheduler::wait_until( context * ctx,
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( ctx->is_context( type::worker_context) || ctx->is_context( type::main_context) );
-    BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
@@ -390,7 +380,6 @@ scheduler::wait_until( context * ctx,
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( ctx->is_context( type::worker_context) || ctx->is_context( type::main_context) );
-    BOOST_ASSERT( ! ctx->is_terminated() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
