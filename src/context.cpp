@@ -352,6 +352,7 @@ context::terminate() noexcept {
         // notify scheduler
         schedule( ctx);
     }
+    BOOST_ASSERT( wait_queue_.empty() );
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
         data.second.do_cleanup();
@@ -386,6 +387,7 @@ context::terminate() noexcept {
         // notify scheduler
         schedule( ctx);
     }
+    BOOST_ASSERT( wait_queue_.empty() );
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
         data.second.do_cleanup();

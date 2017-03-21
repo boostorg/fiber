@@ -41,6 +41,8 @@ scheduler::release_terminated_() noexcept {
 #endif
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
         BOOST_ASSERT( ! ctx->wait_is_linked() );
+        BOOST_ASSERT( ctx->wait_queue_.empty() );
+        BOOST_ASSERT( ctx->terminated_);
         // if last reference, e.g. fiber::join() or fiber::detach()
         // have been already called, this will call ~context(),
         // the context is automatically removeid from worker-queue
@@ -300,6 +302,7 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
+    BOOST_ASSERT( ctx->wait_queue_.empty() );
     // store the terminated fiber in the terminated-queue
     // the dispatcher-context will call
     // intrusive_ptr_release( ctx);
@@ -326,6 +329,7 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
+    BOOST_ASSERT( ctx->wait_queue_.empty() );
     // store the terminated fiber in the terminated-queue
     // the dispatcher-context will call
     // intrusive_ptr_release( ctx);
@@ -470,6 +474,7 @@ scheduler::attach_dispatcher_context( intrusive_ptr< context > ctx) noexcept {
 void
 scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
+    BOOST_ASSERT( nullptr == ctx->get_scheduler() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
@@ -481,7 +486,6 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     ctx->scheduler_.store( this, std::memory_order_relaxed);
     std::atomic_thread_fence( std::memory_order_release);
 #else
-    BOOST_ASSERT( nullptr == ctx->scheduler_);
     ctx->scheduler_ = this;
 #endif
 }
