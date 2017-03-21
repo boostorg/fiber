@@ -476,7 +476,9 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( nullptr == ctx->get_scheduler() );
     BOOST_ASSERT( ! ctx->ready_is_linked() );
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
+#endif
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
     BOOST_ASSERT( ! ctx->wait_is_linked() );
