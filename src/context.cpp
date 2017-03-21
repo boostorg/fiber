@@ -233,12 +233,12 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #endif
 
 context::~context() {
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
-    // protect for concurrent access
-    std::unique_lock< detail::spinlock > lk{ splk_ };
     if ( is_context( type::dispatcher_context) ) {
         // dispatcher-context is resumed by main-context
         // while the scheduler is deconstructed
@@ -352,14 +352,13 @@ context::terminate() noexcept {
         // notify scheduler
         schedule( ctx);
     }
-    lk.unlock();
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
         data.second.do_cleanup();
     }
     fss_data_.clear();
     // switch to another context
-    get_scheduler()->terminate( this);
+    get_scheduler()->terminate( lk, this);
 }
 #else
 boost::context::continuation
@@ -387,14 +386,13 @@ context::terminate() noexcept {
         // notify scheduler
         schedule( ctx);
     }
-    lk.unlock();
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
         data.second.do_cleanup();
     }
     fss_data_.clear();
     // switch to another context
-    return get_scheduler()->terminate( this);
+    return get_scheduler()->terminate( lk, this);
 #endif
 }
 

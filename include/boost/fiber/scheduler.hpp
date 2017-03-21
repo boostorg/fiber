@@ -121,11 +121,11 @@ public:
 #if (BOOST_EXECUTION_CONTEXT==1)
     void dispatch() noexcept;
 
-    void terminate( context *) noexcept;
+    void terminate( detail::spinlock_lock &, context *) noexcept;
 #else
     boost::context::continuation dispatch() noexcept;
 
-    boost::context::continuation terminate( context *) noexcept;
+    boost::context::continuation terminate( detail::spinlock_lock &, context *) noexcept;
 #endif
 
     void yield( context *) noexcept;

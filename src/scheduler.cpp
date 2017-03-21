@@ -287,7 +287,7 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
 
 #if (BOOST_EXECUTION_CONTEXT==1)
 void
-scheduler::terminate( context * ctx) noexcept {
+scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( this == ctx->get_scheduler() );
@@ -306,8 +306,10 @@ scheduler::terminate( context * ctx) noexcept {
     ctx->terminated_link( terminated_queue_);
     // remove from the worker-queue
     ctx->worker_unlink();
+    // release lock
+    lk.unlock();
     // resume another fiber
-    algo_->pick_next()->resume( lk);
+    algo_->pick_next()->resume();
 }
 #else
 boost::context::continuation
@@ -330,6 +332,8 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     ctx->terminated_link( terminated_queue_);
     // remove from the worker-queue
     ctx->worker_unlink();
+    // release lock
+    lk.unlock();
     // resume another fiber
     return algo_->pick_next()->suspend_with_cc();
 }
@@ -472,7 +476,6 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->worker_is_linked() );
     ctx->worker_link( worker_queue_);
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    // FIXME : must scheduler be a std::atomic<> ?
     ctx->scheduler_.store( this, std::memory_order_release);
 #else
     BOOST_ASSERT( nullptr == ctx->scheduler_);
@@ -494,7 +497,6 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    // FIXME : must scheduler be a std::atomic<> ?
     ctx->scheduler_.store( nullptr, std::memory_order_release);
 #else
     ctx->scheduler_ = nullptr;
