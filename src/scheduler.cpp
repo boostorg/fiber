@@ -436,7 +436,8 @@ scheduler::attach_main_context( context * ctx) noexcept {
     // should not be in worker-queue
     main_ctx_ = ctx;
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    main_ctx_->scheduler_.store( this, std::memory_order_release);
+    main_ctx_->scheduler_.store( this, std::memory_order_relaxed);
+    std::atomic_thread_fence( std::memory_order_release);
 #else
     main_ctx_->scheduler_ = this;
 #endif
@@ -458,7 +459,8 @@ scheduler::attach_dispatcher_context( intrusive_ptr< context > ctx) noexcept {
     // the dispatcher-context is resumed and
     // scheduler::dispatch() is executed
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    dispatcher_ctx_->scheduler_.store( this, std::memory_order_release);
+    dispatcher_ctx_->scheduler_.store( this, std::memory_order_relaxed);
+    std::atomic_thread_fence( std::memory_order_release);
 #else
     dispatcher_ctx_->scheduler_ = this;
 #endif
@@ -476,7 +478,8 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->worker_is_linked() );
     ctx->worker_link( worker_queue_);
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    ctx->scheduler_.store( this, std::memory_order_release);
+    ctx->scheduler_.store( this, std::memory_order_relaxed);
+    std::atomic_thread_fence( std::memory_order_release);
 #else
     BOOST_ASSERT( nullptr == ctx->scheduler_);
     ctx->scheduler_ = this;
@@ -497,7 +500,8 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    ctx->scheduler_.store( nullptr, std::memory_order_release);
+    ctx->scheduler_.store( nullptr, std::memory_order_relaxed);
+    std::atomic_thread_fence( std::memory_order_release);
 #else
     ctx->scheduler_ = nullptr;
 #endif

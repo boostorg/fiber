@@ -59,7 +59,7 @@ work_stealing::pick_next() noexcept {
         } while ( idx == idx_);
         ctx = schedulers_[idx]->steal();
         if ( nullptr != ctx) {
-            ctx->get_scheduler();
+            std::atomic_thread_fence( std::memory_order_acquire);
             BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
             context::active()->attach( ctx);
         }

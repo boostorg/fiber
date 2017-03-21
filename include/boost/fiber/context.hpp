@@ -385,8 +385,7 @@ public:
 
     scheduler * get_scheduler() const noexcept {
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-        // FIXME : must scheduler be a std::atomic<> ?
-        return scheduler_.load( std::memory_order_acquire);
+        return scheduler_.load( std::memory_order_relaxed);
 #else
         return scheduler_;
 #endif
