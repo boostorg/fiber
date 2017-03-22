@@ -166,11 +166,10 @@ private:
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     std::atomic< std::size_t >                      use_count_{ 0 };
-    std::atomic< scheduler * >                      scheduler_{ nullptr };
 #else
     std::size_t                                     use_count_{ 0 };
-    scheduler                                   *   scheduler_{ nullptr };
 #endif
+    scheduler                                   *   scheduler_{ nullptr };
     type                                            type_;
     launch                                          policy_{ launch::post };
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -384,11 +383,7 @@ public:
     virtual ~context();
 
     scheduler * get_scheduler() const noexcept {
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-        return scheduler_.load( std::memory_order_relaxed);
-#else
         return scheduler_;
-#endif
     }
 
     id get_id() const noexcept;
