@@ -13,13 +13,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <queue>
+#include <deque>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <numeric>
-#include <random>
-#include <sstream>
 #include <vector>
 
 #include <boost/fiber/all.hpp>
@@ -27,12 +25,12 @@
 #include "barrier.hpp"
 #include "bind/bind_processor.hpp"
 
+using allocator_type = boost::fibers::fixedsize_stack;
+using channel_type = boost::fibers::buffered_channel< std::uint64_t >;
 using clock_type = std::chrono::steady_clock;
 using duration_type = clock_type::duration;
-using time_point_type = clock_type::time_point;
-using channel_type = boost::fibers::buffered_channel< std::uint64_t >;
-using allocator_type = boost::fibers::fixedsize_stack;
 using lock_type = std::unique_lock< std::mutex >;
+using time_point_type = clock_type::time_point;
 
 static bool done = false;
 static std::mutex mtx{};
@@ -44,17 +42,12 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
         c.push( num);
     } else {
         channel_type rc{ 16 };
-        std::vector< boost::fibers::fiber > fibers;
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
-            fibers.push_back(
-                boost::fibers::fiber{ boost::fibers::launch::dispatch,
-                                  std::allocator_arg, salloc,
-                                  skynet,
-                                  std::ref( salloc), std::ref( rc), sub_num, size / div, div });
-        }
-        for ( auto & f: fibers) {
-            f.join();
+            boost::fibers::fiber{ boost::fibers::launch::dispatch,
+                              std::allocator_arg, salloc,
+                              skynet,
+                              std::ref( salloc), std::ref( rc), sub_num, size / div, div }.detach();
         }
         std::uint64_t sum{ 0 };
         for ( std::size_t i = 0; i < div; ++i) {
@@ -64,9 +57,9 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
     }
 }
 
-void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
-    bind_to_processor( idx);
-    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( max_idx, idx);
+void thread( unsigned int i, barrier * b) {
+    bind_to_processor( i);
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_work >();
     b->wait();
     lock_type lk( mtx);
     cnd.wait( lk, [](){ return done; });
@@ -75,16 +68,15 @@ void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
 
 int main() {
     try {
-        unsigned int cpus = std::thread::hardware_concurrency();
-        barrier b( cpus);
-        unsigned int max_idx = cpus - 1;
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( max_idx, max_idx);
-        bind_to_processor( max_idx);
-        std::size_t size{ 100000 };
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_work >();
+        unsigned int n = std::thread::hardware_concurrency();
+        barrier b( n);
+        bind_to_processor( n - 1);
+        std::size_t size{ 1000000 };
         std::size_t div{ 10 };
         std::vector< std::thread > threads;
-        for ( unsigned int idx = 0; idx < max_idx; ++idx) {
-            threads.push_back( std::thread( thread, max_idx, idx, & b) );
+        for ( unsigned int i = 1; i < n; ++i) {
+            threads.push_back( std::thread( thread, i - 1, & b) );
         };
         allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };

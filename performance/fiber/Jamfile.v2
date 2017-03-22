@@ -58,17 +58,29 @@ alias pbind
 
 explicit pbind ;
 
-exe skynet :
+exe skynet_join :
     pbind
-    skynet.cpp ;
+    skynet_join.cpp ;
 
-exe skynet_shared :
+exe skynet_detach :
     pbind
-    skynet_shared.cpp ;
+    skynet_detach.cpp ;
 
-exe skynet_stealing :
+exe skynet_shared_join :
     pbind
-    skynet_stealing.cpp ;
+    skynet_shared_join.cpp ;
+
+exe skynet_shared_detach :
+    pbind
+    skynet_shared_detach.cpp ;
+
+exe skynet_stealing_join :
+    pbind
+    skynet_stealing_join.cpp ;
+
+exe skynet_stealing_detach :
+    pbind
+    skynet_stealing_detach.cpp ;
 
 exe skynet_async :
     pbind

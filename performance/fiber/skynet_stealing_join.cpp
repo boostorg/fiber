@@ -39,31 +39,29 @@ static std::mutex mtx{};
 static boost::fibers::condition_variable_any cnd{};
 
 // microbenchmark
-std::uint64_t skynet(allocator_type& salloc, std::uint64_t num, std::uint64_t size, std::uint64_t div)
-{
-    if ( size != 1){
-        size /= div;
-
-        std::vector<boost::fibers::future<std::uint64_t> > results;
-        results.reserve( div);
-
-        for ( std::uint64_t i = 0; i != div; ++i) {
-            std::uint64_t sub_num = num + i * size;
-            results.emplace_back(boost::fibers::async(
-                  boost::fibers::launch::dispatch
-                , std::allocator_arg, salloc
-                , skynet
-                , std::ref( salloc), sub_num, size, div));
+void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::size_t size, std::size_t div) {
+    if ( 1 == size) {
+        c.push( num);
+    } else {
+        channel_type rc{ 16 };
+        std::vector< boost::fibers::fiber > fibers;
+        for ( std::size_t i = 0; i < div; ++i) {
+            auto sub_num = num + i * size / div;
+            fibers.push_back(
+                boost::fibers::fiber{ boost::fibers::launch::dispatch,
+                                  std::allocator_arg, salloc,
+                                  skynet,
+                                  std::ref( salloc), std::ref( rc), sub_num, size / div, div });
         }
-
-        std::uint64_t sum = 0;
-        for ( auto& f : results)
-            sum += f.get();
-            
-        return sum;
+        for ( auto & f: fibers) {
+            f.join();
+        }
+        std::uint64_t sum{ 0 };
+        for ( std::size_t i = 0; i < div; ++i) {
+            sum += rc.value_pop();
+        }
+        c.push( sum);
     }
-
-    return num;
 }
 
 void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
@@ -71,7 +69,7 @@ void thread( unsigned int max_idx, unsigned int idx, barrier * b) {
     boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( max_idx, idx);
     b->wait();
     lock_type lk( mtx);
-    cnd.wait(lk, [](){ return done; });
+    cnd.wait( lk, [](){ return done; });
     BOOST_ASSERT( done);
 }
 
@@ -91,9 +89,11 @@ int main() {
         allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
         duration_type duration{ duration_type::zero() };
+        channel_type rc{ 2 };
         b.wait();
         time_point_type start{ clock_type::now() };
-        result = skynet( salloc, 0, size, div);
+        skynet( salloc, rc, 0, size, div);
+        result = rc.value_pop();
         duration = clock_type::now() - start;
         std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
         lock_type lk( mtx);
