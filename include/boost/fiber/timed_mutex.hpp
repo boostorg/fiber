@@ -37,9 +37,9 @@ private:
 
     typedef context::wait_queue_t   wait_queue_type;
 
-    context                 *   owner_{ nullptr };
-    wait_queue_type             wait_queue_{};
     detail::spinlock            wait_queue_splk_{};
+    wait_queue_type             wait_queue_{};
+    context                 *   owner_{ nullptr };
 
     bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) noexcept;
 
