@@ -45,8 +45,8 @@ class BOOST_FIBERS_DECL condition_variable_any {
 private:
     typedef context::wait_queue_t   wait_queue_t;
 
-    wait_queue_t        wait_queue_{};
     detail::spinlock    wait_queue_splk_{};
+    wait_queue_t        wait_queue_{};
 
 public:
     condition_variable_any() = default;
