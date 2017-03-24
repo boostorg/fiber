@@ -76,25 +76,25 @@ private:
                     context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
                 intrusive::constant_time_size< false > >    remote_ready_queue_type;
 
-    std::unique_ptr< algo::algorithm >  algo_;
-    context                         *   main_ctx_{ nullptr };
-    intrusive_ptr< context >            dispatcher_ctx_{};
-    // worker-queue contains all context' mananged by this scheduler
-    // except main-context and dispatcher-context
-    // unlink happens on destruction of a context
-    worker_queue_type                   worker_queue_{};
-    // terminated-queue contains context' which have been terminated
-    terminated_queue_type               terminated_queue_{};
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
-    remote_ready_queue_type             remote_ready_queue_{};
-    detail::spinlock                    remote_ready_splk_{};
+    detail::spinlock                                            remote_ready_splk_{};
+    remote_ready_queue_type                                     remote_ready_queue_{};
 #endif
+    alignas(cache_alignment) std::unique_ptr< algo::algorithm > algo_;
     // sleep-queue contains context' which have been called
     // scheduler::wait_until()
-    sleep_queue_type                    sleep_queue_{};
-    bool                                shutdown_{ false };
+    sleep_queue_type                                            sleep_queue_{};
+    // worker-queue contains all context' mananged by this scheduler
+    // except main-context and dispatcher-context
+    // unlink happens on destruction of a context
+    worker_queue_type                                           worker_queue_{};
+    // terminated-queue contains context' which have been terminated
+    terminated_queue_type                                       terminated_queue_{};
+    intrusive_ptr< context >                                    dispatcher_ctx_{};
+    context                                                 *   main_ctx_{ nullptr };
+    bool                                                        shutdown_{ false };
 
     void release_terminated_() noexcept;
 
