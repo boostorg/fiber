@@ -183,18 +183,20 @@ context::schedule_( context * ctx) noexcept {
 // main fiber context
 context::context( main_context_t) noexcept :
     use_count_{ 1 }, // allocated on main- or thread-stack
-    type_{ type::main_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
-    ctx_{ boost::context::execution_context::current() } {
+    ctx_{ boost::context::execution_context::current() },
+    type_{ type::main_context },
+    policy_{ launch::post } {
 #else
-    c_{} {
+    c_{},
+    type_{ type::main_context },
+    policy_{ launch::post } {
 #endif
 }
 
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   default_stack const& salloc, scheduler * sched) :
-    type_{ type::dispatcher_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ std::allocator_arg, palloc, salloc,
           [this,sched](void * vp) noexcept {
@@ -208,10 +210,14 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             sched->dispatch();
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
-          }}
+          }},
+    type_{ type::dispatcher_context },
+    policy_{ launch::post }
 {}
 #else
-    c_{}
+    c_{},
+    type_{ type::dispatcher_context },
+    policy_{ launch::post }
 {
     c_ = boost::context::callcc(
             std::allocator_arg, palloc, salloc,
