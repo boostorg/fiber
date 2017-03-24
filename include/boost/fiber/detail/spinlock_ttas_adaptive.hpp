@@ -20,11 +20,6 @@
 // https://software.intel.com/en-us/articles/benefitting-power-and-performance-sleep-loops
 // https://software.intel.com/en-us/articles/long-duration-spin-wait-loops-on-hyper-threading-technology-enabled-intel-processors
 
-#if BOOST_COMP_CLANG
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-private-field"
-#endif
-
 namespace boost {
 namespace fibers {
 namespace detail {
@@ -36,11 +31,8 @@ private:
         unlocked
     };
 
-    // align shared variable 'state_' at cache line to prevent false sharing
-    alignas(cache_alignment) std::atomic< spinlock_status > state_{ spinlock_status::unlocked };
-    std::atomic< std::size_t >                              tests_{ 0 };
-    // padding to avoid other data one the cacheline of shared variable 'state_'
-    char                                                    pad[cacheline_length];
+    std::atomic< spinlock_status >  state_{ spinlock_status::unlocked };
+    std::atomic< std::size_t >      tests_{ 0 };
 
 public:
     spinlock_ttas_adaptive() noexcept = default;
@@ -121,9 +113,5 @@ public:
 };
 
 }}}
-
-#if BOOST_COMP_CLANG
-#pragma clang diagnostic pop
-#endif
 
 #endif // BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_H
