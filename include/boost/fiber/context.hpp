@@ -32,6 +32,7 @@
 #include <boost/intrusive/parent_from_member.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
+#include <boost/intrusive/slist.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/data.hpp>
@@ -65,10 +66,10 @@ class scheduler;
 namespace detail {
 
 struct wait_tag;
-typedef intrusive::list_member_hook<
+typedef intrusive::slist_member_hook<
     intrusive::tag< wait_tag >,
     intrusive::link_mode<
-        intrusive::auto_unlink
+        intrusive::safe_link
     >
 >                                 wait_hook;
 // declaration of the functor that converts between
@@ -97,14 +98,6 @@ typedef intrusive::list_member_hook<
     >
 >                                       ready_hook;
 
-struct remote_ready_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< remote_ready_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       remote_ready_hook;
-
 struct sleep_tag;
 typedef intrusive::set_member_hook<
     intrusive::tag< sleep_tag >,
@@ -113,14 +106,6 @@ typedef intrusive::set_member_hook<
     >
 >                                       sleep_hook;
 
-struct terminated_tag;
-typedef intrusive::list_member_hook<
-    intrusive::tag< terminated_tag >,
-    intrusive::link_mode<
-        intrusive::auto_unlink
-    >
->                                       terminated_hook;
-
 struct worker_tag;
 typedef intrusive::list_member_hook<
     intrusive::tag< worker_tag >,
@@ -128,6 +113,22 @@ typedef intrusive::list_member_hook<
         intrusive::auto_unlink
     >
 >                                       worker_hook;
+
+struct terminated_tag;
+typedef intrusive::slist_member_hook<
+    intrusive::tag< terminated_tag >,
+    intrusive::link_mode<
+        intrusive::safe_link
+    >
+>                                       terminated_hook;
+
+struct remote_ready_tag;
+typedef intrusive::slist_member_hook<
+    intrusive::tag< remote_ready_tag >,
+    intrusive::link_mode<
+        intrusive::safe_link
+    >
+>                                       remote_ready_hook;
 
 }
 
@@ -142,10 +143,12 @@ const worker_context_t worker_context{};
 
 class BOOST_FIBERS_DECL context {
 public:
-    typedef intrusive::list<
-        context,
-        intrusive::function_hook< detail::wait_functor >,
-        intrusive::constant_time_size< false > >   wait_queue_t;
+    typedef intrusive::slist<
+                context,
+                intrusive::function_hook< detail::wait_functor >,
+                intrusive::linear< true >,
+                intrusive::cache_last< true > 
+            >   wait_queue_t;
 
 private:
     friend class scheduler;
@@ -384,6 +387,11 @@ public:
     context( context const&) = delete;
     context & operator=( context const&) = delete;
 
+    friend bool
+    operator==( context const& lhs, context const& rhs) noexcept {
+        return & lhs == & rhs;
+    }
+
     virtual ~context();
 
     scheduler * get_scheduler() const noexcept {
@@ -500,13 +508,7 @@ public:
 
     void ready_unlink() noexcept;
 
-    void remote_ready_unlink() noexcept;
-
     void sleep_unlink() noexcept;
-
-    void terminated_unlink() noexcept;
-
-    void wait_unlink() noexcept;
 
     void detach() noexcept;
 

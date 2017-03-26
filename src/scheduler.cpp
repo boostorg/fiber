@@ -24,12 +24,9 @@ namespace fibers {
 
 void
 scheduler::release_terminated_() noexcept {
-    terminated_queue_type::iterator e = terminated_queue_.end();
-    for ( terminated_queue_type::iterator i = terminated_queue_.begin();
-            i != e;) {
-        context * ctx = & ( * i);
-        // remove context from terminated-queue
-        i = terminated_queue_.erase( i);
+    while ( ! terminated_queue_.empty() ) {
+        context * ctx = & terminated_queue_.front();
+        terminated_queue_.pop_front();
         BOOST_ASSERT( ctx->is_context( type::worker_context) );
         BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
         BOOST_ASSERT( this == ctx->get_scheduler() );

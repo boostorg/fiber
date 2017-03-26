@@ -21,6 +21,7 @@
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
+#include <boost/intrusive/slist.hpp>
 
 #include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
@@ -52,29 +53,36 @@ public:
                 context,
                 intrusive::member_hook<
                     context, detail::ready_hook, & context::ready_hook_ >,
-                intrusive::constant_time_size< false > >    ready_queue_type;
+                intrusive::constant_time_size< false >
+            >                                               ready_queue_type;
 private:
     typedef intrusive::multiset<
                 context,
                 intrusive::member_hook<
                     context, detail::sleep_hook, & context::sleep_hook_ >,
                 intrusive::constant_time_size< false >,
-                intrusive::compare< timepoint_less > >      sleep_queue_type;
-    typedef intrusive::list<
-                context,
-                intrusive::member_hook<
-                    context, detail::terminated_hook, & context::terminated_hook_ >,
-                intrusive::constant_time_size< false > >    terminated_queue_type;
+                intrusive::compare< timepoint_less >
+            >                                               sleep_queue_type;
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
                     context, detail::worker_hook, & context::worker_hook_ >,
-                intrusive::constant_time_size< false > >    worker_queue_type;
-    typedef intrusive::list<
+                intrusive::constant_time_size< false >
+            >                                               worker_queue_type;
+    typedef intrusive::slist<
+                context,
+                intrusive::member_hook<
+                    context, detail::terminated_hook, & context::terminated_hook_ >,
+                intrusive::linear< true >,
+                intrusive::cache_last< true >
+            >                                               terminated_queue_type;
+    typedef intrusive::slist<
                 context,
                 intrusive::member_hook<
                     context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
-                intrusive::constant_time_size< false > >    remote_ready_queue_type;
+                intrusive::linear< true >,
+                intrusive::cache_last< true >
+            >                                               remote_ready_queue_type;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers

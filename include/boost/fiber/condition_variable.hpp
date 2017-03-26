@@ -109,7 +109,7 @@ public:
             // relock local lk
             lk.lock();
             // remove from waiting-queue
-            active_ctx->wait_unlink();
+            wait_queue_.remove( * active_ctx);
             // unlock local lk
             lk.unlock();
         }

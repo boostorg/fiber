@@ -350,7 +350,7 @@ public:
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
-                    active_ctx->wait_unlink();
+                    waiting_producers_.remove( * active_ctx);
                     return channel_op_status::timeout;
                 }
             } else {
@@ -394,7 +394,7 @@ public:
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
-                    active_ctx->wait_unlink();
+                    waiting_producers_.remove( * active_ctx);
                     return channel_op_status::timeout;
                 }
             } else {
@@ -538,7 +538,7 @@ public:
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
-                    active_ctx->wait_unlink();
+                    waiting_consumers_.remove( * active_ctx);
                     return channel_op_status::timeout;
                 }
             } else {

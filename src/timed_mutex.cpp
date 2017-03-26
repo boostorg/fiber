@@ -37,7 +37,7 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
     if ( ! active_ctx->wait_until( timeout_time, lk) ) {
         // remove fiber from wait-queue 
         lk.lock();
-        active_ctx->wait_unlink();
+        wait_queue_.remove( * active_ctx);
         return false;
     }
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );

@@ -527,27 +527,9 @@ context::ready_unlink() noexcept {
 }
 
 void
-context::remote_ready_unlink() noexcept {
-    BOOST_ASSERT( remote_ready_is_linked() );
-    remote_ready_hook_.unlink();
-}
-
-void
 context::sleep_unlink() noexcept {
     BOOST_ASSERT( sleep_is_linked() );
     sleep_hook_.unlink();
-}
-
-void
-context::terminated_unlink() noexcept {
-    BOOST_ASSERT( terminated_is_linked() );
-    terminated_hook_.unlink();
-}
-
-void
-context::wait_unlink() noexcept {
-    BOOST_ASSERT( wait_is_linked() );
-    wait_hook_.unlink();
 }
 
 void
