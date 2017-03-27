@@ -161,13 +161,15 @@ context::resume_( detail::data_t & d) noexcept {
 void
 context::resume_( detail::data_t & d) noexcept {
     boost::context::continuation c = c_.resume( & d);
-    detail::data_t * dp = c.get_data< detail::data_t * >();
-    if ( nullptr != dp) {
-        dp->from->c_ = std::move( c);
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            active()->schedule_( dp->ctx);
+    if ( c) {
+        detail::data_t * dp = c.get_data< detail::data_t * >();
+        if ( nullptr != dp) {
+            dp->from->c_ = std::move( c);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active()->schedule_( dp->ctx);
+            }
         }
     }
 }
@@ -181,20 +183,20 @@ context::schedule_( context * ctx) noexcept {
 // main fiber context
 context::context( main_context_t) noexcept :
     use_count_{ 1 }, // allocated on main- or thread-stack
-    flags_{ 0 },
-    type_{ type::main_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
-    ctx_{ boost::context::execution_context::current() } {
+    ctx_{ boost::context::execution_context::current() },
+    type_{ type::main_context },
+    policy_{ launch::post } {
 #else
-    c_{} {
+    c_{},
+    type_{ type::main_context },
+    policy_{ launch::post } {
 #endif
 }
 
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
                   default_stack const& salloc, scheduler * sched) :
-    flags_{ 0 },
-    type_{ type::dispatcher_context },
 #if (BOOST_EXECUTION_CONTEXT==1)
     ctx_{ std::allocator_arg, palloc, salloc,
           [this,sched](void * vp) noexcept {
@@ -208,10 +210,14 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
             sched->dispatch();
             // dispatcher context should never return from scheduler::dispatch()
             BOOST_ASSERT_MSG( false, "disatcher fiber already terminated");
-          }}
+          }},
+    type_{ type::dispatcher_context },
+    policy_{ launch::post }
 {}
 #else
-    c_{}
+    c_{},
+    type_{ type::dispatcher_context },
+    policy_{ launch::post }
 {
     c_ = boost::context::callcc(
             std::allocator_arg, palloc, salloc,
@@ -233,7 +239,10 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #endif
 
 context::~context() {
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk{ splk_ };
     BOOST_ASSERT( ! ready_is_linked() );
+    BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
     BOOST_ASSERT( ! wait_is_linked() );
     if ( is_context( type::dispatcher_context) ) {
@@ -316,14 +325,13 @@ context::join() {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // wait for context which is not terminated
-    if ( 0 == ( flags_ & flag_terminated) ) {
+    if ( ! terminated_) {
         // push active context to wait-queue, member
         // of the context which has to be joined by
         // the active context
         active_ctx->wait_link( wait_queue_);
-        lk.unlock();
         // suspend active context
-        active_ctx->get_scheduler()->suspend();
+        active_ctx->get_scheduler()->suspend( lk);
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -341,7 +349,7 @@ context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
-    flags_ |= flag_terminated;
+    terminated_ = true;
     // notify all waiting fibers
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
@@ -350,14 +358,14 @@ context::terminate() noexcept {
         // notify scheduler
         schedule( ctx);
     }
-    lk.unlock();
+    BOOST_ASSERT( wait_queue_.empty() );
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
         data.second.do_cleanup();
     }
     fss_data_.clear();
     // switch to another context
-    get_scheduler()->terminate( this);
+    get_scheduler()->terminate( lk, this);
 }
 #else
 boost::context::continuation
@@ -376,7 +384,7 @@ context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // mark as terminated
-    flags_ |= flag_terminated;
+    terminated_ = true;
     // notify all waiting fibers
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
@@ -385,14 +393,14 @@ context::terminate() noexcept {
         // notify scheduler
         schedule( ctx);
     }
-    lk.unlock();
+    BOOST_ASSERT( wait_queue_.empty() );
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
         data.second.do_cleanup();
     }
     fss_data_.clear();
     // switch to another context
-    return get_scheduler()->terminate( this);
+    return get_scheduler()->terminate( lk, this);
 #endif
 }
 
@@ -487,6 +495,11 @@ context::ready_is_linked() const noexcept {
 }
 
 bool
+context::remote_ready_is_linked() const noexcept {
+    return remote_ready_hook_.is_linked();
+}
+
+bool
 context::sleep_is_linked() const noexcept {
     return sleep_hook_.is_linked();
 }
@@ -517,18 +530,6 @@ void
 context::sleep_unlink() noexcept {
     BOOST_ASSERT( sleep_is_linked() );
     sleep_hook_.unlink();
-}
-
-void
-context::terminated_unlink() noexcept {
-    BOOST_ASSERT( terminated_is_linked() );
-    terminated_hook_.unlink();
-}
-
-void
-context::wait_unlink() noexcept {
-    BOOST_ASSERT( wait_is_linked() );
-    wait_hook_.unlink();
 }
 
 void

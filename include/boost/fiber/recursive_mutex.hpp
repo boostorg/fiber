@@ -39,10 +39,10 @@ private:
 
     typedef context::wait_queue_t   wait_queue_type;
 
+    detail::spinlock            wait_queue_splk_{};
+    wait_queue_type             wait_queue_{};
     context                 *   owner_{ nullptr };
     std::size_t                 count_{ 0 };
-    wait_queue_type             wait_queue_{};
-    detail::spinlock            wait_queue_splk_{};
 
 public:
     recursive_mutex() = default;

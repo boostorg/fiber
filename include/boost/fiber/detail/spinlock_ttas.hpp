@@ -35,10 +35,7 @@ private:
         unlocked
     };
 
-    // align shared variable 'state_' at cache line to prevent false sharing
-    alignas(cache_alignment) std::atomic< spinlock_status >  state_{ spinlock_status::unlocked };
-    // padding to avoid other data one the cacheline of shared variable 'state_'
-    char                                                     pad[cacheline_length];
+    std::atomic< spinlock_status >  state_{ spinlock_status::unlocked };
 
 public:
     spinlock_ttas() noexcept = default;

@@ -39,7 +39,7 @@ void * skynet( void * vargs) {
         for ( std::size_t i = 0; i < args->div; ++i) {
             auto sub_num = args->num + i * args->size / args->div;
             auto sub_size = args->size / args->div;
-            auto size = 8 * SIGSTKSZ;
+            auto size = 8 * 1024;
             pthread_attr_t tattr;
             if ( 0 != ::pthread_attr_init( & tattr) ) {
                 std::runtime_error("pthread_attr_init() failed");

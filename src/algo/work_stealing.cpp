@@ -40,21 +40,18 @@ void
 work_stealing::awakened( context * ctx) noexcept {
     if ( ! ctx->is_context( type::pinned_context) ) {
         ctx->detach();
-        rqueue_.push( ctx);
-    } else {
-        ctx->ready_link( lqueue_);
     }
+    rqueue_.push( ctx);
 }
 
 context *
 work_stealing::pick_next() noexcept {
     context * ctx = rqueue_.pop();
     if ( nullptr != ctx) {
-        context::active()->attach( ctx);
-    } else if ( ! lqueue_.empty() ) {
-        ctx = & lqueue_.front();
-        lqueue_.pop_front();
-    } else if ( nullptr == ctx) {
+        if ( ! ctx->is_context( type::pinned_context) ) {
+            context::active()->attach( ctx);
+        }
+    } else {
         static thread_local std::minstd_rand generator;
         std::size_t idx = 0;
         do {
@@ -62,6 +59,7 @@ work_stealing::pick_next() noexcept {
         } while ( idx == idx_);
         ctx = schedulers_[idx]->steal();
         if ( nullptr != ctx) {
+            BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
             context::active()->attach( ctx);
         }
     }

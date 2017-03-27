@@ -21,11 +21,11 @@
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
+#include <boost/intrusive/slist.hpp>
 
 #include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
-#include <boost/fiber/detail/context_mpsc_queue.hpp>
 #include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
@@ -53,44 +53,56 @@ public:
                 context,
                 intrusive::member_hook<
                     context, detail::ready_hook, & context::ready_hook_ >,
-                intrusive::constant_time_size< false > >    ready_queue_type;
+                intrusive::constant_time_size< false >
+            >                                               ready_queue_type;
 private:
     typedef intrusive::multiset<
                 context,
                 intrusive::member_hook<
                     context, detail::sleep_hook, & context::sleep_hook_ >,
                 intrusive::constant_time_size< false >,
-                intrusive::compare< timepoint_less > >      sleep_queue_type;
-    typedef intrusive::list<
-                context,
-                intrusive::member_hook<
-                    context, detail::terminated_hook, & context::terminated_hook_ >,
-                intrusive::constant_time_size< false > >    terminated_queue_type;
+                intrusive::compare< timepoint_less >
+            >                                               sleep_queue_type;
     typedef intrusive::list<
                 context,
                 intrusive::member_hook<
                     context, detail::worker_hook, & context::worker_hook_ >,
-                intrusive::constant_time_size< false > >    worker_queue_type;
+                intrusive::constant_time_size< false >
+            >                                               worker_queue_type;
+    typedef intrusive::slist<
+                context,
+                intrusive::member_hook<
+                    context, detail::terminated_hook, & context::terminated_hook_ >,
+                intrusive::linear< true >,
+                intrusive::cache_last< true >
+            >                                               terminated_queue_type;
+    typedef intrusive::slist<
+                context,
+                intrusive::member_hook<
+                    context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
+                intrusive::linear< true >,
+                intrusive::cache_last< true >
+            >                                               remote_ready_queue_type;
 
-    std::unique_ptr< algo::algorithm >  algo_;
-    context                         *   main_ctx_{ nullptr };
-    intrusive_ptr< context >            dispatcher_ctx_{};
-    // worker-queue contains all context' mananged by this scheduler
-    // except main-context and dispatcher-context
-    // unlink happens on destruction of a context
-    worker_queue_type                   worker_queue_{};
-    // terminated-queue contains context' which have been terminated
-    terminated_queue_type               terminated_queue_{};
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
     // remote ready-queue contains context' signaled by schedulers
     // running in other threads
-    detail::context_mpsc_queue          remote_ready_queue_{};
-    // sleep-queue contains context' which have been called
+    detail::spinlock                                            remote_ready_splk_{};
+    remote_ready_queue_type                                     remote_ready_queue_{};
 #endif
+    alignas(cache_alignment) std::unique_ptr< algo::algorithm > algo_;
+    // sleep-queue contains context' which have been called
     // scheduler::wait_until()
-    sleep_queue_type                    sleep_queue_{};
-    bool                                shutdown_{ false };
-    detail::spinlock                    splk_{};
+    sleep_queue_type                                            sleep_queue_{};
+    // worker-queue contains all context' mananged by this scheduler
+    // except main-context and dispatcher-context
+    // unlink happens on destruction of a context
+    worker_queue_type                                           worker_queue_{};
+    // terminated-queue contains context' which have been terminated
+    terminated_queue_type                                       terminated_queue_{};
+    intrusive_ptr< context >                                    dispatcher_ctx_{};
+    context                                                 *   main_ctx_{ nullptr };
+    bool                                                        shutdown_{ false };
 
     void release_terminated_() noexcept;
 
@@ -117,11 +129,11 @@ public:
 #if (BOOST_EXECUTION_CONTEXT==1)
     void dispatch() noexcept;
 
-    void terminate( context *) noexcept;
+    void terminate( detail::spinlock_lock &, context *) noexcept;
 #else
     boost::context::continuation dispatch() noexcept;
 
-    boost::context::continuation terminate( context *) noexcept;
+    boost::context::continuation terminate( detail::spinlock_lock &, context *) noexcept;
 #endif
 
     void yield( context *) noexcept;
