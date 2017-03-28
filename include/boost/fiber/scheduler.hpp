@@ -112,6 +112,8 @@ private:
     context                                                 *   main_ctx_{ nullptr };
     bool                                                        shutdown_{ false };
 
+    void release_free_() noexcept;
+
     void release_terminated_() noexcept;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)

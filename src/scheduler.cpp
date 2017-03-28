@@ -23,6 +23,30 @@ namespace boost {
 namespace fibers {
 
 void
+scheduler::release_free_() noexcept {
+    while ( ! free_queue_.empty() ) {
+        context * ctx = & free_queue_.front();
+        free_queue_.pop_front();
+        BOOST_ASSERT( ctx->is_context( type::worker_context) );
+        BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
+        BOOST_ASSERT( this == ctx->get_scheduler() );
+        BOOST_ASSERT( ctx->is_resumable() );
+        BOOST_ASSERT( ctx->worker_is_linked() );
+        BOOST_ASSERT( ! ctx->ready_is_linked() );
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
+        BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
+#endif
+        BOOST_ASSERT( ! ctx->sleep_is_linked() );
+        BOOST_ASSERT( ! ctx->free_is_linked() );
+        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        BOOST_ASSERT( ctx->wait_queue_.empty() );
+        BOOST_ASSERT( 0 == ( ctx->flags_ & context::context_finish) );
+        BOOST_ASSERT( 0 == ( ctx->flags_ & context::context_terminated) );
+        ctx->finish();
+    }
+}
+
+void
 scheduler::release_terminated_() noexcept {
     while ( ! terminated_queue_.empty() ) {
         context * ctx = & terminated_queue_.front();
@@ -37,9 +61,11 @@ scheduler::release_terminated_() noexcept {
         BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
 #endif
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
+        BOOST_ASSERT( ! ctx->free_is_linked() );
         BOOST_ASSERT( ! ctx->wait_is_linked() );
         BOOST_ASSERT( ctx->wait_queue_.empty() );
-        BOOST_ASSERT( ctx->terminated_);
+        BOOST_ASSERT( 0 != ( ctx->flags_ & context::context_finish) );
+        BOOST_ASSERT( 0 != ( ctx->flags_ & context::context_terminated) );
         // if last reference, e.g. fiber::join() or fiber::detach()
         // have been already called, this will call ~context(),
         // the context is automatically removeid from worker-queue
@@ -114,6 +140,8 @@ scheduler::~scheduler() {
 #endif
     // signal dispatcher-context termination
     shutdown_ = true;
+    // release context from free-queue
+    release_free_();
     // resume pending fibers
     // by joining dispatcher-context
     dispatcher_ctx_->join();

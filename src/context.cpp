@@ -325,7 +325,7 @@ context::join() {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
     // wait for context which is not terminated
-    if ( ! terminated_) {
+    if ( 0 == (flags_ & context_terminated) ) {
         // push active context to wait-queue, member
         // of the context which has to be joined by
         // the active context
@@ -348,8 +348,9 @@ void
 context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
+    BOOST_ASSERT( 0 == ( flags_ & context_finish) );
     // mark as terminated
-    terminated_ = true;
+    flags_ |= context_terminated;
     // notify all waiting fibers
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
@@ -383,8 +384,9 @@ boost::context::continuation
 context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
+    BOOST_ASSERT( 0 == ( flags_ & context_finish) );
     // mark as terminated
-    terminated_ = true;
+    flags_ |= context_terminated;
     // notify all waiting fibers
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();

@@ -161,6 +161,12 @@ public:
 private:
     friend class scheduler;
 
+    enum flag_t {
+        context_initial = 1 << 0,
+        context_finish = 1 << 1,
+        context_terminated = 1 << 2
+    };
+
     struct fss_data {
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
@@ -192,7 +198,7 @@ private:
     std::atomic< context * >                            remote_nxt_{ nullptr };
 #endif
     alignas(cache_alignment) detail::spinlock           splk_{};
-    bool                                                terminated_{ false };
+    unsigned int                                        flags_{ context_initial };
     wait_queue_t                                        wait_queue_{};
 public:
     detail::wait_hook                                   wait_hook_{};
@@ -312,7 +318,7 @@ public:
                 std::allocator_arg, palloc, salloc,
                 [this](boost::context::continuation && c_){
                         boost::context::continuation c = c_.resume();
-                        for (;;) { // TODO: termination condition?
+                        while ( 0 == ( flags_ & context_finish) ) {
                             suspend();
                         }
                         // terminate context
@@ -344,6 +350,10 @@ public:
         else return false;
     }
 
+    void finish() noexcept {
+        flags_ |= context_finish;
+    }
+
     void release() noexcept;
 
 #if (BOOST_EXECUTION_CONTEXT==1)
@@ -366,29 +376,6 @@ public:
     template< typename Fn, typename Tpl >
     void inject( Fn && fn, Tpl && tpl) noexcept {
         c_ = c_.resume_with(
-# if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-            detail::wrap(
-                [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                    boost::context::continuation && c_) mutable noexcept {
-                    boost::context::continuation c = c_.resume();
-                    detail::data_t * dp = c.get_data< detail::data_t * >();
-                    // update continuation of calling fiber
-                    dp->from->c_ = std::move( c);
-                    if ( nullptr != dp->lk) {
-                        dp->lk->unlock();
-                    } else if ( nullptr != dp->ctx) {
-                        context::active()->schedule_( dp->ctx);
-                    }
-#  if defined(BOOST_NO_CXX17_STD_APPLY)
-                    boost::context::detail::apply( std::move( fn), std::move( tpl) );
-#  else
-                    std::apply( std::move( fn), std::move( tpl) );
-#  endif
-                    release();
-                },
-                std::forward< Fn >( fn),
-                std::forward< Tpl >( tpl) )
-# else
             [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
             (boost::context::continuation && c_) mutable noexcept {
                 boost::context::continuation c = c_.resume();
@@ -407,7 +394,6 @@ public:
 #  endif
                 release();
             }
-# endif
         );
     }
 #endif
