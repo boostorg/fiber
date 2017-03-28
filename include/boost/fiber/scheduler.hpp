@@ -79,6 +79,13 @@ private:
     typedef intrusive::slist<
                 context,
                 intrusive::member_hook<
+                    context, detail::free_hook, & context::free_hook_ >,
+                intrusive::linear< true >,
+                intrusive::cache_last< true >
+            >                                               free_queue_type;
+    typedef intrusive::slist<
+                context,
+                intrusive::member_hook<
                     context, detail::remote_ready_hook, & context::remote_ready_hook_ >,
                 intrusive::linear< true >,
                 intrusive::cache_last< true >
@@ -100,6 +107,7 @@ private:
     worker_queue_type                                           worker_queue_{};
     // terminated-queue contains context' which have been terminated
     terminated_queue_type                                       terminated_queue_{};
+    free_queue_type                                             free_queue_{};
     intrusive_ptr< context >                                    dispatcher_ctx_{};
     context                                                 *   main_ctx_{ nullptr };
     bool                                                        shutdown_{ false };
@@ -135,6 +143,8 @@ public:
 
     boost::context::continuation terminate( detail::spinlock_lock &, context *) noexcept;
 #endif
+
+    void release( detail::spinlock_lock &, context *) noexcept;
 
     void yield( context *) noexcept;
 

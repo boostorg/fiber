@@ -122,6 +122,14 @@ typedef intrusive::slist_member_hook<
     >
 >                                       terminated_hook;
 
+struct free_tag;
+typedef intrusive::slist_member_hook<
+    intrusive::tag< free_tag >,
+    intrusive::link_mode<
+        intrusive::safe_link
+    >
+>                                       free_hook;
+
 struct remote_ready_tag;
 typedef intrusive::slist_member_hook<
     intrusive::tag< remote_ready_tag >,
@@ -194,6 +202,7 @@ private:
     detail::sleep_hook                                  sleep_hook_{};
     detail::ready_hook                                  ready_hook_{};
     detail::terminated_hook                             terminated_hook_{};
+    detail::free_hook                                   free_hook_{};
     detail::worker_hook                                 worker_hook_{};
 #if (BOOST_EXECUTION_CONTEXT==1)
     boost::context::execution_context                   ctx_;
@@ -207,56 +216,6 @@ private:
 
     void resume_( detail::data_t &) noexcept;
     void schedule_( context *) noexcept;
-
-#if (BOOST_EXECUTION_CONTEXT==1)
-    template< typename Fn, typename Tpl >
-    void run_( Fn && fn_, Tpl && tpl_, detail::data_t * dp) noexcept {
-        {
-            // fn and tpl must be destroyed before calling terminate()
-            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
-            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                active()->schedule_( dp->ctx);
-            }
-#if defined(BOOST_NO_CXX17_STD_APPLY)
-            boost::context::detail::apply( std::move( fn), std::move( tpl) );
-#else
-            std::apply( std::move( fn), std::move( tpl) );
-#endif
-        }
-        // terminate context
-        terminate();
-        BOOST_ASSERT_MSG( false, "fiber already terminated");
-    }
-#else
-    template< typename Fn, typename Tpl >
-    boost::context::continuation
-    run_( boost::context::continuation && c, Fn && fn_, Tpl && tpl_) noexcept {
-        {
-            // fn and tpl must be destroyed before calling terminate()
-            typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
-            typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
-            c = c.resume();
-            detail::data_t * dp = c.get_data< detail::data_t * >();
-            // update contiunation of calling fiber
-            dp->from->c_ = std::move( c);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                active()->schedule_( dp->ctx);
-            }
-#if defined(BOOST_NO_CXX17_STD_APPLY)
-            boost::context::detail::apply( std::move( fn), std::move( tpl) );
-#else
-            std::apply( std::move( fn), std::move( tpl) );
-#endif
-        }
-        // terminate context
-        return terminate();
-    }
-#endif
 
 public:
     class id {
@@ -317,6 +276,13 @@ public:
 
     static void reset_active() noexcept;
 
+#if (BOOST_EXECUTION_CONTEXT==1)
+    void terminate() noexcept;
+#else
+    boost::context::continuation suspend_with_cc() noexcept;
+    boost::context::continuation terminate() noexcept;
+#endif
+
     // main fiber context
     explicit context( main_context_t) noexcept;
 
@@ -325,64 +291,37 @@ public:
              default_stack const&, scheduler *);
 
     // worker fiber context
-    template< typename StackAlloc,
-              typename Fn,
-              typename Tpl
-    >
+    template< typename StackAlloc >
     context( worker_context_t,
              launch policy,
-             boost::context::preallocated palloc, StackAlloc salloc,
-             Fn && fn, Tpl && tpl) :
+             boost::context::preallocated palloc,
+             StackAlloc salloc) :
         use_count_{ 1 }, // fiber instance or scheduler owner
 #if (BOOST_EXECUTION_CONTEXT==1)
-# if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
         ctx_{ std::allocator_arg, palloc, salloc,
-              detail::wrap(
-                  [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                          boost::context::execution_context & ctx, void * vp) mutable noexcept {
-                        run_( std::move( fn), std::move( tpl), static_cast< detail::data_t * >( vp) );
-                  },
-                  std::forward< Fn >( fn),
-                  std::forward< Tpl >( tpl),
-                  boost::context::execution_context::current() )
-              },
-        type_{ type::worker_context },
-        policy_{ policy }
-# else
-        ctx_{ std::allocator_arg, palloc, salloc,
-              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl),
-               ctx=boost::context::execution_context::current()] (void * vp) mutable noexcept {
-                    run_( std::move( fn), std::move( tpl), static_cast< detail::data_t * >( vp) );
+              [this](){
+                for (;;) { // TODO: termination condition?
+                    suspend();
+                }
+                // terminate context
+                terminate(); // TODO: terminate_()
+                BOOST_ASSERT_MSG( false, "fiber already terminated");
               }},
-        type_{ type::worker_context },
-        policy_{ policy }
-# endif
-        {}
 #else
-        c_{},
-        type_{ type::worker_context },
-        policy_{ policy }
-        {
-# if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-            c_ = boost::context::callcc(
-                    std::allocator_arg, palloc, salloc,
-                      detail::wrap(
-                          [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
-                                  boost::context::continuation && c) mutable noexcept {
-                                return run_( std::forward< boost::context::continuation >( c), std::move( fn), std::move( tpl) );
-                          },
-                          std::forward< Fn >( fn),
-                          std::forward< Tpl >( tpl) ) );
-# else
-            c_ = boost::context::callcc(
-                    std::allocator_arg, palloc, salloc,
-                    [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
-                    (boost::context::continuation && c) mutable noexcept {
-                          return run_( std::forward< boost::context::continuation >( c), std::move( fn), std::move( tpl) );
-                    });
-# endif
-        }
+        c_{ boost::context::callcc(
+                std::allocator_arg, palloc, salloc,
+                [this](boost::context::continuation && c_){
+                        boost::context::continuation c = c_.resume();
+                        for (;;) { // TODO: termination condition?
+                            suspend();
+                        }
+                        // terminate context
+                        return terminate(); // TODO: terminate_()
+                 })},
 #endif
+        type_{ type::worker_context },
+        policy_{ policy } {
+    }
 
     context( context const&) = delete;
     context & operator=( context const&) = delete;
@@ -405,6 +344,74 @@ public:
         else return false;
     }
 
+    void release() noexcept;
+
+#if (BOOST_EXECUTION_CONTEXT==1)
+    template< typename Fn, typename Tpl >
+    void inject( Fn && fn_, Tpl && tpl_) noexcept {
+        typename std::decay< Fn >::type fn = std::forward< Fn >( fn_);
+        typename std::decay< Tpl >::type tpl = std::forward< Tpl >( tpl_);
+        if ( nullptr != dp->lk) {
+            dp->lk->unlock();
+        } else if ( nullptr != dp->ctx) {
+            active()->schedule_( dp->ctx);
+        }
+# if defined(BOOST_NO_CXX17_STD_APPLY)
+        boost::context::detail::apply( std::move( fn), std::move( tpl) );
+# else
+        std::apply( std::move( fn), std::move( tpl) );
+# endif
+    }
+#else
+    template< typename Fn, typename Tpl >
+    void inject( Fn && fn, Tpl && tpl) noexcept {
+        c_ = c_.resume_with(
+# if defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
+            detail::wrap(
+                [this]( typename std::decay< Fn >::type & fn, typename std::decay< Tpl >::type & tpl,
+                    boost::context::continuation && c_) mutable noexcept {
+                    boost::context::continuation c = c_.resume();
+                    detail::data_t * dp = c.get_data< detail::data_t * >();
+                    // update continuation of calling fiber
+                    dp->from->c_ = std::move( c);
+                    if ( nullptr != dp->lk) {
+                        dp->lk->unlock();
+                    } else if ( nullptr != dp->ctx) {
+                        context::active()->schedule_( dp->ctx);
+                    }
+#  if defined(BOOST_NO_CXX17_STD_APPLY)
+                    boost::context::detail::apply( std::move( fn), std::move( tpl) );
+#  else
+                    std::apply( std::move( fn), std::move( tpl) );
+#  endif
+                    release();
+                },
+                std::forward< Fn >( fn),
+                std::forward< Tpl >( tpl) )
+# else
+            [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
+            (boost::context::continuation && c_) mutable noexcept {
+                boost::context::continuation c = c_.resume();
+                detail::data_t * dp = c.get_data< detail::data_t * >();
+                // update continuation of calling fiber
+                dp->from->c_ = std::move( c);
+                if ( nullptr != dp->lk) {
+                    dp->lk->unlock();
+                } else if ( nullptr != dp->ctx) {
+                    context::active()->schedule_( dp->ctx);
+                }
+#  if defined(BOOST_NO_CXX17_STD_APPLY)
+                boost::context::detail::apply( std::move( fn), std::move( tpl) );
+#  else
+                std::apply( std::move( fn), std::move( tpl) );
+#  endif
+                release();
+            }
+# endif
+        );
+    }
+#endif
+
     void resume() noexcept;
     void resume( detail::spinlock_lock &) noexcept;
     void resume( context *) noexcept;
@@ -412,12 +419,6 @@ public:
     void suspend() noexcept;
     void suspend( detail::spinlock_lock &) noexcept;
 
-#if (BOOST_EXECUTION_CONTEXT==1)
-    void terminate() noexcept;
-#else
-    boost::context::continuation suspend_with_cc() noexcept;
-    boost::context::continuation terminate() noexcept;
-#endif
     void join();
 
     void yield() noexcept;
@@ -460,6 +461,8 @@ public:
 
     bool terminated_is_linked() const noexcept;
 
+    bool free_is_linked() const noexcept;
+
     bool wait_is_linked() const noexcept;
 
     template< typename List >
@@ -494,6 +497,13 @@ public:
     void terminated_link( List & lst) noexcept {
         static_assert( std::is_same< typename List::value_traits::hook_type, detail::terminated_hook >::value, "not a terminated-queue");
         BOOST_ASSERT( ! terminated_is_linked() );
+        lst.push_back( * this);
+    }
+
+    template< typename List >
+    void free_link( List & lst) noexcept {
+        static_assert( std::is_same< typename List::value_traits::hook_type, detail::free_hook >::value, "not a free-queue");
+        BOOST_ASSERT( ! free_is_linked() );
         lst.push_back( * this);
     }
 
@@ -548,6 +558,9 @@ template< typename StackAlloc, typename Fn, typename ... Args >
 static intrusive_ptr< context > make_worker_context( launch policy,
                                                      StackAlloc salloc,
                                                      Fn && fn, Args && ... args) {
+    intrusive_ptr< context > ctx;
+    // TODO: if free-queue is not empty, use context from free-queue
+    //       otherwise create new one
     boost::context::stack_context sctx = salloc.allocate();
 #if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
     // reserve space for control structure
@@ -566,14 +579,14 @@ static intrusive_ptr< context > make_worker_context( launch policy,
     const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
 #endif
     // placement new of context on top of fiber's stack
-    return intrusive_ptr< context >{ 
+    ctx = intrusive_ptr< context >{ 
             ::new ( sp) context{
                 worker_context,
                 policy,
                 boost::context::preallocated{ sp, size, sctx },
-                salloc,
-                std::forward< Fn >( fn),
-                std::make_tuple( std::forward< Args >( args) ... ) } };
+                salloc} };
+    ctx->inject( std::forward< Fn >( fn), std::make_tuple( std::forward< Args >( args) ... ) );
+    return ctx;
 }
 
 namespace detail {

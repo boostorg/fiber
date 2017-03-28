@@ -404,6 +404,28 @@ context::terminate() noexcept {
 #endif
 }
 
+void
+context::release() noexcept {
+    // protect for concurrent access
+    std::unique_lock< detail::spinlock > lk{ splk_ };
+    // notify all waiting fibers
+    while ( ! wait_queue_.empty() ) {
+        context * ctx = & wait_queue_.front();
+        // remove fiber from wait-queue
+        wait_queue_.pop_front();
+        // notify scheduler
+        schedule( ctx);
+    }
+    BOOST_ASSERT( wait_queue_.empty() );
+    // release fiber-specific-data
+    for ( fss_data_t::value_type & data : fss_data_) {
+        data.second.do_cleanup();
+    }
+    fss_data_.clear();
+    // switch to another context
+    return get_scheduler()->release( lk, this);
+}
+
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
@@ -507,6 +529,11 @@ context::sleep_is_linked() const noexcept {
 bool
 context::terminated_is_linked() const noexcept {
     return terminated_hook_.is_linked();
+}
+
+bool
+context::free_is_linked() const noexcept {
+    return free_hook_.is_linked();
 }
 
 bool

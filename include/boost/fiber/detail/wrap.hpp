@@ -101,13 +101,13 @@ public:
                 std::move( fn1_),
                 fn2_,
                 tpl_,
-                std::forward< boost::context::continuation >( c) );
+                c);
 #else
         return std::invoke(
                 std::move( fn1_),
                 fn2_,
                 tpl_,
-                std::forward< boost::context::continuation >( c) );
+                c);
 #endif
     }
 };

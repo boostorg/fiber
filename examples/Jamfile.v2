@@ -35,7 +35,7 @@ exe join : join.cpp ;
 exe ping_pong : ping_pong.cpp ;
 exe range_for : range_for.cpp ;
 exe priority : priority.cpp ;
-exe segmented_stack : segmented_stack.cpp ;
+#exe segmented_stack : segmented_stack.cpp ;
 exe simple : simple.cpp ;
 exe wait_stuff : wait_stuff.cpp ;
 exe work_sharing : work_sharing.cpp ;
