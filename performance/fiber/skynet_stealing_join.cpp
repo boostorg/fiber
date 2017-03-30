@@ -53,12 +53,12 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
                                   skynet,
                                   std::ref( salloc), std::ref( rc), sub_num, size / div, div });
         }
-        for ( auto & f: fibers) {
-            f.join();
-        }
         std::uint64_t sum{ 0 };
         for ( std::size_t i = 0; i < div; ++i) {
             sum += rc.value_pop();
+        }
+        for ( auto & f: fibers) {
+            f.join();
         }
         c.push( sum);
     }
