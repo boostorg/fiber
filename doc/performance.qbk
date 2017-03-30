@@ -77,7 +77,7 @@ queues of other participating threads.
          [fiber (1C/1T, round robin, tcmalloc)]
     ]
     [
-        [0.09 \u00b5s - 0.17 \u00b5s]
+        [0.05 \u00b5s - 0.11 \u00b5s]
         [1.69 \u00b5s - 1.79 \u00b5s]
     ]
 ]
