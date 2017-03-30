@@ -277,6 +277,9 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->wait_is_linked() );
     // protect for concurrent access
     detail::spinlock_lock lk{ remote_ready_splk_ };
+    BOOST_ASSERT( ! shutdown_);
+    BOOST_ASSERT( nullptr != main_ctx_);
+    BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     // push new context to remote ready-queue
     ctx->remote_ready_link( remote_ready_queue_);
     // notify scheduler
