@@ -10,11 +10,6 @@
 __boost_fiber__ provides a bounded, buffered channel (MPMC queue) suitable to
 synchonize fibers (running on same or different threads) via asynchronouss
 message passing.
-The capacity of the internal ring buffer determines if enqueue- or dequeue-
-operation will be lock-free. If the internal buffer has space left, e.g. the
-channel is not full, the enqueue-operation is lock-free for the producer.
-Until the channel is not empty, a dequeue-operation guaranteed to be lock-free
-for the consumer.
 
     typedef boost::fibers::buffered_channel< int > channel_t;
 
@@ -127,7 +122,9 @@ with an internal buffer of size `capacity`.]]
 [[Error Conditions:] [
 [*invalid_argument]: if `0==capacity || 0!=(capacity & (capacity-1))`.]]
 [[Notes:] [A `push()`, `push_wait_for()` or `push_wait_until()` will not block
-until the number of values in the channel becomes equal to `capacity`.]]
+until the number of values in the channel becomes equal to `capacity`.
+The channel can hold only `capacity - 1` elements, otherwise it is
+considered to be full.]]
 ]
 
 [member_heading buffered_channel..close]

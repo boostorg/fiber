@@ -81,8 +81,7 @@ void test_try_push_closed() {
 void test_try_push_full() {
     boost::fibers::buffered_channel< int > c( 2);
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( boost::fibers::channel_op_status::full == c.try_push( 2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::full == c.try_push( 1) );
 }
 
 void test_push_wait_for() {
@@ -98,7 +97,6 @@ void test_push_wait_for_closed() {
 
 void test_push_wait_for_timeout() {
     boost::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
     BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
 }
@@ -118,8 +116,6 @@ void test_push_wait_until_closed() {
 
 void test_push_wait_until_timeout() {
     boost::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_until( 1,
-                    std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.push_wait_until( 1,
@@ -371,13 +367,13 @@ void test_wm_1() {
     BOOST_CHECK_EQUAL( id1, ids[1]);
     BOOST_CHECK_EQUAL( id1, ids[2]);
     BOOST_CHECK_EQUAL( id1, ids[3]);
-    BOOST_CHECK_EQUAL( id1, ids[4]);
-    BOOST_CHECK_EQUAL( id2, ids[5]);
-    BOOST_CHECK_EQUAL( id1, ids[6]);
+    BOOST_CHECK_EQUAL( id2, ids[4]);
+    BOOST_CHECK_EQUAL( id1, ids[5]);
+    BOOST_CHECK_EQUAL( id2, ids[6]);
     BOOST_CHECK_EQUAL( id2, ids[7]);
     BOOST_CHECK_EQUAL( id2, ids[8]);
     BOOST_CHECK_EQUAL( id2, ids[9]);
-    BOOST_CHECK_EQUAL( id2, ids[10]);
+    BOOST_CHECK_EQUAL( id1, ids[10]);
     BOOST_CHECK_EQUAL( id2, ids[11]);
 }
 
@@ -432,15 +428,15 @@ void test_wm_2() {
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK_EQUAL( 12u, ids.size() );
+    BOOST_CHECK_EQUAL( 12, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]);
     BOOST_CHECK_EQUAL( id1, ids[1]);
     BOOST_CHECK_EQUAL( id1, ids[2]);
     BOOST_CHECK_EQUAL( id1, ids[3]);
-    BOOST_CHECK_EQUAL( id1, ids[4]);
-    BOOST_CHECK_EQUAL( id2, ids[5]);
-    BOOST_CHECK_EQUAL( id1, ids[6]);
-    BOOST_CHECK_EQUAL( id2, ids[7]);
+    BOOST_CHECK_EQUAL( id2, ids[4]);
+    BOOST_CHECK_EQUAL( id1, ids[5]);
+    BOOST_CHECK_EQUAL( id2, ids[6]);
+    BOOST_CHECK_EQUAL( id1, ids[7]);
     BOOST_CHECK_EQUAL( id2, ids[8]);
     BOOST_CHECK_EQUAL( id2, ids[9]);
     BOOST_CHECK_EQUAL( id2, ids[10]);
