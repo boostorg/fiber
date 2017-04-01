@@ -86,7 +86,7 @@ public:
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
                 static thread_local std::minstd_rand generator;
-                const std::size_t z =
+                static std::size_t z =
                     std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }( generator);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
