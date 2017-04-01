@@ -66,7 +66,7 @@ public:
                     // -> reduces the power consumed by the CPU
                     // -> prevent pipeline stalls
                     cpu_relax();
-                } else if ( BOOST_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
+                } else {
                     ++tests;
                     // std::this_thread::sleep_for( 0us) has a fairly long instruction path length,
                     // combined with an expensive ring3 to ring 0 transition costing about 1000 cycles
@@ -74,11 +74,6 @@ public:
                     // if and only if a thread of equal or greater priority is ready to run
                     static constexpr std::chrono::microseconds us0{ 0 };
                     std::this_thread::sleep_for( us0);
-                } else {
-                    // std::this_thread::yield() allows this_thread to give up the remaining part of its time slice,
-                    // but only to another thread on the same processor
-                    // instead of constant checking, a thread only checks if no other useful work is pending
-                    std::this_thread::yield();
                 }
 #else
                 std::this_thread::yield();
