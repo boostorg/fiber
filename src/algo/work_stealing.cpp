@@ -53,9 +53,10 @@ work_stealing::pick_next() noexcept {
         }
     } else {
         static thread_local std::minstd_rand generator;
+        static std::uniform_int_distribution< std::size_t > distribution{ 0, max_idx_ };
         std::size_t idx = 0;
         do {
-            idx = std::uniform_int_distribution< std::size_t >{ 0, max_idx_ }( generator);
+            idx = distribution( generator);
         } while ( idx == idx_);
         ctx = schedulers_[idx]->steal();
         if ( nullptr != ctx) {
