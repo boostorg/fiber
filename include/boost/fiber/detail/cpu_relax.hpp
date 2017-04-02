@@ -7,6 +7,7 @@
 #ifndef BOOST_FIBERS_DETAIL_CPU_RELAX_H
 #define BOOST_FIBERS_DETAIL_CPU_RELAX_H
 
+#include <chrono>
 #include <thread>
 
 #include <boost/config.hpp>
@@ -29,8 +30,20 @@ namespace detail {
 #if BOOST_ARCH_ARM
 # if BOOST_COMP_MSVC
 #  define cpu_relax() YieldProcessor();
-# else
+# elif (defined(__ARM_ARCH_6K__) || \
+        defined(__ARM_ARCH_6Z__) || \
+        defined(__ARM_ARCH_6ZK__) || \
+        defined(__ARM_ARCH_6T2__) || \
+        defined(__ARM_ARCH_7__) || \
+        defined(__ARM_ARCH_7A__) || \
+        defined(__ARM_ARCH_7R__) || \
+        defined(__ARM_ARCH_7M__) || \
+        defined(__ARM_ARCH_7S__) || \
+        defined(__ARM_ARCH_8A__) || \
+        defined(__aarch64__))
 #  define cpu_relax() asm volatile ("yield" ::: "memory");
+# else
+#  define cpu_relax() asm volatile ("nop" ::: "memory");
 # endif
 #elif BOOST_ARCH_MIPS
 # define cpu_relax() asm volatile ("pause" ::: "memory");
@@ -43,8 +56,10 @@ namespace detail {
 #  define cpu_relax() asm volatile ("pause" ::: "memory");
 # endif
 #else
-# warning "architecture does not support yield/pause mnemonic"
-# define cpu_relax() std::this_thread::yield();
+# define cpu_relax() { \
+   static constexpr std::chrono::microseconds us0{ 0 }; \
+   std::this_thread::sleep_for( us0); \
+  }
 #endif
 
 }}}
