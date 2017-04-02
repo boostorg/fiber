@@ -49,7 +49,7 @@ int futex_wake( std::atomic< std::int32_t > * addr) {
 
 inline
 int futex_wait( std::atomic< std::int32_t > * addr, std::int32_t x) {
-    ::WaitOnAddress( static_cast< volatile void * >( addr), & x, sizeof( x), -1);
+    ::WaitOnAddress( static_cast< volatile void * >( addr), & x, sizeof( x), INFINITE);
     return 0;
 }
 #else
