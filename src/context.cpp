@@ -89,8 +89,8 @@ struct context_initializer {
             vp1 = std::align( alignment, ctx_size, vp1, space);
             // reserves space for integer holding shifted size
             int * shift = reinterpret_cast< int * >( static_cast< char * >( vp1) - sizeof( int) );
-            // store shifted size in fornt of context
-            * shift = static_cast< char * >( vp1) - static_cast< char * >( vp);
+            // store shifted size in front of context
+            * shift = static_cast< int >( static_cast< char * >( vp1) - static_cast< char * >( vp) );
             // main fiber context of this thread
             context * main_ctx = ::new ( vp1) context{ main_context };
             vp1 = static_cast< char * >( vp1) + ctx_size;
