@@ -67,19 +67,13 @@ public:
                     // -> reduces the power consumed by the CPU
                     // -> prevent pipeline stalls
                     cpu_relax();
-                } else if ( BOOST_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
-                    ++tests;
+                } else {
                     // std::this_thread::sleep_for( 0us) has a fairly long instruction path length,
                     // combined with an expensive ring3 to ring 0 transition costing about 1000 cycles
                     // std::this_thread::sleep_for( 0us) lets give up this_thread the remaining part of its time slice
                     // if and only if a thread of equal or greater priority is ready to run
                     static constexpr std::chrono::microseconds us0{ 0 };
                     std::this_thread::sleep_for( us0);
-                } else {
-                    // std::this_thread::yield() allows this_thread to give up the remaining part of its time slice,
-                    // but only to another thread on the same processor
-                    // instead of constant checking, a thread only checks if no other useful work is pending
-                    std::this_thread::yield();
                 }
 #else
                 std::this_thread::yield();
@@ -92,7 +86,7 @@ public:
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
                 static thread_local std::minstd_rand generator;
-                const std::size_t z =
+                static std::size_t z =
                     std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }( generator);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {

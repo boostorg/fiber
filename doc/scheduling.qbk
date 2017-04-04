@@ -220,6 +220,9 @@ wakes `suspend_until()` via
 
 [class_heading shared_work]
 
+[note Because of the non-locality of data, ['shared_work] is less performant
+than ['work_stealing].]
+
 This class implements __algo__, scheduling fibers in round-robin fashion.
 Ready fibers are shared between all instances (running on different threads)
 of shared_work, thus the work is distributed equally over all threads.
@@ -304,17 +307,7 @@ wakes `suspend_until()` via
 [class_heading work_stealing]
 
 This class implements __algo__; if the local ready-queue runs out of ready
-fibers, ready fibers are stolen from other schedulers. The work-stealing
-algorithm is based on the Chase-Lev algorithm.[footnote 
-David Chase and Yossi Lev. Dynamic circular work-stealing deque.
-In SPAA [,]05: Proceedings of the seventeenth annual ACM symposium
-on Parallelism in algorithms and architectures, pages 21–28,
-New York, NY, USA, 2005. ACM.]
-[footnote 
-Nhat Minh Lê, Antoniu Pop, Albert Cohen, and Francesco Zappa Nardelli. 2013.
-Correct and efficient work-stealing for weak memory models.
-In Proceedings of the 18th ACM SIGPLAN symposium on Principles and practice
-of parallel programming (PPoPP [,]13). ACM, New York, NY, USA, 69-80.]
+fibers, ready fibers are stolen from other schedulers.
 The victim scheduler (from which a ready fiber is stolen) is selected at random.
 
         #include <boost/fiber/algo/work_stealing.hpp>

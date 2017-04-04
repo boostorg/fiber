@@ -52,7 +52,7 @@
 #endif
 
 #if !defined(BOOST_FIBERS_SPIN_MAX_TESTS)
-# define BOOST_FIBERS_SPIN_MAX_TESTS 100
+# define BOOST_FIBERS_SPIN_MAX_TESTS 500
 #endif
 
 // modern architectures have cachelines with 64byte length
