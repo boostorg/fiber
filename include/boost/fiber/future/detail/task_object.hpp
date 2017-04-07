@@ -58,7 +58,7 @@ public:
                         fn_, std::make_tuple( std::forward< Args >( args) ... ) )
 #else
                     std::apply(
-                        fn_, std::make_tuple( std::forward< Args >( args) ... )
+                        fn_, std::make_tuple( std::forward< Args >( args) ... ) )
 #endif
                     );
         } catch (...) {
