@@ -41,6 +41,8 @@ namespace detail {
         defined(__ARM_ARCH_7S__) || \
         defined(__ARM_ARCH_8A__) || \
         defined(__aarch64__))
+// http://groups.google.com/a/chromium.org/forum/#!msg/chromium-dev/YGVrZbxYOlU/Vpgy__zeBQAJ
+// mnemonic 'yield' is supported from ARMv6k onwards
 #  define cpu_relax() asm volatile ("yield" ::: "memory");
 # else
 #  define cpu_relax() asm volatile ("nop" ::: "memory");
@@ -48,6 +50,15 @@ namespace detail {
 #elif BOOST_ARCH_MIPS
 # define cpu_relax() asm volatile ("pause" ::: "memory");
 #elif BOOST_ARCH_PPC
+// http://code.metager.de/source/xref/gnu/glibc/sysdeps/powerpc/sys/platform/ppc.h
+// http://stackoverflow.com/questions/5425506/equivalent-of-x86-pause-instruction-for-ppc
+// mnemonic 'or' shared resource hints
+// or 27, 27, 27 This form of 'or' provides a hint that performance
+//               will probably be imrpoved if shared resources dedicated
+//               to the executing processor are released for use by other
+//               processors
+// extended mnemonics (available with POWER7)
+// yield   ==   or 27, 27, 27
 # define cpu_relax() asm volatile ("or 27,27,27" ::: "memory");
 #elif BOOST_ARCH_X86
 # if BOOST_COMP_MSVC || BOOST_COMP_MSVC_EMULATED
