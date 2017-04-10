@@ -9,9 +9,10 @@
 
 Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
-The code was compiled with gcc-6.20, using build options:
+The code was compiled with gcc-6.3.1, using build options:
 variant = release, optimization = speed.
-Tests were executed on dual Intel XEON E5 2620 2.2GHz, 16C/32T, running Linux (x86_64).
+Tests were executed on dual socket Intel XEON E5 2620 2.2GHz, 16C/32T, running
+Linux (x86_64).
 
 Measurements headed 1C/1T were run in a single-threaded process.
 
@@ -19,7 +20,7 @@ The [@https://github.com/atemerev/skynet microbenchmark ['syknet]] from
 Alexander Temerev was ported and used for performance measurements.
 At the root the test spawns 10 threads-of-execution (ToE), e.g.
 actor/goroutine/fiber etc.. Each spawned ToE spawns additional 10 ToEs ...
-until 1,000,000 ToEs are created. ToEs return back their ordinal numbers
+until *1,000,000* ToEs are created. ToEs return back their ordinal numbers
 (0 ... 999,999), which are summed on the previous level and sent back upstream,
 until reaching the root. The test was run 10-20 times, producing a range of
 values for each measurement.
@@ -37,9 +38,10 @@ values for each measurement.
     ]
 ]
 
-`std::thread` can not be tested at this time (C++14) because the API does not
-allow to set thread stack size (idefault on Linux 2MB, on Windows 1MB). An
-out-of-memory error is likely. With pthreads the stack size is set 8kBC.
+Pthreads are created with a stack size of 8kB while `std::thread`'s use the
+system default (1MB - 2MB). The microbenchmark could not be run with 1,000,000
+threads because of resource exhaustion (pthread and std::thread).
+Instead the test runs only at *10,000* threads.
 
 [table time per thread (average over *10,000* - unable to spawn 1,000,000 threads)
     [
