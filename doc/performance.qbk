@@ -49,8 +49,8 @@ Instead the test runs only at *10,000* threads.
          [`std::thread`]
     ]
     [
-        [0.54 \u00b5s - 0.61 \u00b5s]
-        [0.52 \u00b5s - 0.61 \u00b5s]
+        [54 \u00b5s - 73 \u00b5s]
+        [52 \u00b5s - 73 \u00b5s]
     ]
 ]
 
