@@ -9,9 +9,10 @@
 
 Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
-The code was compiled with gcc-6.20, using build options:
+The code was compiled with gcc-6.3.1, using build options:
 variant = release, optimization = speed.
-Tests were executed on dual Intel XEON E5 2620 2.2GHz, 16C/32T, running Linux (x86_64).
+Tests were executed on dual Intel XEON E5 2620 2.2GHz, 16C/32T, 64GB RAM,
+running Linux (x86_64).
 
 Measurements headed 1C/1T were run in a single-threaded process.
 
@@ -19,7 +20,7 @@ The [@https://github.com/atemerev/skynet microbenchmark ['syknet]] from
 Alexander Temerev was ported and used for performance measurements.
 At the root the test spawns 10 threads-of-execution (ToE), e.g.
 actor/goroutine/fiber etc.. Each spawned ToE spawns additional 10 ToEs ...
-until 1,000,000 ToEs are created. ToEs return back their ordinal numbers
+until *1,000,000* ToEs are created. ToEs return back their ordinal numbers
 (0 ... 999,999), which are summed on the previous level and sent back upstream,
 until reaching the root. The test was run 10-20 times, producing a range of
 values for each measurement.
@@ -37,18 +38,21 @@ values for each measurement.
     ]
 ]
 
-`std::thread` can not be tested at this time (C++14) because the API does not
-allow to set thread stack size (idefault on Linux 2MB, on Windows 1MB). An
-out-of-memory error is likely. With pthreads the stack size is set 8kBC.
+Pthreads are created with a stack size of 8kB while `std::thread`'s use the
+system default (1MB - 2MB). The microbenchmark could *not* be *run* with 1,000,000
+threads because of *resource exhaustion* (pthread and std::thread).
+Instead the test runs only at *10,000* threads.
 
-[table time per thread (average over *10,000* - unable to spawn 1,000,000 threads)
+[table time per thread (average over 10,000 - unable to spawn 1,000,000 threads)
     [
          [pthread]
          [`std::thread`]
+         [`std::async`]
     ]
     [
-        [0.54 \u00b5s - 0.61 \u00b5s]
-        [0.52 \u00b5s - 0.61 \u00b5s]
+        [54 \u00b5s - 73 \u00b5s]
+        [52 \u00b5s - 73 \u00b5s]
+        [106 \u00b5s - 122 \u00b5s]
     ]
 ]
 
@@ -81,113 +85,5 @@ queues of other participating threads.
         [1.69 \u00b5s - 1.79 \u00b5s]
     ]
 ]
-
-
-[section:tweaking Tweaking]
-
-__boost_fiber__ enables synchronization of fibers running on different threads
-per default. This is accomplished by spinlocks (using atomics).
-(BOOST_FIBERS_SPINLOCK_STD_MUTEX defined at the compiler[s] command line enables
-`std::mutex` instead of spinlocks).
-
-
-[heading disable synchronization]
-
-With [link cross_thread_sync `BOOST_FIBERS_NO_ATOMICS`] defined at the
-compiler[s] command line, synchronization between fibers (in different
-threads) is disabled. This is acceptable if the application is single threaded
-and/or fibers are not synchronized between threads.
-
-
-[heading TTAS locks]
-
-Spinlocks are implemented as TTAS locks, i.e. the spinlock tests the lock
-before calling an atomic exchange. This strategy helps to reduce the cache
-line invalidations triggered by acquiring/releasing the lock.
-
-
-[heading spin-wait loop]
-
-A lock is considered under high contention, if a thread repeatedly fails to
-acquire the lock because some other thread was faster.
-Waiting for a short time lets other threads finish before trying to enter the
-critical section again. While busy waiting on the lock, relaxing the CPU (via
-pause/yield memnonic) gives the CPU a hint that the code is in a spin-wait loop.
-
-* prevents expensive pipeline flushes (speculatively executed load and compare
-  instructions are not pushed to pipeline)
-* another hardware thread (simultaneous multithreading) can get time slice
-* it does delay a few CPU cycles, but this is necessary to prevent starvation
-
-It is obvious that this strategy is useless on single core systems because the
-lock can only released if the thread gives up its time slice in order to let
-other threads run. The macro BOOST_FIBERS_SPIN_SINGLE_CORE disables active spinning,
-in other words, the operating system is notified (via `std::this_thread_yield()`) that the
-thread gives up its time slice and the operating system switches to another
-thread.
-
-
-[heading exponential back-off]
-
-The macro BOOST_FIBERS_SPIN_MAX_TESTS determines how many times the CPU
-iterates in the spin-wait loop before yielding the thread or blocking in
-futex-wait.
-The spinlock tracks how many times the thread failed to acquire the lock.
-The higher the contention, the longer the thread should back-off.
-A ["Binary Exponential Backoff] algorithm together with a randomized contention
-window is utilized for this purpose.
-BOOST_FIBERS_SPIN_MAX_COLLISIONS determines the upper limit of collisions
-between threads after the thread waits on a futex.
-
-
-[table macros for tweaking
-    [
-        [Macro]
-        [Effect on Boost.Fiber]
-    ]
-    [
-        [BOOST_FIBERS_NO_ATOMICS]
-        [no multithreading support, all atomics removed, no synchronization
-        between fibers running in different threads]
-    ]
-    [
-        [BOOST_FIBERS_SPINLOCK_STD_MUTEX]
-        [`std::mutex` used inside spinlock]
-    ]
-    [
-        [BOOST_FIBERS_SPINLOCK_TTAS]
-        [spinlock with test-test-and-swap on shared variable]
-    ]
-    [
-        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE]
-        [spinlock with test-test-and-swap on shared variable, adaptive retries
-        while busy waiting]
-    ]
-    [
-        [BOOST_FIBERS_SPINLOCK_TTAS_FUTEX]
-        [spinlock with test-test-and-swap on shared variable, suspend on
-        futex after certain number of retries]
-    ]
-    [
-        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX]
-        [spinlock with test-test-and-swap on shared variable, while busy
-        waiting adaptive retries, suspend on futex certain amount of retries]
-    ]
-    [
-        [BOOST_FIBERS_SPIN_SINGLE_CORE]
-        [on single core machines with multiple threads, yield thread
-        (`std::this_thread::yield()`) after collisions]
-    ]
-    [
-        [BOOST_FIBERS_SPIN_MAX_TESTS]
-        [max number of retries while busy spinning]
-    ]
-    [
-        [BOOST_FIBERS_SPIN_MAX_COLLISIONS]
-        [max number of collisions between contending threads]
-    ]
-]
-
-[endsect]
 
 [endsect]
