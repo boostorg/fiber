@@ -29,6 +29,8 @@ work_stealing::init_( std::size_t max_idx) {
 work_stealing::work_stealing( std::size_t max_idx, std::size_t idx, bool suspend) :
     idx_{ idx },
     max_idx_{ max_idx },
+    generator_{},
+    distribution_{ 0, max_idx_ },
     suspend_{ suspend } {
     static std::once_flag flag;
     std::call_once( flag, & work_stealing::init_, max_idx_);
@@ -52,11 +54,9 @@ work_stealing::pick_next() noexcept {
             context::active()->attach( ctx);
         }
     } else {
-        static thread_local std::minstd_rand generator;
-        static std::uniform_int_distribution< std::size_t > distribution{ 0, max_idx_ };
         std::size_t idx = 0;
         do {
-            idx = distribution( generator);
+            idx = distribution_( generator_);
         } while ( idx == idx_);
         ctx = schedulers_[idx]->steal();
         if ( nullptr != ctx) {

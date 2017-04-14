@@ -37,6 +37,8 @@ private:
 
     std::size_t                                             idx_;
     std::size_t                                             max_idx_;
+    std::minstd_rand                                        generator_;
+    std::uniform_int_distribution< std::size_t >            distribution_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
     alignas(cache_alignment) detail::context_spmc_queue     rqueue_{};
 #else
