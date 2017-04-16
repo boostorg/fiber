@@ -21,6 +21,10 @@ project boost/fiber/performance/thread
       <variant>release
     ;
 
+exe skynet_async
+   : skynet_async.cpp
+   ;
+
 exe skynet_std
    : skynet_std.cpp
    ;
