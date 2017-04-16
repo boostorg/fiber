@@ -265,6 +265,7 @@ channel operations return the state of the channel.
 [include when_any.qbk]
 [include integration.qbk]
 [include performance.qbk]
+[include optimization.qbk]
 [include customization.qbk]
 [include rationale.qbk]
 [include acknowledgements.qbk]
