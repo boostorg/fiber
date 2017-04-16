@@ -27,7 +27,8 @@ namespace detail {
 
 class spinlock_ttas_adaptive {
 private:
-    friend class spinlock_ttas_adaptive_rtm;
+    template< typename FBSplk >
+    friend class spinlock_rtm;
 
     std::atomic< spinlock_status >              state_{ spinlock_status::unlocked };
     std::atomic< std::size_t >                  retries_{ 0 };

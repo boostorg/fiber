@@ -26,6 +26,9 @@ namespace detail {
 
 class spinlock_ttas_adaptive_futex {
 private:
+    template< typename FBSplk >
+    friend class spinlock_rtm;
+
     std::atomic< std::int32_t >                 value_{ 0 };
     std::atomic< std::int32_t >                 retries_{ 0 };
 
