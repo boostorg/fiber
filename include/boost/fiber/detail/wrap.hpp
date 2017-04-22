@@ -42,10 +42,10 @@ private:
 public:
     wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl,
              boost::context::execution_context const& ctx) :
-        fn1_{ std::move( fn1) },
-        fn2_{ std::move( fn2) },
-        tpl_{ std::move( tpl) },
-        ctx_{ ctx } {
+        fn1_( std::move( fn1) ),
+        fn2_( std::move( fn2) ),
+        tpl_( std::move( tpl) ),
+        ctx_( ctx ) {
     }
 
     wrapper( wrapper const&) = delete;
@@ -83,9 +83,9 @@ private:
 
 public:
     wrapper( Fn1 && fn1, Fn2 && fn2, Tpl && tpl) :
-        fn1_{ std::move( fn1) },
-        fn2_{ std::move( fn2) },
-        tpl_{ std::move( tpl) } {
+        fn1_( std::move( fn1) ),
+        fn2_( std::move( fn2) ),
+        tpl_( std::move( tpl) ) {
     }
 
     wrapper( wrapper const&) = delete;
