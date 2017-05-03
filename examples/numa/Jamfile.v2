@@ -1,5 +1,6 @@
+# Boost.Fiber Library Examples Jamfile
 
-#          Copyright Oliver Kowalke 2009.
+#          Copyright Oliver Kowalke 2017.
 # Distributed under the Boost Software License, Version 1.0.
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
@@ -13,9 +14,9 @@ import modules ;
 import os ;
 import toolset ;
 
-project boost/fiber/performance/fiber
+project boost/fiber/example/numa
     : requirements
-      <library>/boost/fiber//boost_fiber
+      <library>../../build//boost_fiber
       <target-os>solaris:<linkflags>"-llgrp"
       <target-os>windows:<define>_WIN32_WINNT=0x0601
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
@@ -24,27 +25,6 @@ project boost/fiber/performance/fiber
       <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <link>static
       <threading>multi
-      <optimization>speed
-      <variant>release
     ;
 
-exe skynet_join :
-    skynet_join.cpp ;
-
-exe skynet_detach :
-    skynet_detach.cpp ;
-
-exe skynet_shared_join :
-    skynet_shared_join.cpp ;
-
-exe skynet_shared_detach :
-    skynet_shared_detach.cpp ;
-
-exe skynet_stealing_join :
-    skynet_stealing_join.cpp ;
-
-exe skynet_stealing_detach :
-    skynet_stealing_detach.cpp ;
-
-exe skynet_stealing_async :
-    skynet_stealing_async.cpp ;
+exe topology : topology.cpp ;

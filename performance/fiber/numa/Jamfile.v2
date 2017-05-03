@@ -13,7 +13,7 @@ import modules ;
 import os ;
 import toolset ;
 
-project boost/fiber/performance/fiber
+project boost/fiber/performance/fiber/numa
     : requirements
       <library>/boost/fiber//boost_fiber
       <target-os>solaris:<linkflags>"-llgrp"
@@ -28,23 +28,5 @@ project boost/fiber/performance/fiber
       <variant>release
     ;
 
-exe skynet_join :
-    skynet_join.cpp ;
-
-exe skynet_detach :
-    skynet_detach.cpp ;
-
-exe skynet_shared_join :
-    skynet_shared_join.cpp ;
-
-exe skynet_shared_detach :
-    skynet_shared_detach.cpp ;
-
-exe skynet_stealing_join :
-    skynet_stealing_join.cpp ;
-
 exe skynet_stealing_detach :
     skynet_stealing_detach.cpp ;
-
-exe skynet_stealing_async :
-    skynet_stealing_async.cpp ;

@@ -90,7 +90,7 @@ private:
     detail::spinlock                                            remote_ready_splk_{};
     remote_ready_queue_type                                     remote_ready_queue_{};
 #endif
-    alignas(cache_alignment) std::unique_ptr< algo::algorithm > algo_;
+    alignas(cache_alignment) algo::algorithm::ptr_t             algo_;
     // sleep-queue contains context' which have been called
     // scheduler::wait_until()
     sleep_queue_type                                            sleep_queue_{};
@@ -149,7 +149,7 @@ public:
 
     bool has_ready_fibers() const noexcept;
 
-    void set_algo( std::unique_ptr< algo::algorithm >) noexcept;
+    void set_algo( algo::algorithm::ptr_t) noexcept;
 
     void attach_main_context( context *) noexcept;
 

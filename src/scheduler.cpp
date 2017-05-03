@@ -424,7 +424,7 @@ scheduler::has_ready_fibers() const noexcept {
 }
 
 void
-scheduler::set_algo( std::unique_ptr< algo::algorithm > algo) noexcept {
+scheduler::set_algo( algo::algorithm::ptr_t algo) noexcept {
     // move remaining cotnext in current scheduler to new one
     while ( algo_->has_ready_fibers() ) {
         algo->awakened( algo_->pick_next() );

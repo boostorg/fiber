@@ -6,11 +6,13 @@
 #ifndef BOOST_FIBERS_ALGO_ALGORITHM_H
 #define BOOST_FIBERS_ALGO_ALGORITHM_H
 
-#include <cstddef>
+#include <atomic>
 #include <chrono>
+#include <cstddef>
 
-#include <boost/config.hpp>
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -26,7 +28,13 @@ class context;
 
 namespace algo {
 
-struct BOOST_FIBERS_DECL algorithm {
+class BOOST_FIBERS_DECL algorithm {
+private:
+    std::atomic< std::size_t >    use_count_{ 0 };
+
+public:
+    typedef intrusive_ptr< algorithm >  ptr_t;
+
     virtual ~algorithm() {}
 
     virtual void awakened( context *) noexcept = 0;
@@ -38,6 +46,19 @@ struct BOOST_FIBERS_DECL algorithm {
     virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept = 0;
 
     virtual void notify() noexcept = 0;
+
+    friend void intrusive_ptr_add_ref( algorithm * algo) noexcept {
+        BOOST_ASSERT( nullptr != algo);
+        algo->use_count_.fetch_add( 1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release( algorithm * algo) noexcept {
+        BOOST_ASSERT( nullptr != algo);
+        if ( 1 == algo->use_count_.fetch_sub( 1, std::memory_order_release) ) {
+            std::atomic_thread_fence( std::memory_order_acquire);
+            delete algo;
+        }
+    }
 };
 
 class BOOST_FIBERS_DECL algorithm_with_properties_base : public algorithm {

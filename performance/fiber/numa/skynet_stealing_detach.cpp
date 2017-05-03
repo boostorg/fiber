@@ -14,27 +14,38 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <deque>
+#include <queue>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <numeric>
+#include <random>
+#include <sstream>
 #include <vector>
 
 #include <boost/fiber/all.hpp>
+#include <boost/fiber/numa/topology.hpp>
 
-#include "barrier.hpp"
+#include "../barrier.hpp"
 
-using allocator_type = boost::fibers::fixedsize_stack;
-using channel_type = boost::fibers::buffered_channel< std::uint64_t >;
 using clock_type = std::chrono::steady_clock;
 using duration_type = clock_type::duration;
-using lock_type = std::unique_lock< std::mutex >;
 using time_point_type = clock_type::time_point;
+using channel_type = boost::fibers::buffered_channel< std::uint64_t >;
+using allocator_type = boost::fibers::fixedsize_stack;
+using lock_type = std::unique_lock< std::mutex >;
 
 static bool done = false;
 static std::mutex mtx{};
 static boost::fibers::condition_variable_any cnd{};
+
+std::uint32_t hardware_concurrency( std::vector< boost::fibers::numa::node > const& topo) {
+    std::uint32_t cpus = 0;
+    for ( auto & node : topo) {
+        cpus += node.logical_cpus.size();
+    }
+    return cpus;
+}
 
 // microbenchmark
 void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::size_t size, std::size_t div) {
@@ -57,9 +68,8 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
     }
 }
 
-void thread( unsigned int idx, barrier * b) {
-    boost::fibers::numa::pin_thread( idx);
-    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_work >();
+void thread( std::uint32_t cpu_id, std::uint32_t node_id, std::vector< boost::fibers::numa::node > const& topo, barrier * b) {
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( cpu_id, node_id, topo);
     b->wait();
     lock_type lk( mtx);
     cnd.wait( lk, [](){ return done; });
@@ -68,19 +78,25 @@ void thread( unsigned int idx, barrier * b) {
 
 int main() {
     try {
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::shared_work >();
-        unsigned int n = std::thread::hardware_concurrency();
-        barrier b( n);
-        boost::fibers::numa::pin_thread( n - 1);
+        std::vector< boost::fibers::numa::node > topo = boost::fibers::numa::topology();
+        auto node = topo[0];
+        auto main_cpu_id = * node.logical_cpus.begin();
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( main_cpu_id, node.id, topo);
+        barrier b{ hardware_concurrency( topo) };
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
-        std::vector< std::thread > threads;
-        for ( unsigned int i = 1; i < n; ++i) {
-            threads.emplace_back( thread, i - 1, & b);
-        };
         allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
+        std::vector< std::thread > threads;
+        for ( auto & node : topo) {
+            for ( std::uint32_t cpu_id : node.logical_cpus) {
+                // exclude main-thread
+                if ( main_cpu_id != cpu_id) {
+                    threads.emplace_back( thread, cpu_id, node.id, std::cref( topo), & b);
+                }
+            }
+        }
         b.wait();
         time_point_type start{ clock_type::now() };
         skynet( salloc, rc, 0, size, div);

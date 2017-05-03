@@ -1,14 +1,13 @@
 
-//          Copyright Oliver Kowalke 2015.
+//          Copyright Oliver Kowalke 2017.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_FIBERS_ALGO_WORK_STEALING_H
-#define BOOST_FIBERS_ALGO_WORK_STEALING_H
+#ifndef BOOST_FIBERS_ALGO_NUMA_WORK_STEALING_H
+#define BOOST_FIBERS_ALGO_NUMA_WORK_STEALING_H
 
-#include <atomic>
 #include <condition_variable>
 #include <chrono>
 #include <cstddef>
@@ -24,6 +23,8 @@
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/context_spinlock_queue.hpp>
 #include <boost/fiber/detail/context_spmc_queue.hpp>
+#include <boost/fiber/numa/pin_thread.hpp>
+#include <boost/fiber/numa/topology.hpp>
 #include <boost/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -33,15 +34,18 @@
 namespace boost {
 namespace fibers {
 namespace algo {
+namespace numa {
 
 class work_stealing : public algorithm {
 private:
-    static std::atomic< std::uint32_t >                     counter_;
     static std::vector< intrusive_ptr< work_stealing > >    schedulers_;
 
-    std::uint32_t                                           id_;
+    std::uint32_t                                           cpu_id_;
+    std::vector< std::uint32_t >                            local_cpus_;
+    std::vector< std::uint32_t >                            remote_cpus_;
     std::minstd_rand                                        generator_{};
-    std::uniform_int_distribution< std::uint32_t >          distribution_;
+    std::uniform_int_distribution< std::uint32_t >          local_distribution_;
+    std::uniform_int_distribution< std::uint32_t >          remote_distribution_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
     alignas(cache_alignment) detail::context_spmc_queue     rqueue_{};
 #else
@@ -52,10 +56,13 @@ private:
     bool                                                    flag_{ false };
     bool                                                    suspend_;
 
-    static void init_( std::uint32_t, std::vector< intrusive_ptr< work_stealing > > &);
+    static void init_( std::vector< boost::fibers::numa::node > const&,
+                       std::vector< intrusive_ptr< work_stealing > > &);
 
 public:
-    work_stealing( std::uint32_t, bool = false);
+    work_stealing( std::uint32_t, std::uint32_t,
+                   std::vector< boost::fibers::numa::node > const&,
+                   bool = false);
 
     work_stealing( work_stealing const&) = delete;
     work_stealing( work_stealing &&) = delete;
@@ -80,10 +87,10 @@ public:
     virtual void notify() noexcept;
 };
 
-}}}
+}}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_ALGO_WORK_STEALING_H
+#endif // BOOST_FIBERS_ALGO_NUMA_WORK_STEALING_H

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -34,11 +35,10 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
         std::vector< boost::fibers::fiber > fibers;
         for ( std::size_t i = 0; i < div; ++i) {
             auto sub_num = num + i * size / div;
-            fibers.push_back(
-                boost::fibers::fiber{ boost::fibers::launch::dispatch,
-                                  std::allocator_arg, salloc,
-                                  skynet,
-                                  std::ref( salloc), std::ref( rc), sub_num, size / div, div });
+            fibers.emplace_back( boost::fibers::launch::dispatch,
+                                 std::allocator_arg, salloc,
+                                 skynet,
+                                 std::ref( salloc), std::ref( rc), sub_num, size / div, div);
         }
         for ( auto & f: fibers) {
             f.join();
@@ -57,14 +57,15 @@ int main() {
         std::size_t div{ 10 };
         allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
-        duration_type duration{ duration_type::zero() };
         channel_type rc{ 2 };
         time_point_type start{ clock_type::now() };
         skynet( salloc, rc, 0, size, div);
         result = rc.value_pop();
-        duration = clock_type::now() - start;
-        std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
-        std::cout << "done." << std::endl;
+        if ( 499999500000 != result) {
+            throw std::runtime_error("invalid result");
+        }
+        auto duration = clock_type::now() - start;
+        std::cout << "duration: " << duration.count() / 1000000 << " ms" << std::endl;
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "exception: " << e.what() << std::endl;

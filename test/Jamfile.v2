@@ -20,6 +20,8 @@ project boost/fiber/test
       <library>../../test/build//boost_unit_test_framework
       <library>/boost/fiber//boost_fiber
       <library>/boost/thread//boost_thread
+      <target-os>solaris:<linkflags>"-llgrp"
+      <target-os>windows:<define>_WIN32_WINNT=0x0601
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
@@ -29,6 +31,23 @@ project boost/fiber/test
     ;
 
 test-suite minimal :
+[ run test_topology.cpp :
+    : :
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_mutex
+               cxx11_hdr_thread
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_thread_local
+               cxx11_variadic_templates  ] ]
+
 [ run test_fiber_post.cpp :
     : :
     [ requires cxx11_auto_declarations
