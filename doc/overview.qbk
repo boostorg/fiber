@@ -9,8 +9,8 @@
 
 __boost_fiber__  provides a framework for micro-/userland-threads (fibers)
 scheduled cooperatively.
-The API contains classes and functions to manage and synchronize fibers similiarly to
-__std_thread__.
+The API contains classes and functions to manage and synchronize fibers
+similiarly to __std_thread__.
 
 Each fiber has its own stack.
 
@@ -21,8 +21,9 @@ The idea is to have multiple execution paths running on a single thread using
 cooperative scheduling (versus threads, which are preemptively scheduled). The
 running fiber decides explicitly when it should yield to allow another fiber to
 run (context switching).
-__boost_fiber__ internally uses __econtext__ from __boost_context__; the classes in
-this library manage, schedule and, when needed, synchronize those execution contexts.
+__boost_fiber__ internally uses __econtext__ from __boost_context__; the classes
+in this library manage, schedule and, when needed, synchronize those execution
+contexts.
 A context switch between threads usually costs thousands of CPU cycles on x86,
 compared to a fiber switch with less than a hundred cycles.
 A fiber runs on a single thread at any point in time.

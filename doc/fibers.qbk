@@ -19,20 +19,6 @@
     ]
 ]
 
-
-[def __boost_asio__ [@http://www.boost.org/doc/libs/release/libs/asio/index.html Boost.Asio]]
-[def __boost_context__ [@http://www.boost.org/doc/libs/release/libs/context/index.html Boost.Context]]
-[def __boost_fiber__ [*Boost.Fiber]]
-[def __boost_intrusive__ [@http://www.boost.org/doc/libs/release/libs/intrusive/index.html Boost.Intrusive]]
-[def __boost_thread__ [@http://www.boost.org/doc/libs/release/libs/thread/index.html Boost.Thread]]
-[def __std_thread__ [@http://en.cppreference.com/w/cpp/thread standard thread support library]]
-
-[def __async_result__ ['async-result]]
-[def __blocked__ [link blocking ['blocked]]]
-[def __lockable_concept__ ['lockable concept]]
-[def __not_a_fiber__ ['not-a-fiber]]
-[def __rendezvous__ ['rendezvous]]
-
 [/ important especially for [,] to avoid a space between empty argument
    brackets and expansion: the space, if any, becomes part of the expansion!]
 [template mdash[]'''&mdash;''']
@@ -88,6 +74,26 @@
 ]
 [template function_link_for[function_name arg][dblink [function_name]\_for\_[arg]..[`[function_name]()]]]
 
+[template ns_class_heading[namespace class_name]
+[hding class_[namespace]_[class_name]..Class [`[namespace]::[class_name]]]
+]
+[template ns_class_link[namespace class_name][dblink class_[namespace]_[class_name]..[`[namespace]::[class_name]]]]
+
+[template ns_member_heading[namespace class_name method_name]
+[ns_operator_heading [namespace]..[class_name]..[method_name]..[method_name]]
+]
+[template ns_member_link[namespace class_name method_name][ns_operator_link [namespace]..[class_name]..[method_name]..[method_name]]]
+
+[template ns_operator_heading[namespace class_name method_name method_text]
+[hding [namespace]_[class_name]_[method_name]..Member function [`[method_text]]()]
+]
+[template ns_operator_link[namespace class_name method_name method_text][dblink [namespace]_[class_name]_[method_name]..[`[namespace]::[class_name]::[method_text]()]]]
+
+[template ns_data_member_heading[namespace class_name member_name]
+[hding [namespace]_[class_name]_[member_name]..Data member [`[member_name]]]
+]
+[template ns_data_member_link[namespace class_name member_name][dblink [namespace]_[class_name]_[member_name]..[`[namespace]::[class_name]::[member_name]]]]
+
 [template ns_function_heading[namespace function_name]
 [hding [namespace]_[function_name]..Non-member function [`[namespace]::[function_name]()]]
 ]
@@ -102,6 +108,20 @@
 ]
 [template dblink[id text]'''<link linkend="'''[id]'''">'''[text]'''</link>''']
 [template `[text]'''<code>'''[text]'''</code>''']
+
+
+[def __boost_asio__ [@http://www.boost.org/doc/libs/release/libs/asio/index.html Boost.Asio]]
+[def __boost_context__ [@http://www.boost.org/doc/libs/release/libs/context/index.html Boost.Context]]
+[def __boost_fiber__ [*Boost.Fiber]]
+[def __boost_intrusive__ [@http://www.boost.org/doc/libs/release/libs/intrusive/index.html Boost.Intrusive]]
+[def __boost_thread__ [@http://www.boost.org/doc/libs/release/libs/thread/index.html Boost.Thread]]
+[def __std_thread__ [@http://en.cppreference.com/w/cpp/thread standard thread support library]]
+
+[def __async_result__ ['async-result]]
+[def __blocked__ [link blocking ['blocked]]]
+[def __lockable_concept__ ['lockable concept]]
+[def __not_a_fiber__ ['not-a-fiber]]
+[def __rendezvous__ ['rendezvous]]
 
 [def __allocator_arg_t__ [@http://en.cppreference.com/w/cpp/memory/allocator_arg_t `std::allocator_arg_t`]]
 [def __Allocator__ [@http://en.cppreference.com/w/cpp/concept/Allocator `Allocator`]]
@@ -119,6 +139,7 @@
 [def __future__ [template_link future]]
 [def __joinable__ [member_link fiber..joinable]]
 [def __lock_error__ `lock_error`]
+[def __numa_work_stealing__ [ns_class_link numa..work_stealing]]
 [def __mutex__ [class_link mutex]]
 [def __ofixedsize_stack__ [class_link pooled_fixedsize_stack]]
 [def __packaged_task__ [template_link packaged_task]]
@@ -126,6 +147,7 @@
 [def __promise__ [template_link promise]]
 [def __recursive_mutex__ [class_link recursive_mutex]]
 [def __recursive_timed_mutex__ [class_link recursive_timed_mutex]]
+[def __round_robin__ [class_link round_robin]]
 [def __segmented_stack__ [class_link segmented_stack]]
 [def __segmented_stack_stack__ ['segmented_stack-stack]]
 [def __shared_future__ [template_link shared_future]]
@@ -264,8 +286,10 @@ channel operations return the state of the channel.
 [include nonblocking.qbk]
 [include when_any.qbk]
 [include integration.qbk]
+[include speculative.qbk]
+[include numa.qbk]
 [include performance.qbk]
-[include optimization.qbk]
+[include tuning.qbk]
 [include customization.qbk]
 [include rationale.qbk]
 [include acknowledgements.qbk]

@@ -5,9 +5,10 @@
           http://www.boost.org/LICENSE_1_0.txt
 ]
 
-[section:optimization Optimization]
+[#tuning]
+[section:tuning Tuning]
 
-[heading disable synchronization]
+[heading Disable synchronization]
 
 With [link cross_thread_sync `BOOST_FIBERS_NO_ATOMICS`] defined at the
 compiler[s] command line, synchronization between fibers (in different
@@ -15,7 +16,7 @@ threads) is disabled. This is acceptable if the application is single threaded
 and/or fibers are not synchronized between threads.
 
 
-[heading memory allocation]
+[heading Memory allocation]
 
 Memory allocation algorithm is significant for performance in a multithreaded
 environment, especially for __boost_fiber__ where fiber stacks are allocated on
@@ -27,7 +28,7 @@ better performance at the ['skynet] microbenchmark than glibc[s] default memory
 allocator.
 
 
-[heading scheduling strategies]
+[heading Scheduling strategies]
 
 The fibers in a thread are coordinated by a fiber manager. Fibers trade control
 cooperatively, rather than preemptively.
@@ -39,7 +40,7 @@ that can be implmented on behalf of __algo__.
 * work-stealing: ready fibers are hold in a local queue, when the
   fiber-scheduler's local queue runs out of ready fibers, it randomly
   selects another fiber-scheduler and tries to steal a ready fiber from the
-  victim (implemented in __work_stealing__)
+  victim (implemented in __work_stealing__ and __numa_work_stealing__)
 
 * work-requesting: ready fibers are hold in a local queue, when the
   fiber-scheduler's local queue runs out of ready fibers, it randomly
@@ -53,7 +54,7 @@ that can be implmented on behalf of __algo__.
 * work-distribution: fibers that became ready are proactivly distributed to
   idle fiber-schedulers or fiber-schedulers with low load
 
-* work-balancing: a dedicated (helper) fiber-scheduler  periodically collects
+* work-balancing: a dedicated (helper) fiber-scheduler periodically collects
  informations about all fiber-scheduler running in other threads and
  re-distributes ready fibers among them
 
@@ -67,7 +68,7 @@ tests the lock before calling an atomic exchange. This strategy helps to reduce
 the cache line invalidations triggered by acquiring/releasing the lock.
 
 
-[heading spin-wait loop]
+[heading Spin-wait loop]
 
 A lock is considered under contention, if a thread repeatedly fails to acquire
 the lock because some other thread was faster.
@@ -88,7 +89,7 @@ hints (pause/yield mnemonic) by informing the operating system
 the operating system switches to another thread.
 
 
-[heading exponential back-off]
+[heading Exponential back-off]
 
 The macro BOOST_FIBERS_RETRY_THRESHOLD determines how many times the CPU
 iterates in the spin-wait loop before yielding the thread or blocking in
@@ -101,20 +102,29 @@ BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD determines the upper limit of the
 contention window (expressed as the exponent for basis of two).
 
 
-[heading speculative execution (hardware transactional memory)]
+[heading Speculative execution (hardware transactional memory)]
 
-With Intel's Transactional Synchronisation Extensions critical regions are
-executed transactionally. The processor executes the critical region
-optimistically without explicit synchronization. If the transactional execution
-completes successfully, then all memory operations performed within the
-transactional region are commited without any inter-thread serialization.
-When the optimistic execution fails, the processor aborts the transaction and
-discards all performed modifications 
-[footnote intel.com: [@https://software.intel.com/en-us/node/695149 Intel Transactional Synchronization Extensions]].
-In order to use TXS boost.build property `tsx=on` must be specified and spinlocks
-`spinlock_ttas_rtm` or `spinlock_ttasi_adaptive_rtm` (defined at compiler[s]
-command line) have to be used.
+Boost.Fiber uses spinlocks to protect critical regions that can be used
+together with transactional memory (see section [link speculation Speculative
+execution]).
 
+[note TXS is enabled if property `htm=tsx` is specified at b2 command-line and
+`BOOST_USE_TSX` is applied to the compiler.]
+
+[note A TSX-transaction will be aborted if the floating point state is modified
+inside a critical region. As a consequence floating point operations, e.g.
+tore/load of floating point related registers during a fiber (context) switch
+are disabled.]
+
+
+[heading NUMA systems]
+
+Modern multi-socket systems are usually designed as [link numa NUMA systems].
+A suitable fiber scheduler like __numa_work_stealing__ reduces 
+remote memory access (latence).
+
+
+[heading Parameters]
 
 [table Parameters that migh be defiend at compiler's command line
     [
@@ -157,16 +167,30 @@ command line) have to be used.
         waiting adaptive retries, suspend on futex certain amount of retries]
     ]
     [
-        [BOOST_FIBERS_SPINLOCK_TTAS_RTM]
+        [BOOST_FIBERS_SPINLOCK_TTAS + BOOST_USE_TSX]
         [-]
         [spinlock with test-test-and-swap and speculative execution (Intel TSX
         required)]
     ]
     [
-        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_RTM]
+        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE + BOOST_USE_TSX]
         [-]
         [spinlock with test-test-and-swap on shared variable, adaptive retries
         while busy waiting and speculative execution (Intel TSX required)]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_TTAS_FUTEX + BOOST_USE_TSX]
+        [-]
+        [spinlock with test-test-and-swap on shared variable, suspend on
+        futex after certain number of retries and speculative execution
+        (Intel TSX required)]
+    ]
+    [
+        [BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX + BOOST_USE_TSX]
+        [-]
+        [spinlock with test-test-and-swap on shared variable, while busy
+        waiting adaptive retries, suspend on futex certain amount of retries
+        and speculative execution (Intel TSX required)]
     ]
     [
         [BOOST_FIBERS_SPIN_SINGLE_CORE]
@@ -182,7 +206,8 @@ command line) have to be used.
     [
         [BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD]
         [16]
-        [max size of collisions window, expressed as exponent for the basis of two]
+        [max size of collisions window, expressed as exponent for the basis of
+        two]
     ]
     [
         [BOOST_FIBERS_SPIN_BEFORE_SLEEP0]

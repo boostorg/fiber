@@ -27,13 +27,13 @@ values for each measurement.
 
 [table time per actor/erlang process/goroutine (other languages) (average over 1,000,000)
     [
-         [Haskell | stack-1.4.0]
-         [Go | go1.8]
+         [Haskell | stack-1.4.0/ghc-8.0.1]
+         [Go | go1.8.1]
          [Erlang | erts-8.3]
     ]
     [
         [0.05 \u00b5s - 0.06 \u00b5s]
-        [0.45 \u00b5s - 0.52 \u00b5s]
+        [0.42 \u00b5s - 0.49 \u00b5s]
         [0.63 \u00b5s - 0.73 \u00b5s]
     ]
 ]
@@ -81,7 +81,7 @@ queues of other participating threads.
          [fiber (1C/1T, round robin, tcmalloc)]
     ]
     [
-        [0.05 \u00b5s - 0.11 \u00b5s]
+        [0.05 \u00b5s - 0.09 \u00b5s]
         [1.69 \u00b5s - 1.79 \u00b5s]
     ]
 ]
