@@ -40,7 +40,7 @@ private:
     typedef context::wait_queue_t                       wait_queue_type;
 	typedef T                                           slot_type;
 
-    alignas(cache_alignment) mutable detail::spinlock   splk_{};
+    mutable detail::spinlock   splk_{};
     wait_queue_type                                     waiting_producers_{};
     wait_queue_type                                     waiting_consumers_{};
 	slot_type                                       *   slots_;

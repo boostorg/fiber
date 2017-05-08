@@ -175,21 +175,21 @@ private:
     typedef std::map< uintptr_t, fss_data >             fss_data_t;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    alignas(cache_alignment) std::atomic< std::size_t > use_count_{ 0 };
+    std::atomic< std::size_t > use_count_{ 0 };
 #else
-    alignas(cache_alignment) std::size_t                use_count_{ 0 };
+    std::size_t                use_count_{ 0 };
 #endif
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    alignas(cache_alignment) detail::remote_ready_hook  remote_ready_hook_{};
+    detail::remote_ready_hook  remote_ready_hook_{};
     std::atomic< context * >                            remote_nxt_{ nullptr };
 #endif
-    alignas(cache_alignment) detail::spinlock           splk_{};
+    detail::spinlock           splk_{};
     bool                                                terminated_{ false };
     wait_queue_t                                        wait_queue_{};
 public:
     detail::wait_hook                                   wait_hook_{};
 private:
-    alignas(cache_alignment) scheduler              *   scheduler_{ nullptr };
+    scheduler              *   scheduler_{ nullptr };
     fss_data_t                                          fss_data_{};
     detail::sleep_hook                                  sleep_hook_{};
     detail::ready_hook                                  ready_hook_{};
