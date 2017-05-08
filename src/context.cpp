@@ -56,7 +56,7 @@ struct context_initializer {
 
     context_initializer() {
         if ( 0 == counter_++) {
-# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+#if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
             // allocate memory for main context and scheduler
             constexpr std::size_t size = sizeof( context) + sizeof( scheduler);
             void * vp = std::malloc( size);
@@ -73,7 +73,7 @@ struct context_initializer {
             sched->attach_dispatcher_context( make_dispatcher_context( sched) );
             // make main context to active context
             active_ = main_ctx;
-# else
+#else
             constexpr std::size_t alignment = 64; // alignof( capture_t);
             constexpr std::size_t ctx_size = sizeof( context);
             constexpr std::size_t sched_size = sizeof( scheduler);
@@ -105,7 +105,7 @@ struct context_initializer {
             sched->attach_dispatcher_context( make_dispatcher_context( sched) );
             // make main context to active context
             active_ = main_ctx;
-# endif
+#endif
         }
     }
 
@@ -116,13 +116,13 @@ struct context_initializer {
             scheduler * sched = main_ctx->get_scheduler();
             sched->~scheduler();
             main_ctx->~context();
-# if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+#if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
             std::free( main_ctx);
-# else
+#else
             int * shift = reinterpret_cast< int * >( reinterpret_cast< char * >( main_ctx) - sizeof( int) );
             void * vp = reinterpret_cast< char * >( main_ctx) - ( * shift);
             std::free( vp);
-# endif
+#endif
         }
     }
 };
@@ -187,12 +187,13 @@ context::context( main_context_t) noexcept :
     ctx_{ boost::context::execution_context::current() },
     type_{ type::main_context },
     policy_{ launch::post } {
+}
 #else
     c_{},
     type_{ type::main_context },
     policy_{ launch::post } {
-#endif
 }
+#endif
 
 // dispatcher fiber context
 context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
@@ -217,24 +218,22 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
 #else
     c_{},
     type_{ type::dispatcher_context },
-    policy_{ launch::post }
-{
-    c_ = boost::context::callcc(
-            std::allocator_arg, palloc, salloc,
-            [this,sched](boost::context::continuation && c) noexcept {
-                c = c.resume();
-                detail::data_t * dp = c.get_data< detail::data_t * >(); 
-                // update continuation of calling fiber
-                dp->from->c_ = std::move( c);
-                if ( nullptr != dp->lk) {
-                    dp->lk->unlock();
-                } else if ( nullptr != dp->ctx) {
-                    active()->schedule_( dp->ctx);
-                }
-                // execute scheduler::dispatch()
-                return sched->dispatch();
-            });
-
+    policy_{ launch::post } {
+        c_ = boost::context::callcc(
+                std::allocator_arg, palloc, salloc,
+                [this,sched](boost::context::continuation && c) noexcept {
+                    c = c.resume();
+                    detail::data_t * dp = c.get_data< detail::data_t * >(); 
+                    // update continuation of calling fiber
+                    dp->from->c_ = std::move( c);
+                    if ( nullptr != dp->lk) {
+                        dp->lk->unlock();
+                    } else if ( nullptr != dp->ctx) {
+                        active()->schedule_( dp->ctx);
+                    }
+                    // execute scheduler::dispatch()
+                    return sched->dispatch();
+                });
 }
 #endif
 
@@ -273,7 +272,7 @@ context::resume() noexcept {
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
 #if (BOOST_EXECUTION_CONTEXT==1)
-    detail::data_t d{};
+    detail::data_t d;
 #else
     detail::data_t d{ prev };
 #endif
@@ -401,13 +400,13 @@ context::terminate() noexcept {
     fss_data_.clear();
     // switch to another context
     return get_scheduler()->terminate( lk, this);
-#endif
 }
+#endif
 
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
-    BOOST_ASSERT( this == active());
+    BOOST_ASSERT( this == active() );
     return get_scheduler()->wait_until( this, tp);
 }
 
@@ -415,7 +414,7 @@ bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp,
                      detail::spinlock_lock & lk) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
-    BOOST_ASSERT( this == active());
+    BOOST_ASSERT( this == active() );
     return get_scheduler()->wait_until( this, tp, lk);
 }
 

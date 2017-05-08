@@ -220,11 +220,11 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->schedule_( dp->ctx);
             }
-#if defined(BOOST_NO_CXX17_STD_APPLY)
+# if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
-#else
+# else
             std::apply( std::move( fn), std::move( tpl) );
-#endif
+# endif
         }
         // terminate context
         terminate();
@@ -247,11 +247,11 @@ private:
             } else if ( nullptr != dp->ctx) {
                 active()->schedule_( dp->ctx);
             }
-#if defined(BOOST_NO_CXX17_STD_APPLY)
+# if defined(BOOST_NO_CXX17_STD_APPLY)
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
-#else
+# else
             std::apply( std::move( fn), std::move( tpl) );
-#endif
+# endif
         }
         // terminate context
         return terminate();
@@ -401,7 +401,11 @@ public:
     id get_id() const noexcept;
 
     bool is_resumable() const noexcept {
+#if (BOOST_EXECUTION_CONTEXT==1)
+        if ( ctx_) return true;
+#else
         if ( c_) return true;
+#endif
         else return false;
     }
 
@@ -418,6 +422,7 @@ public:
     boost::context::continuation suspend_with_cc() noexcept;
     boost::context::continuation terminate() noexcept;
 #endif
+
     void join();
 
     void yield() noexcept;
