@@ -43,9 +43,9 @@ private:
     std::minstd_rand                                        generator_{};
     std::uniform_int_distribution< std::uint32_t >          distribution_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
-    alignas(cache_alignment) detail::context_spmc_queue     rqueue_{};
+    detail::context_spmc_queue     rqueue_{};
 #else
-    alignas(cache_alignment) detail::context_spinlock_queue rqueue_{};
+    detail::context_spinlock_queue rqueue_{};
 #endif
     std::mutex                                              mtx_{};
     std::condition_variable                                 cnd_{};
