@@ -27,7 +27,7 @@ void pin_thread( std::uint32_t cpuid) {
     std::memset( & affinity, 0, sizeof( affinity) );
     // compute processor group
     // a group contains max 64 logical CPUs
-    affinity.Group = cpuid / 64;
+    affinity.Group = static_cast< WORD >(cpuid / 64);
     // compute the ID of the logical CPU in the group
     uint32_t id = cpuid % 64; 
     // set the bit mask of the logical CPU
