@@ -19,8 +19,8 @@ namespace algo {
 void
 round_robin::awakened( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
-
     BOOST_ASSERT( ! ctx->ready_is_linked() );
+    BOOST_ASSERT( ctx->is_resumable() );
     ctx->ready_link( rqueue_);
 }
 
@@ -32,6 +32,7 @@ round_robin::pick_next() noexcept {
         rqueue_.pop_front();
         BOOST_ASSERT( nullptr != victim);
         BOOST_ASSERT( ! victim->ready_is_linked() );
+        BOOST_ASSERT( victim->is_resumable() );
     }
     return victim;
 }
