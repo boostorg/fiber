@@ -13,11 +13,7 @@
 #include <vector>
 
 #include <boost/config.hpp>
-#if (BOOST_EXECUTION_CONTEXT==1)
-# include <boost/context/execution_context.hpp>
-#else
-# include <boost/context/continuation.hpp>
-#endif
+#include <boost/context/continuation.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
@@ -126,15 +122,9 @@ public:
     void schedule_from_remote( context *) noexcept;
 #endif
 
-#if (BOOST_EXECUTION_CONTEXT==1)
-    void dispatch() noexcept;
-
-    void terminate( detail::spinlock_lock &, context *) noexcept;
-#else
     boost::context::continuation dispatch() noexcept;
 
     boost::context::continuation terminate( detail::spinlock_lock &, context *) noexcept;
-#endif
 
     void yield( context *) noexcept;
 

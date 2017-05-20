@@ -130,63 +130,6 @@ scheduler::~scheduler() {
     main_ctx_ = nullptr;
 }
 
-#if (BOOST_EXECUTION_CONTEXT==1)
-void
-scheduler::dispatch() noexcept {
-    BOOST_ASSERT( context::active() == dispatcher_ctx_);
-    for (;;) {
-        if ( shutdown_) {
-            // notify sched-algorithm about termination
-            algo_->notify();
-            if ( worker_queue_.empty() ) {
-                break;
-            }
-        }
-        // release terminated context'
-        release_terminated_();
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-        // get context' from remote ready-queue
-        remote_ready2ready_();
-#endif
-        // get sleeping context'
-        sleep2ready_();
-        // get next ready context
-        context * ctx = algo_->pick_next();
-        if ( nullptr != ctx) {
-            BOOST_ASSERT( ctx->is_resumable() );
-            BOOST_ASSERT( ! ctx->ready_is_linked() );
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-            BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
-#endif
-            BOOST_ASSERT( ! ctx->sleep_is_linked() );
-            BOOST_ASSERT( ! ctx->terminated_is_linked() );
-            // no test for '! ctx->wait_is_linked()' because
-            // context is registered in wait-queue of sync. primitives
-            // via wait_for()/wait_until()
-            // push dispatcher-context to ready-queue
-            // so that ready-queue never becomes empty
-            ctx->resume( dispatcher_ctx_.get() );
-            BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
-        } else {
-            // no ready context, wait till signaled
-            // set deadline to highest value
-            std::chrono::steady_clock::time_point suspend_time =
-                    (std::chrono::steady_clock::time_point::max)();
-            // get lowest deadline from sleep-queue
-            sleep_queue_type::iterator i = sleep_queue_.begin();
-            if ( sleep_queue_.end() != i) {
-                suspend_time = i->tp_;
-            }
-            // no ready context, wait till signaled
-            algo_->suspend_until( suspend_time);
-        }
-    }
-    // release termianted context'
-    release_terminated_();
-    // return to main-context
-    main_ctx_->resume();
-}
-#else
 boost::context::continuation
 scheduler::dispatch() noexcept {
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
@@ -242,7 +185,6 @@ scheduler::dispatch() noexcept {
     // return to main-context
     return main_ctx_->suspend_with_cc();
 }
-#endif
 
 void
 scheduler::schedule( context * ctx) noexcept {
@@ -287,34 +229,6 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
 }
 #endif
 
-#if (BOOST_EXECUTION_CONTEXT==1)
-void
-scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
-    BOOST_ASSERT( nullptr != ctx);
-    BOOST_ASSERT( context::active() == ctx);
-    BOOST_ASSERT( this == ctx->get_scheduler() );
-    BOOST_ASSERT( ctx->is_context( type::worker_context) );
-    BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
-    BOOST_ASSERT( ! ctx->ready_is_linked() );
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
-#endif
-    BOOST_ASSERT( ! ctx->sleep_is_linked() );
-    BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
-    BOOST_ASSERT( ctx->wait_queue_.empty() );
-    // store the terminated fiber in the terminated-queue
-    // the dispatcher-context will call
-    // intrusive_ptr_release( ctx);
-    ctx->terminated_link( terminated_queue_);
-    // remove from the worker-queue
-    ctx->worker_unlink();
-    // release lock
-    lk.unlock();
-    // resume another fiber
-    algo_->pick_next()->resume();
-}
-#else
 boost::context::continuation
 scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
@@ -341,7 +255,6 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     // resume another fiber
     return algo_->pick_next()->suspend_with_cc();
 }
-#endif
 
 void
 scheduler::yield( context * ctx) noexcept {
