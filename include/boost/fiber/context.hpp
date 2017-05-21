@@ -479,29 +479,16 @@ template< typename StackAlloc, typename Fn, typename ... Args >
 static intrusive_ptr< context > make_worker_context( launch policy,
                                                      StackAlloc salloc,
                                                      Fn && fn, Args && ... args) {
-    boost::context::stack_context sctx = salloc.allocate();
-#if defined(BOOST_NO_CXX14_CONSTEXPR) || defined(BOOST_NO_CXX11_STD_ALIGN)
+    auto sctx = salloc.allocate();
     // reserve space for control structure
-    const std::size_t size = sctx.size - sizeof( context);
-    void * sp = static_cast< char * >( sctx.sp) - sizeof( context);
-#else
-    constexpr std::size_t func_alignment = 64; // alignof( context);
-    constexpr std::size_t func_size = sizeof( context);
-    // reserve space on stack
-    void * sp = static_cast< char * >( sctx.sp) - func_size - func_alignment;
-    // align sp pointer
-    std::size_t space = func_size + func_alignment;
-    sp = std::align( func_alignment, func_size, sp, space);
-    BOOST_ASSERT( nullptr != sp);
-    // calculate remaining size
-    const std::size_t size = sctx.size - ( static_cast< char * >( sctx.sp) - static_cast< char * >( sp) );
-#endif
+    void * storage = static_cast< char * >( sctx.sp) - sizeof(context);
+    const std::size_t size = sctx.size - sizeof(context);
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >{ 
-            ::new ( sp) context{
+            new ( storage) context{
                 worker_context,
                 policy,
-                boost::context::preallocated{ sp, size, sctx },
+                boost::context::preallocated{ storage, size, sctx },
                 salloc,
                 std::forward< Fn >( fn),
                 std::make_tuple( std::forward< Args >( args) ... ) } };
