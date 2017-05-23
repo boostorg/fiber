@@ -43,15 +43,10 @@ struct context_initializer {
 
     context_initializer() {
         if ( 0 == counter_++) {
-            // allocate memory for main context and scheduler
-            void * vp = std::malloc( sizeof(context) + sizeof(scheduler) );
-            if ( nullptr == vp) {
-                throw std::bad_alloc{};
-            }
             // main fiber context of this thread
-            context * main_ctx = new ( vp) context{ main_context };
+            context * main_ctx = new context{ main_context };
             // scheduler of this thread
-            scheduler * sched = new ( static_cast< char * >( vp) + sizeof(context) ) scheduler{};
+            scheduler * sched = new scheduler{};
             // attach main context to scheduler
             sched->attach_main_context( main_ctx);
             // create and attach dispatcher context to scheduler
@@ -66,11 +61,8 @@ struct context_initializer {
             context * main_ctx = active_;
             BOOST_ASSERT( main_ctx->is_context( type::main_context) );
             scheduler * sched = main_ctx->get_scheduler();
-            void * vp = main_ctx;
-            BOOST_ASSERT( (void *) sched == ( void *)( static_cast< char * >( vp) + sizeof(context) ) );
-            sched->~scheduler();
-            main_ctx->~context();
-            std::free( vp);
+            delete sched;
+            delete main_ctx;
         }
     }
 };
