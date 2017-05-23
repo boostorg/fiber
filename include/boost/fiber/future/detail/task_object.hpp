@@ -16,6 +16,7 @@
 #if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
 #endif
+#include <boost/core/pointer_traits.hpp>
 
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/future/detail/task_base.hpp>
@@ -68,15 +69,17 @@ public:
 
     typename base_type::ptr_type reset() override final {
         typedef std::allocator_traits< allocator_type >    traity_type;
+        typedef pointer_traits< typename traity_type::pointer> ptrait_type;
 
         typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
+        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
         try {
-            traity_type::construct( alloc_, ptr, alloc_, std::move( fn_) );
+            traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
             traity_type::deallocate( alloc_, ptr, 1);
             throw;
         }
-        return { convert( ptr) };
+        return { p };
     }
 
 protected:
@@ -134,15 +137,17 @@ public:
 
     typename base_type::ptr_type reset() override final {
         typedef std::allocator_traits< allocator_type >    traity_type;
+        typedef pointer_traits< typename traity_type::pointer> ptrait_type;
 
         typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
+        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
         try {
-            traity_type::construct( alloc_, ptr, alloc_, std::move( fn_) );
+            traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
             traity_type::deallocate( alloc_, ptr, 1);
             throw;
         }
-        return { convert( ptr) };
+        return { p };
     }
 
 protected:
