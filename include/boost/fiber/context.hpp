@@ -171,21 +171,20 @@ private:
     typedef std::map< uintptr_t, fss_data >             fss_data_t;
 
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic< std::size_t > use_count_{ 0 };
+    std::atomic< std::size_t >                          use_count_{ 0 };
 #else
-    std::size_t                use_count_{ 0 };
+    std::size_t                                         use_count_{ 0 };
 #endif
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    detail::remote_ready_hook  remote_ready_hook_{};
-    std::atomic< context * >                            remote_nxt_{ nullptr };
+    detail::remote_ready_hook                           remote_ready_hook_{};
 #endif
-    detail::spinlock           splk_{};
+    detail::spinlock                                    splk_{};
     bool                                                terminated_{ false };
     wait_queue_t                                        wait_queue_{};
 public:
     detail::wait_hook                                   wait_hook_{};
 private:
-    scheduler              *   scheduler_{ nullptr };
+    scheduler                                       *   scheduler_{ nullptr };
     fss_data_t                                          fss_data_{};
     detail::sleep_hook                                  sleep_hook_{};
     detail::ready_hook                                  ready_hook_{};
