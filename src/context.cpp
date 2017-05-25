@@ -24,9 +24,15 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     BOOST_ASSERT( nullptr != sched);
     default_stack salloc; // use default satck-size
     auto sctx = salloc.allocate();
+    BOOST_ASSERT( ( sizeof( context) + 2048) < sctx.size); // stack at least of 2kB
+	const std::size_t offset = sizeof( context) + 63; 
     // reserve space for control structure
-    void * storage = static_cast< char * >( sctx.sp) - sizeof(context);
-    const std::size_t size = sctx.size - sizeof(context);
+    void * storage = reinterpret_cast< void * >(
+            ( reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( offset) )
+            & ~ static_cast< uintptr_t >( 0xff) );
+    void * stack_bottom = reinterpret_cast< void * >(
+            reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( sctx.size) );
+    const std::size_t size = reinterpret_cast< uintptr_t >( storage) - reinterpret_cast< uintptr_t >( stack_bottom);
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >{
         new ( storage) context{
