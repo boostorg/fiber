@@ -36,7 +36,33 @@ Your `algorithm` subclass is engaged on a particular thread by calling
         }
 
 A scheduler class must implement interface __algo__. __boost_fiber__ provides
-one scheduler: [class_link round_robin].
+schedulers: __round_robin__, __work_stealing__, __numa_work_stealing__ and
+__shared_work__.
+
+        void thread( std::uint32_t thread_count) {
+            // thread registers itself at work-stealing scheduler
+            boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
+            ...
+        }
+
+        // count of logical cpus
+        std::uint32_t thread_count = std::thread::hardware_concurrency();
+        // start-thread registers itself at work-stealing scheduler
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
+        std::vector< std::thread > threads;
+        for ( std::uint32_t i = 1 /* count start-thread */; i < thread_count; ++i) {
+            // spawn thread
+            threads.emplace_back( thread, thread_count);
+        }
+        ...
+
+The example spawns as many threads as `std::thread::hardware_concurrency()`
+returns.
+Each thread runs a __work_stealing__ scheduler. Each instance of this
+scheduler needs to know how many threads run the work-stealing scheduler in the
+program.
+If the local queue of one thread runs out of ready fibers, the thread tries to
+steal a ready fiber from another thread running this scheduler.
 
 
 [class_heading algorithm]
@@ -218,10 +244,116 @@ wakes `suspend_until()` via
 ]
 
 
+
+[class_heading work_stealing]
+
+This class implements __algo__; if the local ready-queue runs out of ready fibers, ready fibers are stolen
+from other schedulers.[br]
+The victim scheduler (from which a ready fiber is stolen) is selected at random.
+
+        #include <boost/fiber/algo/work_stealing.hpp>
+
+        namespace boost {
+        namespace fibers {
+        namespace algo {
+
+        class work_stealing : public algorithm {
+        public:
+            work_stealing( std::uint32_t thread_count, bool suspend = false);
+
+            work_stealing( work_stealing const&) = delete;
+            work_stealing( work_stealing &&) = delete;
+
+            work_stealing & operator=( work_stealing const&) = delete;
+            work_stealing & operator=( work_stealing &&) = delete;
+
+            virtual void awakened( context *) noexcept;
+
+            virtual context * pick_next() noexcept;
+
+            virtual bool has_ready_fibers() const noexcept;
+
+            virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
+
+            virtual void notify() noexcept;
+        };
+
+        }}}
+
+[heading Constructor]
+
+        work_stealing( std::uint32_t thread_count, bool suspend = false);
+
+[variablelist
+[[Effects:] [Constructs work-stealing scheduling algorithm. `thread_count` represents the number of threads
+running this algorithm.]]
+[[Throws:] [`system_error`]]
+[[Note:][If `suspend` is set to `true`, then the scheduler suspends if no ready fiber could be stolen.
+The scheduler will by woken up if a sleeping fiber times out or it was notified from remote (other thread or
+fiber scheduler).]]
+]
+
+[member_heading work_stealing..awakened]
+
+        virtual void awakened( context * f) noexcept;
+
+[variablelist
+[[Effects:] [Enqueues fiber `f` onto the shared ready queue.]]
+[[Throws:] [Nothing.]]
+]
+
+[member_heading work_stealing..pick_next]
+
+        virtual context * pick_next() noexcept;
+
+[variablelist
+[[Returns:] [the fiber at the head of the ready queue, or `nullptr` if the
+queue is empty.]]
+[[Throws:] [Nothing.]]
+[[Note:] [Placing ready fibers onto the tail of the sahred queue, and returning them
+from the head of that queue, shares the thread between ready fibers in
+round-robin fashion.]]
+]
+
+[member_heading work_stealing..has_ready_fibers]
+
+        virtual bool has_ready_fibers() const noexcept;
+
+[variablelist
+[[Returns:] [`true` if scheduler has fibers ready to run.]]
+[[Throws:] [Nothing.]]
+]
+
+[member_heading work_stealing..suspend_until]
+
+        virtual void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept;
+
+[variablelist
+[[Effects:] [Informs `work_stealing` that no ready fiber will be available until
+time-point `abs_time`. This implementation blocks in
+[@http://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
+`std::condition_variable::wait_until()`].]]
+[[Throws:] [Nothing.]]
+]
+
+[member_heading work_stealing..notify]
+
+        virtual void notify() noexcept = 0;
+
+[variablelist
+[[Effects:] [Wake up a pending call to [member_link
+work_stealing..suspend_until], some fibers might be ready. This implementation
+wakes `suspend_until()` via
+[@http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
+`std::condition_variable::notify_all()`].]]
+[[Throws:] [Nothing.]]
+]
+
+
 [class_heading shared_work]
 
 [note Because of the non-locality of data, ['shared_work] is less performant
-than ['work_stealing].]
+than __work_stealing__.]
 
 This class implements __algo__, scheduling fibers in round-robin fashion.
 Ready fibers are shared between all instances (running on different threads)
@@ -297,89 +429,6 @@ time-point `abs_time`. This implementation blocks in
 [variablelist
 [[Effects:] [Wake up a pending call to [member_link
 shared_work..suspend_until], some fibers might be ready. This implementation
-wakes `suspend_until()` via
-[@http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
-`std::condition_variable::notify_all()`].]]
-[[Throws:] [Nothing.]]
-]
-
-
-[class_heading work_stealing]
-
-This class implements __algo__; if the local ready-queue runs out of ready
-fibers, ready fibers are stolen from other schedulers.
-The victim scheduler (from which a ready fiber is stolen) is selected at random.
-
-        #include <boost/fiber/algo/work_stealing.hpp>
-
-        namespace boost {
-        namespace fibers {
-        namespace algo {
-
-        class work_stealing : public algorithm {
-            virtual void awakened( context *) noexcept;
-
-            virtual context * pick_next() noexcept;
-
-            virtual bool has_ready_fibers() const noexcept;
-
-            virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
-
-            virtual void notify() noexcept;
-        };
-
-        }}}
-
-[member_heading work_stealing..awakened]
-
-        virtual void awakened( context * f) noexcept;
-
-[variablelist
-[[Effects:] [Enqueues fiber `f` onto the shared ready queue.]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading work_stealing..pick_next]
-
-        virtual context * pick_next() noexcept;
-
-[variablelist
-[[Returns:] [the fiber at the head of the ready queue, or `nullptr` if the
-queue is empty.]]
-[[Throws:] [Nothing.]]
-[[Note:] [Placing ready fibers onto the tail of the sahred queue, and returning them
-from the head of that queue, shares the thread between ready fibers in
-round-robin fashion.]]
-]
-
-[member_heading work_stealing..has_ready_fibers]
-
-        virtual bool has_ready_fibers() const noexcept;
-
-[variablelist
-[[Returns:] [`true` if scheduler has fibers ready to run.]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading work_stealing..suspend_until]
-
-        virtual void suspend_until( std::chrono::steady_clock::time_point const& abs_time) noexcept;
-
-[variablelist
-[[Effects:] [Informs `work_stealing` that no ready fiber will be available until
-time-point `abs_time`. This implementation blocks in
-[@http://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
-`std::condition_variable::wait_until()`].]]
-[[Throws:] [Nothing.]]
-]
-
-[member_heading work_stealing..notify]
-
-        virtual void notify() noexcept = 0;
-
-[variablelist
-[[Effects:] [Wake up a pending call to [member_link
-work_stealing..suspend_until], some fibers might be ready. This implementation
 wakes `suspend_until()` via
 [@http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
 `std::condition_variable::notify_all()`].]]

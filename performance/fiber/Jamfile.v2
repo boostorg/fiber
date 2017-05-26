@@ -16,6 +16,8 @@ import toolset ;
 project boost/fiber/performance/fiber
     : requirements
       <library>/boost/fiber//boost_fiber
+      <target-os>solaris:<linkflags>"-llgrp"
+      <target-os>windows:<define>_WIN32_WINNT=0x0601
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
@@ -26,63 +28,23 @@ project boost/fiber/performance/fiber
       <variant>release
     ;
 
-alias pbind
-   : bind/bind_processor_aix.cpp
-   : <target-os>aix
-   ;
-
-alias pbind
-   : bind/bind_processor_freebsd.cpp
-   : <target-os>freebsd
-   ;
-
-alias pbind
-   : bind/bind_processor_hpux.cpp
-   : <target-os>hpux
-   ;
-
-alias pbind
-   : bind/bind_processor_linux.cpp
-   : <target-os>linux
-   ;
-
-alias pbind
-   : bind/bind_processor_solaris.cpp
-   : <target-os>solaris
-   ;
-
-alias pbind
-   : bind/bind_processor_windows.cpp
-   : <target-os>windows
-   ;
-
-explicit pbind ;
-
 exe skynet_join :
-    pbind
     skynet_join.cpp ;
 
 exe skynet_detach :
-    pbind
     skynet_detach.cpp ;
 
 exe skynet_shared_join :
-    pbind
     skynet_shared_join.cpp ;
 
 exe skynet_shared_detach :
-    pbind
     skynet_shared_detach.cpp ;
 
 exe skynet_stealing_join :
-    pbind
     skynet_stealing_join.cpp ;
 
 exe skynet_stealing_detach :
-    pbind
     skynet_stealing_detach.cpp ;
 
-exe skynet_async :
-    pbind
-    skynet_async.cpp ;
-
+exe skynet_stealing_async :
+    skynet_stealing_async.cpp ;

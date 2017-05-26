@@ -8,19 +8,22 @@
 #ifndef BOOST_FIBERS_ALGO_WORK_STEALING_H
 #define BOOST_FIBERS_ALGO_WORK_STEALING_H
 
+#include <atomic>
 #include <condition_variable>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <mutex>
 #include <vector>
 
 #include <boost/config.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/algo/algorithm.hpp>
-#include <boost/fiber/detail/context_spinlock_queue.hpp>
-#include <boost/fiber/detail/context_spmc_queue.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/context_spinlock_queue.hpp>
+#include <boost/fiber/detail/context_spmc_queue.hpp>
 #include <boost/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -33,24 +36,26 @@ namespace algo {
 
 class work_stealing : public algorithm {
 private:
-    static std::vector< work_stealing * >                   schedulers_;
+    static std::atomic< std::uint32_t >                     counter_;
+    static std::vector< intrusive_ptr< work_stealing > >    schedulers_;
 
-    std::size_t                                             idx_;
-    std::size_t                                             max_idx_;
+    std::uint32_t                                           id_;
+    std::minstd_rand                                        generator_{};
+    std::uniform_int_distribution< std::uint32_t >          distribution_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
-    alignas(cache_alignment) detail::context_spmc_queue     rqueue_{};
+    detail::context_spmc_queue     rqueue_{};
 #else
-    alignas(cache_alignment) detail::context_spinlock_queue rqueue_{};
+    detail::context_spinlock_queue rqueue_{};
 #endif
     std::mutex                                              mtx_{};
     std::condition_variable                                 cnd_{};
     bool                                                    flag_{ false };
     bool                                                    suspend_;
 
-    static void init_( std::size_t max_idx);
+    static void init_( std::uint32_t, std::vector< intrusive_ptr< work_stealing > > &);
 
 public:
-    work_stealing( std::size_t max_idx, std::size_t idx, bool suspend = false);
+    work_stealing( std::uint32_t, bool = false);
 
     work_stealing( work_stealing const&) = delete;
     work_stealing( work_stealing &&) = delete;
@@ -58,21 +63,21 @@ public:
     work_stealing & operator=( work_stealing const&) = delete;
     work_stealing & operator=( work_stealing &&) = delete;
 
-    void awakened( context * ctx) noexcept;
+    virtual void awakened( context *) noexcept;
 
-    context * pick_next() noexcept;
+    virtual context * pick_next() noexcept;
 
-    context * steal() noexcept {
+    virtual context * steal() noexcept {
         return rqueue_.steal();
     }
 
-    bool has_ready_fibers() const noexcept {
+    virtual bool has_ready_fibers() const noexcept {
         return ! rqueue_.empty();
     }
 
-    void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept;
+    virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
 
-    void notify() noexcept;
+    virtual void notify() noexcept;
 };
 
 }}}

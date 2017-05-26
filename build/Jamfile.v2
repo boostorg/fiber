@@ -14,6 +14,9 @@ import ../../config/checks/config : requires ;
 project boost/fiber
     : requirements
       <library>/boost/context//boost_context
+      <library>/boost/filesystem//boost_filesystem
+      <target-os>solaris:<linkflags>"-llgrp"
+      <target-os>windows:<define>_WIN32_WINNT=0x0601
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
@@ -28,11 +31,56 @@ project boost/fiber
     : source-location ../src
     ;
 
+alias numa_sources
+    : numa/aix/pin_thread.cpp
+      numa/aix/topology.cpp
+    : <target-os>aix
+    ;
+
+alias numa_sources
+    : numa/freebsd/pin_thread.cpp
+      numa/freebsd/topology.cpp
+    : <target-os>freebsd
+    ;
+
+alias numa_sources
+    : numa/hpux/pin_thread.cpp
+      numa/hpux/topology.cpp
+    : <target-os>hpux
+    ;
+
+alias numa_sources
+    : numa/linux/pin_thread.cpp
+      numa/linux/topology.cpp
+    : <target-os>linux
+    ;
+
+alias numa_sources
+    : numa/solaris/pin_thread.cpp
+      numa/solaris/topology.cpp
+    : <target-os>solaris
+    ;
+
+alias numa_sources
+    : numa/windows/pin_thread.cpp
+      numa/windows/topology.cpp
+    : <target-os>windows
+    ;
+
+alias numa_sources
+    : numa/pin_thread.cpp
+      numa/topology.cpp
+    ;
+
+explicit numa_sources ;
+
 lib boost_fiber
-    : algo/algorithm.cpp
+    : numa_sources
+      algo/algorithm.cpp
       algo/round_robin.cpp
       algo/shared_work.cpp
       algo/work_stealing.cpp
+      algo/numa/work_stealing.cpp
       barrier.cpp
       condition_variable.cpp
       context.cpp

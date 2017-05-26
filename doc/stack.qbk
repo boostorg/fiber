@@ -220,6 +220,7 @@ address of the stack.]]
 ]
 
 
+[#segmented]
 [class_heading segmented_stack]
 
 __boost_fiber__ supports usage of a __segmented_stack__, i.e.
@@ -232,8 +233,11 @@ stack which grows on demand.
 [note Segmented stacks are currently only supported by [*gcc] from version
 [*4.7] and [*clang] from version [*3.4] onwards. In order to use a
 __segmented_stack__ __boost_fiber__ must be built with
-property `segmented-stacks`, e.g. [*toolset=gcc segmented-stacks=on] at b2/bjam
-command line.]
+property `segmented-stacks`, e.g. [*toolset=gcc segmented-stacks=on] 
+and applying BOOST_USE_SEGMENTED_STACKS at b2/bjam command line.]
+
+[note Segmented stacks can only be used with callcc() using property
+`context-impl=ucontext`.]
 
         #include <boost/fiber/segmented_stack.hpp>
 

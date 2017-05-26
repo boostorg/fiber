@@ -38,7 +38,7 @@ public:
 private:
     typedef context::wait_queue_t   wait_queue_type;
 
-    struct alignas(cache_alignment) slot {
+    struct slot {
         value_type  value;
         context *   ctx;
 
@@ -54,12 +54,12 @@ private:
     };
 
     // shared cacheline
-    alignas(cache_alignment) std::atomic< slot * >      slot_{ nullptr };
+    std::atomic< slot * >      slot_{ nullptr };
     // shared cacheline
-    alignas(cache_alignment) std::atomic_bool           closed_{ false };
-    alignas(cache_alignment) mutable detail::spinlock   splk_producers_{};
+    std::atomic_bool           closed_{ false };
+    mutable detail::spinlock   splk_producers_{};
     wait_queue_type                                     waiting_producers_{};
-    alignas( cache_alignment) mutable detail::spinlock  splk_consumers_{};
+    mutable detail::spinlock  splk_consumers_{};
     wait_queue_type                                     waiting_consumers_{};
     char                                                pad_[cacheline_length];
 

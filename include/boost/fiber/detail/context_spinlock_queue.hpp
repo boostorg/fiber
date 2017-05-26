@@ -30,7 +30,7 @@ class context_spinlock_queue {
 private:
 	typedef context *   slot_type;
 
-    alignas(cache_alignment) mutable spinlock   splk_{};
+    mutable spinlock   splk_{};
 	std::size_t                                 pidx_{ 0 };
 	std::size_t                                 cidx_{ 0 };
 	std::size_t                                 capacity_;

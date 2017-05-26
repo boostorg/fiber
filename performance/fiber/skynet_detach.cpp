@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -50,16 +51,17 @@ int main() {
     try {
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
-        allocator_type salloc{ allocator_type::traits_type::page_size() };
+        allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
-        duration_type duration{ duration_type::zero() };
         channel_type rc{ 2 };
         time_point_type start{ clock_type::now() };
         skynet( salloc, rc, 0, size, div);
         result = rc.value_pop();
-        duration = clock_type::now() - start;
-        std::cout << "Result: " << result << " in " << duration.count() / 1000000 << " ms" << std::endl;
-        std::cout << "done." << std::endl;
+        if ( 499999500000 != result) {
+            throw std::runtime_error("invalid result");
+        }
+        auto duration = clock_type::now() - start;
+        std::cout << "duration: " << duration.count() / 1000000 << " ms" << std::endl;
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "exception: " << e.what() << std::endl;

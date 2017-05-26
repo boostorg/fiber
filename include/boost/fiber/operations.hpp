@@ -10,6 +10,7 @@
 
 #include <boost/config.hpp> 
 
+#include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
 #include <boost/fiber/detail/convert.hpp>
@@ -76,9 +77,7 @@ bool has_ready_fibers() noexcept {
 template< typename SchedAlgo, typename ... Args >
 void use_scheduling_algorithm( Args && ... args) noexcept {
     boost::fibers::context::active()->get_scheduler()
-        ->set_algo(
-            std::unique_ptr< SchedAlgo >(
-                new SchedAlgo( std::forward< Args >( args) ... ) ) );
+        ->set_algo( new SchedAlgo( std::forward< Args >( args) ... ) );
 }
 
 }}

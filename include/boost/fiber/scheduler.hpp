@@ -13,11 +13,7 @@
 #include <vector>
 
 #include <boost/config.hpp>
-#if (BOOST_EXECUTION_CONTEXT==1)
-# include <boost/context/execution_context.hpp>
-#else
-# include <boost/context/continuation.hpp>
-#endif
+#include <boost/context/continuation.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/intrusive/set.hpp>
@@ -90,7 +86,7 @@ private:
     detail::spinlock                                            remote_ready_splk_{};
     remote_ready_queue_type                                     remote_ready_queue_{};
 #endif
-    alignas(cache_alignment) std::unique_ptr< algo::algorithm > algo_;
+    algo::algorithm::ptr_t             algo_;
     // sleep-queue contains context' which have been called
     // scheduler::wait_until()
     sleep_queue_type                                            sleep_queue_{};
@@ -126,15 +122,9 @@ public:
     void schedule_from_remote( context *) noexcept;
 #endif
 
-#if (BOOST_EXECUTION_CONTEXT==1)
-    void dispatch() noexcept;
-
-    void terminate( detail::spinlock_lock &, context *) noexcept;
-#else
     boost::context::continuation dispatch() noexcept;
 
     boost::context::continuation terminate( detail::spinlock_lock &, context *) noexcept;
-#endif
 
     void yield( context *) noexcept;
 
@@ -149,7 +139,7 @@ public:
 
     bool has_ready_fibers() const noexcept;
 
-    void set_algo( std::unique_ptr< algo::algorithm >) noexcept;
+    void set_algo( algo::algorithm::ptr_t) noexcept;
 
     void attach_main_context( context *) noexcept;
 

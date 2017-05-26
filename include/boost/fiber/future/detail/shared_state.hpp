@@ -164,7 +164,7 @@ private:
         if ( ready_) {
             throw promise_already_satisfied{};
         }
-        ::new ( static_cast< void * >( std::addressof( storage_) ) ) R{ value };
+        ::new ( static_cast< void * >( std::addressof( storage_) ) ) R( value );
         mark_ready_and_notify_( lk);
     }
 
@@ -173,7 +173,7 @@ private:
         if ( ready_) {
             throw promise_already_satisfied{};
         }
-        ::new ( static_cast< void * >( std::addressof( storage_) ) ) R{ std::move( value) };
+        ::new ( static_cast< void * >( std::addressof( storage_) ) ) R( std::move( value) );
         mark_ready_and_notify_( lk);
     }
 

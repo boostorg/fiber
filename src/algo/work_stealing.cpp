@@ -21,19 +21,25 @@ namespace boost {
 namespace fibers {
 namespace algo {
 
+std::atomic< std::uint32_t > work_stealing::counter_{ 0 };
+std::vector< intrusive_ptr< work_stealing > > work_stealing::schedulers_{};
+
 void
-work_stealing::init_( std::size_t max_idx) {
-    schedulers_.resize( max_idx + 1);
+work_stealing::init_( std::uint32_t thread_count,
+                      std::vector< intrusive_ptr< work_stealing > > & schedulers) {
+    // resize array of schedulers to thread_count, initilized with nullptr
+    std::vector< intrusive_ptr< work_stealing > >{ thread_count, nullptr }.swap( schedulers);
 }
 
-work_stealing::work_stealing( std::size_t max_idx, std::size_t idx, bool suspend) :
-    idx_{ idx },
-    max_idx_{ max_idx },
-    suspend_{ suspend } {
+work_stealing::work_stealing( std::uint32_t thread_count, bool suspend) :
+        id_{ counter_++ },
+        distribution_{ 0, static_cast< std::uint32_t >( thread_count - 1) },
+        suspend_{ suspend } {
+    // initialize the array of schedulers
     static std::once_flag flag;
-    std::call_once( flag, & work_stealing::init_, max_idx_);
-    schedulers_[idx_] = this;
-
+    std::call_once( flag, & work_stealing::init_, thread_count, std::ref( schedulers_) );
+    // register pointer of this scheduler
+    schedulers_[id_] = this;
 }
 
 void
@@ -52,13 +58,19 @@ work_stealing::pick_next() noexcept {
             context::active()->attach( ctx);
         }
     } else {
-        static thread_local std::minstd_rand generator;
-        static std::uniform_int_distribution< std::size_t > distribution{ 0, max_idx_ };
-        std::size_t idx = 0;
+        std::uint32_t id = 0;
+        std::size_t count = 0, size = schedulers_.size();
         do {
-            idx = distribution( generator);
-        } while ( idx == idx_);
-        ctx = schedulers_[idx]->steal();
+            do {
+                ++count;
+                // random selection of one logical cpu
+                // that belongs to the local NUMA node
+                id = distribution_( generator_);
+                // prevent stealing from own scheduler
+            } while ( id == id_);
+            // steal context from other scheduler
+            ctx = schedulers_[id]->steal();
+        } while ( nullptr == ctx && count < size);
         if ( nullptr != ctx) {
             BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
             context::active()->attach( ctx);
@@ -91,8 +103,6 @@ work_stealing::notify() noexcept {
         cnd_.notify_all();
     }
 }
-
-std::vector< work_stealing * > work_stealing::schedulers_{};
 
 }}}
 

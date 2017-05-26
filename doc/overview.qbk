@@ -9,8 +9,8 @@
 
 __boost_fiber__  provides a framework for micro-/userland-threads (fibers)
 scheduled cooperatively.
-The API contains classes and functions to manage and synchronize fibers similiarly to
-__std_thread__.
+The API contains classes and functions to manage and synchronize fibers
+similiarly to __std_thread__.
 
 Each fiber has its own stack.
 
@@ -21,8 +21,9 @@ The idea is to have multiple execution paths running on a single thread using
 cooperative scheduling (versus threads, which are preemptively scheduled). The
 running fiber decides explicitly when it should yield to allow another fiber to
 run (context switching).
-__boost_fiber__ internally uses __econtext__ from __boost_context__; the classes in
-this library manage, schedule and, when needed, synchronize those execution contexts.
+__boost_fiber__ internally uses __econtext__ from __boost_context__; the classes
+in this library manage, schedule and, when needed, synchronize those execution
+contexts.
 A context switch between threads usually costs thousands of CPU cycles on x86,
 compared to a fiber switch with less than a hundred cycles.
 A fiber runs on a single thread at any point in time.
@@ -120,6 +121,49 @@ __boost_fiber__ depends upon __boost_context__.
 Boost version 1.61.0 or greater is required.
 
 [note This library requires C++11!]
+
+
+[#implementation]
+[section Implementations: fcontext_t, ucontext_t and WinFiber]
+
+__boost_fiber__ uses __cc__ from __boost_context__ as building-block.
+
+[heading fcontext_t]
+
+The implementation uses __fcontext__ per default. fcontext_t is based on
+assembler and not available for all platforms. It provides a much better
+performance than __ucontext__
+(the context switch takes two magnitudes of order less CPU cycles; see section
+[@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/performance.html ['performance]])
+and __winfib__.
+
+
+[heading ucontext_t]
+
+As an alternative, [@https://en.wikipedia.org/wiki/Setcontext __ucontext__]
+can be used by compiling with `BOOST_USE_UCONTEXT` and b2 property `context-impl=ucontext`.
+__ucontext__ might be available on a broader range of POSIX-platforms but has
+some [@http://www.boost.org/doc/libs/release/libs/context/doc/html/context/rational.html#ucontext ['disadvantages]]
+(for instance deprecated since POSIX.1-2003, not C99 conform).
+
+[note __cc__ supports [link segmented ['Segmented stacks]] only with
+__ucontext__ as its implementation.]
+
+
+[heading WinFiber]
+
+With `BOOST_USE_WINFIB` and b2 property `context-impl=winfib` Win32-Fibers are used
+as implementation for __cc__.
+
+Because the TIB (thread information block) is not fully described in the MSDN,
+it might be possible that not all required TIB-parts are swapped.
+
+[note The first call of __cc__ converts the thread into a Windows fiber by
+invoking `ConvertThreadToFiber()`. If desired, `ConvertFiberToThread()` has
+to be called by the user explicitly in order to release resources allocated
+by `ConvertThreadToFiber()` (e.g. after using boost.context). ]
+
+[endsect]
 
 
 [endsect]
