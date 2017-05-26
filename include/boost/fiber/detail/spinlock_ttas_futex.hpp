@@ -80,7 +80,7 @@ public:
                 // instead of constant checking, a thread only checks if no other useful work is pending
                 std::this_thread::yield();
 #endif
-            } else if ( ! value_.compare_exchange_strong( expected, 1, std::memory_order_acquire, std::memory_order_release) ) {
+            } else if ( ! value_.compare_exchange_strong( expected, 1, std::memory_order_acquire) ) {
                 // spinlock now contended
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
