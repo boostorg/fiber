@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2017/05/04 18:40:49 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2017/05/26 13:51:55 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -41,8 +41,7 @@
       using cooperative scheduling (versus threads, which are preemptively scheduled).
       The running fiber decides explicitly when it should yield to allow another
       fiber to run (context switching). <emphasis role="bold">Boost.Fiber</emphasis>
-      internally uses <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>
-      from <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>;
+      internally uses __econtext__ from <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>;
       the classes in this library manage, schedule and, when needed, synchronize
       those execution contexts. A context switch between threads usually costs thousands
       of CPU cycles on x86, compared to a fiber switch with less than a hundred cycles.
@@ -172,6 +171,73 @@
         This library requires C++11!
       </para>
     </note>
+    <section id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber">
+      <title><anchor id="implementation"/><link linkend="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber">Implementations:
+      fcontext_t, ucontext_t and WinFiber</link></title>
+      <para>
+        <emphasis role="bold">Boost.Fiber</emphasis> uses <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/cc.html"><emphasis>call/cc</emphasis></ulink>
+        from <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>
+        as building-block.
+      </para>
+      <bridgehead renderas="sect4" id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.h0">
+        <phrase id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.fcontext_t"/><link
+        linkend="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.fcontext_t">fcontext_t</link>
+      </bridgehead>
+      <para>
+        The implementation uses <code><phrase role="identifier">fcontext_t</phrase></code>
+        per default. fcontext_t is based on assembler and not available for all platforms.
+        It provides a much better performance than <code><phrase role="identifier">ucontext_t</phrase></code>
+        (the context switch takes two magnitudes of order less CPU cycles; see section
+        <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/performance.html"><emphasis>performance</emphasis></ulink>)
+        and <code><phrase role="identifier">WinFiber</phrase></code>.
+      </para>
+      <bridgehead renderas="sect4" id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.h1">
+        <phrase id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.ucontext_t"/><link
+        linkend="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.ucontext_t">ucontext_t</link>
+      </bridgehead>
+      <para>
+        As an alternative, <ulink url="https://en.wikipedia.org/wiki/Setcontext"><code><phrase
+        role="identifier">ucontext_t</phrase></code></ulink> can be used by compiling
+        with <code><phrase role="identifier">BOOST_USE_UCONTEXT</phrase></code> and
+        b2 property <code><phrase role="identifier">context</phrase><phrase role="special">-</phrase><phrase
+        role="identifier">impl</phrase><phrase role="special">=</phrase><phrase role="identifier">ucontext</phrase></code>.
+        <code><phrase role="identifier">ucontext_t</phrase></code> might be available
+        on a broader range of POSIX-platforms but has some <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/rational.html#ucontext"><emphasis>disadvantages</emphasis></ulink>
+        (for instance deprecated since POSIX.1-2003, not C99 conform).
+      </para>
+      <note>
+        <para>
+          <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/cc.html"><emphasis>call/cc</emphasis></ulink>
+          supports <link linkend="segmented"><emphasis>Segmented stacks</emphasis></link>
+          only with <code><phrase role="identifier">ucontext_t</phrase></code> as
+          its implementation.
+        </para>
+      </note>
+      <bridgehead renderas="sect4" id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.h2">
+        <phrase id="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.winfiber"/><link
+        linkend="fiber.overview.implementations__fcontext_t__ucontext_t_and_winfiber.winfiber">WinFiber</link>
+      </bridgehead>
+      <para>
+        With <code><phrase role="identifier">BOOST_USE_WINFIB</phrase></code> and
+        b2 property <code><phrase role="identifier">context</phrase><phrase role="special">-</phrase><phrase
+        role="identifier">impl</phrase><phrase role="special">=</phrase><phrase role="identifier">winfib</phrase></code>
+        Win32-Fibers are used as implementation for <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/cc.html"><emphasis>call/cc</emphasis></ulink>.
+      </para>
+      <para>
+        Because the TIB (thread information block) is not fully described in the
+        MSDN, it might be possible that not all required TIB-parts are swapped.
+      </para>
+      <note>
+        <para>
+          The first call of <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/cc.html"><emphasis>call/cc</emphasis></ulink>
+          converts the thread into a Windows fiber by invoking <code><phrase role="identifier">ConvertThreadToFiber</phrase><phrase
+          role="special">()</phrase></code>. If desired, <code><phrase role="identifier">ConvertFiberToThread</phrase><phrase
+          role="special">()</phrase></code> has to be called by the user explicitly
+          in order to release resources allocated by <code><phrase role="identifier">ConvertThreadToFiber</phrase><phrase
+          role="special">()</phrase></code> (e.g. after using boost.context).
+        </para>
+      </note>
+    </section>
   </section>
   <section id="fiber.fiber_mgmt">
     <title><link linkend="fiber.fiber_mgmt">Fiber management</link></title>
@@ -589,9 +655,9 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
           <listitem>
             <para>
               <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link>
-              is required to allocate a stack for the internal <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>.
-              If <code><phrase role="identifier">StackAllocator</phrase></code> is
-              not explicitly passed, the default stack allocator depends on <code><phrase
+              is required to allocate a stack for the internal __econtext__. If
+              <code><phrase role="identifier">StackAllocator</phrase></code> is not
+              explicitly passed, the default stack allocator depends on <code><phrase
               role="identifier">BOOST_USE_SEGMENTED_STACKS</phrase></code>: if defined,
               you will get a <link linkend="class_segmented_stack"><code>segmented_stack</code></link>, else a <link linkend="class_fixedsize_stack"><code>fixedsize_stack</code></link>.
             </para>
@@ -4049,10 +4115,9 @@ implementation&#8217;s
   <section id="fiber.stack">
     <title><anchor id="stack"/><link linkend="fiber.stack">Stack allocation</link></title>
     <para>
-      A <link linkend="class_fiber"><code>fiber</code></link> uses internally an <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>
-      which manages a set of registers and a stack. The memory used by the stack
-      is allocated/deallocated via a <emphasis>stack_allocator</emphasis> which is
-      required to model a <link linkend="stack_allocator_concept"><emphasis>stack-allocator
+      A <link linkend="class_fiber"><code>fiber</code></link> uses internally an __econtext__ which manages a set of registers
+      and a stack. The memory used by the stack is allocated/deallocated via a <emphasis>stack_allocator</emphasis>
+      which is required to model a <link linkend="stack_allocator_concept"><emphasis>stack-allocator
       concept</emphasis></link>.
     </para>
     <para>
@@ -4174,7 +4239,7 @@ implementation&#8217;s
     <note>
       <para>
         The memory for the stack is not required to be aligned; alignment takes place
-        inside <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/ecv2.html"><emphasis>execution_context</emphasis></ulink>.
+        inside __econtext__.
       </para>
     </note>
     <para>
@@ -4577,7 +4642,7 @@ implementation&#8217;s
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="class_segmented_stack_bridgehead">
+      <anchor id="segmented"/><bridgehead renderas="sect4" id="class_segmented_stack_bridgehead">
   <phrase id="class_segmented_stack"/>
   <link linkend="class_segmented_stack">Class
       <code>segmented_stack</code></link>
@@ -4599,8 +4664,15 @@ implementation&#8217;s
         a <link linkend="class_segmented_stack"><code>segmented_stack</code></link> <emphasis role="bold">Boost.Fiber</emphasis>
         must be built with property <code><phrase role="identifier">segmented</phrase><phrase
         role="special">-</phrase><phrase role="identifier">stacks</phrase></code>,
-        e.g. <emphasis role="bold">toolset=gcc segmented-stacks=on</emphasis> at
-        b2/bjam command line.
+        e.g. <emphasis role="bold">toolset=gcc segmented-stacks=on</emphasis> and
+        applying BOOST_USE_SEGMENTED_STACKS at b2/bjam command line.
+      </para>
+    </note>
+    <note>
+      <para>
+        Segmented stacks can only be used with callcc() using property <code><phrase
+        role="identifier">context</phrase><phrase role="special">-</phrase><phrase
+        role="identifier">impl</phrase><phrase role="special">=</phrase><phrase role="identifier">ucontext</phrase></code>.
       </para>
     </note>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">segmented_stack</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
@@ -14217,7 +14289,8 @@ that would cause the thread to
                 +<footnote id="fiber.numa.f1">
                 <para>
                   Windows organizes logical cpus in groups of 64; boost.fiber maps
-                  {group-id,cpud-id} to a scalar equivalent to cpu ID of Linux.
+                  {group-id,cpud-id} to a scalar equivalent to cpu ID of Linux (64
+                  * group ID + cpu ID).
                 </para>
                 </footnote>
               </para>
@@ -14257,6 +14330,43 @@ that would cause the thread to
             <entry>
               <para>
                 -
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                tested on
+              </para>
+            </entry>
+            <entry>
+              <para>
+                AIX 7.2
+              </para>
+            </entry>
+            <entry>
+              <para>
+                FreeBSD 11
+              </para>
+            </entry>
+            <entry>
+              <para>
+                -
+              </para>
+            </entry>
+            <entry>
+              <para>
+                Arch Linux (4.10.13)
+              </para>
+            </entry>
+            <entry>
+              <para>
+                OpenIndiana HIPSTER
+              </para>
+            </entry>
+            <entry>
+              <para>
+                Windows 10
               </para>
             </entry>
           </row>
