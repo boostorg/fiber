@@ -77,7 +77,7 @@ int main() {
         barrier b{ thread_count };
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
-        allocator_type salloc{ allocator_type::traits_type::page_size() };
+        allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
         std::vector< std::thread > threads;
