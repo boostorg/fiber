@@ -94,7 +94,7 @@ private:
     }
 
 public:
-	unbuffered_channel() noexcept = default;
+    unbuffered_channel() = default;
 
     ~unbuffered_channel() {
         close();
