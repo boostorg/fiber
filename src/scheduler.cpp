@@ -229,7 +229,7 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
 #endif
 
 boost::context::continuation
-scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
+scheduler::terminate( detail::spinlock_lock * lk, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( this == ctx->get_scheduler() );
@@ -250,7 +250,7 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     // remove from the worker-queue
     ctx->worker_unlink();
     // release lock
-    lk.unlock();
+    lk->unlock();
     // resume another fiber
     return algo_->pick_next()->suspend_with_cc();
 }
@@ -296,7 +296,7 @@ scheduler::wait_until( context * ctx,
 bool
 scheduler::wait_until( context * ctx,
                        std::chrono::steady_clock::time_point const& sleep_tp,
-                       detail::spinlock_lock & lk) noexcept {
+                       detail::spinlock_lock * lk) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
     BOOST_ASSERT( ctx->is_context( type::worker_context) || ctx->is_context( type::main_context) );
@@ -325,7 +325,7 @@ scheduler::suspend() noexcept {
 }
 
 void
-scheduler::suspend( detail::spinlock_lock & lk) noexcept {
+scheduler::suspend( detail::spinlock_lock * lk) noexcept {
     // resume another context
     algo_->pick_next()->resume( lk);
 }

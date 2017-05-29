@@ -90,18 +90,24 @@ context::reset_active() noexcept {
 }
 
 void
-context::resume_( detail::data_t & d) noexcept {
-    boost::context::continuation c = c_.resume( & d);
-    if ( c) {
-        detail::data_t * dp = c.get_data< detail::data_t * >();
-        if ( nullptr != dp) {
-            dp->from->c_ = std::move( c);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                active()->schedule_( dp->ctx);
-            }
-        }
+context::resume_() noexcept {
+    context * prev = this;
+    // context_initializer::active_ will point to `this`
+    // prev will point to previous active context
+    std::swap( context_initializer::active_, prev);
+    boost::context::continuation c = c_.resume();
+    context * active_ctx = active();
+    BOOST_ASSERT( nullptr != active_ctx);
+    BOOST_ASSERT( nullptr != active_ctx->from_ctx_);
+    active_ctx->from_ctx_->c_ = std::move( c);
+    active_ctx->from_ctx_ = nullptr;
+    if ( nullptr != active_ctx->lk_) {
+        active_ctx->lk_->unlock();
+        active_ctx->lk_ = nullptr;
+    }
+    if ( nullptr != active_ctx->ready_ctx_) {
+        active_ctx->schedule_( active_ctx->ready_ctx_);
+        active_ctx->ready_ctx_ = nullptr;
     }
 }
 
@@ -128,13 +134,18 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
                 std::allocator_arg, palloc, salloc,
                 [this,sched](boost::context::continuation && c) noexcept {
                     c = c.resume();
-                    detail::data_t * dp = c.get_data< detail::data_t * >(); 
-                    // update continuation of calling fiber
-                    dp->from->c_ = std::move( c);
-                    if ( nullptr != dp->lk) {
-                        dp->lk->unlock();
-                    } else if ( nullptr != dp->ctx) {
-                        active()->schedule_( dp->ctx);
+                    context * active_ctx = active();
+                    BOOST_ASSERT( nullptr != active_ctx);
+                    BOOST_ASSERT( nullptr != active_ctx->from_ctx_);
+                    active_ctx->from_ctx_->c_ = std::move( c);
+                    active_ctx->from_ctx_ = nullptr;
+                    if ( nullptr != active_ctx->lk_) {
+                        active_ctx->lk_->unlock();
+                        active_ctx->lk_ = nullptr;
+                    }
+                    if ( nullptr != active_ctx->ready_ctx_) {
+                        active_ctx->schedule_( active_ctx->ready_ctx_);
+                        active_ctx->ready_ctx_ = nullptr;
                     }
                     // execute scheduler::dispatch()
                     return sched->dispatch();
@@ -171,32 +182,22 @@ context::get_id() const noexcept {
 
 void
 context::resume() noexcept {
-    context * prev = this;
-    // context_initializer::active_ will point to `this`
-    // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
-    detail::data_t d{ prev };
-    resume_( d);
+    from_ctx_ = active();
+    resume_();
 }
 
 void
-context::resume( detail::spinlock_lock & lk) noexcept {
-    context * prev = this;
-    // context_initializer::active_ will point to `this`
-    // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
-    detail::data_t d{ & lk, prev };
-    resume_( d);
+context::resume( detail::spinlock_lock * lk) noexcept {
+    from_ctx_ = active();
+    lk_ = lk;
+    resume_();
 }
 
 void
 context::resume( context * ready_ctx) noexcept {
-    context * prev = this;
-    // context_initializer::active_ will point to `this`
-    // prev will point to previous active context
-    std::swap( context_initializer::active_, prev);
-    detail::data_t d{ ready_ctx, prev };
-    resume_( d);
+    from_ctx_ = active();
+    ready_ctx_ = ready_ctx;
+    resume_();
 }
 
 void
@@ -205,7 +206,7 @@ context::suspend() noexcept {
 }
 
 void
-context::suspend( detail::spinlock_lock & lk) noexcept {
+context::suspend( detail::spinlock_lock * lk) noexcept {
     get_scheduler()->suspend( lk);
 }
 
@@ -222,7 +223,7 @@ context::join() {
         // the active context
         active_ctx->wait_link( wait_queue_);
         // suspend active context
-        active_ctx->get_scheduler()->suspend( lk);
+        active_ctx->get_scheduler()->suspend( & lk);
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -236,13 +237,13 @@ context::yield() noexcept {
 
 boost::context::continuation
 context::suspend_with_cc() noexcept {
+    from_ctx_ = active();
     context * prev = this;
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
-    detail::data_t d{ prev };
     // context switch
-    return c_.resume( & d);
+    return c_.resume();
 }
 
 boost::context::continuation
@@ -266,7 +267,7 @@ context::terminate() noexcept {
     }
     fss_data_.clear();
     // switch to another context
-    return get_scheduler()->terminate( lk, this);
+    return get_scheduler()->terminate( & lk, this);
 }
 
 bool
@@ -278,7 +279,7 @@ context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
 
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp,
-                     detail::spinlock_lock & lk) noexcept {
+                     detail::spinlock_lock * lk) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
     BOOST_ASSERT( this == active() );
     return get_scheduler()->wait_until( this, tp, lk);

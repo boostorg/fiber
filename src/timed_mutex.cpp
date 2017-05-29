@@ -34,7 +34,7 @@ timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point const& timeo
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     active_ctx->wait_link( wait_queue_);
     // suspend this fiber until notified or timed-out
-    if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+    if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
         // remove fiber from wait-queue 
         lk.lock();
         wait_queue_.remove( * active_ctx);
@@ -60,7 +60,7 @@ timed_mutex::lock() {
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     active_ctx->wait_link( wait_queue_);
     // suspend this fiber
-    active_ctx->suspend( lk);
+    active_ctx->suspend( & lk);
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );
 }
 

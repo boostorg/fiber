@@ -36,7 +36,7 @@ mutex::lock() {
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     active_ctx->wait_link( wait_queue_);
     // suspend this fiber
-    active_ctx->suspend( lk);
+    active_ctx->suspend( & lk);
     BOOST_ASSERT( ! active_ctx->wait_is_linked() );
 }
 
