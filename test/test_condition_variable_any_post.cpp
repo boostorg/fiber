@@ -21,10 +21,10 @@
 typedef std::chrono::nanoseconds  ns;
 typedef std::chrono::milliseconds ms;
 
-int value = 0;
+int value1 = 0;
 
 inline
-std::chrono::system_clock::time_point delay(int secs, int msecs=0, int nsecs=0) {
+std::chrono::system_clock::time_point delay(int secs, int msecs=0, int /*nsecs*/=0) {
     std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
     t += std::chrono::seconds( secs);
     t += std::chrono::milliseconds( msecs);
@@ -78,12 +78,12 @@ void wait_fn(
 	boost::fibers::condition_variable_any & cond) {
 	mtx.lock();
 	cond.wait( mtx);
-	++value;
+	++value1;
     mtx.unlock();
 }
 
 void test_one_waiter_notify_one() {
-	value = 0;
+	value1 = 0;
 	boost::fibers::mutex mtx;
 	boost::fibers::condition_variable_any cond;
 
@@ -92,23 +92,23 @@ void test_one_waiter_notify_one() {
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
 	boost::fibers::fiber f2(
                 boost::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     f1.join();
     f2.join();
 
-	BOOST_CHECK_EQUAL( 1, value);
+	BOOST_CHECK_EQUAL( 1, value1);
 }
 
 void test_two_waiter_notify_one() {
-	value = 0;
+	value1 = 0;
 	boost::fibers::mutex mtx;
 	boost::fibers::condition_variable_any cond;
 
@@ -117,37 +117,37 @@ void test_two_waiter_notify_one() {
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f2(
                 boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f3(
                 boost::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f4(
                 boost::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     f1.join();
     f2.join();
     f3.join();
     f4.join();
 
-	BOOST_CHECK_EQUAL( 2, value);
+	BOOST_CHECK_EQUAL( 2, value1);
 }
 
 void test_two_waiter_notify_all() {
-	value = 0;
+	value1 = 0;
 	boost::fibers::mutex mtx;
 	boost::fibers::condition_variable_any cond;
 
@@ -156,33 +156,33 @@ void test_two_waiter_notify_all() {
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f2(
                 boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f3(
                 boost::fibers::launch::post,
                 notify_all_fn,
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f4(
                 boost::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     boost::fibers::fiber f5(
                 boost::fibers::launch::post,
                 notify_all_fn,
                 std::ref( cond) );
-	BOOST_CHECK_EQUAL( 0, value);
+	BOOST_CHECK_EQUAL( 0, value1);
 
     f1.join();
     f2.join();
@@ -190,7 +190,7 @@ void test_two_waiter_notify_all() {
     f4.join();
     f5.join();
 
-	BOOST_CHECK_EQUAL( 3, value);
+	BOOST_CHECK_EQUAL( 3, value1);
 }
 
 int test1 = 0;

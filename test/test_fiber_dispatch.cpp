@@ -256,15 +256,14 @@ void test_join_bind() {
     {
         value1 = 0;
         value2 = "";
-        int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
             boost::fibers::launch::dispatch, std::bind(
-                []( int i, std::string & str) {
+                [](std::string & str) {
                     value1 = 3;
                     value2 = str;
                 },
-                i, abc
+                abc
             ));
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);

@@ -362,7 +362,7 @@ void test_wm_1() {
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK_EQUAL( 12, ids.size() );
+    BOOST_CHECK_EQUAL( (std::size_t)12, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]);
     BOOST_CHECK_EQUAL( id1, ids[1]);
     BOOST_CHECK_EQUAL( id1, ids[2]);
@@ -426,7 +426,7 @@ void test_wm_2() {
     boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK_EQUAL( 12, ids.size() );
+    BOOST_CHECK_EQUAL( (std::size_t)12, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]);
     BOOST_CHECK_EQUAL( id1, ids[1]);
     BOOST_CHECK_EQUAL( id1, ids[2]);

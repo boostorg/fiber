@@ -106,7 +106,7 @@ int fn8( int i) {
 A fn9() {
      A a;
      a.value = 3;
-     return std::move( a);
+     return a;
 }
 
 A fn10() {
