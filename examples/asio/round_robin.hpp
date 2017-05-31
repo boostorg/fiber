@@ -179,6 +179,9 @@ public:
                                     this_fiber::yield();
                                   });
         suspend_timer_.expires_at( std::chrono::steady_clock::now() );
+        suspend_timer_.async_wait([](boost::system::error_code const&){
+            this_fiber::yield();
+          });
     }
 //]
 };
