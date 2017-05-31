@@ -20,12 +20,49 @@
 namespace boost {
 namespace fibers {
 
-static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
-    BOOST_ASSERT( nullptr != sched);
+class main_context final : public context {
+public:
+    main_context() noexcept :
+        context{ 1, type::main_context, launch::post } {
+    }
+};
+
+class dispatcher_context final : public context {
+private:
+    boost::context::continuation
+    run_( boost::context::continuation && c) noexcept {
+		c = c.resume();
+		context * active_ctx = active();
+		BOOST_ASSERT( nullptr != active_ctx);
+		BOOST_ASSERT( nullptr != active_ctx->from_ctx_);
+		active_ctx->from_ctx_->c_ = std::move( c);
+		active_ctx->from_ctx_ = nullptr;
+		if ( nullptr != active_ctx->lk_) {
+			active_ctx->lk_->unlock();
+			active_ctx->lk_ = nullptr;
+		}
+		if ( nullptr != active_ctx->ready_ctx_) {
+			active_ctx->schedule( active_ctx->ready_ctx_);
+			active_ctx->ready_ctx_ = nullptr;
+		}
+		// execute scheduler::dispatch()
+		return get_scheduler()->dispatch();
+    }
+
+public:
+    dispatcher_context( boost::context::preallocated const& palloc, default_stack const& salloc) :
+        context{ 0, type::dispatcher_context, launch::post } {
+        c_ = boost::context::callcc(
+                std::allocator_arg, palloc, salloc,
+                std::bind( & dispatcher_context::run_, this, std::placeholders::_1) );
+    }
+};
+
+static intrusive_ptr< context > make_dispatcher_context() {
     default_stack salloc; // use default satck-size
     auto sctx = salloc.allocate();
-    BOOST_ASSERT( ( sizeof( context) + 2048) < sctx.size); // stack at least of 2kB
-	const std::size_t offset = sizeof( context) + 63; 
+    BOOST_ASSERT( ( sizeof( dispatcher_context) + 2048) < sctx.size); // stack at least of 2kB
+	const std::size_t offset = sizeof( dispatcher_context) + 63; 
     // reserve space for control structure
     void * storage = reinterpret_cast< void * >(
             ( reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( offset) )
@@ -35,11 +72,8 @@ static intrusive_ptr< context > make_dispatcher_context( scheduler * sched) {
     const std::size_t size = reinterpret_cast< uintptr_t >( storage) - reinterpret_cast< uintptr_t >( stack_bottom);
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >{
-        new ( storage) context{
-                dispatcher_context,
-                boost::context::preallocated{ storage, size, sctx },
-                salloc,
-                sched } };
+        new ( storage) dispatcher_context{
+                boost::context::preallocated{ storage, size, sctx }, salloc } };
 }
 
 // schwarz counter
@@ -50,13 +84,13 @@ struct context_initializer {
     context_initializer() {
         if ( 0 == counter_++) {
             // main fiber context of this thread
-            context * main_ctx = new context{ main_context };
+            context * main_ctx = new main_context{};
             // scheduler of this thread
             scheduler * sched = new scheduler{};
             // attach main context to scheduler
             sched->attach_main_context( main_ctx);
             // create and attach dispatcher context to scheduler
-            sched->attach_dispatcher_context( make_dispatcher_context( sched) );
+            sched->attach_dispatcher_context( make_dispatcher_context() );
             // make main context to active context
             active_ = main_ctx;
         }
@@ -106,50 +140,9 @@ context::resume_() noexcept {
         active_ctx->lk_ = nullptr;
     }
     if ( nullptr != active_ctx->ready_ctx_) {
-        active_ctx->schedule_( active_ctx->ready_ctx_);
+        active_ctx->schedule( active_ctx->ready_ctx_);
         active_ctx->ready_ctx_ = nullptr;
     }
-}
-
-void
-context::schedule_( context * ctx) noexcept {
-    get_scheduler()->schedule( ctx);
-}
-
-// main fiber context
-context::context( main_context_t) noexcept :
-    use_count_{ 1 }, // allocated on main- or thread-stack
-    c_{},
-    type_{ type::main_context },
-    policy_{ launch::post } {
-}
-
-// dispatcher fiber context
-context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
-                  default_stack const& salloc, scheduler * sched) :
-    c_{},
-    type_{ type::dispatcher_context },
-    policy_{ launch::post } {
-        c_ = boost::context::callcc(
-                std::allocator_arg, palloc, salloc,
-                [this,sched](boost::context::continuation && c) noexcept {
-                    c = c.resume();
-                    context * active_ctx = active();
-                    BOOST_ASSERT( nullptr != active_ctx);
-                    BOOST_ASSERT( nullptr != active_ctx->from_ctx_);
-                    active_ctx->from_ctx_->c_ = std::move( c);
-                    active_ctx->from_ctx_ = nullptr;
-                    if ( nullptr != active_ctx->lk_) {
-                        active_ctx->lk_->unlock();
-                        active_ctx->lk_ = nullptr;
-                    }
-                    if ( nullptr != active_ctx->ready_ctx_) {
-                        active_ctx->schedule_( active_ctx->ready_ctx_);
-                        active_ctx->ready_ctx_ = nullptr;
-                    }
-                    // execute scheduler::dispatch()
-                    return sched->dispatch();
-                });
 }
 
 context::~context() {
@@ -297,14 +290,14 @@ context::schedule( context * ctx) noexcept {
     //        (other scheduler assigned)
     if ( scheduler_ == ctx->get_scheduler() ) {
         // local
-        schedule_( ctx);
+        get_scheduler()->schedule( ctx);
     } else {
         // remote
         ctx->get_scheduler()->schedule_from_remote( ctx);
     }
 #else
     BOOST_ASSERT( get_scheduler() == ctx->get_scheduler() );
-    schedule_( ctx);
+    get_scheduler()->schedule( ctx);
 #endif
 }
 
