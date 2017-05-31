@@ -137,6 +137,9 @@ public:
             >   wait_queue_t;
 
 private:
+    friend class dispatcher_context;
+    friend class main_context;
+    template< typename Fn, typename ... Arg > friend class worker_context;
     friend class scheduler;
 
     struct fss_data {
@@ -182,24 +185,22 @@ private:
     detail::worker_hook                                 worker_hook_{};
     fiber_properties                                *   properties_{ nullptr };
     std::chrono::steady_clock::time_point               tp_{ (std::chrono::steady_clock::time_point::max)() };
+    boost::context::continuation                        c_{};
+    context                                         *   from_ctx_{ nullptr };
+    context                                         *   ready_ctx_{ nullptr };
+    detail::spinlock_lock                           *   lk_{ nullptr };
     type                                                type_;
     launch                                              policy_;
 
-    void resume_() noexcept;
-
-protected:
     context( std::size_t initial_count, type t, launch policy) noexcept :
         use_count_{ initial_count },
         type_{ t },
         policy_{ policy } {
     }
 
-public:
-    boost::context::continuation                        c_{};
-    context                                         *   from_ctx_{ nullptr };
-    context                                         *   ready_ctx_{ nullptr };
-    detail::spinlock_lock                           *   lk_{ nullptr };
+    void resume_() noexcept;
 
+public:
     class id {
     private:
         context  *   impl_{ nullptr };
