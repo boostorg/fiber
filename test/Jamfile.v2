@@ -30,7 +30,6 @@ project boost/fiber/test
       <link>static
       <threading>multi
       <optimization>speed
-      <variant>release
     ;
 
 
