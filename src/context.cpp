@@ -392,6 +392,12 @@ context::sleep_unlink() noexcept {
 }
 
 void
+context::wait_unlink() noexcept {
+    BOOST_ASSERT( wait_is_linked() );
+    wait_hook_.unlink();
+}
+
+void
 context::detach() noexcept {
     BOOST_ASSERT( context::active() != this);
     get_scheduler()->detach_worker_context( this);

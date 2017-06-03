@@ -81,14 +81,18 @@ scheduler::sleep2ready_() noexcept {
         BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
 #endif
         BOOST_ASSERT( ! ctx->terminated_is_linked() );
-        // no test for wait-queue  because ctx
-        // might be waiting in time_mutex::try_lock_until()
         // set fiber to state_ready if deadline was reached
         if ( ctx->tp_ <= now) {
             // remove context from sleep-queue
             i = sleep_queue_.erase( i);
             // reset sleep-tp
             ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
+            // if context' was waiting on an object and
+            // op. has timed out, remove it from waiting-queue
+            if ( ctx->wait_is_linked() ) {
+                // remove context from wait-queue
+                ctx->wait_unlink();
+            }
             // push new context to ready-queue
             algo_->awakened( ctx);
         } else {

@@ -61,10 +61,10 @@ class scheduler;
 namespace detail {
 
 struct wait_tag;
-typedef intrusive::slist_member_hook<
+typedef intrusive::list_member_hook<
     intrusive::tag< wait_tag >,
     intrusive::link_mode<
-        intrusive::safe_link
+        intrusive::auto_unlink
     >
 >                                 wait_hook;
 // declaration of the functor that converts between
@@ -129,11 +129,10 @@ typedef intrusive::slist_member_hook<
 
 class BOOST_FIBERS_DECL context {
 public:
-    typedef intrusive::slist<
+    typedef intrusive::list<
                 context,
                 intrusive::function_hook< detail::wait_functor >,
-                intrusive::linear< true >,
-                intrusive::cache_last< true > 
+                intrusive::constant_time_size< false >
             >   wait_queue_t;
 
 private:
@@ -381,6 +380,8 @@ public:
     void ready_unlink() noexcept;
 
     void sleep_unlink() noexcept;
+
+    void wait_unlink() noexcept;
 
     void detach() noexcept;
 
