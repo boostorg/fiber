@@ -222,7 +222,7 @@ void fn2( boost::fibers::mutex & m, boost::fibers::condition_variable & cv) {
         BOOST_CHECK(t1 - t0 < ms(250));
         BOOST_CHECK(test2 != 0);
     } else {
-        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+5+1000));
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+100+1000));
         BOOST_CHECK(test2 == 0);
     }
     ++runs;
@@ -254,7 +254,7 @@ void fn3( boost::fibers::mutex & m, boost::fibers::condition_variable & cv) {
         BOOST_CHECK(test2 != 0);
         BOOST_CHECK(r);
     } else {
-        BOOST_CHECK(t1 - t0 - ms(250) < ms(250+2));
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(250+100));
         BOOST_CHECK(test2 == 0);
         BOOST_CHECK(!r);
     }
@@ -275,7 +275,7 @@ void fn4( boost::fibers::mutex & m, boost::fibers::condition_variable & cv) {
         BOOST_CHECK(t1 - t0 < ms(250));
         BOOST_CHECK(test2 != 0);
     } else {
-        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+5+1000));
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+100+1000));
         BOOST_CHECK(test2 == 0);
     }
     ++runs;
@@ -295,7 +295,7 @@ void fn5( boost::fibers::mutex & m, boost::fibers::condition_variable & cv) {
         BOOST_CHECK(t1 - t0 < ms(250+1000));
         BOOST_CHECK(test2 != 0);
     } else {
-        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+2));
+        BOOST_CHECK(t1 - t0 - ms(250) < ms(count*250+100));
         BOOST_CHECK(test2 == 0);
     }
     ++runs;

@@ -269,27 +269,24 @@ void test_join_bind() {
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
     }
-#if 0
     {
         value1 = 0;
         value2 = "";
-        int i = 3;
         std::string abc("abc");
         boost::fibers::fiber f(
             boost::fibers::launch::dispatch, std::bind(
-                []( int i, std::string & str) {
+                []( std::string & str) {
                     value1 = 3;
                     value2 = str;
                 },
                 std::placeholders::_1,
                 std::placeholders::_2
             ),
-            i, abc);
+            std::ref( abc) );
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
     }
-#endif
 }
 
 void test_join_in_fiber() {
@@ -364,11 +361,9 @@ void test_sleep_for() {
     boost::this_fiber::sleep_for(ms);
     time_point t1 = Clock::now();
     std::chrono::nanoseconds ns = (t1 - t0) - ms;
-    std::chrono::nanoseconds err = ms / 100;
-    // The time slept is within 1% of 500ms
+    std::chrono::nanoseconds err = ms / 10;
     // This test is spurious as it depends on the time the fiber system switches the fiber
     BOOST_CHECK((std::max)(ns.count(), -ns.count()) < (err+std::chrono::milliseconds(1000)).count());
-    //BOOST_TEST(std::abs(static_cast<long>(ns.count())) < (err+std::chrono::milliseconds(1000)).count());
 }
 
 void test_sleep_until() {
@@ -380,11 +375,9 @@ void test_sleep_until() {
         boost::this_fiber::sleep_until(t0 + ms);
         time_point t1 = Clock::now();
         std::chrono::nanoseconds ns = (t1 - t0) - ms;
-        std::chrono::nanoseconds err = ms / 100;
-        // The time slept is within 1% of 500ms
+        std::chrono::nanoseconds err = ms / 10;
         // This test is spurious as it depends on the time the thread system switches the threads
         BOOST_CHECK((std::max)(ns.count(), -ns.count()) < (err+std::chrono::milliseconds(1000)).count());
-        //BOOST_TEST(std::abs(static_cast<long>(ns.count())) < (err+std::chrono::milliseconds(1000)).count());
     }
     {
         typedef std::chrono::system_clock Clock;
@@ -394,11 +387,9 @@ void test_sleep_until() {
         boost::this_fiber::sleep_until(t0 + ms);
         time_point t1 = Clock::now();
         std::chrono::nanoseconds ns = (t1 - t0) - ms;
-        std::chrono::nanoseconds err = ms / 100;
-        // The time slept is within 1% of 500ms
+        std::chrono::nanoseconds err = ms / 10;
         // This test is spurious as it depends on the time the thread system switches the threads
         BOOST_CHECK((std::max)(ns.count(), -ns.count()) < (err+std::chrono::milliseconds(1000)).count());
-        //BOOST_TEST(std::abs(static_cast<long>(ns.count())) < (err+std::chrono::milliseconds(1000)).count());
     }
 }
 
