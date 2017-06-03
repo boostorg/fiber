@@ -47,7 +47,7 @@ void fn3( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+    BOOST_CHECK(d < ns(2500000)+ms(2000)); // within 2.5 ms
 }
 
 void fn4( boost::fibers::timed_mutex & m) {
@@ -73,7 +73,7 @@ void fn6( boost::fibers::timed_mutex & m) {
     BOOST_CHECK(m.try_lock_for(ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+    BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
 }
 
 void fn7( boost::fibers::timed_mutex & m) {
@@ -82,7 +82,7 @@ void fn7( boost::fibers::timed_mutex & m) {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5ms
+    BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5ms
 }
 
 void fn8( boost::fibers::timed_mutex & m) {
@@ -90,7 +90,7 @@ void fn8( boost::fibers::timed_mutex & m) {
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     ns d = t1 - t0 - ms(250);
-    ns r = ns(5000000)+ms(1000); // within 6ms
+    ns r = ns(5000000)+ms(2000); // within 6ms
     BOOST_CHECK(d < r); // within 6ms
 }
 
@@ -102,7 +102,7 @@ void fn9( boost::fibers::recursive_timed_mutex & m) {
     m.unlock();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+    BOOST_CHECK(d < ms(2500)+ms(2000)); // within 2.5 ms
 }
 
 void fn10( boost::fibers::recursive_timed_mutex & m) {
@@ -113,7 +113,7 @@ void fn10( boost::fibers::recursive_timed_mutex & m) {
     m.unlock();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
+    BOOST_CHECK(d < ns(50000000)+ms(2000)); // within 50 ms
 }
 
 void fn11( boost::fibers::recursive_timed_mutex & m) {
@@ -124,7 +124,7 @@ void fn11( boost::fibers::recursive_timed_mutex & m) {
     m.unlock();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+    BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
 }
 
 void fn12( boost::fibers::recursive_timed_mutex & m) {
@@ -132,7 +132,7 @@ void fn12( boost::fibers::recursive_timed_mutex & m) {
     BOOST_CHECK(m.try_lock_for(ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+    BOOST_CHECK(d < ms(5000)+ms(2000)); // within 5 ms
 }
 
 void fn13( boost::fibers::recursive_timed_mutex & m) {
@@ -141,7 +141,7 @@ void fn13( boost::fibers::recursive_timed_mutex & m) {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+    BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
 }
 
 void fn14( boost::fibers::recursive_timed_mutex & m) {
@@ -149,7 +149,7 @@ void fn14( boost::fibers::recursive_timed_mutex & m) {
     BOOST_CHECK(m.try_lock_until(std::chrono::steady_clock::now() + ms(250)) == false);
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(5000000)+ms(1000)); // within 5 ms
+    BOOST_CHECK(d < ns(5000000)+ms(2000)); // within 5 ms
 }
 
 void fn15( boost::fibers::recursive_mutex & m) {
@@ -160,7 +160,7 @@ void fn15( boost::fibers::recursive_mutex & m) {
     m.unlock();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+    BOOST_CHECK(d < ns(2500000)+ms(2000)); // within 2.5 ms
 }
 
 void fn16( boost::fibers::recursive_mutex & m) {
@@ -171,7 +171,7 @@ void fn16( boost::fibers::recursive_mutex & m) {
     m.unlock();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
+    BOOST_CHECK(d < ns(50000000)+ms(2000)); // within 50 ms
 }
 
 void fn17( boost::fibers::mutex & m) {
@@ -180,7 +180,7 @@ void fn17( boost::fibers::mutex & m) {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(2500000)+ms(1000)); // within 2.5 ms
+    BOOST_CHECK(d < ns(2500000)+ms(2000)); // within 2.5 ms
 }
 
 void fn18( boost::fibers::mutex & m) {
@@ -189,7 +189,7 @@ void fn18( boost::fibers::mutex & m) {
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     m.unlock();
     ns d = t1 - t0 - ms(250);
-    BOOST_CHECK(d < ns(50000000)+ms(1000)); // within 50 ms
+    BOOST_CHECK(d < ns(50000000)+ms(2000)); // within 50 ms
 }
 
 template< typename M >
