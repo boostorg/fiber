@@ -178,7 +178,7 @@ void test_join_fn() {
 void test_join_memfn() {
     X x = {0};
     BOOST_CHECK_EQUAL( x.value, 0);
-    boost::fibers::fiber( boost::fibers::launch::post, & X::foo, std::ref( x), 3).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & X::foo, & x, 3).join();
     BOOST_CHECK_EQUAL( x.value, 3);
 }
 
