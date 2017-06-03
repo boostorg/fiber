@@ -52,41 +52,41 @@ public:
     fiber() = default;
 
     template< typename Fn,
-              typename ... Args,
+              typename ... Arg,
               typename = detail::disable_overload< fiber, Fn >
     >
-    fiber( Fn && fn, Args && ... args) :
+    fiber( Fn && fn, Arg ... arg) :
         fiber{ launch::post,
                std::allocator_arg, default_stack(),
-               std::forward< Fn >( fn), std::forward< Args >( args) ... } {
+               std::forward< Fn >( fn), std::forward< Arg >( arg) ... } {
     }
 
     template< typename Fn,
-              typename ... Args,
+              typename ... Arg,
               typename = detail::disable_overload< fiber, Fn >
     >
-    fiber( launch policy, Fn && fn, Args && ... args) :
+    fiber( launch policy, Fn && fn, Arg ... arg) :
         fiber{ policy,
                std::allocator_arg, default_stack(),
-               std::forward< Fn >( fn), std::forward< Args >( args) ... } {
+               std::forward< Fn >( fn), std::forward< Arg >( arg) ... } {
     }
 
     template< typename StackAllocator,
               typename Fn,
-              typename ... Args
+              typename ... Arg
     >
-    fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
+    fiber( std::allocator_arg_t, StackAllocator salloc, Fn && fn, Arg ... arg) :
         fiber{ launch::post,
                std::allocator_arg, salloc,
-               std::forward< Fn >( fn), std::forward< Args >( args) ... } {
+               std::forward< Fn >( fn), std::forward< Arg >( arg) ... } {
     }
 
     template< typename StackAllocator,
               typename Fn,
-              typename ... Args
+              typename ... Arg
     >
-    fiber( launch policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) :
-        impl_{ make_worker_context( policy, salloc, std::forward< Fn >( fn), std::forward< Args >( args) ... ) } {
+    fiber( launch policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Arg ... arg) :
+        impl_{ make_worker_context( policy, salloc, std::forward< Fn >( fn), std::forward< Arg >( arg) ... ) } {
         start_();
     }
 

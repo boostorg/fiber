@@ -464,7 +464,7 @@ public:
 template< typename StackAlloc, typename Fn, typename ... Arg >
 static intrusive_ptr< context > make_worker_context( launch policy,
                                                      StackAlloc salloc,
-                                                     Fn && fn, Arg && ... arg) {
+                                                     Fn && fn, Arg ... arg) {
     typedef worker_context< Fn, Arg ... >   context_t;
 
     auto sctx = salloc.allocate();
