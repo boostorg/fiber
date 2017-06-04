@@ -91,7 +91,7 @@ void
 recursive_timed_mutex::unlock() {
     context * active_ctx = context::active();
     detail::spinlock_lock lk{ wait_queue_splk_ };
-    if ( active_ctx != owner_) {
+    if ( BOOST_UNLIKELY( active_ctx != owner_) ) {
         throw lock_error{
                 std::make_error_code( std::errc::operation_not_permitted),
                 "boost fiber: no  privilege to perform the operation" };

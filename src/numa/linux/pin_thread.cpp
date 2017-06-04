@@ -27,7 +27,7 @@ void pin_thread( std::uint32_t cpuid) {
     CPU_ZERO( & set);
     CPU_SET( cpuid, & set);
     int err = 0;
-    if ( 0 != ( err = ::pthread_setaffinity_np( ::pthread_self(), sizeof( set), & set) ) ) {
+    if ( BOOST_UNLIKELY( 0 != ( err = ::pthread_setaffinity_np( ::pthread_self(), sizeof( set), & set) ) ) ) {
         throw std::system_error(
                 std::error_code( err, std::system_category() ),
                 "pthread_setaffinity_np() failed");

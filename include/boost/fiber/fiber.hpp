@@ -108,7 +108,7 @@ public:
         if ( joinable() ) {
             std::terminate();
         }
-        if ( this == & other) {
+        if ( BOOST_UNLIKELY( this == & other) ) {
             return * this;
         }
         impl_.swap( other.impl_);

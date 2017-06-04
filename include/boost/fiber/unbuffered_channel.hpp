@@ -137,7 +137,7 @@ public:
         context * active_ctx = context::active();
         slot s{ value, active_ctx };
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -154,7 +154,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -172,7 +172,7 @@ public:
         context * active_ctx = context::active();
         slot s{ std::move( value), active_ctx };
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -189,7 +189,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -224,7 +224,7 @@ public:
         slot s{ value, active_ctx };
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -247,7 +247,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -274,7 +274,7 @@ public:
         slot s{ std::move( value), active_ctx };
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -297,7 +297,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -339,7 +339,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_consumers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( ! is_empty_() ) {
@@ -375,7 +375,7 @@ public:
                 return std::move( value);
             } else {
                 detail::spinlock_lock lk{ splk_consumers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     throw fiber_error{
                             std::make_error_code( std::errc::operation_not_permitted),
                             "boost fiber: channel is closed" };
@@ -423,7 +423,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_consumers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( ! is_empty_() ) {
