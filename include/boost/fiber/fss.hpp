@@ -37,8 +37,8 @@ private:
             fn{ fn_ } {
         }
 
-        void operator()( void* data) {
-            if ( fn) {
+        void operator()( void * data) {
+            if ( BOOST_LIKELY( nullptr != fn) ) {
                 fn( static_cast< T * >( data) );
             }
         }
@@ -91,7 +91,7 @@ public:
 
     void reset( T * t) {
         T * c = get();
-        if ( c != t) {
+        if ( BOOST_LIKELY( c != t) ) {
             context::active()->set_fss_data(
                 this, cleanup_fn_, t, true);
         }

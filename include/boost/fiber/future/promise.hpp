@@ -68,7 +68,7 @@ struct promise_base {
     }
 
     promise_base & operator=( promise_base && other) noexcept {
-        if ( this != & other) {
+        if ( BOOST_LIKELY( this != & other) ) {
             promise_base tmp{ std::move( other) };
             swap( tmp);
         }
@@ -76,10 +76,10 @@ struct promise_base {
     }
 
     future< R > get_future() {
-        if ( obtained_) {
+        if ( BOOST_UNLIKELY( obtained_) ) {
             throw future_already_retrieved{};
         }
-        if ( ! future_) {
+        if ( BOOST_UNLIKELY( ! future_) ) {
             throw promise_uninitialized{};
         }
         obtained_ = true;
@@ -92,7 +92,7 @@ struct promise_base {
     }
 
     void set_exception( std::exception_ptr p) {
-        if ( ! future_) {
+        if ( BOOST_UNLIKELY( ! future_) ) {
             throw promise_uninitialized{};
         }
         future_->set_exception( p);
@@ -121,14 +121,14 @@ public:
     promise & operator=( promise && other) = default;
 
     void set_value( R const& value) {
-        if ( ! base_type::future_) {
+        if ( BOOST_UNLIKELY( ! base_type::future_) ) {
             throw promise_uninitialized{};
         }
         base_type::future_->set_value( value);
     }
 
     void set_value( R && value) {
-        if ( ! base_type::future_) {
+        if ( BOOST_UNLIKELY( ! base_type::future_) ) {
             throw promise_uninitialized{};
         }
         base_type::future_->set_value( std::move( value) );
@@ -162,7 +162,7 @@ public:
     promise & operator=( promise && other) noexcept = default;
 
     void set_value( R & value) {
-        if ( ! base_type::future_) {
+        if ( BOOST_UNLIKELY( ! base_type::future_) ) {
             throw promise_uninitialized{};
         }
         base_type::future_->set_value( value);
@@ -197,7 +197,7 @@ public:
 
     inline
     void set_value() {
-        if ( ! base_type::future_) {
+        if ( BOOST_UNLIKELY( ! base_type::future_) ) {
             throw promise_uninitialized{};
         }
         base_type::future_->set_value();

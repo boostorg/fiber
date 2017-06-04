@@ -81,7 +81,7 @@ struct algorithm_with_properties : public algorithm_with_properties_base {
     // with: algorithm_with_properties<PROPS>::awakened(fb);
     virtual void awakened( context * ctx) noexcept override final {
         fiber_properties * props = super::get_properties( ctx);
-        if ( nullptr == props) {
+        if ( BOOST_LIKELY( nullptr == props) ) {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
             props = new_properties( ctx);

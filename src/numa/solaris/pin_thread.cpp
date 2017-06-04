@@ -25,10 +25,10 @@ namespace numa {
 
 BOOST_FIBERS_DECL
 void pin_thread( std::uint32_t cpuid) {
-    if ( -1 == ::processor_bind( P_LWPID,
+    if ( BOOST_UNLIKELY( -1 == ::processor_bind( P_LWPID,
                                  P_MYID,
                                  static_cast< processorid_t >( cpuid),
-                                 0) ) {
+                                 0) ) ) {
         throw std::system_error(
                 std::error_code( errno, std::system_category() ),
                 "processor_bind() failed");

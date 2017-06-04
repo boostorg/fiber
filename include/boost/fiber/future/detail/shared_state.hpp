@@ -62,7 +62,7 @@ protected:
 
     void set_exception_( std::exception_ptr except, std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
-        if ( ready_) {
+        if ( BOOST_UNLIKELY( ready_) ) {
             throw promise_already_satisfied();
         }
         except_ = except;
@@ -161,7 +161,7 @@ private:
 
     void set_value_( R const& value, std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
-        if ( ready_) {
+        if ( BOOST_UNLIKELY( ready_) ) {
             throw promise_already_satisfied{};
         }
         ::new ( static_cast< void * >( std::addressof( storage_) ) ) R( value );
@@ -170,7 +170,7 @@ private:
 
     void set_value_( R && value, std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
-        if ( ready_) {
+        if ( BOOST_UNLIKELY( ready_) ) {
             throw promise_already_satisfied{};
         }
         ::new ( static_cast< void * >( std::addressof( storage_) ) ) R( std::move( value) );
@@ -223,7 +223,7 @@ private:
 
     void set_value_( R & value, std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
-        if ( ready_) {
+        if ( BOOST_UNLIKELY( ready_) ) {
             throw promise_already_satisfied();
         }
         value_ = std::addressof( value);
@@ -266,7 +266,7 @@ private:
     inline
     void set_value_( std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
-        if ( ready_) {
+        if ( BOOST_UNLIKELY( ready_) ) {
             throw promise_already_satisfied();
         }
         mark_ready_and_notify_( lk);

@@ -27,7 +27,7 @@ void pin_thread( std::uint32_t cpu_id) {
 	cpuset_t mask;
 	CPU_ZERO( & mask);
 	CPU_SET( cpu_id, & mask);
-    if ( 0 != ::cpuset_setaffinity( CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, sizeof( mask), & mask) ) {
+    if ( BOOST_UNLIKELY( 0 != ::cpuset_setaffinity( CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, sizeof( mask), & mask) ) ) {
         throw std::system_error(
                 std::error_code( errno, std::system_category() ),
                 "::cpuset_setaffinity() failed");

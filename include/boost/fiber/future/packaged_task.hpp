@@ -86,7 +86,7 @@ public:
     }
 
     packaged_task & operator=( packaged_task && other) noexcept {
-        if ( this != & other) {
+        if ( BOOST_LIKELY( this != & other) ) {
             packaged_task tmp{ std::move( other) };
             swap( tmp);
         }
@@ -106,7 +106,7 @@ public:
         if ( obtained_) {
             throw future_already_retrieved{};
         }
-        if ( ! valid() ) {
+        if ( BOOST_UNLIKELY( ! valid() ) ) {
             throw packaged_task_uninitialized{};
         }
         obtained_ = true;
@@ -115,14 +115,14 @@ public:
     }
 
     void operator()( Args ... args) {
-        if ( ! valid() ) {
+        if ( BOOST_UNLIKELY( ! valid() ) ) {
             throw packaged_task_uninitialized{};
         }
         task_->run( std::forward< Args >( args) ... );
     }
 
     void reset() {
-        if ( ! valid() ) {
+        if ( BOOST_UNLIKELY( ! valid() ) ) {
             throw packaged_task_uninitialized{};
         }
         packaged_task tmp;
