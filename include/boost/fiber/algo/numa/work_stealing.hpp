@@ -47,9 +47,9 @@ private:
     std::uniform_int_distribution< std::uint32_t >          local_distribution_;
     std::uniform_int_distribution< std::uint32_t >          remote_distribution_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
-    detail::context_spmc_queue     rqueue_{};
+    detail::context_spmc_queue                              rqueue_{};
 #else
-    detail::context_spinlock_queue rqueue_{};
+    detail::context_spinlock_queue                          rqueue_{};
 #endif
     std::mutex                                              mtx_{};
     std::condition_variable                                 cnd_{};
