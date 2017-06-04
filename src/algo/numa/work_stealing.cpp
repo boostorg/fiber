@@ -11,6 +11,7 @@
 #include <random>
 
 #include <boost/assert.hpp>
+#include <boost/context/detail/prefetch.hpp>
 
 #include "boost/fiber/type.hpp"
 
@@ -91,10 +92,11 @@ work_stealing::awakened( context * ctx) noexcept {
 
 context *
 work_stealing::pick_next() noexcept {
-    context * ctx = rqueue_.pop();
-    if ( nullptr != ctx) {
-        if ( ! ctx->is_context( type::pinned_context) ) {
-            context::active()->attach( ctx);
+    context * victim = rqueue_.pop();
+    if ( nullptr != victim) {
+        boost::context::detail::prefetch_range( victim, sizeof( victim) );
+        if ( ! victim->is_context( type::pinned_context) ) {
+            context::active()->attach( victim);
         }
     } else {
         std::uint32_t cpu_id = 0;
@@ -110,11 +112,12 @@ work_stealing::pick_next() noexcept {
             // steal context from other scheduler
             // schedulers_[cpu_id] should never contain a nullptr
             BOOST_ASSERT( nullptr != schedulers_[cpu_id]);
-            ctx = schedulers_[cpu_id]->steal();
-        } while ( nullptr == ctx && count < size);
-        if ( nullptr != ctx) {
-            BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
-            context::active()->attach( ctx);
+            victim = schedulers_[cpu_id]->steal();
+        } while ( nullptr == victim && count < size);
+        if ( nullptr != victim) {
+            boost::context::detail::prefetch_range( victim, sizeof( victim) );
+            BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
+            context::active()->attach( victim);
         } else if ( ! remote_cpus_.empty() ) {
             cpu_id = 0;
             count = 0;
@@ -129,17 +132,18 @@ work_stealing::pick_next() noexcept {
                 // schedulers_[cpu_id] should never contain a nullptr
                 BOOST_ASSERT( nullptr != schedulers_[cpu_id]);
                 // steal context from other scheduler
-                ctx = schedulers_[cpu_id]->steal();
-            } while ( nullptr == ctx && count < size);
-            if ( nullptr != ctx) {
-                BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
+                victim = schedulers_[cpu_id]->steal();
+            } while ( nullptr == victim && count < size);
+            if ( nullptr != victim) {
+                boost::context::detail::prefetch_range( victim, sizeof( victim) );
+                BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
                 // move memory from remote NUMA-node to
                 // memory of local NUMA-node
-                context::active()->attach( ctx);
+                context::active()->attach( victim);
             }
         }
     }
-    return ctx;
+    return victim;
 }
 
 void

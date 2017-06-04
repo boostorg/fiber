@@ -10,6 +10,7 @@
 #include <random>
 
 #include <boost/assert.hpp>
+#include <boost/context/detail/prefetch.hpp>
 
 #include "boost/fiber/type.hpp"
 
@@ -52,10 +53,11 @@ work_stealing::awakened( context * ctx) noexcept {
 
 context *
 work_stealing::pick_next() noexcept {
-    context * ctx = rqueue_.pop();
-    if ( nullptr != ctx) {
-        if ( ! ctx->is_context( type::pinned_context) ) {
-            context::active()->attach( ctx);
+    context * victim = rqueue_.pop();
+    if ( nullptr != victim) {
+        boost::context::detail::prefetch_range( victim, sizeof( victim) );
+        if ( ! victim->is_context( type::pinned_context) ) {
+            context::active()->attach( victim);
         }
     } else {
         std::uint32_t id = 0;
@@ -69,14 +71,15 @@ work_stealing::pick_next() noexcept {
                 // prevent stealing from own scheduler
             } while ( id == id_);
             // steal context from other scheduler
-            ctx = schedulers_[id]->steal();
-        } while ( nullptr == ctx && count < size);
-        if ( nullptr != ctx) {
-            BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
-            context::active()->attach( ctx);
+            victim = schedulers_[id]->steal();
+        } while ( nullptr == victim && count < size);
+        if ( nullptr != victim) {
+            boost::context::detail::prefetch_range( victim, sizeof( victim) );
+            BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
+            context::active()->attach( victim);
         }
     }
-    return ctx;
+    return victim;
 }
 
 void
