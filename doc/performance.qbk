@@ -11,7 +11,7 @@ Performance measurements were taken using `std::chrono::highresolution_clock`,
 with overhead corrections.
 The code was compiled with gcc-6.3.1, using build options:
 variant = release, optimization = speed.
-Tests were executed on dual Intel XEON E5 2620 2.2GHz, 16C/32T, 64GB RAM,
+Tests were executed on dual Intel XEON E5 2620v4 2.2GHz, 16C/32T, 64GB RAM,
 running Linux (x86_64).
 
 Measurements headed 1C/1T were run in a single-threaded process.
