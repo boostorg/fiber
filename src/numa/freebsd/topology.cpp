@@ -27,7 +27,7 @@ std::vector< node > topology() {
     std::vector< node > topo;
     cpuset_t mask;
     CPU_ZERO( & mask);
-    if ( 0 != ::cpuset_getaffinity( CPU_LEVEL_WHICH, CPU_WHICH_CPUSET, -1, sizeof( mask), & mask) ) {
+    if ( BOOST_UNLIKELY( 0 != ::cpuset_getaffinity( CPU_LEVEL_WHICH, CPU_WHICH_CPUSET, -1, sizeof( mask), & mask) ) ) {
         throw std::system_error{
                 std::error_code{ errno, std::system_category() },
                 "::cpuset_getaffinity() failed" };

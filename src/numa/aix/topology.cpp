@@ -24,7 +24,7 @@ void explore( int sdl, std::vector< boost::fibers::numa::node > & topo) {
     rsethandle_t rset = ::rs_alloc( RS_PARTITION);
     rsethandle_t rad = ::rs_alloc( RS_EMPTY);
     int maxnodes = ::rs_numrads( rset, sdl, 0);
-    if ( -1 == maxnodes) {
+    if ( BOOST_UNLIKELY( -1 == maxnodes) ) {
         throw std::system_error{
                 std::error_code{ errno, std::system_category() },
                 "rs_numrads() failed" };

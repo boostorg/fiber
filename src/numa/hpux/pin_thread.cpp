@@ -27,7 +27,7 @@ void pin_thread( std::uint32_t cpuid) {
                                            & spu,
                                            static_cast< pthread_spu_t >( cpuid),
                                            PTHREAD_SELFTID_NP);
-    if ( err != 0)
+    if ( BOOST_UNLIKELY( 0 != err) )
         throw std::system_error(
                 std::error_code( err, std::system_category() ),
                 "pthread_processor_bind_np() failed");

@@ -34,7 +34,7 @@ std::vector< node > topology() {
         int cpu_id = ::mpctl( MPC_GETFIRSTSPU_SYS, 0, 0);
         while ( -1 != cpu_id) {
             int node_id = ::mpctl( MPC_SPUTOLDOM, cpu_id, 0);
-            if ( -1 == node_id) {
+            if ( BOOST_UNLIKELY( -1 == node_id) ) {
                 throw std::system_errors{
                         std::error_codes{ errno, std::system_category() },
                         "mpctl() failed" };
