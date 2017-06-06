@@ -418,10 +418,9 @@ private:
 
     boost::context::continuation
     run_( boost::context::continuation && c) noexcept {
+        // `noexcept` will call std::terminate()
+        // if an exception escapes `fn`
         {
-            // fn and tpl must be destroyed before calling terminate()
-            auto fn = std::move( fn_);
-            auto arg = std::move( arg_);
             c = c.resume();
             context * active_ctx = active();
             BOOST_ASSERT( nullptr != active_ctx);
@@ -437,9 +436,9 @@ private:
                 active_ctx->ready_ctx_ = nullptr;
             }
 #if defined(BOOST_NO_CXX17_STD_APPLY)
-           boost::context::detail::apply( std::move( fn), std::move( arg) );
+           boost::context::detail::apply( std::move( fn_), std::move( arg_) );
 #else
-           std::apply( std::move( fn), std::move( arg) );
+           std::apply( std::move( fn_), std::move( arg_) );
 #endif
         }
         // terminate context
