@@ -58,8 +58,14 @@ scheduler::remote_ready2ready_() noexcept {
     while ( ! tmp.empty() ) {
         context * ctx = & tmp.front();
         tmp.pop_front();
-        // store context in local queues
-        schedule( ctx);
+        // ctx was signaled from remote (other thread)
+        // ctx might have been already resumed because of
+        // its wait-op. has been already timed out and
+        // thus it was already pushed to the ready-queue
+        if ( ! ctx->ready_is_linked() ) {
+            // store context in local queues
+            schedule( ctx);
+        }
     }
 }
 #endif
@@ -391,6 +397,7 @@ scheduler::attach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->worker_is_linked() );
     ctx->worker_link( worker_queue_);
     ctx->scheduler_ = this;
+    // an attached context must belong at least to worker-queue
 }
 
 void
@@ -406,7 +413,9 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     BOOST_ASSERT( ctx->worker_is_linked() );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
+    BOOST_ASSERT( ! ctx->worker_is_linked() );
     ctx->scheduler_ = nullptr;
+    // a detached context must not belong to any queue
 }
 
 }}
