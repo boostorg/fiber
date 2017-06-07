@@ -43,11 +43,11 @@ fiber::start_() noexcept {
 void
 fiber::join() {
     // FIXME: must fiber::join() be synchronized?
-    if ( context::active()->get_id() == get_id() ) {
+    if ( BOOST_UNLIKELY( context::active()->get_id() == get_id() ) ) {
         throw fiber_error{ std::make_error_code( std::errc::resource_deadlock_would_occur),
                            "boost fiber: trying to join itself" };
     }
-    if ( ! joinable() ) {
+    if ( BOOST_UNLIKELY( ! joinable() ) ) {
         throw fiber_error{ std::make_error_code( std::errc::invalid_argument),
                            "boost fiber: fiber not joinable" };
     }
@@ -57,7 +57,7 @@ fiber::join() {
 
 void
 fiber::detach() {
-    if ( ! joinable() ) {
+    if ( BOOST_UNLIKELY( ! joinable() ) ) {
         throw fiber_error{ std::make_error_code( std::errc::invalid_argument),
                            "boost fiber: fiber not joinable" };
     }

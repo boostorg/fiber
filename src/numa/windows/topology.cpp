@@ -35,19 +35,19 @@ public:
     procinfo_iterator() = default;
 
     procinfo_iterator( LOGICAL_PROCESSOR_RELATIONSHIP relship) {
-       if ( ::GetLogicalProcessorInformationEx( relship, nullptr, & length_) ) {
+        if ( ::GetLogicalProcessorInformationEx( relship, nullptr, & length_) ) {
             return;
         }
-        if ( ERROR_INSUFFICIENT_BUFFER != ::GetLastError() ) {
+        if ( BOOST_UNLIKELY( ERROR_INSUFFICIENT_BUFFER != ::GetLastError() ) ) {
             throw std::system_error{
                     std::error_code{ static_cast< int >( ::GetLastError() ), std::system_category() },
                     "::GetLogicalProcessorInformation() failed" };
         }
         buffer_ = reinterpret_cast< SLPI * >( LocalAlloc( LMEM_FIXED, length_) );
-        if ( nullptr == buffer_) {
+        if ( BOOST_UNLIKELY( nullptr == buffer_) ) {
             throw std::bad_alloc();
         }
-        if ( ! ::GetLogicalProcessorInformationEx( relship, buffer_, & length_) ) {
+        if ( BOOST_UNLIKELY( ! ::GetLogicalProcessorInformationEx( relship, buffer_, & length_) ) ) {
             throw std::system_error{
                     std::error_code{ static_cast< int >( ::GetLastError() ), std::system_category() },
                     "::GetLogicalProcessorInformation() failed" };

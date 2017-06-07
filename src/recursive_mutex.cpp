@@ -21,59 +21,57 @@ namespace fibers {
 
 void
 recursive_mutex::lock() {
-    context * ctx = context::active();
-    // store this fiber in order to be notified later
-    detail::spinlock_lock lk{ wait_queue_splk_ };
-    if ( ctx == owner_) {
-        ++count_;
-        return;
-    } else if ( nullptr == owner_) {
-        owner_ = ctx;
-        count_ = 1;
-        return;
+    while ( true) {
+        context * active_ctx = context::active();
+        // store this fiber in order to be notified later
+        detail::spinlock_lock lk{ wait_queue_splk_ };
+        if ( active_ctx == owner_) {
+            ++count_;
+            return;
+        } else if ( nullptr == owner_) {
+            owner_ = active_ctx;
+            count_ = 1;
+            return;
+        }
+        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+        active_ctx->wait_link( wait_queue_);
+        // suspend this fiber
+        active_ctx->suspend( & lk);
+        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     }
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
-    ctx->wait_link( wait_queue_);
-    // suspend this fiber
-    ctx->suspend( lk);
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
 }
 
 bool
 recursive_mutex::try_lock() noexcept { 
-    context * ctx = context::active();
+    context * active_ctx = context::active();
     detail::spinlock_lock lk{ wait_queue_splk_ };
     if ( nullptr == owner_) {
-        owner_ = ctx;
+        owner_ = active_ctx;
         count_ = 1;
-    } else if ( ctx == owner_) {
+    } else if ( active_ctx == owner_) {
         ++count_;
     }
     lk.unlock();
     // let other fiber release the lock
     context::active()->yield();
-    return ctx == owner_;
+    return active_ctx == owner_;
 }
 
 void
 recursive_mutex::unlock() {
-    context * ctx = context::active();
+    context * active_ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-    if ( ctx != owner_) {
+    if ( BOOST_UNLIKELY( active_ctx != owner_) ) {
         throw lock_error(
                 std::make_error_code( std::errc::operation_not_permitted),
                 "boost fiber: no  privilege to perform the operation");
     }
     if ( 0 == --count_) {
+        owner_ = nullptr;
         if ( ! wait_queue_.empty() ) {
             context * ctx = & wait_queue_.front();
             wait_queue_.pop_front();
-            owner_ = ctx;
-            count_ = 1;
-            context::active()->schedule( ctx);
-        } else {
-            owner_ = nullptr;
-            return;
+            active_ctx->schedule( ctx);
         }
     }
 }

@@ -55,7 +55,7 @@ BOOST_FIBERS_DECL
 std::vector< node > topology() {
     std::vector< node > topo;
     lgrp_cookie_t cookie = ::lgrp_init( LGRP_VIEW_OS);
-    if ( LGRP_COOKIE_NONE == cookie) {
+    if ( BOOST_UNLIKELY( LGRP_COOKIE_NONE == cookie) ) {
         throw std::system_error{
                 std::error_code{ errno, std::system_category() },
                 "lprp_init() failed" };

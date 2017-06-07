@@ -30,7 +30,7 @@ struct A {
     A & operator=( A const&) = delete;
     A & operator=( A &&) = default;
 
-    int value;
+    int value{ 0 };
 };
 
 void fn1( boost::fibers::promise< int > * p, int i) {
@@ -74,7 +74,7 @@ int fn8( int i) {
 A fn9() {
      A a;
      a.value = 3;
-     return std::move( a);
+     return a;
 }
 
 A fn10() {

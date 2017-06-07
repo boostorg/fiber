@@ -137,7 +137,7 @@ public:
         context * active_ctx = context::active();
         slot s{ value, active_ctx };
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -149,12 +149,12 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -162,7 +162,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
                 // resumed, slot mabye free
             }
         }
@@ -172,7 +172,7 @@ public:
         context * active_ctx = context::active();
         slot s{ std::move( value), active_ctx };
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -184,12 +184,12 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -197,7 +197,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
                 // resumed, slot mabye free
             }
         }
@@ -224,7 +224,7 @@ public:
         slot s{ value, active_ctx };
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -236,7 +236,7 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // clear slot
                     slot * nil_slot = nullptr, * own_slot = & s;
                     slot_.compare_exchange_strong( own_slot, nil_slot, std::memory_order_acq_rel);
@@ -247,7 +247,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -255,7 +255,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -274,7 +274,7 @@ public:
         slot s{ std::move( value), active_ctx };
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
-            if ( is_closed() ) {
+            if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
             if ( try_push_( & s) ) {
@@ -286,7 +286,7 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // clear slot
                     slot * nil_slot = nullptr, * own_slot = & s;
                     slot_.compare_exchange_strong( own_slot, nil_slot, std::memory_order_acq_rel);
@@ -297,7 +297,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_producers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( is_empty_() ) {
@@ -305,7 +305,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -339,7 +339,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_consumers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( ! is_empty_() ) {
@@ -347,7 +347,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_consumers_);
                 // suspend this consumer
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
                 // resumed, slot mabye set
             }
         }
@@ -375,7 +375,7 @@ public:
                 return std::move( value);
             } else {
                 detail::spinlock_lock lk{ splk_consumers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     throw fiber_error{
                             std::make_error_code( std::errc::operation_not_permitted),
                             "boost fiber: channel is closed" };
@@ -385,7 +385,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_consumers_);
                 // suspend this consumer
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
                 // resumed, slot mabye set
             }
         }
@@ -423,7 +423,7 @@ public:
                 return channel_op_status::success;
             } else {
                 detail::spinlock_lock lk{ splk_consumers_ };
-                if ( is_closed() ) {
+                if ( BOOST_UNLIKELY( is_closed() ) ) {
                     return channel_op_status::closed;
                 }
                 if ( ! is_empty_() ) {
@@ -431,7 +431,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_consumers_);
                 // suspend this consumer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue

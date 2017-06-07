@@ -64,7 +64,7 @@ private:
 public:
     explicit buffered_channel( std::size_t capacity) :
             capacity_{ capacity } {
-        if ( 2 > capacity_ || 0 != ( capacity_ & (capacity_ - 1) ) ) { 
+        if ( BOOST_UNLIKELY( 2 > capacity_ || 0 != ( capacity_ & (capacity_ - 1) ) ) ) { 
             throw fiber_error{ std::make_error_code( std::errc::invalid_argument),
                                "boost fiber: buffer capacity is invalid" };
         }
@@ -105,7 +105,7 @@ public:
     channel_op_status try_push( value_type const& value) {
         context * active_ctx = context::active();
         detail::spinlock_lock lk{ splk_ };
-        if ( is_closed_() ) {
+        if ( BOOST_UNLIKELY( is_closed_() ) ) {
             return channel_op_status::closed;
         } else if ( is_full_() ) {
             return channel_op_status::full;
@@ -126,7 +126,7 @@ public:
     channel_op_status try_push( value_type && value) {
         context * active_ctx = context::active();
         detail::spinlock_lock lk{ splk_ };
-        if ( is_closed_() ) {
+        if ( BOOST_UNLIKELY( is_closed_() ) ) {
             return channel_op_status::closed;
         } else if ( is_full_() ) {
             return channel_op_status::full;
@@ -148,12 +148,12 @@ public:
         context * active_ctx = context::active();
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
-            if ( is_closed_() ) {
+            if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
             } else {
                 slots_[pidx_] = value;
                 pidx_ = (pidx_ + 1) % capacity_;
@@ -173,12 +173,12 @@ public:
         context * active_ctx = context::active();
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
-            if ( is_closed_() ) {
+            if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( lk);
+                active_ctx->suspend( & lk);
             } else {
                 slots_[pidx_] = std::move( value);
                 pidx_ = (pidx_ + 1) % capacity_;
@@ -215,12 +215,12 @@ public:
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
-            if ( is_closed_() ) {
+            if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -249,12 +249,12 @@ public:
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
-            if ( is_closed_() ) {
+            if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -302,12 +302,12 @@ public:
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
             if ( is_empty_() ) {
-                if ( is_closed_() ) {
+                if ( BOOST_UNLIKELY( is_closed_() ) ) {
                     return channel_op_status::closed;
                 } else {
                     active_ctx->wait_link( waiting_consumers_);
                     // suspend this consumer
-                    active_ctx->suspend( lk);
+                    active_ctx->suspend( & lk);
                 }
             } else {
                 value = std::move( slots_[cidx_]);
@@ -329,14 +329,14 @@ public:
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
             if ( is_empty_() ) {
-                if ( is_closed_() ) {
+                if ( BOOST_UNLIKELY( is_closed_() ) ) {
                     throw fiber_error{
                         std::make_error_code( std::errc::operation_not_permitted),
                         "boost fiber: channel is closed" };
                 } else {
                     active_ctx->wait_link( waiting_consumers_);
                     // suspend this consumer
-                    active_ctx->suspend( lk);
+                    active_ctx->suspend( & lk);
                 }
             } else {
                 value_type value = std::move( slots_[cidx_]);
@@ -368,12 +368,12 @@ public:
         for (;;) {
             detail::spinlock_lock lk{ splk_ };
             if ( is_empty_() ) {
-                if ( is_closed_() ) {
+                if ( BOOST_UNLIKELY( is_closed_() ) ) {
                     return channel_op_status::closed;
                 } else {
                     active_ctx->wait_link( waiting_consumers_);
                     // suspend this consumer
-                    if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                    if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
                         // relock local lk
                         lk.lock();
                         // remove from waiting-queue
@@ -428,8 +428,9 @@ public:
         }
 
         iterator & operator=( iterator const& other) noexcept {
-            if ( this == & other) return * this;
-            chan_ = other.chan_;
+            if ( BOOST_LIKELY( this != & other) ) {
+                chan_ = other.chan_;
+            }
             return * this;
         }
 

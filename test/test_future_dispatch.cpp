@@ -79,7 +79,7 @@ int fn8( int i) {
 A fn9() {
      A a;
      a.value = 3;
-     return std::move( a);
+     return a;
 }
 
 A fn10() {
@@ -99,7 +99,7 @@ void fn12( boost::fibers::promise< int& > p) {
 }
 
 void fn13( boost::fibers::promise< void > p) {
-  boost::this_fiber::sleep_for( ms(500) );
+  boost::this_fiber::sleep_for( ms(400) );
   p.set_value();
 }
 
@@ -414,7 +414,7 @@ void test_future_wait_for() {
     BOOST_CHECK( boost::fibers::future_status::timeout == status);
 
     BOOST_CHECK( f1.valid() );
-    status = f1.wait_for( ms(300) );
+    status = f1.wait_for( ms(400) );
     BOOST_CHECK( boost::fibers::future_status::ready == status);
 
     BOOST_CHECK( f1.valid() );
@@ -434,7 +434,7 @@ void test_future_wait_for_ref() {
     BOOST_CHECK( boost::fibers::future_status::timeout == status);
 
     BOOST_CHECK( f1.valid() );
-    status = f1.wait_for( ms(300) );
+    status = f1.wait_for( ms(400) );
     BOOST_CHECK( boost::fibers::future_status::ready == status);
 
     BOOST_CHECK( f1.valid() );
@@ -454,7 +454,7 @@ void test_future_wait_for_void() {
     BOOST_CHECK( boost::fibers::future_status::timeout == status);
 
     BOOST_CHECK( f1.valid() );
-    status = f1.wait_for( ms(300) );
+    status = f1.wait_for( ms(400) );
     BOOST_CHECK( boost::fibers::future_status::ready == status);
 
     BOOST_CHECK( f1.valid() );
@@ -474,7 +474,7 @@ void test_future_wait_until() {
     BOOST_CHECK( boost::fibers::future_status::timeout == status);
 
     BOOST_CHECK( f1.valid() );
-    status = f1.wait_until( Clock::now() + ms(300) );
+    status = f1.wait_until( Clock::now() + ms(400) );
     BOOST_CHECK( boost::fibers::future_status::ready == status);
 
     BOOST_CHECK( f1.valid() );
@@ -494,7 +494,7 @@ void test_future_wait_until_ref() {
     BOOST_CHECK( boost::fibers::future_status::timeout == status);
 
     BOOST_CHECK( f1.valid() );
-    status = f1.wait_until( Clock::now() + ms(300) );
+    status = f1.wait_until( Clock::now() + ms(400) );
     BOOST_CHECK( boost::fibers::future_status::ready == status);
 
     BOOST_CHECK( f1.valid() );
@@ -514,7 +514,7 @@ void test_future_wait_until_void() {
     BOOST_CHECK( boost::fibers::future_status::timeout == status);
 
     BOOST_CHECK( f1.valid() );
-    status = f1.wait_until( Clock::now() + ms(300) );
+    status = f1.wait_until( Clock::now() + ms(400) );
     BOOST_CHECK( boost::fibers::future_status::ready == status);
 
     BOOST_CHECK( f1.valid() );
