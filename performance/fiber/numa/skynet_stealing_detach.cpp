@@ -25,6 +25,7 @@
 
 #include <boost/fiber/all.hpp>
 #include <boost/fiber/numa/topology.hpp>
+#include <boost/predef.h>
 
 #include "../barrier.hpp"
 
@@ -85,7 +86,14 @@ int main() {
         barrier b{ hardware_concurrency( topo) };
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
+        // Windows 10 and FreeBSD require a fiber stack of 8kb
+        // otherwise the stack gets exhausted
+        // stack requirements must be checked for other OS too
+#if BOOST_OS_WINDOWS || BOOST_OS_BSD
         allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
+#else
+        allocator_type salloc{ allocator_type::traits_type::page_size() };
+#endif
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
         std::vector< std::thread > threads;

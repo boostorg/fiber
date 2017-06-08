@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <boost/fiber/all.hpp>
+#include <boost/predef.h>
 
 using allocator_type = boost::fibers::fixedsize_stack;
 using channel_type = boost::fibers::buffered_channel< std::uint64_t >;
@@ -51,7 +52,14 @@ int main() {
     try {
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
+        // Windows 10 and FreeBSD require a fiber stack of 8kb
+        // otherwise the stack gets exhausted
+        // stack requirements must be checked for other OS too
+#if BOOST_OS_WINDOWS || BOOST_OS_BSD
         allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
+#else
+        allocator_type salloc{ allocator_type::traits_type::page_size() };
+#endif
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
         time_point_type start{ clock_type::now() };
