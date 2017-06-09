@@ -467,11 +467,9 @@ static intrusive_ptr< context > make_worker_context( launch policy,
     typedef worker_context< Fn, Arg ... >   context_t;
 
     auto sctx = salloc.allocate();
-    BOOST_ASSERT( ( sizeof( context_t) + 2048) < sctx.size); // stack at least of 2kB
-	const std::size_t offset = sizeof( context_t) + 63; 
     // reserve space for control structure
     void * storage = reinterpret_cast< void * >(
-            ( reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( offset) )
+            ( reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( sizeof( context_t) ) )
             & ~ static_cast< uintptr_t >( 0xff) );
     void * stack_bottom = reinterpret_cast< void * >(
             reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( sctx.size) );
