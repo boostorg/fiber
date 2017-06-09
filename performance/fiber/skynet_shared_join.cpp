@@ -82,7 +82,7 @@ int main() {
         for ( unsigned int i = 1; i < n; ++i) {
             threads.emplace_back( thread, i - 1, & b);
         };
-        allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
+        allocator_type salloc{ allocator_type::traits_type::page_size() };
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
         b.wait();
