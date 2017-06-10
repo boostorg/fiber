@@ -279,8 +279,7 @@ void test_join_bind() {
                     value1 = 3;
                     value2 = str;
                 },
-                std::placeholders::_1,
-                std::placeholders::_2
+                std::placeholders::_1
             ),
             std::ref( abc) );
         f.join();

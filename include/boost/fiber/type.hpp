@@ -25,6 +25,7 @@
 #include <boost/intrusive/set.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/decay_copy.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>

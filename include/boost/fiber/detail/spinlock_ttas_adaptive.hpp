@@ -32,16 +32,16 @@ private:
 
     std::atomic< spinlock_status >              state_{ spinlock_status::unlocked };
     std::atomic< std::size_t >                  retries_{ 0 };
+    std::minstd_rand                            generator_{};
 
 public:
-    spinlock_ttas_adaptive() noexcept = default;
+    spinlock_ttas_adaptive() = default;
 
     spinlock_ttas_adaptive( spinlock_ttas_adaptive const&) = delete;
     spinlock_ttas_adaptive & operator=( spinlock_ttas_adaptive const&) = delete;
 
     void lock() noexcept {
         std::size_t collisions = 0 ;
-        std::minstd_rand generator;
         for (;;) {
             std::size_t retries = 0;
             const std::size_t prev_retries = retries_.load( std::memory_order_relaxed);
@@ -95,7 +95,7 @@ public:
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
                 std::uniform_int_distribution< std::size_t > distribution{
                     0, static_cast< std::size_t >( 1) << (std::min)(collisions, static_cast< std::size_t >( BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD)) };
-                const std::size_t z = distribution( generator);
+                const std::size_t z = distribution( generator_);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
                     // -> reduces the power consumed by the CPU

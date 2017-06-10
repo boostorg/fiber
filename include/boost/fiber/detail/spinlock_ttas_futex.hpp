@@ -30,16 +30,16 @@ private:
     friend class spinlock_rtm;
 
     std::atomic< std::int32_t >                 value_{ 0 };
+    std::minstd_rand                            generator_{};
 
 public:
-    spinlock_ttas_futex() noexcept = default;
+    spinlock_ttas_futex() = default;
 
     spinlock_ttas_futex( spinlock_ttas_futex const&) = delete;
     spinlock_ttas_futex & operator=( spinlock_ttas_futex const&) = delete;
 
     void lock() noexcept {
         std::int32_t collisions = 0, retries = 0, expected = 0;
-        std::minstd_rand generator;
         // after max. spins or collisions suspend via futex
         while ( retries++ < BOOST_FIBERS_RETRY_THRESHOLD) {
             // avoid using multiple pause instructions for a delay of a specific cycle count
@@ -86,7 +86,7 @@ public:
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
                 std::uniform_int_distribution< std::int32_t > distribution{
                     0, static_cast< std::int32_t >( 1) << (std::min)(collisions, static_cast< std::int32_t >( BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD)) };
-                const std::int32_t z = distribution( generator);
+                const std::int32_t z = distribution( generator_);
                 ++collisions;
                 for ( std::int32_t i = 0; i < z; ++i) {
                     // -> reduces the power consumed by the CPU

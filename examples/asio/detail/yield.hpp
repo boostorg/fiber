@@ -49,7 +49,7 @@ struct yield_completion {
         if ( ! completed_) {
             // suspend(unique_lock<spinlock>) unlocks the lock in the act of
             // resuming another fiber
-            fibers::context::active()->suspend( & lk);
+            fibers::context::active()->suspend( lk);
         }
     }
 

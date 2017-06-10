@@ -149,7 +149,7 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
@@ -162,7 +162,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
                 // resumed, slot mabye free
             }
         }
@@ -184,7 +184,7 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend till value has been consumed
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
                 // resumed, value has been consumed
                 return channel_op_status::success;
             } else {
@@ -197,7 +197,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
                 // resumed, slot mabye free
             }
         }
@@ -236,7 +236,7 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // clear slot
                     slot * nil_slot = nullptr, * own_slot = & s;
                     slot_.compare_exchange_strong( own_slot, nil_slot, std::memory_order_acq_rel);
@@ -255,7 +255,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -286,7 +286,7 @@ public:
                     active_ctx->schedule( consumer_ctx);
                 }
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // clear slot
                     slot * nil_slot = nullptr, * own_slot = & s;
                     slot_.compare_exchange_strong( own_slot, nil_slot, std::memory_order_acq_rel);
@@ -305,7 +305,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -347,7 +347,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_consumers_);
                 // suspend this consumer
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
                 // resumed, slot mabye set
             }
         }
@@ -385,7 +385,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_consumers_);
                 // suspend this consumer
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
                 // resumed, slot mabye set
             }
         }
@@ -431,7 +431,7 @@ public:
                 }
                 active_ctx->wait_link( waiting_consumers_);
                 // suspend this consumer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
