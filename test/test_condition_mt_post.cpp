@@ -28,7 +28,7 @@
 
 typedef boost::chrono::milliseconds ms;
 
-boost::atomic< int > value;
+boost::atomic< int > value1;
 
 void wait_fn( boost::barrier & b,
               boost::fibers::mutex & mtx,
@@ -37,7 +37,7 @@ void wait_fn( boost::barrier & b,
     b.wait();
 	std::unique_lock< boost::fibers::mutex > lk( mtx);
 	cond.wait( lk, [&flag](){ return flag; });
-	++value;
+	++value1;
 }
 
 void notify_one_fn( boost::barrier & b,
@@ -106,11 +106,11 @@ void test_one_waiter_notify_one() {
         boost::barrier b( 2);
 
         bool flag = false;
-        value = 0;
+        value1 = 0;
         boost::fibers::mutex mtx;
         boost::fibers::condition_variable cond;
 
-        BOOST_CHECK( 0 == value);
+        BOOST_CHECK( 0 == value1);
 
         boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
         boost::thread t2(std::bind( fn2, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
@@ -118,7 +118,7 @@ void test_one_waiter_notify_one() {
         t1.join();
         t2.join();
 
-        BOOST_CHECK( 1 == value);
+        BOOST_CHECK( 1 == value1);
     }
 }
 
@@ -127,11 +127,11 @@ void test_two_waiter_notify_all() {
         boost::barrier b( 3);
 
         bool flag = false;
-        value = 0;
+        value1 = 0;
         boost::fibers::mutex mtx;
         boost::fibers::condition_variable cond;
 
-        BOOST_CHECK( 0 == value);
+        BOOST_CHECK( 0 == value1);
 
         boost::thread t1(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
         boost::thread t2(std::bind( fn1, std::ref( b), std::ref( mtx), std::ref( cond), std::ref( flag) ) );
@@ -141,7 +141,7 @@ void test_two_waiter_notify_all() {
         t2.join();
         t3.join();
 
-        BOOST_CHECK( 2 == value);
+        BOOST_CHECK( 2 == value1);
     }
 }
 
