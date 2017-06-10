@@ -73,7 +73,7 @@ public:
         // unlock external lt
         lt.unlock();
         // suspend this fiber
-        active_ctx->suspend( & lk);
+        active_ctx->suspend( lk);
         // relock external again before returning
         try {
             lt.lock();
@@ -104,7 +104,7 @@ public:
         // unlock external lt
         lt.unlock();
         // suspend this fiber
-        if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+        if ( ! active_ctx->wait_until( timeout_time, lk) ) {
             status = cv_status::timeout;
             // relock local lk
             lk.lock();

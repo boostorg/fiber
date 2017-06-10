@@ -153,7 +153,7 @@ public:
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
             } else {
                 slots_[pidx_] = value;
                 pidx_ = (pidx_ + 1) % capacity_;
@@ -178,7 +178,7 @@ public:
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                active_ctx->suspend( & lk);
+                active_ctx->suspend( lk);
             } else {
                 slots_[pidx_] = std::move( value);
                 pidx_ = (pidx_ + 1) % capacity_;
@@ -220,7 +220,7 @@ public:
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -254,7 +254,7 @@ public:
             } else if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 // suspend this producer
-                if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
                     lk.lock();
                     // remove from waiting-queue
@@ -307,7 +307,7 @@ public:
                 } else {
                     active_ctx->wait_link( waiting_consumers_);
                     // suspend this consumer
-                    active_ctx->suspend( & lk);
+                    active_ctx->suspend( lk);
                 }
             } else {
                 value = std::move( slots_[cidx_]);
@@ -336,7 +336,7 @@ public:
                 } else {
                     active_ctx->wait_link( waiting_consumers_);
                     // suspend this consumer
-                    active_ctx->suspend( & lk);
+                    active_ctx->suspend( lk);
                 }
             } else {
                 value_type value = std::move( slots_[cidx_]);
@@ -373,7 +373,7 @@ public:
                 } else {
                     active_ctx->wait_link( waiting_consumers_);
                     // suspend this consumer
-                    if ( ! active_ctx->wait_until( timeout_time, & lk) ) {
+                    if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                         // relock local lk
                         lk.lock();
                         // remove from waiting-queue

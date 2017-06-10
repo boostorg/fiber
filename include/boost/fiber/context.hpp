@@ -32,6 +32,7 @@
 #include <boost/intrusive/slist.hpp>
 
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/decay_copy.hpp>
 #include <boost/fiber/detail/fss.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
@@ -185,9 +186,6 @@ private:
     fiber_properties                                *   properties_{ nullptr };
     std::chrono::steady_clock::time_point               tp_{ (std::chrono::steady_clock::time_point::max)() };
     boost::context::continuation                        c_{};
-    context                                         *   from_ctx_{ nullptr };
-    context                                         *   ready_ctx_{ nullptr };
-    detail::spinlock_lock                           *   lk_{ nullptr };
     type                                                type_;
     launch                                              policy_;
 
@@ -197,7 +195,7 @@ private:
         policy_{ policy } {
     }
 
-    void resume_() noexcept;
+    void resume_( detail::data_t &) noexcept;
 
 public:
     class id {
@@ -280,11 +278,11 @@ public:
     }
 
     void resume() noexcept;
-    void resume( detail::spinlock_lock *) noexcept;
+    void resume( detail::spinlock_lock &) noexcept;
     void resume( context *) noexcept;
 
     void suspend() noexcept;
-    void suspend( detail::spinlock_lock *) noexcept;
+    void suspend( detail::spinlock_lock &) noexcept;
 
     boost::context::continuation suspend_with_cc() noexcept;
     boost::context::continuation terminate() noexcept;
@@ -295,7 +293,7 @@ public:
 
     bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
     bool wait_until( std::chrono::steady_clock::time_point const&,
-                     detail::spinlock_lock *) noexcept;
+                     detail::spinlock_lock &) noexcept;
 
     void schedule( context *) noexcept;
 
@@ -423,18 +421,13 @@ private:
             auto fn = std::move( fn_);
             auto arg = std::move( arg_);
             c = c.resume();
-            context * active_ctx = active();
-            BOOST_ASSERT( nullptr != active_ctx);
-            BOOST_ASSERT( nullptr != active_ctx->from_ctx_);
-            active_ctx->from_ctx_->c_ = std::move( c);
-            active_ctx->from_ctx_ = nullptr;
-            if ( nullptr != active_ctx->lk_) {
-                active_ctx->lk_->unlock();
-                active_ctx->lk_ = nullptr;
-            }
-            if ( nullptr != active_ctx->ready_ctx_) {
-                active_ctx->schedule( active_ctx->ready_ctx_);
-                active_ctx->ready_ctx_ = nullptr;
+            detail::data_t * dp = c.get_data< detail::data_t * >();
+            // update contiunation of calling fiber
+            dp->from->c_ = std::move( c);
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } else if ( nullptr != dp->ctx) {
+                active()->schedule( dp->ctx);
             }
 #if defined(BOOST_NO_CXX17_STD_APPLY)
            boost::context::detail::apply( std::move( fn), std::move( arg) );

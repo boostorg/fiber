@@ -22,6 +22,7 @@
 #include <boost/fiber/algo/algorithm.hpp>
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
+#include <boost/fiber/detail/data.hpp>
 #include <boost/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -123,7 +124,7 @@ public:
 
     boost::context::continuation dispatch() noexcept;
 
-    boost::context::continuation terminate( detail::spinlock_lock *, context *) noexcept;
+    boost::context::continuation terminate( detail::spinlock_lock &, context *) noexcept;
 
     void yield( context *) noexcept;
 
@@ -131,10 +132,10 @@ public:
                      std::chrono::steady_clock::time_point const&) noexcept;
     bool wait_until( context *,
                      std::chrono::steady_clock::time_point const&,
-                     detail::spinlock_lock *) noexcept;
+                     detail::spinlock_lock &) noexcept;
 
     void suspend() noexcept;
-    void suspend( detail::spinlock_lock *) noexcept;
+    void suspend( detail::spinlock_lock &) noexcept;
 
     bool has_ready_fibers() const noexcept;
 
