@@ -149,6 +149,7 @@ std::vector< node > topology() {
             boost::str(
                 boost::format("/sys/devices/system/cpu/cpu%d/") % cpu_id) };
         BOOST_ASSERT( fs::exists( cpu_path) );
+        bool match = false;
         // 2. to witch NUMA node the CPU belongs to
         directory_iterator e;
         for ( directory_iterator i{ cpu_path, "^node([0-9]+)$" };
@@ -159,18 +160,29 @@ std::vector< node > topology() {
             // assigned to only one NUMA node
             break;
         }
+        if ( ! match) {
+            // no '/sys/devices/system/cpu/cpu<>/node<>'
+            // create NUMA node with id `0`
+            map[0].id = 0;
+            map[0].logical_cpus.insert( cpu_id);
+        }
     }
     for ( auto entry : map) {
         // NUMA-node distance
         fs::path distance_path{
             boost::str(
                 boost::format("/sys/devices/system/node/node%d/distance") % entry.second.id) };
-        BOOST_ASSERT( fs::exists( distance_path) );
-        fs::ifstream fs_distance{ distance_path };
-        std::string content;
-        std::getline( fs_distance, content);
-        entry.second.distance = distance_from_line( content);
-        topo.push_back( entry.second);
+        if ( fs::exists( distance_path) ) {
+            fs::ifstream fs_distance{ distance_path };
+            std::string content;
+            std::getline( fs_distance, content);
+            entry.second.distance = distance_from_line( content);
+            topo.push_back( entry.second);
+        } else {
+            // fake NUMA distance
+            entry.second.distance.push_back( 10);
+            topo.push_back( entry.second);
+        }
     }
     return topo;
 }
