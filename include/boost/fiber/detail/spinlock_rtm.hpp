@@ -98,6 +98,20 @@ public:
         splk_.lock();
     }
 
+    bool try_lock() noexcept {
+        if ( rtm_status::success != rtm_begin() ) {
+            return false;
+        }
+
+        // add lock to read-set
+        if ( spinlock_status::unlocked != splk_.state_.load( std::memory_order_relaxed) ) {
+            // lock was acquired by another thread
+            // explicit abort of transaction with abort argument 'lock not free'
+            rtm_abort_lock_not_free();
+        }
+        return true;
+    }
+
     void unlock() noexcept {
         if ( spinlock_status::unlocked == splk_.state_.load( std::memory_order_acquire) ) {
             rtm_end();
