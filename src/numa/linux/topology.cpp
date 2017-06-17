@@ -160,17 +160,30 @@ std::vector< node > topology() {
             break;
         }
     }
+    if ( map.empty() ) {
+        // maybe /sys/devices/system/cpu/cpu[0-9]/node[0-9] was not defined
+        // put all CPUs to NUMA node 0
+        map[0].id = 0;
+        for ( std::uint32_t cpu_id : cpus) {
+            map[0].logical_cpus.insert( cpu_id);
+        }
+    }
     for ( auto entry : map) {
         // NUMA-node distance
         fs::path distance_path{
             boost::str(
                 boost::format("/sys/devices/system/node/node%d/distance") % entry.second.id) };
-        BOOST_ASSERT( fs::exists( distance_path) );
-        fs::ifstream fs_distance{ distance_path };
-        std::string content;
-        std::getline( fs_distance, content);
-        entry.second.distance = distance_from_line( content);
-        topo.push_back( entry.second);
+        if ( fs::exists( distance_path) ) {
+            fs::ifstream fs_distance{ distance_path };
+            std::string content;
+            std::getline( fs_distance, content);
+            entry.second.distance = distance_from_line( content);
+            topo.push_back( entry.second);
+        } else {
+            // fake NUMA distance
+            entry.second.distance.push_back( 10);
+            topo.push_back( entry.second);
+        }
     }
     return topo;
 }

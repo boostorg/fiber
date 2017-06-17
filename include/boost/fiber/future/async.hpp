@@ -30,7 +30,7 @@ future<
         >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( Fn && fn, Args && ... args) {
+async( Fn && fn, Args ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
     >::type     result_type;
@@ -51,7 +51,7 @@ future<
         >::type( typename std::decay< Args >::type ...)
     >::type
 >
-async( Policy policy, Fn && fn, Args && ... args) {
+async( Policy policy, Fn && fn, Args ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
     >::type     result_type;
@@ -72,7 +72,7 @@ future<
         >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args && ... args) {
+async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Fn && fn, Args ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
     >::type     result_type;
@@ -94,7 +94,7 @@ future<
         >::type( typename std::decay< Args >::type ... )
     >::type
 >
-async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Allocator alloc, Fn && fn, Args && ... args) {
+async( Policy policy, std::allocator_arg_t, StackAllocator salloc, Allocator alloc, Fn && fn, Args ... args) {
     typedef typename std::result_of<
         typename std::decay< Fn >::type( typename std::decay< Args >::type ... )
     >::type     result_type;

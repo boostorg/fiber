@@ -98,13 +98,6 @@ public:
 
     ~unbuffered_channel() {
         close();
-        slot * s = nullptr;
-        if ( nullptr != ( s = try_pop_() ) ) {
-            BOOST_ASSERT( nullptr != s);
-            BOOST_ASSERT( nullptr != s->ctx);
-            // value will be destructed in the context of the waiting fiber
-            context::active()->schedule( s->ctx);
-        }
     }
 
     unbuffered_channel( unbuffered_channel const&) = delete;
@@ -122,14 +115,46 @@ public:
         while ( ! waiting_producers_.empty() ) {
             context * producer_ctx = & waiting_producers_.front();
             waiting_producers_.pop_front();
-            active_ctx->schedule( producer_ctx);
+            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                // notify before timeout
+                intrusive_ptr_release( producer_ctx);
+                // notify context
+                active_ctx->schedule( producer_ctx);
+            } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                // no timed-wait op.
+                // notify context
+                active_ctx->schedule( producer_ctx);
+            } else {
+                // timed-wait op.
+                // expected == -1: notify after timeout, same timed-wait op.
+                // expected == <any>: notify after timeout, another timed-wait op. was already started
+                intrusive_ptr_release( producer_ctx);
+                // re-schedule next
+            }
         }
         // notify all waiting consumers
         detail::spinlock_lock lk2{ splk_consumers_ };
         while ( ! waiting_consumers_.empty() ) {
             context * consumer_ctx = & waiting_consumers_.front();
             waiting_consumers_.pop_front();
-            active_ctx->schedule( consumer_ctx);
+            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                // notify before timeout
+                intrusive_ptr_release( consumer_ctx);
+                // notify context
+                active_ctx->schedule( consumer_ctx);
+            } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                // no timed-wait op.
+                // notify context
+                active_ctx->schedule( consumer_ctx);
+            } else {
+                // timed-wait op.
+                // expected == -1: notify after timeout, same timed-wait op.
+                // expected == <any>: notify after timeout, another timed-wait op. was already started
+                intrusive_ptr_release( consumer_ctx);
+                // re-schedule next
+            }
         }
     }
 
@@ -143,10 +168,28 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
+                while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->schedule( consumer_ctx);
+                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                        // notify before timeout
+                        intrusive_ptr_release( consumer_ctx);
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                        // no timed-wait op.
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else {
+                        // timed-wait op.
+                        // expected == -1: notify after timeout, same timed-wait op.
+                        // expected == <any>: notify after timeout, another timed-wait op. was already started
+                        intrusive_ptr_release( consumer_ctx);
+                        // re-schedule next
+                    }
                 }
                 // suspend till value has been consumed
                 active_ctx->suspend( lk);
@@ -161,6 +204,7 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_producers_);
+                active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
                 // suspend this producer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye free
@@ -178,10 +222,28 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
+                while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->schedule( consumer_ctx);
+                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                        // notify before timeout
+                        intrusive_ptr_release( consumer_ctx);
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                        // no timed-wait op.
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else {
+                        // timed-wait op.
+                        // expected == -1: notify after timeout, same timed-wait op.
+                        // expected == <any>: notify after timeout, another timed-wait op. was already started
+                        intrusive_ptr_release( consumer_ctx);
+                        // re-schedule next
+                    }
                 }
                 // suspend till value has been consumed
                 active_ctx->suspend( lk);
@@ -196,6 +258,7 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_producers_);
+                active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
                 // suspend this producer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye free
@@ -230,12 +293,32 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
+                while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->schedule( consumer_ctx);
+                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                        // notify before timeout
+                        intrusive_ptr_release( consumer_ctx);
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                        // no timed-wait op.
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else {
+                        // timed-wait op.
+                        // expected == -1: notify after timeout, same timed-wait op.
+                        // expected == <any>: notify after timeout, another timed-wait op. was already started
+                        intrusive_ptr_release( consumer_ctx);
+                        // re-schedule next
+                    }
                 }
                 // suspend this producer
+                intrusive_ptr_add_ref( active_ctx);
+                active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // clear slot
                     slot * nil_slot = nullptr, * own_slot = & s;
@@ -254,6 +337,8 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_producers_);
+                intrusive_ptr_add_ref( active_ctx);
+                active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 // suspend this producer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
@@ -280,12 +365,32 @@ public:
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 // notify one waiting consumer
-                if ( ! waiting_consumers_.empty() ) {
+                while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    active_ctx->schedule( consumer_ctx);
+                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                        // notify before timeout
+                        intrusive_ptr_release( consumer_ctx);
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                        // no timed-wait op.
+                        // notify context
+                        active_ctx->schedule( consumer_ctx);
+                        break;
+                    } else {
+                        // timed-wait op.
+                        // expected == -1: notify after timeout, same timed-wait op.
+                        // expected == <any>: notify after timeout, another timed-wait op. was already started
+                        intrusive_ptr_release( consumer_ctx);
+                        // re-schedule next
+                    }
                 }
                 // suspend this producer
+                intrusive_ptr_add_ref( active_ctx);
+                active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // clear slot
                     slot * nil_slot = nullptr, * own_slot = & s;
@@ -304,6 +409,8 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_producers_);
+                intrusive_ptr_add_ref( active_ctx);
+                active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 // suspend this producer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk
@@ -325,16 +432,33 @@ public:
                 {
                     detail::spinlock_lock lk{ splk_producers_ };
                     // notify one waiting producer
-                    if ( ! waiting_producers_.empty() ) {
+                    while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
                         lk.unlock();
-                        active_ctx->schedule( producer_ctx);
+                        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                        if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                            // notify before timeout
+                            intrusive_ptr_release( producer_ctx);
+                            // notify context
+                            active_ctx->schedule( producer_ctx);
+                            break;
+                        } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                            // no timed-wait op.
+                            // notify context
+                            active_ctx->schedule( producer_ctx);
+                            break;
+                        } else {
+                            // timed-wait op.
+                            // expected == -1: notify after timeout, same timed-wait op.
+                            // expected == <any>: notify after timeout, another timed-wait op. was already started
+                            intrusive_ptr_release( producer_ctx);
+                            // re-schedule next
+                        }
                     }
                 }
-                // consume value
                 value = std::move( s->value);
-                // resume suspended producer
+                // notify context
                 active_ctx->schedule( s->ctx);
                 return channel_op_status::success;
             } else {
@@ -346,6 +470,7 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_consumers_);
+                active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
                 // suspend this consumer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye set
@@ -361,16 +486,34 @@ public:
                 {
                     detail::spinlock_lock lk{ splk_producers_ };
                     // notify one waiting producer
-                    if ( ! waiting_producers_.empty() ) {
+                    while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
                         lk.unlock();
-                        active_ctx->schedule( producer_ctx);
+                        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                        if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                            // notify before timeout
+                            intrusive_ptr_release( producer_ctx);
+                            // notify context
+                            active_ctx->schedule( producer_ctx);
+                            break;
+                        } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                            // no timed-wait op.
+                            // notify context
+                            active_ctx->schedule( producer_ctx);
+                            break;
+                        } else {
+                            // timed-wait op.
+                            // expected == -1: notify after timeout, same timed-wait op.
+                            // expected == <any>: notify after timeout, another timed-wait op. was already started
+                            intrusive_ptr_release( producer_ctx);
+                            // re-schedule next
+                        }
                     }
                 }
                 // consume value
-                value_type value{ std::move( s->value) };
-                // resume suspended producer
+                value_type value = std::move( s->value);
+                // notify context
                 active_ctx->schedule( s->ctx);
                 return std::move( value);
             } else {
@@ -384,6 +527,7 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_consumers_);
+                active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
                 // suspend this consumer
                 active_ctx->suspend( lk);
                 // resumed, slot mabye set
@@ -409,16 +553,34 @@ public:
                 {
                     detail::spinlock_lock lk{ splk_producers_ };
                     // notify one waiting producer
-                    if ( ! waiting_producers_.empty() ) {
+                    while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
                         lk.unlock();
-                        active_ctx->schedule( producer_ctx);
+                        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                        if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                            // notify before timeout
+                            intrusive_ptr_release( producer_ctx);
+                            // notify context
+                            active_ctx->schedule( producer_ctx);
+                            break;
+                        } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                            // no timed-wait op.
+                            // notify context
+                            active_ctx->schedule( producer_ctx);
+                            break;
+                        } else {
+                            // timed-wait op.
+                            // expected == -1: notify after timeout, same timed-wait op.
+                            // expected == <any>: notify after timeout, another timed-wait op. was already started
+                            intrusive_ptr_release( producer_ctx);
+                            // re-schedule next
+                        }
                     }
                 }
                 // consume value
                 value = std::move( s->value);
-                // resume suspended producer
+                // notify context
                 active_ctx->schedule( s->ctx);
                 return channel_op_status::success;
             } else {
@@ -430,6 +592,8 @@ public:
                     continue;
                 }
                 active_ctx->wait_link( waiting_consumers_);
+                intrusive_ptr_add_ref( active_ctx);
+                active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 // suspend this consumer
                 if ( ! active_ctx->wait_until( timeout_time, lk) ) {
                     // relock local lk

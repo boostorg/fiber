@@ -109,6 +109,11 @@ public:
         }
     }
 
+    bool try_lock() noexcept {
+        std::int32_t expected = 0;
+        return value_.compare_exchange_strong( expected, 1, std::memory_order_acquire);
+    }
+
     void unlock() noexcept {
         if ( 1 != value_.fetch_sub( 1, std::memory_order_acquire) ) {
             value_.store( 0, std::memory_order_release);

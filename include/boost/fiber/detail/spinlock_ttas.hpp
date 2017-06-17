@@ -102,6 +102,10 @@ public:
         }
     }
 
+    bool try_lock() noexcept {
+        return spinlock_status::unlocked == state_.exchange( spinlock_status::locked, std::memory_order_acquire);
+    }
+
     void unlock() noexcept {
         state_.store( spinlock_status::unlocked, std::memory_order_release);
     }
