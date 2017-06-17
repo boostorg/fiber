@@ -176,6 +176,9 @@ private:
     wait_queue_t                                        wait_queue_{};
 public:
     detail::wait_hook                                   wait_hook_{};
+#if ! defined(BOOST_FIBERS_NO_ATOMICS)
+    std::atomic< std::intptr_t >                        twstatus{ 0 };
+#endif
 private:
     scheduler                                       *   scheduler_{ nullptr };
     fss_data_t                                          fss_data_{};

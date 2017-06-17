@@ -38,6 +38,8 @@ recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point co
         }
         BOOST_ASSERT( ! active_ctx->wait_is_linked() );
         active_ctx->wait_link( wait_queue_);
+        intrusive_ptr_add_ref( active_ctx);
+        active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
         // suspend this fiber until notified or timed-out
         if ( ! active_ctx->wait_until( timeout_time, lk) ) {
             // remove fiber from wait-queue 
@@ -64,6 +66,7 @@ recursive_timed_mutex::lock() {
             return;
         }
         BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+        active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
         active_ctx->wait_link( wait_queue_);
         // suspend this fiber
         active_ctx->suspend( lk);
@@ -101,7 +104,23 @@ recursive_timed_mutex::unlock() {
         if ( ! wait_queue_.empty() ) {
             context * ctx = & wait_queue_.front();
             wait_queue_.pop_front();
-            active_ctx->schedule( ctx);
+            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                // notify before timeout
+                intrusive_ptr_release( ctx);
+                // notify context
+                active_ctx->schedule( ctx);
+            } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                // no timed-wait op.
+                // notify context
+                active_ctx->schedule( ctx);
+            } else {
+                // timed-wait op.
+                // expected == -1: notify after timeout, same timed-wait op.
+                // expected == <any>: notify after timeout, another timed-wait op. was already started
+                intrusive_ptr_release( ctx);
+                // re-schedule next
+            }
         }
     }
 }

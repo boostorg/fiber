@@ -93,12 +93,13 @@ scheduler::sleep2ready_() noexcept {
             i = sleep_queue_.erase( i);
             // reset sleep-tp
             ctx->tp_ = (std::chrono::steady_clock::time_point::max)();
-            // if context' was waiting on an object and
-            // op. has timed out, remove it from waiting-queue
-            if ( ctx->wait_is_linked() ) {
-                // remove context from wait-queue
-                ctx->wait_unlink();
+            std::intptr_t prev = ctx->twstatus.exchange( -1);
+            if ( static_cast< std::intptr_t >( -1) ==  prev) {
+                // timed-wait op.: timeout after notify
+                continue;
             }
+            // prev == 0: no timed-wait op.
+            // prev == <any>: timed-wait op., timeout before notify
             // push new context to ready-queue
             algo_->awakened( ctx);
         } else {
@@ -255,7 +256,6 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( ctx->wait_queue_.empty() );
     // store the terminated fiber in the terminated-queue
     // the dispatcher-context will call
-    // intrusive_ptr_release( ctx);
     ctx->terminated_link( terminated_queue_);
     // remove from the worker-queue
     ctx->worker_unlink();
