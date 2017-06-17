@@ -149,7 +149,6 @@ std::vector< node > topology() {
             boost::str(
                 boost::format("/sys/devices/system/cpu/cpu%d/") % cpu_id) };
         BOOST_ASSERT( fs::exists( cpu_path) );
-        bool match = false;
         // 2. to witch NUMA node the CPU belongs to
         directory_iterator e;
         for ( directory_iterator i{ cpu_path, "^node([0-9]+)$" };
@@ -160,10 +159,12 @@ std::vector< node > topology() {
             // assigned to only one NUMA node
             break;
         }
-        if ( ! match) {
-            // no '/sys/devices/system/cpu/cpu<>/node<>'
-            // create NUMA node with id `0`
-            map[0].id = 0;
+    }
+    if ( map.empty() ) {
+        // maybe /sys/devices/system/cpu/cpu[0-9]/node[0-9] was not defined
+        // put all CPUs to NUMA node 0
+        map[0].id = 0;
+        for ( std::uint32_t cpu_id : cpus) {
             map[0].logical_cpus.insert( cpu_id);
         }
     }
