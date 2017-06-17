@@ -11,6 +11,7 @@
 #include <algorithm>                // std::min()
 #include <errno.h>                  // EWOULDBLOCK
 #include <cassert>
+#include <cstdio>
 
 /*****************************************************************************
 *   example nonblocking API
