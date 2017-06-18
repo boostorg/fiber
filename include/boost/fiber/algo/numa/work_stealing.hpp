@@ -43,9 +43,6 @@ private:
     std::uint32_t                                           cpu_id_;
     std::vector< std::uint32_t >                            local_cpus_;
     std::vector< std::uint32_t >                            remote_cpus_;
-    std::minstd_rand                                        generator_{};
-    std::uniform_int_distribution< std::uint32_t >          local_distribution_;
-    std::uniform_int_distribution< std::uint32_t >          remote_distribution_;
 #ifdef BOOST_FIBERS_USE_SPMC_QUEUE
     detail::context_spmc_queue                              rqueue_{};
 #else

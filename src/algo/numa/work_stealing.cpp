@@ -70,8 +70,6 @@ work_stealing::work_stealing(
         cpu_id_{ cpu_id },
         local_cpus_{ get_local_cpus( node_id, topo) },
         remote_cpus_{ get_remote_cpus( node_id, topo) },
-        local_distribution_{ 0, static_cast< std::uint32_t >( local_cpus_.size() - 1) },
-        remote_distribution_{ 0, static_cast< std::uint32_t >( remote_cpus_.size() - 1) },
         suspend_{ suspend } {
     // pin current thread to logical cpu
     boost::fibers::numa::pin_thread( cpu_id_);
@@ -101,12 +99,17 @@ work_stealing::pick_next() noexcept {
     } else {
         std::uint32_t cpu_id = 0;
         std::size_t count = 0, size = local_cpus_.size();
+        static thread_local std::minstd_rand generator{ std::random_device{}() };
+        std::uniform_int_distribution< std::uint32_t > local_distribution{
+            0, static_cast< std::uint32_t >( local_cpus_.size() - 1) };
+        std::uniform_int_distribution< std::uint32_t > remote_distribution{
+            0, static_cast< std::uint32_t >( remote_cpus_.size() - 1) };
         do {
             do {
                 ++count;
                 // random selection of one logical cpu
                 // that belongs to the local NUMA node
-                cpu_id = local_cpus_[local_distribution_( generator_)];
+                cpu_id = local_cpus_[local_distribution( generator)];
                 // prevent stealing from own scheduler
             } while ( cpu_id == cpu_id_);
             // steal context from other scheduler
@@ -126,7 +129,7 @@ work_stealing::pick_next() noexcept {
                 ++count;
                 // random selection of one logical cpu
                 // that belongs to a remote NUMA node
-                cpu_id = remote_cpus_[remote_distribution_( generator_)];
+                cpu_id = remote_cpus_[remote_distribution( generator)];
                 // remote cpu ID should never be equal to local cpu ID
                 BOOST_ASSERT( cpu_id != cpu_id_);
                 // schedulers_[cpu_id] should never contain a nullptr

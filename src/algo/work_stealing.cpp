@@ -34,11 +34,11 @@ work_stealing::init_( std::uint32_t thread_count,
 
 work_stealing::work_stealing( std::uint32_t thread_count, bool suspend) :
         id_{ counter_++ },
-        distribution_{ 0, static_cast< std::uint32_t >( thread_count - 1) },
+        thread_count_{ thread_count },
         suspend_{ suspend } {
     // initialize the array of schedulers
     static std::once_flag flag;
-    std::call_once( flag, & work_stealing::init_, thread_count, std::ref( schedulers_) );
+    std::call_once( flag, & work_stealing::init_, thread_count_, std::ref( schedulers_) );
     // register pointer of this scheduler
     schedulers_[id_] = this;
 }
@@ -62,12 +62,15 @@ work_stealing::pick_next() noexcept {
     } else {
         std::uint32_t id = 0;
         std::size_t count = 0, size = schedulers_.size();
+        static thread_local std::minstd_rand generator{ std::random_device{}() };
+        std::uniform_int_distribution< std::uint32_t > distribution{
+            0, static_cast< std::uint32_t >( thread_count_ - 1) };
         do {
             do {
                 ++count;
                 // random selection of one logical cpu
                 // that belongs to the local NUMA node
-                id = distribution_( generator_);
+                id = distribution( generator);
                 // prevent stealing from own scheduler
             } while ( id == id_);
             // steal context from other scheduler

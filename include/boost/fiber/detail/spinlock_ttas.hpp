@@ -31,7 +31,6 @@ private:
     friend class spinlock_rtm;
 
     std::atomic< spinlock_status >              state_{ spinlock_status::unlocked };
-    std::minstd_rand                            generator_{};
 
 public:
     spinlock_ttas() = default;
@@ -40,6 +39,7 @@ public:
     spinlock_ttas & operator=( spinlock_ttas const&) = delete;
 
     void lock() noexcept {
+        static thread_local std::minstd_rand generator{ std::random_device{}() };
         std::size_t collisions = 0 ;
         for (;;) {
             // avoid using multiple pause instructions for a delay of a specific cycle count
@@ -88,7 +88,7 @@ public:
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
                 std::uniform_int_distribution< std::size_t > distribution{
                     0, static_cast< std::size_t >( 1) << (std::min)(collisions, static_cast< std::size_t >( BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD)) };
-                const std::size_t z = distribution( generator_);
+                const std::size_t z = distribution( generator);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
                     // -> reduces the power consumed by the CPU

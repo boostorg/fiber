@@ -23,7 +23,7 @@
 static std::size_t fiber_count{ 0 };
 static std::mutex mtx_count{};
 static boost::fibers::condition_variable_any cnd_count{};
-typedef std::unique_lock< std::mutex > lock_t;
+typedef std::unique_lock< std::mutex > lock_type;
 
 /*****************************************************************************
 *   example fiber function
@@ -49,7 +49,7 @@ void whatevah( char me) {
         }
     } catch ( ... ) {
     }
-    lock_t lk( mtx_count);
+    lock_type lk( mtx_count);
     if ( 0 == --fiber_count) { /*< Decrement fiber counter for each completed fiber. >*/
         lk.unlock();
         cnd_count.notify_all(); /*< Notify all fibers waiting on `cnd_count`. >*/
@@ -70,7 +70,7 @@ void thread( barrier * b) {
         join the work sharing.
     >*/
     b->wait(); /*< sync with other threads: allow them to start processing >*/
-    lock_t lk( mtx_count);
+    lock_type lk( mtx_count);
     cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
         Suspend main fiber and resume worker fibers in the meanwhile.
         Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)
@@ -109,7 +109,7 @@ int main( int argc, char *argv[]) {
     };
     b.wait(); /*< sync with other threads: allow them to start processing >*/
     {
-        lock_t/*< `lock_t` is typedef'ed as __unique_lock__< [@http://en.cppreference.com/w/cpp/thread/mutex `std::mutex`] > >*/ lk( mtx_count);
+        lock_type/*< `lock_type` is typedef'ed as __unique_lock__< [@http://en.cppreference.com/w/cpp/thread/mutex `std::mutex`] > >*/ lk( mtx_count);
         cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
             Suspend main fiber and resume worker fibers in the meanwhile.
             Main fiber gets resumed (e.g returns from `condition_variable_any::wait()`)

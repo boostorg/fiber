@@ -26,7 +26,6 @@ template< typename FBSplk >
 class spinlock_rtm {
 private:
     FBSplk              splk_{};
-    std::minstd_rand    generator_{};
 
 public:
     spinlock_rtm() = default;
@@ -35,6 +34,7 @@ public:
     spinlock_rtm & operator=( spinlock_rtm const&) = delete;
 
     void lock() noexcept {
+        static thread_local std::minstd_rand generator{ std::random_device{}() };
         std::size_t collisions = 0 ;
         for ( std::size_t retries = 0; retries < BOOST_FIBERS_RETRY_THRESHOLD; ++retries) {
             std::uint32_t status;
@@ -56,7 +56,7 @@ public:
                 if ( BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD > collisions) {
                     std::uniform_int_distribution< std::size_t > distribution{
                         0, static_cast< std::size_t >( 1) << (std::min)(collisions, static_cast< std::size_t >( BOOST_FIBERS_CONTENTION_WINDOW_THRESHOLD)) };
-                    const std::size_t z = distribution( generator_);
+                    const std::size_t z = distribution( generator);
                     ++collisions;
                     for ( std::size_t i = 0; i < z; ++i) {
                         cpu_relax();
