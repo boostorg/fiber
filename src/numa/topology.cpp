@@ -6,7 +6,7 @@
 
 #include "boost/fiber/numa/topology.hpp"
 
-#include <stdexception>
+#include <stdexcept>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_PREFIX
