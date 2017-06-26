@@ -418,9 +418,7 @@ private:
     std::tuple< Arg ... >                               arg_;
 
     boost::context::continuation
-    run_( boost::context::continuation && c) noexcept {
-        // `noexcept` will call std::terminate()
-        // if an exception escapes `fn`
+    run_( boost::context::continuation && c) {
         {
             c = c.resume();
             detail::data_t * dp = c.get_data< detail::data_t * >();
