@@ -418,7 +418,7 @@ private:
     std::tuple< Arg ... >                               arg_;
 
     boost::context::continuation
-    run_( boost::context::continuation && c) noexcept {
+    run_( boost::context::continuation && c) {
         {
             // fn and tpl must be destroyed before calling terminate()
             auto fn = std::move( fn_);

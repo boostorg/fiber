@@ -30,7 +30,7 @@ public:
 class dispatcher_context final : public context {
 private:
     boost::context::continuation
-    run_( boost::context::continuation && c) noexcept {
+    run_( boost::context::continuation && c) {
 		c = c.resume();
         detail::data_t * dp = c.get_data< detail::data_t * >();
         // update contiunation of calling fiber
