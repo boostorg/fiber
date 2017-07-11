@@ -24,8 +24,9 @@ namespace numa {
 #endif
 
 BOOST_FIBERS_DECL
-std::vector< topology > topology() {
+std::vector< node > topology() {
     throw std::runtime_error("topology() not supported");
+    return std::vector< node >{};
 }
 
 }}}
