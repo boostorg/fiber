@@ -18,7 +18,7 @@ extern "C" {
 #include <sys/syscall.h>
 }
 #elif BOOST_OS_WINDOWS
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 namespace boost {
