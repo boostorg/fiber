@@ -6,7 +6,9 @@
 
 #include "boost/fiber/numa/topology.hpp"
 
-#include <stdexcept>
+#include <system_error>
+
+#include "boost/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_PREFIX
@@ -24,8 +26,11 @@ namespace numa {
 #endif
 
 BOOST_FIBERS_DECL
-std::vector< topology > topology() {
-    throw std::runtime_error("topology() not supported");
+std::vector< node > topology() {
+    throw fiber_error{
+        std::make_error_code( std::errc::function_not_supported),
+            "boost fiber: topology() not supported" };
+    return std::vector< node >{};
 }
 
 }}}

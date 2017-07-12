@@ -6,7 +6,9 @@
 
 #include "boost/fiber/numa/pin_thread.hpp"
 
-#include <stdexcept>
+#include <system_error>
+
+#include "boost/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_PREFIX
@@ -25,7 +27,9 @@ namespace numa {
 
 BOOST_FIBERS_DECL
 void pin_thread( std::uint32_t) {
-    throw std::runtime_error("pin_thread() not supported");
+    throw fiber_error{
+        std::make_error_code( std::errc::function_not_supported),
+            "boost fiber: pin_thread() not supported" };
 }
 
 }}}
