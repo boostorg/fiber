@@ -16,7 +16,7 @@
 #include <boost/fiber/detail/config.hpp>
 
 #if BOOST_COMP_MSVC || BOOST_COMP_MSVC_EMULATED
-# include <Windows.h>
+# include <windows.h>
 #endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
