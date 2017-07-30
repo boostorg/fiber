@@ -55,7 +55,7 @@ context *
 work_stealing::pick_next() noexcept {
     context * victim = rqueue_.pop();
     if ( nullptr != victim) {
-        boost::context::detail::prefetch_range( victim, sizeof( victim) );
+        boost::context::detail::prefetch_range( victim, sizeof( context) );
         if ( ! victim->is_context( type::pinned_context) ) {
             context::active()->attach( victim);
         }
@@ -77,7 +77,7 @@ work_stealing::pick_next() noexcept {
             victim = schedulers_[id]->steal();
         } while ( nullptr == victim && count < size);
         if ( nullptr != victim) {
-            boost::context::detail::prefetch_range( victim, sizeof( victim) );
+            boost::context::detail::prefetch_range( victim, sizeof( context) );
             BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
             context::active()->attach( victim);
         }
