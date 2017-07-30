@@ -32,21 +32,28 @@ namespace detail {
 //[fibers_asio_yield_completion
 // Bundle a completion bool flag with a spinlock to protect it.
 struct yield_completion {
+    enum state_t {
+        init,
+        waiting,
+        complete
+    };
+
     typedef fibers::detail::spinlock                    mutex_t;
     typedef std::unique_lock< mutex_t >                 lock_t;
     typedef boost::intrusive_ptr< yield_completion >    ptr_t;
 
     std::atomic< std::size_t >  use_count_{ 0 };
     mutex_t                     mtx_{};
-    bool                        completed_{ false };
+    state_t                     state_{ init };
 
     void wait() {
-        // yield_handler_base::operator()() will set completed_ true and
+        // yield_handler_base::operator()() will set state_ `complete` and
         // attempt to wake a suspended fiber. It would be Bad if that call
-        // happened between our detecting (! completed_) and suspending.
+        // happened between our detecting (complete != state_) and suspending.
         lock_t lk{ mtx_ };
-        // If completed_ is already set, we're done here: don't suspend.
-        if ( ! completed_) {
+        // If state_ is already set, we're done here: don't suspend.
+        if ( complete != state_) {
+            state_ = waiting;
             // suspend(unique_lock<spinlock>) unlocks the lock in the act of
             // resuming another fiber
             fibers::context::active()->suspend( lk);
@@ -94,21 +101,22 @@ public:
         BOOST_ASSERT_MSG( yt_.ec_,
                           "Must inject boost::system::error_code* "
                           "before calling yield_handler_base::operator()()");
-        // If originating fiber is busy testing completed_ flag, wait until it
-        // has observed (! completed_).
+        // If originating fiber is busy testing state_ flag, wait until it
+        // has observed (completed != state_).
         yield_completion::lock_t lk{ ycomp_->mtx_ };
+        yield_completion::state_t state = ycomp_->state_;
         // Notify a subsequent yield_completion::wait() call that it need not
         // suspend.
-        ycomp_->completed_ = true;
+        ycomp_->state_ = yield_completion::complete;
         // set the error_code bound by yield_t
         * yt_.ec_ = ec;
-        // unlock the lock that protects completed_
+        // unlock the lock that protects state_
         lk.unlock();
         // If ctx_ is still active, e.g. because the async operation
         // immediately called its callback (this method!) before the asio
         // async function called async_result_base::get(), we must not set it
         // ready.
-        if ( fibers::context::active() != ctx_) {
+        if ( yield_completion::waiting == state) {
             // wake the fiber
             fibers::context::active()->schedule( ctx_);
         }
