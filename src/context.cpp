@@ -31,15 +31,7 @@ class dispatcher_context final : public context {
 private:
     boost::context::continuation
     run_( boost::context::continuation && c) {
-		c = c.resume();
-        detail::data_t * dp = c.get_data< detail::data_t * >();
-        // update contiunation of calling fiber
-        dp->from->c_ = std::move( c);
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            active()->schedule( dp->ctx);
-        }
+        c.resume();
 		// execute scheduler::dispatch()
 		return get_scheduler()->dispatch();
     }
@@ -116,20 +108,6 @@ context::reset_active() noexcept {
     context_initializer::active_ = nullptr;
 }
 
-void
-context::resume_( detail::data_t & d) noexcept {
-    boost::context::continuation c = c_.resume( & d);
-    detail::data_t * dp = c.get_data< detail::data_t * >();
-    if ( nullptr != dp) {
-        dp->from->c_ = std::move( c);
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            active()->schedule( dp->ctx);
-        }
-    }
-}
-
 context::~context() {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
@@ -164,8 +142,10 @@ context::resume() noexcept {
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
-    detail::data_t d{ prev };
-    resume_( d);
+    // pass pointer to the context that resumes `this`
+    c_.resume_with([prev](boost::context::continuation && c){
+                prev->c_ = std::move( c);
+            });
 }
 
 void
@@ -174,8 +154,11 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
-    detail::data_t d{ & lk, prev };
-    resume_( d);
+    // pass pointer to the context that resumes `this`
+    c_.resume_with([prev,&lk](boost::context::continuation && c){
+                prev->c_ = std::move( c);
+                lk.unlock();
+            });
 }
 
 void
@@ -184,8 +167,11 @@ context::resume( context * ready_ctx) noexcept {
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
-    detail::data_t d{ ready_ctx, prev };
-    resume_( d);
+    // pass pointer to the context that resumes `this`
+    c_.resume_with([prev,ready_ctx](boost::context::continuation && c){
+                prev->c_ = std::move( c);
+                context::active()->schedule( ready_ctx);
+            });
 }
 
 void
@@ -229,9 +215,10 @@ context::suspend_with_cc() noexcept {
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
-    detail::data_t d{ prev };
-    // context switch
-    return c_.resume( & d);
+    // pass pointer to the context that resumes `this`
+    return c_.resume_with([prev](boost::context::continuation && c){
+                prev->c_ = std::move( c);
+            });
 }
 
 boost::context::continuation
