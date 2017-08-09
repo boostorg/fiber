@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 namespace boost {
-namespace fibes {
+namespace fibers {
 namespace numa {
 
 BOOST_FIBERS_DECL
