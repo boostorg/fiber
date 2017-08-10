@@ -145,6 +145,7 @@ context::resume() noexcept {
     // pass pointer to the context that resumes `this`
     c_.resume_with([prev](boost::context::continuation && c){
                 prev->c_ = std::move( c);
+                return boost::context::continuation{};
             });
 }
 
@@ -158,6 +159,7 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     c_.resume_with([prev,&lk](boost::context::continuation && c){
                 prev->c_ = std::move( c);
                 lk.unlock();
+                return boost::context::continuation{};
             });
 }
 
@@ -171,6 +173,7 @@ context::resume( context * ready_ctx) noexcept {
     c_.resume_with([prev,ready_ctx](boost::context::continuation && c){
                 prev->c_ = std::move( c);
                 context::active()->schedule( ready_ctx);
+                return boost::context::continuation{};
             });
 }
 
@@ -218,6 +221,7 @@ context::suspend_with_cc() noexcept {
     // pass pointer to the context that resumes `this`
     return c_.resume_with([prev](boost::context::continuation && c){
                 prev->c_ = std::move( c);
+                return boost::context::continuation{};
             });
 }
 
