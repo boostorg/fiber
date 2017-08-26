@@ -423,9 +423,9 @@ private:
             auto arg = std::move( arg_);
             c.resume();
 #if defined(BOOST_NO_CXX17_STD_APPLY)
-           boost::context::detail::apply( std::move( fn_), std::move( arg_) );
+           boost::context::detail::apply( std::move( fn), std::move( arg) );
 #else
-           std::apply( std::move( fn_), std::move( arg_) );
+           std::apply( std::move( fn), std::move( arg) );
 #endif
         }
         // terminate context
