@@ -9,6 +9,7 @@
 extern "C" {
 #include <pthread.h>
 #include <sched.h>
+#include <string.h>
 }
 
 #include <system_error>
