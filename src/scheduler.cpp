@@ -116,13 +116,6 @@ scheduler::~scheduler() {
     BOOST_ASSERT( nullptr != main_ctx_);
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
-#if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    // protect for concurrent access
-    // required because main-context might have been
-    // signaled from remote and algorithm::notify()
-    // must be called fro mremote too
-    detail::spinlock_lock lk{ remote_ready_splk_ };
-#endif
     // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
