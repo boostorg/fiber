@@ -21,7 +21,7 @@ The idea is to have multiple execution paths running on a single thread using
 cooperative scheduling (versus threads, which are preemptively scheduled). The
 running fiber decides explicitly when it should yield to allow another fiber to
 run (context switching).
-__boost_fiber__ internally uses __econtext__ from __boost_context__; the classes
+__boost_fiber__ internally uses __cc__ from __boost_context__; the classes
 in this library manage, schedule and, when needed, synchronize those execution
 contexts.
 A context switch between threads usually costs thousands of CPU cycles on x86,
