@@ -187,13 +187,14 @@ private:
     detail::terminated_hook                             terminated_hook_{};
     detail::worker_hook                                 worker_hook_{};
     fiber_properties                                *   properties_{ nullptr };
-    std::chrono::steady_clock::time_point               tp_{ (std::chrono::steady_clock::time_point::max)() };
     boost::context::continuation                        c_{};
+    std::chrono::steady_clock::time_point               tp_;
     type                                                type_;
     launch                                              policy_;
 
     context( std::size_t initial_count, type t, launch policy) noexcept :
         use_count_{ initial_count },
+        tp_{ (std::chrono::steady_clock::time_point::max)() },
         type_{ t },
         policy_{ policy } {
     }
