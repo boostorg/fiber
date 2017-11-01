@@ -18,7 +18,8 @@
 #include <boost/fiber/numa/topology.hpp>
 
 void test_topology() {
-    BOOST_CHECK( ! boost::fibers::numa::topology().empty() );
+    bool empty = boost::fibers::numa::topology().empty();
+    BOOST_CHECK( ! empty);
 }
 
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
