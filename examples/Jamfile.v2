@@ -17,6 +17,7 @@ import toolset ;
 project boost/fiber/example
     : requirements
       <library>../build//boost_fiber
+      <library>/boost/context//boost_context
       <library>/boost/thread//boost_thread
       <target-os>solaris:<linkflags>"-llgrp"
       <target-os>solaris:<linkflags>"-lsocket"
@@ -25,7 +26,7 @@ project boost/fiber/example
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
-      <link>static
+      <link>shared
       <threading>multi
     ;
 
