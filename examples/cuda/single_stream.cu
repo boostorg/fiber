@@ -59,6 +59,7 @@ int main() {
                 auto result = boost::fibers::cuda::waitfor_all( stream);
                 BOOST_ASSERT( stream == std::get< 0 >( result) );
                 BOOST_ASSERT( cudaSuccess == std::get< 1 >( result) );
+                std::cout << "f1: GPU computation finished" << std::endl;
                 cudaFreeHost( host_a);
                 cudaFreeHost( host_b);
                 cudaFreeHost( host_c);
