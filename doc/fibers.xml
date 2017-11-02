@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2017/05/26 13:51:55 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2017/11/02 19:13:14 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -41,7 +41,8 @@
       using cooperative scheduling (versus threads, which are preemptively scheduled).
       The running fiber decides explicitly when it should yield to allow another
       fiber to run (context switching). <emphasis role="bold">Boost.Fiber</emphasis>
-      internally uses __econtext__ from <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>;
+      internally uses <ulink url="http://www.boost.org/doc/libs/release/libs/context/doc/html/context/cc.html"><emphasis>call/cc</emphasis></ulink>
+      from <ulink url="http://www.boost.org/doc/libs/release/libs/context/index.html">Boost.Context</ulink>;
       the classes in this library manage, schedule and, when needed, synchronize
       those execution contexts. A context switch between threads usually costs thousands
       of CPU cycles on x86, compared to a fiber switch with less than a hundred cycles.
@@ -2297,6 +2298,12 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       out of ready fibers, ready fibers are stolen from other schedulers.<sbr/> The
       victim scheduler (from which a ready fiber is stolen) is selected at random.
     </para>
+    <note>
+      <para>
+        Worker-threads are stored in a static variable, dynamically adding/removing
+        worker threads is not supported.
+      </para>
+    </note>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
@@ -2544,6 +2551,12 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
       fashion. Ready fibers are shared between all instances (running on different
       threads) of shared_work, thus the work is distributed equally over all threads.
     </para>
+    <note>
+      <para>
+        Worker-threads are stored in a static variable, dynamically adding/removing
+        worker threads is not supported.
+      </para>
+    </note>
 <programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">shared_work</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
@@ -10765,7 +10778,7 @@ encapsulates.
 <phrase role="special">};</phrase>
 <phrase role="identifier">b</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c8" linkends="fiber.migration.c9" />
 <phrase role="special">{</phrase>
-    <phrase role="identifier">lock_t</phrase><co id="fiber.migration.c10" linkends="fiber.migration.c11" /> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">lock_type</phrase><co id="fiber.migration.c10" linkends="fiber.migration.c11" /> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">,</phrase> <phrase role="special">[](){</phrase> <phrase role="keyword">return</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">;</phrase> <phrase role="special">}</phrase> <phrase role="special">);</phrase> <co id="fiber.migration.c12" linkends="fiber.migration.c13" />
 <phrase role="special">}</phrase> <co id="fiber.migration.c14" linkends="fiber.migration.c15" />
 <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">);</phrase>
@@ -10809,8 +10822,8 @@ encapsulates.
       </callout>
       <callout arearefs="fiber.migration.c10" id="fiber.migration.c11">
         <para>
-          <code><phrase role="identifier">lock_t</phrase></code> is typedef'ed as
-          <ulink url="http://en.cppreference.com/w/cpp/thread/unique_lock"><code><phrase
+          <code><phrase role="identifier">lock_type</phrase></code> is typedef'ed
+          as <ulink url="http://en.cppreference.com/w/cpp/thread/unique_lock"><code><phrase
           role="identifier">std</phrase><phrase role="special">::</phrase><phrase
           role="identifier">unique_lock</phrase></code></ulink>&lt; <ulink url="http://en.cppreference.com/w/cpp/thread/mutex"><code><phrase
           role="identifier">std</phrase><phrase role="special">::</phrase><phrase
@@ -10851,7 +10864,7 @@ encapsulates.
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">shared_work</phrase> <phrase role="special">&gt;();</phrase> <co id="fiber.migration.c18" linkends="fiber.migration.c19" />
     <phrase role="identifier">b</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c20" linkends="fiber.migration.c21" />
-    <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">lock_type</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">,</phrase> <phrase role="special">[](){</phrase> <phrase role="keyword">return</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">;</phrase> <phrase role="special">}</phrase> <phrase role="special">);</phrase> <co id="fiber.migration.c22" linkends="fiber.migration.c23" />
     <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="identifier">fiber_count</phrase><phrase role="special">);</phrase>
 <phrase role="special">}</phrase>
@@ -10908,7 +10921,7 @@ encapsulates.
         <phrase role="special">}</phrase>
     <phrase role="special">}</phrase> <phrase role="keyword">catch</phrase> <phrase role="special">(</phrase> <phrase role="special">...</phrase> <phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
-    <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">lock_type</phrase> <phrase role="identifier">lk</phrase><phrase role="special">(</phrase> <phrase role="identifier">mtx_count</phrase><phrase role="special">);</phrase>
     <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="number">0</phrase> <phrase role="special">==</phrase> <phrase role="special">--</phrase><phrase role="identifier">fiber_count</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c34" linkends="fiber.migration.c35" />
         <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
         <phrase role="identifier">cnd_count</phrase><phrase role="special">.</phrase><phrase role="identifier">notify_all</phrase><phrase role="special">();</phrase> <co id="fiber.migration.c36" linkends="fiber.migration.c37" />
@@ -11551,21 +11564,22 @@ before
         <phrase role="identifier">BOOST_ASSERT_MSG</phrase><phrase role="special">(</phrase> <phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase><phrase role="special">,</phrase>
                           <phrase role="string">&quot;Must inject boost::system::error_code* &quot;</phrase>
                           <phrase role="string">&quot;before calling yield_handler_base::operator()()&quot;</phrase><phrase role="special">);</phrase>
-        <phrase role="comment">// If originating fiber is busy testing completed_ flag, wait until it</phrase>
-        <phrase role="comment">// has observed (! completed_).</phrase>
+        <phrase role="comment">// If originating fiber is busy testing state_ flag, wait until it</phrase>
+        <phrase role="comment">// has observed (completed != state_).</phrase>
         <phrase role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">{</phrase> <phrase role="identifier">ycomp_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">mtx_</phrase> <phrase role="special">};</phrase>
+        <phrase role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase role="identifier">state_t</phrase> <phrase role="identifier">state</phrase> <phrase role="special">=</phrase> <phrase role="identifier">ycomp_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">state_</phrase><phrase role="special">;</phrase>
         <phrase role="comment">// Notify a subsequent yield_completion::wait() call that it need not</phrase>
         <phrase role="comment">// suspend.</phrase>
-        <phrase role="identifier">ycomp_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">completed_</phrase> <phrase role="special">=</phrase> <phrase role="keyword">true</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">ycomp_</phrase><phrase role="special">-&gt;</phrase><phrase role="identifier">state_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase role="identifier">complete</phrase><phrase role="special">;</phrase>
         <phrase role="comment">// set the error_code bound by yield_t</phrase>
         <phrase role="special">*</phrase> <phrase role="identifier">yt_</phrase><phrase role="special">.</phrase><phrase role="identifier">ec_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">ec</phrase><phrase role="special">;</phrase>
-        <phrase role="comment">// unlock the lock that protects completed_</phrase>
+        <phrase role="comment">// unlock the lock that protects state_</phrase>
         <phrase role="identifier">lk</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
         <phrase role="comment">// If ctx_ is still active, e.g. because the async operation</phrase>
         <phrase role="comment">// immediately called its callback (this method!) before the asio</phrase>
         <phrase role="comment">// async function called async_result_base::get(), we must not set it</phrase>
         <phrase role="comment">// ready.</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">ctx_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">yield_completion</phrase><phrase role="special">::</phrase><phrase role="identifier">waiting</phrase> <phrase role="special">==</phrase> <phrase role="identifier">state</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
             <phrase role="comment">// wake the fiber</phrase>
             <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">schedule</phrase><phrase role="special">(</phrase> <phrase role="identifier">ctx_</phrase><phrase role="special">);</phrase>
         <phrase role="special">}</phrase>
@@ -11726,21 +11740,28 @@ before
       <para>
 <programlisting><phrase role="comment">// Bundle a completion bool flag with a spinlock to protect it.</phrase>
 <phrase role="keyword">struct</phrase> <phrase role="identifier">yield_completion</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">enum</phrase> <phrase role="identifier">state_t</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">init</phrase><phrase role="special">,</phrase>
+        <phrase role="identifier">waiting</phrase><phrase role="special">,</phrase>
+        <phrase role="identifier">complete</phrase>
+    <phrase role="special">};</phrase>
+
     <phrase role="keyword">typedef</phrase> <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">spinlock</phrase>                    <phrase role="identifier">mutex_t</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">typedef</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">unique_lock</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">mutex_t</phrase> <phrase role="special">&gt;</phrase>                 <phrase role="identifier">lock_t</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">typedef</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">intrusive_ptr</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">yield_completion</phrase> <phrase role="special">&gt;</phrase>    <phrase role="identifier">ptr_t</phrase><phrase role="special">;</phrase>
 
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">atomic</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="special">&gt;</phrase>  <phrase role="identifier">use_count_</phrase><phrase role="special">{</phrase> <phrase role="number">0</phrase> <phrase role="special">};</phrase>
     <phrase role="identifier">mutex_t</phrase>                     <phrase role="identifier">mtx_</phrase><phrase role="special">{};</phrase>
-    <phrase role="keyword">bool</phrase>                        <phrase role="identifier">completed_</phrase><phrase role="special">{</phrase> <phrase role="keyword">false</phrase> <phrase role="special">};</phrase>
+    <phrase role="identifier">state_t</phrase>                     <phrase role="identifier">state_</phrase><phrase role="special">{</phrase> <phrase role="identifier">init</phrase> <phrase role="special">};</phrase>
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">wait</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
-        <phrase role="comment">// yield_handler_base::operator()() will set completed_ true and</phrase>
+        <phrase role="comment">// yield_handler_base::operator()() will set state_ `complete` and</phrase>
         <phrase role="comment">// attempt to wake a suspended fiber. It would be Bad if that call</phrase>
-        <phrase role="comment">// happened between our detecting (! completed_) and suspending.</phrase>
+        <phrase role="comment">// happened between our detecting (complete != state_) and suspending.</phrase>
         <phrase role="identifier">lock_t</phrase> <phrase role="identifier">lk</phrase><phrase role="special">{</phrase> <phrase role="identifier">mtx_</phrase> <phrase role="special">};</phrase>
-        <phrase role="comment">// If completed_ is already set, we're done here: don't suspend.</phrase>
-        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="special">!</phrase> <phrase role="identifier">completed_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="comment">// If state_ is already set, we're done here: don't suspend.</phrase>
+        <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">complete</phrase> <phrase role="special">!=</phrase> <phrase role="identifier">state_</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+            <phrase role="identifier">state_</phrase> <phrase role="special">=</phrase> <phrase role="identifier">waiting</phrase><phrase role="special">;</phrase>
             <phrase role="comment">// suspend(unique_lock&lt;spinlock&gt;) unlocks the lock in the act of</phrase>
             <phrase role="comment">// resuming another fiber</phrase>
             <phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">context</phrase><phrase role="special">::</phrase><phrase role="identifier">active</phrase><phrase role="special">()-&gt;</phrase><phrase role="identifier">suspend</phrase><phrase role="special">(</phrase> <phrase role="identifier">lk</phrase><phrase role="special">);</phrase>
@@ -14951,6 +14972,254 @@ that would cause the thread to
       </varlistentry>
     </variablelist>
   </section>
+  <section id="fiber.gpu_computing">
+    <title><link linkend="fiber.gpu_computing">GPU computing</link></title>
+    <section id="fiber.gpu_computing.cuda">
+      <title><anchor id="cuda"/><link linkend="fiber.gpu_computing.cuda">CUDA</link></title>
+      <para>
+        <ulink url="http://developer.nvidia.com/cuda-zone/">CUDA (Compute Unified
+        Device Architecture)</ulink> is a platform for parallel computing on NVIDIA
+        GPUs. The application programming interface of CUDA gives access to GPU's
+        instruction set and computation resources (Execution of compute kernels).
+      </para>
+      <bridgehead renderas="sect4" id="fiber.gpu_computing.cuda.h0">
+        <phrase id="fiber.gpu_computing.cuda.waiting_for_cuda_streams"/><link linkend="fiber.gpu_computing.cuda.waiting_for_cuda_streams">Waiting
+        for CUDA streams</link>
+      </bridgehead>
+      <para>
+        CUDA operation such as compute kernels or memory transfer (between host and
+        device) can be grouped/queued by CUDA streams. are executed on the GPUs.
+        Boost.Fiber enables a fiber to sleep (suspend) till a CUDA stream has completed
+        its operations. This enables applications to run other fibers on the CPU
+        without the need to spawn an additional OS-threads. And resume the fiber
+        when the CUDA streams has finished.
+      </para>
+<programlisting><phrase role="identifier">__global__</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">kernel</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">size</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">a</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">c</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="identifier">idx</phrase> <phrase role="special">=</phrase> <phrase role="identifier">threadIdx</phrase><phrase role="special">.</phrase><phrase role="identifier">x</phrase> <phrase role="special">+</phrase> <phrase role="identifier">blockIdx</phrase><phrase role="special">.</phrase><phrase role="identifier">x</phrase> <phrase role="special">*</phrase> <phrase role="identifier">blockDim</phrase><phrase role="special">.</phrase><phrase role="identifier">x</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">idx</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">size</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">int</phrase> <phrase role="identifier">idx1</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">idx</phrase> <phrase role="special">+</phrase> <phrase role="number">1</phrase><phrase role="special">)</phrase> <phrase role="special">%</phrase> <phrase role="number">256</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">int</phrase> <phrase role="identifier">idx2</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">idx</phrase> <phrase role="special">+</phrase> <phrase role="number">2</phrase><phrase role="special">)</phrase> <phrase role="special">%</phrase> <phrase role="number">256</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">float</phrase> <phrase role="identifier">as</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">a</phrase><phrase role="special">[</phrase><phrase role="identifier">idx</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">a</phrase><phrase role="special">[</phrase><phrase role="identifier">idx1</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">a</phrase><phrase role="special">[</phrase><phrase role="identifier">idx2</phrase><phrase role="special">])</phrase> <phrase role="special">/</phrase> <phrase role="number">3.0f</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">float</phrase> <phrase role="identifier">bs</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">b</phrase><phrase role="special">[</phrase><phrase role="identifier">idx</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">b</phrase><phrase role="special">[</phrase><phrase role="identifier">idx1</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">b</phrase><phrase role="special">[</phrase><phrase role="identifier">idx2</phrase><phrase role="special">])</phrase> <phrase role="special">/</phrase> <phrase role="number">3.0f</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">c</phrase><phrase role="special">[</phrase><phrase role="identifier">idx</phrase><phrase role="special">]</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">as</phrase> <phrase role="special">+</phrase> <phrase role="identifier">bs</phrase><phrase role="special">)</phrase> <phrase role="special">/</phrase> <phrase role="number">2</phrase><phrase role="special">;</phrase>
+    <phrase role="special">}</phrase>
+<phrase role="special">}</phrase>
+
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f</phrase><phrase role="special">([&amp;</phrase><phrase role="identifier">done</phrase><phrase role="special">]{</phrase>
+    <phrase role="identifier">cudaStream_t</phrase> <phrase role="identifier">stream</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">cudaStreamCreate</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="identifier">size</phrase> <phrase role="special">=</phrase> <phrase role="number">1024</phrase> <phrase role="special">*</phrase> <phrase role="number">1024</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">=</phrase> <phrase role="number">20</phrase> <phrase role="special">*</phrase> <phrase role="identifier">size</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">host_a</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">host_b</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">host_c</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">cudaHostAlloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">host_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">cudaHostAllocDefault</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaHostAlloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">host_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">cudaHostAllocDefault</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaHostAlloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">host_c</phrase><phrase role="special">,</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">cudaHostAllocDefault</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">cudaMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">cudaMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">cudaMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">minstd_rand</phrase> <phrase role="identifier">generator</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uniform_int_distribution</phrase><phrase role="special">&lt;&gt;</phrase> <phrase role="identifier">distribution</phrase><phrase role="special">(</phrase><phrase role="number">1</phrase><phrase role="special">,</phrase> <phrase role="number">6</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">full_size</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">host_a</phrase><phrase role="special">[</phrase><phrase role="identifier">i</phrase><phrase role="special">]</phrase> <phrase role="special">=</phrase> <phrase role="identifier">distribution</phrase><phrase role="special">(</phrase> <phrase role="identifier">generator</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">host_b</phrase><phrase role="special">[</phrase><phrase role="identifier">i</phrase><phrase role="special">]</phrase> <phrase role="special">=</phrase> <phrase role="identifier">distribution</phrase><phrase role="special">(</phrase> <phrase role="identifier">generator</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+    <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">full_size</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">+=</phrase> <phrase role="identifier">size</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">cudaMemcpyAsync</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">host_a</phrase> <phrase role="special">+</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">cudaMemcpyHostToDevice</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">cudaMemcpyAsync</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">host_b</phrase> <phrase role="special">+</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">cudaMemcpyHostToDevice</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">kernel</phrase><phrase role="special">&lt;&lt;&lt;</phrase> <phrase role="identifier">size</phrase> <phrase role="special">/</phrase> <phrase role="number">256</phrase><phrase role="special">,</phrase> <phrase role="number">256</phrase><phrase role="special">,</phrase> <phrase role="number">0</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase> <phrase role="special">&gt;&gt;&gt;(</phrase> <phrase role="identifier">size</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">cudaMemcpyAsync</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_c</phrase> <phrase role="special">+</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">cudaMemcpyDeviceToHost</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+    <phrase role="keyword">auto</phrase> <phrase role="identifier">result</phrase> <phrase role="special">=</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">cuda</phrase><phrase role="special">::</phrase><phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase> <phrase role="comment">// suspend fiber till CUDA stream has finished</phrase>
+    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="identifier">stream</phrase> <phrase role="special">==</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">&lt;</phrase> <phrase role="number">0</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">result</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="identifier">cudaSuccess</phrase> <phrase role="special">==</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">&lt;</phrase> <phrase role="number">1</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">result</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;f1: GPU computation finished&quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">cudaFreeHost</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_a</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaFreeHost</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_b</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaFreeHost</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_c</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">cudaStreamDestroy</phrase><phrase role="special">(</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+<phrase role="special">});</phrase>
+<phrase role="identifier">f</phrase><phrase role="special">.</phrase><phrase role="identifier">join</phrase><phrase role="special">();</phrase>
+</programlisting>
+      <bridgehead renderas="sect4" id="fiber.gpu_computing.cuda.h1">
+        <phrase id="fiber.gpu_computing.cuda.synopsis"/><link linkend="fiber.gpu_computing.cuda.synopsis">Synopsis</link>
+      </bridgehead>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">cuda</phrase><phrase role="special">/</phrase><phrase role="identifier">waitfor</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">cuda</phrase> <phrase role="special">{</phrase>
+
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">cudaStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">cudaError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">cudaStream_t</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">cudaStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">cudaError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">cudaStream_t</phrase> <phrase role="special">...</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+      <para>
+        <bridgehead renderas="sect4" id="cuda_waitfor_bridgehead">
+  <phrase id="cuda_waitfor"/>
+  <link linkend="cuda_waitfor">Non-member function <code>cuda::waitfor()</code></link>
+</bridgehead>
+      </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">cuda</phrase><phrase role="special">/</phrase><phrase role="identifier">waitfor</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">cuda</phrase> <phrase role="special">{</phrase>
+
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">cudaStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">cudaError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">cudaStream_t</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">cudaStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">cudaError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">cudaStream_t</phrase> <phrase role="special">...</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Effects:</term>
+          <listitem>
+            <para>
+              Suspends active fiber till CUDA stream has finished its operations.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Returns:</term>
+          <listitem>
+            <para>
+              tuple of stream reference and the CUDA stream status
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section id="fiber.gpu_computing.hip">
+      <title><anchor id="hip"/><link linkend="fiber.gpu_computing.hip">HIP</link></title>
+      <para>
+        <ulink url="http://github.com/ROCm-Developer-Tools/HIP/tree/roc-1.6.0/">HIP</ulink>
+        is part of the <ulink url="http://rocm.github.io/">ROC (Radeon Open Compute)</ulink>
+        platform for parallel computing on AMD and NVIDIA GPUs. The application programming
+        interface of HIP gives access to GPU's instruction set and computation resources
+        (Execution of compute kernels).
+      </para>
+      <bridgehead renderas="sect4" id="fiber.gpu_computing.hip.h0">
+        <phrase id="fiber.gpu_computing.hip.waiting_for_hip_streams"/><link linkend="fiber.gpu_computing.hip.waiting_for_hip_streams">Waiting
+        for HIP streams</link>
+      </bridgehead>
+      <para>
+        HIP operation such as compute kernels or memory transfer (between host and
+        device) can be grouped/queued by HIP streams. are executed on the GPUs. Boost.Fiber
+        enables a fiber to sleep (suspend) till a HIP stream has completed its operations.
+        This enables applications to run other fibers on the CPU without the need
+        to spawn an additional OS-threads. And resume the fiber when the HIP streams
+        has finished.
+      </para>
+<programlisting><phrase role="identifier">__global__</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">kernel</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">size</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">a</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">,</phrase> <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">c</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="identifier">idx</phrase> <phrase role="special">=</phrase> <phrase role="identifier">threadIdx</phrase><phrase role="special">.</phrase><phrase role="identifier">x</phrase> <phrase role="special">+</phrase> <phrase role="identifier">blockIdx</phrase><phrase role="special">.</phrase><phrase role="identifier">x</phrase> <phrase role="special">*</phrase> <phrase role="identifier">blockDim</phrase><phrase role="special">.</phrase><phrase role="identifier">x</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">if</phrase> <phrase role="special">(</phrase> <phrase role="identifier">idx</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">size</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="keyword">int</phrase> <phrase role="identifier">idx1</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">idx</phrase> <phrase role="special">+</phrase> <phrase role="number">1</phrase><phrase role="special">)</phrase> <phrase role="special">%</phrase> <phrase role="number">256</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">int</phrase> <phrase role="identifier">idx2</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">idx</phrase> <phrase role="special">+</phrase> <phrase role="number">2</phrase><phrase role="special">)</phrase> <phrase role="special">%</phrase> <phrase role="number">256</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">float</phrase> <phrase role="identifier">as</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">a</phrase><phrase role="special">[</phrase><phrase role="identifier">idx</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">a</phrase><phrase role="special">[</phrase><phrase role="identifier">idx1</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">a</phrase><phrase role="special">[</phrase><phrase role="identifier">idx2</phrase><phrase role="special">])</phrase> <phrase role="special">/</phrase> <phrase role="number">3.0f</phrase><phrase role="special">;</phrase>
+        <phrase role="keyword">float</phrase> <phrase role="identifier">bs</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">b</phrase><phrase role="special">[</phrase><phrase role="identifier">idx</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">b</phrase><phrase role="special">[</phrase><phrase role="identifier">idx1</phrase><phrase role="special">]</phrase> <phrase role="special">+</phrase> <phrase role="identifier">b</phrase><phrase role="special">[</phrase><phrase role="identifier">idx2</phrase><phrase role="special">])</phrase> <phrase role="special">/</phrase> <phrase role="number">3.0f</phrase><phrase role="special">;</phrase>
+        <phrase role="identifier">c</phrase><phrase role="special">[</phrase><phrase role="identifier">idx</phrase><phrase role="special">]</phrase> <phrase role="special">=</phrase> <phrase role="special">(</phrase><phrase role="identifier">as</phrase> <phrase role="special">+</phrase> <phrase role="identifier">bs</phrase><phrase role="special">)</phrase> <phrase role="special">/</phrase> <phrase role="number">2</phrase><phrase role="special">;</phrase>
+    <phrase role="special">}</phrase>
+<phrase role="special">}</phrase>
+
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f</phrase><phrase role="special">([&amp;</phrase><phrase role="identifier">done</phrase><phrase role="special">]{</phrase>
+    <phrase role="identifier">hipStream_t</phrase> <phrase role="identifier">stream</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">hipStreamCreate</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="identifier">size</phrase> <phrase role="special">=</phrase> <phrase role="number">1024</phrase> <phrase role="special">*</phrase> <phrase role="number">1024</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">=</phrase> <phrase role="number">20</phrase> <phrase role="special">*</phrase> <phrase role="identifier">size</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">host_a</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">host_b</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">host_c</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">hipHostMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">host_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">hipHostMallocDefault</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipHostMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">host_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">hipHostMallocDefault</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipHostMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">host_c</phrase><phrase role="special">,</phrase> <phrase role="identifier">full_size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">hipHostMallocDefault</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">int</phrase> <phrase role="special">*</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="special">*</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">hipMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">hipMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">hipMalloc</phrase><phrase role="special">(</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">minstd_rand</phrase> <phrase role="identifier">generator</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uniform_int_distribution</phrase><phrase role="special">&lt;&gt;</phrase> <phrase role="identifier">distribution</phrase><phrase role="special">(</phrase><phrase role="number">1</phrase><phrase role="special">,</phrase> <phrase role="number">6</phrase><phrase role="special">);</phrase>
+    <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">full_size</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">host_a</phrase><phrase role="special">[</phrase><phrase role="identifier">i</phrase><phrase role="special">]</phrase> <phrase role="special">=</phrase> <phrase role="identifier">distribution</phrase><phrase role="special">(</phrase> <phrase role="identifier">generator</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">host_b</phrase><phrase role="special">[</phrase><phrase role="identifier">i</phrase><phrase role="special">]</phrase> <phrase role="special">=</phrase> <phrase role="identifier">distribution</phrase><phrase role="special">(</phrase> <phrase role="identifier">generator</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+    <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">int</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">full_size</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">+=</phrase> <phrase role="identifier">size</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+        <phrase role="identifier">hipMemcpyAsync</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">host_a</phrase> <phrase role="special">+</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">hipMemcpyHostToDevice</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">hipMemcpyAsync</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">host_b</phrase> <phrase role="special">+</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">hipMemcpyHostToDevice</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">hipLaunchKernel</phrase><phrase role="special">(</phrase><phrase role="identifier">kernel</phrase><phrase role="special">,</phrase> <phrase role="identifier">dim3</phrase><phrase role="special">(</phrase><phrase role="identifier">size</phrase> <phrase role="special">/</phrase> <phrase role="number">256</phrase><phrase role="special">),</phrase> <phrase role="identifier">dim3</phrase><phrase role="special">(</phrase><phrase role="number">256</phrase><phrase role="special">),</phrase> <phrase role="number">0</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">);</phrase>
+        <phrase role="identifier">hipMemcpyAsync</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_c</phrase> <phrase role="special">+</phrase> <phrase role="identifier">i</phrase><phrase role="special">,</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">,</phrase> <phrase role="identifier">size</phrase> <phrase role="special">*</phrase> <phrase role="keyword">sizeof</phrase><phrase role="special">(</phrase> <phrase role="keyword">int</phrase><phrase role="special">),</phrase> <phrase role="identifier">hipMemcpyDeviceToHost</phrase><phrase role="special">,</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+    <phrase role="special">}</phrase>
+    <phrase role="keyword">auto</phrase> <phrase role="identifier">result</phrase> <phrase role="special">=</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">hip</phrase><phrase role="special">::</phrase><phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase> <phrase role="comment">// suspend fiber till HIP stream has finished</phrase>
+    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="identifier">stream</phrase> <phrase role="special">==</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">&lt;</phrase> <phrase role="number">0</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">result</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">BOOST_ASSERT</phrase><phrase role="special">(</phrase> <phrase role="identifier">hipSuccess</phrase> <phrase role="special">==</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">get</phrase><phrase role="special">&lt;</phrase> <phrase role="number">1</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">result</phrase><phrase role="special">)</phrase> <phrase role="special">);</phrase>
+    <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;f1: GPU computation finished&quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
+    <phrase role="identifier">hipHostFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_a</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipHostFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_b</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipHostFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">host_c</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_a</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_b</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipFree</phrase><phrase role="special">(</phrase> <phrase role="identifier">dev_c</phrase><phrase role="special">);</phrase>
+    <phrase role="identifier">hipStreamDestroy</phrase><phrase role="special">(</phrase> <phrase role="identifier">stream</phrase><phrase role="special">);</phrase>
+<phrase role="special">});</phrase>
+<phrase role="identifier">f</phrase><phrase role="special">.</phrase><phrase role="identifier">join</phrase><phrase role="special">();</phrase>
+</programlisting>
+      <bridgehead renderas="sect4" id="fiber.gpu_computing.hip.h1">
+        <phrase id="fiber.gpu_computing.hip.synopsis"/><link linkend="fiber.gpu_computing.hip.synopsis">Synopsis</link>
+      </bridgehead>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">hip</phrase><phrase role="special">/</phrase><phrase role="identifier">waitfor</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">hip</phrase> <phrase role="special">{</phrase>
+
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">hipStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">hipError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">hipStream_t</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">hipStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">hipError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">hipStream_t</phrase> <phrase role="special">...</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+      <para>
+        <bridgehead renderas="sect4" id="hip_waitfor_bridgehead">
+  <phrase id="hip_waitfor"/>
+  <link linkend="hip_waitfor">Non-member function <code>hip::waitfor()</code></link>
+</bridgehead>
+      </para>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">hip</phrase><phrase role="special">/</phrase><phrase role="identifier">waitfor</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">hip</phrase> <phrase role="special">{</phrase>
+
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">hipStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">hipError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">hipStream_t</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">tuple</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">hipStream_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">hipError_t</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">waitfor_all</phrase><phrase role="special">(</phrase> <phrase role="identifier">hipStream_t</phrase> <phrase role="special">...</phrase> <phrase role="identifier">st</phrase><phrase role="special">);</phrase>
+
+<phrase role="special">}}}</phrase>
+</programlisting>
+      <variablelist>
+        <title></title>
+        <varlistentry>
+          <term>Effects:</term>
+          <listitem>
+            <para>
+              Suspends active fiber till HIP stream has finished its operations.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Returns:</term>
+          <listitem>
+            <para>
+              tuple of stream reference and the HIP stream status
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+  </section>
   <section id="fiber.performance">
     <title><link linkend="fiber.performance">Performance</link></title>
     <para>
@@ -14959,7 +15228,7 @@ that would cause the thread to
       role="special">::</phrase><phrase role="identifier">highresolution_clock</phrase></code>,
       with overhead corrections. The code was compiled with gcc-6.3.1, using build
       options: variant = release, optimization = speed. Tests were executed on dual
-      Intel XEON E5 2620 2.2GHz, 16C/32T, 64GB RAM, running Linux (x86_64).
+      Intel XEON E5 2620v4 2.2GHz, 16C/32T, 64GB RAM, running Linux (x86_64).
     </para>
     <para>
       Measurements headed 1C/1T were run in a single-threaded process.

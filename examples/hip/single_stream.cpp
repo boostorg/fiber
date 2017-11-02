@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
@@ -5,18 +6,18 @@
 #include <random>
 #include <tuple>
 
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 
 #include <boost/assert.hpp>
 #include <boost/bind.hpp>
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/cuda/waitfor.hpp>
+#include <boost/fiber/hip/waitfor.hpp>
 
 __global__
-void kernel( int size, int * a, int * b, int * c) {
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+void kernel( hipLaunchParm lp, int size, int * a, int * b, int * c) {
+    int idx = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
     if ( idx < size) {
         int idx1 = (idx + 1) % 256;
         int idx2 = (idx + 2) % 256;
@@ -32,18 +33,18 @@ int main() {
         boost::fibers::fiber f1([&done]{
             std::cout << "f1: entered" << std::endl;
             try {
-                cudaStream_t stream;
-                cudaStreamCreate( & stream);
+                hipStream_t stream;
+                hipStreamCreate( & stream);
                 int size = 1024 * 1024;
                 int full_size = 20 * size;
                 int * host_a, * host_b, * host_c;
-                cudaHostAlloc( & host_a, full_size * sizeof( int), cudaHostAllocDefault);
-                cudaHostAlloc( & host_b, full_size * sizeof( int), cudaHostAllocDefault);
-                cudaHostAlloc( & host_c, full_size * sizeof( int), cudaHostAllocDefault);
+                hipHostMalloc( & host_a, full_size * sizeof( int), hipHostMallocDefault);
+                hipHostMalloc( & host_b, full_size * sizeof( int), hipHostMallocDefault);
+                hipHostMalloc( & host_c, full_size * sizeof( int), hipHostMallocDefault);
                 int * dev_a, * dev_b, * dev_c;
-                cudaMalloc( & dev_a, size * sizeof( int) );
-                cudaMalloc( & dev_b, size * sizeof( int) );
-                cudaMalloc( & dev_c, size * sizeof( int) );
+                hipMalloc( & dev_a, size * sizeof( int) );
+                hipMalloc( & dev_b, size * sizeof( int) );
+                hipMalloc( & dev_c, size * sizeof( int) );
                 std::minstd_rand generator;
                 std::uniform_int_distribution<> distribution(1, 6);
                 for ( int i = 0; i < full_size; ++i) {
@@ -51,22 +52,22 @@ int main() {
                     host_b[i] = distribution( generator);
                 }
                 for ( int i = 0; i < full_size; i += size) {
-                    cudaMemcpyAsync( dev_a, host_a + i, size * sizeof( int), cudaMemcpyHostToDevice, stream);
-                    cudaMemcpyAsync( dev_b, host_b + i, size * sizeof( int), cudaMemcpyHostToDevice, stream);
-                    kernel<<< size / 256, 256, 0, stream >>>( size, dev_a, dev_b, dev_c);
-                    cudaMemcpyAsync( host_c + i, dev_c, size * sizeof( int), cudaMemcpyDeviceToHost, stream);
+                    hipMemcpyAsync( dev_a, host_a + i, size * sizeof( int), hipMemcpyHostToDevice, stream);
+                    hipMemcpyAsync( dev_b, host_b + i, size * sizeof( int), hipMemcpyHostToDevice, stream);
+                    hipLaunchKernel(kernel, dim3(size / 256), dim3(256), 0, stream, size, dev_a, dev_b, dev_c);
+                    hipMemcpyAsync( host_c + i, dev_c, size * sizeof( int), hipMemcpyDeviceToHost, stream);
                 }
-                auto result = boost::fibers::cuda::waitfor_all( stream);
+                auto result = boost::fibers::hip::waitfor_all( stream);
                 BOOST_ASSERT( stream == std::get< 0 >( result) );
-                BOOST_ASSERT( cudaSuccess == std::get< 1 >( result) );
+                BOOST_ASSERT( hipSuccess == std::get< 1 >( result) );
                 std::cout << "f1: GPU computation finished" << std::endl;
-                cudaFreeHost( host_a);
-                cudaFreeHost( host_b);
-                cudaFreeHost( host_c);
-                cudaFree( dev_a);
-                cudaFree( dev_b);
-                cudaFree( dev_c);
-                cudaStreamDestroy( stream);
+                hipHostFree( host_a);
+                hipHostFree( host_b);
+                hipHostFree( host_c);
+                hipFree( dev_a);
+                hipFree( dev_b);
+                hipFree( dev_c);
+                hipStreamDestroy( stream);
                 done = true;
             } catch ( std::exception const& ex) {
                 std::cerr << "exception: " << ex.what() << std::endl;
