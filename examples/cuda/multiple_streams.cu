@@ -1,17 +1,9 @@
-/*
- * Copyright 1993-2010 NVIDIA Corporation.  All rights reserved.
- *
- * NVIDIA Corporation and its licensors retain all intellectual property and 
- * proprietary rights in and to this software and related documentation. 
- * Any use, reproduction, disclosure, or distribution of this software 
- * and related documentation without an express license agreement from
- * NVIDIA Corporation is strictly prohibited.
- *
- * Please refer to the applicable NVIDIA end user license agreement (EULA) 
- * associated with this source code for terms and conditions that govern 
- * your use of this NVIDIA software.
- * 
- */
+
+//          Copyright Oliver Kowalke 2013.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 
 #include <chrono>
 #include <cstdlib>
@@ -30,14 +22,10 @@
 #include <boost/fiber/cuda/waitfor.hpp>
 
 __global__
-void kernel( int size, int * a, int * b, int * c) {
+void vector_add( int * a, int * b, int * c, int size) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if ( idx < size) {
-        int idx1 = (idx + 1) % 256;
-        int idx2 = (idx + 2) % 256;
-        float as = (a[idx] + a[idx1] + a[idx2]) / 3.0f;
-        float bs = (b[idx] + b[idx1] + b[idx2]) / 3.0f;
-        c[idx] = (as + bs) / 2;
+        c[idx] = a[idx] + b[idx];
     }
 }
 
@@ -75,8 +63,8 @@ int main() {
                         cudaMemcpyAsync( dev_a1, host_a + i + size, size * sizeof( int), cudaMemcpyHostToDevice, stream1);
                         cudaMemcpyAsync( dev_b0, host_b + i, size * sizeof( int), cudaMemcpyHostToDevice, stream0);
                         cudaMemcpyAsync( dev_b1, host_b + i + size, size * sizeof( int), cudaMemcpyHostToDevice, stream1);
-                        kernel<<< size / 256, 256, 0, stream0 >>>( size, dev_a0, dev_b0, dev_c0);
-                        kernel<<< size / 256, 256, 0, stream1 >>>( size, dev_a1, dev_b1, dev_c1);
+                        vector_add<<< size / 256, 256, 0, stream0 >>>( dev_a0, dev_b0, dev_c0, size);
+                        vector_add<<< size / 256, 256, 0, stream1 >>>( dev_a1, dev_b1, dev_c1, size);
                         cudaMemcpyAsync( host_c + i, dev_c0, size * sizeof( int), cudaMemcpyDeviceToHost, stream0);
                         cudaMemcpyAsync( host_c + i + size, dev_c1, size * sizeof( int), cudaMemcpyDeviceToHost, stream1);
                     }
