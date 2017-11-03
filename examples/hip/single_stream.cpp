@@ -21,7 +21,7 @@
 #include <boost/fiber/hip/waitfor.hpp>
 
 __global__
-void vector_add( int * a, int * b, int * c, int size) {
+void vector_add(hipLaunchParm lp, int * a, int * b, int * c, int size) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if ( idx < size) {
         c[idx] = a[idx] + b[idx];
