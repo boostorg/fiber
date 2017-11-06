@@ -98,6 +98,7 @@ lib boost_fiber
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_tuple
                cxx11_lambdas
                cxx11_noexcept
