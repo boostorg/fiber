@@ -69,7 +69,7 @@ matrix:
         apt:
           packages:
             - clang-4.0
-            - libstdc++-5-dev
+            - libstdc++-6-dev
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-4.0
@@ -81,7 +81,7 @@ matrix:
         apt:
           packages:
             - clang-5.0
-            - libstdc++-5-dev
+            - libstdc++-7-dev
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-5.0
