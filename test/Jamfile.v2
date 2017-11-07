@@ -37,7 +37,11 @@ project boost/fiber/test
 rule configure-impl ( properties * )
 {
     local result  ;
-    if ( ! ( <target-os>windows in $(properties) ) )
+    if ( <target-os>darwin in $(properties) )
+    {
+        result = <build>no ;
+    }
+    else if ( ! ( <target-os>windows in $(properties) ) )
     {
         result = <context-impl>ucontext ;
     }
