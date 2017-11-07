@@ -69,6 +69,7 @@ matrix:
         apt:
           packages:
             - clang-4.0
+            - libstdc++-6-dev
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-4.0
@@ -80,13 +81,10 @@ matrix:
         apt:
           packages:
             - clang-5.0
+            - libstdc++-7-dev
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-5.0
-
-    - os: osx
-      compiler: clang++
-      env: TOOLSET=clang COMPILER=clang++ CXXSTD=11,14,1z
 
 install:
   - BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true

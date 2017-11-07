@@ -295,6 +295,7 @@ channel operations return the state of the channel.
 [include cuda.qbk]
 [include hip.qbk]
 [endsect]
+[include worker.qbk]
 [include performance.qbk]
 [include tuning.qbk]
 [include customization.qbk]
