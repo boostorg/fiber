@@ -54,6 +54,7 @@ fiber/numa.html
 fiber/gpu_computing.html
 fiber/gpu_computing/cuda.html
 fiber/gpu_computing/hip.html
+fiber/worker.html
 fiber/performance.html
 fiber/tuning.html
 fiber/custom.html
