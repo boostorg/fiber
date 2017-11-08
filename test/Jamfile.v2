@@ -41,10 +41,6 @@ rule topology-impl ( properties * )
     {
         result = <build>no ;
     }
-    else
-    {
-        result = <build>yes ;
-    }
     return $(result) ;
 }
 
