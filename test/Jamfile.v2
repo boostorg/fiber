@@ -34,7 +34,21 @@ project boost/fiber/test
     ;
 
 
-rule configure-impl ( properties * )
+rule topology-impl ( properties * )
+{
+    local result  ;
+    if ( <target-os>darwin in $(properties) )
+    {
+        result = <build>no ;
+    }
+    else
+    {
+        result = <build>yes ;
+    }
+    return $(result) ;
+}
+
+rule native-impl ( properties * )
 {
     local result  ;
     if ( <target-os>darwin in $(properties) )
@@ -56,6 +70,7 @@ rule configure-impl ( properties * )
 test-suite numa :
 [ run test_topology.cpp :
     : :
+    <conditional>@topology-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -600,7 +615,7 @@ test-suite asm :
 test-suite native :
 [ run test_fiber_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -620,7 +635,7 @@ test-suite native :
 
 [ run test_fiber_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -640,7 +655,7 @@ test-suite native :
 
 [ run test_mutex_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -660,7 +675,7 @@ test-suite native :
 
 [ run test_mutex_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -680,7 +695,7 @@ test-suite native :
 
 [ run test_condition_variable_any_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -700,7 +715,7 @@ test-suite native :
 
 [ run test_condition_variable_any_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -720,7 +735,7 @@ test-suite native :
 
 [ run test_condition_variable_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -740,7 +755,7 @@ test-suite native :
 
 [ run test_condition_variable_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -760,7 +775,7 @@ test-suite native :
 
 [ run test_barrier_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -780,7 +795,7 @@ test-suite native :
 
 [ run test_barrier_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -800,7 +815,7 @@ test-suite native :
 
 [ run test_buffered_channel_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -820,7 +835,7 @@ test-suite native :
 
 [ run test_buffered_channel_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -840,7 +855,7 @@ test-suite native :
 
 [ run test_unbuffered_channel_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -860,7 +875,7 @@ test-suite native :
 
 [ run test_unbuffered_channel_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -880,7 +895,7 @@ test-suite native :
 
 [ run test_fss_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -900,7 +915,7 @@ test-suite native :
 
 [ run test_fss_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -920,7 +935,7 @@ test-suite native :
 
 [ run test_promise_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -940,7 +955,7 @@ test-suite native :
 
 [ run test_promise_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -960,7 +975,7 @@ test-suite native :
 
 [ run test_future_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -980,7 +995,7 @@ test-suite native :
 
 [ run test_future_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1000,7 +1015,7 @@ test-suite native :
 
 [ run test_shared_future_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1020,7 +1035,7 @@ test-suite native :
 
 [ run test_shared_future_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1040,7 +1055,7 @@ test-suite native :
 
 [ run test_packaged_task_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1060,7 +1075,7 @@ test-suite native :
 
 [ run test_packaged_task_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1080,7 +1095,7 @@ test-suite native :
 
 [ run test_async_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1100,7 +1115,7 @@ test-suite native :
 
 [ run test_async_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1246,7 +1261,7 @@ test-suite extra-asm :
 test-suite extra-native :
 [ run test_mutex_mt_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1266,7 +1281,7 @@ test-suite extra-native :
 
 [ run test_mutex_mt_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1286,7 +1301,7 @@ test-suite extra-native :
 
 [ run test_condition_mt_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1306,7 +1321,7 @@ test-suite extra-native :
 
 [ run test_condition_mt_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1326,7 +1341,7 @@ test-suite extra-native :
 
 [ run test_future_mt_post.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -1346,7 +1361,7 @@ test-suite extra-native :
 
 [ run test_future_mt_dispatch.cpp :
     : :
-    <conditional>@configure-impl
+    <conditional>@native-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
