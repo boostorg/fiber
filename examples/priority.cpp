@@ -11,9 +11,8 @@
 
 #include <boost/fiber/all.hpp>
 #include <boost/fiber/scheduler.hpp>
-#include <boost/noncopyable.hpp>
 
-class Verbose: public boost::noncopyable {
+class Verbose {
 public:
     Verbose( std::string const& d, std::string const& s="stop") :
         desc( d),
@@ -24,6 +23,9 @@ public:
     ~Verbose() {
         std::cout << desc << ' ' << stop << std::endl;
     }
+
+    Verbose( Verbose const&) = delete;
+    Verbose & operator=( Verbose const&) = delete;
 
 private:
     std::string     desc;
