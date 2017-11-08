@@ -41,6 +41,10 @@ rule topology-impl ( properties * )
     {
         result = <build>no ;
     }
+    else if ( <target-os>linux in $(properties) )
+    {
+        result = [ requires cxx11_hdr_regex ] ;
+    }
     return $(result) ;
 }
 
