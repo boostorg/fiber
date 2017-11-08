@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <boost/fiber/all.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
 
@@ -28,7 +27,7 @@
 /*****************************************************************************
 *   Verbose
 *****************************************************************************/
-class Verbose: boost::noncopyable {
+class Verbose {
 public:
     Verbose( std::string const& d):
         desc( d) {
@@ -38,6 +37,9 @@ public:
     ~Verbose() {
         std::cout << desc << " stop" << std::endl;
     }
+
+    Verbose( Verbose const&) = delete;
+    Verbose & operator=( Verbose const&) = delete;
 
 private:
     const std::string desc;

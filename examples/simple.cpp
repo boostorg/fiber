@@ -10,7 +10,6 @@
 #include <string>
 #include <thread>
 
-#include <boost/bind.hpp>
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
