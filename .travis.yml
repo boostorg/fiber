@@ -86,6 +86,16 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-5.0
 
+    - os: osx
+      osx_image: xcode8.3
+      compiler: clang++
+      env: TOOLSET=clang COMPILER=clang++ CXXSTD=11,14,1z
+
+    - os: osx
+      osx_image: xcode9.1
+      compiler: clang++
+      env: TOOLSET=clang COMPILER=clang++ CXXSTD=11,14,1z
+
 install:
   - BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
   - cd ..
