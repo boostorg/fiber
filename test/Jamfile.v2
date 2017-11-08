@@ -41,10 +41,6 @@ rule topology-impl ( properties * )
     {
         result = <build>no ;
     }
-    else if ( <target-os>linux in $(properties) )
-    {
-        result = [ requires cxx11_hdr_regex ] ;
-    }
     return $(result) ;
 }
 
@@ -78,6 +74,7 @@ test-suite numa :
                cxx11_hdr_mutex
                cxx11_hdr_thread
                cxx11_hdr_tuple
+               cxx11_hdr_regex
                cxx11_lambdas
                cxx11_noexcept
                cxx11_nullptr
