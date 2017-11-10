@@ -6,7 +6,7 @@
 ]
 
 [#hip]
-[section:hip HIP]
+[section:hip ROCm/HIP]
 
 [@http://github.com/ROCm-Developer-Tools/HIP/tree/roc-1.6.0/ HIP] is part of the
 [@http://rocm.github.io/ ROC (Radeon Open Compute)] platform for parallel computing
@@ -14,7 +14,7 @@ on AMD and NVIDIA GPUs. The application programming interface of HIP gives acces
 GPU's instruction set and computation resources (Execution of compute kernels).
 
 
-[heading Waiting for HIP streams]
+[heading Synchronization with ROCm/HIP streams]
 
 HIP operation such as compute kernels or memory transfer (between host and
 device) can be grouped/queued by HIP streams. are executed on the GPUs.

@@ -707,7 +707,7 @@ of typical STL containers.
             void wait_unlink() noexcept;
 
             void suspend() noexcept;
-            void set_ready( context *) noexcept;
+            void schedule( context *) noexcept;
         };
 
         bool operator<( context const& l, context const& r) noexcept;
@@ -930,20 +930,20 @@ __boost_intrusive__.]]
 
 [variablelist
 [[Effects:] [Suspends the running fiber (the fiber associated with `*this`)
-until some other fiber passes `this` to [member_link context..set_ready].
+until some other fiber passes `this` to [member_link context..schedule].
 `*this` is marked as not-ready, and control passes to the scheduler to select
 another fiber to run.]]
 [[Throws:] [Nothing]]
 [[Note:] [This is a low-level API potentially useful for integration with
 other frameworks. It is not intended to be directly invoked by a typical
 application program.]]
-[[Note:] [The burden is on the caller to arrange for a call to `set_ready()`
+[[Note:] [The burden is on the caller to arrange for a call to `schedule()`
 with a pointer to `this` at some future time.]]
 ]
 
-[member_heading context..set_ready]
+[member_heading context..schedule]
 
-        void set_ready( context * ctx ) noexcept;
+        void schedule( context * ctx ) noexcept;
 
 [variablelist
 [[Effects:] [Mark the fiber associated with context `*ctx` as being ready to
@@ -955,11 +955,11 @@ returned from a call to [member_link algorithm..suspend_until]),
 [[Note:] [This is a low-level API potentially useful for integration with
 other frameworks. It is not intended to be directly invoked by a typical
 application program.]]
-[[Note:] [It is explicitly supported to call `set_ready(ctx)` from a thread
+[[Note:] [It is explicitly supported to call `schedule(ctx)` from a thread
 other than the one on which `*ctx` is currently suspended. The corresponding
 fiber will be resumed on its original thread in due course.]]
 [/[[Note:] [See [member_link context..migrate] for a way to migrate the
-suspended thread to the thread calling `set_ready()`.]]]
+suspended thread to the thread calling `schedule()`.]]]
 ]
 
 [hding context_less..Non-member function [`operator<()]]
