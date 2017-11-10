@@ -296,7 +296,7 @@ value is stored into the caller[s] variable. Otherwise, it is stored into
 
 If the stored fiber context `yield_handler_base::ctx_` is not already running,
 it is marked as ready to run by passing it to [member_link
-context..set_ready]. Control then returns from
+context..schedule]. Control then returns from
 `yield_handler_base::operator()`: the callback is done.
 
 In due course, that fiber is resumed. Control returns from [member_link
