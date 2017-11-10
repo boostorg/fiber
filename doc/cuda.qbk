@@ -13,7 +13,7 @@ on NVIDIA GPUs. The application programming interface of CUDA gives access to
 GPU's instruction set and computation resources (Execution of compute kernels).
 
 
-[heading Waiting for CUDA streams]
+[heading Synchronization with CUDA streams]
 
 CUDA operation such as compute kernels or memory transfer (between host and
 device) can be grouped/queued by CUDA streams. are executed on the GPUs.
