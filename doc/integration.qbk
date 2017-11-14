@@ -198,7 +198,7 @@ this_fiber..yield]?
 
 That would be a promising start. But we have no guarantee that any of the
 other fibers will initiate any Asio operations to keep the ball rolling. For
-all we know, every other fiber could reach a similar `this_fiber::yield()`
+all we know, every other fiber could reach a similar `boost::this_fiber::yield()`
 call first. Control would return to the `post()` handler, which would return
 to Asio, and... the application would hang.
 

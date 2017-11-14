@@ -32,7 +32,7 @@
         class round_robin;
         class shared_round_robin;
 
-        }
+        }}
 
         namespace this_fiber {
 
@@ -45,7 +45,7 @@
         template< typename PROPS >
         PROPS & properties();
 
-        }}
+        }
 
 
 [heading Tutorial]
