@@ -18,7 +18,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#include "barrier.hpp"
+#include "thread_barrier.hpp"
 
 static std::size_t fiber_count{ 0 };
 static std::mutex mtx_count{};
@@ -61,7 +61,7 @@ void whatevah( char me) {
 *   example thread function
 *****************************************************************************/
 //[thread_fn_ws
-void thread( barrier * b) {
+void thread( thread_barrier * b) {
     std::ostringstream buffer;
     buffer << "thread started " << std::this_thread::get_id() << std::endl;
     std::cout << buffer.str() << std::flush;
@@ -99,7 +99,7 @@ int main( int argc, char *argv[]) {
         boost::fibers::fiber([c](){ whatevah( c); }).detach();
         ++fiber_count; /*< Increment fiber counter for each new fiber. >*/
     }
-    barrier b( 4);
+    thread_barrier b( 4);
     std::thread threads[] = { /*<
         Launch a couple of threads that join the work sharing.
     >*/

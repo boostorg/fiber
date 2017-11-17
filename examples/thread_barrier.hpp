@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BARRIER_H
-#define BARRIER_H
+#ifndef THREAD_BARRIER_H
+#define THREAD_BARRIER_H
 
 #include <cstddef>
 #include <condition_variable>
@@ -13,7 +13,7 @@
 
 #include <boost/assert.hpp>
 
-class barrier {
+class thread_barrier {
 private:
 	std::size_t             initial_;
 	std::size_t             current_;
@@ -22,14 +22,14 @@ private:
     std::condition_variable cond_{};
 
 public:
-	explicit barrier( std::size_t initial) :
+	explicit thread_barrier( std::size_t initial) :
         initial_{ initial },
         current_{ initial_ } {
         BOOST_ASSERT ( 0 != initial);
     }
 
-    barrier( barrier const&) = delete;
-    barrier & operator=( barrier const&) = delete;
+    thread_barrier( thread_barrier const&) = delete;
+    thread_barrier & operator=( thread_barrier const&) = delete;
 
     bool wait() {
         std::unique_lock< std::mutex > lk( mtx_);
@@ -47,4 +47,4 @@ public:
     }
 };
 
-#endif // BARRIER_H
+#endif // THREAD_BARRIER_H
