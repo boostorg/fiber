@@ -73,6 +73,8 @@ Range-for syntax is supported:
         public:
             typedef T   value_type;
 
+            class iterator;
+
             unbuffered_channel();
 
             unbuffered_channel( unbuffered_channel const& other) = delete; 
@@ -108,6 +110,12 @@ Range-for syntax is supported:
                 value_type & va,
                 std::chrono::time_point< Clock, Duration > const& timeout_time);
         };
+
+        template< typename T >
+        unbuffered_channel< T >::iterator begin( unbuffered_channel< T > & chan);
+
+        template< typename T >
+        unbuffered_channel< T >::iterator end( unbuffered_channel< T > & chan);
 
         }}
 
@@ -217,5 +225,21 @@ time as (system time + `timeout_duration`).
 ]
 ]
 [unbuffered_channel_pop_wait_until unbuffered_channel .]
+
+[heading Non-member function `begin( unbuffered_channel< T > &)`]
+    template< typename T >
+    unbuffered_channel< T >::iterator begin( unbuffered_channel< T > &);
+
+[variablelist
+[[Returns:] [Returns a range-iterator (input-iterator).]]
+]
+
+[heading Non-member function `end( unbuffered_channel< T > &)`]
+    template< typename T >
+    unbuffered_channel< R >::iterator end( unbuffered_channel< T > &);
+
+[variablelist
+[[Returns:] [Returns an end range-iterator (input-iterator).]]
+]
 
 [endsect]

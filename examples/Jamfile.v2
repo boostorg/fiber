@@ -18,6 +18,7 @@ project boost/fiber/example
     : requirements
       <library>../build//boost_fiber
       <library>/boost/context//boost_context
+      <library>/boost/filesystem//boost_filesystem
       <library>/boost/thread//boost_thread
       <target-os>solaris:<linkflags>"-llgrp"
       <target-os>solaris:<linkflags>"-lsocket"

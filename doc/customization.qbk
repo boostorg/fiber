@@ -103,7 +103,7 @@ parameter, the `fiber_properties` subclass.
 Given a [class_link fiber] instance still connected with a running fiber (that
 is, not [member_link fiber..detach]ed), you may access that fiber's properties
 using [template_member_link fiber..properties]. As with
-`this_fiber::properties<>()`, you must pass your `fiber_properties` subclass
+`boost::this_fiber::properties<>()`, you must pass your `fiber_properties` subclass
 as the template parameter.
 
 [launch]
