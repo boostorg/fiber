@@ -72,7 +72,7 @@ public:
         typedef pointer_traits< typename traity_type::pointer> ptrait_type;
 
         typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
-        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
+        typename ptrait_type::element_type* p = boost::to_address(ptr);
         try {
             traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
@@ -140,7 +140,7 @@ public:
         typedef pointer_traits< typename traity_type::pointer> ptrait_type;
 
         typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
-        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
+        typename ptrait_type::element_type* p = boost::to_address(ptr);
         try {
             traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
