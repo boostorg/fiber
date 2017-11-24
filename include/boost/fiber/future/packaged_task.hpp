@@ -60,7 +60,7 @@ public:
 
         typename object_type::allocator_type a{ alloc };
         typename traits_type::pointer ptr{ traits_type::allocate( a, 1) };
-        typename ptrait_type::element_type* p = ptrait_type::to_address(ptr);
+        typename ptrait_type::element_type* p = boost::to_address(ptr);
         try {
             traits_type::construct( a, p, a, std::forward< Fn >( fn) );
         } catch (...) {
