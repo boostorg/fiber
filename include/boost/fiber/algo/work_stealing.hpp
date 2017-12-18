@@ -34,7 +34,7 @@ namespace boost {
 namespace fibers {
 namespace algo {
 
-class work_stealing : public algorithm {
+class BOOST_FIBERS_DECL work_stealing : public algorithm {
 private:
     static std::atomic< std::uint32_t >                     counter_;
     static std::vector< intrusive_ptr< work_stealing > >    schedulers_;
