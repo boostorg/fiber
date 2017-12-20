@@ -120,7 +120,7 @@ public:
 
     fiber( fiber && other) noexcept :
         impl_{} {
-        impl_.swap( other.impl_);
+        swap( other);
     }
 
     fiber & operator=( fiber && other) noexcept {
