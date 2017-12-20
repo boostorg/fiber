@@ -259,7 +259,9 @@ public:
     static void reset_active() noexcept;
 
     context( context const&) = delete;
+    context( context &&) = delete;
     context & operator=( context const&) = delete;
+    context & operator=( context &&) = delete;
 
     friend bool
     operator==( context const& lhs, context const& rhs) noexcept {
