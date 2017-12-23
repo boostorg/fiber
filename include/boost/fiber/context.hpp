@@ -438,13 +438,13 @@ private:
 public:
     template< typename StackAlloc >
     worker_context( launch policy,
-                    boost::context::preallocated const& palloc, StackAlloc const& salloc,
+                    boost::context::preallocated const& palloc, StackAlloc && salloc,
                     Fn && fn, Arg ... arg) :
             context{ 1, type::worker_context, policy },
             fn_( std::forward< Fn >( fn) ),
             arg_( std::forward< Arg >( arg) ... ) {
         c_ = boost::context::callcc(
-                std::allocator_arg, palloc, salloc,
+                std::allocator_arg, palloc, std::forward< StackAlloc >( salloc),
                 std::bind( & worker_context::run_, this, std::placeholders::_1) );
     }
 };
@@ -452,7 +452,7 @@ public:
 
 template< typename StackAlloc, typename Fn, typename ... Arg >
 static intrusive_ptr< context > make_worker_context( launch policy,
-                                                     StackAlloc salloc,
+                                                     StackAlloc && salloc,
                                                      Fn && fn, Arg ... arg) {
     typedef worker_context< Fn, Arg ... >   context_t;
 
@@ -469,7 +469,7 @@ static intrusive_ptr< context > make_worker_context( launch policy,
             new ( storage) context_t{
                 policy,
                 boost::context::preallocated{ storage, size, sctx },
-                salloc,
+                std::forward< StackAlloc >( salloc),
                 std::forward< Fn >( fn),
                 std::forward< Arg >( arg) ... } };
 }
