@@ -215,10 +215,10 @@ be entered when the fiber scheduler has a chance to resume it later.]]
             fiber( ``[link class_launch `launch`]``, Fn &&, Args && ...);
 
             template< typename __StackAllocator__, typename Fn, typename ... Args >
-            fiber( __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
+            fiber( __allocator_arg_t__, StackAllocator &&, Fn &&, Args && ...);
 
             template< typename __StackAllocator__, typename Fn, typename ... Args >
-            fiber( ``[link class_launch `launch`]``, __allocator_arg_t__, StackAllocator, Fn &&, Args && ...);
+            fiber( ``[link class_launch `launch`]``, __allocator_arg_t__, StackAllocator &&, Fn &&, Args && ...);
 
             ~fiber();
 
@@ -276,10 +276,10 @@ be entered when the fiber scheduler has a chance to resume it later.]]
         fiber( ``[link class_launch `launch`]`` policy, Fn && fn, Args && ... args);
 
         template< typename __StackAllocator__, typename Fn, typename ... Args >
-        fiber( __allocator_arg_t__, StackAllocator salloc, Fn && fn, Args && ... args);
+        fiber( __allocator_arg_t__, StackAllocator && salloc, Fn && fn, Args && ... args);
 
         template< typename __StackAllocator__, typename Fn, typename ... Args >
-        fiber( ``[link class_launch `launch`]`` policy, __allocator_arg_t__, StackAllocator salloc,
+        fiber( ``[link class_launch `launch`]`` policy, __allocator_arg_t__, StackAllocator && salloc,
                Fn && fn, Args && ... args);
 
 [variablelist
