@@ -102,7 +102,6 @@ public:
         detail::spinlock_lock lk{ wait_queue_splk_ };
         BOOST_ASSERT( ! active_ctx->wait_is_linked() );
         active_ctx->wait_link( wait_queue_);
-        intrusive_ptr_add_ref( active_ctx);
         active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
         // unlock external lt
         lt.unlock();

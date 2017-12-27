@@ -25,8 +25,6 @@ condition_variable_any::notify_one() noexcept {
         wait_queue_.pop_front();
         std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
         if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
-            // notify before timeout
-            intrusive_ptr_release( ctx);
             // notify context
             active_ctx->schedule( ctx);
             break;
@@ -35,12 +33,6 @@ condition_variable_any::notify_one() noexcept {
             // notify context
             active_ctx->schedule( ctx);
             break;
-        } else {
-            // timed-wait op.
-            // expected == -1: notify after timeout, same timed-wait op.
-            // expected == <any>: notify after timeout, another timed-wait op. was already started
-            intrusive_ptr_release( ctx);
-            // re-schedule next
         }
     }
 }
@@ -56,20 +48,12 @@ condition_variable_any::notify_all() noexcept {
         wait_queue_.pop_front();
         std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
         if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
-            // notify before timeout
-            intrusive_ptr_release( ctx);
             // notify context
             active_ctx->schedule( ctx);
         } else if ( static_cast< std::intptr_t >( 0) == expected) {
             // no timed-wait op.
             // notify context
             active_ctx->schedule( ctx);
-        } else {
-            // timed-wait op.
-            // expected == -1: notify after timeout, same timed-wait op.
-            // expected == <any>: notify after timeout, another timed-wait op. was already started
-            intrusive_ptr_release( ctx);
-            // re-schedule next
         }
     }
 }
