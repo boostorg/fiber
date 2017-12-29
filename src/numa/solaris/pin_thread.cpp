@@ -25,8 +25,13 @@ namespace numa {
 
 BOOST_FIBERS_DECL
 void pin_thread( std::uint32_t cpuid) {
+    pin_thread( cpuid, P_MYID);
+}
+
+BOOST_FIBERS_DECL
+void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
     if ( BOOST_UNLIKELY( -1 == ::processor_bind( P_LWPID,
-                                 P_MYID,
+                                 h,
                                  static_cast< processorid_t >( cpuid),
                                  0) ) ) {
         throw std::system_error(

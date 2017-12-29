@@ -22,11 +22,16 @@ namespace numa {
 
 BOOST_FIBERS_DECL
 void pin_thread( std::uint32_t cpuid) {
+    pin_thread( cpuid, PTHREAD_SELFTID_NP);
+}
+
+BOOST_FIBERS_DECL
+void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
     pthread_spu_t spu;
     int err = ::pthread_processor_bind_np( PTHREAD_BIND_FORCED_NP,
                                            & spu,
                                            static_cast< pthread_spu_t >( cpuid),
-                                           PTHREAD_SELFTID_NP);
+                                           h);
     if ( BOOST_UNLIKELY( 0 != err) )
         throw std::system_error(
                 std::error_code( err, std::system_category() ),
