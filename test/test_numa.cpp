@@ -46,8 +46,10 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
         BOOST_TEST_SUITE("Boost.Fiber: numa topology test suite");
 
     test->add( BOOST_TEST_CASE( & test_topology) );
+#if 0
     test->add( BOOST_TEST_CASE( & test_pin_self) );
     test->add( BOOST_TEST_CASE( & test_pin) );
+#endif
 
     return test;
 }
