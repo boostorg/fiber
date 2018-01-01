@@ -33,7 +33,7 @@ namespace fibers {
 template< typename T >
 class unbuffered_channel {
 public:
-    typedef T   value_type;
+    typedef typename std::remove_reference< T >::type   value_type;
 
 private:
     typedef context::wait_queue_t   wait_queue_type;
@@ -54,14 +54,14 @@ private:
     };
 
     // shared cacheline
-    std::atomic< slot * >      slot_{ nullptr };
+    std::atomic< slot * >       slot_{ nullptr };
     // shared cacheline
-    std::atomic_bool           closed_{ false };
-    mutable detail::spinlock   splk_producers_{};
-    wait_queue_type                                     waiting_producers_{};
-    mutable detail::spinlock  splk_consumers_{};
-    wait_queue_type                                     waiting_consumers_{};
-    char                                                pad_[cacheline_length];
+    std::atomic_bool            closed_{ false };
+    mutable detail::spinlock    splk_producers_{};
+    wait_queue_type             waiting_producers_{};
+    mutable detail::spinlock    splk_consumers_{};
+    wait_queue_type             waiting_consumers_{};
+    char                        pad_[cacheline_length];
 
     bool is_empty_() {
         return nullptr == slot_.load( std::memory_order_acquire);
@@ -530,7 +530,7 @@ public:
         }
     }
 
-    class iterator : public std::iterator< std::input_iterator_tag, typename std::remove_reference< value_type >::type > {
+    class iterator {
     private:
         typedef typename std::aligned_storage< sizeof( value_type), alignof( value_type) >::type  storage_type;
 
@@ -547,8 +547,13 @@ public:
         }
 
     public:
-        typedef typename iterator::pointer pointer_t;
-        typedef typename iterator::reference reference_t;
+        typedef std::input_iterator_tag                     iterator_category;
+        typedef std::ptrdiff_t                              difference_type;
+        typedef value_type                              *   pointer;
+        typedef value_type                              &   reference;
+
+        typedef pointer     pointer_t;
+        typedef reference   reference_t;
 
         iterator() noexcept = default;
 

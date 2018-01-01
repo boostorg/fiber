@@ -34,11 +34,11 @@ namespace fibers {
 template< typename T >
 class buffered_channel {
 public:
-    typedef T   value_type;
+    typedef typename std::remove_reference< T >::type   value_type;
 
 private:
     typedef context::wait_queue_t                       wait_queue_type;
-	typedef T                                           slot_type;
+	typedef value_type                                  slot_type;
 
     mutable detail::spinlock   splk_{};
     wait_queue_type                                     waiting_producers_{};
@@ -518,12 +518,12 @@ public:
         }
     }
 
-    class iterator : public std::iterator< std::input_iterator_tag, typename std::remove_reference< value_type >::type > {
+    class iterator {
     private:
         typedef typename std::aligned_storage< sizeof( value_type), alignof( value_type) >::type  storage_type;
 
-        buffered_channel *   chan_{ nullptr };
-        storage_type        storage_;
+        buffered_channel    *   chan_{ nullptr };
+        storage_type            storage_;
 
         void increment_() {
             BOOST_ASSERT( nullptr != chan_);
@@ -535,8 +535,13 @@ public:
         }
 
     public:
-        typedef typename iterator::pointer pointer_t;
-        typedef typename iterator::reference reference_t;
+        typedef std::input_iterator_tag                     iterator_category;
+        typedef std::ptrdiff_t                              difference_type;
+        typedef value_type                              *   pointer;
+        typedef value_type                              &   reference;
+
+        typedef pointer     pointer_t;
+        typedef reference   reference_t;
 
         iterator() noexcept = default;
 
