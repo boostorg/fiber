@@ -29,7 +29,7 @@ namespace fs = boost::filesystem;
 
 namespace {
 
-class directory_iterator : public std::iterator< std::input_iterator_tag, const std::pair< std::uint32_t, fs::path > > {
+class directory_iterator {
 private:
     fs::directory_iterator          i_;
     fs::directory_iterator          e_;
@@ -47,6 +47,12 @@ private:
     }
 
 public:
+    typedef std::input_iterator_tag iterator_category;
+    typedef const std::pair< std::uint32_t, fs::path > value_type;
+    typedef std::ptrdiff_t difference_type;
+    typedef value_type * pointer;
+    typedef value_type & reference;
+
     directory_iterator() :
         i_(), e_(), exp_(), idx_() {
     }
