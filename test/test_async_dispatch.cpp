@@ -127,11 +127,12 @@ void test_async_stack_alloc() {
 }
 
 void test_async_std_alloc() {
+	struct none {};
     boost::fibers::future< void > f1 = boost::fibers::async(
             boost::fibers::launch::dispatch,
             std::allocator_arg,
             boost::fibers::fixedsize_stack{},
-            std::allocator< void >{},
+            std::allocator< none >{},
             fn1);
     BOOST_CHECK( f1.valid() );
 
