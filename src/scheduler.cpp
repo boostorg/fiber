@@ -199,7 +199,6 @@ scheduler::schedule( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
 #endif
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     // remove context ctx from sleep-queue
     // (might happen if blocked in timed_mutex::try_lock_until())
     if ( ctx->sleep_is_linked() ) {
