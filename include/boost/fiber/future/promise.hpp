@@ -53,7 +53,7 @@ struct promise_base {
     }
 
     ~promise_base() {
-        if ( future_) {
+        if ( future_ && obtained_) {
             future_->owner_destroyed();
         }
     }
