@@ -32,6 +32,13 @@ void pin_thread( std::uint32_t) {
             "boost fiber: pin_thread() not supported" };
 }
 
+BOOST_FIBERS_DECL
+void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
+    throw fiber_error{
+        std::make_error_code( std::errc::function_not_supported),
+            "boost fiber: pin_thread() not supported" };
+}
+
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS

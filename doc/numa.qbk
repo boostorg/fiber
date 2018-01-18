@@ -173,6 +173,7 @@ memory access).
     std::vector< node > topology();
 
     void pin_thread( std::uint32_t);
+    void pin_thread( std::uint32_t, std::thread::native_handle_type);
 
     }}}
 
@@ -275,14 +276,15 @@ system (each element represents a NUMA-node).]]
     namespace fibers {
     namespace numa {
 
-    void pin_thread( std::uint32_t);
+    void pin_thread( std::uint32_t cpu_id);
+    void pin_thread( std::uint32_t cpu_id, std::thread::native_handle_type h);
 
     }}}
 
 [variablelist
-[[Effects:] [Pins `this thread` to the logical cpu with ID `cpu_id`, e.g.
-the operating system scheduler will not migrate the thread to another
-logical cpu.]]
+[[Effects:] [First version pins `this thread` to the logical cpu with ID `cpu_id`, e.g.
+the operating system scheduler will not migrate the thread to another logical cpu.
+The second variant pins the thread with the native ID `h` to logical cpu with ID `cpu_id`.]]
 [[Throws:] [`system_error`]]
 ]
 

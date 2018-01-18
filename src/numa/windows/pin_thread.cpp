@@ -23,6 +23,11 @@ namespace numa {
 
 BOOST_FIBERS_DECL
 void pin_thread( std::uint32_t cpuid) {
+    pin_thread( cpuid, ::GetCurrentThread() );
+}
+
+BOOST_FIBERS_DECL
+void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
     GROUP_AFFINITY affinity;
     std::memset( & affinity, 0, sizeof( affinity) );
     // compute processor group
@@ -32,7 +37,7 @@ void pin_thread( std::uint32_t cpuid) {
     uint32_t id = cpuid % 64; 
     // set the bit mask of the logical CPU
     affinity.Mask = static_cast< KAFFINITY >( 1) << id;
-    if ( BOOST_UNLIKELY( 0 == ::SetThreadGroupAffinity( ::GetCurrentThread(), & affinity, nullptr) ) ) {
+    if ( BOOST_UNLIKELY( 0 == ::SetThreadGroupAffinity( h, & affinity, nullptr) ) ) {
         throw std::system_error(
                 std::error_code( ::GetLastError(), std::system_category() ),
                 "::SetThreadiGroupAffinity() failed");

@@ -34,7 +34,7 @@ project boost/fiber/test
     ;
 
 
-rule topology-impl ( properties * )
+rule numa-impl ( properties * )
 {
     local result  ;
     if ( <target-os>darwin in $(properties) )
@@ -64,9 +64,9 @@ rule native-impl ( properties * )
 
 # NUMA tests
 test-suite numa :
-[ run test_topology.cpp :
+[ run test_numa.cpp :
     : :
-    <conditional>@topology-impl
+    <conditional>@numa-impl
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
