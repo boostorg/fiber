@@ -23,7 +23,7 @@
 #if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
 #endif
-#include <boost/context/continuation.hpp>
+#include <boost/context/fiber.hpp>
 #include <boost/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
@@ -187,7 +187,7 @@ private:
     detail::terminated_hook                             terminated_hook_{};
     detail::worker_hook                                 worker_hook_{};
     fiber_properties                                *   properties_{ nullptr };
-    boost::context::continuation                        c_{};
+    boost::context::fiber                               c_{};
     std::chrono::steady_clock::time_point               tp_;
     type                                                type_;
     launch                                              policy_;
@@ -288,8 +288,8 @@ public:
     void suspend() noexcept;
     void suspend( detail::spinlock_lock &) noexcept;
 
-    boost::context::continuation suspend_with_cc() noexcept;
-    boost::context::continuation terminate() noexcept;
+    boost::context::fiber suspend_with_cc() noexcept;
+    boost::context::fiber terminate() noexcept;
 
     void join();
 
@@ -398,7 +398,7 @@ public:
         BOOST_ASSERT( nullptr != ctx);
         if ( 1 == ctx->use_count_.fetch_sub( 1, std::memory_order_release) ) {
             std::atomic_thread_fence( std::memory_order_acquire);
-            boost::context::continuation c = std::move( ctx->c_);
+            boost::context::fiber c = std::move( ctx->c_);
             // destruct context
             ctx->~context();
             // deallocated stack
@@ -418,13 +418,15 @@ private:
     typename std::decay< Fn >::type                     fn_;
     std::tuple< Arg ... >                               arg_;
 
-    boost::context::continuation
-    run_( boost::context::continuation && c) {
+    boost::context::fiber
+    run_( boost::context::fiber && c) {
         {
             // fn and tpl must be destroyed before calling terminate()
             auto fn = std::move( fn_);
             auto arg = std::move( arg_);
+#if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
             c.resume();
+#endif
 #if defined(BOOST_NO_CXX17_STD_APPLY)
            boost::context::detail::apply( std::move( fn), std::move( arg) );
 #else
@@ -443,9 +445,11 @@ public:
             context{ 1, type::worker_context, policy },
             fn_( std::forward< Fn >( fn) ),
             arg_( std::forward< Arg >( arg) ... ) {
-        c_ = boost::context::callcc(
-                std::allocator_arg, palloc, std::forward< StackAlloc >( salloc),
-                std::bind( & worker_context::run_, this, std::placeholders::_1) );
+        c_ = boost::context::fiber{ std::allocator_arg, palloc, std::forward< StackAlloc >( salloc),
+                                    std::bind( & worker_context::run_, this, std::placeholders::_1) };
+#if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
+        c_ = c_.resume();
+#endif
     }
 };
 
