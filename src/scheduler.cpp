@@ -134,7 +134,7 @@ scheduler::~scheduler() {
     main_ctx_ = nullptr;
 }
 
-boost::context::continuation
+boost::context::fiber
 scheduler::dispatch() noexcept {
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
     for (;;) {
@@ -232,7 +232,7 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
 }
 #endif
 
-boost::context::continuation
+boost::context::fiber
 scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
