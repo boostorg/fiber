@@ -402,7 +402,7 @@ public:
             // destruct context
             ctx->~context();
             // deallocated stack
-            c.resume();
+            std::move( c).resume();
         }
     }
 };
@@ -425,7 +425,7 @@ private:
             auto fn = std::move( fn_);
             auto arg = std::move( arg_);
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
-            c.resume();
+            std::move( c).resume();
 #endif
 #if defined(BOOST_NO_CXX17_STD_APPLY)
            boost::context::detail::apply( std::move( fn), std::move( arg) );
@@ -448,7 +448,7 @@ public:
         c_ = boost::context::fiber{ std::allocator_arg, palloc, std::forward< StackAlloc >( salloc),
                                     std::bind( & worker_context::run_, this, std::placeholders::_1) };
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
-        c_ = c_.resume();
+        c_ = std::move( c_).resume();
 #endif
     }
 };

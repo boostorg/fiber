@@ -32,7 +32,7 @@ private:
     boost::context::fiber
     run_( boost::context::fiber && c) {
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
-        c.resume();
+        std::move( c).resume();
 #endif
 		// execute scheduler::dispatch()
 		return get_scheduler()->dispatch();
@@ -44,7 +44,7 @@ public:
         c_ = boost::context::fiber{ std::allocator_arg, palloc, salloc,
                                     std::bind( & dispatcher_context::run_, this, std::placeholders::_1) };
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
-        c_ = c_.resume();
+        c_ = std::move( c_).resume();
 #endif
     }
 };
@@ -147,7 +147,7 @@ context::resume() noexcept {
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    c_.resume_with([prev](boost::context::fiber && c){
+    std::move( c_).resume_with([prev](boost::context::fiber && c){
                 prev->c_ = std::move( c);
                 return boost::context::fiber{};
             });
@@ -160,7 +160,7 @@ context::resume( detail::spinlock_lock & lk) noexcept {
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    c_.resume_with([prev,&lk](boost::context::fiber && c){
+    std::move( c_).resume_with([prev,&lk](boost::context::fiber && c){
                 prev->c_ = std::move( c);
                 lk.unlock();
                 return boost::context::fiber{};
@@ -174,7 +174,7 @@ context::resume( context * ready_ctx) noexcept {
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    c_.resume_with([prev,ready_ctx](boost::context::fiber && c){
+    std::move( c_).resume_with([prev,ready_ctx](boost::context::fiber && c){
                 prev->c_ = std::move( c);
                 context::active()->schedule( ready_ctx);
                 return boost::context::fiber{};
@@ -223,7 +223,7 @@ context::suspend_with_cc() noexcept {
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    return c_.resume_with([prev](boost::context::fiber && c){
+    return std::move( c_).resume_with([prev](boost::context::fiber && c){
                 prev->c_ = std::move( c);
                 return boost::context::fiber{};
             });
