@@ -431,7 +431,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     test->add( BOOST_TEST_CASE( & test_join_bind) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
     test->add( BOOST_TEST_CASE( & test_move_fiber) );
-    test->add( BOOST_TEST_CASE( & test_move_fiber) );
     test->add( BOOST_TEST_CASE( & test_yield) );
     test->add( BOOST_TEST_CASE( & test_sleep_for) );
     test->add( BOOST_TEST_CASE( & test_sleep_until) );
