@@ -47,7 +47,7 @@ rule numa-impl ( properties * )
 rule native-impl ( properties * )
 {
     local result  ;
-    if ( <target-os>darwin in $(properties) )
+    if ( <target-os>darwin in $(properties) || <target-os>android in $(properties) )
     {
         result = <build>no ;
     }
