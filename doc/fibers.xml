@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2017/11/07 18:07:00 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/02/26 18:35:28 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -239,6 +239,14 @@
         </para>
       </note>
     </section>
+    <important>
+      <para>
+        Windows using fcontext_t: turn off global program optimization (/GL) and
+        change /EHsc (compiler assumes that functions declared as extern &quot;C&quot;
+        never throw a C++ exception) to /EHs (tells compiler assumes that functions
+        declared as extern &quot;C&quot; may throw an exception).
+      </para>
+    </important>
   </section>
   <section id="fiber.fiber_mgmt">
     <title><link linkend="fiber.fiber_mgmt">Fiber management</link></title>
@@ -266,7 +274,7 @@
 <phrase role="keyword">class</phrase> <phrase role="identifier">round_robin</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">shared_round_robin</phrase><phrase role="special">;</phrase>
 
-<phrase role="special">}</phrase>
+<phrase role="special">}}</phrase>
 
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">this_fiber</phrase> <phrase role="special">{</phrase>
 
@@ -279,7 +287,7 @@
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">PROPS</phrase> <phrase role="special">&gt;</phrase>
 <phrase role="identifier">PROPS</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">properties</phrase><phrase role="special">();</phrase>
 
-<phrase role="special">}}</phrase>
+<phrase role="special">}</phrase>
 </programlisting>
     <bridgehead renderas="sect3" id="fiber.fiber_mgmt.h1">
       <phrase id="fiber.fiber_mgmt.tutorial"/><link linkend="fiber.fiber_mgmt.tutorial">Tutorial</link>
@@ -514,10 +522,10 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
     <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
+    <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...);</phrase>
 
     <phrase role="special">~</phrase><phrase role="identifier">fiber</phrase><phrase role="special">();</phrase>
 
@@ -602,10 +610,10 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 <phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase> <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 
 <phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <link linkend="stack_allocator_concept"><code><phrase role="identifier">StackAllocator</phrase></code></link><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">Fn</phrase><phrase role="special">,</phrase> <phrase role="keyword">typename</phrase> <phrase role="special">...</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&gt;</phrase>
-<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
+<phrase role="identifier">fiber</phrase><phrase role="special">(</phrase> <link linkend="class_launch"><code><phrase role="identifier">launch</phrase></code></link> <phrase role="identifier">policy</phrase><phrase role="special">,</phrase> <ulink url="http://en.cppreference.com/w/cpp/memory/allocator_arg_t"><code><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">allocator_arg_t</phrase></code></ulink><phrase role="special">,</phrase> <phrase role="identifier">StackAllocator</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">salloc</phrase><phrase role="special">,</phrase>
        <phrase role="identifier">Fn</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="identifier">fn</phrase><phrase role="special">,</phrase> <phrase role="identifier">Args</phrase> <phrase role="special">&amp;&amp;</phrase> <phrase role="special">...</phrase> <phrase role="identifier">args</phrase><phrase role="special">);</phrase>
 </programlisting>
       <variablelist>
@@ -3289,7 +3297,7 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
     <phrase role="keyword">void</phrase> <phrase role="identifier">wait_unlink</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 
     <phrase role="keyword">void</phrase> <phrase role="identifier">suspend</phrase><phrase role="special">()</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
-    <phrase role="keyword">void</phrase> <phrase role="identifier">set_ready</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+    <phrase role="keyword">void</phrase> <phrase role="identifier">schedule</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 <phrase role="special">};</phrase>
 
 <phrase role="keyword">bool</phrase> <phrase role="keyword">operator</phrase><phrase role="special">&lt;(</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">l</phrase><phrase role="special">,</phrase> <phrase role="identifier">context</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">r</phrase><phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
@@ -3999,7 +4007,7 @@ implementation&#8217;s
           <para>
             Suspends the running fiber (the fiber associated with <code><phrase role="special">*</phrase><phrase
             role="keyword">this</phrase></code>) until some other fiber passes <code><phrase
-            role="keyword">this</phrase></code> to <link linkend="context_set_ready"><code>context::set_ready()</code></link>.
+            role="keyword">this</phrase></code> to <link linkend="context_schedule"><code>context::schedule()</code></link>.
             <code><phrase role="special">*</phrase><phrase role="keyword">this</phrase></code>
             is marked as not-ready, and control passes to the scheduler to select
             another fiber to run.
@@ -4028,7 +4036,7 @@ implementation&#8217;s
         <term>Note:</term>
         <listitem>
           <para>
-            The burden is on the caller to arrange for a call to <code><phrase role="identifier">set_ready</phrase><phrase
+            The burden is on the caller to arrange for a call to <code><phrase role="identifier">schedule</phrase><phrase
             role="special">()</phrase></code> with a pointer to <code><phrase role="keyword">this</phrase></code>
             at some future time.
           </para>
@@ -4036,13 +4044,13 @@ implementation&#8217;s
       </varlistentry>
     </variablelist>
     <para>
-      <bridgehead renderas="sect4" id="context_set_ready_bridgehead">
-  <phrase id="context_set_ready"/>
-  <link linkend="context_set_ready">Member function
-      <code>set_ready</code>()</link>
+      <bridgehead renderas="sect4" id="context_schedule_bridgehead">
+  <phrase id="context_schedule"/>
+  <link linkend="context_schedule">Member function
+      <code>schedule</code>()</link>
 </bridgehead>
     </para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">set_ready</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase> <phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">schedule</phrase><phrase role="special">(</phrase> <phrase role="identifier">context</phrase> <phrase role="special">*</phrase> <phrase role="identifier">ctx</phrase> <phrase role="special">)</phrase> <phrase role="keyword">noexcept</phrase><phrase role="special">;</phrase>
 </programlisting>
     <variablelist>
       <title></title>
@@ -4081,7 +4089,7 @@ implementation&#8217;s
         <term>Note:</term>
         <listitem>
           <para>
-            It is explicitly supported to call <code><phrase role="identifier">set_ready</phrase><phrase
+            It is explicitly supported to call <code><phrase role="identifier">schedule</phrase><phrase
             role="special">(</phrase><phrase role="identifier">ctx</phrase><phrase
             role="special">)</phrase></code> from a thread other than the one on
             which <code><phrase role="special">*</phrase><phrase role="identifier">ctx</phrase></code>
@@ -7401,6 +7409,8 @@ implementation&#8217;s
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">typedef</phrase> <phrase role="identifier">T</phrase>   <phrase role="identifier">value_type</phrase><phrase role="special">;</phrase>
 
+    <phrase role="keyword">class</phrase> <phrase role="identifier">iterator</phrase><phrase role="special">;</phrase>
+
     <phrase role="keyword">explicit</phrase> <phrase role="identifier">buffered_channel</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">size_t</phrase> <phrase role="identifier">capacity</phrase><phrase role="special">);</phrase>
 
     <phrase role="identifier">buffered_channel</phrase><phrase role="special">(</phrase> <phrase role="identifier">buffered_channel</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
@@ -7439,6 +7449,12 @@ implementation&#8217;s
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
     <phrase role="identifier">channel_op_status</phrase> <phrase role="identifier">try_pop</phrase><phrase role="special">(</phrase> <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">begin</phrase><phrase role="special">(</phrase> <phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">chan</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">end</phrase><phrase role="special">(</phrase> <phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">chan</phrase><phrase role="special">);</phrase>
 
 <phrase role="special">}}</phrase>
 </programlisting>
@@ -7836,6 +7852,50 @@ implementation&#8217;s
             </listitem>
           </varlistentry>
         </variablelist>
+        <bridgehead renderas="sect5" id="fiber.synchronization.channels.buffered_channel.h1">
+          <phrase id="fiber.synchronization.channels.buffered_channel.non_member_function__code__phrase_role__identifier__begin__phrase__phrase_role__special_____phrase___phrase_role__identifier__buffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_"/><link
+          linkend="fiber.synchronization.channels.buffered_channel.non_member_function__code__phrase_role__identifier__begin__phrase__phrase_role__special_____phrase___phrase_role__identifier__buffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_">Non-member
+          function <code><phrase role="identifier">begin</phrase><phrase role="special">(</phrase>
+          <phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase>
+          <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+          <phrase role="special">&amp;)</phrase></code></link>
+        </bridgehead>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">begin</phrase><phrase role="special">(</phrase> <phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;);</phrase>
+</programlisting>
+        <variablelist>
+          <title></title>
+          <varlistentry>
+            <term>Returns:</term>
+            <listitem>
+              <para>
+                Returns a range-iterator (input-iterator).
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <bridgehead renderas="sect5" id="fiber.synchronization.channels.buffered_channel.h2">
+          <phrase id="fiber.synchronization.channels.buffered_channel.non_member_function__code__phrase_role__identifier__end__phrase__phrase_role__special_____phrase___phrase_role__identifier__buffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_"/><link
+          linkend="fiber.synchronization.channels.buffered_channel.non_member_function__code__phrase_role__identifier__end__phrase__phrase_role__special_____phrase___phrase_role__identifier__buffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_">Non-member
+          function <code><phrase role="identifier">end</phrase><phrase role="special">(</phrase>
+          <phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase>
+          <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+          <phrase role="special">&amp;)</phrase></code></link>
+        </bridgehead>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">end</phrase><phrase role="special">(</phrase> <phrase role="identifier">buffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;);</phrase>
+</programlisting>
+        <variablelist>
+          <title></title>
+          <varlistentry>
+            <term>Returns:</term>
+            <listitem>
+              <para>
+                Returns an end range-iterator (input-iterator).
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
       </section>
       <section id="fiber.synchronization.channels.unbuffered_channel">
         <title><link linkend="fiber.synchronization.channels.unbuffered_channel">Unbuffered
@@ -7916,6 +7976,8 @@ implementation&#8217;s
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
     <phrase role="keyword">typedef</phrase> <phrase role="identifier">T</phrase>   <phrase role="identifier">value_type</phrase><phrase role="special">;</phrase>
 
+    <phrase role="keyword">class</phrase> <phrase role="identifier">iterator</phrase><phrase role="special">;</phrase>
+
     <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">();</phrase>
 
     <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">(</phrase> <phrase role="identifier">unbuffered_channel</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">other</phrase><phrase role="special">)</phrase> <phrase role="special">=</phrase> <phrase role="keyword">delete</phrase><phrase role="special">;</phrase>
@@ -7951,6 +8013,12 @@ implementation&#8217;s
         <phrase role="identifier">value_type</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">va</phrase><phrase role="special">,</phrase>
         <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">chrono</phrase><phrase role="special">::</phrase><phrase role="identifier">time_point</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">Clock</phrase><phrase role="special">,</phrase> <phrase role="identifier">Duration</phrase> <phrase role="special">&gt;</phrase> <phrase role="keyword">const</phrase><phrase role="special">&amp;</phrase> <phrase role="identifier">timeout_time</phrase><phrase role="special">);</phrase>
 <phrase role="special">};</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">begin</phrase><phrase role="special">(</phrase> <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">chan</phrase><phrase role="special">);</phrase>
+
+<phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">end</phrase><phrase role="special">(</phrase> <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">chan</phrase><phrase role="special">);</phrase>
 
 <phrase role="special">}}</phrase>
 </programlisting>
@@ -8220,6 +8288,50 @@ implementation&#8217;s
             <listitem>
               <para>
                 timeout-related exceptions or by copy- or move-operations.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <bridgehead renderas="sect5" id="fiber.synchronization.channels.unbuffered_channel.h1">
+          <phrase id="fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__begin__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_"/><link
+          linkend="fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__begin__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_">Non-member
+          function <code><phrase role="identifier">begin</phrase><phrase role="special">(</phrase>
+          <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase>
+          <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+          <phrase role="special">&amp;)</phrase></code></link>
+        </bridgehead>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">begin</phrase><phrase role="special">(</phrase> <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;);</phrase>
+</programlisting>
+        <variablelist>
+          <title></title>
+          <varlistentry>
+            <term>Returns:</term>
+            <listitem>
+              <para>
+                Returns a range-iterator (input-iterator).
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <bridgehead renderas="sect5" id="fiber.synchronization.channels.unbuffered_channel.h2">
+          <phrase id="fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__end__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_"/><link
+          linkend="fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__end__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_">Non-member
+          function <code><phrase role="identifier">end</phrase><phrase role="special">(</phrase>
+          <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase>
+          <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+          <phrase role="special">&amp;)</phrase></code></link>
+        </bridgehead>
+<programlisting><phrase role="keyword">template</phrase><phrase role="special">&lt;</phrase> <phrase role="keyword">typename</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase>
+<phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">R</phrase> <phrase role="special">&gt;::</phrase><phrase role="identifier">iterator</phrase> <phrase role="identifier">end</phrase><phrase role="special">(</phrase> <phrase role="identifier">unbuffered_channel</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">T</phrase> <phrase role="special">&gt;</phrase> <phrase role="special">&amp;);</phrase>
+</programlisting>
+        <variablelist>
+          <title></title>
+          <varlistentry>
+            <term>Returns:</term>
+            <listitem>
+              <para>
+                Returns an end range-iterator (input-iterator).
               </para>
             </listitem>
           </varlistentry>
@@ -10770,7 +10882,7 @@ encapsulates.
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">([</phrase><phrase role="identifier">c</phrase><phrase role="special">](){</phrase> <phrase role="identifier">whatevah</phrase><phrase role="special">(</phrase> <phrase role="identifier">c</phrase><phrase role="special">);</phrase> <phrase role="special">}).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
     <phrase role="special">++</phrase><phrase role="identifier">fiber_count</phrase><phrase role="special">;</phrase> <co id="fiber.migration.c4" linkends="fiber.migration.c5" />
 <phrase role="special">}</phrase>
-<phrase role="identifier">barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">(</phrase> <phrase role="number">4</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">thread_barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">(</phrase> <phrase role="number">4</phrase><phrase role="special">);</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase> <phrase role="identifier">threads</phrase><phrase role="special">[]</phrase> <phrase role="special">=</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c6" linkends="fiber.migration.c7" />
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase>
@@ -10858,7 +10970,7 @@ encapsulates.
       the thread terminates: the main thread joins all other threads.
     </para>
     <para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">barrier</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread_barrier</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ostringstream</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">buffer</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;thread started &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
@@ -11839,7 +11951,7 @@ before
       <para>
         If the stored fiber context <code><phrase role="identifier">yield_handler_base</phrase><phrase
         role="special">::</phrase><phrase role="identifier">ctx_</phrase></code>
-        is not already running, it is marked as ready to run by passing it to <link linkend="context_set_ready"><code>context::set_ready()</code></link>.
+        is not already running, it is marked as ready to run by passing it to <link linkend="context_schedule"><code>context::schedule()</code></link>.
         Control then returns from <code><phrase role="identifier">yield_handler_base</phrase><phrase
         role="special">::</phrase><phrase role="keyword">operator</phrase><phrase
         role="special">()</phrase></code>: the callback is done.
@@ -13844,7 +13956,8 @@ before
       <para>
         That would be a promising start. But we have no guarantee that any of the
         other fibers will initiate any Asio operations to keep the ball rolling.
-        For all we know, every other fiber could reach a similar <code><phrase role="identifier">this_fiber</phrase><phrase
+        For all we know, every other fiber could reach a similar <code><phrase role="identifier">boost</phrase><phrase
+        role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase
         role="special">::</phrase><phrase role="identifier">yield</phrase><phrase
         role="special">()</phrase></code> call first. Control would return to the
         <code><phrase role="identifier">post</phrase><phrase role="special">()</phrase></code>
@@ -14492,6 +14605,7 @@ that would cause the thread to
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">node</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">topology</phrase><phrase role="special">();</phrase>
 
 <phrase role="keyword">void</phrase> <phrase role="identifier">pin_thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">pin_thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">::</phrase><phrase role="identifier">native_handle_type</phrase><phrase role="special">);</phrase>
 
 <phrase role="special">}}}</phrase>
 
@@ -14690,7 +14804,8 @@ that would cause the thread to
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">numa</phrase> <phrase role="special">{</phrase>
 
-<phrase role="keyword">void</phrase> <phrase role="identifier">pin_thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">pin_thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase> <phrase role="identifier">cpu_id</phrase><phrase role="special">);</phrase>
+<phrase role="keyword">void</phrase> <phrase role="identifier">pin_thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase> <phrase role="identifier">cpu_id</phrase><phrase role="special">,</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">::</phrase><phrase role="identifier">native_handle_type</phrase> <phrase role="identifier">h</phrase><phrase role="special">);</phrase>
 
 <phrase role="special">}}}</phrase>
 </programlisting>
@@ -14700,10 +14815,12 @@ that would cause the thread to
         <term>Effects:</term>
         <listitem>
           <para>
-            Pins <code><phrase role="keyword">this</phrase> <phrase role="identifier">thread</phrase></code>
-            to the logical cpu with ID <code><phrase role="identifier">cpu_id</phrase></code>,
-            e.g. the operating system scheduler will not migrate the thread to another
-            logical cpu.
+            First version pins <code><phrase role="keyword">this</phrase> <phrase
+            role="identifier">thread</phrase></code> to the logical cpu with ID
+            <code><phrase role="identifier">cpu_id</phrase></code>, e.g. the operating
+            system scheduler will not migrate the thread to another logical cpu.
+            The second variant pins the thread with the native ID <code><phrase role="identifier">h</phrase></code>
+            to logical cpu with ID <code><phrase role="identifier">cpu_id</phrase></code>.
           </para>
         </listitem>
       </varlistentry>
@@ -14983,8 +15100,9 @@ that would cause the thread to
         instruction set and computation resources (Execution of compute kernels).
       </para>
       <bridgehead renderas="sect4" id="fiber.gpu_computing.cuda.h0">
-        <phrase id="fiber.gpu_computing.cuda.waiting_for_cuda_streams"/><link linkend="fiber.gpu_computing.cuda.waiting_for_cuda_streams">Waiting
-        for CUDA streams</link>
+        <phrase id="fiber.gpu_computing.cuda.synchronization_with_cuda_streams"/><link
+        linkend="fiber.gpu_computing.cuda.synchronization_with_cuda_streams">Synchronization
+        with CUDA streams</link>
       </bridgehead>
       <para>
         CUDA operation such as compute kernels or memory transfer (between host and
@@ -15097,7 +15215,7 @@ that would cause the thread to
       </variablelist>
     </section>
     <section id="fiber.gpu_computing.hip">
-      <title><anchor id="hip"/><link linkend="fiber.gpu_computing.hip">HIP</link></title>
+      <title><anchor id="hip"/><link linkend="fiber.gpu_computing.hip">ROCm/HIP</link></title>
       <para>
         <ulink url="http://github.com/ROCm-Developer-Tools/HIP/tree/roc-1.6.0/">HIP</ulink>
         is part of the <ulink url="http://rocm.github.io/">ROC (Radeon Open Compute)</ulink>
@@ -15106,8 +15224,9 @@ that would cause the thread to
         (Execution of compute kernels).
       </para>
       <bridgehead renderas="sect4" id="fiber.gpu_computing.hip.h0">
-        <phrase id="fiber.gpu_computing.hip.waiting_for_hip_streams"/><link linkend="fiber.gpu_computing.hip.waiting_for_hip_streams">Waiting
-        for HIP streams</link>
+        <phrase id="fiber.gpu_computing.hip.synchronization_with_rocm_hip_streams"/><link
+        linkend="fiber.gpu_computing.hip.synchronization_with_rocm_hip_streams">Synchronization
+        with ROCm/HIP streams</link>
       </bridgehead>
       <para>
         HIP operation such as compute kernels or memory transfer (between host and
@@ -15319,7 +15438,7 @@ that would cause the thread to
         algorithm.
       </para>
     </note>
-<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">{</phrase><phrase role="number">2</phrase><phrase role="special">};</phrase>
+<programlisting><phrase role="identifier">barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">{</phrase><phrase role="number">2</phrase><phrase role="special">};</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">&gt;(</phrase><phrase role="number">2</phrase><phrase role="special">);</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">mutex</phrase> <phrase role="identifier">mtx</phrase><phrase role="special">;</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">condition_variable_any</phrase> <phrase role="identifier">cv</phrase><phrase role="special">;</phrase>
@@ -16351,7 +16470,8 @@ that would cause the thread to
     <para>
       Given a <link linkend="class_fiber"><code>fiber</code></link> instance still connected with a running fiber (that
       is, not <link linkend="fiber_detach"><code>fiber::detach()</code></link>ed), you may access that fiber's properties
-      using <link linkend="fiber_properties"><code>fiber::properties()</code></link>. As with <code><phrase role="identifier">this_fiber</phrase><phrase
+      using <link linkend="fiber_properties"><code>fiber::properties()</code></link>. As with <code><phrase role="identifier">boost</phrase><phrase
+      role="special">::</phrase><phrase role="identifier">this_fiber</phrase><phrase
       role="special">::</phrase><phrase role="identifier">properties</phrase><phrase
       role="special">&lt;&gt;()</phrase></code>, you must pass your <code><phrase
       role="identifier">fiber_properties</phrase></code> subclass as the template
@@ -16605,79 +16725,5 @@ that would cause the thread to
       I'd like to thank Agustín Bergé, Eugene Yakubovich, Giovanni Piero Deretta
       and especially Nat Goodspeed.
     </para>
-  </section>
-  <section id="fiber.installing">
-    <title><link linkend="fiber.installing">Appendix: Installing and Running Tests</link></title>
-    <bridgehead renderas="sect3" id="fiber.installing.h0">
-      <phrase id="fiber.installing.installing_the_fiber_library"/><link linkend="fiber.installing.installing_the_fiber_library">Installing
-      the Fiber library</link>
-    </bridgehead>
-    <para>
-      As Fiber is not yet officially part of Boost, it is necessary to embed it in
-      an existing <ulink url="http://www.boost.org/users/download/">Boost source
-      tree</ulink>.
-    </para>
-    <para>
-      The <ulink url="https://github.com/olk/boost-fiber/archive/master.zip">downloaded
-      Fiber library</ulink> can be placed into an existing Boost source tree by moving
-      the top-level Fiber directory to <code><phrase role="identifier">libs</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">fiber</phrase></code> under
-      the top-level Boost directory, then further moving <code><phrase role="identifier">libs</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase
-      role="identifier">include</phrase><phrase role="special">/</phrase><phrase
-      role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase></code>
-      (in other words, the Fiber library's <code><phrase role="identifier">include</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase
-      role="identifier">fiber</phrase></code> directory) to <code><phrase role="identifier">boost</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">fiber</phrase></code> under
-      the top-level Boost directory.
-    </para>
-    <para>
-      On a Posix system such as Linux or OS X, you may use symlinks instead.
-    </para>
-    <para>
-      Create a symlink from the Boost directory's <code><phrase role="identifier">libs</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">fiber</phrase></code> to
-      the top-level Fiber directory, e.g.:
-    </para>
-<programlisting><phrase role="identifier">cd</phrase> <phrase role="special">~/</phrase><phrase role="identifier">boost_1_61_0</phrase>
-<phrase role="identifier">ln</phrase> <phrase role="special">-</phrase><phrase role="identifier">s</phrase> <phrase role="special">~/</phrase><phrase role="identifier">boost</phrase><phrase role="special">-</phrase><phrase role="identifier">fiber</phrase><phrase role="special">-</phrase><phrase role="identifier">master</phrase> <phrase role="identifier">libs</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase>
-</programlisting>
-    <para>
-      Then create a symlink from the Boost directory's <code><phrase role="identifier">boost</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">fiber</phrase></code> to
-      the Fiber library's <code><phrase role="identifier">include</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase
-      role="identifier">fiber</phrase></code> directory:
-    </para>
-<programlisting><phrase role="identifier">cd</phrase> <phrase role="identifier">boost</phrase>
-<phrase role="identifier">ln</phrase> <phrase role="special">-</phrase><phrase role="identifier">s</phrase> <phrase role="special">../</phrase><phrase role="identifier">libs</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">include</phrase><phrase role="special">/</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">fiber</phrase>
-</programlisting>
-    <para>
-      For some versions of the Boost.Build system, it was important to use a relative
-      symlink of that form for <code><phrase role="identifier">boost</phrase><phrase
-      role="special">/</phrase><phrase role="identifier">fiber</phrase></code>.
-    </para>
-    <anchor id="tests"/>
-    <bridgehead renderas="sect3" id="fiber.installing.h1">
-      <phrase id="fiber.installing.running_tests"/><link linkend="fiber.installing.running_tests">Running
-      Tests</link>
-    </bridgehead>
-    <para>
-      Once the Fiber library has been overlaid (or symlinked) into the Boost source
-      tree this way, the Boost.Build system can build it like any other Boost library.
-      In particular:
-    </para>
-<programlisting><phrase role="identifier">cd</phrase> <phrase role="special">~/</phrase><phrase role="identifier">boost_1_61_0</phrase>
-<phrase role="special">./</phrase><phrase role="identifier">bootstrap</phrase><phrase role="special">.</phrase><phrase role="identifier">sh</phrase>
-<phrase role="special">./</phrase><phrase role="identifier">b2</phrase> <phrase role="identifier">libs</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">test</phrase>
-</programlisting>
-    <para>
-      On Windows, the commands would look more like:
-    </para>
-<programlisting><phrase role="identifier">cd</phrase> <phrase role="special">/</phrase><phrase role="identifier">D</phrase> <phrase role="special">%</phrase><phrase role="identifier">HOMEDRIVE</phrase><phrase role="special">%%</phrase><phrase role="identifier">HOMEPATH</phrase><phrase role="special">%\</phrase><phrase role="identifier">boost_1_61_0</phrase>
-<phrase role="identifier">bootstrap</phrase>
-<phrase role="identifier">b2</phrase> <phrase role="identifier">libs</phrase><phrase role="special">\</phrase><phrase role="identifier">fiber</phrase><phrase role="special">\</phrase><phrase role="identifier">test</phrase>
-</programlisting>
   </section>
 </library>

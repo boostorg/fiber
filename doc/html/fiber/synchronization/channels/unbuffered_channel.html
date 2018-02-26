@@ -105,6 +105,8 @@
 <span class="keyword">public</span><span class="special">:</span>
     <span class="keyword">typedef</span> <span class="identifier">T</span>   <span class="identifier">value_type</span><span class="special">;</span>
 
+    <span class="keyword">class</span> <span class="identifier">iterator</span><span class="special">;</span>
+
     <span class="identifier">unbuffered_channel</span><span class="special">();</span>
 
     <span class="identifier">unbuffered_channel</span><span class="special">(</span> <span class="identifier">unbuffered_channel</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
@@ -140,6 +142,12 @@
         <span class="identifier">value_type</span> <span class="special">&amp;</span> <span class="identifier">va</span><span class="special">,</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">chrono</span><span class="special">::</span><span class="identifier">time_point</span><span class="special">&lt;</span> <span class="identifier">Clock</span><span class="special">,</span> <span class="identifier">Duration</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">timeout_time</span><span class="special">);</span>
 <span class="special">};</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;::</span><span class="identifier">iterator</span> <span class="identifier">begin</span><span class="special">(</span> <span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">chan</span><span class="special">);</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;::</span><span class="identifier">iterator</span> <span class="identifier">end</span><span class="special">(</span> <span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">chan</span><span class="special">);</span>
 
 <span class="special">}}</span>
 </pre>
@@ -355,6 +363,46 @@
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
                 timeout-related exceptions or by copy- or move-operations.
+              </p></dd>
+</dl>
+</div>
+<h6>
+<a name="fiber.synchronization.channels.unbuffered_channel.h1"></a>
+          <span><a name="fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__begin__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_"></a></span><a class="link" href="unbuffered_channel.html#fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__begin__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_">Non-member
+          function <code class="computeroutput"><span class="identifier">begin</span><span class="special">(</span>
+          <span class="identifier">unbuffered_channel</span><span class="special">&lt;</span>
+          <span class="identifier">T</span> <span class="special">&gt;</span>
+          <span class="special">&amp;)</span></code></a>
+        </h6>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;::</span><span class="identifier">iterator</span> <span class="identifier">begin</span><span class="special">(</span> <span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+                Returns a range-iterator (input-iterator).
+              </p></dd>
+</dl>
+</div>
+<h6>
+<a name="fiber.synchronization.channels.unbuffered_channel.h2"></a>
+          <span><a name="fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__end__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_"></a></span><a class="link" href="unbuffered_channel.html#fiber.synchronization.channels.unbuffered_channel.non_member_function__code__phrase_role__identifier__end__phrase__phrase_role__special_____phrase___phrase_role__identifier__unbuffered_channel__phrase__phrase_role__special___lt___phrase___phrase_role__identifier__t__phrase___phrase_role__special___gt___phrase___phrase_role__special___amp____phrase___code_">Non-member
+          function <code class="computeroutput"><span class="identifier">end</span><span class="special">(</span>
+          <span class="identifier">unbuffered_channel</span><span class="special">&lt;</span>
+          <span class="identifier">T</span> <span class="special">&gt;</span>
+          <span class="special">&amp;)</span></code></a>
+        </h6>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span> <span class="keyword">typename</span> <span class="identifier">T</span> <span class="special">&gt;</span>
+<span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">R</span> <span class="special">&gt;::</span><span class="identifier">iterator</span> <span class="identifier">end</span><span class="special">(</span> <span class="identifier">unbuffered_channel</span><span class="special">&lt;</span> <span class="identifier">T</span> <span class="special">&gt;</span> <span class="special">&amp;);</span>
+</pre>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term">Returns:</span></dt>
+<dd><p>
+                Returns an end range-iterator (input-iterator).
               </p></dd>
 </dl>
 </div>

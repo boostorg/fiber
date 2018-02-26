@@ -219,7 +219,7 @@
 <p>
         That would be a promising start. But we have no guarantee that any of the
         other fibers will initiate any Asio operations to keep the ball rolling.
-        For all we know, every other fiber could reach a similar <code class="computeroutput"><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">yield</span><span class="special">()</span></code> call first. Control would return to the
+        For all we know, every other fiber could reach a similar <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">this_fiber</span><span class="special">::</span><span class="identifier">yield</span><span class="special">()</span></code> call first. Control would return to the
         <code class="computeroutput"><span class="identifier">post</span><span class="special">()</span></code>
         handler, which would return to Asio, and... the application would hang.
       </p>

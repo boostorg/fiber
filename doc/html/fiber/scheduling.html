@@ -1333,7 +1333,7 @@
     <span class="keyword">void</span> <span class="identifier">wait_unlink</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
     <span class="keyword">void</span> <span class="identifier">suspend</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-    <span class="keyword">void</span> <span class="identifier">set_ready</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">void</span> <span class="identifier">schedule</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="special">};</span>
 
 <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span> <span class="identifier">context</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">l</span><span class="special">,</span> <span class="identifier">context</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">r</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
@@ -1877,7 +1877,7 @@ implementation&#8217;s
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Suspends the running fiber (the fiber associated with <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>) until some other fiber passes <code class="computeroutput"><span class="keyword">this</span></code> to <a class="link" href="scheduling.html#context_set_ready"><code class="computeroutput">context::set_ready()</code></a>.
+            Suspends the running fiber (the fiber associated with <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>) until some other fiber passes <code class="computeroutput"><span class="keyword">this</span></code> to <a class="link" href="scheduling.html#context_schedule"><code class="computeroutput">context::schedule()</code></a>.
             <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
             is marked as not-ready, and control passes to the scheduler to select
             another fiber to run.
@@ -1894,7 +1894,7 @@ implementation&#8217;s
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            The burden is on the caller to arrange for a call to <code class="computeroutput"><span class="identifier">set_ready</span><span class="special">()</span></code> with a pointer to <code class="computeroutput"><span class="keyword">this</span></code>
+            The burden is on the caller to arrange for a call to <code class="computeroutput"><span class="identifier">schedule</span><span class="special">()</span></code> with a pointer to <code class="computeroutput"><span class="keyword">this</span></code>
             at some future time.
           </p></dd>
 </dl>
@@ -1902,14 +1902,14 @@ implementation&#8217;s
 <p>
       </p>
 <h5>
-<a name="context_set_ready_bridgehead"></a>
-  <span><a name="context_set_ready"></a></span>
-  <a class="link" href="scheduling.html#context_set_ready">Member function
-      <code class="computeroutput">set_ready</code>()</a>
+<a name="context_schedule_bridgehead"></a>
+  <span><a name="context_schedule"></a></span>
+  <a class="link" href="scheduling.html#context_schedule">Member function
+      <code class="computeroutput">schedule</code>()</a>
 </h5>
 <p>
     </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">set_ready</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span> <span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">schedule</span><span class="special">(</span> <span class="identifier">context</span> <span class="special">*</span> <span class="identifier">ctx</span> <span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 </pre>
 <div class="variablelist">
 <p class="title"><b></b></p>
@@ -1934,7 +1934,7 @@ implementation&#8217;s
           </p></dd>
 <dt><span class="term">Note:</span></dt>
 <dd><p>
-            It is explicitly supported to call <code class="computeroutput"><span class="identifier">set_ready</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code> from a thread other than the one on
+            It is explicitly supported to call <code class="computeroutput"><span class="identifier">schedule</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code> from a thread other than the one on
             which <code class="computeroutput"><span class="special">*</span><span class="identifier">ctx</span></code>
             is currently suspended. The corresponding fiber will be resumed on its
             original thread in due course.

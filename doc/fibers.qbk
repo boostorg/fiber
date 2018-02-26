@@ -301,4 +301,3 @@ channel operations return the state of the channel.
 [include customization.qbk]
 [include rationale.qbk]
 [include acknowledgements.qbk]
-[include installing.qbk]
