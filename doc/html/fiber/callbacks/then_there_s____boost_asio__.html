@@ -437,7 +437,7 @@
       </p>
 <p>
         If the stored fiber context <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="identifier">ctx_</span></code>
-        is not already running, it is marked as ready to run by passing it to <a class="link" href="../scheduling.html#context_set_ready"><code class="computeroutput">context::set_ready()</code></a>.
+        is not already running, it is marked as ready to run by passing it to <a class="link" href="../scheduling.html#context_schedule"><code class="computeroutput">context::schedule()</code></a>.
         Control then returns from <code class="computeroutput"><span class="identifier">yield_handler_base</span><span class="special">::</span><span class="keyword">operator</span><span class="special">()</span></code>: the callback is done.
       </p>
 <p>

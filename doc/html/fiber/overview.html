@@ -177,6 +177,18 @@
         This library requires C++11!
       </p></td></tr>
 </table></div>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../../../../doc/src/images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        Windows using fcontext_t: turn off global program optimization (/GL) and
+        change /EHsc (compiler assumes that functions declared as extern "C"
+        never throw a C++ exception) to /EHs (tells compiler assumes that functions
+        declared as extern "C" may throw an exception).
+      </p></td></tr>
+</table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

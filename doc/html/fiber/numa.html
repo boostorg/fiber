@@ -355,6 +355,7 @@
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">node</span> <span class="special">&gt;</span> <span class="identifier">topology</span><span class="special">();</span>
 
 <span class="keyword">void</span> <span class="identifier">pin_thread</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">pin_thread</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">native_handle_type</span><span class="special">);</span>
 
 <span class="special">}}}</span>
 
@@ -547,7 +548,8 @@
 <span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">numa</span> <span class="special">{</span>
 
-<span class="keyword">void</span> <span class="identifier">pin_thread</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">pin_thread</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span> <span class="identifier">cpu_id</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">pin_thread</span><span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span> <span class="identifier">cpu_id</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">native_handle_type</span> <span class="identifier">h</span><span class="special">);</span>
 
 <span class="special">}}}</span>
 </pre>
@@ -556,10 +558,11 @@
 <dl>
 <dt><span class="term">Effects:</span></dt>
 <dd><p>
-            Pins <code class="computeroutput"><span class="keyword">this</span> <span class="identifier">thread</span></code>
-            to the logical cpu with ID <code class="computeroutput"><span class="identifier">cpu_id</span></code>,
-            e.g. the operating system scheduler will not migrate the thread to another
-            logical cpu.
+            First version pins <code class="computeroutput"><span class="keyword">this</span> <span class="identifier">thread</span></code> to the logical cpu with ID
+            <code class="computeroutput"><span class="identifier">cpu_id</span></code>, e.g. the operating
+            system scheduler will not migrate the thread to another logical cpu.
+            The second variant pins the thread with the native ID <code class="computeroutput"><span class="identifier">h</span></code>
+            to logical cpu with ID <code class="computeroutput"><span class="identifier">cpu_id</span></code>.
           </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
