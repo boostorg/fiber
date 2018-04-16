@@ -152,7 +152,8 @@ that no more values will arrive.]]
 [template buffered_channel_push_effects[enqueues] If channel is closed, returns
 `closed`. [enqueues] the value in the channel, wakes up a fiber
 blocked on `this->pop()`, `this->value_pop()`, `this->pop_wait_for()` or
-`this->pop_wait_until()` and returns `success`.]
+`this->pop_wait_until()` and returns `success`. If the channel is full,
+it doesn't block and returns `full`.]
 
 [member_heading buffered_channel..push]
 
