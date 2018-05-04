@@ -35,6 +35,8 @@ local.
 Because only a subset of the NUMA-functionality is exposed by several operating systems,
 Boost.Fiber provides only a minimalistic NUMA API.
 
+[important MinGW using pthread implementation is not supported on Windows.]
+
 [table Supported functionality/operating systems
     [
         []
