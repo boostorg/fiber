@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/02/26 18:35:28 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/05/13 07:19:16 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -7605,6 +7605,8 @@ implementation&#8217;s
                 or <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
                 role="identifier">pop_wait_until</phrase><phrase role="special">()</phrase></code>
                 and returns <code><phrase role="identifier">success</phrase></code>.
+                If the channel is full, it doesn't block and returns <code><phrase
+                role="identifier">full</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -7644,6 +7646,8 @@ implementation&#8217;s
                 or <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
                 role="identifier">pop_wait_until</phrase><phrase role="special">()</phrase></code>
                 and returns <code><phrase role="identifier">success</phrase></code>.
+                If the channel is full, it doesn't block and returns <code><phrase
+                role="identifier">full</phrase></code>.
               </para>
             </listitem>
           </varlistentry>
@@ -14310,6 +14314,18 @@ that would cause the thread to
       Because only a subset of the NUMA-functionality is exposed by several operating
       systems, Boost.Fiber provides only a minimalistic NUMA API.
     </para>
+    <important>
+      <para>
+        In order to enable NUMA support, b2 property <code><phrase role="identifier">numa</phrase><phrase
+        role="special">=</phrase><phrase role="identifier">on</phrase></code> must
+        be specified.
+      </para>
+    </important>
+    <important>
+      <para>
+        MinGW using pthread implementation is not supported on Windows.
+      </para>
+    </important>
     <table frame="all" id="fiber.numa.supported_functionality_operating_systems">
       <title>Supported functionality/operating systems</title>
       <tgroup cols="7">
@@ -14609,12 +14625,12 @@ that would cause the thread to
 
 <phrase role="special">}}}</phrase>
 
-<phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">numa</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+<phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">numa</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
-<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">numa</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">work_stealing</phrase><phrase role="special">;</phrase>
 
@@ -14849,12 +14865,12 @@ that would cause the thread to
       running on other NUMA-nodes (remote memory access).<sbr/> The victim scheduler
       (from which a ready fiber is stolen) is selected at random.
     </para>
-<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">numa</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
+<programlisting><phrase role="preprocessor">#include</phrase> <phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">/</phrase><phrase role="identifier">fiber</phrase><phrase role="special">/</phrase><phrase role="identifier">numa</phrase><phrase role="special">/</phrase><phrase role="identifier">algo</phrase><phrase role="special">/</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">.</phrase><phrase role="identifier">hpp</phrase><phrase role="special">&gt;</phrase>
 
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">boost</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">fibers</phrase> <phrase role="special">{</phrase>
-<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">namespace</phrase> <phrase role="identifier">numa</phrase> <phrase role="special">{</phrase>
+<phrase role="keyword">namespace</phrase> <phrase role="identifier">algo</phrase> <phrase role="special">{</phrase>
 
 <phrase role="keyword">class</phrase> <phrase role="identifier">work_stealing</phrase> <phrase role="special">:</phrase> <phrase role="keyword">public</phrase> <phrase role="identifier">algorithm</phrase> <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>

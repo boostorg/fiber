@@ -5,8 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_FIBERS_ALGO_NUMA_WORK_STEALING_H
-#define BOOST_FIBERS_ALGO_NUMA_WORK_STEALING_H
+#ifndef BOOST_FIBERS_NUMA_ALGO_WORK_STEALING_H
+#define BOOST_FIBERS_NUMA_ALGO_WORK_STEALING_H
 
 #include <condition_variable>
 #include <chrono>
@@ -33,10 +33,10 @@
 
 namespace boost {
 namespace fibers {
-namespace algo {
 namespace numa {
+namespace algo {
 
-class work_stealing : public algorithm {
+class work_stealing : public boost::fibers::algo::algorithm {
 private:
     static std::vector< intrusive_ptr< work_stealing > >    schedulers_;
 
@@ -90,4 +90,4 @@ public:
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_ALGO_NUMA_WORK_STEALING_H
+#endif // BOOST_FIBERS_NUMA_ALGO_WORK_STEALING_H

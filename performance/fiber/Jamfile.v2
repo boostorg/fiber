@@ -16,6 +16,7 @@ import toolset ;
 project boost/fiber/performance/fiber
     : requirements
       <library>/boost/fiber//boost_fiber
+      <library>/boost/fiber//boost_fiber_numa
       <target-os>solaris:<linkflags>"-llgrp"
       <target-os>windows:<define>_WIN32_WINNT=0x0601
       <toolset>gcc,<segmented-stacks>on:<cxxflags>-fsplit-stack

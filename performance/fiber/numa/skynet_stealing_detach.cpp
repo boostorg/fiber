@@ -24,7 +24,7 @@
 #include <vector>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/numa/topology.hpp>
+#include <boost/fiber/numa/all.hpp>
 #include <boost/predef.h>
 
 #include "../barrier.hpp"
@@ -70,7 +70,7 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
 }
 
 void thread( std::uint32_t cpu_id, std::uint32_t node_id, std::vector< boost::fibers::numa::node > const& topo, barrier * b) {
-    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( cpu_id, node_id, topo);
+    boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( cpu_id, node_id, topo);
     b->wait();
     lock_type lk( mtx);
     cnd.wait( lk, [](){ return done; });
@@ -82,7 +82,7 @@ int main() {
         std::vector< boost::fibers::numa::node > topo = boost::fibers::numa::topology();
         auto node = topo[0];
         auto main_cpu_id = * node.logical_cpus.begin();
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( main_cpu_id, node.id, topo);
+        boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( main_cpu_id, node.id, topo);
         barrier b{ hardware_concurrency( topo) };
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
