@@ -193,7 +193,7 @@ public:
 // Specialize asio_handler_invoke hook to ensure that any exceptions thrown
 // from the handler are propagated back to the caller
 template< typename Fn, typename T >
-void asio_handler_invoke( Fn fn, yield_handler< T > * h) {
+void asio_handler_invoke( Fn&& fn, yield_handler< T > *) {
         fn();
 }
 
@@ -215,7 +215,7 @@ public:
             h.yt_.ec_ = & ec_;
         }
     }
-    
+
     void get() {
         // Unless yield_handler_base::operator() has already been called,
         // suspend the calling fiber until that call.
