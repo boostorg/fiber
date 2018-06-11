@@ -56,6 +56,25 @@
       Because only a subset of the NUMA-functionality is exposed by several operating
       systems, Boost.Fiber provides only a minimalistic NUMA API.
     </p>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../../../../doc/src/images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        In order to enable NUMA support, b2 property <code class="computeroutput"><span class="identifier">numa</span><span class="special">=</span><span class="identifier">on</span></code> must
+        be specified.
+      </p></td></tr>
+</table></div>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../../../../doc/src/images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        MinGW using pthread implementation is not supported on Windows.
+      </p></td></tr>
+</table></div>
 <div class="table">
 <a name="fiber.numa.supported_functionality_operating_systems"></a><p class="title"><b>Table&#160;1.1.&#160;Supported functionality/operating systems</b></p>
 <div class="table-contents"><table class="table" summary="Supported functionality/operating systems">
@@ -359,12 +378,12 @@
 
 <span class="special">}}}</span>
 
-<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">numa</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">numa</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
-<span class="keyword">namespace</span> <span class="identifier">algo</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">numa</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">algo</span> <span class="special">{</span>
 
 <span class="keyword">class</span> <span class="identifier">work_stealing</span><span class="special">;</span>
 
@@ -589,12 +608,12 @@
       running on other NUMA-nodes (remote memory access).<br> The victim scheduler
       (from which a ready fiber is stolen) is selected at random.
     </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">numa</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">fiber</span><span class="special">/</span><span class="identifier">numa</span><span class="special">/</span><span class="identifier">algo</span><span class="special">/</span><span class="identifier">work_stealing</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">fibers</span> <span class="special">{</span>
-<span class="keyword">namespace</span> <span class="identifier">algo</span> <span class="special">{</span>
 <span class="keyword">namespace</span> <span class="identifier">numa</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">algo</span> <span class="special">{</span>
 
 <span class="keyword">class</span> <span class="identifier">work_stealing</span> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">algorithm</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>

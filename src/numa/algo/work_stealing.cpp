@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "boost/fiber/algo/numa/work_stealing.hpp"
+#include "boost/fiber/numa/algo/work_stealing.hpp"
 
 #include <cmath>
 #include <random>
@@ -21,8 +21,8 @@
 
 namespace boost {
 namespace fibers {
-namespace algo {
 namespace numa {
+namespace algo {
 
 std::vector< intrusive_ptr< work_stealing > > work_stealing::schedulers_{};
 

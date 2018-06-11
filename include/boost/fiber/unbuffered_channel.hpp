@@ -384,13 +384,14 @@ public:
                     while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
-                        lk.unlock();
                         std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
                         if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                            lk.unlock();
                             // notify context
                             active_ctx->schedule( producer_ctx);
                             break;
                         } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                            lk.unlock();
                             // no timed-wait op.
                             // notify context
                             active_ctx->schedule( producer_ctx);
@@ -430,13 +431,14 @@ public:
                     while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
-                        lk.unlock();
                         std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
                         if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                            lk.unlock();
                             // notify context
                             active_ctx->schedule( producer_ctx);
                             break;
                         } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                            lk.unlock();
                             // no timed-wait op.
                             // notify context
                             active_ctx->schedule( producer_ctx);
@@ -489,13 +491,14 @@ public:
                     while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
-                        lk.unlock();
                         std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
                         if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                            lk.unlock();
                             // notify context
                             active_ctx->schedule( producer_ctx);
                             break;
                         } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                            lk.unlock();
                             // no timed-wait op.
                             // notify context
                             active_ctx->schedule( producer_ctx);

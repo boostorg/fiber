@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <boost/fiber/all.hpp>
+#include <boost/fiber/numa/pin_thread.hpp>
 #include <boost/predef.h>
 
 #include "barrier.hpp"
