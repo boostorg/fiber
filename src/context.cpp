@@ -311,11 +311,7 @@ context::set_fss_data( void const * vp,
             i->second.do_cleanup();
         }
         if ( nullptr != data) {
-            fss_data_.insert(
-                    i,
-                    std::make_pair(
-                        key,
-                        fss_data{ data, cleanup_fn } ) );
+            i->second = fss_data{ data, cleanup_fn };
         } else {
             fss_data_.erase( i);
         }
