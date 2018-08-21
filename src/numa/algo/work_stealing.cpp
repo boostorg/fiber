@@ -13,6 +13,7 @@
 #include <boost/assert.hpp>
 #include <boost/context/detail/prefetch.hpp>
 
+#include "boost/fiber/detail/thread_barrier.hpp"
 #include "boost/fiber/type.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -58,7 +59,7 @@ work_stealing::init_( std::vector< boost::fibers::numa::node > const& topo,
     // resize array of schedulers to max. CPU ID, initilized with nullptr
     // CPU ID acts as the index in the scheduler array
     // if a logical cpus is offline, schedulers_ will contain a nullptr
-    // logical cpus index starts at `0`
+    // logical cpus index starts at `0` -> add 1
     std::vector< intrusive_ptr< work_stealing > >{ max_cpu_id + 1, nullptr }.swap( schedulers);
 }
 
@@ -73,11 +74,18 @@ work_stealing::work_stealing(
         suspend_{ suspend } {
     // pin current thread to logical cpu
     boost::fibers::numa::pin_thread( cpu_id_);
+    // calculate thread count
+    std::size_t thread_count = 0;
+    for ( auto & node : topo) {
+        thread_count += node.logical_cpus.size();
+    }
+    static boost::fibers::detail::thread_barrier b{ thread_count };
     // initialize the array of schedulers
     static std::once_flag flag;
     std::call_once( flag, & work_stealing::init_, topo, std::ref( schedulers_) );
     // register pointer of this scheduler
     schedulers_[cpu_id_] = this;
+    b.wait();
 }
 
 void

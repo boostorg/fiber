@@ -12,6 +12,7 @@
 #include <boost/assert.hpp>
 #include <boost/context/detail/prefetch.hpp>
 
+#include "boost/fiber/detail/thread_barrier.hpp"
 #include "boost/fiber/type.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
@@ -36,11 +37,13 @@ work_stealing::work_stealing( std::uint32_t thread_count, bool suspend) :
         id_{ counter_++ },
         thread_count_{ thread_count },
         suspend_{ suspend } {
+    static boost::fibers::detail::thread_barrier b{ thread_count };
     // initialize the array of schedulers
     static std::once_flag flag;
     std::call_once( flag, & work_stealing::init_, thread_count_, std::ref( schedulers_) );
     // register pointer of this scheduler
     schedulers_[id_] = this;
+    b.wait();
 }
 
 void

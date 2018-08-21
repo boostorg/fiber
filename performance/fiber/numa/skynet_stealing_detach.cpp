@@ -69,9 +69,8 @@ void skynet( allocator_type & salloc, channel_type & c, std::size_t num, std::si
     }
 }
 
-void thread( std::uint32_t cpu_id, std::uint32_t node_id, std::vector< boost::fibers::numa::node > const& topo, barrier * b) {
+void thread( std::uint32_t cpu_id, std::uint32_t node_id, std::vector< boost::fibers::numa::node > const& topo) {
     boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( cpu_id, node_id, topo);
-    b->wait();
     lock_type lk( mtx);
     cnd.wait( lk, [](){ return done; });
     BOOST_ASSERT( done);
@@ -82,30 +81,21 @@ int main() {
         std::vector< boost::fibers::numa::node > topo = boost::fibers::numa::topology();
         auto node = topo[0];
         auto main_cpu_id = * node.logical_cpus.begin();
-        boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( main_cpu_id, node.id, topo);
-        barrier b{ hardware_concurrency( topo) };
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
-        // Windows 10 and FreeBSD require a fiber stack of 8kb
-        // otherwise the stack gets exhausted
-        // stack requirements must be checked for other OS too
-#if BOOST_OS_WINDOWS || BOOST_OS_BSD
         allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
-#else
-        allocator_type salloc{ allocator_type::traits_type::page_size() };
-#endif
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
         std::vector< std::thread > threads;
-        for ( auto & node : topo) {
+        for ( auto && node : topo) {
             for ( std::uint32_t cpu_id : node.logical_cpus) {
                 // exclude main-thread
                 if ( main_cpu_id != cpu_id) {
-                    threads.emplace_back( thread, cpu_id, node.id, std::cref( topo), & b);
+                    threads.emplace_back( thread, cpu_id, node.id, std::cref( topo) );
                 }
             }
         }
-        b.wait();
+        boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( main_cpu_id, node.id, topo);
         time_point_type start{ clock_type::now() };
         skynet( salloc, rc, 0, size, div);
         result = rc.value_pop();

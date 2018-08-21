@@ -133,8 +133,7 @@ cpu part of another NUMA-node.
         auto node = topo[0];
         // start-thread is pinnded to first cpu ID in the list of logical cpus of NUMA-node `0`
         auto start_cpu_id = * node.logical_cpus.begin();
-        // start-thread registers itself on work-stealing scheduler
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( start_cpu_id, node.id, topo);
+        // start worker-threads first
         std::vector< std::thread > threads;
         for ( auto & node : topo) {
             for ( std::uint32_t cpu_id : node.logical_cpus) {
@@ -145,6 +144,8 @@ cpu part of another NUMA-node.
                 }
             }
         }
+        // start-thread registers itself on work-stealing scheduler
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( start_cpu_id, node.id, topo);
         ...
 
 The example evaluates the NUMA topology with `boost::fibers::numa::topology()`

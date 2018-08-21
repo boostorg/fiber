@@ -66,10 +66,9 @@ std::uint64_t skynet(allocator_type& salloc, std::uint64_t num, std::uint64_t si
     return num;
 }
 
-void thread( std::uint32_t thread_count, barrier * b) {
+void thread( std::uint32_t thread_count) {
     // thread registers itself at work-stealing scheduler
     boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
-    b->wait();
     lock_type lk( mtx);
     cnd.wait( lk, [](){ return done; });
     BOOST_ASSERT( done);
@@ -79,27 +78,18 @@ int main() {
     try {
         // count of logical ids
         std::uint32_t thread_count = std::thread::hardware_concurrency();
-        // main-thread registers itself at work-stealing scheduler
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
-        barrier b{ thread_count };
         std::size_t size{ 1000000 };
         std::size_t div{ 10 };
-        // Windows 10 and FreeBSD require a fiber stack of 8kb
-        // otherwise the stack gets exhausted
-        // stack requirements must be checked for other OS too
-#if BOOST_OS_WINDOWS || BOOST_OS_BSD
         allocator_type salloc{ 2*allocator_type::traits_type::page_size() };
-#else
-        allocator_type salloc{ allocator_type::traits_type::page_size() };
-#endif
         std::uint64_t result{ 0 };
         channel_type rc{ 2 };
         std::vector< std::thread > threads;
         for ( std::uint32_t i = 1 /* count main-thread */; i < thread_count; ++i) {
             // spawn thread
-            threads.emplace_back( thread, thread_count, & b);
+            threads.emplace_back( thread, thread_count);
         }
-        b.wait();
+        // main-thread registers itself at work-stealing scheduler
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
         time_point_type start{ clock_type::now() };
         result = skynet( salloc, 0, size, div);
         if ( 499999500000 != result) {

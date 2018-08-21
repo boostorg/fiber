@@ -93,22 +93,18 @@ threads if its own ready-queue is empty.
 [note Wait till all worker threads have registered the work-stealing scheduling
 algorithm.]
 
-        barrier b{2};
-        boost::fibers::use_scheduling_algorithm<boost::fibers::algo::work_stealing>(2);
         boost::fibers::mutex mtx;
         boost::fibers::condition_variable_any cv;
+        // start wotrker-thread first
         auto worker = std::thread(
-                [&mtx,&cv,&b]{
+                [&mtx,&cv]{
                     boost::fibers::use_scheduling_algorithm<boost::fibers::algo::work_stealing>(2);
-                    // wait till all threads joining the work stealing have been registered
-                    b.wait();
                     mtx.lock();
                     // suspend main-fiber from the worker thread
                     cv.wait(mtx);
                     mtx.unlock();
                 });
-        // wait till all threads have been registered the scheduling algorithm
-        b.wait();
+        boost::fibers::use_scheduling_algorithm<boost::fibers::algo::work_stealing>(2);
         // create fibers with tasks
         boost::fibers::fiber f{[]{ ... }};
         ...
