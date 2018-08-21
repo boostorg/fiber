@@ -24,6 +24,7 @@ project boost/fiber/performance/fiber
       <toolset>clang,<segmented-stacks>on:<cxxflags>-fsplit-stack
       <toolset>clang,<segmented-stacks>on:<cxxflags>-DBOOST_USE_SEGMENTED_STACKS
       <link>static
+      <numa>on
       <threading>multi
       <optimization>speed
       <variant>release
