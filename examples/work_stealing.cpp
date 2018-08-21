@@ -18,7 +18,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#include "thread_barrier.hpp"
+#include <boost/fiber/detail/thread_barrier.hpp>
 
 static std::size_t fiber_count{ 0 };
 static std::mutex mtx_count{};
@@ -61,7 +61,7 @@ void whatevah( char me) {
 *   example thread function
 *****************************************************************************/
 //[thread_fn_ws
-void thread( thread_barrier * b) {
+void thread() {
     std::ostringstream buffer;
     buffer << "thread started " << std::this_thread::get_id() << std::endl;
     std::cout << buffer.str() << std::flush;
@@ -69,7 +69,6 @@ void thread( thread_barrier * b) {
         Install the scheduling algorithm `boost::fibers::algo::work_stealing` in order to
         join the work sharing.
     >*/
-    b->wait(); /*< sync with other threads: allow them to start processing >*/
     lock_type lk( mtx_count);
     cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<
         Suspend main fiber and resume worker fibers in the meanwhile.
@@ -86,11 +85,6 @@ void thread( thread_barrier * b) {
 int main( int argc, char *argv[]) {
     std::cout << "main thread started " << std::this_thread::get_id() << std::endl;
 //[main_ws
-    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( 4); /*<
-        Install the scheduling algorithm `boost::fibers::algo::work_stealing` in the main thread
-        too, so each new fiber gets launched into the shared pool.
-    >*/
-
     for ( char c : std::string("abcdefghijklmnopqrstuvwxyz")) { /*<
         Launch a number of worker fibers; each worker fiber picks up a character
         that is passed as parameter to fiber-function `whatevah`.
@@ -99,15 +93,17 @@ int main( int argc, char *argv[]) {
         boost::fibers::fiber([c](){ whatevah( c); }).detach();
         ++fiber_count; /*< Increment fiber counter for each new fiber. >*/
     }
-    thread_barrier b( 4);
     std::thread threads[] = { /*<
         Launch a couple of threads that join the work sharing.
     >*/
-        std::thread( thread, & b),
-        std::thread( thread, & b),
-        std::thread( thread, & b)
+        std::thread( thread),
+        std::thread( thread),
+        std::thread( thread)
     };
-    b.wait(); /*< sync with other threads: allow them to start processing >*/
+    boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( 4); /*<
+        Install the scheduling algorithm `boost::fibers::algo::work_stealing` in the main thread
+        too, so each new fiber gets launched into the shared pool.
+    >*/
     {
         lock_type/*< `lock_type` is typedef'ed as __unique_lock__< [@http://en.cppreference.com/w/cpp/thread/mutex `std::mutex`] > >*/ lk( mtx_count);
         cnd_count.wait( lk, [](){ return 0 == fiber_count; } ); /*<

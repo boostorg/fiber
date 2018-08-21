@@ -4,14 +4,25 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef THREAD_BARRIER_H
-#define THREAD_BARRIER_H
+#ifndef BOOST_FIBER_DETAIL_THREAD_BARRIER_H
+#define BOOST_FIBER_DETAIL_THREAD_BARRIER_H
 
 #include <cstddef>
 #include <condition_variable>
 #include <mutex>
 
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
+
+#include <boost/fiber/detail/config.hpp>
+
+#ifdef BOOST_HAS_ABI_HEADERS
+# include BOOST_ABI_PREFIX
+#endif
+
+namespace boost {
+namespace fibers {
+namespace detail {
 
 class thread_barrier {
 private:
@@ -47,4 +58,6 @@ public:
     }
 };
 
-#endif // THREAD_BARRIER_H
+}}}
+
+#endif // BOOST_FIBER_DETAIL_THREAD_BARRIER_H

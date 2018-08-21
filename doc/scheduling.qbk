@@ -47,13 +47,14 @@ __shared_work__.
 
         // count of logical cpus
         std::uint32_t thread_count = std::thread::hardware_concurrency();
-        // start-thread registers itself at work-stealing scheduler
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
+        // start worker-threads first
         std::vector< std::thread > threads;
         for ( std::uint32_t i = 1 /* count start-thread */; i < thread_count; ++i) {
             // spawn thread
             threads.emplace_back( thread, thread_count);
         }
+        // start-thread registers itself at work-stealing scheduler
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >( thread_count);
         ...
 
 The example spawns as many threads as `std::thread::hardware_concurrency()`
