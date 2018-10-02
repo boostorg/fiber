@@ -72,13 +72,14 @@
 
 <span class="comment">// count of logical cpus</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span> <span class="identifier">thread_count</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">::</span><span class="identifier">hardware_concurrency</span><span class="special">();</span>
-<span class="comment">// start-thread registers itself at work-stealing scheduler</span>
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">work_stealing</span> <span class="special">&gt;(</span> <span class="identifier">thread_count</span><span class="special">);</span>
+<span class="comment">// start worker-threads first</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span> <span class="special">&gt;</span> <span class="identifier">threads</span><span class="special">;</span>
 <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span> <span class="identifier">i</span> <span class="special">=</span> <span class="number">1</span> <span class="comment">/* count start-thread */</span><span class="special">;</span> <span class="identifier">i</span> <span class="special">&lt;</span> <span class="identifier">thread_count</span><span class="special">;</span> <span class="special">++</span><span class="identifier">i</span><span class="special">)</span> <span class="special">{</span>
     <span class="comment">// spawn thread</span>
     <span class="identifier">threads</span><span class="special">.</span><span class="identifier">emplace_back</span><span class="special">(</span> <span class="identifier">thread</span><span class="special">,</span> <span class="identifier">thread_count</span><span class="special">);</span>
 <span class="special">}</span>
+<span class="comment">// start-thread registers itself at work-stealing scheduler</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">work_stealing</span> <span class="special">&gt;(</span> <span class="identifier">thread_count</span><span class="special">);</span>
 <span class="special">...</span>
 </pre>
 <p>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/05/13 07:19:16 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/10/02 12:35:24 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -1859,13 +1859,14 @@ by calling the <link linkend="fiber_get_id"><code>fiber::get_id()</code></link> 
 
 <phrase role="comment">// count of logical cpus</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase> <phrase role="identifier">thread_count</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">::</phrase><phrase role="identifier">hardware_concurrency</phrase><phrase role="special">();</phrase>
-<phrase role="comment">// start-thread registers itself at work-stealing scheduler</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">thread_count</phrase><phrase role="special">);</phrase>
+<phrase role="comment">// start worker-threads first</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">threads</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase> <phrase role="identifier">i</phrase> <phrase role="special">=</phrase> <phrase role="number">1</phrase> <phrase role="comment">/* count start-thread */</phrase><phrase role="special">;</phrase> <phrase role="identifier">i</phrase> <phrase role="special">&lt;</phrase> <phrase role="identifier">thread_count</phrase><phrase role="special">;</phrase> <phrase role="special">++</phrase><phrase role="identifier">i</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="comment">// spawn thread</phrase>
     <phrase role="identifier">threads</phrase><phrase role="special">.</phrase><phrase role="identifier">emplace_back</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="identifier">thread_count</phrase><phrase role="special">);</phrase>
 <phrase role="special">}</phrase>
+<phrase role="comment">// start-thread registers itself at work-stealing scheduler</phrase>
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">thread_count</phrase><phrase role="special">);</phrase>
 <phrase role="special">...</phrase>
 </programlisting>
     <para>
@@ -7605,8 +7606,7 @@ implementation&#8217;s
                 or <code><phrase role="keyword">this</phrase><phrase role="special">-&gt;</phrase><phrase
                 role="identifier">pop_wait_until</phrase><phrase role="special">()</phrase></code>
                 and returns <code><phrase role="identifier">success</phrase></code>.
-                If the channel is full, it doesn't block and returns <code><phrase
-                role="identifier">full</phrase></code>.
+                If the channel is full, the fiber is blocked.
               </para>
             </listitem>
           </varlistentry>
@@ -10886,7 +10886,7 @@ encapsulates.
     <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase><phrase role="special">([</phrase><phrase role="identifier">c</phrase><phrase role="special">](){</phrase> <phrase role="identifier">whatevah</phrase><phrase role="special">(</phrase> <phrase role="identifier">c</phrase><phrase role="special">);</phrase> <phrase role="special">}).</phrase><phrase role="identifier">detach</phrase><phrase role="special">();</phrase>
     <phrase role="special">++</phrase><phrase role="identifier">fiber_count</phrase><phrase role="special">;</phrase> <co id="fiber.migration.c4" linkends="fiber.migration.c5" />
 <phrase role="special">}</phrase>
-<phrase role="identifier">thread_barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">(</phrase> <phrase role="number">4</phrase><phrase role="special">);</phrase>
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">thread_barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">(</phrase> <phrase role="number">4</phrase><phrase role="special">);</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase> <phrase role="identifier">threads</phrase><phrase role="special">[]</phrase> <phrase role="special">=</phrase> <phrase role="special">{</phrase> <co id="fiber.migration.c6" linkends="fiber.migration.c7" />
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread</phrase><phrase role="special">,</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">b</phrase><phrase role="special">),</phrase>
@@ -10974,7 +10974,7 @@ encapsulates.
       the thread terminates: the main thread joins all other threads.
     </para>
     <para>
-<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">thread_barrier</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
+<programlisting><phrase role="keyword">void</phrase> <phrase role="identifier">thread</phrase><phrase role="special">(</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">detail</phrase><phrase role="special">::</phrase><phrase role="identifier">thread_barrier</phrase> <phrase role="special">*</phrase> <phrase role="identifier">b</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">ostringstream</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">buffer</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;thread started &quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">this_thread</phrase><phrase role="special">::</phrase><phrase role="identifier">get_id</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">buffer</phrase><phrase role="special">.</phrase><phrase role="identifier">str</phrase><phrase role="special">()</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">flush</phrase><phrase role="special">;</phrase>
@@ -14318,7 +14318,8 @@ that would cause the thread to
       <para>
         In order to enable NUMA support, b2 property <code><phrase role="identifier">numa</phrase><phrase
         role="special">=</phrase><phrase role="identifier">on</phrase></code> must
-        be specified.
+        be specified and linked against additional library <code><phrase role="identifier">libboost_fiber_numa</phrase><phrase
+        role="special">.</phrase><phrase role="identifier">so</phrase></code>.
       </para>
     </important>
     <important>
@@ -14574,8 +14575,7 @@ that would cause the thread to
 <phrase role="keyword">auto</phrase> <phrase role="identifier">node</phrase> <phrase role="special">=</phrase> <phrase role="identifier">topo</phrase><phrase role="special">[</phrase><phrase role="number">0</phrase><phrase role="special">];</phrase>
 <phrase role="comment">// start-thread is pinnded to first cpu ID in the list of logical cpus of NUMA-node `0`</phrase>
 <phrase role="keyword">auto</phrase> <phrase role="identifier">start_cpu_id</phrase> <phrase role="special">=</phrase> <phrase role="special">*</phrase> <phrase role="identifier">node</phrase><phrase role="special">.</phrase><phrase role="identifier">logical_cpus</phrase><phrase role="special">.</phrase><phrase role="identifier">begin</phrase><phrase role="special">();</phrase>
-<phrase role="comment">// start-thread registers itself on work-stealing scheduler</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">numa</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">start_cpu_id</phrase><phrase role="special">,</phrase> <phrase role="identifier">node</phrase><phrase role="special">.</phrase><phrase role="identifier">id</phrase><phrase role="special">,</phrase> <phrase role="identifier">topo</phrase><phrase role="special">);</phrase>
+<phrase role="comment">// start worker-threads first</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">vector</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">threads</phrase><phrase role="special">;</phrase>
 <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="keyword">auto</phrase> <phrase role="special">&amp;</phrase> <phrase role="identifier">node</phrase> <phrase role="special">:</phrase> <phrase role="identifier">topo</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
     <phrase role="keyword">for</phrase> <phrase role="special">(</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">uint32_t</phrase> <phrase role="identifier">cpu_id</phrase> <phrase role="special">:</phrase> <phrase role="identifier">node</phrase><phrase role="special">.</phrase><phrase role="identifier">logical_cpus</phrase><phrase role="special">)</phrase> <phrase role="special">{</phrase>
@@ -14586,6 +14586,8 @@ that would cause the thread to
         <phrase role="special">}</phrase>
     <phrase role="special">}</phrase>
 <phrase role="special">}</phrase>
+<phrase role="comment">// start-thread registers itself on work-stealing scheduler</phrase>
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">numa</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase> <phrase role="special">&gt;(</phrase> <phrase role="identifier">start_cpu_id</phrase><phrase role="special">,</phrase> <phrase role="identifier">node</phrase><phrase role="special">.</phrase><phrase role="identifier">id</phrase><phrase role="special">,</phrase> <phrase role="identifier">topo</phrase><phrase role="special">);</phrase>
 <phrase role="special">...</phrase>
 </programlisting>
     <para>
@@ -15454,22 +15456,18 @@ that would cause the thread to
         algorithm.
       </para>
     </note>
-<programlisting><phrase role="identifier">barrier</phrase> <phrase role="identifier">b</phrase><phrase role="special">{</phrase><phrase role="number">2</phrase><phrase role="special">};</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">&gt;(</phrase><phrase role="number">2</phrase><phrase role="special">);</phrase>
-<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">mutex</phrase> <phrase role="identifier">mtx</phrase><phrase role="special">;</phrase>
+<programlisting><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">mutex</phrase> <phrase role="identifier">mtx</phrase><phrase role="special">;</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">condition_variable_any</phrase> <phrase role="identifier">cv</phrase><phrase role="special">;</phrase>
+<phrase role="comment">// start wotrker-thread first</phrase>
 <phrase role="keyword">auto</phrase> <phrase role="identifier">worker</phrase> <phrase role="special">=</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">thread</phrase><phrase role="special">(</phrase>
-        <phrase role="special">[&amp;</phrase><phrase role="identifier">mtx</phrase><phrase role="special">,&amp;</phrase><phrase role="identifier">cv</phrase><phrase role="special">,&amp;</phrase><phrase role="identifier">b</phrase><phrase role="special">]{</phrase>
+        <phrase role="special">[&amp;</phrase><phrase role="identifier">mtx</phrase><phrase role="special">,&amp;</phrase><phrase role="identifier">cv</phrase><phrase role="special">]{</phrase>
             <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">&gt;(</phrase><phrase role="number">2</phrase><phrase role="special">);</phrase>
-            <phrase role="comment">// wait till all threads joining the work stealing have been registered</phrase>
-            <phrase role="identifier">b</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase>
             <phrase role="identifier">mtx</phrase><phrase role="special">.</phrase><phrase role="identifier">lock</phrase><phrase role="special">();</phrase>
             <phrase role="comment">// suspend main-fiber from the worker thread</phrase>
             <phrase role="identifier">cv</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">(</phrase><phrase role="identifier">mtx</phrase><phrase role="special">);</phrase>
             <phrase role="identifier">mtx</phrase><phrase role="special">.</phrase><phrase role="identifier">unlock</phrase><phrase role="special">();</phrase>
         <phrase role="special">});</phrase>
-<phrase role="comment">// wait till all threads have been registered the scheduling algorithm</phrase>
-<phrase role="identifier">b</phrase><phrase role="special">.</phrase><phrase role="identifier">wait</phrase><phrase role="special">();</phrase>
+<phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">use_scheduling_algorithm</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">algo</phrase><phrase role="special">::</phrase><phrase role="identifier">work_stealing</phrase><phrase role="special">&gt;(</phrase><phrase role="number">2</phrase><phrase role="special">);</phrase>
 <phrase role="comment">// create fibers with tasks</phrase>
 <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">fibers</phrase><phrase role="special">::</phrase><phrase role="identifier">fiber</phrase> <phrase role="identifier">f</phrase><phrase role="special">{[]{</phrase> <phrase role="special">...</phrase> <phrase role="special">}};</phrase>
 <phrase role="special">...</phrase>
