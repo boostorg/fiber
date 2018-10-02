@@ -63,7 +63,7 @@
 </tr>
 <tr><td align="left" valign="top"><p>
         In order to enable NUMA support, b2 property <code class="computeroutput"><span class="identifier">numa</span><span class="special">=</span><span class="identifier">on</span></code> must
-        be specified.
+        be specified and linked against additional library <code class="computeroutput"><span class="identifier">libboost_fiber_numa</span><span class="special">.</span><span class="identifier">so</span></code>.
       </p></td></tr>
 </table></div>
 <div class="important"><table border="0" summary="Important">
@@ -329,8 +329,7 @@
 <span class="keyword">auto</span> <span class="identifier">node</span> <span class="special">=</span> <span class="identifier">topo</span><span class="special">[</span><span class="number">0</span><span class="special">];</span>
 <span class="comment">// start-thread is pinnded to first cpu ID in the list of logical cpus of NUMA-node `0`</span>
 <span class="keyword">auto</span> <span class="identifier">start_cpu_id</span> <span class="special">=</span> <span class="special">*</span> <span class="identifier">node</span><span class="special">.</span><span class="identifier">logical_cpus</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span>
-<span class="comment">// start-thread registers itself on work-stealing scheduler</span>
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">numa</span><span class="special">::</span><span class="identifier">work_stealing</span> <span class="special">&gt;(</span> <span class="identifier">start_cpu_id</span><span class="special">,</span> <span class="identifier">node</span><span class="special">.</span><span class="identifier">id</span><span class="special">,</span> <span class="identifier">topo</span><span class="special">);</span>
+<span class="comment">// start worker-threads first</span>
 <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span> <span class="special">&gt;</span> <span class="identifier">threads</span><span class="special">;</span>
 <span class="keyword">for</span> <span class="special">(</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">node</span> <span class="special">:</span> <span class="identifier">topo</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">for</span> <span class="special">(</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">uint32_t</span> <span class="identifier">cpu_id</span> <span class="special">:</span> <span class="identifier">node</span><span class="special">.</span><span class="identifier">logical_cpus</span><span class="special">)</span> <span class="special">{</span>
@@ -341,6 +340,8 @@
         <span class="special">}</span>
     <span class="special">}</span>
 <span class="special">}</span>
+<span class="comment">// start-thread registers itself on work-stealing scheduler</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">numa</span><span class="special">::</span><span class="identifier">work_stealing</span> <span class="special">&gt;(</span> <span class="identifier">start_cpu_id</span><span class="special">,</span> <span class="identifier">node</span><span class="special">.</span><span class="identifier">id</span><span class="special">,</span> <span class="identifier">topo</span><span class="special">);</span>
 <span class="special">...</span>
 </pre>
 <p>

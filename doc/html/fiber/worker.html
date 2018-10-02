@@ -129,22 +129,18 @@
         algorithm.
       </p></td></tr>
 </table></div>
-<pre class="programlisting"><span class="identifier">barrier</span> <span class="identifier">b</span><span class="special">{</span><span class="number">2</span><span class="special">};</span>
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">work_stealing</span><span class="special">&gt;(</span><span class="number">2</span><span class="special">);</span>
-<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="identifier">mtx</span><span class="special">;</span>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">mutex</span> <span class="identifier">mtx</span><span class="special">;</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">condition_variable_any</span> <span class="identifier">cv</span><span class="special">;</span>
+<span class="comment">// start wotrker-thread first</span>
 <span class="keyword">auto</span> <span class="identifier">worker</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">thread</span><span class="special">(</span>
-        <span class="special">[&amp;</span><span class="identifier">mtx</span><span class="special">,&amp;</span><span class="identifier">cv</span><span class="special">,&amp;</span><span class="identifier">b</span><span class="special">]{</span>
+        <span class="special">[&amp;</span><span class="identifier">mtx</span><span class="special">,&amp;</span><span class="identifier">cv</span><span class="special">]{</span>
             <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">work_stealing</span><span class="special">&gt;(</span><span class="number">2</span><span class="special">);</span>
-            <span class="comment">// wait till all threads joining the work stealing have been registered</span>
-            <span class="identifier">b</span><span class="special">.</span><span class="identifier">wait</span><span class="special">();</span>
             <span class="identifier">mtx</span><span class="special">.</span><span class="identifier">lock</span><span class="special">();</span>
             <span class="comment">// suspend main-fiber from the worker thread</span>
             <span class="identifier">cv</span><span class="special">.</span><span class="identifier">wait</span><span class="special">(</span><span class="identifier">mtx</span><span class="special">);</span>
             <span class="identifier">mtx</span><span class="special">.</span><span class="identifier">unlock</span><span class="special">();</span>
         <span class="special">});</span>
-<span class="comment">// wait till all threads have been registered the scheduling algorithm</span>
-<span class="identifier">b</span><span class="special">.</span><span class="identifier">wait</span><span class="special">();</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">use_scheduling_algorithm</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">algo</span><span class="special">::</span><span class="identifier">work_stealing</span><span class="special">&gt;(</span><span class="number">2</span><span class="special">);</span>
 <span class="comment">// create fibers with tasks</span>
 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fibers</span><span class="special">::</span><span class="identifier">fiber</span> <span class="identifier">f</span><span class="special">{[]{</span> <span class="special">...</span> <span class="special">}};</span>
 <span class="special">...</span>

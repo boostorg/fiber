@@ -248,7 +248,7 @@
                 <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_for</span><span class="special">()</span></code>
                 or <code class="computeroutput"><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">pop_wait_until</span><span class="special">()</span></code>
                 and returns <code class="computeroutput"><span class="identifier">success</span></code>.
-                If the channel is full, it doesn't block and returns <code class="computeroutput"><span class="identifier">full</span></code>.
+                If the channel is full, the fiber is blocked.
               </p></dd>
 <dt><span class="term">Throws:</span></dt>
 <dd><p>
