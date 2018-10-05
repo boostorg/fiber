@@ -80,8 +80,6 @@ lib boost_fiber
                cxx11_variadic_templates ]
     ;
 
-boost-install boost_fiber ;
-
 
 alias numa_sources
     : numa/aix/pin_thread.cpp
@@ -146,4 +144,5 @@ lib boost_fiber_numa
                cxx11_variadic_templates ]
     ;
 
-boost-install boost_fiber_numa ;
+
+boost-install boost_fiber boost_fiber_numa ;
