@@ -402,6 +402,20 @@ void test_rangefor() {
     BOOST_CHECK_EQUAL( 12, vec[6]);
 }
 
+void test_issue_181() {
+    boost::fibers::unbuffered_channel< int > chan;
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&chan]() {
+        auto state = chan.push( 1);
+        BOOST_CHECK( boost::fibers::channel_op_status::closed == state);
+    });
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&chan]() {
+        boost::this_fiber::sleep_for( std::chrono::milliseconds( 100) );
+        chan.close();
+    });
+    f2.join();
+    f1.join();
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: unbuffered_channel test suite");
@@ -431,6 +445,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
      test->add( BOOST_TEST_CASE( & test_wm_1) );
      test->add( BOOST_TEST_CASE( & test_moveable) );
      test->add( BOOST_TEST_CASE( & test_rangefor) );
+     test->add( BOOST_TEST_CASE( & test_issue_181) );
 
     return test;
 }
