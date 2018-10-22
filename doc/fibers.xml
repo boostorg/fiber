@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/10/02 12:35:24 $"
+<library id="fiber" name="Fiber" dirname="fiber" last-revision="$Date: 2018/10/22 08:13:04 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <libraryinfo>
     <authorgroup>
@@ -102,6 +102,12 @@
       to help your scheduler decide which fibers are permitted to migrate. Please
       see <link linkend="migration">Migrating fibers between threads</link> and
       <link linkend="custom">Customization</link> for more details.
+    </para>
+    <para>
+      <emphasis role="bold">Boost.Fiber</emphasis> allows to <emphasis role="bold"><code><phrase
+      role="identifier">multiplex</phrase> <phrase role="identifier">fibers</phrase>
+      <phrase role="identifier">across</phrase> <phrase role="identifier">multiple</phrase>
+      <phrase role="identifier">cores</phrase></code></emphasis> (see <link linkend="class_numa_work_stealing"><code>numa::work_stealing</code></link>).
     </para>
     <para>
       A fiber launched on a particular thread continues running on that thread unless
