@@ -108,6 +108,11 @@
       <a class="link" href="custom.html#custom">Customization</a> for more details.
     </p>
 <p>
+      <span class="bold"><strong>Boost.Fiber</strong></span> allows to <span class="bold"><strong><code class="computeroutput"><span class="identifier">multiplex</span> <span class="identifier">fibers</span>
+      <span class="identifier">across</span> <span class="identifier">multiple</span>
+      <span class="identifier">cores</span></code></strong></span> (see <a class="link" href="numa.html#class_numa_work_stealing"><code class="computeroutput">numa::work_stealing</code></a>).
+    </p>
+<p>
       A fiber launched on a particular thread continues running on that thread unless
       migrated. It might be unblocked (see <a class="link" href="overview.html#blocking">Blocking</a>
       below) by some other thread, but that only transitions the fiber from <span class="quote">&#8220;<span class="quote">blocked</span>&#8221;</span>
