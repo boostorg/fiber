@@ -17,33 +17,33 @@ int value2 = 0;
 
 void fn1()
 {
-    boost::fibers::fiber::id id = boost::this_fiber::get_id();
+    boost::fibers::fiber::id this_id = boost::this_fiber::get_id();
     for ( int i = 0; i < 5; ++i)
     {
         ++value1;
-        std::cout << "fiber " << id << " fn1: increment value1: " << value1 << std::endl;
+        std::cout << "fiber " << this_id << " fn1: increment value1: " << value1 << std::endl;
         boost::this_fiber::yield();
     }
-    std::cout << "fiber " << id << " fn1: returns" << std::endl;
+    std::cout << "fiber " << this_id << " fn1: returns" << std::endl;
 }
 
 void fn2( boost::fibers::fiber & f)
 {
-    boost::fibers::fiber::id id = boost::this_fiber::get_id();
+    boost::fibers::fiber::id this_id = boost::this_fiber::get_id();
     for ( int i = 0; i < 5; ++i)
     {
         ++value2;
-        std::cout << "fiber " << id << " fn2: increment value2: " << value2 << std::endl;
+        std::cout << "fiber " << this_id << " fn2: increment value2: " << value2 << std::endl;
         if ( i == 1)
         {
             boost::fibers::fiber::id id = f.get_id();
-            std::cout << "fiber " << id << " fn2: joins fiber " << id << std::endl;
+            std::cout << "fiber " << this_id << " fn2: joins fiber " << id << std::endl;
             f.join();
-            std::cout << "fiber " << id << " fn2: joined fiber " << id << std::endl;
+            std::cout << "fiber " << this_id << " fn2: joined fiber " << id << std::endl;
         }
         boost::this_fiber::yield();
     }
-    std::cout << "fiber " << id << " fn2: returns" << std::endl;
+    std::cout << "fiber " << this_id << " fn2: returns" << std::endl;
 }
 
 int main()
