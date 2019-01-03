@@ -20,6 +20,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/core/ignore_unused.hpp>
 #if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
 #endif
@@ -426,6 +427,8 @@ private:
             auto arg = std::move( arg_);
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
             std::move( c).resume();
+#else
+            boost::ignore_unused(c);
 #endif
 #if defined(BOOST_NO_CXX17_STD_APPLY)
            boost::context::detail::apply( std::move( fn), std::move( arg) );
