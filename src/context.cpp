@@ -39,7 +39,7 @@ private:
     }
 
 public:
-    dispatcher_context( boost::context::preallocated const& palloc, default_stack const& salloc) :
+    dispatcher_context( boost::context::preallocated const& palloc, default_stack && salloc) :
         context{ 0, type::dispatcher_context, launch::post } {
         c_ = boost::context::fiber{ std::allocator_arg, palloc, salloc,
                                     std::bind( & dispatcher_context::run_, this, std::placeholders::_1) };
@@ -62,7 +62,7 @@ static intrusive_ptr< context > make_dispatcher_context() {
     // placement new of context on top of fiber's stack
     return intrusive_ptr< context >{
         new ( storage) dispatcher_context{
-                boost::context::preallocated{ storage, size, sctx }, salloc } };
+                boost::context::preallocated{ storage, size, sctx }, std::move( salloc) } };
 }
 
 // schwarz counter
