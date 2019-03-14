@@ -13,6 +13,7 @@
 #include <utility>
 
 #include <boost/config.hpp>
+#include <boost/context/detail/config.hpp>
 #if defined(BOOST_NO_CXX17_STD_APPLY)
 #include <boost/context/detail/apply.hpp>
 #endif
@@ -63,6 +64,10 @@ public:
                         fn_, std::make_tuple( std::forward< Args >( args) ... ) )
 #endif
                     );
+#if defined(BOOST_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
@@ -133,6 +138,10 @@ public:
                     fn_, std::make_tuple( std::forward< Args >( args) ... ) );
 #endif
             this->set_value();
+#if defined(BOOST_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             this->set_exception( std::current_exception() );
         }

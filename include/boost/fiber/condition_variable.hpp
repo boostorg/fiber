@@ -15,6 +15,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/context/detail/config.hpp>
 
 #include <boost/fiber/context.hpp>
 #include <boost/fiber/detail/config.hpp>
@@ -78,6 +79,10 @@ public:
         // relock external again before returning
         try {
             lt.lock();
+#if defined(BOOST_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             std::terminate();
         }
@@ -118,6 +123,10 @@ public:
         // relock external again before returning
         try {
             lt.lock();
+#if defined(BOOST_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             std::terminate();
         }
