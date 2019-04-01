@@ -227,6 +227,7 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     // push new context to remote ready-queue
     ctx->remote_ready_link( remote_ready_queue_);
+    lk.unlock();
     // notify scheduler
     algo_->notify();
 }
