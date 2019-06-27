@@ -371,6 +371,9 @@ of shared_work, thus the work is distributed equally over all threads.
         namespace algo {
 
         class shared_work : public algorithm {
+            shared_work();
+            shared_work( bool suspend);
+
             virtual void awakened( context *) noexcept;
 
             virtual context * pick_next() noexcept;
@@ -383,6 +386,19 @@ of shared_work, thus the work is distributed equally over all threads.
         };
 
         }}}
+
+[heading Constructor]
+
+        shared_work();
+        shared_work( bool suspend);
+
+[variablelist
+[[Effects:] [Constructs work-sharing scheduling algorithm.]]
+[[Throws:] [`system_error`]]
+[[Note:][If `suspend` is set to `true` (default is `false`), then the scheduler suspends if no ready fiber
+could be stolen. The scheduler will by woken up if a sleeping fiber times out or it was notified from remote
+(other thread or fiber scheduler).]]
+]
 
 [member_heading shared_work..awakened]
 
