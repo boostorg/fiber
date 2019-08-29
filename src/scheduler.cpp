@@ -387,7 +387,6 @@ scheduler::attach_worker_context( context * ctx) noexcept {
 #endif
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ! ctx->worker_is_linked() );
     ctx->worker_link( worker_queue_);
     ctx->scheduler_ = this;
@@ -403,7 +402,6 @@ scheduler::detach_worker_context( context * ctx) noexcept {
 #endif
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ctx->worker_is_linked() );
     BOOST_ASSERT( ! ctx->is_context( type::pinned_context) );
     ctx->worker_unlink();
