@@ -68,4 +68,5 @@ std::error_category const& future_category() noexcept {
     return cat;
 }
 
-}}
+}  // namespace fibers
+}  // namespace boost

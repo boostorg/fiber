@@ -39,7 +39,9 @@ void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
             "boost fiber: pin_thread() not supported" };
 }
 
-}}}
+}  // namespace numa
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_SUFFIX

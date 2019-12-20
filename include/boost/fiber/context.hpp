@@ -128,7 +128,7 @@ typedef intrusive::slist_member_hook<
     >
 >                                       remote_ready_hook;
 
-}
+}  // namespace detail
 
 class BOOST_FIBERS_DECL context {
 public:
@@ -504,7 +504,9 @@ wait_functor::const_pointer wait_functor::to_value_ptr( wait_functor::const_hook
     return intrusive::get_parent_from_member< context >( n, & context::wait_hook_);
 }
 
-}}}
+}  // namespace detail
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef _MSC_VER
 # pragma warning(pop)

@@ -16,6 +16,8 @@ enum class spinlock_status {
     unlocked
 };
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #endif // BOOST_FIBERS_SPINLOCK_STATUS_H

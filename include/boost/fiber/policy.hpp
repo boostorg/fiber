@@ -35,9 +35,10 @@ template<>
 struct is_launch_policy< boost::fibers::launch > : public std::true_type {
 };
 
-}
+}  // namespace detail
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

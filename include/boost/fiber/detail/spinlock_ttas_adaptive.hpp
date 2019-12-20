@@ -119,6 +119,8 @@ public:
     }
 };
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #endif // BOOST_FIBERS_SPINLOCK_TTAS_ADAPTIVE_H

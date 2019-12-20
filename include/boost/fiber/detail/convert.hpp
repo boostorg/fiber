@@ -34,7 +34,9 @@ std::chrono::steady_clock::time_point convert(
     return std::chrono::steady_clock::now() + ( timeout_time - Clock::now() );
 }
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

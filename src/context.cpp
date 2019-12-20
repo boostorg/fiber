@@ -395,7 +395,8 @@ context::attach( context * ctx) noexcept {
     get_scheduler()->attach_worker_context( ctx);
 }
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

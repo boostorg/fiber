@@ -25,7 +25,8 @@ enum class channel_op_status {
     timeout
 };
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

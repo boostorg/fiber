@@ -188,7 +188,9 @@ public:
     }
 };
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #if BOOST_COMP_CLANG
 #pragma clang diagnostic pop

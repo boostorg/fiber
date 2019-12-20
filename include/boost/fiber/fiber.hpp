@@ -168,7 +168,8 @@ void swap( fiber & l, fiber & r) noexcept {
     return l.swap( r);
 }
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef _MSC_VER
 # pragma warning(pop)

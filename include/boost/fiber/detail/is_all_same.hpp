@@ -35,7 +35,9 @@ struct is_all_same< X, Y0 > {
     static constexpr bool value = std::is_same< X, Y0 >::value;
 };
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

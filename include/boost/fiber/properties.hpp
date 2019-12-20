@@ -30,7 +30,7 @@ namespace algo {
 
 class algorithm;
 
-}
+} // namespace algo
 
 class BOOST_FIBERS_DECL fiber_properties {
 protected:
@@ -66,7 +66,8 @@ public:
     }
 };
 
-}} // namespace boost::fibers
+}  // namespace fibers
+}  // namespace boost
 
 # if defined(BOOST_MSVC)
 # pragma warning(pop)

@@ -37,7 +37,9 @@ bool operator<( node const& lhs, node const& rhs) noexcept {
 BOOST_FIBERS_DECL
 std::vector< node > topology();
 
-}}}
+} // namespace numa
+} // namespace fibers
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include BOOST_ABI_SUFFIX

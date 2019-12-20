@@ -24,7 +24,8 @@ using fixedsize_stack = boost::context::fixedsize_stack;
 using   default_stack = boost::context::default_stack;
 #endif
 
-}}
+} // namespace fibers
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

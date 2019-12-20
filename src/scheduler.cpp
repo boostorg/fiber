@@ -412,7 +412,8 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     // a detached context must not belong to any queue
 }
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

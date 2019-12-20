@@ -68,7 +68,7 @@ PROPS & properties() {
     return dynamic_cast< PROPS & >( * props );
 }
 
-}
+}  // namespace this_fiber
 
 namespace fibers {
 
@@ -83,7 +83,8 @@ void use_scheduling_algorithm( Args && ... args) noexcept {
         ->set_algo( new SchedAlgo( std::forward< Args >( args) ... ) );
 }
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

@@ -56,7 +56,9 @@ public:
     virtual void notify() noexcept;
 };
 
-}}}
+} // namespace algo
+} // namespace fibers
+} // namespace boost
 
 #ifdef _MSC_VER
 # pragma warning(pop)

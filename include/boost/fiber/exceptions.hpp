@@ -67,7 +67,8 @@ enum class future_errc {
 BOOST_FIBERS_DECL
 std::error_category const& future_category() noexcept;
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 namespace std {
 
@@ -85,7 +86,7 @@ std::error_condition make_error_condition( boost::fibers::future_errc e) noexcep
     return std::error_condition{ static_cast< int >( e), boost::fibers::future_category() };
 }
 
-}
+}  // namespace std
 
 namespace boost {
 namespace fibers {
@@ -139,7 +140,8 @@ public:
     }
 };
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

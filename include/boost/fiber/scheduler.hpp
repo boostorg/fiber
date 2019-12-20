@@ -150,7 +150,8 @@ public:
     void detach_worker_context( context *) noexcept;
 };
 
-}}
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef _MSC_VER
 # pragma warning(pop)

@@ -94,7 +94,9 @@ shared_work::notify() noexcept {
 shared_work::rqueue_type shared_work::rqueue_{};
 std::mutex shared_work::rqueue_mtx_{};
 
-}}}
+}  // namespace algo
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

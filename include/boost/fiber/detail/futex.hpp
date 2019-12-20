@@ -56,6 +56,8 @@ int futex_wait( std::atomic< std::int32_t > * addr, std::int32_t x) {
 # warn "no futex support on this platform"
 #endif
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #endif // BOOST_FIBERS_DETAIL_FUTEX_H

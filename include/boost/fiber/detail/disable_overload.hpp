@@ -25,7 +25,9 @@ namespace detail {
 template< typename X, typename Y >
 using disable_overload = boost::context::detail::disable_overload< X, Y >;
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #include BOOST_ABI_SUFFIX

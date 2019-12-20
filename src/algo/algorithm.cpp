@@ -28,7 +28,9 @@ algorithm_with_properties_base::set_properties( context * ctx, fiber_properties 
     ctx->set_properties( props);
 }
 
-}}}
+}  // namespace algo
+}  // namespace fibers
+}  // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

@@ -122,6 +122,8 @@ public:
     }
 };
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #endif // BOOST_FIBERS_spinlock_ttas_futex_FUTEX_H

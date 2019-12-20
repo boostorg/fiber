@@ -75,7 +75,9 @@ using spinlock = spinlock_ttas;
 using spinlock_lock = std::unique_lock< spinlock >;
 #endif
 
-}}}
+} // namespace detail
+} // namespace fibers
+} // namespace boost
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
