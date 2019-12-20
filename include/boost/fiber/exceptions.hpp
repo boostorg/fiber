@@ -39,7 +39,7 @@ public:
         std::system_error{ ec, what_arg } {
     }
 
-    virtual ~fiber_error() = default;
+    ~fiber_error() override = default;
 };
 
 class lock_error : public fiber_error {
