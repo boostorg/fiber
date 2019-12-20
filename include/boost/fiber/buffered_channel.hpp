@@ -125,31 +125,32 @@ public:
         detail::spinlock_lock lk{ splk_ };
         if ( BOOST_UNLIKELY( is_closed_() ) ) {
             return channel_op_status::closed;
-        } else if ( is_full_() ) {
-            return channel_op_status::full;
-        } else {
-            slots_[pidx_] = value;
-            pidx_ = (pidx_ + 1) % capacity_;
-            // notify one waiting consumer
-            while ( ! waiting_consumers_.empty() ) {
-                context * consumer_ctx = & waiting_consumers_.front();
-                waiting_consumers_.pop_front();
-                std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
-                if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
-                    lk.unlock();
-                    // notify context
-                    active_ctx->schedule( consumer_ctx);
-                    break;
-                } else if ( static_cast< std::intptr_t >( 0) == expected) {
-                    lk.unlock();
-                    // no timed-wait op.
-                    // notify context
-                    active_ctx->schedule( consumer_ctx);
-                    break;
-                }
-            }
-            return channel_op_status::success;
         }
+        if ( is_full_() ) {
+            return channel_op_status::full;
+        }
+        slots_[pidx_] = value;
+        pidx_ = (pidx_ + 1) % capacity_;
+        // notify one waiting consumer
+        while ( ! waiting_consumers_.empty() ) {
+            context * consumer_ctx = & waiting_consumers_.front();
+            waiting_consumers_.pop_front();
+            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                lk.unlock();
+                // notify context
+                active_ctx->schedule( consumer_ctx);
+                break;
+            }
+            if ( static_cast< std::intptr_t >( 0) == expected) {
+               lk.unlock();
+                // no timed-wait op.
+                // notify context
+                active_ctx->schedule( consumer_ctx);
+                break;
+            }
+        }
+        return channel_op_status::success;
     }
 
     channel_op_status try_push( value_type && value) {
@@ -157,31 +158,32 @@ public:
         detail::spinlock_lock lk{ splk_ };
         if ( BOOST_UNLIKELY( is_closed_() ) ) {
             return channel_op_status::closed;
-        } else if ( is_full_() ) {
-            return channel_op_status::full;
-        } else {
-            slots_[pidx_] = std::move( value);
-            pidx_ = (pidx_ + 1) % capacity_;
-            // notify one waiting consumer
-            while ( ! waiting_consumers_.empty() ) {
-                context * consumer_ctx = & waiting_consumers_.front();
-                waiting_consumers_.pop_front();
-                std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
-                if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
-                    lk.unlock();
-                    // notify context
-                    active_ctx->schedule( consumer_ctx);
-                    break;
-                } else if ( static_cast< std::intptr_t >( 0) == expected) {
-                    lk.unlock();
-                    // no timed-wait op.
-                    // notify context
-                    active_ctx->schedule( consumer_ctx);
-                    break;
-                }
-            }
-            return channel_op_status::success;
         }
+        if ( is_full_() ) {
+            return channel_op_status::full;
+        }
+        slots_[pidx_] = std::move( value);
+        pidx_ = (pidx_ + 1) % capacity_;
+        // notify one waiting consumer
+        while ( ! waiting_consumers_.empty() ) {
+            context * consumer_ctx = & waiting_consumers_.front();
+            waiting_consumers_.pop_front();
+            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                lk.unlock();
+                // notify context
+                active_ctx->schedule( consumer_ctx);
+                break;
+            }
+            if ( static_cast< std::intptr_t >( 0) == expected) {
+               lk.unlock();
+                // no timed-wait op.
+                // notify context
+                active_ctx->schedule( consumer_ctx);
+                break;
+            }
+        }
+        return channel_op_status::success;
     }
 
     channel_op_status push( value_type const& value) {
@@ -190,7 +192,8 @@ public:
             detail::spinlock_lock lk{ splk_ };
             if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
-            } else if ( is_full_() ) {
+            }
+            if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
                 // suspend this producer
@@ -208,7 +211,8 @@ public:
                         // notify context
                         active_ctx->schedule( consumer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    }
+                    if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context
@@ -227,7 +231,8 @@ public:
             detail::spinlock_lock lk{ splk_ };
             if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
-            } else if ( is_full_() ) {
+            }
+            if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
                 // suspend this producer
@@ -245,7 +250,8 @@ public:
                         // notify context
                         active_ctx->schedule( consumer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    }
+                    if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context
@@ -281,7 +287,8 @@ public:
             detail::spinlock_lock lk{ splk_ };
             if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
-            } else if ( is_full_() ) {
+            }
+            if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 // suspend this producer
@@ -305,7 +312,8 @@ public:
                         // notify context
                         active_ctx->schedule( consumer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    }
+                    if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context
@@ -327,7 +335,8 @@ public:
             detail::spinlock_lock lk{ splk_ };
             if ( BOOST_UNLIKELY( is_closed_() ) ) {
                 return channel_op_status::closed;
-            } else if ( is_full_() ) {
+            }
+            if ( is_full_() ) {
                 active_ctx->wait_link( waiting_producers_);
                 active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
                 // suspend this producer
@@ -351,7 +360,8 @@ public:
                         // notify context
                         active_ctx->schedule( consumer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    }
+                    if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context
@@ -371,29 +381,29 @@ public:
             return is_closed_()
                 ? channel_op_status::closed
                 : channel_op_status::empty;
-        } else {
-            value = std::move( slots_[cidx_]);
-            cidx_ = (cidx_ + 1) % capacity_;
-            // notify one waiting producer
-            while ( ! waiting_producers_.empty() ) {
-                context * producer_ctx = & waiting_producers_.front();
-                waiting_producers_.pop_front();
-                std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
-                if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
-                    lk.unlock();
-                    // notify context
-                    active_ctx->schedule( producer_ctx);
-                    break;
-                } else if ( static_cast< std::intptr_t >( 0) == expected) {
-                    lk.unlock();
-                    // no timed-wait op.
-                    // notify context
-                    active_ctx->schedule( producer_ctx);
-                    break;
-                }
-            }
-            return channel_op_status::success;
         }
+        value = std::move( slots_[cidx_]);
+        cidx_ = (cidx_ + 1) % capacity_;
+        // notify one waiting producer
+        while ( ! waiting_producers_.empty() ) {
+            context * producer_ctx = & waiting_producers_.front();
+            waiting_producers_.pop_front();
+            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+                lk.unlock();
+                // notify context
+                active_ctx->schedule( producer_ctx);
+                break;
+            }
+            if ( static_cast< std::intptr_t >( 0) == expected) {
+                lk.unlock();
+                // no timed-wait op.
+                // notify context
+                active_ctx->schedule( producer_ctx);
+                break;
+            }
+        }
+        return channel_op_status::success;
     }
 
     channel_op_status pop( value_type & value) {
@@ -403,12 +413,11 @@ public:
             if ( is_empty_() ) {
                 if ( BOOST_UNLIKELY( is_closed_() ) ) {
                     return channel_op_status::closed;
-                } else {
-                    active_ctx->wait_link( waiting_consumers_);
-                    active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
-                    // suspend this consumer
-                    active_ctx->suspend( lk);
                 }
+                active_ctx->wait_link( waiting_consumers_);
+                active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
+                // suspend this consumer
+                active_ctx->suspend( lk);
             } else {
                 value = std::move( slots_[cidx_]);
                 cidx_ = (cidx_ + 1) % capacity_;
@@ -422,7 +431,8 @@ public:
                         // notify context
                         active_ctx->schedule( producer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    }
+                    if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context
@@ -444,12 +454,11 @@ public:
                     throw fiber_error{
                         std::make_error_code( std::errc::operation_not_permitted),
                         "boost fiber: channel is closed" };
-                } else {
-                    active_ctx->wait_link( waiting_consumers_);
-                    active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
-                    // suspend this consumer
-                    active_ctx->suspend( lk);
                 }
+                active_ctx->wait_link( waiting_consumers_);
+                active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
+                // suspend this consumer
+                active_ctx->suspend( lk);
             } else {
                 value_type value = std::move( slots_[cidx_]);
                 cidx_ = (cidx_ + 1) % capacity_;
@@ -463,7 +472,8 @@ public:
                         // notify context
                         active_ctx->schedule( producer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    }
+                    if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context
@@ -493,17 +503,16 @@ public:
             if ( is_empty_() ) {
                 if ( BOOST_UNLIKELY( is_closed_() ) ) {
                     return channel_op_status::closed;
-                } else {
-                    active_ctx->wait_link( waiting_consumers_);
-                    active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
-                    // suspend this consumer
-                    if ( ! active_ctx->wait_until( timeout_time, lk) ) {
-                        // relock local lk
-                        lk.lock();
-                        // remove from waiting-queue
-                        waiting_consumers_.remove( * active_ctx);
-                        return channel_op_status::timeout;
-                    }
+                }
+                active_ctx->wait_link( waiting_consumers_);
+                active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
+                // suspend this consumer
+                if ( ! active_ctx->wait_until( timeout_time, lk) ) {
+                    // relock local lk
+                    lk.lock();
+                    // remove from waiting-queue
+                    waiting_consumers_.remove( * active_ctx);
+                    return channel_op_status::timeout;
                 }
             } else {
                 value = std::move( slots_[cidx_]);
@@ -518,7 +527,7 @@ public:
                         // notify context
                         active_ctx->schedule( producer_ctx);
                         break;
-                    } else if ( static_cast< std::intptr_t >( 0) == expected) {
+                    } if ( static_cast< std::intptr_t >( 0) == expected) {
                         lk.unlock();
                         // no timed-wait op.
                         // notify context

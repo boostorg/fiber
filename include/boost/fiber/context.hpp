@@ -242,9 +242,8 @@ public:
         operator<<( std::basic_ostream< charT, traitsT > & os, id const& other) {
             if ( nullptr != other.impl_) {
                 return os << other.impl_;
-            } else {
-                return os << "{not-valid}";
             }
+            return os << "{not-valid}";
         }
 
         explicit operator bool() const noexcept {
@@ -279,8 +278,7 @@ public:
     id get_id() const noexcept;
 
     bool is_resumable() const noexcept {
-        if ( c_) return true;
-        else return false;
+        return static_cast<bool>(c_);
     }
 
     void resume() noexcept;

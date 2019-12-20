@@ -31,7 +31,8 @@ recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point co
         if ( active_ctx == owner_) {
             ++count_;
             return true;
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             count_ = 1;
             return true;
@@ -59,7 +60,8 @@ recursive_timed_mutex::lock() {
         if ( active_ctx == owner_) {
             ++count_;
             return;
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             count_ = 1;
             return;

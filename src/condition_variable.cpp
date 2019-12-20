@@ -28,7 +28,8 @@ condition_variable_any::notify_one() noexcept {
             // notify context
             active_ctx->schedule( ctx);
             break;
-        } else if ( static_cast< std::intptr_t >( 0) == expected) {
+        }
+        if ( static_cast< std::intptr_t >( 0) == expected) {
             // no timed-wait op.
             // notify context
             active_ctx->schedule( ctx);

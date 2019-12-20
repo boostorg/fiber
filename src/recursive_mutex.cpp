@@ -28,7 +28,8 @@ recursive_mutex::lock() {
         if ( active_ctx == owner_) {
             ++count_;
             return;
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             count_ = 1;
             return;
