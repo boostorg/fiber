@@ -96,8 +96,7 @@ private:
     }
 
 public:
-    unbuffered_channel() {
-    }
+    unbuffered_channel() = default;
 
     ~unbuffered_channel() {
         close();
