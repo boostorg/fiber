@@ -74,12 +74,12 @@ typedef intrusive::list_member_hook<
 // the context class and the wait-hook
 struct wait_functor {
     // required types
-    typedef wait_hook               hook_type;
-    typedef hook_type           *   hook_ptr;
-    typedef const hook_type     *   const_hook_ptr;
-    typedef context                 value_type;
-    typedef value_type          *   pointer;
-    typedef const value_type    *   const_pointer;
+    using hook_type = wait_hook;
+    using hook_ptr = hook_type *;
+    using const_hook_ptr = const hook_type *;
+    using value_type = context;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
 
     // required static functions
     static hook_ptr to_hook_ptr( value_type &value);

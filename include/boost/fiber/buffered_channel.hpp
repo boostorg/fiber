@@ -34,11 +34,11 @@ namespace fibers {
 template< typename T >
 class buffered_channel {
 public:
-    typedef typename std::remove_reference< T >::type   value_type;
+    using value_type = typename std::remove_reference<T>::type;
 
 private:
-    typedef context::wait_queue_t                       wait_queue_type;
-	typedef value_type                                  slot_type;
+    using wait_queue_type = context::wait_queue_t;
+	using slot_type = value_type;
 
     mutable detail::spinlock   splk_{};
     wait_queue_type                                     waiting_producers_{};
@@ -548,13 +548,13 @@ public:
         }
 
     public:
-        typedef std::input_iterator_tag                     iterator_category;
-        typedef std::ptrdiff_t                              difference_type;
-        typedef value_type                              *   pointer;
-        typedef value_type                              &   reference;
+        using iterator_category = std::input_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type *;
+        using reference = value_type &;
 
-        typedef pointer     pointer_t;
-        typedef reference   reference_t;
+        using pointer_t = pointer;
+        using reference_t = reference;
 
         iterator() noexcept = default;
 
