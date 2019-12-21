@@ -28,7 +28,7 @@ fiber_properties::notify() noexcept {
     // with a change to a fiber it's not currently tracking: it will do the
     // right thing next time the fiber is passed to its awakened() method.
     if ( ctx_->ready_is_linked() ) {
-        static_cast< algo::algorithm_with_properties_base * >( algo_)->
+        dynamic_cast< algo::algorithm_with_properties_base * >( algo_)->
             property_change_( ctx_, this);
     }
 }
