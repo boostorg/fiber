@@ -17,6 +17,7 @@
 #include <memory>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -151,9 +152,9 @@ private:
         }
 
         fss_data( void * vp_,
-                  detail::fss_cleanup_function::ptr_t const& fn) noexcept :
+                  detail::fss_cleanup_function::ptr_t fn) noexcept :
             vp( vp_),
-            cleanup_function( fn) {
+            cleanup_function(std::move( fn)) {
             BOOST_ASSERT( cleanup_function);
         }
 
