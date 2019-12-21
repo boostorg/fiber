@@ -588,7 +588,7 @@ public:
             return * this;
         }
 
-        iterator operator++( int) = delete;
+        const iterator operator++( int) = delete;
 
         reference_t operator*() noexcept {
             return * reinterpret_cast< value_type * >( std::addressof( storage_) );
