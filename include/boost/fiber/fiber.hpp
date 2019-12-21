@@ -59,7 +59,7 @@ public:
               typename = detail::disable_overload< std::allocator_arg_t, Fn >
     >
 #if BOOST_COMP_GNUC < 50000000
-    fiber( Fn && fn, Arg && ... arg) :
+    explicit fiber( Fn && fn, Arg && ... arg) :
 #else
     fiber( Fn && fn, Arg ... arg) :
 #endif
