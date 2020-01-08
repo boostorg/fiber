@@ -123,7 +123,7 @@ cpu part of another NUMA-node.
 
         void thread( std::uint32_t cpu_id, std::uint32_t node_id, std::vector< boost::fibers::numa::node > const& topo) {
             // thread registers itself at work-stealing scheduler
-            boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( cpu_id, node_id, topo);
+            boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( cpu_id, node_id, topo);
             ...
         }
 
@@ -145,7 +145,7 @@ cpu part of another NUMA-node.
             }
         }
         // start-thread registers itself on work-stealing scheduler
-        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::numa::work_stealing >( start_cpu_id, node.id, topo);
+        boost::fibers::use_scheduling_algorithm< boost::fibers::numa::algo::work_stealing >( start_cpu_id, node.id, topo);
         ...
 
 The example evaluates the NUMA topology with `boost::fibers::numa::topology()`
