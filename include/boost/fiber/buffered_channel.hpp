@@ -471,7 +471,7 @@ public:
                         break;
                     }
                 }
-                return std::move( value);
+                return value;
             }
         }
     }
