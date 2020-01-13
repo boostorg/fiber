@@ -23,7 +23,7 @@ condition_variable_any::notify_one() noexcept {
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
-        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+        auto expected = reinterpret_cast< std::intptr_t >( this);
         if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
             // notify context
             active_ctx->schedule( ctx);
@@ -47,7 +47,7 @@ condition_variable_any::notify_all() noexcept {
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
-        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+        auto expected = reinterpret_cast< std::intptr_t >( this);
         if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
             // notify context
             active_ctx->schedule( ctx);

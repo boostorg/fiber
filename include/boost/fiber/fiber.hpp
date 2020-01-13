@@ -41,14 +41,14 @@ class BOOST_FIBERS_DECL fiber {
 private:
     friend class context;
 
-    typedef intrusive_ptr< context >  ptr_t;
+    using ptr_t = intrusive_ptr<context>;
 
     ptr_t       impl_{};
 
     void start_() noexcept;
 
 public:
-    typedef context::id    id;
+    using id = context::id;
 
     fiber() = default;
 

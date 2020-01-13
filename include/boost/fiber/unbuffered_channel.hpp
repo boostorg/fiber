@@ -36,10 +36,10 @@ namespace fibers {
 template< typename T >
 class unbuffered_channel {
 public:
-    typedef typename std::remove_reference< T >::type   value_type;
+    using value_type = typename std::remove_reference<T>::type;
 
 private:
-    typedef context::wait_queue_t   wait_queue_type;
+    using wait_queue_type = context::wait_queue_t;
 
     struct slot {
         value_type  value;
@@ -125,7 +125,7 @@ public:
             while ( ! waiting_producers_.empty() ) {
                 context * producer_ctx = & waiting_producers_.front();
                 waiting_producers_.pop_front();
-                std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                auto expected = reinterpret_cast< std::intptr_t >( this);
                 if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                     // notify context
                     active_ctx->schedule( producer_ctx);
@@ -140,7 +140,7 @@ public:
             while ( ! waiting_consumers_.empty() ) {
                 context * consumer_ctx = & waiting_consumers_.front();
                 waiting_consumers_.pop_front();
-                std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                auto expected = reinterpret_cast< std::intptr_t >( this);
                 if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                     // notify context
                     active_ctx->schedule( consumer_ctx);
@@ -166,7 +166,7 @@ public:
                 while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    auto expected = reinterpret_cast< std::intptr_t >( this);
                     if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                         // notify context
                         active_ctx->schedule( consumer_ctx);
@@ -217,7 +217,7 @@ public:
                 while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    auto expected = reinterpret_cast< std::intptr_t >( this);
                     if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                         // notify context
                         active_ctx->schedule( consumer_ctx);
@@ -284,7 +284,7 @@ public:
                 while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    auto expected = reinterpret_cast< std::intptr_t >( this);
                     if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                         // notify context
                         active_ctx->schedule( consumer_ctx);
@@ -351,7 +351,7 @@ public:
                 while ( ! waiting_consumers_.empty() ) {
                     context * consumer_ctx = & waiting_consumers_.front();
                     waiting_consumers_.pop_front();
-                    std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                    auto expected = reinterpret_cast< std::intptr_t >( this);
                     if ( consumer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                         // notify context
                         active_ctx->schedule( consumer_ctx);
@@ -412,7 +412,7 @@ public:
                     while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
-                        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                        auto expected = reinterpret_cast< std::intptr_t >( this);
                         if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                             lk.unlock();
                             // notify context
@@ -462,7 +462,7 @@ public:
                     while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
-                        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                        auto expected = reinterpret_cast< std::intptr_t >( this);
                         if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                             lk.unlock();
                             // notify context
@@ -525,7 +525,7 @@ public:
                     while ( ! waiting_producers_.empty() ) {
                         context * producer_ctx = & waiting_producers_.front();
                         waiting_producers_.pop_front();
-                        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+                        auto expected = reinterpret_cast< std::intptr_t >( this);
                         if ( producer_ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                             lk.unlock();
                             // notify context
@@ -588,13 +588,13 @@ public:
         }
 
     public:
-        typedef std::input_iterator_tag                     iterator_category;
-        typedef std::ptrdiff_t                              difference_type;
-        typedef value_type                              *   pointer;
-        typedef value_type                              &   reference;
+        using iterator_category = std::input_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type *;
+        using reference = value_type &;
 
-        typedef pointer     pointer_t;
-        typedef reference   reference_t;
+        using pointer_t = pointer;
+        using reference_t = reference;
 
         iterator() noexcept = default;
 

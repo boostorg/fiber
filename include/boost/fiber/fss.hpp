@@ -47,7 +47,7 @@ private:
     detail::fss_cleanup_function::ptr_t cleanup_fn_;
 
 public:
-    typedef T   element_type;
+    using element_type = T;
 
     fiber_specific_ptr() :
         cleanup_fn_{ new default_cleanup_function() } {
