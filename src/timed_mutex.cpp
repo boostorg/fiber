@@ -56,7 +56,8 @@ timed_mutex::lock() {
             throw lock_error{
                     std::make_error_code( std::errc::resource_deadlock_would_occur),
                     "boost fiber: a deadlock is detected" };
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             return;
         }
@@ -77,7 +78,8 @@ timed_mutex::try_lock() {
         throw lock_error{
                 std::make_error_code( std::errc::resource_deadlock_would_occur),
                 "boost fiber: a deadlock is detected" };
-    } else if ( nullptr == owner_) {
+    }
+    if ( nullptr == owner_) {
         owner_ = active_ctx;
     }
     lk.unlock();
