@@ -79,7 +79,7 @@ struct algorithm_with_properties : public algorithm_with_properties_base {
     // must override awakened() with properties parameter instead. Otherwise
     // you'd have to remember to start every subclass awakened() override
     // with: algorithm_with_properties<PROPS>::awakened(fb);
-    virtual void awakened( context * ctx) noexcept override final {
+    void awakened( context * ctx) noexcept final {
         fiber_properties * props = super::get_properties( ctx);
         if ( BOOST_LIKELY( nullptr == props) ) {
             // TODO: would be great if PROPS could be allocated on the new
@@ -114,7 +114,7 @@ struct algorithm_with_properties : public algorithm_with_properties_base {
     }
 
     // implementation for algorithm_with_properties_base method
-    void property_change_( context * ctx, fiber_properties * props) noexcept override final {
+    void property_change_( context * ctx, fiber_properties * props) noexcept final {
         property_change( ctx, * static_cast< PROPS * >( props) );
     }
 
