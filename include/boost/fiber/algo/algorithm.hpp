@@ -35,7 +35,7 @@ private:
 public:
     typedef intrusive_ptr< algorithm >  ptr_t;
 
-    virtual ~algorithm() {}
+    virtual ~algorithm() = default;
 
     virtual void awakened( context *) noexcept = 0;
 

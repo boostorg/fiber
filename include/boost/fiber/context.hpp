@@ -148,8 +148,7 @@ private:
         void                                *   vp{ nullptr };
         detail::fss_cleanup_function::ptr_t     cleanup_function{};
 
-        fss_data() noexcept {
-        }
+        fss_data() noexcept = default;
 
         fss_data( void * vp_,
                   detail::fss_cleanup_function::ptr_t fn) noexcept :
