@@ -56,7 +56,8 @@ timed_mutex::lock() {
             throw lock_error{
                     std::make_error_code( std::errc::resource_deadlock_would_occur),
                     "boost fiber: a deadlock is detected" };
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             return;
         }
@@ -77,7 +78,8 @@ timed_mutex::try_lock() {
         throw lock_error{
                 std::make_error_code( std::errc::resource_deadlock_would_occur),
                 "boost fiber: a deadlock is detected" };
-    } else if ( nullptr == owner_) {
+    }
+    if ( nullptr == owner_) {
         owner_ = active_ctx;
     }
     lk.unlock();
@@ -99,7 +101,7 @@ timed_mutex::unlock() {
     if ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
-        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+        auto expected = reinterpret_cast< std::intptr_t >( this);
         if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
             // notify context
             active_ctx->schedule( ctx);

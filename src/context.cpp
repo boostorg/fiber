@@ -75,7 +75,7 @@ struct context_initializer {
             // main fiber context of this thread
             context * main_ctx = new main_context{};
             // scheduler of this thread
-            scheduler * sched = new scheduler{};
+            auto sched = new scheduler{};
             // attach main context to scheduler
             sched->attach_main_context( main_ctx);
             // create and attach dispatcher context to scheduler
@@ -293,8 +293,8 @@ context::schedule( context * ctx) noexcept {
 
 void *
 context::get_fss_data( void const * vp) const {
-    uintptr_t key = reinterpret_cast< uintptr_t >( vp);
-    fss_data_t::const_iterator i = fss_data_.find( key);
+    auto key = reinterpret_cast< uintptr_t >( vp);
+    auto i = fss_data_.find( key);
     return fss_data_.end() != i ? i->second.vp : nullptr;
 }
 
@@ -304,8 +304,8 @@ context::set_fss_data( void const * vp,
                        void * data,
                        bool cleanup_existing) {
     BOOST_ASSERT( cleanup_fn);
-    uintptr_t key = reinterpret_cast< uintptr_t >( vp);
-    fss_data_t::iterator i = fss_data_.find( key);
+    auto key = reinterpret_cast< uintptr_t >( vp);
+    auto i = fss_data_.find( key);
     if ( fss_data_.end() != i) {
         if( cleanup_existing) {
             i->second.do_cleanup();

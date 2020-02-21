@@ -31,7 +31,8 @@ recursive_timed_mutex::try_lock_until_( std::chrono::steady_clock::time_point co
         if ( active_ctx == owner_) {
             ++count_;
             return true;
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             count_ = 1;
             return true;
@@ -59,7 +60,8 @@ recursive_timed_mutex::lock() {
         if ( active_ctx == owner_) {
             ++count_;
             return;
-        } else if ( nullptr == owner_) {
+        }
+        if ( nullptr == owner_) {
             owner_ = active_ctx;
             count_ = 1;
             return;
@@ -103,7 +105,7 @@ recursive_timed_mutex::unlock() {
         if ( ! wait_queue_.empty() ) {
             context * ctx = & wait_queue_.front();
             wait_queue_.pop_front();
-            std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+            auto expected = reinterpret_cast< std::intptr_t >( this);
             if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
                 // notify context
                 active_ctx->schedule( ctx);
