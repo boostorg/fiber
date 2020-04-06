@@ -81,14 +81,14 @@ struct algorithm_with_properties : public algorithm_with_properties_base {
     // with: algorithm_with_properties<PROPS>::awakened(fb);
     void awakened( context * ctx) noexcept final {
         fiber_properties * props = super::get_properties( ctx);
-        if ( BOOST_LIKELY( nullptr == props) ) {
+        if ( BOOST_UNLIKELY( nullptr == props) ) {
             // TODO: would be great if PROPS could be allocated on the new
             // fiber's stack somehow
             props = new_properties( ctx);
             // It is not good for new_properties() to return 0.
             BOOST_ASSERT_MSG( props, "new_properties() must return non-NULL");
             // new_properties() must return instance of (a subclass of) PROPS
-            BOOST_ASSERT_MSG( dynamic_cast< PROPS * >( props),
+            BOOST_ASSERT_MSG( template PROPS::typename downcaster< PROPS * >()( props),
                               "new_properties() must return properties class");
             super::set_properties( ctx, props);
         }

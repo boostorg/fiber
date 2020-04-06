@@ -52,7 +52,7 @@ void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
 template< typename PROPS >
 PROPS & properties() {
     fibers::fiber_properties * props = fibers::context::active()->get_properties();
-    if ( BOOST_LIKELY( nullptr == props) ) {
+    if ( BOOST_UNLIKELY( nullptr == props) ) {
         // props could be nullptr if the thread's main fiber has not yet
         // yielded (not yet passed through algorithm_with_properties::
         // awakened()). Address that by yielding right now.
@@ -65,7 +65,7 @@ PROPS & properties() {
         // algorithm_with_properties.
         BOOST_ASSERT_MSG( props, "this_fiber::properties not set");
     }
-    return dynamic_cast< PROPS & >( * props );
+    return template PROPS::typename downcaster< PROPS & >()( * props );
 }
 
 }

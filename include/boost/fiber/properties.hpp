@@ -16,6 +16,8 @@
 #  include BOOST_ABI_PREFIX
 #endif
 
+#include <utility>
+
 # if defined(BOOST_MSVC)
 # pragma warning(push)
 # pragma warning(disable:4275)
@@ -37,7 +39,7 @@ protected:
     // initialized by constructor
     context         *   ctx_;
     // set every time this fiber becomes READY
-    algo::algorithm *   algo_{ nullptr };
+    algo::algorithm_with_properties_base *   algo_{ nullptr };
 
     // Inform the relevant algorithm instance that something important
     // has changed, so it can (presumably) adjust its data structures
@@ -45,6 +47,22 @@ protected:
     void notify() noexcept;
 
 public:
+    template <typename T> struct static_downcaster {
+        template <typename U> T operator()(U&& obj) {
+            return static_cast<T>(std::forward<U>(obj));
+        }
+    };
+
+    template <typename T> struct dynamic_downcaster {
+        template <typename U> T operator()(U&& obj) {
+            return dynamic_cast<T>(std::forward<U>(obj));
+        }
+    };
+
+    // Use dynamic_cast by default, re-define this in base class
+    // if you want to use static_cast instead.
+    template <typename T> using downcaster = dynamic_downcaster<T>;
+
     // Any specific property setter method, after updating the relevant
     // instance variable, can/should call notify().
 
@@ -61,7 +79,7 @@ public:
 
     // not really intended for public use, but algorithm_with_properties
     // must be able to call this
-    void set_algorithm( algo::algorithm * algo) noexcept {
+    void set_algorithm( algo::algorithm_with_properties_base * algo) noexcept {
         algo_ = algo;
     }
 };

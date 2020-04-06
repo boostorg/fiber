@@ -154,7 +154,7 @@ public:
     PROPS & properties() {
         auto props = impl_->get_properties();
         BOOST_ASSERT_MSG( props, "fiber::properties not set");
-        return dynamic_cast< PROPS & >( * props );
+        return template PROPS::typename downcaster< PROPS & >()( * props );
     }
 };
 
