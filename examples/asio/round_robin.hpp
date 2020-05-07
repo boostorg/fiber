@@ -75,7 +75,7 @@ public:
         // service_already_exists if you pass the same io_context instance to
         // more than one round_robin instance.
         boost::asio::add_service( * io_ctx_, new service( * io_ctx_) );
-        io_ctx_->post([this]() mutable {
+        boost::asio::post( * io_ctx_, [this]() mutable {
 //]
 //[asio_rr_service_lambda
                 while ( ! io_ctx_->stopped() ) {
