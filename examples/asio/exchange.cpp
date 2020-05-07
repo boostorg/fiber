@@ -15,7 +15,7 @@
 std::shared_ptr< boost::fibers::unbuffered_channel< int > > c;
 
 void foo() {
-    auto io_ptr = std::make_shared< boost::asio::io_service >();
+    auto io_ptr = std::make_shared< boost::asio::io_context >();
     boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_ptr);
     boost::fibers::fiber([io_ptr](){
         for ( int i = 0; i < 10; ++i) {
@@ -29,7 +29,7 @@ void foo() {
 }
 
 void bar() {
-    auto io_ptr = std::make_shared< boost::asio::io_service >();
+    auto io_ptr = std::make_shared< boost::asio::io_context >();
     boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_ptr);
     boost::fibers::fiber([io_ptr](){
         try {

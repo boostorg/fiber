@@ -153,11 +153,11 @@ void session( socket_ptr sock) {
 /*****************************************************************************
 *   listening server
 *****************************************************************************/
-void server( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acceptor & a) {
+void server( std::shared_ptr< boost::asio::io_context > const& io_ctx, tcp::acceptor & a) {
     print( tag(), ": echo-server started");
     try {
         for (;;) {
-            socket_ptr socket( new tcp::socket( * io_svc) );
+            socket_ptr socket( new tcp::socket( * io_ctx) );
             boost::system::error_code ec;
             a.async_accept(
                     * socket,
@@ -171,21 +171,21 @@ void server( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acce
     } catch ( std::exception const& ex) {
         print( tag(), ": caught exception : ", ex.what());
     }
-    io_svc->stop();
+    io_ctx->stop();
     print( tag(), ": echo-server stopped");
 }
 
 /*****************************************************************************
 *   fiber function per client
 *****************************************************************************/
-void client( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acceptor & a,
+void client( std::shared_ptr< boost::asio::io_context > const& io_ctx, tcp::acceptor & a,
              boost::fibers::barrier& barrier, unsigned iterations) {
     print( tag(), ": echo-client started");
     for (unsigned count = 0; count < iterations; ++count) {
-        tcp::resolver resolver( * io_svc);
+        tcp::resolver resolver( * io_ctx);
         tcp::resolver::query query( tcp::v4(), "127.0.0.1", "9999");
         tcp::resolver::iterator iterator = resolver.resolve( query);
-        tcp::socket s( * io_svc);
+        tcp::socket s( * io_ctx);
         boost::asio::connect( s, iterator);
         for (unsigned msg = 0; msg < 1; ++msg) {
             std::ostringstream msgbuf;
@@ -230,27 +230,27 @@ void client( std::shared_ptr< boost::asio::io_service > const& io_svc, tcp::acce
 int main( int argc, char* argv[]) {
     try {
 //[asio_rr_setup
-        std::shared_ptr< boost::asio::io_service > io_svc = std::make_shared< boost::asio::io_service >();
-        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_svc);
+        std::shared_ptr< boost::asio::io_context > io_ctx = std::make_shared< boost::asio::io_context >();
+        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_ctx);
 //]
         print( "Thread ", thread_names.lookup(), ": started");
 //[asio_rr_launch_fibers
         // server
-        tcp::acceptor a( * io_svc, tcp::endpoint( tcp::v4(), 9999) );
-        boost::fibers::fiber( server, io_svc, std::ref( a) ).detach();
+        tcp::acceptor a( * io_ctx, tcp::endpoint( tcp::v4(), 9999) );
+        boost::fibers::fiber( server, io_ctx, std::ref( a) ).detach();
         // client
         const unsigned iterations = 2;
         const unsigned clients = 3;
         boost::fibers::barrier b( clients);
         for ( unsigned i = 0; i < clients; ++i) {
             boost::fibers::fiber(
-                    client, io_svc, std::ref( a), std::ref( b), iterations).detach();
+                    client, io_ctx, std::ref( a), std::ref( b), iterations).detach();
         }
 //]
 //[asio_rr_run
-        io_svc->run();
+        io_ctx->run();
 //]
-        print( tag(), ": io_service returned");
+        print( tag(), ": io_context returned");
         print( "Thread ", thread_names.lookup(), ": stopping");
         std::cout << "done." << std::endl;
         return EXIT_SUCCESS;
