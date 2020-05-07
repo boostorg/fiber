@@ -131,8 +131,8 @@ public:
 // a subscriber subscribes to a given queue in order to receive messages published on this queue
 class subscriber_session : public std::enable_shared_from_this< subscriber_session > {
 public:
-    explicit subscriber_session( std::shared_ptr< boost::asio::io_service > const& io_service, registry & reg) :
-        socket_( * io_service),
+    explicit subscriber_session( std::shared_ptr< boost::asio::io_context > const& io_context, registry & reg) :
+        socket_( * io_context),
         reg_( reg) {
     }
 
@@ -234,8 +234,8 @@ subscriptions::publish( std::string const& msg) {
 // subscriber might register to this queue to get the published messages
 class publisher_session : public std::enable_shared_from_this< publisher_session > {
 public:
-    explicit publisher_session( std::shared_ptr< boost::asio::io_service > const& io_service, registry & reg) :
-        socket_( * io_service),
+    explicit publisher_session( std::shared_ptr< boost::asio::io_context > const& io_context, registry & reg) :
+        socket_( * io_context),
         reg_( reg) {
     }
 
@@ -300,18 +300,18 @@ private:
 typedef std::shared_ptr< publisher_session > publisher_session_ptr;
 
 // function accepts connections requests from clients acting as a publisher
-void accept_publisher( std::shared_ptr< boost::asio::io_service > const& io_service,
+void accept_publisher( std::shared_ptr< boost::asio::io_context > const& io_context,
                        unsigned short port,
                        registry & reg) {
     // create TCP-acceptor
-    tcp::acceptor acceptor( * io_service, tcp::endpoint( tcp::v4(), port) );
+    tcp::acceptor acceptor( * io_context, tcp::endpoint( tcp::v4(), port) );
     // loop for accepting connection requests
     for (;;) {
         boost::system::error_code ec;
         // create new publisher-session
         // this instance will be associated with one publisher
         publisher_session_ptr new_publisher_session = 
-            std::make_shared< publisher_session >( io_service, std::ref( reg) );
+            std::make_shared< publisher_session >( io_context, std::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (publisher)
@@ -328,18 +328,18 @@ void accept_publisher( std::shared_ptr< boost::asio::io_service > const& io_serv
 }
 
 // function accepts connections requests from clients acting as a subscriber
-void accept_subscriber( std::shared_ptr< boost::asio::io_service > const& io_service,
+void accept_subscriber( std::shared_ptr< boost::asio::io_context > const& io_context,
                         unsigned short port,
                         registry & reg) {
     // create TCP-acceptor
-    tcp::acceptor acceptor( * io_service, tcp::endpoint( tcp::v4(), port) );
+    tcp::acceptor acceptor( * io_context, tcp::endpoint( tcp::v4(), port) );
     // loop for accepting connection requests
     for (;;) {
         boost::system::error_code ec;
         // create new subscriber-session
         // this instance will be associated with one subscriber
         subscriber_session_ptr new_subscriber_session = 
-            std::make_shared< subscriber_session >( io_service, std::ref( reg) );
+            std::make_shared< subscriber_session >( io_context, std::ref( reg) );
         // async. accept of new connection request
         // this function will suspend this execution context (fiber) until a
         // connection was established, after returning from this function a new client (subscriber)
@@ -358,20 +358,20 @@ void accept_subscriber( std::shared_ptr< boost::asio::io_service > const& io_ser
 
 int main( int argc, char* argv[]) {
     try {
-        // create io_service for async. I/O
-        std::shared_ptr< boost::asio::io_service > io_service = std::make_shared< boost::asio::io_service >();
+        // create io_context for async. I/O
+        std::shared_ptr< boost::asio::io_context > io_context = std::make_shared< boost::asio::io_context >();
         // register asio scheduler
-        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_service);
+        boost::fibers::use_scheduling_algorithm< boost::fibers::asio::round_robin >( io_context);
         // registry for queues and its subscription
         registry reg;
         // create an acceptor for publishers, run it as fiber
         boost::fibers::fiber(
-            accept_publisher, std::ref( io_service), 9997, std::ref( reg) ).detach();
+            accept_publisher, std::ref( io_context), 9997, std::ref( reg) ).detach();
         // create an acceptor for subscribers, run it as fiber
         boost::fibers::fiber(
-            accept_subscriber, std::ref( io_service), 9998, std::ref( reg) ).detach();
+            accept_subscriber, std::ref( io_context), 9998, std::ref( reg) ).detach();
         // dispatch
-        io_service->run();
+        io_context->run();
         return EXIT_SUCCESS;
     } catch ( std::exception const& e) {
         std::cerr << "Exception: " << e.what() << "\n";
