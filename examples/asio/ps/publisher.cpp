@@ -26,11 +26,11 @@ int main( int argc, char* argv[]) {
             std::cerr << "Usage: publisher <host> <queue>\n";
             return EXIT_FAILURE;
         }
-        boost::asio::io_service io_service;
-        tcp::resolver resolver( io_service);
+        boost::asio::io_context io_context;
+        tcp::resolver resolver( io_context);
         tcp::resolver::query query( tcp::v4(), argv[1], "9997");
         tcp::resolver::iterator iterator = resolver.resolve(query);
-        tcp::socket s( io_service);
+        tcp::socket s( io_context);
         boost::asio::connect( s, iterator);
         char msg[max_length];
         std::string queue( argv[2]);

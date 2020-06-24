@@ -36,7 +36,7 @@ namespace asio {
 class round_robin : public algo::algorithm {
 private:
 //[asio_rr_suspend_timer
-    std::shared_ptr< boost::asio::io_service >      io_svc_;
+    std::shared_ptr< boost::asio::io_context >      io_ctx_;
     boost::asio::steady_timer                       suspend_timer_;
 //]
     boost::fibers::scheduler::ready_queue_type      rqueue_{};
@@ -46,14 +46,14 @@ private:
 
 public:
 //[asio_rr_service_top
-    struct service : public boost::asio::io_service::service {
-        static boost::asio::io_service::id                  id;
+    struct service : public boost::asio::io_context::service {
+        static boost::asio::io_context::id                  id;
 
-        std::unique_ptr< boost::asio::io_service::work >    work_;
+        std::unique_ptr< boost::asio::io_context::work >    work_;
 
-        service( boost::asio::io_service & io_svc) :
-            boost::asio::io_service::service( io_svc),
-            work_{ new boost::asio::io_service::work( io_svc) } {
+        service( boost::asio::io_context & io_ctx) :
+            boost::asio::io_context::service( io_ctx),
+            work_{ new boost::asio::io_context::work( io_ctx) } {
         }
 
         virtual ~service() {}
@@ -68,28 +68,28 @@ public:
 //]
 
 //[asio_rr_ctor
-    round_robin( std::shared_ptr< boost::asio::io_service > const& io_svc) :
-        io_svc_( io_svc),
-        suspend_timer_( * io_svc_) {
+    round_robin( std::shared_ptr< boost::asio::io_context > const& io_ctx_) :
+        io_ctx_( io_ctx),
+        suspend_timer_( * io_ctx_) {
         // We use add_service() very deliberately. This will throw
-        // service_already_exists if you pass the same io_service instance to
+        // service_already_exists if you pass the same io_context instance to
         // more than one round_robin instance.
-        boost::asio::add_service( * io_svc_, new service( * io_svc_) );
-        io_svc_->post([this]() mutable {
+        boost::asio::add_service( * io_ctx_, new service( * io_ctx_) );
+        boost::asio::post( * io_ctx_, [this]() mutable {
 //]
 //[asio_rr_service_lambda
-                while ( ! io_svc_->stopped() ) {
+                while ( ! io_ctx_->stopped() ) {
                     if ( has_ready_fibers() ) {
                         // run all pending handlers in round_robin
-                        while ( io_svc_->poll() );
+                        while ( io_ctx_->poll() );
                         // block this fiber till all pending (ready) fibers are processed
                         // == round_robin::suspend_until() has been called
                         std::unique_lock< boost::fibers::mutex > lk( mtx_);
                         cnd_.wait( lk);
                     } else {
-                        // run one handler inside io_service
+                        // run one handler inside io_context
                         // if no handler available, block this thread
-                        if ( ! io_svc_->run_one() ) {
+                        if ( ! io_ctx_->run_one() ) {
                             break;
                         }
                     }
@@ -183,7 +183,7 @@ public:
 //]
 };
 
-boost::asio::io_service::id round_robin::service::id;
+boost::asio::io_context::id round_robin::service::id;
 
 }}}
 

@@ -110,7 +110,7 @@ struct algorithm_with_properties : public algorithm_with_properties_base {
     }
 
     // override this to be notified by PROPS::notify()
-    virtual void property_change( context * ctx, PROPS & props) noexcept {
+    virtual void property_change( context * /* ctx */, PROPS & /* props */) noexcept {
     }
 
     // implementation for algorithm_with_properties_base method
