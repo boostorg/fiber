@@ -263,11 +263,20 @@ public:
     context & operator=( context const&) = delete;
     context & operator=( context &&) = delete;
 
+    #if !defined(BOOST_EMBTC)
+  
     friend bool
     operator==( context const& lhs, context const& rhs) noexcept {
         return & lhs == & rhs;
     }
 
+    #else
+  
+    friend bool
+    operator==( context const& lhs, context const& rhs) noexcept;
+
+    #endif
+      
     virtual ~context();
 
     scheduler * get_scheduler() const noexcept {
@@ -388,6 +397,8 @@ public:
 
     void attach( context *) noexcept;
 
+    #if !defined(BOOST_EMBTC)
+      
     friend void intrusive_ptr_add_ref( context * ctx) noexcept {
         BOOST_ASSERT( nullptr != ctx);
         ctx->use_count_.fetch_add( 1, std::memory_order_relaxed);
@@ -404,8 +415,42 @@ public:
             std::move( c).resume();
         }
     }
+    
+    #else
+      
+    friend void intrusive_ptr_add_ref( context * ctx) noexcept;
+    friend void intrusive_ptr_release( context * ctx) noexcept;
+    
+    #endif
+      
 };
 
+#if defined(BOOST_EMBTC)
+
+    inline bool
+    operator==( context const& lhs, context const& rhs) noexcept {
+        return & lhs == & rhs;
+    }
+
+    inline void intrusive_ptr_add_ref( context * ctx) noexcept {
+        BOOST_ASSERT( nullptr != ctx);
+        ctx->use_count_.fetch_add( 1, std::memory_order_relaxed);
+    }
+
+    inline void intrusive_ptr_release( context * ctx) noexcept {
+        BOOST_ASSERT( nullptr != ctx);
+        if ( 1 == ctx->use_count_.fetch_sub( 1, std::memory_order_release) ) {
+            std::atomic_thread_fence( std::memory_order_acquire);
+            boost::context::fiber c = std::move( ctx->c_);
+            // destruct context
+            ctx->~context();
+            // deallocated stack
+            std::move( c).resume();
+        }
+    }
+    
+#endif
+    
 inline
 bool operator<( context const& l, context const& r) noexcept {
     return l.get_id() < r.get_id();
