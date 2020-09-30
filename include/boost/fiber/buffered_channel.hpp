@@ -547,9 +547,12 @@ public:
         buffered_channel    *   chan_{ nullptr };
         storage_type            storage_;
 
-        void increment_() {
+        void increment_( bool initial = false) {
             BOOST_ASSERT( nullptr != chan_);
             try {
+                if ( ! initial) {
+                    reinterpret_cast< value_type * >( std::addressof( storage_) )->~value_type();
+                }
                 ::new ( static_cast< void * >( std::addressof( storage_) ) ) value_type{ chan_->value_pop() };
             } catch ( fiber_error const&) {
                 chan_ = nullptr;
@@ -569,7 +572,7 @@ public:
 
         explicit iterator( buffered_channel< T > * chan) noexcept :
             chan_{ chan } {
-            increment_();
+            increment_( true);
         }
 
         iterator( iterator const& other) noexcept :
