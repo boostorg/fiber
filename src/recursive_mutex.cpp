@@ -34,11 +34,8 @@ recursive_mutex::lock() {
             count_ = 1;
             return;
         }
-        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
-        active_ctx->wait_link( wait_queue_);
-        // suspend this fiber
-        active_ctx->suspend( lk);
-        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+
+        wait_queue_.suspend_and_wait( lk, active_ctx);
     }
 }
 
@@ -69,11 +66,7 @@ recursive_mutex::unlock() {
     }
     if ( 0 == --count_) {
         owner_ = nullptr;
-        if ( ! wait_queue_.empty() ) {
-            context * ctx = & wait_queue_.front();
-            wait_queue_.pop_front();
-            active_ctx->schedule( ctx);
-        }
+        wait_queue_.notify_one();
     }
 }
 

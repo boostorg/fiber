@@ -262,11 +262,33 @@ context::wait_until( std::chrono::steady_clock::time_point const& tp) noexcept {
 
 bool
 context::wait_until( std::chrono::steady_clock::time_point const& tp,
-                     detail::spinlock_lock & lk) noexcept {
+                     detail::spinlock_lock & lk,
+                     waker && w) noexcept {
     BOOST_ASSERT( nullptr != get_scheduler() );
     BOOST_ASSERT( this == active() );
-    return get_scheduler()->wait_until( this, tp, lk);
+    return get_scheduler()->wait_until( this, tp, lk, std::move(w));
 }
+
+
+bool context::wake(const size_t epoch) noexcept
+{
+    size_t expected = epoch;
+    bool is_last_waker = waker_epoch_.compare_exchange_strong(expected, epoch + 1, std::memory_order_acq_rel);
+    if ( ! is_last_waker) {
+        // waker_epoch_ has been incremented before, so consider this wake
+        // operation as outdated and do nothing
+        return false;
+    }
+
+    BOOST_ASSERT( context::active() != this);
+    if ( context::active()->get_scheduler() == get_scheduler()) {
+        get_scheduler()->schedule( this);
+    } else {
+        get_scheduler()->schedule_from_remote( this);
+    }
+    return true;
+}
+
 
 void
 context::schedule( context * ctx) noexcept {

@@ -130,9 +130,11 @@ public:
 
     bool wait_until( context *,
                      std::chrono::steady_clock::time_point const&) noexcept;
+
     bool wait_until( context *,
                      std::chrono::steady_clock::time_point const&,
-                     detail::spinlock_lock &) noexcept;
+                     detail::spinlock_lock &,
+                     waker &&) noexcept;
 
     void suspend() noexcept;
     void suspend( detail::spinlock_lock &) noexcept;

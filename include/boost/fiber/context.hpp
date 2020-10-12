@@ -44,6 +44,7 @@
 #include <boost/fiber/properties.hpp>
 #include <boost/fiber/segmented_stack.hpp>
 #include <boost/fiber/type.hpp>
+#include <boost/fiber/waker.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -178,12 +179,13 @@ private:
 public:
     detail::wait_hook                                   wait_hook_{};
 #if ! defined(BOOST_FIBERS_NO_ATOMICS)
-    std::atomic< std::intptr_t >                        twstatus{ 0 };
+    std::atomic<size_t>                                 waker_epoch_{ 0 };
 #endif
 private:
     scheduler                                       *   scheduler_{ nullptr };
     fss_data_t                                          fss_data_{};
     detail::sleep_hook                                  sleep_hook_{};
+    waker                                               sleep_waker_{};
     detail::ready_hook                                  ready_hook_{};
     detail::terminated_hook                             terminated_hook_{};
     detail::worker_hook                                 worker_hook_{};
@@ -305,7 +307,15 @@ public:
 
     bool wait_until( std::chrono::steady_clock::time_point const&) noexcept;
     bool wait_until( std::chrono::steady_clock::time_point const&,
-                     detail::spinlock_lock &) noexcept;
+                     detail::spinlock_lock &,
+                     waker &&) noexcept;
+
+    bool wake(const size_t) noexcept;
+
+    waker create_waker() noexcept {
+        // this operation makes all previously created wakers to be outdated
+        return { this, ++waker_epoch_ };
+    }
 
     void schedule( context *) noexcept;
 
