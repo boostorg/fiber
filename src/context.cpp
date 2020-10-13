@@ -118,18 +118,8 @@ context::~context() {
     BOOST_ASSERT( ! ready_is_linked() );
     BOOST_ASSERT( ! remote_ready_is_linked() );
     BOOST_ASSERT( ! sleep_is_linked() );
-    BOOST_ASSERT( ! wait_is_linked() );
     if ( is_context( type::dispatcher_context) ) {
-        // dispatcher-context is resumed by main-context
-        // while the scheduler is deconstructed
-#ifdef BOOST_DISABLE_ASSERTS
-        wait_queue_.pop_front();
-#else
-        context * ctx = & wait_queue_.front();
-        wait_queue_.pop_front();
-        BOOST_ASSERT( ctx->is_context( type::main_context) );
         BOOST_ASSERT( nullptr == active() );
-#endif
     }
     BOOST_ASSERT( wait_queue_.empty() );
     delete properties_;
@@ -202,9 +192,7 @@ context::join() {
         // push active context to wait-queue, member
         // of the context which has to be joined by
         // the active context
-        active_ctx->wait_link( wait_queue_);
-        // suspend active context
-        active_ctx->get_scheduler()->suspend( lk);
+        wait_queue_.suspend_and_wait( lk, active_ctx);
         // active context resumed
         BOOST_ASSERT( context::active() == active_ctx);
     }
@@ -236,13 +224,7 @@ context::terminate() noexcept {
     // mark as terminated
     terminated_ = true;
     // notify all waiting fibers
-    while ( ! wait_queue_.empty() ) {
-        context * ctx = & wait_queue_.front();
-        // remove fiber from wait-queue
-        wait_queue_.pop_front();
-        // notify scheduler
-        schedule( ctx);
-    }
+    wait_queue_.notify_all();
     BOOST_ASSERT( wait_queue_.empty() );
     // release fiber-specific-data
     for ( fss_data_t::value_type & data : fss_data_) {
@@ -376,11 +358,6 @@ context::terminated_is_linked() const noexcept {
     return terminated_hook_.is_linked();
 }
 
-bool
-context::wait_is_linked() const noexcept {
-    return wait_hook_.is_linked();
-}
-
 void
 context::worker_unlink() noexcept {
     BOOST_ASSERT( worker_is_linked() );
@@ -397,12 +374,6 @@ void
 context::sleep_unlink() noexcept {
     BOOST_ASSERT( sleep_is_linked() );
     sleep_hook_.unlink();
-}
-
-void
-context::wait_unlink() noexcept {
-    BOOST_ASSERT( wait_is_linked() );
-    wait_hook_.unlink();
 }
 
 void

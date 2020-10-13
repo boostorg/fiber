@@ -37,7 +37,6 @@ scheduler::release_terminated_() noexcept {
         BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
 #endif
         BOOST_ASSERT( ! ctx->sleep_is_linked() );
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
         BOOST_ASSERT( ctx->wait_queue_.empty() );
         BOOST_ASSERT( ctx->terminated_);
         // if last reference, e.g. fiber::join() or fiber::detach()
@@ -58,14 +57,8 @@ scheduler::remote_ready2ready_() noexcept {
     while ( ! tmp.empty() ) {
         context * ctx = & tmp.front();
         tmp.pop_front();
-        // ctx was signaled from remote (other thread)
-        // ctx might have been already resumed because of
-        // its wait-op. has been already timed out and
-        // thus it was already pushed to the ready-queue
-        if ( ! ctx->ready_is_linked() ) {
-            // store context in local queues
-            schedule( ctx);
-        }
+        // store context in local queues
+        schedule( ctx);
     }
 }
 #endif
@@ -112,8 +105,8 @@ scheduler::~scheduler() {
     // signal dispatcher-context termination
     shutdown_ = true;
     // resume pending fibers
-    // by joining dispatcher-context
-    dispatcher_ctx_->join();
+    // by resuming dispatcher-context
+    context::active()->suspend();
     // no context' in worker-queue
     BOOST_ASSERT( worker_queue_.empty() );
     BOOST_ASSERT( terminated_queue_.empty() );
@@ -209,7 +202,6 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
     BOOST_ASSERT( ! ctx->ready_is_linked() );
     BOOST_ASSERT( ! ctx->remote_ready_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     // protect for concurrent access
     detail::spinlock_lock lk{ remote_ready_splk_ };
     BOOST_ASSERT( ! shutdown_);
@@ -236,7 +228,6 @@ scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
 #endif
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     BOOST_ASSERT( ctx->wait_queue_.empty() );
     // store the terminated fiber in the terminated-queue
     // the dispatcher-context will call
@@ -260,7 +251,6 @@ scheduler::yield( context * ctx) noexcept {
 #endif
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     // resume another fiber
     algo_->pick_next()->resume( ctx);
 }
@@ -277,7 +267,6 @@ scheduler::wait_until( context * ctx,
 #endif
     BOOST_ASSERT( ! ctx->sleep_is_linked() );
     BOOST_ASSERT( ! ctx->terminated_is_linked() );
-    BOOST_ASSERT( ! ctx->wait_is_linked() );
     ctx->sleep_waker_ = ctx->create_waker();
     ctx->tp_ = sleep_tp;
     ctx->sleep_link( sleep_queue_);
