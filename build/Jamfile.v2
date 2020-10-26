@@ -57,6 +57,7 @@ lib boost_fiber
       condition_variable.cpp
       context.cpp
       fiber.cpp
+      waker.cpp
       future.cpp
       mutex.cpp
       properties.cpp
