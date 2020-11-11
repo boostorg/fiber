@@ -21,6 +21,10 @@ typedef intrusive::slist_member_hook<> waker_queue_hook;
 
 
 class BOOST_FIBERS_DECL waker {
+private:
+    context *ctx_{};
+    size_t epoch_{};
+
 public:
     friend class context;
 
@@ -32,10 +36,6 @@ public:
     {}
 
     bool wake() const noexcept;
-
-private:
-    context *ctx_{};
-    size_t epoch_{};
 };
 
 
@@ -79,6 +79,8 @@ public:
                                  std::chrono::steady_clock::time_point const&);
     void notify_one();
     void notify_all();
+
+    bool empty() const;
 };
 
 }}
