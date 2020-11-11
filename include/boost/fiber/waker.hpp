@@ -68,12 +68,11 @@ namespace detail {
         >                                               waker_slist_t;
 }
 
-class BOOST_FIBERS_DECL wait_queue : public detail::waker_slist_t
-{
-    using base = detail::waker_slist_t;
-public:
-    using base::base;
+class BOOST_FIBERS_DECL wait_queue {
+private:
+    detail::waker_slist_t   slist_{};
 
+public:
     void suspend_and_wait( detail::spinlock_lock &, context *);
     bool suspend_and_wait_until( detail::spinlock_lock &,
                                  context *,
@@ -82,7 +81,6 @@ public:
     void notify_all();
 };
 
-} // fibers
-} // boost
+}}
 
 #endif // BOOST_FIBERS_WAKER_H
