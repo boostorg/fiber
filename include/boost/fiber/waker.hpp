@@ -21,6 +21,10 @@ typedef intrusive::slist_member_hook<> waker_queue_hook;
 
 
 class BOOST_FIBERS_DECL waker {
+private:
+    context *ctx_{};
+    size_t epoch_{};
+
 public:
     friend class context;
 
@@ -32,10 +36,6 @@ public:
     {}
 
     bool wake() const noexcept;
-
-private:
-    context *ctx_{};
-    size_t epoch_{};
 };
 
 
@@ -68,21 +68,21 @@ namespace detail {
         >                                               waker_slist_t;
 }
 
-class BOOST_FIBERS_DECL wait_queue : public detail::waker_slist_t
-{
-    using base = detail::waker_slist_t;
-public:
-    using base::base;
+class BOOST_FIBERS_DECL wait_queue {
+private:
+    detail::waker_slist_t   slist_{};
 
+public:
     void suspend_and_wait( detail::spinlock_lock &, context *);
     bool suspend_and_wait_until( detail::spinlock_lock &,
                                  context *,
                                  std::chrono::steady_clock::time_point const&);
     void notify_one();
     void notify_all();
+
+    bool empty() const;
 };
 
-} // fibers
-} // boost
+}}
 
 #endif // BOOST_FIBERS_WAKER_H
