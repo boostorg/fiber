@@ -9,6 +9,7 @@
         "Concurrent",
         "System"
     ],
+    "cxxstd": "11",
     "maintainers": [
         "Oliver Kowalke <oliver.kowalke -at- gmail.com>"
     ]
