@@ -416,6 +416,30 @@ void test_issue_181() {
     f1.join();
 }
 
+void test_issue_268() {
+    boost::fibers::unbuffered_channel< int > chan;
+    std::vector< int > vec;
+    boost::fibers::fiber con( boost::fibers::launch::dispatch, [&]() {
+        int v;
+        while (chan.pop( v) == boost::fibers::channel_op_status::success) {
+            boost::this_fiber::yield();
+            vec.push_back( v);
+        }
+    });
+
+    boost::fibers::fiber p1( boost::fibers::launch::post, [&]() {
+        chan.push( 12);
+    });
+    chan.push( 22);
+    boost::this_fiber::sleep_for( std::chrono::milliseconds( 100) );
+    BOOST_CHECK_EQUAL( 2u, vec.size());
+    p1.join();
+    chan.close();
+    con.join();
+    BOOST_CHECK_EQUAL( 22, vec[0]);
+    BOOST_CHECK_EQUAL( 12, vec[1]);
+}
+
 boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     boost::unit_test::test_suite * test =
         BOOST_TEST_SUITE("Boost.Fiber: unbuffered_channel test suite");
@@ -446,6 +470,7 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
      test->add( BOOST_TEST_CASE( & test_moveable) );
      test->add( BOOST_TEST_CASE( & test_rangefor) );
      test->add( BOOST_TEST_CASE( & test_issue_181) );
+     test->add( BOOST_TEST_CASE( & test_issue_268) );
 
     return test;
 }
