@@ -252,7 +252,7 @@ This class implements __algo__; if the local ready-queue runs out of ready fiber
 from other schedulers.[br]
 The victim scheduler (from which a ready fiber is stolen) is selected at random.
 
-[note Worker-threads are stored in a static variable, dynamically adding/removing worker threads is not supported.]
+[note Worker-threads are stored in a static variable, dynamically adding/removing worker threads is not supported, neither having different worker thread realms at the same time.]
 
         #include <boost/fiber/algo/work_stealing.hpp>
 
@@ -313,7 +313,7 @@ fiber scheduler).]]
 [[Returns:] [the fiber at the head of the ready queue, or `nullptr` if the
 queue is empty.]]
 [[Throws:] [Nothing.]]
-[[Note:] [Placing ready fibers onto the tail of the sahred queue, and returning them
+[[Note:] [Placing ready fibers onto the tail of the shared queue, and returning them
 from the head of that queue, shares the thread between ready fibers in
 round-robin fashion.]]
 ]
@@ -362,7 +362,7 @@ This class implements __algo__, scheduling fibers in round-robin fashion.
 Ready fibers are shared between all instances (running on different threads)
 of shared_work, thus the work is distributed equally over all threads.
 
-[note Worker-threads are stored in a static variable, dynamically adding/removing worker threads is not supported.]
+[note Worker-threads are stored in a static variable, dynamically adding/removing worker threads is not supported, neither having different worker thread realms at the same time.]
 
         #include <boost/fiber/algo/shared_work.hpp>
 
