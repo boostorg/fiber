@@ -68,7 +68,7 @@ public:
 //]
 
 //[asio_rr_ctor
-    round_robin( std::shared_ptr< boost::asio::io_context > const& io_ctx_) :
+    round_robin( std::shared_ptr< boost::asio::io_context > const& io_ctx) :
         io_ctx_( io_ctx),
         suspend_timer_( * io_ctx_) {
         // We use add_service() very deliberately. This will throw
