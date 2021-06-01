@@ -57,6 +57,8 @@ target_link_libraries(boost_fiber
     Boost::smart_ptr
 )
 
+target_compile_features(boost_fiber PUBLIC cxx_std_11)
+
 target_compile_definitions(boost_fiber
   PUBLIC BOOST_FIBER_NO_LIB
   PRIVATE BOOST_FIBER_SOURCE BOOST_FIBERS_SOURCE
