@@ -328,7 +328,7 @@ public:
         using pointer_t = pointer;
         using reference_t = reference;
 
-        iterator() noexcept = default;
+        iterator() = default;
 
         explicit iterator( buffered_channel< T > * chan) noexcept :
             chan_{ chan } {
