@@ -34,7 +34,7 @@ wait_queue::suspend_and_wait_until( detail::spinlock_lock & lk,
         for(;;) {            
             if(lk.try_lock())
                 break;
-            context::active()->yield();            
+            active_ctx->yield();            
         }
         // remove from waiting-queue
         if ( w.is_linked()) {
