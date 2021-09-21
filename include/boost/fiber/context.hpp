@@ -452,22 +452,35 @@ private:
 public:
     template< typename StackAlloc >
     worker_context( launch policy,
+                    fiber_properties* properties,
                     boost::context::preallocated const& palloc, StackAlloc && salloc,
                     Fn && fn, Arg ... arg) :
             context{ 1, type::worker_context, policy },
             fn_( std::forward< Fn >( fn) ),
             arg_( std::forward< Arg >( arg) ... ) {
+        if ( properties != nullptr ) {
+            set_properties(properties);
+            properties->set_context(this);
+        }
         c_ = boost::context::fiber{ std::allocator_arg, palloc, std::forward< StackAlloc >( salloc),
                                     std::bind( & worker_context::run_, this, std::placeholders::_1) };
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
         c_ = std::move( c_).resume();
 #endif
     }
+
+    template< typename StackAlloc >
+    worker_context( launch policy,
+                    boost::context::preallocated const& palloc, StackAlloc && salloc,
+                    Fn && fn, Arg ... arg) :
+            worker_context( policy, palloc, salloc, nullptr, std::forward<Fn>( fn ), std::forward<Arg>( arg ) ... ){
+    }
 };
 
 
 template< typename StackAlloc, typename Fn, typename ... Arg >
-static intrusive_ptr< context > make_worker_context( launch policy,
+static intrusive_ptr< context > make_worker_context_with_properties( launch policy,
+                                                     fiber_properties* properties,
                                                      StackAlloc && salloc,
                                                      Fn && fn, Arg ... arg) {
     typedef worker_context< Fn, Arg ... >   context_t;
@@ -484,11 +497,21 @@ static intrusive_ptr< context > make_worker_context( launch policy,
     return intrusive_ptr< context >{ 
             new ( storage) context_t{
                 policy,
+                properties,
                 boost::context::preallocated{ storage, size, sctx },
                 std::forward< StackAlloc >( salloc),
                 std::forward< Fn >( fn),
                 std::forward< Arg >( arg) ... } };
 }
+
+template< typename StackAlloc, typename Fn, typename ... Arg >
+static intrusive_ptr< context > make_worker_context( launch policy,
+                                                     StackAlloc && salloc,
+                                                     Fn && fn, Arg ... arg){
+    return make_worker_context_with_properties( policy, nullptr, std::forward<StackAlloc>(salloc),
+                                                std::forward<Fn>( fn ), std::forward<Arg>( arg ) ... );
+}
+
 
 }}
 
