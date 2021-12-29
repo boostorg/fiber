@@ -128,8 +128,9 @@ explicit numa_sources ;
 lib boost_fiber_numa
     : numa_sources
       numa/algo/work_stealing.cpp
-    : 
+    :
     <conditional>@numa
+    <library>boost_fiber
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
