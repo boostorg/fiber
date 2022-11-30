@@ -30,9 +30,11 @@ public:
 class dispatcher_context final : public context {
 private:
     boost::context::fiber
-    run_( boost::context::fiber && c) {
 #if (defined(BOOST_USE_UCONTEXT)||defined(BOOST_USE_WINFIB))
+    run_( boost::context::fiber && c) {
         std::move( c).resume();
+#else
+    run_( boost::context::fiber &&) {
 #endif
 		// execute scheduler::dispatch()
 		return get_scheduler()->dispatch();
