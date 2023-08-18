@@ -8,7 +8,7 @@
 [section:buffered_channel Buffered Channel]
 
 __boost_fiber__ provides a bounded, buffered channel (MPMC queue) suitable to
-synchonize fibers (running on same or different threads) via asynchronouss
+synchronize fibers (running on the same or different threads) via asynchronous
 message passing.
 
     typedef boost::fibers::buffered_channel< int > channel_t;
