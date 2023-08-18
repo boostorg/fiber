@@ -31,7 +31,11 @@ wait_queue::suspend_and_wait_until( detail::spinlock_lock & lk,
     // suspend this fiber
     if ( ! active_ctx->wait_until( timeout_time, lk, waker(w)) ) {
         // relock local lk
-        lk.lock();
+        for(;;) {            
+            if(lk.try_lock())
+                break;
+            active_ctx->yield();            
+        }
         // remove from waiting-queue
         if ( w.is_linked()) {
             slist_.remove( w);
