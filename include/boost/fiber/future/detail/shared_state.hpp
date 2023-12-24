@@ -157,7 +157,7 @@ public:
 template< typename R >
 class shared_state : public shared_state_base {
 private:
-    typename std::aligned_storage< sizeof( R), alignof( R) >::type  storage_{};
+    alignas(alignof( R)) unsigned char storage_[sizeof( R)]{};
 
     void set_value_( R const& value, std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
