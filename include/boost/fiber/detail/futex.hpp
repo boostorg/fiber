@@ -21,6 +21,10 @@ extern "C" {
 #include <linux/futex.h>
 #include <sys/syscall.h>
 }
+#elif BOOST_OS_BSD_OPEN
+extern "C" {
+#include <sys/futex.h>
+}
 #elif BOOST_OS_WINDOWS
 #include <windows.h>
 #endif
@@ -29,10 +33,21 @@ namespace boost {
 namespace fibers {
 namespace detail {
 
-#if BOOST_OS_LINUX
+#if BOOST_OS_LINUX || BOOST_OS_BSD_OPEN
 BOOST_FORCEINLINE
 int sys_futex( void * addr, std::int32_t op, std::int32_t x) {
+#if BOOST_OS_BSD_OPEN
+    return ::futex
+    (
+       static_cast< volatile uint32_t* >(addr),
+       static_cast< int >(op),
+       x,
+       nullptr,
+       nullptr
+    );
+#else
     return ::syscall( SYS_futex, addr, op, x, nullptr, nullptr, 0);
+#endif
 }
 
 BOOST_FORCEINLINE
