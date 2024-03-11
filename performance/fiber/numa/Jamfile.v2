@@ -13,7 +13,7 @@ import modules ;
 import os ;
 import toolset ;
 
-project boost/fiber/performance/fiber/numa
+project
     : requirements
       <library>/boost/fiber//boost_fiber
       <target-os>solaris:<linkflags>"-llgrp"

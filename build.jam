@@ -1,0 +1,31 @@
+# Copyright René Ferdinand Rivera Morell 2023
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+import project ;
+
+project /boost/fiber
+    : common-requirements
+        <source>/boost/algorithm//boost_algorithm
+        <source>/boost/assert//boost_assert
+        <source>/boost/config//boost_config
+        <source>/boost/context//boost_context
+        <source>/boost/core//boost_core
+        <source>/boost/filesystem//boost_filesystem
+        <source>/boost/format//boost_format
+        <source>/boost/intrusive//boost_intrusive
+        <source>/boost/predef//boost_predef
+        <source>/boost/smart_ptr//boost_smart_ptr
+        <include>include
+    ;
+
+explicit
+    [ alias boost_fiber : build//boost_fiber ]
+    [ alias boost_fiber_numa : build//boost_fiber_numa ]
+    [ alias all : boost_fiber examples examples/numa performance/fiber performance/fiber/numa test ]
+    ;
+
+call-if : boost-library fiber
+    : install boost_fiber boost_fiber_numa
+    ;
