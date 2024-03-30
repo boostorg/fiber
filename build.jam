@@ -7,16 +7,16 @@ import project ;
 
 project /boost/fiber
     : common-requirements
-        <source>/boost/algorithm//boost_algorithm
-        <source>/boost/assert//boost_assert
-        <source>/boost/config//boost_config
-        <source>/boost/context//boost_context
-        <source>/boost/core//boost_core
-        <source>/boost/filesystem//boost_filesystem
-        <source>/boost/format//boost_format
-        <source>/boost/intrusive//boost_intrusive
-        <source>/boost/predef//boost_predef
-        <source>/boost/smart_ptr//boost_smart_ptr
+        <library>/boost/algorithm//boost_algorithm
+        <library>/boost/assert//boost_assert
+        <library>/boost/config//boost_config
+        <library>/boost/context//boost_context
+        <library>/boost/core//boost_core
+        <library>/boost/filesystem//boost_filesystem
+        <library>/boost/format//boost_format
+        <library>/boost/intrusive//boost_intrusive
+        <library>/boost/predef//boost_predef
+        <library>/boost/smart_ptr//boost_smart_ptr
         <include>include
     ;
 
