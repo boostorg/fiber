@@ -31,6 +31,7 @@ project
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
       <optimization>speed:<define>BOOST_DISABLE_ASSERTS
       <variant>release:<define>BOOST_DISABLE_ASSERTS
+      <define>BOOST_FIBERS_NO_LIB=1
     : source-location ../src
     ;
 
