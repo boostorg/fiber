@@ -9,6 +9,7 @@ import feature ;
 import modules ;
 import testing ;
 import toolset ;
+import-search /boost/config/checks ;
 import config : requires ;
 
 feature.feature numa : on : optional propagated composite ;

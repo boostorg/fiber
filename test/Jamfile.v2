@@ -13,9 +13,10 @@ import os ;
 import path ;
 import testing ;
 import toolset ;
+import-search /boost/config/checks ;
 import config : requires ;
 
-project 
+project
     : requirements
       <library>/boost/test//boost_unit_test_framework
       <library>/boost/context//boost_context
