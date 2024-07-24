@@ -5,18 +5,20 @@
 
 require-b2 5.2 ;
 
+constant boost_dependencies :
+    /boost/algorithm//boost_algorithm
+    /boost/assert//boost_assert
+    /boost/config//boost_config
+    /boost/context//boost_context
+    /boost/core//boost_core
+    /boost/filesystem//boost_filesystem
+    /boost/format//boost_format
+    /boost/intrusive//boost_intrusive
+    /boost/predef//boost_predef
+    /boost/smart_ptr//boost_smart_ptr ;
+
 project /boost/fiber
     : common-requirements
-        <library>/boost/algorithm//boost_algorithm
-        <library>/boost/assert//boost_assert
-        <library>/boost/config//boost_config
-        <library>/boost/context//boost_context
-        <library>/boost/core//boost_core
-        <library>/boost/filesystem//boost_filesystem
-        <library>/boost/format//boost_format
-        <library>/boost/intrusive//boost_intrusive
-        <library>/boost/predef//boost_predef
-        <library>/boost/smart_ptr//boost_smart_ptr
         <include>include
     ;
 
@@ -29,3 +31,4 @@ explicit
 call-if : boost-library fiber
     : install boost_fiber boost_fiber_numa
     ;
+

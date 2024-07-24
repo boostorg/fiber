@@ -16,6 +16,7 @@ feature.feature numa : on : optional propagated composite ;
 feature.compose <numa>on : <define>BOOST_USE_NUMA ;
 
 project
+    : common-requirements <library>$(boost_dependencies)
     : requirements
       <library>/boost/context//boost_context
       <library>/boost/filesystem//boost_filesystem
