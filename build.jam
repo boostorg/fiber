@@ -6,13 +6,10 @@
 require-b2 5.2 ;
 
 constant boost_dependencies :
-    /boost/algorithm//boost_algorithm
     /boost/assert//boost_assert
     /boost/config//boost_config
     /boost/context//boost_context
     /boost/core//boost_core
-    /boost/filesystem//boost_filesystem
-    /boost/format//boost_format
     /boost/intrusive//boost_intrusive
     /boost/predef//boost_predef
     /boost/smart_ptr//boost_smart_ptr ;

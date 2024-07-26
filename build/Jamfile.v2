@@ -11,13 +11,22 @@ import testing ;
 import toolset ;
 import-search /boost/config/checks ;
 import config : requires ;
+import-search /boost/context ;
+import boost-context-features ;
 
 feature.feature numa : on : optional propagated composite ;
 feature.compose <numa>on : <define>BOOST_USE_NUMA ;
 
+constant boost_dependencies_private :
+    /boost/algorithm//boost_algorithm
+    /boost/filesystem//boost_filesystem
+    /boost/format//boost_format
+    ;
+
 project
     : common-requirements <library>$(boost_dependencies)
     : requirements
+      <library>$(boost_dependencies_private)
       <library>/boost/context//boost_context
       <library>/boost/filesystem//boost_filesystem
       <target-os>solaris:<linkflags>"-llgrp"
