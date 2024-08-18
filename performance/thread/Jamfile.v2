@@ -13,7 +13,7 @@ import modules ;
 import os ;
 import toolset ;
 
-project boost/fiber/performance/thread
+project
     : requirements
       <link>static
       <threading>multi

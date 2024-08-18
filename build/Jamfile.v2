@@ -9,13 +9,24 @@ import feature ;
 import modules ;
 import testing ;
 import toolset ;
-import ../../config/checks/config : requires ;
+import-search /boost/config/checks ;
+import config : requires ;
+import-search /boost/context ;
+import boost-context-features ;
 
 feature.feature numa : on : optional propagated composite ;
 feature.compose <numa>on : <define>BOOST_USE_NUMA ;
 
-project boost/fiber
+constant boost_dependencies_private :
+    /boost/algorithm//boost_algorithm
+    /boost/filesystem//boost_filesystem
+    /boost/format//boost_format
+    ;
+
+project
+    : common-requirements <library>$(boost_dependencies)
     : requirements
+      <library>$(boost_dependencies_private)
       <library>/boost/context//boost_context
       <library>/boost/filesystem//boost_filesystem
       <target-os>solaris:<linkflags>"-llgrp"
@@ -31,6 +42,7 @@ project boost/fiber
       <link>shared:<define>BOOST_FIBERS_DYN_LINK=1
       <optimization>speed:<define>BOOST_DISABLE_ASSERTS
       <variant>release:<define>BOOST_DISABLE_ASSERTS
+      <define>BOOST_FIBERS_NO_LIB=1
     : source-location ../src
     ;
 
@@ -65,7 +77,7 @@ lib boost_fiber
       recursive_timed_mutex.cpp
       timed_mutex.cpp
       scheduler.cpp
-    : <link>shared:<library>../../context/build//boost_context
+    : <link>shared:<library>/boost/context//boost_context
     [ requires cxx11_auto_declarations
                cxx11_constexpr
                cxx11_defaulted_functions
@@ -145,6 +157,3 @@ lib boost_fiber_numa
                cxx11_thread_local
                cxx11_variadic_templates ]
     ;
-
-
-boost-install boost_fiber boost_fiber_numa ;

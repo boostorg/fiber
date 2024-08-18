@@ -13,7 +13,7 @@ import modules ;
 import os ;
 import toolset ;
 
-project boost/fiber/performance/fiber
+project
     : requirements
       <library>/boost/fiber//boost_fiber
       <library>/boost/fiber//boost_fiber_numa
