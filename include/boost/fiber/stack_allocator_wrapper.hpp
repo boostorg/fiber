@@ -82,7 +82,7 @@ private:
 };
 
 template <typename StackAllocator, typename ... Args>
-BOOST_FIBERS_DECL stack_allocator_wrapper make_stack_allocator_wrapper(Args && ... args)
+stack_allocator_wrapper make_stack_allocator_wrapper(Args && ... args)
 {
     return stack_allocator_wrapper(
             std::unique_ptr<detail::polymorphic_stack_allocator_base>(
