@@ -174,6 +174,7 @@ private:
 public:
     class id {
     private:
+        friend std::hash<id>;
         context  *   impl_{ nullptr };
 
     public:
@@ -519,6 +520,17 @@ static intrusive_ptr< context > make_worker_context( launch policy,
 
 
 }}
+
+// std::hash specialization
+namespace std {
+
+template <>
+struct hash< ::boost::fibers::context::id > {
+    std::size_t
+    operator() ( ::boost::fibers::context::id const& id ) const noexcept;
+};
+
+}
 
 #ifdef _MSC_VER
 # pragma warning(pop)
