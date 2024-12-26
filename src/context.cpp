@@ -434,6 +434,16 @@ context::attach( context * ctx) noexcept {
 
 }}
 
+namespace std {
+
+std::size_t
+hash< ::boost::fibers::context::id >::operator() ( ::boost::fibers::context::id const& id ) const noexcept {
+    return reinterpret_cast<std::size_t>(id.impl_);
+}
+
+}
+
+
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX
 #endif
