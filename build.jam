@@ -5,6 +5,11 @@
 
 require-b2 5.2 ;
 
+import-search /boost/predef/tools/check ;
+
+import predef ;
+import boost-fiber-features ;
+
 constant boost_dependencies :
     /boost/assert//boost_assert
     /boost/config//boost_config

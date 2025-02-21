@@ -14,9 +14,6 @@ import config : requires ;
 import-search /boost/context ;
 import boost-context-features ;
 
-feature.feature numa : on : optional propagated composite ;
-feature.compose <numa>on : <define>BOOST_USE_NUMA ;
-
 constant boost_dependencies_private :
     /boost/algorithm//boost_algorithm
     /boost/filesystem//boost_filesystem
