@@ -294,9 +294,10 @@ as stack space which suppresses the errors.
 
 Sanitizers (GCC/Clang) are confused by the stack switches.
 The library (and Boost.Context too) is required to be compiled with property (b2 command-line)
-`context-impl=ucontext` and compilers santizer options.
-Users must define `BOOST_USE_ASAN` before including any Boost.Context headers
-when linking against Boost binaries.
+`context-impl=ucontext` and [@https://www.boost.org/doc/contributor-guide/testing/sanitizers.html relevant b2 sanitizer options].
+
+To use AddressSanitizer, you need to add `define=BOOST_USE_ASAN` to `b2` flags to compile Boost libraries, 
+and also define `BOOST_USE_ASAN` before including any Boost.Context headers in your code.
 
 [endsect]
 
