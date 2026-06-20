@@ -8,7 +8,7 @@
 #define BOOST_FIBERS_DETAIL_FUTEX_H
 
 #include <boost/config.hpp>
-#include <boost/predef.h> 
+#include <boost/predef.h>
 
 #include <boost/fiber/detail/config.hpp>
 
@@ -27,6 +27,8 @@ extern "C" {
 }
 #elif BOOST_OS_WINDOWS
 #include <windows.h>
+#elif (BOOST_OS_MACOS && BOOST_OS_SYNC_WAIT_ON_ADDRESS_AVAILABLE)
+#include <os/os_sync_wait_on_address.h>
 #endif
 
 namespace boost {
@@ -70,6 +72,17 @@ BOOST_FORCEINLINE
 int futex_wait( std::atomic< std::int32_t > * addr, std::int32_t x) {
     ::WaitOnAddress( static_cast< volatile void * >( addr), & x, sizeof( x), INFINITE);
     return 0;
+}
+#elif (BOOST_OS_MACOS && BOOST_OS_SYNC_WAIT_ON_ADDRESS_AVAILABLE)
+BOOST_FORCEINLINE
+int futex_wake( std::atomic< std::int32_t > * addr) {
+    return 0 <= os_sync_wake_by_address_any(addr, 4, OS_SYNC_WAKE_BY_ADDRESS_NONE) ? 0 : -1;
+}
+
+BOOST_FORCEINLINE
+int futex_wait( std::atomic< std::int32_t > * addr, std::int32_t x) {
+    return 0 <= os_sync_wait_on_address(static_cast< void * >( addr), x, sizeof(x),
+                                  OS_SYNC_WAIT_ON_ADDRESS_NONE) ? 0 : -1;
 }
 #else
 # warn "no futex support on this platform"
