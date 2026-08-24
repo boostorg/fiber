@@ -7,21 +7,18 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 #include <random>
 #include <tuple>
 
 #include <hip/hip_runtime.h>
 
 #include <boost/assert.hpp>
-#include <boost/bind.hpp>
-#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/hip/waitfor.hpp>
+#include "boost/fiber/hip/waitfor.hpp"
 
 __global__
-void vector_add(hipLaunchParm lp, int * a, int * b, int * c, int size) {
+void vector_add( int * a, int * b, int * c, int size) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if ( idx < size) {
         c[idx] = a[idx] + b[idx];
@@ -62,8 +59,8 @@ int main() {
                         hipMemcpyAsync( dev_a1, host_a + i + size, size * sizeof( int), hipMemcpyHostToDevice, stream1);
                         hipMemcpyAsync( dev_b0, host_b + i, size * sizeof( int), hipMemcpyHostToDevice, stream0);
                         hipMemcpyAsync( dev_b1, host_b + i + size, size * sizeof( int), hipMemcpyHostToDevice, stream1);
-                        hipLaunchKernel( vector_add, dim3(size / 256), dim3(256), 0, stream0, dev_a0, dev_b0, dev_c0, size);
-                        hipLaunchKernel( vector_add, dim3(size / 256), dim3(256), 0, stream1, dev_a1, dev_b1, dev_c1, size);
+                        hipLaunchKernelGGL( vector_add, dim3(size / 256), dim3(256), 0, stream0, dev_a0, dev_b0, dev_c0, size);
+                        hipLaunchKernelGGL( vector_add, dim3(size / 256), dim3(256), 0, stream1, dev_a1, dev_b1, dev_c1, size);
                         hipMemcpyAsync( host_c + i, dev_c0, size * sizeof( int), hipMemcpyDeviceToHost, stream0);
                         hipMemcpyAsync( host_c + i + size, dev_c1, size * sizeof( int), hipMemcpyDeviceToHost, stream1);
                     }

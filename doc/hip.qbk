@@ -8,8 +8,8 @@
 [#hip]
 [section:hip ROCm/HIP]
 
-[@http://github.com/ROCm-Developer-Tools/HIP/tree/roc-1.6.0/ HIP] is part of the
-[@http://rocm.github.io/ ROC (Radeon Open Compute)] platform for parallel computing
+[@https://github.com/ROCm-Developer-Tools/HIP/tree/roc-1.6.0/ HIP] is part of the
+[@https://www.amd.com/en/products/software/rocm.html ROCm] platform for parallel computing
 on AMD and NVIDIA GPUs. The application programming interface of HIP gives access to
 GPU's instruction set and computation resources (Execution of compute kernels).
 
@@ -57,7 +57,7 @@ streams has finished.
             for ( int i = 0; i < full_size; i += size) {
                 hipMemcpyAsync( dev_a, host_a + i, size * sizeof( int), hipMemcpyHostToDevice, stream);
                 hipMemcpyAsync( dev_b, host_b + i, size * sizeof( int), hipMemcpyHostToDevice, stream);
-                hipLaunchKernel(kernel, dim3(size / 256), dim3(256), 0, stream, size, dev_a, dev_b, dev_c);
+                hipLaunchKernelGGL( kernel, dim3(size / 256), dim3(256), 0, stream, size, dev_a, dev_b, dev_c);
                 hipMemcpyAsync( host_c + i, dev_c, size * sizeof( int), hipMemcpyDeviceToHost, stream);
             }
             auto result = boost::fibers::hip::waitfor_all( stream); // suspend fiber till HIP stream has finished
@@ -103,8 +103,8 @@ streams has finished.
     }}}
 
 [variablelist
-[[Effects:] [Suspends active fiber till HIP stream has finished its operations.]]
-[[Returns:] [tuple of stream reference and the HIP stream status]]
+[[Effects:] [Suspends active fiber till HIP stream or streams have finished their operations.]]
+[[Returns:] [For a single stream, returns a tuple containing the stream and its status. For multiple streams, returns a vector of tuples containing each stream and its status.]]
 ]
 
 

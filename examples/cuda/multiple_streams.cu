@@ -8,15 +8,12 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 #include <random>
 #include <tuple>
 
 #include <cuda_runtime_api.h>
 
 #include <boost/assert.hpp>
-#include <boost/bind.hpp>
-#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
 #include <boost/fiber/cuda/waitfor.hpp>

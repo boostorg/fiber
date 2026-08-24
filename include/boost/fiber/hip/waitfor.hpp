@@ -4,18 +4,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_FIBERS_CUDA_WAITFOR_H
-#define BOOST_FIBERS_CUDA_WAITFOR_H
+#ifndef BOOST_FIBERS_HIP_WAITFOR_H
+#define BOOST_FIBERS_HIP_WAITFOR_H
 
 #include <initializer_list>
 #include <mutex>
-#include <iostream>
 #include <set>
 #include <tuple>
 #include <vector>
-
-#include <boost/assert.hpp>
-#include <boost/config.hpp>
 
 #include <hip/hip_runtime.h>
 
@@ -30,7 +26,7 @@
 
 namespace boost {
 namespace fibers {
-namespace cuda {
+namespace hip {
 namespace detail {
 
 template< typename Rendezvous >
@@ -136,4 +132,4 @@ std::vector< std::tuple< hipStream_t, hipError_t > > waitfor_all( hipStream_t st
 #  include BOOST_ABI_SUFFIX
 #endif
 
-#endif // BOOST_FIBERS_CUDA_WAITFOR_H
+#endif // BOOST_FIBERS_HIP_WAITFOR_H
