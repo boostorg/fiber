@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <boost/atomic.hpp>
-#include <boost/bind.hpp>
 #include <boost/chrono.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/function.hpp>
