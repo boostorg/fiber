@@ -251,6 +251,8 @@ be entered when the fiber scheduler has a chance to resume it later.]]
         template< typename SchedAlgo, typename ... Args >
         void use_scheduling_algorithm( Args && ...) noexcept;
 
+        bool initialize_thread(algo::algorithm::ptr_t, stack_allocator_wrapper&&) noexcept;
+
         bool has_ready_fibers() noexcept;
 
         }}
@@ -453,6 +455,21 @@ algorithm, make that thread call `use_scheduling_algorithm()` before any other
 __boost_fiber__ entry point. If no scheduler has been set for the current
 thread by the time __boost_fiber__ needs to use it, the library will
 create a default [class_link round_robin] instance for this thread.]]
+[[Throws:] [Nothing]]
+[[See also:] [[link scheduling Scheduling], [link custom Customization]]]
+]
+
+[function_heading initialize_thread]
+
+    bool initialize_thread(algo::algorithm::ptr_t algo, stack_allocator_wrapper&& salloc) noexcept
+
+[variablelist
+[[Effects:] [Directs __boost_fiber__ to use the scheduling algorithm given by `algo` for all fibers in
+the current thread. Initialize the main fiber of the current to use stack allocator given by
+`salloc` unless it was already initialized.]]
+[[Note:] [`initialize_thread` provides the same functionality as `use_scheduling_algorithm`,
+while additionally allowing the stack allocator to be specified and the scheduling algorithm object to be supplied directly.]]
+[[Returns:] [`true` if the current thread was initialized by this call, `false` if it had already been initialized.]]
 [[Throws:] [Nothing]]
 [[See also:] [[link scheduling Scheduling], [link custom Customization]]]
 ]
