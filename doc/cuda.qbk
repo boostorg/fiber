@@ -99,11 +99,15 @@ streams has finished.
     std::tuple< cudaStream_t, cudaError_t > waitfor_all( cudaStream_t st);
     std::vector< std::tuple< cudaStream_t, cudaError_t > > waitfor_all( cudaStream_t ... st);
 
+    std::tuple< cudaStream_t, cudaError_t > waitfor_all( unsigned int sync_mode, cudaStream_t st);
+    std::vector< std::tuple< cudaStream_t, cudaError_t > > waitfor_all( unsigned_int sync_mode, cudaStream_t ... st);
+
     }}}
 
 [variablelist
 [[Effects:] [Suspends active fiber till CUDA stream has finished its operations.]]
 [[Returns:] [tuple of stream reference and the CUDA stream status]]
+[[Note:] [`sync_mode` is ignored when using CUDA versions earlier than 13.2. With CUDA 13.2 and later, sync_mode specifies the configuration of the CUDA-managed CPU thread executing the host function callback. The value should be interpreted according to the CUDA Runtime API documentation for `cudaLaunchHostFunc_v2` and `cudaHostTaskSyncMode`.]]
 ]
 
 

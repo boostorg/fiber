@@ -33,32 +33,61 @@ namespace fibers {
 namespace cuda {
 namespace detail {
 
+// hipLaunchHostFunc is a newer alternative to hipStreamAddCallback and has
+// been available since HIP 5.2.0. Unlike the stream callback, the host
+// function callback receives neither the originating stream nor a status
+// code, so the two code paths need slightly different plumbing.
+#if HIP_VERSION >= 50200000
+#   define BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC 1
+#endif
+
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+template< typename Rendezvous >
+static void trampoline( void * vp) {
+    Rendezvous * data = static_cast< Rendezvous * >( vp);
+    data->notify();
+}
+#else
 template< typename Rendezvous >
 static void trampoline( hipStream_t st, hipError_t status, void * vp) {
     Rendezvous * data = static_cast< Rendezvous * >( vp);
     data->notify( st, status);
 }
+#endif
 
 class single_stream_rendezvous {
 public:
-    single_stream_rendezvous( hipStream_t st) {
+    single_stream_rendezvous( hipStream_t st) :
+        st_{ st } {
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+        hipError_t status = ::hipLaunchHostFunc( st_, trampoline< single_stream_rendezvous >, this);
+#else
         unsigned int flags = 0;
-        hipError_t status = ::hipStreamAddCallback( st, trampoline< single_stream_rendezvous >, this, flags);
+        hipError_t status = ::hipStreamAddCallback( st_, trampoline< single_stream_rendezvous >, this, flags);
+#endif
         if ( hipSuccess != status) {
-            st_ = st;
             status_ = status;
             done_ = true;
         }
     }
 
-    void notify( hipStream_t st, hipError_t status) noexcept {
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+    void notify() noexcept {
         std::unique_lock< mutex > lk{ mtx_ };
-        st_ = st;
+        status_ = hipSuccess;
+        done_ = true;
+        lk.unlock();
+        cv_.notify_one();
+    }
+#else
+    void notify( hipStream_t, hipError_t status) noexcept {
+        std::unique_lock< mutex > lk{ mtx_ };
         status_ = status;
         done_ = true;
         lk.unlock();
         cv_.notify_one();
     }
+#endif
 
     std::tuple< hipStream_t, hipError_t > wait() {
         std::unique_lock< mutex > lk{ mtx_ };
@@ -69,8 +98,8 @@ public:
 private:
     mutex               mtx_{};
     condition_variable  cv_{};
-    hipStream_t        st_{};
-    hipError_t         status_{ hipErrorUnknown };
+    hipStream_t         st_{};
+    hipError_t          status_{ hipErrorUnknown };
     bool                done_{ false };
 };
 
@@ -79,9 +108,17 @@ public:
     many_streams_rendezvous( std::initializer_list< hipStream_t > l) :
             stx_{ l } {
         results_.reserve( stx_.size() );
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+        hostfunc_ctx_.reserve( stx_.size() );
+#endif
         for ( hipStream_t st : stx_) {
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+            hostfunc_ctx_.push_back( hostfunc_context{ this, st } );
+            hipError_t status = ::hipLaunchHostFunc( st, trampoline< hostfunc_context >, & hostfunc_ctx_.back() );
+#else
             unsigned int flags = 0;
             hipError_t status = ::hipStreamAddCallback( st, trampoline< many_streams_rendezvous >, this, flags);
+#endif
             if ( hipSuccess != status) {
                 std::unique_lock< mutex > lk{ mtx_ };
                 stx_.erase( st);
@@ -107,10 +144,23 @@ public:
     }
 
 private:
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+    struct hostfunc_context {
+        many_streams_rendezvous *  rendezvous;
+        hipStream_t                st;
+
+        void notify() noexcept {
+            rendezvous->notify( st, hipSuccess);
+        }
+    };
+#endif
     mutex                                                   mtx_{};
     condition_variable                                      cv_{};
-    std::set< hipStream_t >                                stx_;
-    std::vector< std::tuple< hipStream_t, hipError_t > >  results_;
+    std::set< hipStream_t >                                 stx_;
+    std::vector< std::tuple< hipStream_t, hipError_t > >    results_;
+#ifdef BOOST_FIBER_HIP_USE_LAUNCHHOSTFUNC
+    std::vector< hostfunc_context >                         hostfunc_ctx_;
+#endif
 };
 
 }
