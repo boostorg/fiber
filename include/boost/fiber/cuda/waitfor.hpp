@@ -29,32 +29,61 @@ namespace fibers {
 namespace cuda {
 namespace detail {
 
+// cudaStreamAddCallback is pending deprecation as of CUDA 10.0; the
+// replacement is cudaLaunchHostFunc. Unlike the stream callback, the host
+// function callback receives neither the originating stream nor a status
+// code, so the two code paths need slightly different plumbing.
+#if CUDART_VERSION >= 10000
+#   define BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC 1
+#endif
+
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
 template< typename Rendezvous >
-static void trampoline( cudaStream_t st, cudaError_t status, void * vp) {
+static void CUDART_CB trampoline( void * vp) {
+    Rendezvous * data = static_cast< Rendezvous * >( vp);
+    data->notify();
+}
+#else
+template< typename Rendezvous >
+static void CUDART_CB trampoline( cudaStream_t st, cudaError_t status, void * vp) {
     Rendezvous * data = static_cast< Rendezvous * >( vp);
     data->notify( st, status);
 }
+#endif
 
 class single_stream_rendezvous {
 public:
-    single_stream_rendezvous( cudaStream_t st) {
+    single_stream_rendezvous( cudaStream_t st) :
+        st_{ st } {
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
+        cudaError_t status = ::cudaLaunchHostFunc( st_, trampoline< single_stream_rendezvous >, this);
+#else
         unsigned int flags = 0;
-        cudaError_t status = ::cudaStreamAddCallback( st, trampoline< single_stream_rendezvous >, this, flags);
+        cudaError_t status = ::cudaStreamAddCallback( st_, trampoline< single_stream_rendezvous >, this, flags);
+#endif
         if ( cudaSuccess != status) {
-            st_ = st;
             status_ = status;
             done_ = true;
         }
     }
 
-    void notify( cudaStream_t st, cudaError_t status) noexcept {
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
+    void notify() noexcept {
         std::unique_lock< mutex > lk{ mtx_ };
-        st_ = st;
+        status_ = cudaSuccess;
+        done_ = true;
+        lk.unlock();
+        cv_.notify_one();
+    }
+#else
+    void notify( cudaStream_t, cudaError_t status) noexcept {
+        std::unique_lock< mutex > lk{ mtx_ };
         status_ = status;
         done_ = true;
         lk.unlock();
         cv_.notify_one();
     }
+#endif
 
     std::tuple< cudaStream_t, cudaError_t > wait() {
         std::unique_lock< mutex > lk{ mtx_ };
@@ -75,9 +104,17 @@ public:
     many_streams_rendezvous( std::initializer_list< cudaStream_t > l) :
             stx_{ l } {
         results_.reserve( stx_.size() );
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
+        hostfunc_ctx_.reserve( stx_.size() );
+#endif
         for ( cudaStream_t st : stx_) {
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
+            hostfunc_ctx_.push_back( hostfunc_context{ this, st } );
+            cudaError_t status = ::cudaLaunchHostFunc( st, trampoline< hostfunc_context >, & hostfunc_ctx_.back() );
+#else
             unsigned int flags = 0;
             cudaError_t status = ::cudaStreamAddCallback( st, trampoline< many_streams_rendezvous >, this, flags);
+#endif
             if ( cudaSuccess != status) {
                 std::unique_lock< mutex > lk{ mtx_ };
                 stx_.erase( st);
@@ -103,10 +140,23 @@ public:
     }
 
 private:
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
+    struct hostfunc_context {
+        many_streams_rendezvous *  rendezvous;
+        cudaStream_t               st;
+
+        void notify() noexcept {
+            rendezvous->notify( st, cudaSuccess);
+        }
+    };
+#endif
     mutex                                                   mtx_{};
     condition_variable                                      cv_{};
     std::set< cudaStream_t >                                stx_;
     std::vector< std::tuple< cudaStream_t, cudaError_t > >  results_;
+#ifdef BOOST_FIBER_CUDA_USE_LAUNCHHOSTFUNC
+    std::vector< hostfunc_context >                         hostfunc_ctx_;
+#endif
 };
 
 }
