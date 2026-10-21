@@ -10,8 +10,14 @@
 #include <cstddef>
 
 #include <boost/config.hpp>
-#include <boost/predef.h> 
+#include <boost/predef.h>
 #include <boost/detail/workaround.hpp>
+
+#if BOOST_OS_MACOS
+#include <Availability.h>
+#define BOOST_OS_SYNC_WAIT_ON_ADDRESS_AVAILABLE \
+    __MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_14_4
+#endif
 
 #ifdef BOOST_FIBERS_DECL
 # undef BOOST_FIBERS_DECL
@@ -38,7 +44,8 @@
 # include <boost/config/auto_link.hpp>
 #endif
 
-#if BOOST_OS_LINUX || BOOST_OS_BSD_OPEN || BOOST_OS_WINDOWS
+#if BOOST_OS_LINUX || BOOST_OS_BSD_OPEN || BOOST_OS_WINDOWS || (BOOST_OS_MACOS && \
+    BOOST_OS_SYNC_WAIT_ON_ADDRESS_AVAILABLE)
 # define BOOST_FIBERS_HAS_FUTEX
 #endif
 
