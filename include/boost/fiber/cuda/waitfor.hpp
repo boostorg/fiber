@@ -9,13 +9,9 @@
 
 #include <initializer_list>
 #include <mutex>
-#include <iostream>
 #include <set>
 #include <tuple>
 #include <vector>
-
-#include <boost/assert.hpp>
-#include <boost/config.hpp>
 
 #include <cuda_runtime_api.h>
 

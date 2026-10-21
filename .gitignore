@@ -5,3 +5,5 @@ doc\html
 cscope.*
 examples/cuda/multiple_streams*
 examples/cuda/single_stream*
+examples/hip/multiple_streams*
+examples/hip/single_stream*

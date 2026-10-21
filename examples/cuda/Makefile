@@ -5,7 +5,7 @@ NVCC := $(CUDA_PATH)/bin/nvcc
 CPPFLAGS := -O2 -std=c++11
 LDFLAGS := -g -L/usr/local/lib
 INCLUDES := -I/usr/local/include -I$(CUDA_PATH)/include
-LIBRARIES := -lboost_fiber -lboost_context -lboost_system -lboost_filesystem
+LIBRARIES := -lboost_fiber -lboost_context
 
 all: build
 

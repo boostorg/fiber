@@ -8,7 +8,7 @@
 [#cuda]
 [section:cuda CUDA]
 
-[@http://developer.nvidia.com/cuda-zone/ CUDA (Compute Unified Device Architecture)] is a platform for parallel computing
+[@https://developer.nvidia.com/cuda/ CUDA (Compute Unified Device Architecture)] is a platform for parallel computing
 on NVIDIA GPUs. The application programming interface of CUDA gives access to
 GPU's instruction set and computation resources (Execution of compute kernels).
 
@@ -102,8 +102,8 @@ streams has finished.
     }}}
 
 [variablelist
-[[Effects:] [Suspends active fiber till CUDA stream has finished its operations.]]
-[[Returns:] [tuple of stream reference and the CUDA stream status]]
+[[Effects:] [Suspends active fiber till CUDA stream or streams have finished their operations.]]
+[[Returns:] [For a single stream, returns a tuple containing the stream and its CUDA status. For multiple streams, returns a vector of tuples containing each stream and its CUDA status.]]
 ]
 
 

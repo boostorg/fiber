@@ -7,21 +7,18 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 #include <random>
 #include <tuple>
 
 #include <hip/hip_runtime.h>
 
 #include <boost/assert.hpp>
-#include <boost/bind.hpp>
-#include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/all.hpp>
-#include <boost/fiber/hip/waitfor.hpp>
+#include "boost/fiber/hip/waitfor.hpp"
 
 __global__
-void vector_add(hipLaunchParm lp, int * a, int * b, int * c, int size) {
+void vector_add( int * a, int * b, int * c, int size) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if ( idx < size) {
         c[idx] = a[idx] + b[idx];
@@ -55,7 +52,7 @@ int main() {
                 for ( int i = 0; i < full_size; i += size) {
                     hipMemcpyAsync( dev_a, host_a + i, size * sizeof( int), hipMemcpyHostToDevice, stream);
                     hipMemcpyAsync( dev_b, host_b + i, size * sizeof( int), hipMemcpyHostToDevice, stream);
-                    hipLaunchKernel( vector_add, dim3(size / 256), dim3(256), 0, stream, dev_a, dev_b, dev_c, size);
+                    hipLaunchKernelGGL( vector_add, dim3(size / 256), dim3(256), 0, stream, dev_a, dev_b, dev_c, size);
                     hipMemcpyAsync( host_c + i, dev_c, size * sizeof( int), hipMemcpyDeviceToHost, stream);
                 }
                 auto result = boost::fibers::hip::waitfor_all( stream);
