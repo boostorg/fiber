@@ -35,6 +35,10 @@ Your `algorithm` subclass is engaged on a particular thread by calling
             ...
         }
 
+[function_link initialize_thread] provides an alternative to `use_scheduling_algorithm` when
+thread initialization needs to be further customized, such as when an existing algorithm instance
+or a non-default stack allocator is to be used.
+
 A scheduler class must implement interface __algo__. __boost_fiber__ provides
 schedulers: __round_robin__, __work_stealing__, __numa_work_stealing__ and
 __shared_work__.
