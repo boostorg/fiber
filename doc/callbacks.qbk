@@ -180,8 +180,8 @@ and `future` because the `promise` mechanism interacts badly with
 [@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/stop.html
 `io_service::stop()`]. It produces `broken_promise` exceptions.
 
-`boost::fibers::asio::yield` is a completion token of this kind. `yield` is an
-instance of `yield_t`:
+`boost::fibers::asio::yield()` is a completion token of this kind. `yield()` returns
+a reference to a function-local `thread_local` instance of `yield_t`:
 
 [fibers_asio_yield_t]
 
@@ -191,7 +191,7 @@ customization. It can bind a
 `boost::system::error_code`]
 for use by the actual handler.
 
-`yield` is declared as:
+`yield()` is declared as:
 
 [fibers_asio_yield]
 
@@ -207,7 +207,7 @@ for `yield_t`:
 one for each of the four Asio async callback signatures we expect.)
 
 The above directs Asio to use `yield_handler` as the actual handler for an
-async operation to which `yield` is passed. There[s] a generic
+async operation to which `yield()` is passed. There[s] a generic
 `yield_handler<T>` implementation and a `yield_handler<void>` specialization.
 Let[s] start with the `<void>` specialization:
 
@@ -216,7 +216,7 @@ Let[s] start with the `<void>` specialization:
 `async_something()`, having consulted the `handler_type<>` traits
 specialization, instantiates a `yield_handler<void>` to be passed as the
 actual callback for the async operation. `yield_handler`[s] constructor accepts
-the `yield_t` instance (the `yield` object passed to the async function) and
+the `yield_t` instance (the `yield()` object passed to the async function) and
 passes it along to `yield_handler_base`:
 
 [fibers_asio_yield_handler_base]
@@ -246,7 +246,7 @@ This is how `yield_handler_base::ycomp_` becomes non-null:
 `async_result_base`[s] constructor injects a pointer back to its own
 `yield_completion` member.
 
-Recall that the canonical `yield_t` instance `yield` initializes its
+Recall that the canonical `yield_t` instance `yield()` initializes its
 `error_code*` member `ec_` to `nullptr`. If this instance is passed to
 `async_something()` (`ec_` is still `nullptr`), the copy stored in
 `yield_handler_base` will likewise have null `ec_`. `async_result_base`[s]
@@ -290,7 +290,7 @@ async operation completes immediately [mdash] if
 
 The actual `error_code` produced by the async operation is then stored through
 the stored `yield_t::ec_` pointer. If `async_something()`[s] caller used (e.g.)
-`yield[my_ec]` to bind a local `error_code` instance, the actual `error_code`
+`yield()[my_ec]` to bind a local `error_code` instance, the actual `error_code`
 value is stored into the caller[s] variable. Otherwise, it is stored into
 `async_result_base::ec_`.
 
@@ -303,11 +303,11 @@ In due course, that fiber is resumed. Control returns from [member_link
 context..suspend] to `yield_completion::wait()`, which returns to
 `async_result_base::get()`.
 
-* If the original caller passed `yield[my_ec]` to `async_something()` to bind
+* If the original caller passed `yield()[my_ec]` to `async_something()` to bind
   a local `error_code` instance, then `yield_handler_base::operator()` stored
   its `error_code` to the caller[s] `my_ec` instance, leaving
   `async_result_base::ec_` initialized to success.
-* If the original caller passed `yield` to `async_something()` without binding
+* If the original caller passed `yield()` to `async_something()` without binding
   a local `error_code` variable, then `yield_handler_base::operator()` stored
   its `error_code` into `async_result_base::ec_`. If in fact that `error_code`
   is success, then all is well.

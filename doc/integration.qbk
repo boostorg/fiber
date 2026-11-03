@@ -112,7 +112,7 @@ will reawaken in a timely manner. It can set an Asio timer, as described above
 [mdash] but that timer[s] handler may well execute on a different thread!
 
 Another implication is that since an Asio-aware fiber scheduler (not to
-mention [link callbacks_asio `boost::fibers::asio::yield`]) depends on handler
+mention [link callbacks_asio `boost::fibers::asio::yield()`]) depends on handler
 calls from the `io_service`, it is the application[s] responsibility to ensure
 that
 [@http://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/io_service/stop.html
