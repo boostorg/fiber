@@ -33,10 +33,12 @@
 namespace boost {
 namespace fibers {
 
-template< typename T >
+template< typename T,
+          typename Allocator = std::allocator< typename std::remove_reference<T>::type > >
 class buffered_channel {
 public:
     using value_type = typename std::remove_reference<T>::type;
+    using allocator_type = typename std::allocator_traits< Allocator >::template rebind_alloc< value_type >;
 
 private:
 	using slot_type = value_type;
@@ -44,7 +46,8 @@ private:
     mutable detail::spinlock   splk_{};
     wait_queue                                          waiting_producers_{};
     wait_queue                                          waiting_consumers_{};
-	slot_type                                       *   slots_;
+    slot_type                                       *   slots_{ nullptr };
+    allocator_type                                      allocator_{};
 	std::size_t                                         pidx_{ 0 };
 	std::size_t                                         cidx_{ 0 };
 	std::size_t                                         capacity_;
@@ -64,19 +67,22 @@ private:
 
     template< typename U >
     void push_value_( U && value) {
-        slots_[pidx_] = std::forward< U >( value);
+        std::allocator_traits< allocator_type >::construct(
+                allocator_, slots_ + pidx_, std::forward< U >( value));
         pidx_ = (pidx_ + 1) % capacity_;
         waiting_consumers_.notify_one();
     }
 
     void pop_value_( value_type & value) {
         value = std::move( slots_[cidx_]);
+        std::allocator_traits< allocator_type >::destroy( allocator_, slots_ + cidx_);
         cidx_ = (cidx_ + 1) % capacity_;
         waiting_producers_.notify_one();
     }
 
     value_type pop_value_() {
         value_type value = std::move( slots_[cidx_]);
+        std::allocator_traits< allocator_type >::destroy( allocator_, slots_ + cidx_);
         cidx_ = (cidx_ + 1) % capacity_;
         waiting_producers_.notify_one();
         return value;
@@ -164,18 +170,24 @@ private:
     }
 
 public:
-    explicit buffered_channel( std::size_t capacity) :
+    explicit buffered_channel( std::size_t capacity,
+                               allocator_type const& allocator = allocator_type{}) :
+            allocator_{ allocator },
             capacity_{ capacity } {
         if ( BOOST_UNLIKELY( 2 > capacity_ || 0 != ( capacity_ & (capacity_ - 1) ) ) ) { 
             throw fiber_error{ std::make_error_code( std::errc::invalid_argument),
                                "boost fiber: buffer capacity is invalid" };
         }
-        slots_ = new slot_type[capacity_];
+        slots_ = std::allocator_traits< allocator_type >::allocate( allocator_, capacity_);
     }
 
     ~buffered_channel() {
         close();
-        delete [] slots_;
+        while ( ! is_empty_() ) {
+            std::allocator_traits< allocator_type >::destroy( allocator_, slots_ + cidx_);
+            cidx_ = (cidx_ + 1) % capacity_;
+        }
+        std::allocator_traits< allocator_type >::deallocate( allocator_, slots_, capacity_);
     }
 
     buffered_channel( buffered_channel const&) = delete;
@@ -375,16 +387,16 @@ public:
     friend class iterator;
 };
 
-template< typename T >
-typename buffered_channel< T >::iterator
-begin( buffered_channel< T > & chan) {
-    return typename buffered_channel< T >::iterator( & chan);
+template< typename T, typename Allocator >
+typename buffered_channel< T, Allocator >::iterator
+begin( buffered_channel< T, Allocator > & chan) {
+    return typename buffered_channel< T, Allocator >::iterator( & chan);
 }
 
-template< typename T >
-typename buffered_channel< T >::iterator
-end( buffered_channel< T > &) {
-    return typename buffered_channel< T >::iterator();
+template< typename T, typename Allocator >
+typename buffered_channel< T, Allocator >::iterator
+end( buffered_channel< T, Allocator > &) {
+    return typename buffered_channel< T, Allocator >::iterator();
 }
 
 }}
