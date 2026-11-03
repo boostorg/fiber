@@ -25,12 +25,11 @@ public:
 
     /**
      * @code
-     * static yield_t yield;
      * boost::system::error_code myec;
-     * func(yield[myec]);
+     * func(yield()[myec]);
      * @endcode
-     * @c yield[myec] returns an instance of @c yield_t whose @c ec_ points
-     * to @c myec. The expression @c yield[myec] "binds" @c myec to that
+     * @c yield()[myec] returns an instance of @c yield_t whose @c ec_ points
+     * to @c myec. The expression @c yield()[myec] "binds" @c myec to that
      * (anonymous) @c yield_t instance, instructing @c func() to store any
      * @c error_code it might produce into @c myec rather than throwing @c
      * boost::system::system_error.
@@ -48,8 +47,11 @@ public:
 //]
 
 //[fibers_asio_yield
-// canonical instance
-thread_local yield_t yield{};
+// get canonical instance
+inline yield_t & yield() {
+    thread_local yield_t y{};
+    return y;
+}
 //]
 
 }}}
