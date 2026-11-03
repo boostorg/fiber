@@ -152,7 +152,7 @@ public:
             boost::asio::async_read(
                     socket_,
                     boost::asio::buffer( data_),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec) {
                 throw std::runtime_error("no queue from subscriber");
             }
@@ -182,7 +182,7 @@ public:
                 boost::asio::async_write(
                         socket_,
                         boost::asio::buffer( data, data.size() ),
-                        boost::fibers::asio::yield[ec]);
+                        boost::fibers::asio::yield()[ec]);
                 if ( ec == boost::asio::error::eof) {
                     break; //connection closed cleanly by peer
                 } else if ( ec) {
@@ -257,7 +257,7 @@ public:
             boost::asio::async_read(
                     socket_,
                     boost::asio::buffer( data),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec) {
                 throw std::runtime_error("no queue from publisher");
             }
@@ -274,7 +274,7 @@ public:
                 boost::asio::async_read(
                         socket_,
                         boost::asio::buffer( data),
-                        boost::fibers::asio::yield[ec]); 
+                        boost::fibers::asio::yield()[ec]); 
                 if ( ec == boost::asio::error::eof) {
                     break; //connection closed cleanly by peer
                 } else if ( ec) {
@@ -318,7 +318,7 @@ void accept_publisher( std::shared_ptr< boost::asio::io_context > const& io_cont
         // is connected
         acceptor.async_accept(
                 new_publisher_session->socket(), 
-                boost::fibers::asio::yield[ec]);
+                boost::fibers::asio::yield()[ec]);
         if ( ! ec) {
             // run the new publisher in its own fiber (one fiber for one client)
             boost::fibers::fiber(
@@ -346,7 +346,7 @@ void accept_subscriber( std::shared_ptr< boost::asio::io_context > const& io_con
         // is connected
         acceptor.async_accept(
                 new_subscriber_session->socket(), 
-                boost::fibers::asio::yield[ec]);
+                boost::fibers::asio::yield()[ec]);
         if ( ! ec) {
             // run the new subscriber in its own fiber (one fiber for one client)
             boost::fibers::fiber(

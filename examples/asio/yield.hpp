@@ -48,8 +48,11 @@ public:
 //]
 
 //[fibers_asio_yield
-// canonical instance
-thread_local yield_t yield{};
+// get canonical instance
+inline yield_t & yield() {
+    thread_local yield_t y{};
+    return y;
+}
 //]
 
 }}}
