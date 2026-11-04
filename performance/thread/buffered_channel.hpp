@@ -22,6 +22,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/core/launder.hpp>
 #include <boost/fiber/detail/config.hpp>
 
 enum class channel_op_status {
@@ -44,10 +45,16 @@ private:
         std::atomic< std::size_t >  cycle{ 0 };
         alignas(T) storage_type     storage{};
 
+        // Launder the pointer to the object placement-constructed in storage.
+        value_type * get_value_ptr_() noexcept {
+            return boost::core::launder(
+                reinterpret_cast< value_type * >( std::addressof( storage) ) );
+        }
+
         slot() = default;
     };
 
-    // procuder cacheline
+    // producer cacheline
     alignas(cache_alignment) std::atomic< std::size_t >     producer_idx_{ 0 };
     // consumer cacheline
     alignas(cache_alignment) std::atomic< std::size_t >     consumer_idx_{ 0 };
@@ -112,7 +119,7 @@ private:
             }
         }
         // incrementing the slot cycle must be deferred till the value has been consumed
-        // slot cycle tells procuders that the cell can be re-used (store new value)
+        // slot cycle tells producers that the cell can be re-used (store new value)
         return channel_op_status::success;
     }
 
@@ -121,7 +128,7 @@ private:
         std::size_t idx{ 0 };
         channel_op_status status{ try_value_pop_( s, idx) };
         if ( channel_op_status::success == status) {
-            value = std::move( * reinterpret_cast< value_type * >( std::addressof( s->storage) ) );
+            value = std::move( * s->get_value_ptr_() );
             s->cycle.store( idx + capacity_, std::memory_order_release);
         }
         return status;
@@ -145,7 +152,7 @@ public:
             slot * s{ nullptr };
             std::size_t idx{ 0 };
             if ( channel_op_status::success == try_value_pop_( s, idx) ) {
-                reinterpret_cast< value_type * >( std::addressof( s->storage) )->~value_type();
+                s->get_value_ptr_()->~value_type();
                 s->cycle.store( idx + capacity_, std::memory_order_release);
             } else {
                 break;
@@ -202,7 +209,7 @@ public:
             std::size_t idx{ 0 };
             channel_op_status status{ try_value_pop_( s, idx) };
             if ( channel_op_status::success == status) {
-                value_type value{ std::move( * reinterpret_cast< value_type * >( std::addressof( s->storage) ) ) };
+                value_type value{ std::move( * s->get_value_ptr_() ) };
                 s->cycle.store( idx + capacity_, std::memory_order_release);
                 not_full_cnd_.notify_one();
                 return std::move( value);
