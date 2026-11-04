@@ -18,6 +18,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <boost/core/launder.hpp>
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fiber/detail/config.hpp>
@@ -159,6 +160,12 @@ class shared_state : public shared_state_base {
 private:
     alignas(alignof( R)) unsigned char storage_[sizeof( R)]{};
 
+    // Launder the pointer to the object placement-constructed in storage.
+    R * get_value_ptr_() noexcept {
+        return boost::core::launder(
+                reinterpret_cast< R * >( std::addressof( storage_) ) );
+    }
+
     void set_value_( R const& value, std::unique_lock< mutex > & lk) {
         BOOST_ASSERT( lk.owns_lock() );
         if ( BOOST_UNLIKELY( ready_) ) {
@@ -183,7 +190,7 @@ private:
         if ( except_) {
             std::rethrow_exception( except_);
         }
-        return * reinterpret_cast< R * >( std::addressof( storage_) );
+        return * get_value_ptr_();
     }
 
 public:
@@ -193,7 +200,7 @@ public:
 
     virtual ~shared_state() {
         if ( ready_ && ! except_) {
-            reinterpret_cast< R * >( std::addressof( storage_) )->~R();
+            get_value_ptr_()->~R();
         }
     }
 
