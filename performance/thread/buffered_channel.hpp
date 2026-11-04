@@ -54,7 +54,7 @@ private:
         slot() = default;
     };
 
-    // procuder cacheline
+    // producer cacheline
     alignas(cache_alignment) std::atomic< std::size_t >     producer_idx_{ 0 };
     // consumer cacheline
     alignas(cache_alignment) std::atomic< std::size_t >     consumer_idx_{ 0 };
@@ -119,7 +119,7 @@ private:
             }
         }
         // incrementing the slot cycle must be deferred till the value has been consumed
-        // slot cycle tells procuders that the cell can be re-used (store new value)
+        // slot cycle tells producers that the cell can be re-used (store new value)
         return channel_op_status::success;
     }
 

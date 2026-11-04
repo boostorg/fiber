@@ -156,7 +156,7 @@ public:
             }
 
             waiting_producers_.suspend_and_wait( lk, active_ctx);
-            // resumed, slot mabye free
+            // resumed, slot maybe free
         }
     }
 
@@ -189,7 +189,7 @@ public:
                 continue;
             }
             waiting_producers_.suspend_and_wait( lk, active_ctx);
-            // resumed, slot mabye free
+            // resumed, slot maybe free
         }
     }
 
@@ -320,7 +320,7 @@ public:
                 continue;
             }
             waiting_consumers_.suspend_and_wait( lk, active_ctx);
-            // resumed, slot mabye set
+            // resumed, slot maybe set
         }
     }
 
@@ -349,7 +349,7 @@ public:
                 continue;
             }
             waiting_consumers_.suspend_and_wait( lk, active_ctx);
-            // resumed, slot mabye set
+            // resumed, slot maybe set
         }
     }
 
