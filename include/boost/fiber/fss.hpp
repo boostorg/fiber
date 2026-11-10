@@ -93,7 +93,7 @@ public:
         T * c = get();
         if ( BOOST_LIKELY( c != t) ) {
             context::active()->set_fss_data(
-                this, cleanup_fn_, t, true);
+                this, cleanup_fn_, const_cast< void * >( static_cast< void const * >( t) ), true);
         }
     }
 };
