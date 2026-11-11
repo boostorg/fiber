@@ -5,6 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <chrono>
+#include <cstddef>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -42,6 +44,65 @@ struct moveable {
         value = other.value;
         other.value = -1;
         return * this;
+    }
+};
+
+struct non_default_constructible {
+    int value;
+
+    explicit non_default_constructible( int value_) :
+        value( value_) {
+    }
+
+    non_default_constructible( non_default_constructible const&) = delete;
+
+    non_default_constructible( non_default_constructible && other) :
+        value( other.value) {
+    }
+};
+
+struct allocation_counts {
+    std::size_t allocations{ 0 };
+    std::size_t deallocations{ 0 };
+};
+
+template< typename T >
+struct counting_allocator {
+    using value_type = T;
+    allocation_counts * counts;
+
+    explicit counting_allocator( allocation_counts & counts_) :
+        counts( & counts_) {
+    }
+
+    template< typename U >
+    counting_allocator( counting_allocator< U > const& other) :
+        counts( other.counts) {
+    }
+
+    template< typename U >
+    struct rebind {
+        using other = counting_allocator< U >;
+    };
+
+    template< typename U >
+    bool operator==( counting_allocator< U > const& other) const {
+        return counts == other.counts;
+    }
+
+    template< typename U >
+    bool operator!=( counting_allocator< U > const& other) const {
+        return ! ( *this == other);
+    }
+
+    T * allocate( std::size_t count) {
+        ++counts->allocations;
+        return std::allocator< T >{}.allocate( count);
+    }
+
+    void deallocate( T * ptr, std::size_t count) {
+        ++counts->deallocations;
+        std::allocator< T >{}.deallocate( ptr, count);
     }
 };
 
@@ -160,6 +221,26 @@ void test_value_pop() {
     BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     v2 = c.value_pop();
     BOOST_CHECK_EQUAL( v1, v2);
+}
+
+void test_non_default_constructible() {
+    boost::fibers::buffered_channel< non_default_constructible > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success ==
+                 c.push( non_default_constructible( 42) ) );
+    non_default_constructible value = c.value_pop();
+    BOOST_CHECK_EQUAL( 42, value.value);
+}
+
+void test_custom_allocator() {
+    allocation_counts counts;
+    {
+        boost::fibers::buffered_channel< int, counting_allocator< int > > c(
+                2, counting_allocator< int >( counts));
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 42) );
+        BOOST_CHECK_EQUAL( 1u, counts.allocations);
+        BOOST_CHECK_EQUAL( 0u, counts.deallocations);
+    }
+    BOOST_CHECK_EQUAL( 1u, counts.deallocations);
 }
 
 void test_value_pop_closed() {
@@ -509,6 +590,8 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
      test->add( BOOST_TEST_CASE( & test_pop_closed) );
      test->add( BOOST_TEST_CASE( & test_pop_success) );
      test->add( BOOST_TEST_CASE( & test_value_pop) );
+     test->add( BOOST_TEST_CASE( & test_non_default_constructible) );
+     test->add( BOOST_TEST_CASE( & test_custom_allocator) );
      test->add( BOOST_TEST_CASE( & test_value_pop_closed) );
      test->add( BOOST_TEST_CASE( & test_value_pop_success) );
      test->add( BOOST_TEST_CASE( & test_try_pop) );
