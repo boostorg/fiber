@@ -38,7 +38,7 @@ private:
         }
 
         void operator()( void * data) override {
-            if ( BOOST_LIKELY( nullptr != fn) ) {
+            if ( nullptr != fn) {
                 fn( static_cast< T * >( data) );
             }
         }
