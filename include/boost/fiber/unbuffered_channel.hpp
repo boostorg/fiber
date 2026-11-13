@@ -95,7 +95,9 @@ private:
     }
 
 public:
-    unbuffered_channel() = default;
+    unbuffered_channel() : // non-default constructor to avoid bug in gcc 4.8
+        slot_( nullptr),
+        closed_( false) {}
 
     ~unbuffered_channel() {
         close();
