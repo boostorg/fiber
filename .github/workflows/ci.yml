@@ -1,0 +1,52 @@
+#
+# Copyright 2020-2021 Peter Dimov
+# Copyright 2021 Andrey Semashev
+# Copyright 2021-2026 Alexander Grund
+# Copyright 2022-2025 James E. King III
+#
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at http://boost.org/LICENSE_1_0.txt)
+#
+# This workflow uses the Boost.CI reusable workflow which builds a variety of
+# configurations of your project, runs tests, and generates code coverage reports.
+#
+# To use it, copy this file into your repository as `.github/workflows/ci.yml` and
+# customize it appropriately.
+# 
+---
+name: Boost.CI
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
+      - bugfix/**
+      - feature/**
+      - fix/**
+      - github/**
+      - pr/**
+    paths-ignore:
+      - LICENSE
+      - meta/**
+      - README.md
+
+jobs:
+  call-boost-ci:
+    name: Run Boost.CI
+    uses: boostorg/boost-ci/.github/workflows/reusable.yml@master
+    # Customization:
+    with:
+      enable_pr_coverage: false 
+      enable_cygwin: false
+      enable_multiarch: false
+      exclude_compiler: "gcc-4.7,clang-3.5,clang-3.8"
+      exclude_os: "windows-11-arm"
+    # secrets:
+    #   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    #   COVERITY_SCAN_NOTIFICATION_EMAIL: ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
+    #   COVERITY_SCAN_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}

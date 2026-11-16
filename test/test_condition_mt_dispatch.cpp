@@ -6,6 +6,7 @@
 //
 // This test is based on the tests of Boost.Thread 
 
+#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -14,7 +15,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include <boost/atomic.hpp>
 #include <boost/chrono.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/function.hpp>
@@ -27,7 +27,7 @@
 
 typedef boost::chrono::milliseconds ms;
 
-boost::atomic< int > value1;
+std::atomic< int > value1;
 
 void wait_fn( boost::barrier & b,
               boost::fibers::mutex & mtx,
