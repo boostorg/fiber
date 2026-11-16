@@ -42,6 +42,10 @@ jobs:
     # Customization:
     with:
       enable_pr_coverage: false 
+      enable_cygwin: false
+      enable_multiarch: false
+      exclude_compiler: "gcc-4.7,clang-3.5,clang-3.8"
+      exclude_os: "windows-11-arm"
     # secrets:
     #   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     #   COVERITY_SCAN_NOTIFICATION_EMAIL: ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
