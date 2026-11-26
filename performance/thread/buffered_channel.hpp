@@ -212,7 +212,7 @@ public:
                 value_type value{ std::move( * s->get_value_ptr_() ) };
                 s->cycle.store( idx + capacity_, std::memory_order_release);
                 not_full_cnd_.notify_one();
-                return std::move( value);
+                return value;
             } else if ( channel_op_status::empty == status) {
                 std::unique_lock< std::mutex > lk{ mtx_ };
                 ++waiting_consumer_;

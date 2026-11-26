@@ -96,7 +96,9 @@ private:
     }
 
 public:
-    unbuffered_channel() = default;
+    unbuffered_channel() : // non-default constructor to avoid bug in gcc 4.8
+        slot_( nullptr),
+        closed_( false) {}
 
     ~unbuffered_channel() {
         close();
@@ -337,7 +339,7 @@ public:
                 value_type value = std::move( s->value);
                 // notify context
                 s->w.wake();
-                return std::move( value);
+                return value;
             }
             detail::spinlock_lock lk{ splk_consumers_ };
             if ( BOOST_UNLIKELY( is_closed() ) ) {

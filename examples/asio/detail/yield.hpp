@@ -11,7 +11,6 @@
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/detail/config.hpp>
 #include <boost/assert.hpp>
-#include <boost/atomic.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
@@ -19,6 +18,7 @@
 
 #include <boost/fiber/all.hpp>
 
+#include <atomic>
 #include <mutex>                    // std::unique_lock
 
 #ifdef BOOST_HAS_ABI_HEADERS
