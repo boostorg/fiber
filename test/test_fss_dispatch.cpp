@@ -222,6 +222,48 @@ void test_fss_at_the_same_adress() {
     boost::fibers::fiber( boost::fibers::launch::dispatch, fss_at_the_same_adress).join();
 }
 
+struct const_fss_value {
+    int value;
+    int * destructions;
+
+    ~const_fss_value() {
+        ++*destructions;
+    }
+};
+
+int const_fss_custom_cleanups = 0;
+
+void const_fss_cleanup(const_fss_value const * value) {
+    ++const_fss_custom_cleanups;
+    delete value;
+}
+
+void test_const_fss() {
+    int destructions = 0;
+    const_fss_custom_cleanups = 0;
+    boost::fibers::fiber_specific_ptr<const_fss_value const> default_fss;
+    boost::fibers::fiber_specific_ptr<const_fss_value const> custom_fss(const_fss_cleanup);
+
+    default_fss.reset(new const_fss_value{1, &destructions});
+    boost::fibers::fiber( boost::fibers::launch::dispatch, [&]() {
+        BOOST_CHECK(default_fss.get() == nullptr);
+        default_fss.reset(new const_fss_value{2, &destructions});
+        BOOST_CHECK_EQUAL(default_fss->value, 2);
+        BOOST_CHECK_EQUAL((*default_fss).value, 2);
+        const_fss_value const * released = default_fss.release();
+        BOOST_CHECK(default_fss.get() == nullptr);
+        delete released;
+        default_fss.reset(new const_fss_value{3, &destructions});
+        custom_fss.reset(new const_fss_value{4, &destructions});
+    }).join();
+
+    BOOST_CHECK_EQUAL(destructions, 3);
+    BOOST_CHECK_EQUAL(const_fss_custom_cleanups, 1);
+    BOOST_CHECK_EQUAL(default_fss->value, 1);
+    default_fss.reset(nullptr);
+    BOOST_CHECK_EQUAL(destructions, 4);
+}
+
 boost::unit_test::test_suite* init_unit_test_suite(int, char*[]) {
     boost::unit_test::test_suite* test =
         BOOST_TEST_SUITE("Boost.Fiber: fss test suite");
@@ -232,6 +274,7 @@ boost::unit_test::test_suite* init_unit_test_suite(int, char*[]) {
     test->add(BOOST_TEST_CASE(test_fss_does_no_cleanup_with_null_cleanup_function));
     test->add(BOOST_TEST_CASE(test_fss_does_not_call_cleanup_after_ptr_destroyed));
     test->add(BOOST_TEST_CASE(test_fss_cleanup_not_called_for_null_pointer));
+    test->add(BOOST_TEST_CASE(test_const_fss));
 
     return test;
 }
