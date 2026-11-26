@@ -31,13 +31,16 @@ extern "C" {
 #include <os/os_sync_wait_on_address.h>
 #endif
 
+#include <atomic>
+#include <cstdint>
+
 namespace boost {
 namespace fibers {
 namespace detail {
 
 #if BOOST_OS_LINUX || BOOST_OS_BSD_OPEN
 BOOST_FORCEINLINE
-int sys_futex( void * addr, std::int32_t op, std::int32_t x) {
+long int sys_futex( void * addr, std::int32_t op, std::int32_t x) {
 #if BOOST_OS_BSD_OPEN
     return ::futex
     (
