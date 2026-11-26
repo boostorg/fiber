@@ -26,7 +26,7 @@ class subscriber_session;
 typedef std::shared_ptr< subscriber_session > subscriber_session_ptr;
 
 // a queue has n subscribers (subscriptions)
-// this class holds a list of subcribers for one queue
+// this class holds a list of subscribers for one queue
 class subscriptions {
 public:
     ~subscriptions();
@@ -49,7 +49,7 @@ private:
     std::set< subscriber_session_ptr >  subscribers_;
 };
 
-// a class to register queues and to subsribe clients to this queues
+// a class to register queues and to subscribe clients to this queues
 class registry : private boost::noncopyable {
 private:
     typedef std::map< std::string, std::shared_ptr< subscriptions > > queues_cont;
@@ -121,7 +121,7 @@ public:
         unsubscribe_( queue, s);
     }
 
-    // publish a message to all subscribers registerd to the queue
+    // publish a message to all subscribers registered to the queue
     void publish( std::string const& queue, std::string const& msg) {
         std::unique_lock< boost::fibers::mutex > lk( mtx_);
         publish_( queue, msg);
@@ -152,19 +152,19 @@ public:
             boost::asio::async_read(
                     socket_,
                     boost::asio::buffer( data_),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec) {
                 throw std::runtime_error("no queue from subscriber");
             }
-            // first message ist equal to the queue name the publisher
+            // first message is equal to the queue name the publisher
             // publishes to
             queue = data_;
             // subscribe to new queue
             reg_.subscribe( queue, shared_from_this() );
             // read published messages
             for (;;) {
-                // wait for a conditon-variable for new messages
-                // the fiber will be suspended until the condtion
+                // wait for a condition-variable for new messages
+                // the fiber will be suspended until the condition
                 // becomes true and the fiber is resumed
                 // published message is stored in buffer 'data_'
                 std::unique_lock< boost::fibers::mutex > lk( mtx_);
@@ -177,12 +177,12 @@ public:
                 }
                 // async. write message to socket connected with
                 // subscriber
-                // async_write() returns if the complete message was writen
+                // async_write() returns if the complete message was written
                 // the fiber is suspended in the meanwhile
                 boost::asio::async_write(
                         socket_,
                         boost::asio::buffer( data, data.size() ),
-                        boost::fibers::asio::yield[ec]);
+                        boost::fibers::asio::yield()[ec]);
                 if ( ec == boost::asio::error::eof) {
                     break; //connection closed cleanly by peer
                 } else if ( ec) {
@@ -257,24 +257,24 @@ public:
             boost::asio::async_read(
                     socket_,
                     boost::asio::buffer( data),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec) {
                 throw std::runtime_error("no queue from publisher");
             }
-            // first message ist equal to the queue name the publisher
+            // first message is equal to the queue name the publisher
             // publishes to
             queue = data;
             // register the new queue
             reg_.register_queue( queue);
             // start publishing messages
             for (;;) {
-                // read message from publisher asyncronous
-                // async_read() suspends this fiber until the complete emssage is read
+                // read message from publisher asynchronous
+                // async_read() suspends this fiber until the complete message is read
                 // and stored in the given buffer 'data'
                 boost::asio::async_read(
                         socket_,
                         boost::asio::buffer( data),
-                        boost::fibers::asio::yield[ec]); 
+                        boost::fibers::asio::yield()[ec]); 
                 if ( ec == boost::asio::error::eof) {
                     break; //connection closed cleanly by peer
                 } else if ( ec) {
@@ -318,7 +318,7 @@ void accept_publisher( std::shared_ptr< boost::asio::io_context > const& io_cont
         // is connected
         acceptor.async_accept(
                 new_publisher_session->socket(), 
-                boost::fibers::asio::yield[ec]);
+                boost::fibers::asio::yield()[ec]);
         if ( ! ec) {
             // run the new publisher in its own fiber (one fiber for one client)
             boost::fibers::fiber(
@@ -346,7 +346,7 @@ void accept_subscriber( std::shared_ptr< boost::asio::io_context > const& io_con
         // is connected
         acceptor.async_accept(
                 new_subscriber_session->socket(), 
-                boost::fibers::asio::yield[ec]);
+                boost::fibers::asio::yield()[ec]);
         if ( ! ec) {
             // run the new subscriber in its own fiber (one fiber for one client)
             boost::fibers::fiber(

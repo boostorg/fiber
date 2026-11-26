@@ -156,7 +156,7 @@ public:
     void operator()( boost::system::error_code const& ec, T t) {
         BOOST_ASSERT_MSG( value_,
                           "Must inject value ptr "
-                          "before caling yield_handler<T>::operator()()");
+                          "before calling yield_handler<T>::operator()()");
         // move the value to async_result<> instance BEFORE waking up a
         // suspended fiber
         * value_ = std::move( t);

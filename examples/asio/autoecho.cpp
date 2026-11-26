@@ -126,7 +126,7 @@ void session( socket_ptr sock) {
             boost::system::error_code ec;
             std::size_t length = sock->async_read_some(
                     boost::asio::buffer( data),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
             } else if ( ec) {
@@ -136,7 +136,7 @@ void session( socket_ptr sock) {
             boost::asio::async_write(
                     * sock,
                     boost::asio::buffer( data, length),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec == boost::asio::error::eof) {
                 break; //connection closed cleanly by peer
             } else if ( ec) {
@@ -160,7 +160,7 @@ void server( std::shared_ptr< boost::asio::io_context > const& io_ctx, tcp::acce
             boost::system::error_code ec;
             a.async_accept(
                     * socket,
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec) {
                 throw boost::system::system_error( ec); //some other error
             } else {
@@ -194,7 +194,7 @@ void client( std::shared_ptr< boost::asio::io_context > const& io_ctx, tcp::acce
             boost::asio::async_write(
                     s,
                     boost::asio::buffer( message),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec == boost::asio::error::eof) {
                 return; //connection closed cleanly by peer
             } else if ( ec) {
@@ -203,7 +203,7 @@ void client( std::shared_ptr< boost::asio::io_context > const& io_ctx, tcp::acce
             char reply[max_length];
             size_t reply_length = s.async_read_some(
                     boost::asio::buffer( reply, max_length),
-                    boost::fibers::asio::yield[ec]);
+                    boost::fibers::asio::yield()[ec]);
             if ( ec == boost::asio::error::eof) {
                 return; //connection closed cleanly by peer
             } else if ( ec) {
