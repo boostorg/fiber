@@ -17,6 +17,7 @@
 #include <utility>
 
 #include <boost/config.hpp>
+#include <boost/core/launder.hpp>
 
 #include <boost/fiber/channel_op_status.hpp>
 #include <boost/fiber/context.hpp>
@@ -321,11 +322,17 @@ public:
         buffered_channel    *            chan_{ nullptr };
         alignas(value_type) storage_type storage_;
 
+        // Launder the pointer to the object placement-constructed in storage.
+        value_type * get_value_ptr_() noexcept {
+            return boost::core::launder(
+                reinterpret_cast< value_type * >( std::addressof( storage_) ) );
+        }
+
         void increment_( bool initial = false) {
             BOOST_ASSERT( nullptr != chan_);
             try {
                 if ( ! initial) {
-                    reinterpret_cast< value_type * >( std::addressof( storage_) )->~value_type();
+                    get_value_ptr_()->~value_type();
                 }
                 ::new ( static_cast< void * >( std::addressof( storage_) ) ) value_type{ chan_->value_pop() };
             } catch ( fiber_error const&) {
@@ -376,11 +383,11 @@ public:
         const iterator operator++( int) = delete;
 
         reference_t operator*() noexcept {
-            return * reinterpret_cast< value_type * >( std::addressof( storage_) );
+            return * get_value_ptr_();
         }
 
         pointer_t operator->() noexcept {
-            return reinterpret_cast< value_type * >( std::addressof( storage_) );
+            return get_value_ptr_();
         }
     };
 
